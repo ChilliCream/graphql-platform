@@ -120,7 +120,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         // arrange
         var executor = await CreateExecutorAsync(
             PolicyDenialBehavior.Null,
-            new UnknownRequirementPolicy());
+            new DriftingRequirementsPolicy());
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -275,31 +275,14 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_FailClosed_When_PolicyIsMissing()
+    public async Task CreateExecutorAsync_Should_Fail_When_PolicyIsMissing()
     {
-        // arrange
-        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => CreateExecutorAsync(PolicyDenialBehavior.Null));
 
-        // act
-        await using var result = await executor.ExecuteAsync(
-            "{ secret }",
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Authorization policy execution failed.",
-                  "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
-                  }
-                }
-              ],
-              "data": null
-            }
-            """);
+        Assert.Equal(
+            "Authorization policy 'CanReadSecret' was not found.",
+            exception.Message);
     }
 
     [Fact]
@@ -401,63 +384,26 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_FailClosed_When_PolicyNameThrows()
+    public async Task CreateExecutorAsync_Should_Fail_When_PolicyNameThrows()
     {
-        // arrange
-        var executor = await CreateExecutorAsync(
-            PolicyDenialBehavior.Null,
-            new ThrowingNamePolicy());
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateExecutorAsync(
+                PolicyDenialBehavior.Null,
+                new ThrowingNamePolicy()));
 
-        // act
-        await using var result = await executor.ExecuteAsync(
-            "{ secret }",
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Authorization policy execution failed.",
-                  "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
-                  }
-                }
-              ],
-              "data": null
-            }
-            """);
+        Assert.Equal("test name failure", exception.Message);
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_FailClosed_When_PolicyRequirementsThrow()
+    public async Task CreateExecutorAsync_Should_Fail_When_PolicyRequirementsThrow()
     {
-        // arrange
-        var executor = await CreateExecutorAsync(
-            PolicyDenialBehavior.Null,
-            new ThrowingRequirementsPolicy());
+        var policy = new ThrowingRequirementsPolicy();
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateExecutorAsync(
+                PolicyDenialBehavior.Null,
+                policy));
 
-        // act
-        await using var result = await executor.ExecuteAsync(
-            "{ secret }",
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Authorization policy execution failed.",
-                  "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
-                  }
-                }
-              ],
-              "data": null
-            }
-            """);
+        Assert.Equal("test requirements failure", exception.Message);
     }
 
     [Fact]
@@ -514,68 +460,28 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_FailClosed_When_PolicyIsRegisteredTwice()
+    public async Task CreateExecutorAsync_Should_Fail_When_PolicyNameIsDuplicated()
     {
-        // arrange
-        var executor = await CreateExecutorAsync(
-            PolicyDenialBehavior.Null,
-            configurePolicies: services =>
-            {
-                services.AddSingleton<IAuthorizationPolicy>(new DenyPolicy());
-                services.AddSingleton<IAuthorizationPolicy>(new DenyPolicy());
-            });
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateExecutorAsync(
+                PolicyDenialBehavior.Null,
+                createPolicies: () => [new DenyPolicy(), new DenyPolicy()]));
 
-        // act
-        await using var result = await executor.ExecuteAsync(
-            "{ secret }",
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Authorization policy execution failed.",
-                  "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
-                  }
-                }
-              ],
-              "data": null
-            }
-            """);
+        Assert.Equal(
+            "Authorization policy 'CanReadSecret' is registered more than once.",
+            exception.Message);
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_FailClosed_When_PolicyConstructionThrows()
+    public async Task CreateExecutorAsync_Should_Fail_When_PolicyCreationThrows()
     {
-        // arrange
-        var executor = await CreateExecutorAsync(
-            PolicyDenialBehavior.Null,
-            configurePolicies: services => services.AddSingleton<IAuthorizationPolicy>(
-                static _ => throw new InvalidOperationException("test construction failure")));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateExecutorAsync(
+                PolicyDenialBehavior.Null,
+                createPolicies: static () =>
+                    throw new InvalidOperationException("test construction failure")));
 
-        // act
-        await using var result = await executor.ExecuteAsync(
-            "{ secret }",
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Authorization policy execution failed.",
-                  "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
-                  }
-                }
-              ],
-              "data": null
-            }
-            """);
+        Assert.Equal("test construction failure", exception.Message);
     }
 
     [Fact]
@@ -970,7 +876,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         PolicyDenialBehavior behavior,
         IAuthorizationPolicy? policy = null,
-        Action<IServiceCollection>? configurePolicies = null,
+        Func<IReadOnlyList<IAuthorizationPolicy>>? createPolicies = null,
         FusionExecutionDiagnosticEventListener? diagnosticListener = null,
         Action<IServiceProvider>? captureRequestServices = null)
     {
@@ -993,12 +899,19 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        if (policy is not null)
+        if (policy is not null && createPolicies is not null)
         {
-            builder.Services.AddSingleton(policy);
+            throw new ArgumentException("Specify either a policy or a policy factory.");
         }
 
-        configurePolicies?.Invoke(builder.Services);
+        if (policy is not null)
+        {
+            ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+        }
+        else if (createPolicies is not null)
+        {
+            ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(createPolicies));
+        }
 
         if (diagnosticListener is not null)
         {
@@ -1045,8 +958,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton<IAuthorizationPolicy>(policy);
-        builder.Services.AddSingleton<IAuthorizationPolicyDefinition>(policy);
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
         builder.AddDiagnosticEventListener(_ => listener);
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(("a", client)));
@@ -1090,8 +1002,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton<IAuthorizationPolicy>(policy);
-        builder.Services.AddSingleton<IAuthorizationPolicyDefinition>(policy);
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
         builder.AddDiagnosticEventListener(_ => listener);
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(
@@ -1148,7 +1059,9 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton(policy ?? new DenyPolicy());
+        ConfigurePolicies(
+            builder,
+            new TestAuthorizationPolicyProvider(policy ?? new DenyPolicy()));
 
         if (diagnosticListener is not null)
         {
@@ -1214,7 +1127,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton(policy);
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(("a", new StaticResultClient())));
 
@@ -1265,7 +1178,9 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton<IAuthorizationPolicy>(new DenySecondProductPolicy());
+        ConfigurePolicies(
+            builder,
+            new TestAuthorizationPolicyProvider(new DenySecondProductPolicy()));
 
         if (diagnosticListener is not null)
         {
@@ -1341,7 +1256,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton<IAuthorizationPolicy>(new DenyPolicy());
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(new DenyPolicy()));
 
         if (diagnosticListener is not null)
         {
@@ -1413,7 +1328,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        builder.Services.AddSingleton<IAuthorizationPolicy>(new DenyPolicy());
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(new DenyPolicy()));
         builder.AddDiagnosticEventListener(_ => diagnosticListener);
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(
@@ -1430,6 +1345,12 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
+
+    private static void ConfigurePolicies(
+        IFusionGatewayBuilder builder,
+        IAuthorizationPolicyProvider provider)
+        => builder.ConfigureSchemaServices(
+            (_, services) => services.AddSingleton(_ => provider));
 
     private sealed class DenyPolicy : IAuthorizationPolicy
     {
@@ -1504,6 +1425,24 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public string Name => "CanReadSecret";
 
         public SelectionSetNode? Requirements => s_requirements;
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+            => ValueTask.CompletedTask;
+    }
+
+    private sealed class DriftingRequirementsPolicy : IAuthorizationPolicy
+    {
+        private static readonly SelectionSetNode s_requirements =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }");
+        private int _readCount;
+
+        public string Name => "CanReadSecret";
+
+        public SelectionSetNode? Requirements
+            => Interlocked.Increment(ref _readCount) == 1 ? null : s_requirements;
 
         public ValueTask EvaluateAsync(
             IAuthorizationContext context,

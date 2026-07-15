@@ -215,7 +215,7 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
-    <Project Path="HotChocolate/Fusion/src/Fusion.Execution.Policies.Rego/HotChocolate.Fusion.Execution.Policies.Rego.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Policies.Rego/HotChocolate.Fusion.Policies.Rego.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />

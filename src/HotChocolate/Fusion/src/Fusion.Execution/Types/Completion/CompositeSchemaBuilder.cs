@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
@@ -629,6 +630,7 @@ internal static class CompositeSchemaBuilder
         context.RegisterForCompletion(nodeFallbackLookup);
         features.Set(nodeFallbackLookup);
 
+        var policies = CreateAuthorizationPolicies(context.Services);
         var schema = new FusionSchemaDefinition(
             context.Name,
             context.Description,
@@ -642,6 +644,7 @@ internal static class CompositeSchemaBuilder
                 : null,
             directives,
             new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
+            policies,
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
             nodeResolution,
             shareableFieldRuntimeTypeRouting,
@@ -654,6 +657,19 @@ internal static class CompositeSchemaBuilder
         schema.EnsurePlannerTopologyCacheInitialized();
 
         return schema;
+    }
+
+    private static AuthorizationPolicyCollection CreateAuthorizationPolicies(
+        IServiceProvider services)
+    {
+        var provider = services.GetServices<IAuthorizationPolicyProvider>();
+
+        if (provider?.Any() == true)
+        {
+            return new AuthorizationPolicyCollection(provider.SelectMany(p => p.CreatePolicies()));
+        }
+
+        return AuthorizationPolicyCollection.Empty;
     }
 
     private static ExecutionSettings ParseExecutionSettings(DocumentNode document)

@@ -236,5 +236,23 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_AuthorizationPolicyExecutionFailed", resourceCulture);
             }
         }
+
+        internal static string AuthorizationPolicyCollection_PolicyNameEmpty {
+            get {
+                return ResourceManager.GetString("AuthorizationPolicyCollection_PolicyNameEmpty", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationPolicyCollection_PolicyNameDuplicate {
+            get {
+                return ResourceManager.GetString("AuthorizationPolicyCollection_PolicyNameDuplicate", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationPolicyCollection_PolicyNameNotFound {
+            get {
+                return ResourceManager.GetString("AuthorizationPolicyCollection_PolicyNameNotFound", resourceCulture);
+            }
+        }
     }
 }

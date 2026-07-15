@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Types;
 
@@ -9,7 +11,7 @@ public sealed class PolicyApplicationsTests : FusionTestBase
     [Fact]
     public void Create_Should_SetHasPoliciesAndStoreApplications_When_ObjectAndFieldHavePolicies()
     {
-        var schema = CreateCompositeSchema(
+        var schema = CreateSchema(
             """
             schema {
               query: Query
@@ -30,7 +32,9 @@ public sealed class PolicyApplicationsTests : FusionTestBase
             enum fusion__Schema {
               A @fusion__schema_metadata(name: "A")
             }
-            """);
+            """,
+            "CanReadQuery",
+            "CanReadProduct");
 
         var query = schema.Types.GetType<FusionObjectTypeDefinition>("Query");
         var product = query.Fields["product"];
@@ -48,7 +52,7 @@ public sealed class PolicyApplicationsTests : FusionTestBase
     [Fact]
     public void Create_Should_PreserveAllApplications_When_CoordinateHasMultiplePolicies()
     {
-        var schema = CreateCompositeSchema(
+        var schema = CreateSchema(
             """
             schema {
               query: Query
@@ -65,7 +69,10 @@ public sealed class PolicyApplicationsTests : FusionTestBase
             enum fusion__Schema {
               A @fusion__schema_metadata(name: "A")
             }
-            """);
+            """,
+            "CanRead",
+            "CanAudit",
+            "CanAbort");
 
         var query = schema.Types.GetType<FusionObjectTypeDefinition>("Query");
         var field = query.Fields["field"];
@@ -125,6 +132,21 @@ public sealed class PolicyApplicationsTests : FusionTestBase
         AppendPolicyApplications(builder, $"Field: {type.Name}.{field.Name}", field.PolicyApplications);
 
         return builder.ToString().TrimEnd();
+    }
+
+    private static FusionSchemaDefinition CreateSchema(
+        string schemaText,
+        params string[] policyNames)
+    {
+        var policies = policyNames
+            .Select(static name => (IAuthorizationPolicy)new TestAuthorizationPolicy(name))
+            .ToArray();
+        var services = new ServiceCollection()
+            .AddSingleton<IAuthorizationPolicyProvider>(
+                _ => new TestAuthorizationPolicyProvider(policies))
+            .BuildServiceProvider();
+
+        return FusionSchemaDefinition.Create(Utf8GraphQLParser.Parse(schemaText), services);
     }
 
     private static void AppendPolicyApplications(

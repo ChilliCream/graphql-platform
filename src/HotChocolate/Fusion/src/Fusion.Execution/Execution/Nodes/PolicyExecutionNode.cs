@@ -2,11 +2,11 @@ using System.Buffers;
 using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -81,10 +81,8 @@ public sealed class PolicyExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken)
     {
-        var registeredPolicies = context.RequestContext.RequestServices
-            .GetServices<IAuthorizationPolicy>()
-            .ToArray();
-        var user = context.Features.Get<UserState>()?.User ?? new ClaimsPrincipal();
+        var schema = context.Schema;
+        var user = context.Features.GetRequired<UserState>().User;
         List<SelectionPath>? fullyDeniedPaths = null;
         var aborted = false;
 
@@ -150,7 +148,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
             }
 
             var selection = FindSelection(effects[0]) ?? FindSelection(entities[0]);
-            var type = context.Schema.Types.GetType<ITypeDefinition>(target.TypeName);
+            var type = schema.Types.GetType<ITypeDefinition>(target.TypeName);
 
             var denied = new bool[effectCount];
             var denialBehaviors = new PolicyDenialBehavior[effectCount];
@@ -159,7 +157,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
 
             foreach (var application in target.Policies)
             {
-                var policy = ResolvePolicy(registeredPolicies, application.Name);
+                var policy = schema.Policies.Get(application.Name);
                 var requirements = policy.Requirements;
                 var plannedRequirements = GetPlannedRequirements(
                     target.Requirements,
@@ -195,12 +193,14 @@ public sealed class PolicyExecutionNode : ExecutionNode
                         denialPolicies,
                         effectCount);
 
+                var entityData = new EntityData(effects, effectCount);
+
                 try
                 {
                     await policy.EvaluateAsync(
-                            authorizationContext,
-                            new EntityData(entities, effectCount),
-                            cancellationToken)
+                        authorizationContext,
+                        entityData,
+                        cancellationToken)
                         .ConfigureAwait(false);
                 }
                 finally
@@ -286,36 +286,6 @@ public sealed class PolicyExecutionNode : ExecutionNode
         }
 
         return true;
-    }
-
-    private static IAuthorizationPolicy ResolvePolicy(
-        ReadOnlySpan<IAuthorizationPolicy> policies,
-        string name)
-    {
-        IAuthorizationPolicy? policy = null;
-
-        foreach (var candidate in policies)
-        {
-            if (!candidate.Name.Equals(name, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            if (policy is not null)
-            {
-                throw new InvalidOperationException(
-                    $"Authorization policy '{name}' is registered more than once.");
-            }
-
-            policy = candidate;
-        }
-
-        if (policy is not null)
-        {
-            return policy;
-        }
-
-        throw new InvalidOperationException($"Authorization policy '{name}' was not found.");
     }
 
     private static SelectionSetNode? GetPlannedRequirements(

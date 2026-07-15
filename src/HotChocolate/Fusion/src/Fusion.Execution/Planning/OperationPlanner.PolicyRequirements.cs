@@ -9,36 +9,19 @@ public sealed partial class OperationPlanner
 {
     private const string RequirementDirectiveName = "fusion__requirement";
 
-    private static IReadOnlyDictionary<string, SelectionSetNode> CreatePolicyRequirementMap(
-        IEnumerable<IAuthorizationPolicyDefinition> definitions)
+    private static Dictionary<string, SelectionSetNode> CreatePolicyRequirementMap(
+        IEnumerable<IAuthorizationPolicy> policies)
     {
         var requirements = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
-        var names = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var definition in definitions)
+        foreach (var policy in policies)
         {
-            ArgumentNullException.ThrowIfNull(definition);
-
-            var name = definition.Name;
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new InvalidOperationException(
-                    "An authorization policy definition must have a name.");
-            }
-
-            if (!names.Add(name))
-            {
-                throw new InvalidOperationException(
-                    $"Authorization policy definition '{name}' is registered more than once.");
-            }
-
-            if (definition.Requirements is not { } selectionSet)
+            if (policy.Requirements is not { } selectionSet)
             {
                 continue;
             }
 
-            requirements.Add(name, selectionSet);
+            requirements.Add(policy.Name, selectionSet);
         }
 
         return requirements;

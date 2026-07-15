@@ -6,6 +6,19 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException AuthorizationPolicyNameEmpty()
+        => new(FusionExecutionResources.AuthorizationPolicyCollection_PolicyNameEmpty);
+
+    public static InvalidOperationException AuthorizationPolicyNameDuplicate(string policyName)
+        => new(string.Format(
+            FusionExecutionResources.AuthorizationPolicyCollection_PolicyNameDuplicate,
+            policyName));
+
+    public static KeyNotFoundException AuthorizationPolicyNotFound(string policyName)
+        => new(string.Format(
+            FusionExecutionResources.AuthorizationPolicyCollection_PolicyNameNotFound,
+            policyName));
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,

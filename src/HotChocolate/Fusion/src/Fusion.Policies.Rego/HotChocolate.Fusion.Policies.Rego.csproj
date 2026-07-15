@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Fusion.Execution.Policies.Rego</PackageId>
-    <AssemblyName>HotChocolate.Fusion.Execution.Policies.Rego</AssemblyName>
-    <RootNamespace>HotChocolate.Fusion.Execution.Policies.Rego</RootNamespace>
-    <Description>Provides Rego policy support for Hot Chocolate Fusion execution.</Description>
+    <PackageId>HotChocolate.Fusion.Policies.Rego</PackageId>
+    <AssemblyName>HotChocolate.Fusion.Policies.Rego</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Policies.Rego</RootNamespace>
+    <Description>Provides Rego policy support for Hot Chocolate Fusion.</Description>
     <IsAotCompatible>false</IsAotCompatible>
   </PropertyGroup>
 

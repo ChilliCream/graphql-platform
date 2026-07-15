@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Metadata;
@@ -39,6 +40,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionObjectTypeDefinition? subscriptionType,
         FusionDirectiveCollection directives,
         FusionTypeDefinitionCollection types,
+        AuthorizationPolicyCollection policies,
         FusionDirectiveDefinitionCollection directiveDefinitions,
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
@@ -53,6 +55,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         SubscriptionType = subscriptionType;
         Directives = directives;
         Types = types;
+        Policies = policies;
         DirectiveDefinitions = directiveDefinitions;
         NodeResolution = nodeResolution;
         ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
@@ -133,6 +136,11 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     public FusionTypeDefinitionCollection Types { get; }
 
     IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
+
+    /// <summary>
+    /// Gets all authorization policies owned by this schema.
+    /// </summary>
+    public AuthorizationPolicyCollection Policies { get; }
 
     /// <summary>
     /// Gets all the directive definitions that are supported by this schema.
@@ -759,13 +767,44 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
             return;
         }
 
-        _sealed = true;
-        _features = _features.ToReadOnly();
         _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
         HasPolicies = Types.AsEnumerable()
             .OfType<FusionObjectTypeDefinition>()
             .Any(t => !t.PolicyApplications.IsDefaultOrEmpty
                 || t.Fields.AsEnumerable().Any(f => !f.PolicyApplications.IsDefaultOrEmpty));
+
+        if (HasPolicies)
+        {
+            EnsureAuthorizationPoliciesExist();
+        }
+
+        _sealed = true;
+        _features = _features.ToReadOnly();
+    }
+
+    private void EnsureAuthorizationPoliciesExist()
+    {
+        foreach (var type in Types.AsEnumerable().OfType<FusionObjectTypeDefinition>())
+        {
+            if (!type.PolicyApplications.IsDefaultOrEmpty)
+            {
+                foreach (var application in type.PolicyApplications)
+                {
+                    Policies.Get(application.Name);
+                }
+            }
+
+            foreach (var field in type.Fields.AsEnumerable())
+            {
+                if (!field.PolicyApplications.IsDefaultOrEmpty)
+                {
+                    foreach (var application in field.PolicyApplications)
+                    {
+                        Policies.Get(application.Name);
+                    }
+                }
+            }
+        }
     }
 
     [MemberNotNull(nameof(_plannerTopologyCache))]

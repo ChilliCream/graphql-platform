@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -39,6 +40,7 @@ public sealed partial class OperationPlanContext
 
         _disposed = 0;
         RequestContext = requestContext;
+        Schema = (FusionSchemaDefinition)requestContext.Schema;
 
         _memory = memory
             ?? requestContext.Memory
@@ -123,6 +125,7 @@ public sealed partial class OperationPlanContext
         _executionState.Clean();
 
         RequestContext = default!;
+        Schema = default!;
         _memory = null;
         _memorySource.Clear();
         _currentMemorySource = null!;

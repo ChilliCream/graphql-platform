@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -43,20 +42,10 @@ public sealed partial class OperationPlanner
         FusionSchemaDefinition schema,
         OperationCompiler operationCompiler,
         OperationPlannerOptions options)
-        : this(schema, operationCompiler, options, [])
-    {
-    }
-
-    internal OperationPlanner(
-        FusionSchemaDefinition schema,
-        OperationCompiler operationCompiler,
-        OperationPlannerOptions options,
-        IEnumerable<IAuthorizationPolicyDefinition> policyDefinitions)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentNullException.ThrowIfNull(policyDefinitions);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -66,7 +55,7 @@ public sealed partial class OperationPlanner
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
         _sourceSchemaNodeCandidateResolver = new SourceSchemaNodeCandidateResolver(schema);
         _options = options;
-        _policyRequirements = CreatePolicyRequirementMap(policyDefinitions);
+        _policyRequirements = CreatePolicyRequirementMap(schema.Policies);
     }
 
     internal OperationPlannerOptions Options => _options;
@@ -1768,7 +1757,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
-            : ImmutableDictionary<string, OperationRequirement>.Empty;
+            : [];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -3281,8 +3270,7 @@ public sealed partial class OperationPlanner
             ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> entries)
             => _entries = entries;
 
-        public static RequirementAliasRegistry Empty { get; } =
-            new(ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)>.Empty);
+        public static RequirementAliasRegistry Empty { get; } = new([]);
 
         public RequirementAliasRegistry GetOrAdd(FieldNode field, out string alias)
         {

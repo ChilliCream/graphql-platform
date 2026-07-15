@@ -74,7 +74,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the schema definition associated with this execution.
     /// </summary>
-    public ISchemaDefinition Schema => RequestContext.Schema;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
+    public FusionSchemaDefinition Schema { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the request context for the current request.

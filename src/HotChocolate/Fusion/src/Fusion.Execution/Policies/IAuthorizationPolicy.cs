@@ -9,21 +9,18 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
-/// Describes the plan-time metadata of an authorization policy.
+/// Represents an authorization policy owned by a Fusion schema.
 /// </summary>
 /// <remarks>
-/// Definitions are schema-stable services. They are intentionally separate from
-/// <see cref="IAuthorizationPolicy"/>, whose evaluator can be request scoped.
+/// <see cref="Name"/> and <see cref="Requirements"/> must remain stable for the schema lifetime.
+/// <see cref="EvaluateAsync"/> may be called concurrently.
 /// </remarks>
-public interface IAuthorizationPolicyDefinition
+public interface IAuthorizationPolicy
 {
     string Name { get; }
 
     SelectionSetNode? Requirements { get; }
-}
 
-public interface IAuthorizationPolicy : IAuthorizationPolicyDefinition
-{
     ValueTask EvaluateAsync(
         IAuthorizationContext context,
         EntityData entities,

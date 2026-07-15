@@ -464,17 +464,10 @@ internal sealed class FusionRequestExecutorManager
 
         services.AddSingleton(
             static sp =>
-            {
-                var rootServices = sp
-                    .GetRequiredService<IRootServiceProviderAccessor>()
-                    .ServiceProvider;
-
-                return new OperationPlanner(
+                new OperationPlanner(
                     sp.GetRequiredService<FusionSchemaDefinition>(),
                     sp.GetRequiredService<OperationCompiler>(),
-                    sp.GetRequiredService<OperationPlannerOptions>(),
-                    rootServices.GetServices<IAuthorizationPolicyDefinition>());
-            });
+                    sp.GetRequiredService<OperationPlannerOptions>()));
     }
 
     private static void AddParserServices(IServiceCollection services)

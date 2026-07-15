@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Planning;
@@ -93,11 +94,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
             operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().Single();
         var compiler = new OperationCompiler(schema, pool);
-        var planner = new OperationPlanner(
-            schema,
-            compiler,
-            OperationPlannerOptions.Default,
-            [new TestPolicyDefinition("CanReadSecret", "{ role }")]);
+        var planner = new OperationPlanner(schema, compiler);
         var plan = planner.CreatePlan(
             "123456789101112",
             "123456789101112",
@@ -141,32 +138,34 @@ public sealed class PolicyPlanningTests : FusionTestBase
     public void CreatePlan_Should_GuardDownstreamLookup_When_ProtectedEntityIsFetchedFirst()
     {
         // arrange
-        var schema = ComposeSchema(
-            """
-            enum PolicyDenialBehavior { NULL ERROR ABORT }
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-            directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
-              repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                  repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
-            type Query {
-              topProducts: [Product!]
-            }
+                type Query {
+                  topProducts: [Product!]
+                }
 
-            type Product @key(fields: "id") @policy(name: "CanReadProduct") {
-              id: ID!
-              name: String!
-            }
-            """,
-            """
-            type Query {
-              productById(id: ID!): Product @lookup @internal
-            }
+                type Product @key(fields: "id") @policy(name: "CanReadProduct") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
 
-            type Product {
-              id: ID!
-              price: Float!
-            }
-            """);
+                type Product {
+                  id: ID!
+                  price: Float!
+                }
+                """),
+            new TestAuthorizationPolicy("CanReadProduct"));
 
         // act
         var plan = PlanOperation(
@@ -196,7 +195,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     private static FusionSchemaDefinition CreatePolicySchema()
-        => CreateCompositeSchema(
+        => CreateSchema(
             """
             schema {
               query: Query
@@ -222,10 +221,14 @@ public sealed class PolicyPlanningTests : FusionTestBase
             enum fusion__Schema {
               A @fusion__schema_metadata(name: "A")
             }
-            """);
+            """,
+            new TestAuthorizationPolicy("CanReadQuery"),
+            new TestAuthorizationPolicy("CanReadProductField"),
+            new TestAuthorizationPolicy("CanReadProductObject"),
+            new TestAuthorizationPolicy("CanReadName"));
 
     private static FusionSchemaDefinition CreateRequirementPolicySchema()
-        => CreateCompositeSchema(
+        => CreateSchema(
             """
             schema {
               query: Query
@@ -241,14 +244,25 @@ public sealed class PolicyPlanningTests : FusionTestBase
             enum fusion__Schema {
               A @fusion__schema_metadata(name: "A")
             }
-            """);
+            """,
+            new TestAuthorizationPolicy(
+                "CanReadSecret",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }")));
 
-    private sealed class TestPolicyDefinition(string name, string requirements)
-        : IAuthorizationPolicyDefinition
+    private static FusionSchemaDefinition CreateSchema(
+        string schemaText,
+        params IAuthorizationPolicy[] policies)
+        => CreateSchema(Utf8GraphQLParser.Parse(schemaText), policies);
+
+    private static FusionSchemaDefinition CreateSchema(
+        DocumentNode schemaDocument,
+        params IAuthorizationPolicy[] policies)
     {
-        public string Name { get; } = name;
+        var services = new ServiceCollection()
+            .AddSingleton<IAuthorizationPolicyProvider>(
+                _ => new TestAuthorizationPolicyProvider(policies))
+            .BuildServiceProvider();
 
-        public SelectionSetNode? Requirements { get; } =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements);
+        return FusionSchemaDefinition.Create(schemaDocument, services);
     }
 }
