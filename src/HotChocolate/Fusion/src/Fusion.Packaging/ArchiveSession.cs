@@ -33,9 +33,16 @@ internal sealed class ArchiveSession : IDisposable
         }
 
         var files = new HashSet<string>(tempFiles);
+        var archiveFiles = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var entry in _archive.Entries)
         {
+            if (!archiveFiles.Add(entry.FullName))
+            {
+                throw new InvalidDataException(
+                    $"The archive contains the duplicate entry '{entry.FullName}'.");
+            }
+
             // Skip entries that are explicitly marked Deleted in this session;
             // they are still in the underlying ZipArchive but logically gone.
             if (_files.TryGetValue(entry.FullName, out var tracked)
@@ -267,6 +274,7 @@ internal sealed class ArchiveSession : IDisposable
         => kind switch
         {
             FileKind.LegacyArchive => _readOptions.MaxAllowedLegacyArchiveSize,
+            FileKind.Policy => _readOptions.MaxAllowedPolicySize,
             FileKind.Schema => _readOptions.MaxAllowedSchemaSize,
             FileKind.Manifest or FileKind.Settings or FileKind.Metadata or FileKind.Signature
                 => _readOptions.MaxAllowedSettingsSize,

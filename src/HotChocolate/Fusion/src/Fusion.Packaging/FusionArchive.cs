@@ -106,7 +106,8 @@ public sealed class FusionArchive : IDisposable
         var readOptions = new FusionArchiveReadOptions(
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
             options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
-            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize);
+            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize,
+            options.MaxAllowedPolicySize ?? FusionArchiveReadOptions.Default.MaxAllowedPolicySize);
         return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -440,6 +441,152 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
+    /// Sets a Rego policy and its GraphQL data requirements for a specific policy format version.
+    /// </summary>
+    /// <param name="policyName">The name of the policy.</param>
+    /// <param name="policy">The Rego policy implementation as UTF-8 encoded bytes.</param>
+    /// <param name="requirements">The GraphQL data requirements as UTF-8 encoded bytes.</param>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentException">Thrown when the policy name or version is invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the policy or requirements are empty.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task SetRegoPolicyAsync(
+        string policyName,
+        ReadOnlyMemory<byte> policy,
+        ReadOnlyMemory<byte> requirements,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyName(policyName);
+        ValidateRegoPolicyVersion(version);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(policy.Length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(requirements.Length, 0);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        var conflictingPolicy = ReadRegoPolicyFileSets().FirstOrDefault(
+            t => t.Version == version
+                && t.Name != policyName
+                && t.Name.Equals(policyName, StringComparison.OrdinalIgnoreCase));
+        if (conflictingPolicy is not null)
+        {
+            throw new InvalidOperationException(
+                $"The Rego policy '{policyName}' conflicts with the existing policy "
+                + $"'{conflictingPolicy.Name}' because policy names must be unique ignoring case.");
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetRegoPolicyPath(version, policyName)))
+        {
+            await stream.WriteAsync(policy, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetRegoPolicyRequirementsPath(version, policyName)))
+        {
+            await stream.WriteAsync(requirements, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Gets all Rego policy format versions in the archive, ordered by version descending.
+    /// </summary>
+    /// <returns>The Rego policy format versions.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public IEnumerable<Version> GetSupportedRegoPolicyFormats()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoPolicyFileSets()
+            .Select(t => t.Version)
+            .Distinct()
+            .OrderDescending()
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Gets all Rego policy names for a policy format version, ordered alphabetically.
+    /// </summary>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <returns>The Rego policy names.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public IEnumerable<string> GetRegoPolicyNames(Version version)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoPolicyFileSets()
+            .Where(t => t.Version == version)
+            .Select(t => t.Name)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Gets the complete Rego policy catalog for one exact policy format version.
+    /// </summary>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The Rego policies ordered by name.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public async Task<IReadOnlyList<RegoPolicyConfiguration>> GetRegoPoliciesAsync(
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var policies = ReadRegoPolicyFileSets()
+            .Where(t => t.Version == version)
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
+            .ToArray();
+        var configurations = new RegoPolicyConfiguration[policies.Length];
+
+        for (var i = 0; i < policies.Length; i++)
+        {
+            configurations[i] = await CreateRegoPolicyConfigurationAsync(
+                policies[i],
+                cancellationToken);
+        }
+
+        return configurations;
+    }
+
+    /// <summary>
+    /// Attempts to get a Rego policy and its GraphQL data requirements from the archive.
+    /// </summary>
+    /// <param name="policyName">The name of the policy.</param>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The Rego policy configuration, or null when the policy is not present.</returns>
+    /// <exception cref="ArgumentException">Thrown when the policy name or version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public async Task<RegoPolicyConfiguration?> TryGetRegoPolicyAsync(
+        string policyName,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyName(policyName);
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var fileSet = ReadRegoPolicyFileSets().FirstOrDefault(
+            t => t.Version == version && t.Name == policyName);
+        if (fileSet is null)
+        {
+            return null;
+        }
+
+        return await CreateRegoPolicyConfigurationAsync(fileSet, cancellationToken);
+    }
+
+    /// <summary>
     /// Sets a source schema in the archive.
     /// The schema name must be declared in the archive metadata before calling this method.
     /// </summary>
@@ -745,6 +892,21 @@ public sealed class FusionArchive : IDisposable
             var signatureBytes = buffer.WrittenSpan.ToArray();
 
             // 2. Verify file integrity
+            var actualFiles = _session.GetFiles()
+                .Where(IsSignedArchiveFile)
+                .ToHashSet(StringComparer.Ordinal);
+            var manifestFiles = manifest.Files.Keys.ToHashSet(StringComparer.Ordinal);
+
+            if (!manifestFiles.IsSubsetOf(actualFiles))
+            {
+                return SignatureVerificationResult.FilesMissing;
+            }
+
+            if (!actualFiles.SetEquals(manifestFiles))
+            {
+                return SignatureVerificationResult.FilesModified;
+            }
+
             foreach (var file in manifest.Files.OrderBy(t => t.Key))
             {
                 var kind = FileNames.GetFileKind(file.Key);
@@ -869,12 +1031,218 @@ public sealed class FusionArchive : IDisposable
     /// </summary>
     public bool IsSigned => _session.Exists(FileNames.SignatureManifest);
 
+    private RegoPolicyFileSet[] ReadRegoPolicyFileSets()
+    {
+        var fileSets = new Dictionary<(Version Version, string Name), RegoPolicyFileSet>();
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (!path.StartsWith(FileNames.RegoPolicies, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (path.EndsWith("/", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relativePath = path.AsSpan(FileNames.RegoPolicies.Length);
+            var separator = relativePath.IndexOf('/');
+
+            if (separator <= 0
+                || separator == relativePath.Length - 1
+                || relativePath[(separator + 1)..].Contains('/'))
+            {
+                throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+            }
+
+            var versionText = relativePath[..separator].ToString();
+            if (!TryParseRegoPolicyVersion(versionText, out var version))
+            {
+                throw new InvalidDataException(
+                    $"The Rego policy path '{path}' does not contain a canonical three-part version.");
+            }
+
+            var fileName = relativePath[(separator + 1)..].ToString();
+            if (fileName.Contains('\\'))
+            {
+                throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+            }
+
+            string policyName;
+            bool isPolicy;
+
+            if (fileName.EndsWith(".rego", StringComparison.Ordinal))
+            {
+                policyName = fileName[..^5];
+                isPolicy = true;
+            }
+            else if (fileName.EndsWith(".graphql", StringComparison.Ordinal))
+            {
+                policyName = fileName[..^8];
+                isPolicy = false;
+            }
+            else
+            {
+                if (fileName.EndsWith(".rego", StringComparison.OrdinalIgnoreCase)
+                    || fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException(
+                        $"The Rego policy path '{path}' uses an invalid file extension casing.");
+                }
+
+                continue;
+            }
+
+            if (!IsValidRegoPolicyName(policyName))
+            {
+                throw new InvalidDataException($"The Rego policy path '{path}' contains an invalid policy name.");
+            }
+
+            var key = (version, policyName);
+            if (!fileSets.TryGetValue(key, out var fileSet))
+            {
+                fileSet = new RegoPolicyFileSet(version, policyName);
+                fileSets.Add(key, fileSet);
+            }
+
+            if (isPolicy)
+            {
+                fileSet.HasPolicy = true;
+            }
+            else
+            {
+                fileSet.HasRequirements = true;
+            }
+        }
+
+        foreach (var versionGroup in fileSets.Values.GroupBy(t => t.Version))
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var fileSet in versionGroup)
+            {
+                if (!names.Add(fileSet.Name))
+                {
+                    throw new InvalidDataException(
+                        $"The Rego policy format '{fileSet.Version}' contains policy names that differ only by case.");
+                }
+
+                if (!fileSet.HasPolicy || !fileSet.HasRequirements)
+                {
+                    throw CreateIncompleteRegoPolicyException(fileSet.Name, fileSet.Version);
+                }
+            }
+        }
+
+        return fileSets.Values.ToArray();
+    }
+
+    private async Task<RegoPolicyConfiguration> CreateRegoPolicyConfigurationAsync(
+        RegoPolicyFileSet fileSet,
+        CancellationToken cancellationToken)
+    {
+        var policyPath = FileNames.GetRegoPolicyPath(fileSet.Version, fileSet.Name);
+        var requirementsPath = FileNames.GetRegoPolicyRequirementsPath(fileSet.Version, fileSet.Name);
+
+        // Extract both files before returning the lazy readers. This applies the configured
+        // archive size limits to the complete policy pair during catalog loading.
+        await _session.ExistsAsync(policyPath, FileKind.Policy, cancellationToken);
+        await _session.ExistsAsync(requirementsPath, FileKind.Schema, cancellationToken);
+
+        return new RegoPolicyConfiguration(
+            fileSet.Name,
+            fileSet.Version,
+            OpenReadPolicyAsync,
+            OpenReadRequirementsAsync);
+
+        Task<Stream> OpenReadPolicyAsync(CancellationToken ct)
+            => _session.OpenReadAsync(policyPath, FileKind.Policy, ct);
+
+        Task<Stream> OpenReadRequirementsAsync(CancellationToken ct)
+            => _session.OpenReadAsync(requirementsPath, FileKind.Schema, ct);
+    }
+
+    private static InvalidDataException CreateIncompleteRegoPolicyException(
+        string policyName,
+        Version version)
+        => new(
+            $"The Rego policy '{policyName}' in format '{version}' must contain both "
+            + $"'{policyName}.rego' and '{policyName}.graphql'.");
+
+    private static void ValidateRegoPolicyName(string policyName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(policyName);
+
+        if (!IsValidRegoPolicyName(policyName))
+        {
+            throw new ArgumentException("Invalid Rego policy name.", nameof(policyName));
+        }
+    }
+
+    private static bool IsValidRegoPolicyName(string policyName)
+    {
+        if (string.IsNullOrWhiteSpace(policyName) || policyName is "." or "..")
+        {
+            return false;
+        }
+
+        foreach (var character in policyName)
+        {
+            if (character is '/' or '\\' || char.IsControl(character))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void ValidateRegoPolicyVersion(Version version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+
+        if (version.Build < 0 || version.Revision >= 0)
+        {
+            throw new ArgumentException(
+                "The Rego policy format version must contain exactly three components.",
+                nameof(version));
+        }
+    }
+
+    private static bool TryParseRegoPolicyVersion(string value, out Version version)
+    {
+        if (Version.TryParse(value, out var parsed)
+            && parsed.Build >= 0
+            && parsed.Revision < 0
+            && parsed.ToString(3).Equals(value, StringComparison.Ordinal))
+        {
+            version = parsed;
+            return true;
+        }
+
+        version = null!;
+        return false;
+    }
+
     /// <summary>
     /// We will try to work with a single buffer for all file interactions.
     /// </summary>
     private ArrayBufferWriter<byte> TryRentBuffer()
     {
         return Interlocked.Exchange(ref _buffer, null) ?? new ArrayBufferWriter<byte>(4096);
+    }
+
+    private sealed class RegoPolicyFileSet(Version version, string name)
+    {
+        public Version Version { get; } = version;
+
+        public string Name { get; } = name;
+
+        public bool HasPolicy { get; set; }
+
+        public bool HasRequirements { get; set; }
     }
 
     /// <summary>
@@ -902,9 +1270,8 @@ public sealed class FusionArchive : IDisposable
 
         foreach (var path in _session.GetFiles().Order())
         {
-            if (path.StartsWith(".signature/"))
+            if (!IsSignedArchiveFile(path))
             {
-                // Skip signature files
                 continue;
             }
 
@@ -931,6 +1298,11 @@ public sealed class FusionArchive : IDisposable
             TryReturnBuffer(buffer);
         }
     }
+
+    private static bool IsSignedArchiveFile(string path)
+        => !path.EndsWith("/", StringComparison.Ordinal)
+            && !path.Equals(FileNames.SignatureManifest, StringComparison.Ordinal)
+            && !path.Equals(FileNames.Signature, StringComparison.Ordinal);
 
     private async Task<string> ComputeFileHashAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {

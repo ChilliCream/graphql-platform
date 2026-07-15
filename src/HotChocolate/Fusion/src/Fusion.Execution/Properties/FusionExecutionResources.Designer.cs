@@ -224,5 +224,17 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_AuthorizationPolicyDenied {
+            get {
+                return ResourceManager.GetString("ErrorHelper_AuthorizationPolicyDenied", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_AuthorizationPolicyExecutionFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_AuthorizationPolicyExecutionFailed", resourceCulture);
+            }
+        }
     }
 }

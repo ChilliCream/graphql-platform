@@ -176,6 +176,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 case NodeFieldExecutionNode nodeExecutionNode:
                     WriteNodeFieldNode(jsonWriter, operation, nodeExecutionNode, nodeTrace);
                     break;
+
+                case PolicyExecutionNode policyNode:
+                    WritePolicyNode(jsonWriter, operation, policyNode, nodeTrace);
+                    break;
             }
         }
 
@@ -1114,6 +1118,101 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteNumberValue(node.FallbackQuery.Id);
 
         TryWriteConditions(jsonWriter, node);
+
+        TryWriteNodeTrace(jsonWriter, operation, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WritePolicyNode(
+        JsonWriter jsonWriter,
+        Operation operation,
+        PolicyExecutionNode node,
+        ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+
+        jsonWriter.WritePropertyName("targets");
+        jsonWriter.WriteStartArray();
+
+        foreach (var target in node.Targets)
+        {
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WritePropertyName("kind");
+            jsonWriter.WriteStringValue(target.Kind.ToString());
+
+            jsonWriter.WritePropertyName("path");
+            jsonWriter.WriteStringValue(target.Path.ToString());
+
+            jsonWriter.WritePropertyName("typeName");
+            jsonWriter.WriteStringValue(target.TypeName);
+
+            if (target.FieldName is not null)
+            {
+                jsonWriter.WritePropertyName("fieldName");
+                jsonWriter.WriteStringValue(target.FieldName);
+            }
+
+            jsonWriter.WritePropertyName("policies");
+            jsonWriter.WriteStartArray();
+
+            foreach (var policy in target.Policies)
+            {
+                jsonWriter.WriteStartObject();
+
+                jsonWriter.WritePropertyName("name");
+                jsonWriter.WriteStringValue(policy.Name);
+
+                jsonWriter.WritePropertyName("onDenied");
+                jsonWriter.WriteStringValue(policy.OnDenied.ToString());
+
+                foreach (var requirement in target.Requirements)
+                {
+                    if (!requirement.PolicyName.Equals(policy.Name, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    jsonWriter.WritePropertyName("requirements");
+                    jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
+                    break;
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+
+            WriteConditions(jsonWriter, target.Conditions);
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
+
+        WriteConditions(jsonWriter, node.Conditions);
+
+        // Policy nodes never carry parent dependencies (PolicyPlanStep does not
+        // model them), so only regular dependency edges are written.
+        if (node.Dependencies.Length > 0)
+        {
+            jsonWriter.WritePropertyName("dependencies");
+            jsonWriter.WriteStartArray();
+
+            foreach (var dependency in node.Dependencies)
+            {
+                jsonWriter.WriteNumberValue(dependency.Id);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
 
         TryWriteNodeTrace(jsonWriter, operation, trace);
 

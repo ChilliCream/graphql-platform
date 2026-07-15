@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Collections;
@@ -215,6 +216,19 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     }
 
     /// <summary>
+    /// Gets the authorization policy applications for this field.
+    /// </summary>
+    public ImmutableArray<PolicyApplication> PolicyApplications
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets the feature collection associated with this field.
     /// </summary>
     public IFeatureCollection Features
@@ -244,6 +258,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
         Type = context.Type;
         Sources = context.Sources;
         DeclaringType = context.DeclaringType;
+        PolicyApplications = context.PolicyApplications;
         Features = context.Features;
         _completed = true;
     }

@@ -22,8 +22,8 @@ public enum SignatureVerificationResult
     FilesMissing,
 
     /// <summary>
-    /// One or more files have been modified since the archive was signed.
-    /// The computed file hashes do not match those in the signature manifest.
+    /// One or more files have been modified or added since the archive was signed.
+    /// The archive contents do not match the signature manifest.
     /// </summary>
     FilesModified,
 

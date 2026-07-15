@@ -180,9 +180,20 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// </summary>
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
-    internal void EnqueueForExecution(ExecutionNode node, ExecutionNode dependentNode)
+    internal void EnqueueDependent(ExecutionNode node, ExecutionNode dependentNode)
+        => GetOrCreateNodeCompletionSet(node.Id).Add(dependentNode);
+
+    internal void SkipAllDependents(ExecutionNode node)
+        => GetOrCreateNodeCompletionSet(node.Id);
+
+    internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
     {
-        var nodeId = node.Id;
+        var nodeCompletionSet = _nodesToComplete[node.Id];
+        return nodeCompletionSet?.GetSnapshot() ?? default;
+    }
+
+    private NodeCompletionSet GetOrCreateNodeCompletionSet(int nodeId)
+    {
         var nodeCompletionSet = _nodesToComplete[nodeId];
 
         if (nodeCompletionSet is null)
@@ -191,13 +202,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             nodeCompletionSet = Interlocked.CompareExchange(ref _nodesToComplete[nodeId], newSet, null) ?? newSet;
         }
 
-        nodeCompletionSet.Add(dependentNode);
-    }
-
-    internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
-    {
-        var nodeCompletionSet = _nodesToComplete[node.Id];
-        return nodeCompletionSet?.GetSnapshot() ?? default;
+        return nodeCompletionSet;
     }
 
     internal void TrackSkippedDefinition(ExecutionNode node, IOperationPlanNode skippedDefinition)
@@ -731,6 +736,35 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal ImmutableArray<CompactPath> GetResultPaths(SelectionPath selectionSet)
         => _resultStore.GetResultPaths(selectionSet);
+
+    internal CompositeResultElement[] RentResultElements(
+        SelectionPath selectionSet,
+        out int count)
+        => _resultStore.RentResultElements(selectionSet, out count);
+
+    internal void ApplyPolicyDenial(
+        CompositeResultElement element,
+        PolicyDenialBehavior behavior,
+        string policyName,
+        string? reason)
+    {
+        if (!_resultStore.ApplyPolicyDenial(element, behavior, policyName, reason))
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
+    internal void AbortPolicyExecution()
+    {
+        try
+        {
+            _resultStore.AbortPolicyExecution();
+        }
+        finally
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();

@@ -394,6 +394,11 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
     private static bool IsSkipped(OperationPlanContext context, OperationDefinition operation)
     {
+        if (context.IsNodeSkipped(operation.Id))
+        {
+            return true;
+        }
+
         if (operation.Conditions.Length == 0)
         {
             return false;

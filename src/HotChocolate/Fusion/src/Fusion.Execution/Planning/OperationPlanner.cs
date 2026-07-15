@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -28,6 +29,7 @@ public sealed partial class OperationPlanner
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
     private readonly SourceSchemaNodeCandidateResolver _sourceSchemaNodeCandidateResolver;
     private readonly OperationPlannerOptions _options;
+    private readonly IReadOnlyDictionary<string, SelectionSetNode> _policyRequirements;
     private bool? _schemaHasDivergentInterfaceFields;
 
     public OperationPlanner(
@@ -41,10 +43,20 @@ public sealed partial class OperationPlanner
         FusionSchemaDefinition schema,
         OperationCompiler operationCompiler,
         OperationPlannerOptions options)
+        : this(schema, operationCompiler, options, [])
+    {
+    }
+
+    internal OperationPlanner(
+        FusionSchemaDefinition schema,
+        OperationCompiler operationCompiler,
+        OperationPlannerOptions options,
+        IEnumerable<IAuthorizationPolicyDefinition> policyDefinitions)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(policyDefinitions);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -54,6 +66,7 @@ public sealed partial class OperationPlanner
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
         _sourceSchemaNodeCandidateResolver = new SourceSchemaNodeCandidateResolver(schema);
         _options = options;
+        _policyRequirements = CreatePolicyRequirementMap(policyDefinitions);
     }
 
     internal OperationPlannerOptions Options => _options;
@@ -99,6 +112,11 @@ public sealed partial class OperationPlanner
 
         try
         {
+            if (_policyRequirements.Count > 0)
+            {
+                operationDefinition = InjectPolicyRequirements(operationDefinition);
+            }
+
             // Interface fields whose ownership diverges across concrete types (for example after an
             // @override) are expanded into per-concrete inline fragments up front. This runs before
             // the defer split so deferred selections carry the expansion too, and before selection
@@ -1098,7 +1116,8 @@ public sealed partial class OperationPlanner
             TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
         };
 
-        (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
+        (var resolvable, var unresolvable, var fieldsWithRequirements, var policyTargets, index) =
+            _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 }
             && workItem.SourceSchemaNodePolicy is not null
@@ -1187,6 +1206,9 @@ public sealed partial class OperationPlanner
             source = SelectionPath.Root.AppendField(field.Name.Value);
         }
 
+        var targets = BuildPolicyTargets(policyTargets, workItem.SelectionSet, workItem.Conditions);
+        var policyStepId = targets.IsDefaultOrEmpty ? 0 : stepId + 1;
+
         var step = new OperationPlanStep
         {
             Id = stepId,
@@ -1195,13 +1217,26 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             RootSelectionSetId = index.GetId(resolvable),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
-            Dependents = workItem.Dependents,
+            Dependents = policyStepId == 0
+                ? workItem.Dependents
+                : workItem.Dependents.Add(policyStepId),
             Requirements = requirements,
             Conditions = workItem.Conditions,
             Target = workItem.SelectionSet.Path,
             Source = source,
             Lookup = lookup
         };
+
+        var steps = current.Steps.Add(step);
+
+        if (policyStepId != 0)
+        {
+            steps = steps.Add(new PolicyPlanStep
+            {
+                Id = policyStepId,
+                Targets = targets
+            });
+        }
 
         var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
@@ -1220,7 +1255,7 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             RemainingCost = remainingCost,
-            Steps = current.Steps.Add(step),
+            Steps = steps,
             LastRequirementId = lastRequirementId,
             RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
@@ -1232,6 +1267,65 @@ public sealed partial class OperationPlanner
         };
 
         possiblePlans.EnqueueBranches(next);
+    }
+
+    private ImmutableArray<PolicyExecutionTarget> BuildPolicyTargets(
+        ImmutableStack<ConditionalPolicyExecutionTarget> policyTargets,
+        SelectionSet selectionSet,
+        ExecutionNodeCondition[] conditions)
+    {
+        ImmutableArray<PolicyExecutionTarget>.Builder? builder = null;
+
+        if (selectionSet.Path.IsRoot
+            && selectionSet.Type is FusionObjectTypeDefinition objectType
+            && !objectType.PolicyApplications.IsDefaultOrEmpty)
+        {
+            builder ??= ImmutableArray.CreateBuilder<PolicyExecutionTarget>();
+            builder.Add(AddPolicyRequirements(new PolicyExecutionTarget
+            {
+                Kind = PolicyTargetKind.Object,
+                Path = SelectionPath.Root,
+                TypeName = objectType.Name,
+                Policies = objectType.PolicyApplications.ToArray(),
+                Conditions = conditions
+            }));
+        }
+
+        if (!policyTargets.IsEmpty)
+        {
+            builder ??= ImmutableArray.CreateBuilder<PolicyExecutionTarget>();
+
+            foreach (var policyTarget in policyTargets.Reverse())
+            {
+                builder.Add(AddPolicyRequirements(policyTarget.Target));
+            }
+        }
+
+        return builder is null ? [] : builder.ToImmutable();
+    }
+
+    private PolicyExecutionTarget AddPolicyRequirements(PolicyExecutionTarget target)
+    {
+        List<AuthorizationPolicyRequirement>? requirements = null;
+
+        foreach (var application in target.Policies)
+        {
+            if (!_policyRequirements.TryGetValue(application.Name, out var selectionSet))
+            {
+                continue;
+            }
+
+            requirements ??= [];
+            requirements.Add(new AuthorizationPolicyRequirement
+            {
+                PolicyName = application.Name,
+                SelectionSet = selectionSet
+            });
+        }
+
+        return requirements is null
+            ? target
+            : target with { Requirements = requirements.ToArray() };
     }
 
     private bool IsQueryRootSelection(SelectionSet selectionSet)
@@ -1331,7 +1425,7 @@ public sealed partial class OperationPlanner
                 TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
             };
 
-            var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
+            var (resolvable, unresolvable, _, _, _) = _partitioner.Partition(input);
 
             if (resolvable is { Selections.Count: > 0 })
             {
@@ -2084,7 +2178,8 @@ public sealed partial class OperationPlanner
             TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
         };
 
-        (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
+        (var resolvable, var unresolvable, var fieldsWithRequirements, var policyTargets, index) =
+            _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 }
             && workItem.SourceSchemaNodePolicy is { } sourceSchemaNodePolicy)
@@ -2159,6 +2254,9 @@ public sealed partial class OperationPlanner
 
         (var definition, index, _) = operationBuilder.Build(indexBuilder);
 
+        var targets = BuildPolicyTargets(policyTargets, workItem.SelectionSet, conditions: []);
+        var policyStepId = targets.IsDefaultOrEmpty ? 0 : stepId + 1;
+
         var operationPlanStep = new OperationPlanStep
         {
             Id = stepId,
@@ -2167,7 +2265,9 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             RootSelectionSetId = index.GetId(resolvable),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
-            Dependents = workItem.Dependents,
+            Dependents = policyStepId == 0
+                ? workItem.Dependents
+                : workItem.Dependents.Add(policyStepId),
 #if NET10_0_OR_GREATER
             Requirements = [],
 #else
@@ -2192,6 +2292,15 @@ public sealed partial class OperationPlanner
 
         // Add the lookup operation to the steps
         steps = steps.Add(operationPlanStep);
+
+        if (policyStepId != 0)
+        {
+            steps = steps.Add(new PolicyPlanStep
+            {
+                Id = policyStepId,
+                Targets = targets
+            });
+        }
 
         var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost =
@@ -2263,7 +2372,7 @@ public sealed partial class OperationPlanner
                     TreatSourceExternalAsUnresolvable = true
                 };
 
-                var (resolvable, requirementUnresolvable, nestedRequirements, _) =
+                var (resolvable, requirementUnresolvable, nestedRequirements, _, _) =
                     _partitioner.Partition(input);
 
                 if (resolvable is not { Selections.Count: > 0 }
@@ -2577,7 +2686,7 @@ public sealed partial class OperationPlanner
             TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
         };
 
-        var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
+        var (resolvable, unresolvable, fieldsWithRequirements, _, _) = _partitioner.Partition(input);
         var descendantPolicy = sourceSchemaNodePolicy is null
             ? null
             : SourceSchemaNodePlanningPolicy.Descendant;
@@ -2935,7 +3044,7 @@ public sealed partial class OperationPlanner
             TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
         };
 
-        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+        var (resolvable, partitionUnresolvable, _, _, _) = _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 })
         {
@@ -4043,7 +4152,7 @@ public sealed partial class OperationPlanner
             TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
         };
 
-        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+        var (resolvable, partitionUnresolvable, _, _, _) = _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 })
         {

@@ -501,6 +501,27 @@ internal sealed class ValueCompletion
         return true;
     }
 
+    internal bool ApplyPolicyDenial(CompositeResultElement result, IError? error)
+    {
+        if (result.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
+        if (error is not null)
+        {
+            _store.AddError(_errorHandler.Handle(error));
+        }
+
+        if (result.CompactPath.IsRoot)
+        {
+            result.SetNullValue();
+            return false;
+        }
+
+        return !PropagateNullValues(result);
+    }
+
     private bool BuildResultForInvalidSource(
         SourceResultElement source,
         JsonValueKind sourceValueKind,

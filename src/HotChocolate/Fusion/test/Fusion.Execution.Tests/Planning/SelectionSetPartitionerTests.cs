@@ -58,7 +58,7 @@ public class SelectionSetPartitionerTests
             SelectionSetIndex = index
         };
         var partitioner = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
+        var (resolvable, unresolvable, _, _, _) = partitioner.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(
@@ -130,7 +130,7 @@ public class SelectionSetPartitionerTests
             SelectionSetIndex = index
         };
         var partitioner = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
+        var (resolvable, unresolvable, _, _, _) = partitioner.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(

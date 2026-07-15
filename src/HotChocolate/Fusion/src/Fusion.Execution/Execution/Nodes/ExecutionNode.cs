@@ -134,14 +134,6 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     protected virtual void OnError(OperationPlanContext context, IDisposable? scope, Exception error)
         => context.DiagnosticEvents.ExecutionNodeError(context, this, error);
 
-    protected void EnqueueDependentForExecution(OperationPlanContext context, ExecutionNode dependent)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(dependent);
-
-        context.EnqueueForExecution(this, dependent);
-    }
-
     internal void AddDependency(IOperationPlanNode node)
     {
         ExpectMutable();

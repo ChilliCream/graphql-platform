@@ -20,6 +20,7 @@ internal static class WellKnownDirectiveNames
     public const string FusionInterfaceObject = "fusion__interfaceObject";
     public const string FusionListSize = "fusion__listSize";
     public const string FusionLookup = "fusion__lookup";
+    public const string FusionPolicy = "fusion__policy";
     public const string FusionRequires = "fusion__requires";
     public const string FusionSchemaMetadata = "fusion__schema_metadata";
     public const string FusionEventStream = "fusion__eventStream";
@@ -37,6 +38,7 @@ internal static class WellKnownDirectiveNames
     public const string OneOf = DirectiveNames.OneOf.Name;
     public const string OptInFeatureStability = DirectiveNames.OptInFeatureStability.Name;
     public const string Override = DirectiveNames.Override.Name;
+    public const string Policy = "policy";
     public const string Provides = DirectiveNames.Provides.Name;
     public const string Require = DirectiveNames.Require.Name;
     public const string RequiresOptIn = DirectiveNames.RequiresOptIn.Name;

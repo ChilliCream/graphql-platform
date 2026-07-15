@@ -7,7 +7,10 @@ internal static class FileNames
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
     private const string SourceSchemaExtensionsFormat = "source-schemas/{0}/schema-extensions.graphqls";
     private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
+    private const string RegoPolicyFormat = "policies/rego/{0}/{1}.rego";
+    private const string RegoPolicyRequirementsFormat = "policies/rego/{0}/{1}.graphql";
 
+    public const string RegoPolicies = "policies/rego/";
     public const string ArchiveMetadata = "archive-metadata.json";
     public const string CompositionSettings = "composition-settings.json";
     public const string SignatureManifest = ".signature/manifest.json";
@@ -29,6 +32,12 @@ internal static class FileNames
     public static string GetSourceSchemaSettingsPath(string schemaName)
         => string.Format(SourceSchemaSettingsFormat, schemaName);
 
+    public static string GetRegoPolicyPath(Version version, string policyName)
+        => string.Format(RegoPolicyFormat, version, policyName);
+
+    public static string GetRegoPolicyRequirementsPath(Version version, string policyName)
+        => string.Format(RegoPolicyRequirementsFormat, version, policyName);
+
     public static FileKind GetFileKind(string fileName)
     {
         switch (Path.GetFileName(fileName))
@@ -36,7 +45,11 @@ internal static class FileNames
             case "gateway.graphqls":
             case "schema.graphqls":
             case "schema-extensions.graphqls":
+            case var name when name.EndsWith(".graphql", StringComparison.Ordinal):
                 return FileKind.Schema;
+
+            case var name when name.EndsWith(".rego", StringComparison.Ordinal):
+                return FileKind.Policy;
 
             case "schema-settings.json":
             case "gateway-settings.json":

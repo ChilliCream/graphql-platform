@@ -50,7 +50,10 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
+        var policyRequirementProviders = OperationPlanner.AddPolicyRequirementDependencies(ctx);
+        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
         MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
+        ApplyPolicyGuards(ctx, policyGuards);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -511,6 +514,10 @@ public sealed partial class OperationPlanner
                     ctx.ExecutionNodes.Add(step.Id,
                         new NodeFieldExecutionNode(nodeStep.Id, nodeStep.ResponseName, nodeStep.IdValue, nodeStep.Conditions));
                 }
+                else if (step is PolicyPlanStep policyStep)
+                {
+                    ctx.ExecutionNodes.Add(step.Id, CreatePolicyExecutionNode(policyStep));
+                }
             }
 
             readySteps.Clear();
@@ -672,6 +679,12 @@ public sealed partial class OperationPlanner
 
         return node;
     }
+
+    private static PolicyExecutionNode CreatePolicyExecutionNode(PolicyPlanStep policyStep)
+        => new(
+            policyStep.Id,
+            policyStep.Targets.ToArray(),
+            policyStep.Conditions);
 
     private static EventStreamExecutionNode CreateEventStreamExecutionNode(
         OperationPlanStep operationStep,
@@ -1346,6 +1359,388 @@ public sealed partial class OperationPlanner
         WireNodeFieldBranchesAndFallbacks(ctx);
     }
 
+    private static Dictionary<int, HashSet<int>> AddPolicyRequirementDependencies(
+        ExecutionPlanBuildContext ctx)
+    {
+        var providersByPolicyNodeId = new Dictionary<int, HashSet<int>>();
+
+        foreach (var policyNode in ctx.ExecutionNodes.Values.OfType<PolicyExecutionNode>())
+        {
+            List<(string PolicyName, string[] Path)>? requiredPaths = null;
+
+            foreach (var target in policyNode.Targets)
+            {
+                var entityPath = target.Kind is PolicyTargetKind.Field
+                    ? target.Path.Parent ?? SelectionPath.Root
+                    : target.Path;
+
+                foreach (var application in target.Policies)
+                {
+                    if (!TryGetPolicyRequirements(
+                        target.Requirements,
+                        application.Name,
+                        out var requirements))
+                    {
+                        continue;
+                    }
+
+                    requiredPaths ??= [];
+                    AddRequirementPaths(
+                        application.Name,
+                        entityPath,
+                        requirements,
+                        requiredPaths);
+                }
+            }
+
+            if (requiredPaths is null)
+            {
+                continue;
+            }
+
+            if (!ctx.DependenciesByStepId.TryGetValue(policyNode.Id, out var dependencies))
+            {
+                dependencies = [];
+                ctx.DependenciesByStepId.Add(policyNode.Id, dependencies);
+            }
+
+            var providers = new HashSet<int>();
+
+            foreach (var (policyName, path) in requiredPaths)
+            {
+                var isProvided = false;
+
+                foreach (var candidate in ctx.ExecutionNodes.Values)
+                {
+                    ResultSelectionSet resultSelectionSet;
+                    SelectionPath target;
+
+                    switch (candidate)
+                    {
+                        case OperationExecutionNode operation:
+                            resultSelectionSet = operation.ResultSelectionSet;
+                            target = operation.Target;
+                            break;
+
+                        case ApolloOperationExecutionNode operation:
+                            resultSelectionSet = operation.ResultSelectionSet;
+                            target = operation.Target;
+                            break;
+
+                        default:
+                            continue;
+                    }
+
+                    if (!TryProvidesRequirement(
+                        resultSelectionSet,
+                        target,
+                        path))
+                    {
+                        continue;
+                    }
+
+                    dependencies.Add(candidate.Id);
+                    providers.Add(candidate.Id);
+                    isProvided = true;
+                }
+
+                if (!isProvided)
+                {
+                    throw new InvalidOperationException(
+                        $"Authorization policy '{policyName}' requires field '{FormatPath(path)}', "
+                        + "but the execution plan does not provide it.");
+                }
+            }
+
+            providersByPolicyNodeId.Add(policyNode.Id, providers);
+        }
+
+        return providersByPolicyNodeId;
+
+        static bool TryGetPolicyRequirements(
+            ReadOnlySpan<AuthorizationPolicyRequirement> requirements,
+            string policyName,
+            out SelectionSetNode selectionSet)
+        {
+            foreach (var requirement in requirements)
+            {
+                if (requirement.PolicyName.Equals(policyName, StringComparison.Ordinal))
+                {
+                    selectionSet = requirement.SelectionSet;
+                    return true;
+                }
+            }
+
+            selectionSet = null!;
+            return false;
+        }
+
+        static void AddRequirementPaths(
+            string policyName,
+            SelectionPath entityPath,
+            SelectionSetNode requirements,
+            List<(string PolicyName, string[] Path)> paths)
+        {
+            var segments = new List<string>(entityPath.Length + 4);
+
+            for (var i = 0; i < entityPath.Length; i++)
+            {
+                if (entityPath[i].Kind is SelectionPathSegmentKind.Field)
+                {
+                    segments.Add(entityPath[i].Name);
+                }
+            }
+
+            AddRequirementLeafPaths(policyName, requirements, segments, paths);
+        }
+
+        static void AddRequirementLeafPaths(
+            string policyName,
+            SelectionSetNode requirements,
+            List<string> segments,
+            List<(string PolicyName, string[] Path)> paths)
+        {
+            foreach (var selection in requirements.Selections)
+            {
+                if (selection is not FieldNode field)
+                {
+                    throw new InvalidOperationException(
+                        $"Authorization policy '{policyName}' has an unsupported requirement selection.");
+                }
+
+                segments.Add(field.Alias?.Value ?? field.Name.Value);
+
+                if (field.SelectionSet is { } childSelectionSet)
+                {
+                    AddRequirementLeafPaths(policyName, childSelectionSet, segments, paths);
+                }
+                else
+                {
+                    paths.Add((policyName, segments.ToArray()));
+                }
+
+                segments.RemoveAt(segments.Count - 1);
+            }
+        }
+
+        static bool TryProvidesRequirement(
+            ResultSelectionSet resultSelectionSet,
+            SelectionPath operationTarget,
+            string[] requirementPath)
+        {
+            var targetFieldCount = 0;
+
+            for (var i = 0; i < operationTarget.Length; i++)
+            {
+                if (operationTarget[i].Kind is SelectionPathSegmentKind.Field)
+                {
+                    targetFieldCount++;
+                }
+            }
+
+            if (targetFieldCount > requirementPath.Length)
+            {
+                return false;
+            }
+
+            var targetFieldIndex = 0;
+
+            for (var i = 0; i < operationTarget.Length; i++)
+            {
+                var segment = operationTarget[i];
+
+                if (segment.Kind is SelectionPathSegmentKind.Field
+                    && !segment.Name.Equals(
+                        requirementPath[targetFieldIndex++],
+                        StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            for (var i = targetFieldCount; i < requirementPath.Length; i++)
+            {
+                var responseName = requirementPath[i];
+
+                if (!ContainsResponseName(resultSelectionSet.ResponseNames, responseName))
+                {
+                    return false;
+                }
+
+                if (i + 1 < requirementPath.Length)
+                {
+                    if (resultSelectionSet.TryGetChild(responseName) is not { } child)
+                    {
+                        return false;
+                    }
+
+                    resultSelectionSet = child;
+                }
+            }
+
+            return true;
+        }
+
+        static bool ContainsResponseName(ReadOnlySpan<string> responseNames, string responseName)
+        {
+            foreach (var candidate in responseNames)
+            {
+                if (candidate.Equals(responseName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string FormatPath(string[] path)
+            => path.Length == 0 ? "$" : "$." + string.Join('.', path);
+    }
+
+    private static Dictionary<int, HashSet<int>> CreatePolicyGuardLookup(
+        ExecutionPlanBuildContext ctx,
+        IReadOnlyDictionary<int, HashSet<int>> policyRequirementProviders)
+    {
+        var guardsByOperationId = new Dictionary<int, HashSet<int>>();
+
+        foreach (var policyNode in ctx.ExecutionNodes.Values.OfType<PolicyExecutionNode>())
+        {
+            if (!ctx.DependenciesByStepId.TryGetValue(policyNode.Id, out var producerIds))
+            {
+                continue;
+            }
+
+            foreach (var candidate in ctx.ExecutionNodes.Values)
+            {
+                if (policyRequirementProviders.TryGetValue(policyNode.Id, out var providers)
+                    && providers.Contains(candidate.Id))
+                {
+                    continue;
+                }
+
+                SelectionPath target;
+
+                switch (candidate)
+                {
+                    case OperationExecutionNode operation:
+                        target = operation.Target;
+                        break;
+
+                    case ApolloOperationExecutionNode operation:
+                        target = operation.Target;
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                if (!ctx.DependenciesByStepId.TryGetValue(candidate.Id, out var dependencies)
+                    || !dependencies.Overlaps(producerIds)
+                    || !IsGuardedTarget(target, policyNode.Targets))
+                {
+                    continue;
+                }
+
+                if (!guardsByOperationId.TryGetValue(candidate.Id, out var guards))
+                {
+                    guards = [];
+                    guardsByOperationId.Add(candidate.Id, guards);
+                }
+
+                guards.Add(policyNode.Id);
+            }
+        }
+
+        return guardsByOperationId;
+
+        static bool IsGuardedTarget(
+            SelectionPath operationTarget,
+            ReadOnlySpan<PolicyExecutionTarget> policyTargets)
+        {
+            foreach (var policyTarget in policyTargets)
+            {
+                if (policyTarget.Path.IsParentOfOrSame(operationTarget))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    private static void ApplyPolicyGuards(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, HashSet<int>> guardsByOperationId)
+    {
+        if (guardsByOperationId.Count == 0)
+        {
+            return;
+        }
+
+        var executionNodeByOperationId = new Dictionary<int, ExecutionNode>();
+        var definitionByOperationId = new Dictionary<int, OperationDefinition>();
+
+        foreach (var node in ctx.ExecutionNodes.Values)
+        {
+            executionNodeByOperationId[node.Id] = node;
+
+            if (node is OperationBatchExecutionNode batch)
+            {
+                foreach (var operation in batch.Operations)
+                {
+                    executionNodeByOperationId[operation.Id] = batch;
+                    definitionByOperationId[operation.Id] = operation;
+                }
+            }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatch)
+            {
+                foreach (var operation in apolloBatch.Operations)
+                {
+                    executionNodeByOperationId[operation.Id] = apolloBatch;
+                    definitionByOperationId[operation.Id] = operation;
+                }
+            }
+        }
+
+        foreach (var (originalOperationId, policyIds) in guardsByOperationId)
+        {
+            var operationId = originalOperationId;
+
+            if (!executionNodeByOperationId.TryGetValue(operationId, out var executionNode))
+            {
+                operationId = ResolveRedirectedStepId(operationId, ctx.RedirectedStepIds);
+
+                if (!executionNodeByOperationId.TryGetValue(operationId, out executionNode))
+                {
+                    continue;
+                }
+            }
+
+            definitionByOperationId.TryGetValue(originalOperationId, out var operationDefinition);
+            operationDefinition ??= definitionByOperationId.GetValueOrDefault(operationId);
+
+            if (!ctx.DependenciesByStepId.TryGetValue(executionNode.Id, out var executionDependencies))
+            {
+                executionDependencies = [];
+                ctx.DependenciesByStepId.Add(executionNode.Id, executionDependencies);
+            }
+
+            foreach (var policyId in policyIds)
+            {
+                if (!ctx.ExecutionNodes.TryGetValue(policyId, out var policyNode))
+                {
+                    continue;
+                }
+
+                executionDependencies.Add(policyId);
+                operationDefinition?.AddDependency(policyNode);
+            }
+        }
+    }
+
     private static void WireOperationDependencies(ExecutionPlanBuildContext ctx)
     {
         // Build a lookup from every operation identifier to its containing
@@ -1381,7 +1776,8 @@ public sealed partial class OperationPlanner
                     OperationExecutionNode
                     or OperationBatchExecutionNode
                     or ApolloOperationExecutionNode
-                    or ApolloOperationBatchExecutionNode))
+                    or ApolloOperationBatchExecutionNode
+                    or PolicyExecutionNode))
             {
                 continue;
             }
@@ -1410,7 +1806,8 @@ public sealed partial class OperationPlanner
                         or ApolloOperationExecutionNode
                         or ApolloOperationBatchExecutionNode
                         or NodeFieldExecutionNode
-                        or EventStreamExecutionNode))
+                        or EventStreamExecutionNode
+                        or PolicyExecutionNode))
                 {
                     continue;
                 }
