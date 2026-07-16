@@ -65,7 +65,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         small.Initialize(smallPlan);
         small.Context.Begin();
 
-        Assert.Empty(small.Context.GetDependentsToExecute(fallback));
+        Assert.True(small.Context.GetDependentsToExecute(fallback).IsDefaultOrEmpty);
         Assert.Throws<InvalidOperationException>(() => small.Context.GetDynamicSchemaName(fallback));
         Assert.Empty(small.Context.GetSkippedDefinitions(batch));
         Assert.False(small.Context.TryGetBatchRequestError(batch, 3, out var staleError));
@@ -74,7 +74,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         var staleTransport = small.Context.GetTransportDetails(fallback);
         Assert.Null(staleTransport.Uri);
         Assert.Null(staleTransport.ContentType);
-        Assert.Empty(small.Context.GetDependentsToExecute(smallNode));
+        Assert.True(small.Context.GetDependentsToExecute(smallNode).IsDefaultOrEmpty);
 
         small.Context.EnqueueForExecution(smallNode, smallDependent);
 
@@ -116,7 +116,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         recovered.Initialize(smallPlan);
         recovered.Context.Begin();
 
-        Assert.Empty(recovered.Context.GetDependentsToExecute(smallNode));
+        Assert.True(recovered.Context.GetDependentsToExecute(smallNode).IsDefaultOrEmpty);
 
         recovered.Context.EnqueueForExecution(smallNode, smallDependent);
 

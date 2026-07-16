@@ -42,28 +42,12 @@ public sealed class IncrementalPlan : IOperationPlan
         AllNodes = allNodes;
         DeliveryGroups = deliveryGroups;
         Requirements = requirements.IsDefault ? [] : requirements;
-        _nodesById = CreateNodeLookup(allNodes);
-
-        if (!allNodes.IsDefaultOrEmpty)
-        {
-            foreach (var node in allNodes)
-            {
-                if (node is NodeFieldExecutionNode)
-                {
-                    UsesDynamicSchemaNames = true;
-                }
-
-                if (node is OperationBatchExecutionNode or ApolloOperationBatchExecutionNode)
-                {
-                    UsesBatchNodes = true;
-                }
-
-                if (UsesDynamicSchemaNames && UsesBatchNodes)
-                {
-                    break;
-                }
-            }
-        }
+        _nodesById = CreateNodeLookup(
+            allNodes,
+            out var usesDynamicSchemaNames,
+            out var usesBatchNodes);
+        UsesDynamicSchemaNames = usesDynamicSchemaNames;
+        UsesBatchNodes = usesBatchNodes;
     }
 
     /// <summary>
@@ -167,8 +151,14 @@ public sealed class IncrementalPlan : IOperationPlan
         throw ThrowHelper.NodeNotFound(planNode.Id);
     }
 
-    private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
+    private static ExecutionNode?[] CreateNodeLookup(
+        ImmutableArray<ExecutionNode> allNodes,
+        out bool usesDynamicSchemaNames,
+        out bool usesBatchNodes)
     {
+        usesDynamicSchemaNames = false;
+        usesBatchNodes = false;
+
         if (allNodes.IsDefaultOrEmpty)
         {
             return [];
@@ -179,6 +169,17 @@ public sealed class IncrementalPlan : IOperationPlan
         foreach (var node in allNodes)
         {
             maxId = Math.Max(maxId, node.Id);
+
+            switch (node.Type)
+            {
+                case ExecutionNodeType.Node:
+                    usesDynamicSchemaNames = true;
+                    break;
+
+                case ExecutionNodeType.OperationBatch:
+                    usesBatchNodes = true;
+                    break;
+            }
 
             if (node is OperationBatchExecutionNode batchNode)
             {
