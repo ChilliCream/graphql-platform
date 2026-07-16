@@ -1,5 +1,3 @@
-import type { ReactElement } from "react";
-
 import { CheckListItem } from "@/src/components/CheckListItem";
 import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -25,8 +23,6 @@ interface PerkCardProps {
   readonly intro?: string;
   /** Mono label above the perk list (e.g. "What we cover"). */
   readonly listLabel?: string;
-  /** Optional illustration in the top-right of the card. */
-  readonly Icon?: () => ReactElement;
   /** Optional illustration in the top-right of the card. */
   readonly icon?: IconName;
   /** Tints the tag, icon, and perk checks. Defaults to the brand accent. */
