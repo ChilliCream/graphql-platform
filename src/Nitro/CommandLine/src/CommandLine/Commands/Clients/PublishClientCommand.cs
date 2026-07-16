@@ -91,9 +91,12 @@ internal sealed class PublishClientCommand : Command
                     var errorMessage = error switch
                     {
                         IPublishClientVersion_PublishClient_Errors_UnauthorizedOperation err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
+                        IPublishClientVersion_PublishClient_Errors_StageNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
+                        IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()

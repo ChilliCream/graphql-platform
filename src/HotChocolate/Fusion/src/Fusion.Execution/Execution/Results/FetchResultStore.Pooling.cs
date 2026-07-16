@@ -127,7 +127,6 @@ internal sealed partial class FetchResultStore
 
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
-        _variableDedupTable.Clear();
 
         // null out per-request references
         _result = default!;

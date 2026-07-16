@@ -5214,6 +5214,367 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
     }
 
+    [Fact]
+    public async Task RequestApiNotFound_WithArchive_ReturnsError()
+    {
+        var result = await ExecuteRequestNotFoundError(
+            PublishInput.Archive, CreateRequestDeploymentSlotApiNotFoundError());
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestStageNotFound_WithArchive_ReturnsError()
+    {
+        var result = await ExecuteRequestNotFoundError(
+            PublishInput.Archive, CreateRequestDeploymentSlotStageNotFoundError());
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestApiNotFound_WithSourceSchemaFile_ReturnsError()
+    {
+        var result = await ExecuteRequestNotFoundError(
+            PublishInput.SourceSchemaFile, CreateRequestDeploymentSlotApiNotFoundError());
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestStageNotFound_WithSourceSchemaFile_ReturnsError()
+    {
+        var result = await ExecuteRequestNotFoundError(
+            PublishInput.SourceSchemaFile, CreateRequestDeploymentSlotStageNotFoundError());
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestApiNotFound_WithSourceSchema_ReturnsError()
+    {
+        var result = await ExecuteRequestNotFoundError(
+            PublishInput.SourceSchema, CreateRequestDeploymentSlotApiNotFoundError());
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestStageNotFound_WithSourceSchema_ReturnsError()
+    {
+        var result = await ExecuteRequestNotFoundError(
+            PublishInput.SourceSchema, CreateRequestDeploymentSlotStageNotFoundError());
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClaimRequestNotFound_WithArchive_ReturnsError()
+    {
+        var result = await ExecuteClaimNotFoundError(PublishInput.Archive);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClaimRequestNotFound_WithSourceSchemaFile_ReturnsError()
+    {
+        var result = await ExecuteClaimNotFoundError(PublishInput.SourceSchemaFile);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClaimRequestNotFound_WithSourceSchema_ReturnsError()
+    {
+        var result = await ExecuteClaimNotFoundError(PublishInput.SourceSchema);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ValidationRequestNotFound_WithArchive_ReturnsError()
+    {
+        var result = await ExecuteValidationNotFoundError(PublishInput.Archive);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ValidationRequestNotFound_WithSourceSchemaFile_ReturnsError()
+    {
+        var result = await ExecuteValidationNotFoundError(PublishInput.SourceSchemaFile);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ValidationRequestNotFound_WithSourceSchema_ReturnsError()
+    {
+        var result = await ExecuteValidationNotFoundError(PublishInput.SourceSchema);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task UploadRequestNotFound_WithArchive_ReturnsError()
+    {
+        var result = await ExecuteUploadNotFoundError(PublishInput.Archive);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task UploadRequestNotFound_WithSourceSchemaFile_ReturnsError()
+    {
+        var result = await ExecuteUploadNotFoundError(PublishInput.SourceSchemaFile);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task UploadRequestNotFound_WithSourceSchema_ReturnsError()
+    {
+        var result = await ExecuteUploadNotFoundError(PublishInput.SourceSchema);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ReleaseRequestNotFound_WithArchive_ReturnsError()
+    {
+        var result = await ExecuteReleaseNotFoundError(PublishInput.Archive);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Fusion configuration request was not found.
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ReleaseRequestNotFound_WithSourceSchemaFile_ReturnsError()
+    {
+        var result = await ExecuteReleaseNotFoundError(PublishInput.SourceSchemaFile);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Fusion configuration request was not found.
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ReleaseRequestNotFound_WithSourceSchema_ReturnsError()
+    {
+        var result = await ExecuteReleaseNotFoundError(PublishInput.SourceSchema);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Fusion configuration request was not found.
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    private async Task<CommandResult> ExecuteRequestNotFoundError(
+        PublishInput input,
+        IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors error)
+    {
+        SetupPublishInput(input);
+        SetupRequestDeploymentSlotMutation(
+            waitForApproval: false,
+            sourceSchemaVersions: input is PublishInput.SourceSchema ? SourceSchemaVersions : null,
+            errors: error);
+
+        return await ExecutePublishCommand(input);
+    }
+
+    private async Task<CommandResult> ExecuteClaimNotFoundError(PublishInput input)
+    {
+        SetupPublishInput(input);
+        SetupRequestDeploymentSlotMutation(
+            sourceSchemaVersions: input is PublishInput.SourceSchema ? SourceSchemaVersions : null);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation(CreateClaimDeploymentSlotRequestNotFoundError());
+        SetupReleaseDeploymentSlotMutation();
+
+        return await ExecutePublishCommand(input);
+    }
+
+    private async Task<CommandResult> ExecuteValidationNotFoundError(PublishInput input)
+    {
+        SetupPublishInput(input);
+        SetupRequestDeploymentSlotMutation(
+            sourceSchemaVersions: input is PublishInput.SourceSchema ? SourceSchemaVersions : null);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        if (input is not PublishInput.Archive)
+        {
+            SetupFusionConfigurationDownload();
+        }
+        SetupFusionConfigurationValidationMutation(CreateValidationRequestNotFoundError());
+        SetupReleaseDeploymentSlotMutation();
+
+        return await ExecutePublishCommand(input);
+    }
+
+    private async Task<CommandResult> ExecuteUploadNotFoundError(PublishInput input)
+    {
+        SetupPublishInput(input);
+        SetupRequestDeploymentSlotMutation(
+            sourceSchemaVersions: input is PublishInput.SourceSchema ? SourceSchemaVersions : null);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        if (input is not PublishInput.Archive)
+        {
+            SetupFusionConfigurationDownload();
+        }
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation(CreateUploadRequestNotFoundError());
+        SetupReleaseDeploymentSlotMutation();
+
+        return await ExecutePublishCommand(input);
+    }
+
+    private async Task<CommandResult> ExecuteReleaseNotFoundError(PublishInput input)
+    {
+        SetupPublishInput(input);
+        SetupRequestDeploymentSlotMutation(
+            sourceSchemaVersions: input is PublishInput.SourceSchema ? SourceSchemaVersions : null);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutation(CreateReleaseDeploymentSlotRequestNotFoundError());
+
+        return await ExecutePublishCommand(input);
+    }
+
+    private void SetupPublishInput(PublishInput input)
+    {
+        if (input is PublishInput.Archive)
+        {
+            SetupArchiveFile();
+        }
+        else if (input is PublishInput.SourceSchemaFile)
+        {
+            SetupSourceSchemaFile();
+        }
+        else
+        {
+            SetupSourceSchemaDownload();
+        }
+    }
+
+    private Task<CommandResult> ExecutePublishCommand(PublishInput input)
+    {
+        var inputOption = input switch
+        {
+            PublishInput.Archive => "--archive",
+            PublishInput.SourceSchemaFile => "--source-schema-file",
+            _ => "--source-schema"
+        };
+        var inputValue = input switch
+        {
+            PublishInput.Archive => ArchiveFile,
+            PublishInput.SourceSchemaFile => SourceSchemaFile,
+            _ => SourceSchema
+        };
+
+        return ExecuteCommandAsync(
+            "fusion", "publish", "--api-id", ApiId, "--stage", Stage, "--tag", Tag, inputOption, inputValue);
+    }
+
+    private enum PublishInput
+    {
+        Archive,
+        SourceSchemaFile,
+        SourceSchema
+    }
+
     #region Theory Data
 
     public static TheoryData<
@@ -5221,8 +5582,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         string> GetRequestDeploymentSlotErrors() => new()
     {
         { CreateRequestDeploymentSlotUnauthorizedError(), "Unauthorized." },
-        { CreateRequestDeploymentSlotApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreateRequestDeploymentSlotStageNotFoundError(), $"Stage '{Stage}' was not found." },
         { CreateRequestDeploymentSlotSubgraphInvalidError(), "Subgraph is invalid." },
         { CreateRequestDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." },
         { CreateRequestDeploymentSlotInvalidSourceMetadataError(), "Invalid source metadata input." }
@@ -5233,7 +5592,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         string> GetClaimDeploymentSlotErrors() => new()
     {
         { CreateClaimDeploymentSlotUnauthorizedError(), "Unauthorized." },
-        { CreateClaimDeploymentSlotRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateClaimDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 
@@ -5242,7 +5600,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         string> GetValidationErrors() => new()
     {
         { CreateValidationUnauthorizedError(), "Unauthorized." },
-        { CreateValidationRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateValidationInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 
@@ -5251,7 +5608,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         string> GetUploadErrors() => new()
     {
         { CreateUploadUnauthorizedError(), "Unauthorized." },
-        { CreateUploadRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateUploadInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 
@@ -5260,7 +5616,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         string> GetReleaseDeploymentSlotErrors() => new()
     {
         { CreateReleaseDeploymentSlotUnauthorizedError(), "Unauthorized." },
-        { CreateReleaseDeploymentSlotRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateReleaseDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 

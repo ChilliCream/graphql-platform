@@ -71,6 +71,8 @@ internal sealed class DeleteApiCommand : Command
             {
                 var errorMessage = mutationError switch
                 {
+                    IDeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
                 };

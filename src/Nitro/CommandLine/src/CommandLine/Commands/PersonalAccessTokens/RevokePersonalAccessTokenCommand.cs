@@ -65,7 +65,8 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IPersonalAccessTokenNotFoundError err => err.Message,
+                        IPersonalAccessTokenNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

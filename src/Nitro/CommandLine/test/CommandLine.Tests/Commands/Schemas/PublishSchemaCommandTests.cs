@@ -161,6 +161,54 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupPublishSchemaMutation(errors: CreatePublishSchemaApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "publish", "--tag", Tag, "--stage", Stage, "--api-id", ApiId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupPublishSchemaMutation(errors: CreatePublishSchemaStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "publish", "--tag", Tag, "--stage", Stage, "--api-id", ApiId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_ReturnsError()
+    {
+        SetupPublishSchemaMutation(errors: CreatePublishSchemaSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "publish", "--tag", Tag, "--stage", Stage, "--api-id", ApiId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task MutationReturnsNullRequestId_ReturnsError()
     {
         // arrange
@@ -475,10 +523,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         IPublishSchemaVersion_PublishSchema_Errors,
         string> GetPublishSchemaErrors() => new()
     {
-        { CreatePublishSchemaUnauthorizedError(), "Unauthorized." },
-        { CreatePublishSchemaApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreatePublishSchemaStageNotFoundError(), $"Stage '{Stage}' was not found." },
-        { CreatePublishSchemaSchemaNotFoundError(), "Schema not found." }
+        { CreatePublishSchemaUnauthorizedError(), "Unauthorized." }
     };
 
     #endregion

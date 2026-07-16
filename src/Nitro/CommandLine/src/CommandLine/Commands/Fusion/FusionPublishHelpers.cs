@@ -50,8 +50,8 @@ internal static class FusionPublishHelpers
                 {
                     IUnauthorizedOperation err => err.Message,
                     IInvalidSourceMetadataInputError err => err.Message,
-                    IApiNotFoundError err => err.Message,
-                    IStageNotFoundError err => err.Message,
+                    IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                    IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                     ISubgraphInvalidError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
@@ -157,7 +157,8 @@ internal static class FusionPublishHelpers
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
-                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
@@ -189,7 +190,8 @@ internal static class FusionPublishHelpers
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
-                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
@@ -321,7 +323,8 @@ internal static class FusionPublishHelpers
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
-                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()

@@ -96,6 +96,54 @@ public class QueryableProjectionUnionTypeTests
     }
 
     [Fact]
+    public async Task UseProjection_Should_ProjectExplicitUnion_When_ResolverReturnsBaseQueryable()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(
+            s_barEntities,
+            OnModelCreating,
+            configure: builder =>
+            {
+                ConfigureSchema(builder);
+                builder.AddType(
+                    new ObjectTypeExtension<StubObject<AbstractType>>(
+                        descriptor =>
+                        {
+                            descriptor.Name("Query");
+                            descriptor
+                                .Field(x => x.Root)
+                                .Type<ListType<ExplicitUnionType>>();
+                        }));
+            });
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root {
+                            __typename
+                            ... on Foo {
+                                fooProp
+                            }
+                            ... on Bar {
+                                barProp
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task ParentRequires_Should_ProjectConcreteProperties_When_ReturnTypeIsUnion()
     {
         // arrange
@@ -428,6 +476,16 @@ public class QueryableProjectionUnionTypeTests
     public class Bar : AbstractType
     {
         public string BarProp { get; set; } = null!;
+    }
+
+    public class ExplicitUnionType : UnionType
+    {
+        protected override void Configure(IUnionTypeDescriptor descriptor)
+        {
+            descriptor.Name("ExplicitUnion");
+            descriptor.Type<ObjectType<Foo>>();
+            descriptor.Type<ObjectType<Bar>>();
+        }
     }
 
     public class InspectionDefinition
