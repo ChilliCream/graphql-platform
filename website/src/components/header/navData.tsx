@@ -72,9 +72,9 @@ export const NAV_ITEMS: NavItem[] = [
             icon: WavePulseIcon,
           },
           {
-            href: "/platform/continuous-integration",
-            label: "Continuous Integration",
-            description: "Innovate with Confidence. Deliver with Quality.",
+            href: "/platform/release-safety",
+            label: "Release Safety",
+            description: "Ship schema changes without breaking clients.",
             icon: SparklesIcon,
           },
           {

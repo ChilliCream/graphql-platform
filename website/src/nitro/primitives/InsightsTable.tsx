@@ -10,11 +10,13 @@ import type { InsightRow, SpanKind } from "../lib/data";
 
 export interface InsightsTableProps {
   rows: InsightRow[];
+  nameHeader?: string;
   errorThreshold?: number;
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   rowStagger?: number;
   durationMs?: number;
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -53,16 +55,18 @@ const NUM: CSSProperties = {
 
 export function InsightsTable({
   rows,
+  nameHeader = "Subgraph",
   errorThreshold = 0.03,
   progress,
   playWindow,
   rowStagger = 0.1,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
 }: InsightsTableProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const span = Math.max(0.001, 1 - Math.max(0, rows.length - 1) * rowStagger);
   const label =
@@ -105,7 +109,7 @@ export function InsightsTable({
         <thead>
           <tr>
             <th scope="col" style={HEADER}>
-              Subgraph
+              {nameHeader}
             </th>
             <th scope="col" style={{ ...HEADER, textAlign: "right" }}>
               Avg latency
@@ -136,6 +140,7 @@ export function InsightsTable({
                 progress={progress}
                 window={[r0, r1]}
                 errorThreshold={errorThreshold}
+                once={once}
               />
             );
           })}
@@ -151,12 +156,14 @@ function Row({
   progress,
   window: [w0, w1],
   errorThreshold,
+  once,
 }: {
   row: InsightRow;
   t: MotionValue<number>;
   progress?: MotionValue<number>;
   window: [number, number];
   errorThreshold: number;
+  once?: boolean;
 }) {
   const reveal = useTransform(t, [w0, w1], [0, 1], {
     ease: ease.out,
@@ -222,6 +229,7 @@ function Row({
             height={22}
             progress={progress}
             playWindow={[w0, w1]}
+            once={once}
             ariaLabel={`${row.name} latency trend`}
           />
         </div>

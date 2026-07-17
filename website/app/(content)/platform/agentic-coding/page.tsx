@@ -4,6 +4,7 @@ import { CopyCommand } from "@/src/components/CopyCommand";
 import { KeyValueChip } from "@/src/components/KeyValueChip";
 import { PageHero } from "@/src/components/PageHero";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { SkillFileWindow } from "@/src/components/SkillFileWindow";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -229,23 +230,21 @@ function AgentDirectory() {
   );
 }
 
-/** The current starting set in chillicream/agent-skills, one card each. */
+/** The current starting set in chillicream/agent-skills, one reviewed SKILL.md
+ *  each, shown as the file the agent actually reads. */
 const SKILLS = [
   {
     name: "graphql-schema-design",
-    title: "Schema design and review.",
     description:
       "Proposes SDL in design mode and audits schema diffs in review mode, following the team's conventions.",
   },
   {
     name: "prototype-feature",
-    title: "Frontend prototype with mock data.",
     description:
       "Builds a clickable, local-only prototype with realistic mock data before any schema or backend work.",
   },
   {
     name: "prototype-to-contract",
-    title: "Prototype to backend contract.",
     description:
       "Turns an accepted prototype into colocated GraphQL fragments and a contract for the backend.",
   },
@@ -268,34 +267,19 @@ function SkillsSection() {
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
         {SKILLS.map((skill) => (
-          <Card
-            key={skill.name}
-            as="article"
-            variant="panel"
-            hoverBorder
-            className="flex flex-col"
-          >
-            <Eyebrow size="xs" className="text-[0.58rem]">
-              SKILL.md
-            </Eyebrow>
-            <h3 className="text-cc-accent mt-3 font-mono text-sm break-words">
-              {skill.name}
-            </h3>
-            <p className="text-cc-heading font-heading mt-3 text-base font-semibold">
-              {skill.title}
-            </p>
-            <p className="text-cc-ink-dim mt-2 text-sm/relaxed">
-              {skill.description}
-            </p>
+          <div key={skill.name} className="flex flex-col gap-3">
+            <SkillFileWindow
+              name={skill.name}
+              description={skill.description}
+              className="flex-1"
+            />
             {/* Try it: install just this skill. */}
-            <div className="mt-auto pt-5">
-              <CopyCommand
-                size="sm"
-                command={`dnx skillz add chillicream/agent-skills --skill ${skill.name}`}
-                className="bg-cc-surface"
-              />
-            </div>
-          </Card>
+            <CopyCommand
+              size="sm"
+              command={`dnx skillz add chillicream/agent-skills --skill ${skill.name}`}
+              className="bg-cc-surface"
+            />
+          </div>
         ))}
       </div>
 

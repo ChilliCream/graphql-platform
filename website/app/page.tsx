@@ -1,6 +1,8 @@
 import { FromOurBlog } from "@/src/components/FromOurBlog";
 import { AgenticSection } from "@/src/components/home/agentic/AgenticSection";
 import { BuildYourWay } from "@/src/components/home/BuildYourWay";
+import { CombinedGovernance } from "@/src/components/home/combined/CombinedGovernance";
+import { CombinedObservability } from "@/src/components/home/combined/CombinedObservability";
 import { FusionFlow } from "@/src/components/home/FusionFlow";
 import { GrabADrink } from "@/src/components/home/GrabADrink";
 import { HomeHero } from "@/src/components/home/HomeHero";
@@ -8,6 +10,7 @@ import { LogoCloud } from "@/src/components/home/LogoCloud";
 import { NitroPricing } from "@/src/components/home/NitroPricing";
 import { NitroSection } from "@/src/components/home/nitro/NitroSection";
 import { ProtocolCards } from "@/src/components/home/ProtocolCards";
+import { PatternBand } from "@/src/components/PatternBand";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_TITLE } from "@/src/helpers/site";
 
@@ -28,7 +31,30 @@ export default function Home() {
       <FusionFlow />
       <ProtocolCards />
       <NitroSection />
-      <AgenticSection />
+      <PatternBand
+        pattern="lines"
+        contain={false}
+        blend
+        className="pb-16 sm:pb-24"
+      >
+        <AgenticSection />
+      </PatternBand>
+      <PatternBand
+        pattern="grid"
+        contain={false}
+        blend
+        className="pb-16 sm:pb-24"
+      >
+        <CombinedObservability />
+      </PatternBand>
+      <PatternBand
+        pattern="dots"
+        contain={false}
+        blend
+        className="pb-16 sm:pb-24"
+      >
+        <CombinedGovernance />
+      </PatternBand>
       <NitroPricing />
       <GrabADrink />
       <div className="px-5 py-8 sm:px-12">

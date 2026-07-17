@@ -468,7 +468,7 @@ export function AgenticSection() {
   return (
     <PageSection className="pt-16 sm:pt-24">
       <RevealOnScroll>
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             Built for <FlipSlot activeIndex={activeIndex} />
           </h2>
