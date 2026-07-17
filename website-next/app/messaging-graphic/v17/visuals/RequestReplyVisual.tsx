@@ -6,9 +6,10 @@ import { CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT } from "../palette";
 
 // One 9s loop: ORDERS SVC fires a coral request pulse across the upper lane
 // (the correlation tag brightens as it passes), the pulse docks at the
-// CATALOG SERVICE panel border and dips down to the GetProductHandler row,
-// which flashes through a work beat; then a green reply pulse returns on the
-// lower lane and the typed "ProductResponse" flashes next to ORDERS SVC.
+// CATALOG SERVICE panel border and runs straight on into the
+// GetProductHandler row (centered on the request lane's axis), which flashes
+// through a work beat; then a green reply pulse returns on the lower lane and
+// the typed "ProductResponse" flashes next to ORDERS SVC.
 const T = 9000;
 const REQ_START = 500;
 const REQ_END = 2100;
@@ -38,12 +39,12 @@ const CHIP_W = 96;
 const CHIP_H = 72;
 const CHIP_TOP = CY - CHIP_H / 2;
 const PANEL_W = 170;
-const PANEL_TOP = 14;
-const PANEL_H = 118;
-const ROW_TOP = 64;
+const PANEL_TOP = 6;
+const PANEL_H = 126;
 const ROW_H = 30;
-// Radius of the rounded 90-degree elbow on the internal connector.
-const ELBOW_R = 10;
+// The handler row is centered on the request lane's axis, so the request
+// runs straight into the row with no internal elbow.
+const ROW_TOP = REQ_Y - ROW_H / 2;
 
 interface Layout {
   readonly leftX: number;
@@ -54,13 +55,9 @@ interface Layout {
   readonly midX: number;
   readonly rowX: number;
   readonly rowW: number;
-  // Internal connector from the request dock down into the handler row: a
-  // short horizontal run, a rounded 90-degree elbow, then a vertical drop.
-  readonly bendX: number;
-  readonly d0: number;
-  readonly d1: number;
-  readonly d2: number;
-  readonly dipTotal: number;
+  // The request pulse glides straight past the panel border to this x inside
+  // the handler row, so the handoff is seamless.
+  readonly dockEnd: number;
 }
 
 function buildLayout(lw: number): Layout {
@@ -69,10 +66,6 @@ function buildLayout(lw: number): Layout {
   const x1 = leftX + CHIP_W;
   const x2 = panelX;
   const rowX = panelX + 12;
-  const bendX = rowX + 26;
-  const d0 = bendX - ELBOW_R - x2;
-  const d1 = (Math.PI / 2) * ELBOW_R;
-  const d2 = ROW_TOP - (REQ_Y + ELBOW_R);
   return {
     leftX,
     panelX,
@@ -82,27 +75,8 @@ function buildLayout(lw: number): Layout {
     midX: Math.round((x1 + x2) / 2),
     rowX,
     rowW: PANEL_W - 24,
-    bendX,
-    d0,
-    d1,
-    d2,
-    dipTotal: d0 + d1 + d2,
+    dockEnd: rowX + 14,
   };
-}
-
-function dipPoint(L: Layout, u: number): readonly [number, number] {
-  const dist = u * L.dipTotal;
-  if (dist <= L.d0) {
-    return [L.x2 + dist, REQ_Y];
-  }
-  if (dist <= L.d0 + L.d1) {
-    const phi = ((dist - L.d0) / L.d1) * (Math.PI / 2);
-    return [
-      L.bendX - ELBOW_R + ELBOW_R * Math.sin(phi),
-      REQ_Y + ELBOW_R - ELBOW_R * Math.cos(phi),
-    ];
-  }
-  return [L.bendX, REQ_Y + ELBOW_R + (dist - L.d0 - L.d1)];
 }
 
 function clamp01(v: number): number {
@@ -222,8 +196,8 @@ export function RequestReplyVisual() {
       }
     };
 
-    // Inside the panel the pulse follows the bent trace, so the trail dots
-    // (which assume a straight lane) are hidden.
+    // Inside the panel the pulse glides into the row without its trail dots,
+    // so the arrival reads as a single quiet dock.
     const placeDip = (p: string, x: number, y: number, op: number) => {
       if (op <= 0.01) {
         setO(p, 0);
@@ -248,8 +222,8 @@ export function RequestReplyVisual() {
       setO("cLitL", emit * 0.9);
       setO("cGlowL", emit * 0.25);
 
-      // Coral request pulse, left to right on the upper lane, then dipping
-      // inside the panel to the handler row. The correlation tag brightens by
+      // Coral request pulse, left to right on the upper lane, then gliding
+      // straight on into the handler row. The correlation tag brightens by
       // proximity as either pulse passes it.
       let corr = 0;
       if (t >= REQ_START && t < REQ_END) {
@@ -259,8 +233,8 @@ export function RequestReplyVisual() {
         corr = Math.max(corr, clamp01(1 - Math.abs(x - L.midX) / 70));
       } else if (t >= REQ_END && t < DIP_END) {
         const u = easeInOutCubic(ramp(t, REQ_END, DIP_END));
-        const [x, y] = dipPoint(L, u);
-        placeDip("p1", x, y, 1 - ramp(t, DIP_END - 140, DIP_END));
+        const x = L.x2 + u * (L.dockEnd - L.x2);
+        placeDip("p1", x, REQ_Y, 1 - ramp(t, DIP_END - 140, DIP_END));
       } else {
         setO("p1", 0);
       }
@@ -418,7 +392,7 @@ export function RequestReplyVisual() {
           />
           <text
             x={L.panelX + 12}
-            y={PANEL_TOP + 18}
+            y={PANEL_TOP + 16}
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.16em"
@@ -427,16 +401,7 @@ export function RequestReplyVisual() {
             CATALOG SERVICE
           </text>
 
-          {/* internal connector: request dock turns down into the handler
-              row through a rounded 90-degree elbow */}
-          <path
-            d={`M${L.x2} ${REQ_Y} H${L.bendX - ELBOW_R} A${ELBOW_R} ${ELBOW_R} 0 0 1 ${L.bendX} ${REQ_Y + ELBOW_R} V${ROW_TOP}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.75}
-          />
-
-          {/* handler row inside the panel */}
+          {/* handler row inside the panel, centered on the request lane */}
           <rect
             x={L.rowX}
             y={ROW_TOP}

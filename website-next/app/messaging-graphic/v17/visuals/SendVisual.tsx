@@ -492,7 +492,7 @@ export function SendVisual() {
           <circle
             ref={set("qdot")}
             cx={L.front}
-            cy={Q_Y}
+            cy={LANE_Y}
             r={2.5}
             fill={CORAL}
             opacity={0.95}
@@ -703,7 +703,7 @@ export function SendVisual() {
           <circle
             ref={set("ringQ")}
             cx={L.slotL}
-            cy={Q_Y}
+            cy={LANE_Y}
             r={2}
             fill="none"
             stroke={CORAL}

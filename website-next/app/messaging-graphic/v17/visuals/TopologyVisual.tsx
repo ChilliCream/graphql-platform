@@ -50,16 +50,18 @@ const ROW_W = PW - 24;
 const ROW_H = 28;
 const ROW_TOPS = [78, 116, 154] as const;
 
-// BROKER region: one derived row per declaration.
+// BROKER region: one derived row per declaration. Rows A and B sit exactly
+// on their code rows' axes, so those binding lanes are straight horizontals;
+// row C is pushed below the reply tray, so its lane elbows down.
 const FRAME_X = 228;
 const FRAME_Y = 24;
 const FRAME_H = 222;
 const BRX = 240;
-// Shared x where the binding lanes elbow from their code row onto the
+// x where the reserve-inventory lane elbows from its code row down onto the
 // derived broker row.
 const ELBOW_X = 224;
-const Y_A = 78;
-const Y_B = 140;
+const Y_A = 92;
+const Y_B = 130;
 const Y_C = 206;
 const PILL_H = 18;
 const REPLY_W = 58;
@@ -202,34 +204,21 @@ function buildLayout(lw: number): Layout {
     pillR,
     replyX: pillR - REPLY_W,
     dpEnd: pillX + 28,
-    // Binding lanes run from the YOUR CODE panel edge into the broker,
-    // turning onto each derived row with rounded 90-degree elbows.
-    lnA1: measure(
-      roundCorners(
-        [
-          [P_RIGHT, 92],
-          [ELBOW_X, 92],
-          [ELBOW_X, Y_A],
-          [ringX - 9, Y_A],
-        ],
-        10,
-      ),
-    ),
+    // Binding lanes run from the YOUR CODE panel edge into the broker. Rows
+    // A and B share their code rows' axes, so their lanes are straight; row
+    // C turns down onto its derived row with rounded 90-degree elbows.
+    lnA1: measure([
+      [P_RIGHT, Y_A],
+      [ringX - 9, Y_A],
+    ]),
     lnA2: measure([
       [ringX + 9, Y_A],
       [pillX, Y_A],
     ]),
-    lnB1: measure(
-      roundCorners(
-        [
-          [P_RIGHT, 130],
-          [ELBOW_X, 130],
-          [ELBOW_X, Y_B],
-          [ringX - 9, Y_B],
-        ],
-        10,
-      ),
-    ),
+    lnB1: measure([
+      [P_RIGHT, Y_B],
+      [ringX - 9, Y_B],
+    ]),
     lnB2: measure([
       [ringX + 9, Y_B],
       [pillX, Y_B],
@@ -254,18 +243,11 @@ function buildLayout(lw: number): Layout {
       [stubX, REPLY_Y],
     ]),
     // The proof pulse rides the order-placed row end-to-end: panel edge,
-    // through the exchange node, into the derived queue.
-    proof: measure(
-      roundCorners(
-        [
-          [P_RIGHT, 92],
-          [ELBOW_X, 92],
-          [ELBOW_X, Y_A],
-          [pillR - 12, Y_A],
-        ],
-        10,
-      ),
-    ),
+    // through the exchange node, into the derived queue, all on one axis.
+    proof: measure([
+      [P_RIGHT, Y_A],
+      [pillR - 12, Y_A],
+    ]),
   };
 }
 

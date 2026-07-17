@@ -42,8 +42,6 @@ const CHIP_X = 8;
 const CHIP_W = 96;
 const CHIP_H = 26;
 const CHIP_R = CHIP_X + CHIP_W;
-const C1_Y = 51; // RabbitMQ chip center
-const C2_Y = 158; // Event Hub chip center
 const PANEL_Y = 10;
 const PANEL_H = 190;
 const ROW_H = 30;
@@ -51,6 +49,10 @@ const R1_TOP = 44;
 const R2_TOP = 123;
 const R1_Y = R1_TOP + ROW_H / 2;
 const R2_Y = R2_TOP + ROW_H / 2;
+// Each transport chip is centered on its handler row's axis, so both rails
+// are single straight horizontal lines.
+const C1_Y = R1_Y; // RabbitMQ chip center
+const C2_Y = R2_Y; // Event Hub chip center
 
 // Widest row content: "DeviceTelemetryHandler" + gap + "2 481 302".
 const MAX_CHARS = 33;
@@ -96,36 +98,6 @@ function pointAt(p: Polyline, u: number): Pt {
   return p.pts[p.pts.length - 1];
 }
 
-// Rounded 90-degree S-jog: horizontal from (x0,y0), two quarter arcs around
-// the bend column bx, horizontal into (x1,y1). The polyline carries the arc
-// midpoints so pulse and firehose-dot motion stays on the drawn curve.
-function jog(
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  bx: number,
-): { readonly pts: readonly Pt[]; readonly d: string } {
-  const s = y1 > y0 ? 1 : -1;
-  const r = Math.min(10, Math.abs(y1 - y0) / 2);
-  const k = r - r * Math.SQRT1_2;
-  const pts: readonly Pt[] = [
-    [x0, y0],
-    [bx - r, y0],
-    [bx - k, y0 + s * k],
-    [bx, y0 + s * r],
-    [bx, y1 - s * r],
-    [bx + k, y1 - s * k],
-    [bx + r, y1],
-    [x1, y1],
-  ];
-  const d =
-    `M${x0} ${y0} H${bx - r} ` +
-    `A${r} ${r} 0 0 ${s > 0 ? 1 : 0} ${bx} ${y0 + s * r} V${y1 - s * r} ` +
-    `A${r} ${r} 0 0 ${s > 0 ? 0 : 1} ${bx + r} ${y1} H${x1}`;
-  return { pts, d };
-}
-
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
@@ -159,21 +131,24 @@ function buildLayout(lw: number): Layout {
   const px = CHIP_R + run;
   const pw = lw - px - 8;
   const rowW = pw - 24;
-  const bx1 = CHIP_R + Math.round(run * 0.6);
-  const bx2 = CHIP_R + Math.round(run * 0.4);
-  // Rounded elbows: rail 1 jogs down 8px, rail 2 jogs up 20px.
-  const j1 = jog(CHIP_R, C1_Y, px, R1_Y, bx1);
-  const j2 = jog(CHIP_R, C2_Y, px, R2_Y, bx2);
+  // Chip centers sit on the handler-row axes, so each rail is one straight
+  // horizontal line from chip edge to panel edge.
   return {
     px,
     pw,
     rowX: px + 12,
     rowW,
     rowFont: Math.min(10.5, (rowW - 26) / (MAX_CHARS * 0.635)),
-    p1: measure(j1.pts),
-    p2: measure(j2.pts),
-    d1: j1.d,
-    d2: j2.d,
+    p1: measure([
+      [CHIP_R, R1_Y],
+      [px, R1_Y],
+    ]),
+    p2: measure([
+      [CHIP_R, R2_Y],
+      [px, R2_Y],
+    ]),
+    d1: `M${CHIP_R} ${R1_Y} H${px}`,
+    d2: `M${CHIP_R} ${R2_Y} H${px}`,
   };
 }
 
