@@ -123,6 +123,7 @@ public sealed partial class OperationPlanContext
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();
+        _authorizationPolicyDecisions?.Clear();
 
         RequestContext = default!;
         Schema = default!;

@@ -19,6 +19,15 @@ public interface IAuthorizationPolicy
 {
     string Name { get; }
 
+    /// <summary>
+    /// Gets the graph data required to evaluate this policy.
+    /// </summary>
+    /// <remarks>
+    /// When this property is <c>null</c>, the policy produces a target-independent decision.
+    /// The policy is evaluated lazily at most once per request, and its decision is reused for
+    /// every application of the policy that is reached during that request.
+    /// Such a policy must not derive its decision from target-specific context or entity data.
+    /// </remarks>
     SelectionSetNode? Requirements { get; }
 
     ValueTask EvaluateAsync(

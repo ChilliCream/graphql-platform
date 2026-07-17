@@ -1545,7 +1545,9 @@ public sealed partial class OperationPlanner
                 {
                     if (resultSelectionSet.TryGetChild(responseName) is not { } child)
                     {
-                        return false;
+                        // A leaf result selection copies the complete field value, including
+                        // any nested policy requirement data returned by the source operation.
+                        return true;
                     }
 
                     resultSelectionSet = child;

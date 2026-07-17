@@ -82,7 +82,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
         CancellationToken cancellationToken)
     {
         var schema = context.Schema;
-        var user = context.Features.GetRequired<UserState>().User;
+        var user = context.Features.Get<UserState>()?.User ?? new ClaimsPrincipal();
         List<SelectionPath>? fullyDeniedPaths = null;
         var aborted = false;
 
@@ -180,6 +180,33 @@ public sealed class PolicyExecutionNode : ExecutionNode
                         entities.AsSpan(0, effectCount));
                 }
 
+                if (requirements is null)
+                {
+                    var decision = await context.EvaluatePolicyOnceAsync(
+                        policy,
+                        selection,
+                        type,
+                        user,
+                        application,
+                        entities[0],
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (decision.IsDenied)
+                    {
+                        ApplyDeniedDecision(
+                            application,
+                            decision.Reason,
+                            denied,
+                            denialBehaviors,
+                            denialReasons,
+                            denialPolicies,
+                            effectCount);
+                    }
+
+                    continue;
+                }
+
                 var authorizationContext =
                     new AuthorizationContext(
                         context,
@@ -193,7 +220,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
                         denialPolicies,
                         effectCount);
 
-                var entityData = new EntityData(effects, effectCount);
+                var entityData = new EntityData(entities, effectCount);
 
                 try
                 {
@@ -246,6 +273,28 @@ public sealed class PolicyExecutionNode : ExecutionNode
         }
 
         return aborted ? ExecutionStatus.Failed : ExecutionStatus.Success;
+    }
+
+    private static void ApplyDeniedDecision(
+        PolicyApplication application,
+        string? reason,
+        bool[] denied,
+        PolicyDenialBehavior[] denialBehaviors,
+        string?[] denialReasons,
+        string?[] denialPolicies,
+        int effectCount)
+    {
+        for (var i = 0; i < effectCount; i++)
+        {
+            if (!denied[i] || application.OnDenied >= denialBehaviors[i])
+            {
+                denialBehaviors[i] = application.OnDenied;
+                denialReasons[i] = reason;
+                denialPolicies[i] = application.Name;
+            }
+
+            denied[i] = true;
+        }
     }
 
     private static Selection? FindSelection(CompositeResultElement element)

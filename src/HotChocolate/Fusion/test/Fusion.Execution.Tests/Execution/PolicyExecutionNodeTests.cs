@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -11,6 +12,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
@@ -238,6 +240,195 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EvaluateRequirementFreePolicyOncePerRequest()
+    {
+        // arrange
+        var policy = new CountingDenyPolicy();
+        var executor = await CreateMultipleTargetExecutorAsync(policy);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret otherSecret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, policy.EvaluationCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "denied by counting policy",
+                  "path": [
+                    "otherSecret"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED",
+                    "policy": "CanReadSecret"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null,
+                "otherSecret": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EvaluateRequirementFreePolicyForEachRequest()
+    {
+        // arrange
+        var policy = new CountingDenyPolicy();
+        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
+
+        // act
+        await using var firstResult = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+        await using var secondResult = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, policy.EvaluationCount);
+        Assert.Equal(firstResult.ToJson(), secondResult.ToJson());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_NotEvaluateRequirementFreePolicy_When_TargetIsSkipped()
+    {
+        // arrange
+        var policy = new CountingDenyPolicy();
+        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "query($include: Boolean!) { secret @include(if: $include) }",
+            new Dictionary<string, object?> { ["include"] = false },
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, policy.EvaluationCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {}
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task EvaluatePolicyOnceAsync_Should_ShareInFlightEvaluation()
+    {
+        // arrange
+        var policy = new BlockingPolicy();
+        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        var services = schema.Services;
+        var context = new OperationPlanContext(
+            services.GetRequiredService<INodeIdParser>(),
+            services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
+            services.GetRequiredService<IErrorHandler>());
+        var application = new PolicyApplication
+        {
+            Name = policy.Name,
+            OnDenied = PolicyDenialBehavior.Null
+        };
+        var type = schema.Types.GetType<ITypeDefinition>("Query");
+        var entities = new CompositeResultElement[1];
+
+        try
+        {
+            // act
+            var first = context.EvaluatePolicyOnceAsync(
+                policy,
+                selection: null,
+                type,
+                new ClaimsPrincipal(),
+                application,
+                entities[0],
+                TestContext.Current.CancellationToken).AsTask();
+            await policy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
+            var second = context.EvaluatePolicyOnceAsync(
+                policy,
+                selection: null,
+                type,
+                new ClaimsPrincipal(),
+                application,
+                entities[0],
+                TestContext.Current.CancellationToken).AsTask();
+
+            policy.Release.TrySetResult();
+            var decisions = await Task.WhenAll(first, second);
+
+            // assert
+            Assert.Equal(1, policy.EvaluationCount);
+            Assert.Collection(
+                decisions,
+                decision => Assert.True(decision.IsDenied),
+                decision => Assert.True(decision.IsDenied));
+        }
+        finally
+        {
+            context.Destroy();
+        }
+    }
+
+    [Fact]
+    public async Task EvaluatePolicyOnceAsync_Should_CacheFailure()
+    {
+        // arrange
+        var policy = new ThrowingPolicy();
+        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        var services = schema.Services;
+        var context = new OperationPlanContext(
+            services.GetRequiredService<INodeIdParser>(),
+            services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
+            services.GetRequiredService<IErrorHandler>());
+        var application = new PolicyApplication
+        {
+            Name = policy.Name,
+            OnDenied = PolicyDenialBehavior.Null
+        };
+        var type = schema.Types.GetType<ITypeDefinition>("Query");
+        var entity = default(CompositeResultElement);
+
+        try
+        {
+            // act
+            var firstError = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.EvaluatePolicyOnceAsync(
+                    policy,
+                    selection: null,
+                    type,
+                    new ClaimsPrincipal(),
+                    application,
+                    entity,
+                    TestContext.Current.CancellationToken).AsTask());
+            var secondError = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.EvaluatePolicyOnceAsync(
+                    policy,
+                    selection: null,
+                    type,
+                    new ClaimsPrincipal(),
+                    application,
+                    entity,
+                    TestContext.Current.CancellationToken).AsTask());
+
+            // assert
+            Assert.Equal(1, policy.EvaluationCount);
+            Assert.Same(firstError, secondError);
+        }
+        finally
+        {
+            context.Destroy();
+        }
     }
 
     [Fact]
@@ -971,6 +1162,43 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 
+    private static async Task<IRequestExecutor> CreateMultipleTargetExecutorAsync(
+        IAuthorizationPolicy policy)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+
+                    type Query {
+                      secret: String @policy(name: "CanReadSecret")
+                      otherSecret: String @policy(name: "CanReadSecret", onDenied: ERROR)
+                    }
+                    """));
+
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(
+                ("a", new RecordingRequirementClient(
+                    """{"data":{"secret":"one","otherSecret":"two"}}"""))));
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
     private static async Task<IRequestExecutor> CreateCrossSourceRequirementExecutorAsync(
         IAuthorizationPolicy policy,
         RecordingRequirementClient secretClient,
@@ -1392,6 +1620,55 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class CountingDenyPolicy : IAuthorizationPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => "CanReadSecret";
+
+        public SelectionSetNode? Requirements => null;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            context.Deny(0, "denied by counting policy");
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class BlockingPolicy : IAuthorizationPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => "CanReadSecret";
+
+        public SelectionSetNode? Requirements => null;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public TaskCompletionSource Started { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Release { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            Started.TrySetResult();
+            await Release.Task.WaitAsync(cancellationToken);
+            context.Deny(0);
+        }
+    }
+
     private sealed class RoleRequirementPolicy : IAuthorizationPolicy
     {
         private static readonly SelectionSetNode s_requirements =
@@ -1466,15 +1743,22 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private sealed class ThrowingPolicy : IAuthorizationPolicy
     {
+        private int _evaluationCount;
+
         public string Name => "CanReadSecret";
 
         public SelectionSetNode? Requirements => null;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
             IAuthorizationContext context,
             EntityData entities,
             CancellationToken cancellationToken = default)
-            => throw new InvalidOperationException("test failure");
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            throw new InvalidOperationException("test failure");
+        }
     }
 
     private sealed class CooperativeCancellationPolicy(CancellationTokenSource cancellationSource)
@@ -1673,9 +1957,12 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private sealed class DenySecondProductPolicy : IAuthorizationPolicy
     {
+        private static readonly SelectionSetNode s_requirements =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
+
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public SelectionSetNode? Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
             IAuthorizationContext context,
