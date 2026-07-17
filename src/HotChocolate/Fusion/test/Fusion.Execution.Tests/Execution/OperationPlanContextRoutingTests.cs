@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
 using IntValueNode = HotChocolate.Language.IntValueNode;
+using NullValueNode = HotChocolate.Language.NullValueNode;
 using StringValueNode = HotChocolate.Language.StringValueNode;
 using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
 using IValueNode = HotChocolate.Language.IValueNode;
@@ -161,13 +162,16 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
     }
 
     [Fact]
-    public async Task CreateVariableValueSets_Should_CallSnapshotMergePath_When_FullMatchWithForwardedVariables()
+    public async Task CreateVariableValueSets_Should_PreserveResolvedVariableOrder_When_SnapshotMergeForwardsMoreThanEightNames()
     {
         // arrange
         await using var fixture = await RoutingTestFixture.CreateAsync(
             variables: new Dictionary<string, IValueNode>
             {
-                ["limit"] = new IntValueNode(10)
+                ["limit"] = new IntValueNode(10),
+                ["cursor"] = new StringValueNode("abc"),
+                ["nullable"] = NullValueNode.Default,
+                ["tenant"] = new StringValueNode("acme")
             });
         var context = fixture.CreateContext();
         fixture.SetRequirements(
@@ -178,14 +182,25 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // act
         var result = context.CreateVariableValueSets(
             SelectionPath.Root,
-            forwardedVariables: ["limit"],
+            forwardedVariables:
+            [
+                "missing",
+                "limit",
+                "cursor",
+                "limit",
+                "nullable",
+                "tenant",
+                "missing2",
+                "cursor",
+                "missing3"
+            ],
             requirements: [Requirement("__fusion_1_id")]);
 
         // assert
         var entry = Assert.Single(result);
         Normalize(entry.Values).MatchInlineSnapshot(
             """
-            {"limit":10,"__fusion_1_id":"1"}
+            {"limit":10,"cursor":"abc","limit":10,"nullable":null,"tenant":"acme","cursor":"abc","__fusion_1_id":"1"}
             """);
     }
 

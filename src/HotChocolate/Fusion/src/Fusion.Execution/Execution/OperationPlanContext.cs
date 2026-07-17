@@ -397,11 +397,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return _requirementValues;
             }
 
-            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            using var resolvedSnapshotVariables =
+                ForwardedVariableValues.Resolve(Variables, forwardedVariables);
             return _resultStore.CreateVariableValueSetsFromSnapshotWithResolvedVariables(
                 _requirementValues,
                 _requirementKeys!,
-                resolvedVariables.Span,
+                resolvedSnapshotVariables.Span,
                 requirements);
         }
     }
@@ -453,11 +454,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return _requirementValues;
             }
 
-            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            using var resolvedSnapshotVariables =
+                ForwardedVariableValues.Resolve(Variables, forwardedVariables);
             return _resultStore.CreateVariableValueSetsFromSnapshotWithResolvedVariables(
                 _requirementValues,
                 _requirementKeys!,
-                resolvedVariables.Span,
+                resolvedSnapshotVariables.Span,
                 requiredData);
         }
     }
@@ -509,11 +511,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             throw CreateMixedScopeException(requirements);
         }
 
-        using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+        using var resolvedSnapshotVariables =
+            ForwardedVariableValues.Resolve(Variables, forwardedVariables);
         return _resultStore.CreateRepresentationVariableValueFromSnapshotWithResolvedVariables(
             _requirementValues,
             _requirementKeys!,
-            resolvedVariables.Span,
+            resolvedSnapshotVariables.Span,
             requirements,
             entityTypeName,
             shape);
@@ -1008,6 +1011,7 @@ internal ref struct ForwardedVariableValues
         _count = 0;
     }
 
+    [UnscopedRef]
     public readonly ReadOnlySpan<ForwardedVariableValue> Span
     {
         get
@@ -1017,8 +1021,7 @@ internal ref struct ForwardedVariableValues
                 return rented.AsSpan(0, _count);
             }
 
-            ReadOnlySpan<ForwardedVariableValue> inline = _inline;
-            return inline[.._count];
+            return ((ReadOnlySpan<ForwardedVariableValue>)_inline)[.._count];
         }
     }
 
