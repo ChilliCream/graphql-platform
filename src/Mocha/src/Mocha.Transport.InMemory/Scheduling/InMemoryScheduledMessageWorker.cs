@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -110,6 +111,25 @@ internal sealed class InMemoryScheduledMessageWorker(
             return;
         }
 
+        Activity? activity = null;
+        var traceparent = envelope.Headers?.Get(MessageHeaders.Traceparent);
+
+        if (!string.IsNullOrEmpty(traceparent))
+        {
+            var tracestate = envelope.Headers?.Get(MessageHeaders.Tracestate);
+            if (ActivityContext.TryParse(traceparent, tracestate, out var parentContext))
+            {
+                activity = OpenTelemetry.Source.CreateActivity(
+                    "scheduler send",
+                    ActivityKind.Client,
+                    parentContext);
+
+                activity?.SetMessageId(envelope.MessageId);
+
+                activity?.Start();
+            }
+        }
+
         var context = _contextPool.Get();
         try
         {
@@ -129,6 +149,7 @@ internal sealed class InMemoryScheduledMessageWorker(
         finally
         {
             _contextPool.Return(context);
+            activity?.Dispose();
         }
     }
 

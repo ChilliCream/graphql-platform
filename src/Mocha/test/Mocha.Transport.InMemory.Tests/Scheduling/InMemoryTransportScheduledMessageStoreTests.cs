@@ -37,7 +37,7 @@ public class InMemoryTransportScheduledMessageStoreTests
     }
 
     [Fact]
-    public void TryTakeDue_Should_ReturnEntriesInDueOrder_When_SameScheduledTime()
+    public void TryTakeDue_Should_ReturnBothEntries_When_SameScheduledTime()
     {
         // arrange
         // two entries share a due time; the (ScheduledTime, Id) comparer must keep both.
