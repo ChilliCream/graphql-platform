@@ -158,4 +158,25 @@ public class MessageBusSchedulerSignalTests
         Assert.Same(waitTask, completed);
         Assert.True(cts.IsCancellationRequested);
     }
+
+    [Fact]
+    public async Task WaitUntilAsync_Should_ReturnImmediately_When_NotifyRacedBeforeWait()
+    {
+        // arrange
+        // a Notify that lowers the target arrives before the waiter calls WaitUntilAsync (the worker
+        // read an empty or later next-due time, then an earlier message was scheduled). The pending
+        // notify must not be lost: the next wait returns at once so the caller re-evaluates.
+        var timeProvider = new FakeTimeProvider(s_baseTime);
+        using var signal = new MessageBusSchedulerSignal(timeProvider);
+        signal.Notify(s_baseTime.AddSeconds(1));
+
+        // act - wait with a far-future wake time, as the worker would after seeing no due message
+        var waitTask = signal.WaitUntilAsync(DateTimeOffset.MaxValue, CancellationToken.None);
+
+        // assert - it returns without sleeping to the cap; time is never advanced in this test
+        Assert.True(
+            waitTask.IsCompleted,
+            "WaitUntilAsync must not lose a notify that arrived before the wait");
+        await waitTask;
+    }
 }

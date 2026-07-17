@@ -10,6 +10,7 @@ internal sealed class MessageBusSchedulerSignal(TimeProvider timeProvider)
 
     private DateTimeOffset _target = DateTimeOffset.MaxValue;
     private CancellationTokenSource? _delayCts;
+    private bool _notified;
 
     /// <inheritdoc />
     public void Notify(DateTimeOffset scheduledTime)
@@ -22,6 +23,7 @@ internal sealed class MessageBusSchedulerSignal(TimeProvider timeProvider)
             }
 
             _target = scheduledTime;
+            _notified = true;
             _delayCts?.Cancel();
         }
     }
@@ -33,6 +35,15 @@ internal sealed class MessageBusSchedulerSignal(TimeProvider timeProvider)
 
         lock (_lock)
         {
+            if (_notified)
+            {
+                // A notify with an earlier time arrived before this wait began. Consume it and
+                // return at once so the caller re-evaluates its next due time instead of sleeping.
+                _notified = false;
+
+                return;
+            }
+
             _target = wakeTime;
             _delayCts?.Dispose();
             _delayCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
