@@ -158,9 +158,9 @@ interface Motif {
   readonly cells: PatternCell[];
   mainLane?: Trace;
   readonly taps: { at: number; trace: Trace; endpoint: MotifEndpoint }[];
-  /** Vertical extent used for the in-view test. */
-  readonly top: number;
-  readonly bottom: number;
+  /** Vertical extent used for the in-view test; refined per motif kind. */
+  top: number;
+  bottom: number;
   level: number;
   clock: number;
   beat: number;
