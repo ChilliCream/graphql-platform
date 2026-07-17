@@ -142,7 +142,11 @@ internal sealed class InMemoryScheduledMessageWorker(
 
             await endpoint.ExecuteAsync(context);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The worker is shutting down; the in-flight message is lost (in-memory is non-durable).
+        }
+        catch (Exception ex)
         {
             logger.ScheduledMessageDispatchFailed(entry.Id, ex);
         }
