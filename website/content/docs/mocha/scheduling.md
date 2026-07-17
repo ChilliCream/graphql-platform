@@ -303,7 +303,7 @@ See [Sagas](./sagas.md) for the full saga configuration guide.
 # Troubleshooting
 
 **Scheduled messages are not being delivered.**
-Check that the background worker is running. Look for `Scheduler sleeping until ...` log entries at `Information` level. If there are no log entries for RabbitMQ, verify that `UsePostgresScheduling()` is registered in your service configuration - RabbitMQ has no scheduling store of its own, so it needs the fallback to deliver scheduled messages at all. `AddInMemory()` and `AddPostgres()` register their own stores and background workers automatically, so this step does not apply to those transports.
+Check that the background worker is running. Look for `Scheduler sleeping until ...` log entries at `Information` level (emitted by the Postgres-backed worker; the in-memory worker does not log these). If there are no log entries for RabbitMQ, verify that `UsePostgresScheduling()` is registered in your service configuration - RabbitMQ has no scheduling store of its own, so it needs the fallback to deliver scheduled messages at all. `AddInMemory()` and `AddPostgres()` register their own stores and background workers automatically, so this step does not apply to those transports.
 
 **Messages are delivered immediately instead of at the scheduled time.**
 Messages scheduled for a time in the past are dispatched immediately. Verify that your `ScheduledTime` is in the future.
@@ -311,8 +311,8 @@ Messages scheduled for a time in the past are dispatched immediately. Verify tha
 **"Could not deserialize message body" errors in logs.**
 The dispatcher could not parse the stored envelope. This can happen if the message type was renamed or removed after the message was scheduled. The dispatcher drops messages it cannot deserialize and logs at `Critical` level.
 
-**Scheduled messages fail repeatedly.**
-The dispatcher records each failure in the `last_error` column and retries with exponential backoff. After 10 attempts, the message is no longer eligible for dispatch. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:
+**Scheduled messages fail repeatedly (Postgres-backed scheduling).**
+The Postgres-backed dispatcher records each failure in the `last_error` column and retries with exponential backoff. After 10 attempts, the message is no longer eligible for dispatch. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:
 
 ```sql
 SELECT id, scheduled_time, times_sent, last_error
@@ -320,8 +320,10 @@ FROM scheduled_messages
 WHERE times_sent >= max_attempts;
 ```
 
+The in-memory transport does not retry or record errors: a scheduled message whose dispatch fails is dropped, and the failure is logged.
+
 **Multiple service instances dispatch the same message.**
-This does not happen. The dispatcher uses row-level locking to ensure each message is processed by exactly one instance.
+This does not happen with Postgres-backed scheduling: the dispatcher uses row-level locking to ensure each message is processed by exactly one instance. The in-memory transport is single-process, so this does not apply.
 
 **Cancellation returns false even though I have a valid token.**
 The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
