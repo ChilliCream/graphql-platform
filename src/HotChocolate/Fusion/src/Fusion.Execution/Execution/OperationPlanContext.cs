@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -361,8 +362,13 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet), [])];
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
+            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            return
+            [
+                _resultStore.CreateVariableValueSetsFromResolvedVariables(
+                    CompactPath.Root,
+                    resolvedVariables.Span)
+            ];
         }
         else
         {
@@ -370,8 +376,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
             if (importedMatchCount == 0)
             {
-                var variableValues = GetPathThroughVariables(forwardedVariables);
-                return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
+                using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+                return _resultStore.CreateVariableValueSetsFromResolvedVariables(
+                    selectionSet,
+                    resolvedVariables.Span,
+                    requirements);
             }
 
             if (importedMatchCount != requirements.Length)
@@ -388,11 +397,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return _requirementValues;
             }
 
-            var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSetsFromSnapshot(
+            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            return _resultStore.CreateVariableValueSetsFromSnapshotWithResolvedVariables(
                 _requirementValues,
                 _requirementKeys!,
-                variableValuesFromSnapshot,
+                resolvedVariables.Span,
                 requirements);
         }
     }
@@ -409,8 +418,13 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return [];
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
+            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            return
+            [
+                _resultStore.CreateVariableValueSetsFromResolvedVariables(
+                    CompactPath.Root,
+                    resolvedVariables.Span)
+            ];
         }
         else
         {
@@ -418,8 +432,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
             if (importedMatchCount == 0)
             {
-                var variableValues = GetPathThroughVariables(forwardedVariables);
-                return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+                using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+                return _resultStore.CreateVariableValueSetsFromResolvedVariables(
+                    selectionSets,
+                    resolvedVariables.Span,
+                    requiredData);
             }
 
             if (importedMatchCount != requiredData.Length)
@@ -436,11 +453,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return _requirementValues;
             }
 
-            var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSetsFromSnapshot(
+            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            return _resultStore.CreateVariableValueSetsFromSnapshotWithResolvedVariables(
                 _requirementValues,
                 _requirementKeys!,
-                variableValuesFromSnapshot,
+                resolvedVariables.Span,
                 requiredData);
         }
     }
@@ -461,10 +478,10 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return RepresentationValue.Empty;
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateRepresentationVariableValue(
+            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValueFromResolvedVariables(
                 selectionSet,
-                variableValues,
+                resolvedVariables.Span,
                 requirements,
                 entityTypeName,
                 shape);
@@ -474,10 +491,10 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         if (importedMatchCount == 0)
         {
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateRepresentationVariableValue(
+            using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValueFromResolvedVariables(
                 selectionSet,
-                variableValues,
+                resolvedVariables.Span,
                 requirements,
                 entityTypeName,
                 shape);
@@ -492,11 +509,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             throw CreateMixedScopeException(requirements);
         }
 
-        var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
-        return _resultStore.CreateRepresentationVariableValueFromSnapshot(
+        using var resolvedVariables = ForwardedVariableValues.Resolve(Variables, forwardedVariables);
+        return _resultStore.CreateRepresentationVariableValueFromSnapshotWithResolvedVariables(
             _requirementValues,
             _requirementKeys!,
-            variableValuesFromSnapshot,
+            resolvedVariables.Span,
             requirements,
             entityTypeName,
             shape);
@@ -834,38 +851,6 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         return operationResult;
     }
 
-    private ObjectFieldNode[] GetPathThroughVariables(
-        ReadOnlySpan<string> forwardedVariables)
-    {
-        if (Variables.IsEmpty || forwardedVariables.Length == 0)
-        {
-            return [];
-        }
-
-        var buffer = new ObjectFieldNode[forwardedVariables.Length];
-        var count = 0;
-
-        foreach (var variableName in forwardedVariables)
-        {
-            if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
-            {
-                buffer[count++] = new ObjectFieldNode(variableName, variableValue);
-            }
-        }
-
-        if (count == 0)
-        {
-            return [];
-        }
-
-        if (count == buffer.Length)
-        {
-            return buffer;
-        }
-
-        return buffer.AsMemory(0, count).ToArray();
-    }
-
     /// <summary>
     /// Gets or creates a source schema client for the specified schema and operation type.
     /// </summary>
@@ -1005,3 +990,106 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 }
+
+internal ref struct ForwardedVariableValues
+{
+    private const int InlineCapacity = 8;
+
+    private ForwardedVariableValueBuffer _inline;
+    private ForwardedVariableValue[]? _rented;
+    private int _count;
+
+    private ForwardedVariableValues(int capacity)
+    {
+        _inline = default;
+        _rented = capacity > InlineCapacity
+            ? ArrayPool<ForwardedVariableValue>.Shared.Rent(capacity)
+            : null;
+        _count = 0;
+    }
+
+    public readonly ReadOnlySpan<ForwardedVariableValue> Span
+    {
+        get
+        {
+            if (_rented is { } rented)
+            {
+                return rented.AsSpan(0, _count);
+            }
+
+            ReadOnlySpan<ForwardedVariableValue> inline = _inline;
+            return inline[.._count];
+        }
+    }
+
+    public static ForwardedVariableValues Resolve(
+        IVariableValueCollection variables,
+        ReadOnlySpan<string> forwardedVariables)
+    {
+        ArgumentNullException.ThrowIfNull(variables);
+
+        if (variables.IsEmpty || forwardedVariables.IsEmpty)
+        {
+            return default;
+        }
+
+        var resolved = new ForwardedVariableValues(forwardedVariables.Length);
+
+        try
+        {
+            foreach (var name in forwardedVariables)
+            {
+                if (variables.TryGetValue<IValueNode>(name, out var value))
+                {
+                    resolved.Add(new ForwardedVariableValue(name, value));
+                }
+            }
+
+            return resolved;
+        }
+        catch
+        {
+            resolved.Dispose();
+            throw;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_rented is { } rented)
+        {
+            rented.AsSpan(0, _count).Clear();
+            _rented = null;
+            _count = 0;
+            ArrayPool<ForwardedVariableValue>.Shared.Return(rented, clearArray: false);
+            return;
+        }
+
+        for (var i = 0; i < _count; i++)
+        {
+            _inline[i] = default;
+        }
+
+        _count = 0;
+    }
+
+    private void Add(ForwardedVariableValue value)
+    {
+        if (_rented is { } rented)
+        {
+            rented[_count++] = value;
+        }
+        else
+        {
+            _inline[_count++] = value;
+        }
+    }
+
+    [InlineArray(InlineCapacity)]
+    private struct ForwardedVariableValueBuffer
+    {
+        private ForwardedVariableValue _element0;
+    }
+}
+
+internal readonly record struct ForwardedVariableValue(string Name, IValueNode Value);

@@ -724,6 +724,36 @@ AddErrors_Next:
                 nameof(requiredData));
         }
 
+        return CreateVariableValueSets(
+            selectionSet,
+            new ForwardedVariableValues(requestVariables),
+            requiredData);
+    }
+
+    internal ImmutableArray<VariableValues> CreateVariableValueSetsFromResolvedVariables(
+        SelectionPath selectionSet,
+        ReadOnlySpan<ForwardedVariableValue> resolvedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+        => CreateVariableValueSets(
+            selectionSet,
+            new ForwardedVariableValues(resolvedVariables),
+            requiredData);
+
+    private ImmutableArray<VariableValues> CreateVariableValueSets(
+        SelectionPath selectionSet,
+        ForwardedVariableValues requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
         lock (_lock)
         {
             var elements = CollectTargetElements(selectionSet);
@@ -750,6 +780,35 @@ AddErrors_Next:
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        return CreateVariableValueSets(
+            selectionSets,
+            new ForwardedVariableValues(requestVariables),
+            requiredData);
+    }
+
+    internal ImmutableArray<VariableValues> CreateVariableValueSetsFromResolvedVariables(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<ForwardedVariableValue> resolvedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+        => CreateVariableValueSets(
+            selectionSets,
+            new ForwardedVariableValues(resolvedVariables),
+            requiredData);
+
+    private ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ForwardedVariableValues requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (requiredData.Length == 0)
         {
@@ -798,6 +857,54 @@ AddErrors_Next:
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(importedKeys);
         ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        if (importedEntries.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        foreach (var requirement in requiredData)
+        {
+            if (!importedKeys.Contains(requirement.Key))
+            {
+                throw new InvalidOperationException(
+                    "A deferred incremental plan fetch references a requirement that was not imported.");
+            }
+        }
+
+        return CreateVariableValueSetsFromSnapshot(
+            importedEntries,
+            importedKeys,
+            new ForwardedVariableValues(requestVariables),
+            requiredData);
+    }
+
+    internal ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshotWithResolvedVariables(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        ReadOnlySpan<ForwardedVariableValue> resolvedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+        => CreateVariableValueSetsFromSnapshot(
+            importedEntries,
+            importedKeys,
+            new ForwardedVariableValues(resolvedVariables),
+            requiredData);
+
+    private ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        ForwardedVariableValues requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(importedKeys);
 
         if (requiredData.Length == 0)
         {
@@ -959,7 +1066,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ForwardedVariableValues requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         _variableDedupTable.Initialize(importedEntries.Length);
@@ -978,13 +1085,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-
-            for (var i = 0; i < requestVariables.Count; i++)
-            {
-                var field = requestVariables[i];
-                _jsonWriter.WritePropertyName(field.Name.Value);
-                WriteValueNode(field.Value);
-            }
+            WriteForwardedVariableValues(requestVariables);
 
             if (!TryWriteRequestedRequirementValues(importedEntry.Values, requiredData))
             {
@@ -1018,30 +1119,41 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSets(
         ReadOnlySpan<CompositeResultElement> elements,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ForwardedVariableValues requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         _variableDedupTable.Initialize(elements.Length);
         PooledArrayWriter? buffer = null;
 
-        if (requestVariables.Count == 0)
+        if (requestVariables.CanUseRequirementFastPath)
         {
             var fastPathResult = requiredData.Length switch
             {
                 1 => BuildVariableValueSetsSingleRequirement(
                     elements,
+                    requestVariables,
                     requiredData[0]),
 
                 2 => BuildVariableValueSetsTwoRequirements(
                     elements,
+                    requestVariables,
                     requiredData[0],
                     requiredData[1]),
 
                 3 => BuildVariableValueSetsThreeRequirements(
                     elements,
+                    requestVariables,
                     requiredData[0],
                     requiredData[1],
                     requiredData[2]),
+
+                4 => BuildVariableValueSetsFourRequirements(
+                    elements,
+                    requestVariables,
+                    requiredData[0],
+                    requiredData[1],
+                    requiredData[2],
+                    requiredData[3]),
                 _ => default
             };
 
@@ -1070,14 +1182,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-
-            // Write forwarded variables.
-            for (var i = 0; i < requestVariables.Count; i++)
-            {
-                var field = requestVariables[i];
-                _jsonWriter.WritePropertyName(field.Name.Value);
-                WriteValueNode(field.Value);
-            }
+            WriteForwardedVariableValues(requestVariables);
 
             // Write requirement fields.
             var failed = false;
@@ -1132,6 +1237,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement)
     {
         // The fast path copies values verbatim and only guards top-level nulls,
@@ -1140,14 +1246,22 @@ AddErrors_Next:
         if (TryGetSimpleRequirementFieldName(requirement, out var fieldName)
             && !requirement.Type.IsListType())
         {
-            return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
+            return BuildVariableValueSetsSingleRequirementFastPath(
+                elements,
+                requestVariables,
+                requirement,
+                fieldName);
         }
 
-        return BuildVariableValueSetsSingleRequirementSlowPath(elements, requirement);
+        return BuildVariableValueSetsSingleRequirementSlowPath(
+            elements,
+            requestVariables,
+            requirement);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement,
         string fieldName)
     {
@@ -1186,6 +1300,7 @@ AddErrors_Next:
 
             // Write variable JSON: {"key":rawValue}
             _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
             _jsonWriter.WritePropertyName(requirement.Key);
             WriteCompositeResultValue(value);
             _jsonWriter.WriteEndObject();
@@ -1207,6 +1322,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement)
     {
         VariableValues[]? variableValueSets = null;
@@ -1221,6 +1337,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
             _jsonWriter.WritePropertyName(requirement.Key);
 
             if (!ResultDataMapper.TryMap(
@@ -1253,6 +1370,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement1,
         OperationRequirement requirement2)
     {
@@ -1266,6 +1384,7 @@ AddErrors_Next:
         {
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
+                requestVariables,
                 requirement1,
                 fieldName1,
                 requirement2,
@@ -1274,12 +1393,14 @@ AddErrors_Next:
 
         return BuildVariableValueSetsTwoRequirementsSlowPath(
             elements,
+            requestVariables,
             requirement1,
             requirement2);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
@@ -1316,6 +1437,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
             _jsonWriter.WritePropertyName(requirement1.Key);
             WriteCompositeResultValue(value1);
             _jsonWriter.WritePropertyName(requirement2.Key);
@@ -1338,6 +1460,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement1,
         OperationRequirement requirement2)
     {
@@ -1354,6 +1477,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
@@ -1400,6 +1524,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         OperationRequirement requirement3)
@@ -1416,6 +1541,7 @@ AddErrors_Next:
         {
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
+                requestVariables,
                 requirement1,
                 fieldName1,
                 requirement2,
@@ -1426,6 +1552,7 @@ AddErrors_Next:
 
         return BuildVariableValueSetsThreeRequirementsSlowPath(
             elements,
+            requestVariables,
             requirement1,
             requirement2,
             requirement3);
@@ -1433,6 +1560,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
@@ -1481,6 +1609,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
             _jsonWriter.WritePropertyName(requirement1.Key);
             WriteCompositeResultValue(value1);
             _jsonWriter.WritePropertyName(requirement2.Key);
@@ -1504,6 +1633,7 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
         ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         OperationRequirement requirement3)
@@ -1522,6 +1652,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
@@ -1568,6 +1699,239 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
+            {
+                continue;
+            }
+
+            variableValueSets[nextIndex++] = entry.Value;
+        }
+
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsFourRequirements(
+        ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
+        OperationRequirement requirement1,
+        OperationRequirement requirement2,
+        OperationRequirement requirement3,
+        OperationRequirement requirement4)
+    {
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
+            && !requirement1.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
+            && !requirement2.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement3, out var fieldName3)
+            && !requirement3.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement4, out var fieldName4)
+            && !requirement4.Type.IsListType())
+        {
+            return BuildVariableValueSetsFourRequirementsFastPath(
+                elements,
+                requestVariables,
+                requirement1,
+                fieldName1,
+                requirement2,
+                fieldName2,
+                requirement3,
+                fieldName3,
+                requirement4,
+                fieldName4);
+        }
+
+        return BuildVariableValueSetsFourRequirementsSlowPath(
+            elements,
+            requestVariables,
+            requirement1,
+            requirement2,
+            requirement3,
+            requirement4);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsFourRequirementsFastPath(
+        ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
+        OperationRequirement requirement1,
+        string fieldName1,
+        OperationRequirement requirement2,
+        string fieldName2,
+        OperationRequirement requirement3,
+        string fieldName3,
+        OperationRequirement requirement4,
+        string fieldName4)
+    {
+        VariableValues[]? variableValueSets = null;
+        var additionalPaths = new AdditionalPathAccumulator();
+        var nextIndex = 0;
+        var lookupName1 = requirement1.InternalAlias ?? fieldName1;
+        var lookupName2 = requirement2.InternalAlias ?? fieldName2;
+        var lookupName3 = requirement3.InternalAlias ?? fieldName3;
+        var lookupName4 = requirement4.InternalAlias ?? fieldName4;
+        var lookupMemo1 = default(PropertyLookupMemo);
+        var lookupMemo2 = default(PropertyLookupMemo);
+        var lookupMemo3 = default(PropertyLookupMemo);
+        var lookupMemo4 = default(PropertyLookupMemo);
+
+        foreach (var result in elements)
+        {
+            if (!result.TryGetProperty(lookupName1, ref lookupMemo1, out var value1)
+                || value1.ValueKind is JsonValueKind.Undefined
+                || (value1.ValueKind is JsonValueKind.Null
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(lookupName2, ref lookupMemo2, out var value2)
+                || value2.ValueKind is JsonValueKind.Undefined
+                || (value2.ValueKind is JsonValueKind.Null
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(lookupName3, ref lookupMemo3, out var value3)
+                || value3.ValueKind is JsonValueKind.Undefined
+                || (value3.ValueKind is JsonValueKind.Null
+                    && requirement3.Type.Kind == SyntaxKind.NonNullType))
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(lookupName4, ref lookupMemo4, out var value4)
+                || value4.ValueKind is JsonValueKind.Undefined
+                || (value4.ValueKind is JsonValueKind.Null
+                    && requirement4.Type.Kind == SyntaxKind.NonNullType))
+            {
+                continue;
+            }
+
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
+
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
+            _jsonWriter.WritePropertyName(requirement1.Key);
+            WriteCompositeResultValue(value1);
+            _jsonWriter.WritePropertyName(requirement2.Key);
+            WriteCompositeResultValue(value2);
+            _jsonWriter.WritePropertyName(requirement3.Key);
+            WriteCompositeResultValue(value3);
+            _jsonWriter.WritePropertyName(requirement4.Key);
+            WriteCompositeResultValue(value4);
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                result.CompactPath,
+                startPosition,
+                ref additionalPaths,
+                nextIndex);
+
+            if (entry is null)
+            {
+                continue;
+            }
+
+            variableValueSets[nextIndex++] = entry.Value;
+        }
+
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsFourRequirementsSlowPath(
+        ReadOnlySpan<CompositeResultElement> elements,
+        ForwardedVariableValues requestVariables,
+        OperationRequirement requirement1,
+        OperationRequirement requirement2,
+        OperationRequirement requirement3,
+        OperationRequirement requirement4)
+    {
+        VariableValues[]? variableValueSets = null;
+        var additionalPaths = new AdditionalPathAccumulator();
+        var nextIndex = 0;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
+        var requirementType3 = requirement3.Type;
+        var requirementType4 = requirement4.Type;
+
+        foreach (var result in elements)
+        {
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
+
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+            WriteForwardedVariableValues(requestVariables);
+
+            _jsonWriter.WritePropertyName(requirement1.Key);
+
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WritePropertyName(requirement2.Key);
+
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WritePropertyName(requirement3.Key);
+
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement3.Map,
+                requirementType3,
+                _schema,
+                requirement3.InternalAlias,
+                _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WritePropertyName(requirement4.Key);
+
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement4.Map,
+                requirementType4,
+                _schema,
+                requirement4.InternalAlias,
+                _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                result.CompactPath,
+                startPosition,
+                ref additionalPaths,
+                nextIndex);
 
             if (entry is null)
             {
@@ -1712,6 +2076,29 @@ AddErrors_Next:
         _jsonWriter.WriteRawValue(value.ToArray());
     }
 
+    private void WriteForwardedVariableValues(ForwardedVariableValues requestVariables)
+    {
+        if (requestVariables.IsDirect)
+        {
+            foreach (var variable in requestVariables.Values)
+            {
+                _jsonWriter.WritePropertyName(variable.Name);
+                WriteValueNode(variable.Value);
+            }
+
+            return;
+        }
+
+        var fields = requestVariables.Fields;
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            var field = fields[i];
+            _jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(field.Value);
+        }
+    }
+
     private void WriteValueNode(IValueNode value)
     {
         switch (value)
@@ -1778,18 +2165,23 @@ AddErrors_Next:
     internal VariableValues CreateVariableValueSets(
         CompactPath path,
         IReadOnlyList<ObjectFieldNode> fields)
+        => CreateVariableValueSets(path, new ForwardedVariableValues(fields));
+
+    internal VariableValues CreateVariableValueSetsFromResolvedVariables(
+        CompactPath path,
+        ReadOnlySpan<ForwardedVariableValue> resolvedVariables)
+        => CreateVariableValueSets(
+            path,
+            new ForwardedVariableValues(resolvedVariables));
+
+    private VariableValues CreateVariableValueSets(
+        CompactPath path,
+        ForwardedVariableValues requestVariables)
     {
         _jsonWriter.Reset(_variableWriter);
         var startPosition = _variableWriter.Position;
         _jsonWriter.WriteStartObject();
-
-        for (var i = 0; i < fields.Count; i++)
-        {
-            var field = fields[i];
-            _jsonWriter.WritePropertyName(field.Name.Value);
-            WriteValueNode(field.Value);
-        }
-
+        WriteForwardedVariableValues(requestVariables);
         _jsonWriter.WriteEndObject();
         var length = _variableWriter.Position - startPosition;
         return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
