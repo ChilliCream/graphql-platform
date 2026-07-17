@@ -85,7 +85,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
         builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+
+        // Use the in-memory transport without its native scheduling store so the EF Core
+        // Postgres fallback (UsePostgresScheduling) is the store that handles scheduled dispatch.
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -506,7 +510,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
         builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+
+        // Use the in-memory transport without its native scheduling store so the EF Core
+        // Postgres fallback (UsePostgresScheduling) is the store that handles scheduled dispatch.
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         configure?.Invoke(builder);
 
