@@ -66,6 +66,8 @@ export interface LineAreaChartProps {
   /** pulsing dot at the most recent point of the first series */
   showHead?: boolean;
   durationMs?: number;
+  /** Play the standalone draw-in a single time on first view, then hold (no loop). */
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -87,6 +89,7 @@ export function LineAreaChart({
   seriesStagger = 0.12,
   showHead = false,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
@@ -95,6 +98,7 @@ export function LineAreaChart({
     progress,
     playWindow,
     durationMs,
+    once,
   });
   // Only let the head dot pulse when it would actually be seen and motion is allowed.
   const pulse = !reduced && inView;

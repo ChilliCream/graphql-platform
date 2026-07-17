@@ -14,7 +14,7 @@ const PLATFORM_SECTIONS = [
   {
     href: "/platform/analytics",
     title: "Analytics",
-    description: "Instant Insights. Enhanced Performance.",
+    description: "See what the API is doing.",
   },
   {
     href: "/platform/continuous-integration",

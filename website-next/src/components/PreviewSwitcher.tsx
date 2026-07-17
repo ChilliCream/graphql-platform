@@ -15,6 +15,7 @@ const MANIFEST: readonly string[] = [
   "/nitro-section",
   "/combined-section",
   "/messaging-graphic",
+  "/messaging-graphic/hero",
   "/platform/preview/build",
   "/platform/preview/agentic-coding",
   "/platform/preview/observability",
@@ -44,7 +45,7 @@ const MAX_VERSIONS = 9;
 const VERSION_PATTERN = /^(.*)\/v(\d+)\/?$/;
 const PLATFORM_SCENE_PATTERN = /^\/platform\/preview\/[^/]+$/;
 
-/** Tracks that ship fewer than MAX_VERSIONS variations; others default to 9. */
+/** Tracks whose version count differs from MAX_VERSIONS; others default to 9. */
 const TRACK_VERSION_COUNTS: Readonly<Record<string, number>> = {
   "/platform/scene-illustrations": 6,
   "/platform-section": 5,
@@ -54,7 +55,7 @@ const TRACK_VERSION_COUNTS: Readonly<Record<string, number>> = {
   "/observability-section": 3,
   "/nitro-section": 3,
   "/combined-section": 6,
-  "/messaging-graphic": 8,
+  "/messaging-graphic": 17,
 };
 
 /**
@@ -65,6 +66,7 @@ const TRACK_VERSIONS: Readonly<Record<string, readonly number[]>> = {
   "/products/nitro/preview": [
     3, 4, 5, 7, 10, 15, 16, 17, 18, 20, 22, 23, 26, 27, 28,
   ],
+  "/messaging-graphic/hero": [1, 6, 7],
 };
 
 interface PreviewSwitcherProps {

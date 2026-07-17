@@ -43,6 +43,8 @@ export interface HBarSeriesProps {
   /** fraction of the local window each successive row is offset by */
   rowStagger?: number;
   durationMs?: number;
+  /** Play the standalone draw-in a single time on first view, then hold (no loop). */
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -64,11 +66,12 @@ export function HBarSeries({
   playWindow,
   rowStagger = 0.12,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: HBarSeriesProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const rows = (items ?? clients?.map(toItem) ?? [])
     .slice()

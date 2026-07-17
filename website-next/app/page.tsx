@@ -6,6 +6,8 @@ import { HomeHero } from "@/src/components/home/HomeHero";
 import { LogoCloud } from "@/src/components/home/LogoCloud";
 import { NitroPricing } from "@/src/components/home/NitroPricing";
 import { ProtocolCards } from "@/src/components/home/ProtocolCards";
+import { CombinedAgentic } from "@/src/components/home/combined/CombinedAgentic";
+import { CombinedObservability } from "@/src/components/home/combined/CombinedObservability";
 
 export default function Home() {
   return (
@@ -15,7 +17,9 @@ export default function Home() {
       <BuildYourWay />
       <FusionFlow />
       <ProtocolCards />
+      <CombinedObservability />
       <NitroPricing />
+      <CombinedAgentic />
       <GrabADrink />
       <div className="px-5 py-8 sm:px-12">
         <div className="mx-auto flex max-w-7xl flex-col gap-12">

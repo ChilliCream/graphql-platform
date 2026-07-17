@@ -4,84 +4,18 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
+import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
+import { CopyCommand } from "@/src/components/CopyCommand";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
+import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 
 const FLIP_INTERVAL_MS = 2500;
 
 // --- Agents: flipping headline + the logo row ------------------------------
 
-interface Agent {
-  readonly name: string;
-  readonly slug: string;
-  readonly logoSrc?: string;
-}
-
-// Every listed agent ships a checked-in mark under /agent-logos and renders the
-// real SVG. The placeholder glyph below now only sizes the flipping headline.
-const AGENTS: readonly Agent[] = [
-  { name: "Claude", slug: "claude", logoSrc: "/agent-logos/claude.svg" },
-  { name: "Codex", slug: "codex", logoSrc: "/agent-logos/codex.svg" },
-  { name: "Copilot", slug: "copilot", logoSrc: "/agent-logos/copilot.svg" },
-  { name: "Cursor", slug: "cursor", logoSrc: "/agent-logos/cursor.svg" },
-  { name: "Windsurf", slug: "windsurf", logoSrc: "/agent-logos/windsurf.svg" },
-  { name: "Gemini", slug: "gemini", logoSrc: "/agent-logos/gemini.svg" },
-  { name: "Cline", slug: "cline", logoSrc: "/agent-logos/cline.svg" },
-];
-
-// The flipping headline reserves width with an invisible sizer; this abstract
-// monochrome shape (not a brand mark) stands in for that sizer only.
-const PLACEHOLDER_GLYPHS: Record<string, ReactNode> = {
-  windsurf: (
-    <>
-      <path d="M4 12 12 6 20 12" />
-      <path d="M4 18 12 12 20 18" />
-    </>
-  ),
-};
-
-interface PlaceholderGlyphProps {
-  readonly slug: string;
-  readonly className?: string;
-}
-
-/** Renders the abstract placeholder shape for an agent that has no logoSrc. */
-function PlaceholderGlyph({ slug, className }: PlaceholderGlyphProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      {PLACEHOLDER_GLYPHS[slug]}
-    </svg>
-  );
-}
-
-interface AgentLogoProps {
-  readonly agent: Agent;
-  readonly className?: string;
-}
-
-/** One agent mark: the real SVG when present, otherwise a placeholder glyph. */
-function AgentLogo({ agent, className }: AgentLogoProps) {
-  if (agent.logoSrc !== undefined) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={agent.logoSrc}
-        alt={agent.name}
-        className={["object-contain", className].filter(Boolean).join(" ")}
-      />
-    );
-  }
-
-  return <PlaceholderGlyph slug={agent.slug} className={className} />;
-}
+// "Windsurf" is the widest agent name; the invisible sizer below reserves its
+// width so the flipping headline never reflows.
+const WIDEST_AGENT = AGENTS.find((agent) => agent.slug === "windsurf");
 
 /**
  * The flipping headline slot. An invisible sizer reserves the widest name so the
@@ -94,8 +28,10 @@ function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
         aria-hidden="true"
         className="invisible inline-flex items-center gap-2 whitespace-nowrap"
       >
-        <PlaceholderGlyph slug="windsurf" className="size-7 sm:size-8" />
-        Windsurf.
+        {WIDEST_AGENT && (
+          <AgentLogo agent={WIDEST_AGENT} className="size-7 sm:size-8" />
+        )}
+        {WIDEST_AGENT?.name}.
       </span>
       {AGENTS.map((agent, index) => {
         const active = index === activeIndex;
@@ -119,7 +55,8 @@ function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
   );
 }
 
-/** The supported agents, grouped beside the start-now command. */
+/** The supported agents, grouped beside the start-now command. The seven
+ * marks plus the "and many more" link fill the 3x3 grid completely. */
 function AgentGroup() {
   return (
     <div>
@@ -129,13 +66,19 @@ function AgentGroup() {
       <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">
         {AGENTS.map((agent) => (
           <li key={agent.slug} className="flex items-center gap-2.5">
-            <AgentLogo
-              agent={agent}
-              className="text-cc-ink-dim size-6 shrink-0"
-            />
+            <AgentLogo agent={agent} className="size-6 shrink-0" />
             <span className="text-cc-ink font-mono text-sm">{agent.name}</span>
           </li>
         ))}
+        <li className="sm:col-span-2">
+          <Link
+            href="/platform/agentic-coding"
+            className="border-cc-ink-faint text-cc-ink-dim hover:border-cc-accent/60 hover:text-cc-accent flex h-full items-center justify-center gap-1.5 rounded-xl border border-dashed px-3 py-1.5 font-mono text-sm transition-colors"
+          >
+            and many more
+            <ArrowRightIcon className="size-3.5" />
+          </Link>
+        </li>
       </ul>
     </div>
   );
@@ -143,24 +86,37 @@ function AgentGroup() {
 
 // --- Facet 1: keep the time your agent saves you ---------------------------
 
-interface Hunk {
-  readonly file: string;
-  readonly query: string;
-  readonly handler: string;
+interface HunkRun {
+  readonly t: string;
+  readonly accent?: boolean;
 }
 
-// Two hunks are enough to show the shape: every change is a query field and the
-// handler behind it. The structure repeats, so the review is a glance.
+interface Hunk {
+  readonly file: string;
+  readonly lines: readonly (readonly HunkRun[])[];
+}
+
+// Two hunks are enough to show the shape: the GraphQL mutation and the event
+// handler behind it, each a contract line plus the member. The structure
+// repeats, so the review is a glance.
 const HUNKS: readonly Hunk[] = [
   {
     file: "AddReview.cs",
-    query: "addReview: Review",
-    handler: "AddReviewHandler",
+    lines: [
+      [{ t: "[" }, { t: "Mutation", accent: true }, { t: "]" }],
+      [{ t: "static Task<Review> AddReviewAsync(...)" }],
+    ],
   },
   {
-    file: "ProductReviews.cs",
-    query: "product.reviews",
-    handler: "ProductReviewsHandler",
+    file: "ReviewAddedHandler.cs",
+    lines: [
+      [{ t: "class ReviewAddedHandler :" }],
+      [
+        { t: "  " },
+        { t: "IEventHandler", accent: true },
+        { t: "<ReviewAdded>" },
+      ],
+    ],
   },
 ];
 
@@ -256,18 +212,21 @@ function ReviewFacet() {
             className="border-cc-ink-faint bg-cc-surface/40 rounded-lg border px-3 py-2 font-mono text-[0.6rem] leading-[1.6]"
           >
             <div className="text-cc-nav-label truncate">{hunk.file}</div>
-            <div className="flex gap-1.5">
-              <span className="text-cc-ink-dim shrink-0 select-none">+</span>
-              <span className="text-cc-nav-label shrink-0">query</span>
-              <span className="text-cc-ink min-w-0 truncate">{hunk.query}</span>
-            </div>
-            <div className="flex gap-1.5">
-              <span className="text-cc-ink-dim shrink-0 select-none">+</span>
-              <span className="text-cc-nav-label shrink-0">handler</span>
-              <span className="text-cc-ink min-w-0 truncate">
-                {hunk.handler}
-              </span>
-            </div>
+            {hunk.lines.map((runs, lineIndex) => (
+              <div key={lineIndex} className="flex gap-1.5">
+                <span className="text-cc-ink-dim shrink-0 select-none">+</span>
+                <span className="min-w-0 truncate whitespace-pre">
+                  {runs.map((run, runIndex) => (
+                    <span
+                      key={runIndex}
+                      className={run.accent ? "text-cc-accent" : "text-cc-ink"}
+                    >
+                      {run.t}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -321,15 +280,17 @@ const t = (text: string): CodeToken => ({ text });
 
 // Eight representative platform patterns, four schema and four messaging. Each
 // kind is its own uniform shape, and an agent here produces it the right way.
+// Schema patterns are Hot Chocolate attributes; messaging patterns are the
+// Mocha contracts (interfaces and the Saga base class), shown as they exist.
 const PATTERNS: readonly Pattern[] = [
   { label: "Query", line: [t("["), key("Query"), t("]")] },
   { label: "DataLoader", line: [t("["), key("DataLoader"), t("]")] },
-  { label: "Pagination", line: [t("["), key("UsePaging"), t("]")] },
+  { label: "Pagination", line: [t("["), key("UseConnection"), t("]")] },
   { label: "Authorization", line: [t("["), key("Authorize"), t("]")] },
-  { label: "Message handler", line: [t("["), key("MessageHandler"), t("]")] },
-  { label: "Saga", line: [t("["), key("Saga"), t("]")] },
-  { label: "Batch handler", line: [t("["), key("BatchHandler"), t("]")] },
-  { label: "Request handler", line: [t("["), key("RequestHandler"), t("]")] },
+  { label: "Message handler", line: [key("IEventHandler"), t("<T>")] },
+  { label: "Saga", line: [key("Saga"), t("<TState>")] },
+  { label: "Batch handler", line: [key("IBatchEventHandler"), t("<T>")] },
+  { label: "Request handler", line: [key("IEventRequestHandler")] },
 ];
 
 /** Subtle teal "follows the pattern" mark shown on each catalog tile. */
@@ -447,7 +408,7 @@ function SkillFacet() {
           </span>
         </span>
         <span className="text-cc-nav-label font-mono text-[0.6rem] whitespace-nowrap">
-          .claude/skills/
+          skills/
         </span>
       </div>
 
@@ -494,25 +455,6 @@ function SkillFacet() {
 
 // --- Footer: start now ------------------------------------------------------
 
-/** A plain two-rectangle copy affordance; decorative, inherits currentColor. */
-function CopyGlyph({ className }: { readonly className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <rect x="9" y="9" width="11" height="11" rx="2" />
-      <path d="M5 15V5a2 2 0 0 1 2-2h8" />
-    </svg>
-  );
-}
-
 /** "Start now": the single command that checks the skills into your agent. */
 function StartNowPanel() {
   return (
@@ -523,20 +465,16 @@ function StartNowPanel() {
       <p className="text-cc-heading font-heading mt-3 text-lg font-semibold sm:text-xl">
         Add the skills to your agent.
       </p>
-      <div className="bg-cc-surface border-cc-card-border relative mt-5 rounded-xl border p-4 font-mono">
-        <CopyGlyph className="text-cc-ink-faint absolute top-3 right-3 size-4" />
-        <code className="block pr-7 text-sm leading-relaxed break-words">
-          <span className="text-cc-ink-faint select-none">$ </span>
-          <span className="text-cc-accent">dnx</span>
-          <span className="text-cc-ink"> skillz chillicream/agent-skills</span>
-        </code>
-      </div>
+      <CopyCommand
+        command="dnx skillz add chillicream/agent-skills"
+        className="bg-cc-surface mt-5"
+      />
       <Link
         href="/platform/agentic-coding"
         className="text-cc-accent hover:text-cc-accent-hover mt-5 inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
       >
         Learn more
-        <span aria-hidden="true">-&gt;</span>
+        <ArrowRightIcon className="size-3.5" />
       </Link>
     </div>
   );
@@ -555,7 +493,7 @@ const FACETS: readonly Facet[] = [
     illustration: <ReviewFacet />,
   },
   {
-    heading: "Best practices your agent actually follows.",
+    heading: "Best practices your agent follows.",
     illustration: <PatternsFacet />,
   },
   {

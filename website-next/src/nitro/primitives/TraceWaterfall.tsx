@@ -17,6 +17,8 @@ export interface TraceWaterfallProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  /** Play the standalone draw-in a single time on first view, then hold (no loop). */
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -38,23 +40,40 @@ const KIND_ICON: Record<SpanKindWf, string> = {
 const fmtDur = (d: number) =>
   d >= 1 ? `${d.toFixed(1)} ms` : `${Math.round(d * 1000)} µs`;
 
+/** Smallest 1/2/5×10ⁿ value ≥ raw, so tick steps land on round numbers. */
+const niceStep = (raw: number) => {
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  for (const m of [1, 2, 5]) {
+    if (m * mag >= raw) {
+      return m * mag;
+    }
+  }
+  return 10 * mag;
+};
+
 export function TraceWaterfall({
   trace,
   rowHeight = 34,
   progress,
   playWindow,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: TraceWaterfallProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
   const total = trace.totalMs;
-  // integer ms ticks within [0, total); the total is shown as a right-anchored end label
-  const ticks = Array.from(
-    { length: Math.floor(total) + 1 },
-    (_, i) => i,
-  ).filter((tk) => tk / total < 0.97);
+  // ms ticks within [0, total); the total is shown as a right-anchored end label.
+  // Short traces keep the 1ms ruler; wider ones step by a nice 1/2/5×10ⁿ value
+  // targeting ~5 ticks so a 300ms trace doesn't emit hundreds of labels.
+  const step = total <= 12 ? 1 : niceStep(total / 5);
+  // Stop at 90% so the last tick label cannot collide with the right-anchored
+  // total label (wide traces render wider tick labels like "300ms").
+  const ticks: number[] = [];
+  for (let tk = 0; tk / total < 0.9; tk += step) {
+    ticks.push(tk);
+  }
   const n = trace.spans.length;
   const label =
     ariaLabel ?? `Trace waterfall: ${n} spans over ${fmtDur(total)}`;
@@ -170,10 +189,14 @@ function Span({
           scaleX: grow,
         }}
       />
+      {/* Late-starting spans anchor their label to the bar's right end so the
+          text extends leftward instead of clipping past the row's edge. */}
       <motion.div
         style={{
           position: "absolute",
-          left: `${left}%`,
+          ...(left > 62
+            ? { right: `${Math.max(0, 100 - left - width)}%` }
+            : { left: `${left}%` }),
           top: 16,
           fontSize: 11,
           color: token.text,

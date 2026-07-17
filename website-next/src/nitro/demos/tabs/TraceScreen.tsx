@@ -1965,6 +1965,7 @@ function OperationScreen() {
  *  duration x-axis, log count y-axis, with median/p90/p95/p99 markers + a red error tail.
  *  STATIC — all bars + markers are fully present at rest (no draw-in). */
 function LatencyDistribution() {
+  const r3 = (v: number) => Math.round(v * 1000) / 1000;
   const maxCount = Math.max(...DIST.counts);
   const yScale = logScale(1, maxCount * 1.15, 100, 4);
   const n = DIST.counts.length;
@@ -2041,19 +2042,19 @@ function LatencyDistribution() {
             return (
               <g key={i}>
                 <rect
-                  x={x0 + 0.2}
-                  y={topY + errH}
-                  width={bw}
-                  height={Math.max(0, 100 - topY - errH)}
+                  x={r3(x0 + 0.2)}
+                  y={r3(topY + errH)}
+                  width={r3(bw)}
+                  height={r3(Math.max(0, 100 - topY - errH))}
                   rx={0.4}
                   style={{ fill: token.cLatency }}
                 />
                 {hasError && (
                   <rect
-                    x={x0 + 0.2}
-                    y={topY}
-                    width={bw}
-                    height={errH}
+                    x={r3(x0 + 0.2)}
+                    y={r3(topY)}
+                    width={r3(bw)}
+                    height={r3(errH)}
                     style={{ fill: token.cError }}
                   />
                 )}

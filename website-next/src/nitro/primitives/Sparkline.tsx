@@ -35,6 +35,8 @@ export interface SparklineProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  /** Play the standalone draw-in a single time on first view, then hold (no loop). */
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -53,11 +55,12 @@ export function Sparkline({
   progress,
   playWindow,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: SparklineProps): React.JSX.Element {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
   const clipId = useId().replace(/:/g, "");
 
   const plotTop = PAD_Y;

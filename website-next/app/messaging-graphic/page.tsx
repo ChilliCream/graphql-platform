@@ -16,6 +16,11 @@ const VERSIONS = [
   { v: 6, name: "Sequence diagram" },
   { v: 7, name: "Layered stack" },
   { v: 8, name: "Timeline" },
+  { v: 9, name: "Dark board" },
+  { v: 10, name: "Dark board, live traffic" },
+  { v: 11, name: "Aligned board" },
+  { v: 12, name: "Board, on the record" },
+  { v: 13, name: "Refined board (full page)" },
 ];
 
 export default function MessagingGraphicHubPage() {

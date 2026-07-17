@@ -29,6 +29,8 @@ export interface CountUpProps {
   /** When this primitive counts within the cycle, as [start,end] fractions of 0..1. */
   playWindow?: [number, number];
   durationMs?: number;
+  /** Play the standalone draw-in a single time on first view, then hold (no loop). */
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   /** Override the screen-reader label (defaults to the final formatted value). */
@@ -42,11 +44,12 @@ export function CountUp({
   progress,
   playWindow,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
 }: CountUpProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   // Drive the displayed text directly off the clock: from → value across t.
   const display = useTransform(t, (p) => format(from + (value - from) * p));

@@ -1796,7 +1796,11 @@ function OccurrenceBars({ progress }: { progress: MotionValue<number> }) {
 function WhereItOccurs() {
   const rows: [React.ReactNode, string, string][] = [
     [<IconMutation key="op" size={13} />, "Operation", SPAN_NAME],
-    [<IconServer key="sub" size={13} />, "Subgraph", `${EXCEPTION.subgraph} service`],
+    [
+      <IconServer key="sub" size={13} />,
+      "Subgraph",
+      `${EXCEPTION.subgraph} service`,
+    ],
     [<IconDatabase key="frame" size={13} />, "Top frame", EXCEPTION.topFrame],
   ];
   return (

@@ -7,7 +7,7 @@ import {
 
 export const dynamic = "force-static";
 
-export const alt = "Give Coding Agents a Feedback Loop";
+export const alt = "Consistently Good Code, from Any Agent";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 

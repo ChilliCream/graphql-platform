@@ -26,6 +26,8 @@ import type { InsightRow, SpanKind } from "../lib/data";
 
 export interface InsightsTableProps {
   rows: InsightRow[];
+  /** header label for the name column (the product lists subgraphs by default) */
+  nameHeader?: string;
   /** error rate above this fraction (0..1) tints the cell `token.error` */
   errorThreshold?: number;
   /** shared master clock (overview); omit for a self-contained standalone loop */
@@ -34,6 +36,8 @@ export interface InsightsTableProps {
   /** fraction of the window each successive row is offset by */
   rowStagger?: number;
   durationMs?: number;
+  /** Play the standalone draw-in a single time on first view, then hold (no loop). */
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -73,16 +77,18 @@ const NUM: CSSProperties = {
 
 export function InsightsTable({
   rows,
+  nameHeader = "Subgraph",
   errorThreshold = 0.03,
   progress,
   playWindow,
   rowStagger = 0.1,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
 }: InsightsTableProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   // Each row gets a sub-window [r0, r1] of t; the row before it is fully in before the
   // next finishes, so the reveal cascades without leaving big gaps.
@@ -128,7 +134,7 @@ export function InsightsTable({
         <thead>
           <tr>
             <th scope="col" style={HEADER}>
-              Subgraph
+              {nameHeader}
             </th>
             <th scope="col" style={{ ...HEADER, textAlign: "right" }}>
               Avg latency
@@ -159,6 +165,7 @@ export function InsightsTable({
                 progress={progress}
                 window={[r0, r1]}
                 errorThreshold={errorThreshold}
+                once={once}
               />
             );
           })}
@@ -174,12 +181,14 @@ function Row({
   progress,
   window: [w0, w1],
   errorThreshold,
+  once,
 }: {
   row: InsightRow;
   t: MotionValue<number>;
   progress?: MotionValue<number>;
   window: [number, number];
   errorThreshold: number;
+  once?: boolean;
 }) {
   // Entrance: fade + slide up across this row's slice of the clock.
   const reveal = useTransform(t, [w0, w1], [0, 1], {
@@ -260,6 +269,7 @@ function Row({
             height={22}
             progress={progress}
             playWindow={[w0, w1]}
+            once={once}
             ariaLabel={`${row.name} latency trend`}
           />
         </div>

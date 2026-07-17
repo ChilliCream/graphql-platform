@@ -67,7 +67,7 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/platform/analytics",
             label: "Analytics",
-            description: "Instant Insights. Enhanced Performance.",
+            description: "See what the API is doing.",
             icon: WavePulseIcon,
           },
           {

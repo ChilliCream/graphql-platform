@@ -69,6 +69,11 @@ export interface ChartClockProps {
   durationMs?: number;
   /** In-view threshold for the standalone clock. */
   amount?: number;
+  /**
+   * Play the standalone clock a single time when first scrolled into view,
+   * then hold the final frame instead of looping (calm marketing surfaces).
+   */
+  once?: boolean;
 }
 
 export interface ChartClock {
@@ -91,12 +96,16 @@ export function useChartClock({
   playWindow = [0, 0.62],
   durationMs = 9000,
   amount = 0.35,
+  once = false,
 }: ChartClockProps = {}): ChartClock {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotionPreference();
   const inView = useInView(ref, { amount });
   const own = useMotionValue(reduced ? 1 : 0);
   const standalone = progress === undefined;
+  // Set when a `once` clock has finished its single pass, so leaving and
+  // re-entering the viewport does not replay the draw-in.
+  const playedOnce = useRef(false);
 
   useEffect(() => {
     if (!standalone) return;
@@ -104,15 +113,22 @@ export function useChartClock({
       own.set(1);
       return;
     }
+    if (once && playedOnce.current) {
+      own.set(1);
+      return;
+    }
     if (!inView) return;
     const controls = animate(own, [0, 1], {
       duration: durationMs / 1000,
       ease: "linear",
-      repeat: Infinity,
+      repeat: once ? 0 : Infinity,
       repeatType: "loop",
+      onComplete: () => {
+        playedOnce.current = true;
+      },
     });
     return () => controls.stop();
-  }, [standalone, reduced, inView, durationMs, own]);
+  }, [standalone, reduced, inView, durationMs, once, own]);
 
   // Map the (shared or own) cycle onto this primitive's window, then hold at 1.
   const source = progress ?? own;

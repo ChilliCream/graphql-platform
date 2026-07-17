@@ -67,7 +67,7 @@ export function CombinedObservability() {
             follow a symptom to its cause.
           </p>
           <Link
-            href="/platform/observability"
+            href="/platform/analytics"
             className="text-cc-accent hover:text-cc-accent-hover mt-6 inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
           >
             Learn more
