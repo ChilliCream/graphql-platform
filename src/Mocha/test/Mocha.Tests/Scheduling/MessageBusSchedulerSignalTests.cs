@@ -179,4 +179,32 @@ public class MessageBusSchedulerSignalTests
             "WaitUntilAsync must not lose a notify that arrived before the wait");
         await waitTask;
     }
+
+    [Fact]
+    public async Task WaitUntilAsync_Should_ReturnImmediately_When_NotifiedAfterEarlierWaitCompleted()
+    {
+        // arrange
+        // a first wait for an earlier time completes, leaving a stale target behind. A later message
+        // is then scheduled before the next wait starts. The stale target must not swallow the notify:
+        // when no wait is active, any notify must force the next wait to re-evaluate.
+        var timeProvider = new FakeTimeProvider(s_baseTime);
+        using var signal = new MessageBusSchedulerSignal(timeProvider);
+
+        var firstWait = signal.WaitUntilAsync(s_baseTime.AddMinutes(1), CancellationToken.None);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+        timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await firstWait;
+
+        // a message scheduled for later than the now-stale earlier target
+        signal.Notify(timeProvider.GetUtcNow().AddMinutes(1));
+
+        // act - wait with a far-future wake time, as the worker would after seeing no due message
+        var secondWait = signal.WaitUntilAsync(DateTimeOffset.MaxValue, CancellationToken.None);
+
+        // assert
+        Assert.True(
+            secondWait.IsCompleted,
+            "A notify after an earlier wait completed must not be swallowed by a stale target");
+        await secondWait;
+    }
 }
