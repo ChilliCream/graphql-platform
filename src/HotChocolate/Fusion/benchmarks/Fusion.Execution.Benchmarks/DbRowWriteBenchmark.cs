@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using BenchmarkDotNet.Attributes;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 /// <summary>
 /// Compares row-write strategies for each MetaDb append pattern.

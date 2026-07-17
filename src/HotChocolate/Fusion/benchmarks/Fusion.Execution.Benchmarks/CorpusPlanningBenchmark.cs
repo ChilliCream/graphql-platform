@@ -13,7 +13,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 // Planning benchmarks for the composed corpus (edge0-v2, 745 sources).
 //

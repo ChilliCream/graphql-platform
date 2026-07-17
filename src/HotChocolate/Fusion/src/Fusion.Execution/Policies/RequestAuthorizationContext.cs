@@ -12,7 +12,7 @@ internal sealed class RequestAuthorizationContext : IAuthorizationContext
     private readonly ISelection? _selection;
     private readonly ITypeDefinition _type;
     private readonly ClaimsPrincipal _user;
-    private readonly PolicyApplication _application;
+    private readonly PolicyDenialBehavior _onDenied;
     private string? _reason;
     private int _denied;
     private int _active = 1;
@@ -22,13 +22,13 @@ internal sealed class RequestAuthorizationContext : IAuthorizationContext
         ISelection? selection,
         ITypeDefinition type,
         ClaimsPrincipal user,
-        PolicyApplication application)
+        PolicyDenialBehavior onDenied)
     {
         _operationContext = operationContext;
         _selection = selection;
         _type = type;
         _user = user;
-        _application = application;
+        _onDenied = onDenied;
     }
 
     public ISelection? Selection
@@ -54,7 +54,7 @@ internal sealed class RequestAuthorizationContext : IAuthorizationContext
         get
         {
             EnsureActive();
-            return _application.OnDenied;
+            return _onDenied;
         }
     }
 
@@ -96,5 +96,3 @@ internal sealed class RequestAuthorizationContext : IAuthorizationContext
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _active) == 0, this);
     }
 }
-
-internal readonly record struct AuthorizationPolicyDecision(bool IsDenied, string? Reason);

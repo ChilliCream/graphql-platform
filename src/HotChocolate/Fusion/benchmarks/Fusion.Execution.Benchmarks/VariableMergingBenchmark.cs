@@ -15,7 +15,7 @@ using StringValueNode = HotChocolate.Language.StringValueNode;
 using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
 using IValueNode = HotChocolate.Language.IValueNode;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 /// <summary>
 /// Compares the cost of the defer-only snapshot variable merge path

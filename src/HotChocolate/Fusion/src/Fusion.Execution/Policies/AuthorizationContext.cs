@@ -12,11 +12,9 @@ internal sealed class AuthorizationContext : IAuthorizationContext
     private readonly ISelection? _selection;
     private readonly ITypeDefinition _type;
     private readonly ClaimsPrincipal _user;
-    private readonly PolicyApplication _application;
+    private readonly PolicyDenialBehavior _onDenied;
     private readonly bool[] _denied;
-    private readonly PolicyDenialBehavior[] _denialBehaviors;
     private readonly string?[] _denialReasons;
-    private readonly string?[] _denialPolicies;
     private readonly int _entityCount;
     private int _active = 1;
 
@@ -25,22 +23,18 @@ internal sealed class AuthorizationContext : IAuthorizationContext
         ISelection? selection,
         ITypeDefinition type,
         ClaimsPrincipal user,
-        PolicyApplication application,
+        PolicyDenialBehavior onDenied,
         bool[] denied,
-        PolicyDenialBehavior[] denialBehaviors,
         string?[] denialReasons,
-        string?[] denialPolicies,
         int entityCount)
     {
         _operationContext = operationContext;
         _selection = selection;
         _type = type;
         _user = user;
-        _application = application;
+        _onDenied = onDenied;
         _denied = denied;
-        _denialBehaviors = denialBehaviors;
         _denialReasons = denialReasons;
-        _denialPolicies = denialPolicies;
         _entityCount = entityCount;
     }
 
@@ -67,7 +61,7 @@ internal sealed class AuthorizationContext : IAuthorizationContext
         get
         {
             EnsureActive();
-            return _application.OnDenied;
+            return _onDenied;
         }
     }
 
@@ -98,14 +92,8 @@ internal sealed class AuthorizationContext : IAuthorizationContext
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        if (!_denied[index] || _application.OnDenied >= _denialBehaviors[index])
-        {
-            _denialBehaviors[index] = _application.OnDenied;
-            _denialReasons[index] = reason;
-            _denialPolicies[index] = _application.Name;
-        }
-
         _denied[index] = true;
+        _denialReasons[index] = reason;
     }
 
     internal void Deactivate() => Volatile.Write(ref _active, 0);

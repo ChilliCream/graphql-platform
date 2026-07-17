@@ -12,7 +12,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 // One-shot feasibility probe for the composed corpus (Phase A).
 // Not a BenchmarkDotNet benchmark: it measures cold-start schema build and a

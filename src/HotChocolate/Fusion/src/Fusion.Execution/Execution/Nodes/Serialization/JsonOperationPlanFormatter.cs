@@ -1167,28 +1167,51 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             {
                 jsonWriter.WriteStartObject();
 
-                jsonWriter.WritePropertyName("name");
-                jsonWriter.WriteStringValue(policy.Name);
+                jsonWriter.WritePropertyName("names");
+                jsonWriter.WriteStartArray();
+
+                foreach (var group in policy.Groups)
+                {
+                    jsonWriter.WriteStartArray();
+
+                    foreach (var name in group)
+                    {
+                        jsonWriter.WriteStringValue(name);
+                    }
+
+                    jsonWriter.WriteEndArray();
+                }
+
+                jsonWriter.WriteEndArray();
 
                 jsonWriter.WritePropertyName("onDenied");
                 jsonWriter.WriteStringValue(policy.OnDenied.ToString());
-
-                foreach (var requirement in target.Requirements)
-                {
-                    if (!requirement.PolicyName.Equals(policy.Name, StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    jsonWriter.WritePropertyName("requirements");
-                    jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
-                    break;
-                }
 
                 jsonWriter.WriteEndObject();
             }
 
             jsonWriter.WriteEndArray();
+
+            if (target.Requirements.Length > 0)
+            {
+                jsonWriter.WritePropertyName("requirements");
+                jsonWriter.WriteStartArray();
+
+                foreach (var requirement in target.Requirements)
+                {
+                    jsonWriter.WriteStartObject();
+
+                    jsonWriter.WritePropertyName("name");
+                    jsonWriter.WriteStringValue(requirement.PolicyName);
+
+                    jsonWriter.WritePropertyName("selectionSet");
+                    jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
+
+                    jsonWriter.WriteEndObject();
+                }
+
+                jsonWriter.WriteEndArray();
+            }
 
             WriteConditions(jsonWriter, target.Conditions);
 

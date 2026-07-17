@@ -334,11 +334,6 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             services.GetRequiredService<INodeIdParser>(),
             services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
             services.GetRequiredService<IErrorHandler>());
-        var application = new PolicyApplication
-        {
-            Name = policy.Name,
-            OnDenied = PolicyDenialBehavior.Null
-        };
         var type = schema.Types.GetType<ITypeDefinition>("Query");
         var entities = new CompositeResultElement[1];
 
@@ -350,7 +345,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 selection: null,
                 type,
                 new ClaimsPrincipal(),
-                application,
+                PolicyDenialBehavior.Null,
                 entities[0],
                 TestContext.Current.CancellationToken).AsTask();
             await policy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
@@ -359,7 +354,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 selection: null,
                 type,
                 new ClaimsPrincipal(),
-                application,
+                PolicyDenialBehavior.Null,
                 entities[0],
                 TestContext.Current.CancellationToken).AsTask();
 
@@ -391,11 +386,6 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             services.GetRequiredService<INodeIdParser>(),
             services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
             services.GetRequiredService<IErrorHandler>());
-        var application = new PolicyApplication
-        {
-            Name = policy.Name,
-            OnDenied = PolicyDenialBehavior.Null
-        };
         var type = schema.Types.GetType<ITypeDefinition>("Query");
         var entity = default(CompositeResultElement);
 
@@ -408,7 +398,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     selection: null,
                     type,
                     new ClaimsPrincipal(),
-                    application,
+                    PolicyDenialBehavior.Null,
                     entity,
                     TestContext.Current.CancellationToken).AsTask());
             var secondError = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -417,7 +407,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     selection: null,
                     type,
                     new ClaimsPrincipal(),
-                    application,
+                    PolicyDenialBehavior.Null,
                     entity,
                     TestContext.Current.CancellationToken).AsTask());
 
@@ -461,6 +451,299 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 }
               ],
               "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_GrantAccess_When_AnyOrGroupPasses()
+    {
+        // arrange
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanDeny"], ["CanAllow"]], onDenied: ERROR)""",
+            new NamedStaticPolicy("CanDeny", deny: true, reason: "denied by CanDeny"),
+            new NamedStaticPolicy("CanAllow", deny: false));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_DenyAccess_When_AndGroupMemberFails()
+    {
+        // arrange
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanAllow", "CanDeny"]], onDenied: ERROR)""",
+            new NamedStaticPolicy("CanAllow", deny: false),
+            new NamedStaticPolicy("CanDeny", deny: true, reason: "denied by CanDeny"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "denied by CanDeny",
+                  "path": [
+                    "secret"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED",
+                    "policy": "CanAllow AND CanDeny"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EvaluateSharedPolicyOncePerTarget_When_NameAppearsInMultipleGroups()
+    {
+        // arrange
+        var countingPolicy = new CountingRequirementPolicy("CanAudit");
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanAudit", "CanDeny"], ["CanAudit"]], onDenied: ERROR)""",
+            countingPolicy,
+            new NamedStaticPolicy("CanDeny", deny: true, reason: "denied by CanDeny"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, countingPolicy.EvaluationCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_UseMostSevereBehavior_When_MultipleApplicationsDeny()
+    {
+        // arrange
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: "CanDeny") @policy(names: "CanAlsoDeny", onDenied: ERROR)""",
+            new NamedStaticPolicy("CanDeny", deny: true, reason: "denied by CanDeny"),
+            new NamedStaticPolicy("CanAlsoDeny", deny: true, reason: "denied by CanAlsoDeny"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "denied by CanAlsoDeny",
+                  "path": [
+                    "secret"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED",
+                    "policy": "CanAlsoDeny"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_SkipRemainingOrGroups_When_EarlierGroupAllowsAllEntities()
+    {
+        // arrange
+        // The second OR group's policy throws; it must not be evaluated because
+        // the first group already satisfies the expression for every entity.
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanAllow"], ["CanAudit"]], onDenied: ERROR)""",
+            new NamedStaticPolicy("CanAllow", deny: false),
+            new NamedThrowingPolicy("CanAudit"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_KeepMostSevereBehavior_When_LessSevereApplicationDeniesLater()
+    {
+        // arrange
+        // The second application denies with the default NULL behavior; it must
+        // not downgrade the ERROR attribution of the first application.
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: "CanDeny", onDenied: ERROR) @policy(names: "CanAlsoDeny")""",
+            new NamedStaticPolicy("CanDeny", deny: true, reason: "denied by CanDeny"),
+            new NamedStaticPolicy("CanAlsoDeny", deny: true, reason: "denied by CanAlsoDeny"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "denied by CanDeny",
+                  "path": [
+                    "secret"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED",
+                    "policy": "CanDeny"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EvaluateSharedPolicyOnceWithMostSevereOnDenied_When_NameIsSharedAcrossApplications()
+    {
+        // arrange
+        // CanShared appears in both applications; it must be evaluated once and
+        // observe the most severe onDenied of the applications that contain it.
+        var sharedPolicy = new CaptureOnDeniedPolicy("CanShared");
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: "CanShared") @policy(names: [["CanShared", "CanOther"]], onDenied: ERROR)""",
+            sharedPolicy,
+            new NamedStaticPolicy("CanOther", deny: false));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, sharedPolicy.EvaluationCount);
+        Assert.Equal(PolicyDenialBehavior.Error, sharedPolicy.ObservedOnDenied);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_AllowAllEntities_When_DifferentOrGroupsSatisfyDifferentEntities()
+    {
+        // arrange
+        // Each entity is satisfied by a different OR group, so both products
+        // must remain accessible.
+        var executor = await CreateTwoProductExpressionExecutorAsync(
+            """@policy(names: [["CanReadFirst"], ["CanReadSecond"]], onDenied: ERROR)""",
+            new DenyMatchingIdPolicy("CanReadFirst", deniedId: "2"),
+            new DenyMatchingIdPolicy("CanReadSecond", deniedId: "1"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ topProducts { id } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "topProducts": [
+                  {
+                    "id": "1"
+                  },
+                  {
+                    "id": "2"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_UseFirstFailingPolicyReason_When_EarlierPolicyDeniesWithoutReason()
+    {
+        // arrange
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanDenyQuietly", "CanDenyWithReason"]], onDenied: ERROR)""",
+            new NamedStaticPolicy("CanDenyQuietly", deny: true),
+            new NamedStaticPolicy("CanDenyWithReason", deny: true, reason: "denied loudly"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "denied loudly",
+                  "path": [
+                    "secret"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED",
+                    "policy": "CanDenyQuietly AND CanDenyWithReason"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null
+              }
             }
             """);
     }
@@ -1082,11 +1365,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
-                      secret: String @policy(name: "CanReadSecret", onDenied: {{behavior.ToString().ToUpperInvariant()}})
+                      secret: String @policy(names: "CanReadSecret", onDenied: {{behavior.ToString().ToUpperInvariant()}})
                     }
                     """));
 
@@ -1124,6 +1407,81 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
     }
 
+    private static async Task<IRequestExecutor> CreateExpressionExecutorAsync(
+        string secretFieldDirectives,
+        params IAuthorizationPolicy[] policies)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    $$"""
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
+                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+
+                    type Query {
+                      secret: String {{secretFieldDirectives}}
+                      role: String
+                    }
+                    """));
+
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policies));
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(("a", new RecordingRequirementClient())));
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
+    private static async Task<IRequestExecutor> CreateTwoProductExpressionExecutorAsync(
+        string productDirectives,
+        params IAuthorizationPolicy[] policies)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    $$"""
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
+                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+
+                    type Query {
+                      topProducts: [Product]
+                    }
+
+                    type Product {{productDirectives}} {
+                      id: ID!
+                    }
+                    """));
+
+        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policies));
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(("a", new TwoProductResultClient())));
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
     private static async Task<IRequestExecutor> CreateRequirementExecutorAsync(
         IAuthorizationPolicy policy,
         RecordingRequirementClient client,
@@ -1140,11 +1498,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
-                      secret: String @policy(name: "CanReadSecret")
+                      secret: String @policy(names: "CanReadSecret")
                       role: String
                     }
                     """));
@@ -1176,12 +1534,12 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
-                      secret: String @policy(name: "CanReadSecret")
-                      otherSecret: String @policy(name: "CanReadSecret", onDenied: ERROR)
+                      secret: String @policy(names: "CanReadSecret")
+                      otherSecret: String @policy(names: "CanReadSecret", onDenied: ERROR)
                     }
                     """));
 
@@ -1216,11 +1574,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
-                      secret: String @policy(name: "CanReadSecret")
+                      secret: String @policy(names: "CanReadSecret")
                     }
                     """,
                     """
@@ -1264,14 +1622,14 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
                       topProducts: [Product!]
                     }
 
-                    type Product @key(fields: "id") @policy(name: "CanReadSecret") {
+                    type Product @key(fields: "id") @policy(names: "CanReadSecret") {
                       id: ID!
                     }
                     """,
@@ -1347,10 +1705,10 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
-                    type Query @policy(name: "CanReadSecret") {
+                    type Query @policy(names: "CanReadSecret") {
                       secret: String
                     }
                     """));
@@ -1382,7 +1740,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
@@ -1390,7 +1748,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
 
                     type Product @key(fields: "id")
-                      @policy(name: "CanReadSecret", onDenied: ERROR) {
+                      @policy(names: "CanReadSecret", onDenied: ERROR) {
                       id: ID!
                     }
                     """,
@@ -1440,7 +1798,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         services.AddHttpClient();
 
         var viewerPolicy = protectViewer
-            ? "@policy(name: \"CanReadSecret\")"
+            ? "@policy(names: \"CanReadSecret\")"
             : string.Empty;
         var builder = services
             .AddGraphQLGateway()
@@ -1450,7 +1808,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
@@ -1458,7 +1816,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                       viewers: [Viewer]
                     }
 
-                    type Product @key(fields: "id") @policy(name: "CanReadSecret") {
+                    type Product @key(fields: "id") @policy(names: "CanReadSecret") {
                       id: ID!
                     }
 
@@ -1522,7 +1880,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                       repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                     type Query {
@@ -1530,7 +1888,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                       viewers: [Viewer]
                     }
 
-                    type Product @key(fields: "id") @policy(name: "CanReadSecret") {
+                    type Product @key(fields: "id") @policy(names: "CanReadSecret") {
                       id: ID!
                     }
 
@@ -1596,6 +1954,114 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 context.Deny(i, "denied by test policy");
             }
 
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class NamedStaticPolicy(string name, bool deny, string? reason = null)
+        : IAuthorizationPolicy
+    {
+        public string Name => name;
+
+        public SelectionSetNode? Requirements => null;
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+        {
+            if (deny)
+            {
+                for (var i = 0; i < entities.Count; i++)
+                {
+                    context.Deny(i, reason);
+                }
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class NamedThrowingPolicy(string name) : IAuthorizationPolicy
+    {
+        public string Name => name;
+
+        public SelectionSetNode? Requirements => null;
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("policy backend unavailable");
+    }
+
+    private sealed class CaptureOnDeniedPolicy(string name) : IAuthorizationPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public SelectionSetNode? Requirements => null;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public PolicyDenialBehavior? ObservedOnDenied { get; private set; }
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            ObservedOnDenied = context.OnDenied;
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class DenyMatchingIdPolicy(string name, string deniedId) : IAuthorizationPolicy
+    {
+        private static readonly SelectionSetNode s_requirements =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
+
+        public string Name => name;
+
+        public SelectionSetNode? Requirements => s_requirements;
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+        {
+            for (var i = 0; i < entities.Count; i++)
+            {
+                if (entities[i].GetProperty("id").GetString() == deniedId)
+                {
+                    context.Deny(i, $"denied product {deniedId}");
+                }
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class CountingRequirementPolicy(string name) : IAuthorizationPolicy
+    {
+        private static readonly SelectionSetNode s_requirements =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }");
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public SelectionSetNode? Requirements => s_requirements;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(
+            IAuthorizationContext context,
+            EntityData entities,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _evaluationCount);
             return ValueTask.CompletedTask;
         }
     }

@@ -1634,25 +1634,7 @@ internal sealed partial class SourceSchemaMerger
         IDirectivesProvider member,
         IReadOnlyList<PolicyDirective> policies,
         MutableDirectiveDefinition directiveDefinition)
-    {
-        foreach (var policy in policies)
-        {
-            var arguments = new List<ArgumentAssignment>
-            {
-                new(ArgumentNames.Name, policy.Name)
-            };
-
-            if (policy.OnDenied != "NULL")
-            {
-                arguments.Add(
-                    new ArgumentAssignment(
-                        ArgumentNames.OnDenied,
-                        new EnumValueNode(policy.OnDenied)));
-            }
-
-            member.AddDirective(new Directive(directiveDefinition, arguments));
-        }
-    }
+        => PolicyDirectiveMerger.AddPolicyDirectives(member, policies, directiveDefinition);
 
     private readonly record struct EventStreamContribution(
         string Schema,

@@ -1348,21 +1348,13 @@ public sealed partial class OperationPlanner
                     ? target.Path.Parent ?? SelectionPath.Root
                     : target.Path;
 
-                foreach (var application in target.Policies)
+                foreach (var requirement in target.Requirements)
                 {
-                    if (!TryGetPolicyRequirements(
-                        target.Requirements,
-                        application.Name,
-                        out var requirements))
-                    {
-                        continue;
-                    }
-
                     requiredPaths ??= [];
                     AddRequirementPaths(
-                        application.Name,
+                        requirement.PolicyName,
                         entityPath,
-                        requirements,
+                        requirement.SelectionSet,
                         requiredPaths);
                 }
             }
@@ -1430,24 +1422,6 @@ public sealed partial class OperationPlanner
         }
 
         return providersByPolicyNodeId;
-
-        static bool TryGetPolicyRequirements(
-            ReadOnlySpan<AuthorizationPolicyRequirement> requirements,
-            string policyName,
-            out SelectionSetNode selectionSet)
-        {
-            foreach (var requirement in requirements)
-            {
-                if (requirement.PolicyName.Equals(policyName, StringComparison.Ordinal))
-                {
-                    selectionSet = requirement.SelectionSet;
-                    return true;
-                }
-            }
-
-            selectionSet = null!;
-            return false;
-        }
 
         static void AddRequirementPaths(
             string policyName,

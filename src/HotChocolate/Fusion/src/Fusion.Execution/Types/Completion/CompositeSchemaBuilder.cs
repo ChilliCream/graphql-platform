@@ -662,11 +662,11 @@ internal static class CompositeSchemaBuilder
     private static AuthorizationPolicyCollection CreateAuthorizationPolicies(
         IServiceProvider services)
     {
-        var provider = services.GetServices<IAuthorizationPolicyProvider>();
+        var providers = services.GetService<IEnumerable<IAuthorizationPolicyProvider>>();
 
-        if (provider?.Any() == true)
+        if (providers?.Any() == true)
         {
-            return new AuthorizationPolicyCollection(provider.SelectMany(p => p.CreatePolicies()));
+            return new AuthorizationPolicyCollection(providers.SelectMany(p => p.CreatePolicies()));
         }
 
         return AuthorizationPolicyCollection.Empty;
@@ -937,18 +937,16 @@ internal static class CompositeSchemaBuilder
 
     private static PolicyApplication ParseFusionPolicyDirective(DirectiveNode directive)
     {
-        string? name = null;
+        ImmutableArray<ImmutableArray<string>> groups = default;
         var onDenied = PolicyDenialBehavior.Null;
 
         foreach (var argument in directive.Arguments)
         {
             switch (argument.Name.Value)
             {
-                case "name":
-                    name = argument.Value is StringValueNode stringValue
-                        ? stringValue.Value
-                        : throw new InvalidOperationException(
-                            "The `name` argument on @fusion__policy must be a string.");
+                case "names":
+                    groups = PolicyNameGroups.Canonicalize(
+                        PolicyNameGroups.ParseNames(argument.Value, "@fusion__policy"));
                     break;
 
                 case "onDenied":
@@ -964,15 +962,15 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        if (name is null)
+        if (groups.IsDefault)
         {
             throw new InvalidOperationException(
-                "The `name` argument is required on the @fusion__policy directive.");
+                "The `names` argument is required on the @fusion__policy directive.");
         }
 
         return new PolicyApplication
         {
-            Name = name,
+            Groups = groups,
             OnDenied = onDenied
         };
     }

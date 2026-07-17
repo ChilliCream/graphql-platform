@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Execution;
 
@@ -809,24 +810,28 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Indent();
             foreach (var policy in target.Policies)
             {
-                writer.WriteLine("- name: {0}", policy.Name);
+                writer.WriteLine("- names: {0}", FormatPolicyNameGroups(policy.Groups));
                 writer.Indent();
                 writer.WriteLine("onDenied: {0}", policy.OnDenied.ToString());
-
-                foreach (var requirement in target.Requirements)
-                {
-                    if (requirement.PolicyName.Equals(policy.Name, StringComparison.Ordinal))
-                    {
-                        writer.WriteLine(
-                            "requirements: {0}",
-                            requirement.SelectionSet.ToString(indented: false));
-                        break;
-                    }
-                }
-
                 writer.Unindent();
             }
             writer.Unindent();
+
+            if (target.Requirements.Length > 0)
+            {
+                writer.WriteLine("requirements:");
+                writer.Indent();
+                foreach (var requirement in target.Requirements)
+                {
+                    writer.WriteLine("- name: {0}", requirement.PolicyName);
+                    writer.Indent();
+                    writer.WriteLine(
+                        "selectionSet: {0}",
+                        requirement.SelectionSet.ToString(indented: false));
+                    writer.Unindent();
+                }
+                writer.Unindent();
+            }
 
             TryWriteConditions(writer, target.Conditions);
 
@@ -841,6 +846,73 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
+    }
+
+    private static string FormatPolicyNameGroups(ImmutableArray<ImmutableArray<string>> groups)
+    {
+        var builder = new StringBuilder();
+        builder.Append('[');
+
+        for (var i = 0; i < groups.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append('[');
+
+            var group = groups[i];
+
+            for (var j = 0; j < group.Length; j++)
+            {
+                if (j > 0)
+                {
+                    builder.Append(", ");
+                }
+
+                AppendQuotedPolicyName(builder, group[j]);
+            }
+
+            builder.Append(']');
+        }
+
+        builder.Append(']');
+        return builder.ToString();
+    }
+
+    private static void AppendQuotedPolicyName(StringBuilder builder, string name)
+    {
+        builder.Append('"');
+
+        foreach (var c in name)
+        {
+            switch (c)
+            {
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+
+                case '"':
+                    builder.Append("\\\"");
+                    break;
+
+                default:
+                    if (char.IsControl(c))
+                    {
+                        builder.Append("\\u");
+                        builder.Append(((int)c).ToString("X4"));
+                    }
+                    else
+                    {
+                        builder.Append(c);
+                    }
+
+                    break;
+            }
+        }
+
+        builder.Append('"');
     }
 
     private static void TryWriteNodeTrace(CodeWriter writer, ExecutionNodeTrace? trace)

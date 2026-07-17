@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 [ThreadingDiagnoser]
 [MemoryDiagnoser]

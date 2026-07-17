@@ -155,84 +155,78 @@ public sealed class PolicyExecutionNode : ExecutionNode
             var denialReasons = new string?[effectCount];
             var denialPolicies = new string?[effectCount];
 
+            // Each distinct policy name is evaluated at most once per target,
+            // even when it appears in multiple groups or applications. The OR
+            // groups of an application are evaluated in order, and the remaining
+            // groups are skipped once every entity is allowed, so a group whose
+            // outcome can no longer change the result is not evaluated.
+            var decisions = new Dictionary<string, PolicyDecision>(StringComparer.Ordinal);
+
             foreach (var application in target.Policies)
             {
-                var policy = schema.Policies.Get(application.Name);
-                var requirements = policy.Requirements;
-                var plannedRequirements = GetPlannedRequirements(
-                    target.Requirements,
-                    application.Name);
+                var allowed = new bool[effectCount];
 
-                if ((requirements is null) != (plannedRequirements is null)
-                    || (requirements is not null
-                        && !SyntaxComparer.BySyntax.Equals(requirements, plannedRequirements)))
+                foreach (var group in application.Groups)
                 {
-                    throw new InvalidOperationException(
-                        $"Authorization policy '{application.Name}' requirements do not match "
-                        + "the requirements used to build the operation plan.");
-                }
-
-                if (requirements is not null)
-                {
-                    EnsureRequirementsAreAvailable(
-                        application.Name,
-                        requirements,
-                        entities.AsSpan(0, effectCount));
-                }
-
-                if (requirements is null)
-                {
-                    var decision = await context.EvaluatePolicyOnceAsync(
-                        policy,
-                        selection,
-                        type,
-                        user,
-                        application,
-                        entities[0],
-                        cancellationToken)
-                        .ConfigureAwait(false);
-
-                    if (decision.IsDenied)
+                    if (!HasUndecidedEntity(allowed, effectCount))
                     {
-                        ApplyDeniedDecision(
-                            application,
-                            decision.Reason,
-                            denied,
-                            denialBehaviors,
-                            denialReasons,
-                            denialPolicies,
-                            effectCount);
+                        break;
                     }
 
-                    continue;
+                    var groupDenied = new bool[effectCount];
+
+                    foreach (var name in group)
+                    {
+                        if (!decisions.TryGetValue(name, out var decision))
+                        {
+                            decision = await EvaluatePolicyForTargetAsync(
+                                context,
+                                target,
+                                name,
+                                selection,
+                                type,
+                                user,
+                                entities,
+                                effectCount,
+                                cancellationToken)
+                                .ConfigureAwait(false);
+                            decisions.Add(name, decision);
+                        }
+
+                        for (var i = 0; i < effectCount; i++)
+                        {
+                            groupDenied[i] |= decision.Denied[i];
+                        }
+                    }
+
+                    for (var i = 0; i < effectCount; i++)
+                    {
+                        if (!groupDenied[i])
+                        {
+                            allowed[i] = true;
+                        }
+                    }
                 }
 
-                var authorizationContext =
-                    new AuthorizationContext(
-                        context,
-                        selection,
-                        type,
-                        user,
-                        application,
-                        denied,
-                        denialBehaviors,
-                        denialReasons,
-                        denialPolicies,
-                        effectCount);
+                string? expression = null;
 
-                var entityData = new EntityData(entities, effectCount);
+                for (var i = 0; i < effectCount; i++)
+                {
+                    if (allowed[i])
+                    {
+                        continue;
+                    }
 
-                try
-                {
-                    await policy.EvaluateAsync(
-                        authorizationContext,
-                        entityData,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    authorizationContext.Deactivate();
+                    expression ??= application.Format();
+
+                    if (!denied[i] || application.OnDenied >= denialBehaviors[i])
+                    {
+                        denialBehaviors[i] = application.OnDenied;
+                        denialReasons[i] = GetDenialReason(application, decisions, i);
+                        denialPolicies[i] = expression;
+                    }
+
+                    denied[i] = true;
                 }
             }
 
@@ -275,26 +269,157 @@ public sealed class PolicyExecutionNode : ExecutionNode
         return aborted ? ExecutionStatus.Failed : ExecutionStatus.Success;
     }
 
-    private static void ApplyDeniedDecision(
-        PolicyApplication application,
-        string? reason,
-        bool[] denied,
-        PolicyDenialBehavior[] denialBehaviors,
-        string?[] denialReasons,
-        string?[] denialPolicies,
-        int effectCount)
+    private static async ValueTask<PolicyDecision> EvaluatePolicyForTargetAsync(
+        OperationPlanContext context,
+        PolicyExecutionTarget target,
+        string name,
+        Selection? selection,
+        ITypeDefinition type,
+        ClaimsPrincipal user,
+        CompositeResultElement[] entities,
+        int effectCount,
+        CancellationToken cancellationToken)
+    {
+        var policy = context.Schema.Policies.Get(name);
+        var requirements = policy.Requirements;
+        var plannedRequirements = GetPlannedRequirements(target.Requirements, name);
+
+        if ((requirements is null) != (plannedRequirements is null)
+            || (requirements is not null
+                && !SyntaxComparer.BySyntax.Equals(requirements, plannedRequirements)))
+        {
+            throw new InvalidOperationException(
+                $"Authorization policy '{name}' requirements do not match "
+                + "the requirements used to build the operation plan.");
+        }
+
+        var onDenied = GetEffectiveOnDenied(target, name);
+        var policyDenied = new bool[effectCount];
+        var policyReasons = new string?[effectCount];
+
+        if (requirements is null)
+        {
+            var decision = await context.EvaluatePolicyOnceAsync(
+                policy,
+                selection,
+                type,
+                user,
+                onDenied,
+                entities[0],
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (decision.IsDenied)
+            {
+                for (var i = 0; i < effectCount; i++)
+                {
+                    policyDenied[i] = true;
+                    policyReasons[i] = decision.Reason;
+                }
+            }
+
+            return new PolicyDecision(policyDenied, policyReasons);
+        }
+
+        EnsureRequirementsAreAvailable(name, requirements, entities.AsSpan(0, effectCount));
+
+        var authorizationContext =
+            new AuthorizationContext(
+                context,
+                selection,
+                type,
+                user,
+                onDenied,
+                policyDenied,
+                policyReasons,
+                effectCount);
+
+        var entityData = new EntityData(entities, effectCount);
+
+        try
+        {
+            await policy.EvaluateAsync(
+                authorizationContext,
+                entityData,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            authorizationContext.Deactivate();
+        }
+
+        return new PolicyDecision(policyDenied, policyReasons);
+    }
+
+    private static PolicyDenialBehavior GetEffectiveOnDenied(
+        PolicyExecutionTarget target,
+        string name)
+    {
+        var onDenied = PolicyDenialBehavior.Null;
+
+        foreach (var application in target.Policies)
+        {
+            if (application.OnDenied <= onDenied)
+            {
+                continue;
+            }
+
+            foreach (var group in application.Groups)
+            {
+                foreach (var candidate in group)
+                {
+                    if (candidate.Equals(name, StringComparison.Ordinal))
+                    {
+                        onDenied = application.OnDenied;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return onDenied;
+    }
+
+    private static bool HasUndecidedEntity(bool[] allowed, int effectCount)
     {
         for (var i = 0; i < effectCount; i++)
         {
-            if (!denied[i] || application.OnDenied >= denialBehaviors[i])
+            if (!allowed[i])
             {
-                denialBehaviors[i] = application.OnDenied;
-                denialReasons[i] = reason;
-                denialPolicies[i] = application.Name;
+                return true;
             }
-
-            denied[i] = true;
         }
+
+        return false;
+    }
+
+    private static string? GetDenialReason(
+        PolicyApplication application,
+        Dictionary<string, PolicyDecision> decisions,
+        int index)
+    {
+        foreach (var group in application.Groups)
+        {
+            foreach (var name in group)
+            {
+                var decision = decisions[name];
+
+                if (decision.Denied[index] && decision.Reasons[index] is { } reason)
+                {
+                    return reason;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private readonly struct PolicyDecision(bool[] denied, string?[] reasons)
+    {
+        public bool[] Denied { get; } = denied;
+
+        public string?[] Reasons { get; } = reasons;
     }
 
     private static Selection? FindSelection(CompositeResultElement element)

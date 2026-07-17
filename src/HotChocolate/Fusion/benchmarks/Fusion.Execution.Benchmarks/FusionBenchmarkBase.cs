@@ -6,7 +6,7 @@ using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 public abstract class FusionBenchmarkBase
 {

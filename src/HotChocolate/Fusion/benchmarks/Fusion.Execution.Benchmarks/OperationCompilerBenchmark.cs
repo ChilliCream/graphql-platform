@@ -8,7 +8,7 @@ using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 [DotMemoryDiagnoser]
 [MemoryDiagnoser]

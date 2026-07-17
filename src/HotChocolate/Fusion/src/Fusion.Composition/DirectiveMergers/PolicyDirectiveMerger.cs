@@ -52,9 +52,9 @@ internal sealed class PolicyDirectiveMerger(DirectiveMergeBehavior mergeBehavior
         return
         [
             .. policies
-                .GroupBy(p => p.Name, StringComparer.Ordinal)
-                .Select(g => new PolicyDirective(
-                    g.Key,
+                .GroupBy(p => p.CanonicalKey, StringComparer.Ordinal)
+                .Select(g => PolicyDirective.Create(
+                    g.First().Groups,
                     g.MaxBy(p => GetOnDeniedRank(p.OnDenied))!.OnDenied))
         ];
     }
@@ -68,7 +68,7 @@ internal sealed class PolicyDirectiveMerger(DirectiveMergeBehavior mergeBehavior
         {
             var arguments = new List<ArgumentAssignment>
             {
-                new(ArgumentNames.Name, policyDirective.Name)
+                new(ArgumentNames.Names, CreateNamesValue(policyDirective.Groups))
             };
 
             if (policyDirective.OnDenied != "NULL")
@@ -81,6 +81,30 @@ internal sealed class PolicyDirectiveMerger(DirectiveMergeBehavior mergeBehavior
 
             member.AddDirective(new Directive(directiveDefinition, arguments));
         }
+    }
+
+    private static IValueNode CreateNamesValue(ImmutableArray<ImmutableArray<string>> groups)
+    {
+        if (groups is [[var singleName]])
+        {
+            return new StringValueNode(singleName);
+        }
+
+        var groupNodes = new List<IValueNode>(groups.Length);
+
+        foreach (var group in groups)
+        {
+            var nameNodes = new List<IValueNode>(group.Length);
+
+            foreach (var name in group)
+            {
+                nameNodes.Add(new StringValueNode(name));
+            }
+
+            groupNodes.Add(new ListValueNode(nameNodes));
+        }
+
+        return new ListValueNode(groupNodes);
     }
 
     private static int GetOnDeniedRank(string onDenied)

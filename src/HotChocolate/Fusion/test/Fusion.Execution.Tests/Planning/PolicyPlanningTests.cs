@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -124,14 +125,75 @@ public sealed class PolicyPlanningTests : FusionTestBase
             parsedPlan.AllNodes
                 .OfType<PolicyExecutionNode>()
                 .SelectMany(t => t.Targets.ToArray()),
-            t => t.Policies.Any(p => p.Name == "CanReadSecret"));
+            t => t.Policies.Any(
+                p => p.Groups.Any(g => g.Contains("CanReadSecret", StringComparer.Ordinal))));
         var requirement = Assert.Single(target.Requirements);
         Assert.Equal("CanReadSecret", requirement.PolicyName);
         Assert.Equal("{ role }", requirement.SelectionSet.ToString(indented: false));
         Assert.Contains(
-            "requirements: { role }",
+            "selectionSet: { role }",
             new YamlOperationPlanFormatter().Format(parsedPlan),
             StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(
+        "[]",
+        "A policy in the operation plan must contain at least one policy name group.")]
+    [InlineData(
+        "[[]]",
+        "A policy name group in the operation plan must contain at least one policy name.")]
+    [InlineData(
+        "[[1]]",
+        "A policy name in the operation plan must be a string.")]
+    public void JsonParser_Should_RejectPolicyNode_When_PolicyNamesAreMalformed(
+        string namesJson,
+        string expectedMessage)
+    {
+        // arrange
+        // An empty group would be vacuously satisfied and grant access without
+        // evaluating any policy, so the parser must reject these shapes.
+        var schema = CreatePolicySchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product {
+                id
+              }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, plan);
+
+        var json = JsonNode.Parse(buffer.WrittenSpan)!;
+        var policyNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["type"]?.GetValue<string>() is "Policy");
+        var target = policyNode["targets"]!.AsArray()[0]!.AsObject();
+        target["policies"]!.AsArray()[0]!.AsObject()["names"] = JsonNode.Parse(namesJson);
+        var planSource = Encoding.UTF8.GetBytes(json.ToJsonString());
+
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(planSource));
+
+        // assert
+        Assert.Equal(expectedMessage, exception.Message);
     }
 
     [Fact]
@@ -143,14 +205,14 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 """
                 enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                directive @policy(name: String!, onDenied: PolicyDenialBehavior! = NULL)
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
                   repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
 
                 type Query {
                   topProducts: [Product!]
                 }
 
-                type Product @key(fields: "id") @policy(name: "CanReadProduct") {
+                type Product @key(fields: "id") @policy(names: "CanReadProduct") {
                   id: ID!
                   name: String!
                 }
@@ -203,19 +265,19 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
             type Query
               @fusion__type(schema: A)
-              @fusion__policy(name: "CanReadQuery", onDenied: ERROR) {
+              @fusion__policy(names: "CanReadQuery", onDenied: ERROR) {
               product: Product
                 @fusion__field(schema: A)
-                @fusion__policy(name: "CanReadProductField", onDenied: ABORT)
+                @fusion__policy(names: "CanReadProductField", onDenied: ABORT)
             }
 
             type Product
               @fusion__type(schema: A)
-              @fusion__policy(name: "CanReadProductObject") {
+              @fusion__policy(names: "CanReadProductObject") {
               id: ID! @fusion__field(schema: A)
               name: String
                 @fusion__field(schema: A)
-                @fusion__policy(name: "CanReadName", onDenied: ERROR)
+                @fusion__policy(names: [["CanReadName", "CanAudit"], ["CanAdmin"]], onDenied: ERROR)
             }
 
             enum fusion__Schema {
@@ -225,7 +287,9 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new TestAuthorizationPolicy("CanReadQuery"),
             new TestAuthorizationPolicy("CanReadProductField"),
             new TestAuthorizationPolicy("CanReadProductObject"),
-            new TestAuthorizationPolicy("CanReadName"));
+            new TestAuthorizationPolicy("CanReadName"),
+            new TestAuthorizationPolicy("CanAudit"),
+            new TestAuthorizationPolicy("CanAdmin"));
 
     private static FusionSchemaDefinition CreateRequirementPolicySchema()
         => CreateSchema(
@@ -237,7 +301,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
             type Query @fusion__type(schema: A) {
               secret: String
                 @fusion__field(schema: A)
-                @fusion__policy(name: "CanReadSecret")
+                @fusion__policy(names: "CanReadSecret")
               role: String @fusion__field(schema: A)
             }
 

@@ -14,8 +14,12 @@ internal sealed class PolicyMutableDirectiveDefinition : MutableDirectiveDefinit
     {
         Arguments.Add(
             new MutableInputFieldDefinition(
-                WellKnownArgumentNames.Name,
-                new NonNullType(stringType)));
+                WellKnownArgumentNames.Names,
+                new NonNullType(
+                    new ListType(
+                        new NonNullType(
+                            new ListType(
+                                new NonNullType(stringType)))))));
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.OnDenied,

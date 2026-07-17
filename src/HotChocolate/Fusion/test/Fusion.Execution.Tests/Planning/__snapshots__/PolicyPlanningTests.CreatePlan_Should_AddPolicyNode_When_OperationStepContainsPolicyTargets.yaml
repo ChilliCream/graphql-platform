@@ -29,27 +29,27 @@ nodes:
         path: $
         typeName: Query
         policies:
-          - name: CanReadQuery
+          - names: [["CanReadQuery"]]
             onDenied: Error
       - kind: Field
         path: $.product
         typeName: Query
         fieldName: product
         policies:
-          - name: CanReadProductField
+          - names: [["CanReadProductField"]]
             onDenied: Abort
       - kind: Object
         path: $.product
         typeName: Product
         policies:
-          - name: CanReadProductObject
+          - names: [["CanReadProductObject"]]
             onDenied: Null
       - kind: Field
         path: $.product.name
         typeName: Product
         fieldName: name
         policies:
-          - name: CanReadName
+          - names: [["CanAdmin"], ["CanAudit", "CanReadName"]]
             onDenied: Error
         conditions:
           - variable: $includeName

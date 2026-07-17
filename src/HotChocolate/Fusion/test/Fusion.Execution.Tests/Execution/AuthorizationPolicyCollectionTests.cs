@@ -110,7 +110,7 @@ public sealed class AuthorizationPolicyCollectionTests
             type Query @fusion__type(schema: A) {
               secret: String
                 @fusion__field(schema: A)
-                @fusion__policy(name: "{{policyName}}")
+                @fusion__policy(names: "{{policyName}}")
             }
 
             enum fusion__Schema {

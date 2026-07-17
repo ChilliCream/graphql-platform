@@ -27,7 +27,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 #nullable enable
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 [MemoryDiagnoser]
 [Config(typeof(ParityConfig))]

@@ -5,7 +5,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate.Language;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 // Parsing benchmarks for the composed corpus (745 sources).
 //

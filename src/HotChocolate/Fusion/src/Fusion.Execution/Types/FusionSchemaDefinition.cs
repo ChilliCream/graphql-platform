@@ -788,20 +788,29 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         {
             if (!type.PolicyApplications.IsDefaultOrEmpty)
             {
-                foreach (var application in type.PolicyApplications)
-                {
-                    Policies.Get(application.Name);
-                }
+                EnsureAuthorizationPoliciesExist(type.PolicyApplications);
             }
 
             foreach (var field in type.Fields.AsEnumerable())
             {
                 if (!field.PolicyApplications.IsDefaultOrEmpty)
                 {
-                    foreach (var application in field.PolicyApplications)
-                    {
-                        Policies.Get(application.Name);
-                    }
+                    EnsureAuthorizationPoliciesExist(field.PolicyApplications);
+                }
+            }
+        }
+    }
+
+    private void EnsureAuthorizationPoliciesExist(
+        ImmutableArray<PolicyApplication> applications)
+    {
+        foreach (var application in applications)
+        {
+            foreach (var group in application.Groups)
+            {
+                foreach (var name in group)
+                {
+                    Policies.Get(name);
                 }
             }
         }

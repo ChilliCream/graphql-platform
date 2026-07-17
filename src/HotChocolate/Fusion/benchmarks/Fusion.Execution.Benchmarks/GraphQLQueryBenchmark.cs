@@ -17,7 +17,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Execution;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]

@@ -1,0 +1,44 @@
+schema {
+  query: Query
+}
+
+type Query @policy(names: "hasAccess") {
+  financeReport: String!
+    @policy(names: [["isAdmin", "isFinance"], ["isOwner"]], onDenied: ABORT)
+  auditLog: String! @policy(names: ["isAdmin", "isFinance"])
+}
+
+"Defines the consequence that applies when a policy expression denies access."
+enum PolicyDenialBehavior {
+  "The guarded value is set to null without an error."
+  NULL
+  "The guarded value is set to null and an authorization error is added."
+  ERROR
+  "The request is terminated."
+  ABORT
+}
+
+"""
+The @policy directive restricts access to the annotated type or field with a policy
+expression in disjunctive normal form. Names within an inner list combine with AND,
+the outer list combines with OR. The expression [["a", "b"], ["c"]] reads as
+(a AND b) OR c. Access is granted only when the expression evaluates to true.
+
+
+The onDenied argument defines the consequence when the expression does not evaluate
+to true: NULL sets the guarded value to null without an error, ERROR sets it to null
+and adds an authorization error, ABORT terminates the request.
+
+
+Repeated applications on the same member combine with AND and the most severe
+consequence wins.
+
+
+directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL) repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+"""
+directive @policy(
+  "The policy expression in disjunctive normal form. Names within an inner list combine with AND, the outer list combines with OR."
+  names: [[String!]!]!
+  "The consequence that applies when the policy expression denies access."
+  onDenied: PolicyDenialBehavior! = NULL
+) repeatable on OBJECT | FIELD_DEFINITION | INTERFACE

@@ -75,10 +75,17 @@ public sealed partial class OperationPlanner
         {
             foreach (var application in objectType.PolicyApplications)
             {
-                updatedSelectionSet = MergePolicyRequirements(
-                    application.Name,
-                    updatedSelectionSet,
-                    complexType);
+                foreach (var group in application.Groups)
+                {
+                    foreach (var name in group)
+                    {
+                        updatedSelectionSet =
+                            MergePolicyRequirements(
+                                name,
+                                updatedSelectionSet,
+                                complexType);
+                    }
+                }
             }
         }
 
@@ -96,10 +103,17 @@ public sealed partial class OperationPlanner
 
             foreach (var application in field.PolicyApplications)
             {
-                updatedSelectionSet = MergePolicyRequirements(
-                    application.Name,
-                    updatedSelectionSet,
-                    complexType);
+                foreach (var group in application.Groups)
+                {
+                    foreach (var name in group)
+                    {
+                        updatedSelectionSet =
+                            MergePolicyRequirements(
+                                name,
+                                updatedSelectionSet,
+                                complexType);
+                    }
+                }
             }
         }
 

@@ -18,7 +18,7 @@ public sealed partial class OperationPlanContext
         ISelection? selection,
         ITypeDefinition type,
         ClaimsPrincipal user,
-        PolicyApplication application,
+        PolicyDenialBehavior onDenied,
         CompositeResultElement entity,
         CancellationToken cancellationToken)
     {
@@ -40,7 +40,7 @@ public sealed partial class OperationPlanContext
             selection,
             type,
             user,
-            application,
+            onDenied,
             entity,
             cancellationToken);
         var evaluation = decisions.GetOrAdd(
@@ -62,7 +62,7 @@ public sealed partial class OperationPlanContext
             state.Selection,
             state.Type,
             state.User,
-            state.Application);
+            state.OnDenied);
 
         try
         {
@@ -84,7 +84,7 @@ public sealed partial class OperationPlanContext
         ISelection? Selection,
         ITypeDefinition Type,
         ClaimsPrincipal User,
-        PolicyApplication Application,
+        PolicyDenialBehavior OnDenied,
         CompositeResultElement Entity,
         CancellationToken CancellationToken);
 }

@@ -1282,20 +1282,30 @@ public sealed partial class OperationPlanner
     private PolicyExecutionTarget AddPolicyRequirements(PolicyExecutionTarget target)
     {
         List<AuthorizationPolicyRequirement>? requirements = null;
+        HashSet<string>? seenNames = null;
 
         foreach (var application in target.Policies)
         {
-            if (!_policyRequirements.TryGetValue(application.Name, out var selectionSet))
+            foreach (var group in application.Groups)
             {
-                continue;
-            }
+                foreach (var name in group)
+                {
+                    seenNames ??= new HashSet<string>(StringComparer.Ordinal);
 
-            requirements ??= [];
-            requirements.Add(new AuthorizationPolicyRequirement
-            {
-                PolicyName = application.Name,
-                SelectionSet = selectionSet
-            });
+                    if (!seenNames.Add(name)
+                        || !_policyRequirements.TryGetValue(name, out var selectionSet))
+                    {
+                        continue;
+                    }
+
+                    requirements ??= [];
+                    requirements.Add(new AuthorizationPolicyRequirement
+                    {
+                        PolicyName = name,
+                        SelectionSet = selectionSet
+                    });
+                }
+            }
         }
 
         return requirements is null
@@ -1757,7 +1767,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
-            : [];
+            : ImmutableDictionary<string, OperationRequirement>.Empty;
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
