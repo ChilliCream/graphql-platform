@@ -16,41 +16,89 @@ public sealed class FusionTagDirectiveTests : FusionTestBase
     {
         var schema = ComposeAndLoadSchema();
         var tagDefinition = schema.DirectiveDefinitions["tag"];
-
-        AssertTags(schema.Directives, isPublic: false);
-
         var query = schema.Types.GetType<FusionObjectTypeDefinition>("Query");
-        AssertTags(query.Directives, isPublic: false);
-        AssertTags(query.Fields["field"].Directives, isPublic: false);
-        AssertTags(query.Fields["field"].Arguments["arg"].Directives, isPublic: false);
-
-        AssertTags(
-            schema.Types.GetType<FusionObjectTypeDefinition>("Tagged").Directives,
-            isPublic: false);
-        AssertTags(
-            schema.Types.GetType<FusionInterfaceTypeDefinition>("TaggedInterface").Directives,
-            isPublic: false);
-        AssertTags(
-            schema.Types.GetType<FusionUnionTypeDefinition>("TaggedUnion").Directives,
-            isPublic: false);
-        AssertTags(
-            schema.Types.GetType<FusionScalarTypeDefinition>("TaggedScalar").Directives,
-            isPublic: false);
-
+        var fieldDirectives = query.Fields["field"].Directives;
         var enumType = schema.Types.GetType<FusionEnumTypeDefinition>("TaggedEnum");
-        AssertTags(enumType.Directives, isPublic: false);
-        AssertTags(enumType.Values["VALUE"].Directives, isPublic: false);
-
         var inputType = schema.Types.GetType<FusionInputObjectTypeDefinition>("TaggedInput");
-        AssertTags(inputType.Directives, isPublic: false);
-        AssertTags(inputType.Fields["value"].Directives, isPublic: false);
+        var locations = new[]
+        {
+            new { Name = "Schema", Directives = schema.Directives },
+            new { Name = "Object", Directives = query.Directives },
+            new { Name = "Field", Directives = fieldDirectives },
+            new
+            {
+                Name = "Argument",
+                Directives = query.Fields["field"].Arguments["arg"].Directives
+            },
+            new
+            {
+                Name = "Tagged object",
+                Directives = schema.Types.GetType<FusionObjectTypeDefinition>("Tagged").Directives
+            },
+            new
+            {
+                Name = "Interface",
+                Directives = schema.Types.GetType<FusionInterfaceTypeDefinition>("TaggedInterface").Directives
+            },
+            new
+            {
+                Name = "Union",
+                Directives = schema.Types.GetType<FusionUnionTypeDefinition>("TaggedUnion").Directives
+            },
+            new
+            {
+                Name = "Scalar",
+                Directives = schema.Types.GetType<FusionScalarTypeDefinition>("TaggedScalar").Directives
+            },
+            new { Name = "Enum", Directives = enumType.Directives },
+            new { Name = "Enum value", Directives = enumType.Values["VALUE"].Directives },
+            new { Name = "Input object", Directives = inputType.Directives },
+            new { Name = "Input field", Directives = inputType.Fields["value"].Directives }
+        };
 
-        Assert.True(tagDefinition.IsPublic);
-        Assert.Equal("tag", tagDefinition.Name);
-        Assert.False(schema.DirectiveDefinitions.ContainsName("fusion__tag"));
-        Assert.All(
-            query.Fields["field"].Directives.WithInternals["tag"],
-            directive => Assert.Same(tagDefinition, directive.Definition));
+        new
+        {
+            Definition = new
+            {
+                tagDefinition.Name,
+                tagDefinition.IsPublic,
+                HasFusionTagDefinition = schema.DirectiveDefinitions.ContainsName("fusion__tag")
+            },
+            FieldViews = new
+            {
+                Default = new
+                {
+                    fieldDirectives.Count,
+                    ContainsTag = fieldDirectives.ContainsName("tag"),
+                    Tags = GetTagNames(fieldDirectives)
+                },
+                WithInternals = fieldDirectives.WithInternals
+                    .AsEnumerable()
+                    .Select(directive => new
+                    {
+                        directive.Name,
+                        directive.IsPublic,
+                        TagName = ((StringValueNode)directive.Arguments["name"]).Value,
+                        DefinitionName = directive.Definition.Name,
+                        DefinitionIsPublic = directive.Definition.IsPublic,
+                        UsesSchemaDefinition = ReferenceEquals(
+                            tagDefinition,
+                            directive.Definition)
+                    })
+                    .ToArray()
+            },
+            Locations = locations
+                .Select(location => new
+                {
+                    location.Name,
+                    PublicCount = location.Directives.Count,
+                    PublicTags = GetTagNames(location.Directives),
+                    AllCount = location.Directives.WithInternals.Count,
+                    ContainsFusionTag = location.Directives.WithInternals.ContainsName("fusion__tag"),
+                    TagsWithInternals = GetTagNames(location.Directives.WithInternals)
+                })
+                .ToArray()
+        }.MatchMarkdownSnapshot();
     }
 
     [Fact]
