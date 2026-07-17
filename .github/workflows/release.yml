@@ -158,10 +158,12 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: nuget-packages
-          path: output/packages/*.nupkg
+          path: |
+            output/packages/*.nupkg
+            output/packages/*.snupkg
 
   build-nitro-cli:
-    name: 🧱 Build and Publish Nitro CLI
+    name: 🧱 Build Nitro CLI
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     needs: [compute-release-context]
