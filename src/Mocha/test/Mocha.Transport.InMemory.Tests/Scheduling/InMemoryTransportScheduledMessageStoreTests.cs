@@ -103,6 +103,26 @@ public class InMemoryTransportScheduledMessageStoreTests
     }
 
     [Fact]
+    public async Task CancelAsync_Should_ReturnFalse_When_MalformedToken()
+    {
+        // arrange
+        using var store = CreateStore();
+        store.Add(CreateEnvelope("a"), s_now.AddMinutes(5));
+
+        // act
+        var wrongPrefix = await store.CancelAsync(
+            $"other-provider:{Guid.NewGuid():D}",
+            TestContext.Current.CancellationToken);
+        var unparsableId = await store.CancelAsync(
+            "in-memory-transport:not-a-guid",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(wrongPrefix);
+        Assert.False(unparsableId);
+    }
+
+    [Fact]
     public void Add_Should_CopyBody_When_OriginalMutatedAfterPersist()
     {
         // arrange

@@ -115,12 +115,45 @@ public class InMemorySchedulingTests
         Assert.Equal(["immediate", "scheduled"], texts);
     }
 
-    private static async Task PublishScheduledAsync(IServiceProvider provider, DateTimeOffset when)
+    [Fact]
+    public async Task ScheduledMessage_Should_BeDroppedAndWorkerContinue_When_DispatchThrows()
+    {
+        // arrange
+        // a dispatch middleware throws on the first re-dispatch; the worker must log-and-drop that
+        // message and keep delivering later scheduled messages.
+        var recorder = new MessageRecorder();
+        var time = new FakeTimeProvider(s_start);
+        var toggle = new DispatchFailureToggle();
+        await using var env = await CreateBusAsync(
+            recorder,
+            time,
+            b => AddThrowOnceDispatchMiddleware(b, toggle));
+
+        await PublishScheduledAsync(env.Provider, s_start.AddMinutes(5), "dropped");
+        time.Advance(TimeSpan.FromMinutes(6));
+
+        await PublishScheduledAsync(env.Provider, s_start.AddMinutes(10), "delivered");
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(6));
+
+        // assert - only the second message is delivered; the worker survived the failure
+        Assert.True(
+            await recorder.WaitAsync(s_deliveryTimeout),
+            "The worker should survive a dispatch failure and deliver later messages");
+        var received = Assert.Single(recorder.Messages.OfType<ScheduledPing>());
+        Assert.Equal("delivered", received.Text);
+    }
+
+    private static async Task PublishScheduledAsync(
+        IServiceProvider provider,
+        DateTimeOffset when,
+        string text = "ping")
     {
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await bus.PublishAsync(
-            new ScheduledPing { Text = "ping" },
+            new ScheduledPing { Text = text },
             new PublishOptions { ScheduledTime = when },
             TestContext.Current.CancellationToken);
     }
@@ -137,7 +170,10 @@ public class InMemorySchedulingTests
         return result.Token!;
     }
 
-    private static async Task<TestEnvironment> CreateBusAsync(MessageRecorder recorder, FakeTimeProvider time)
+    private static async Task<TestEnvironment> CreateBusAsync(
+        MessageRecorder recorder,
+        FakeTimeProvider time,
+        Action<IMessageBusHostBuilder>? configure = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
@@ -147,6 +183,7 @@ public class InMemorySchedulingTests
         var builder = services.AddMessageBus();
         builder.AddEventHandler<ScheduledPingHandler>();
         builder.AddInMemory();
+        configure?.Invoke(builder);
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -159,6 +196,27 @@ public class InMemorySchedulingTests
         }
 
         return new TestEnvironment(provider, hostedServices);
+    }
+
+    private static void AddThrowOnceDispatchMiddleware(
+        IMessageBusHostBuilder builder,
+        DispatchFailureToggle toggle)
+    {
+        builder.ConfigureMessageBus(h =>
+            h.UseDispatch(
+                new DispatchMiddlewareConfiguration(
+                    (_, next) => ctx =>
+                    {
+                        if (!toggle.Thrown)
+                        {
+                            toggle.Thrown = true;
+
+                            throw new InvalidOperationException("Simulated dispatch failure");
+                        }
+
+                        return next(ctx);
+                    },
+                    "ThrowOnceDispatch")));
     }
 
     public sealed class ScheduledPing
@@ -192,5 +250,10 @@ public class InMemorySchedulingTests
 
             await provider.DisposeAsync();
         }
+    }
+
+    private sealed class DispatchFailureToggle
+    {
+        public bool Thrown;
     }
 }
