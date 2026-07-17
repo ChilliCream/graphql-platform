@@ -132,9 +132,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
         finally
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await hostedServices[i].StopAsync(TestContext.Current.CancellationToken);
             }
 
             // Allow in-flight processor transactions to drain (see TestEnvironment comment)
@@ -689,9 +690,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
         public async ValueTask DisposeAsync()
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(default);
+                await hostedServices[i].StopAsync(default);
             }
 
             // ContinuousTask.DisposeAsync cancels but doesn't await the background

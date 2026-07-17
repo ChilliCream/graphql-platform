@@ -183,9 +183,11 @@ public class InMemorySchedulingTests
 
         public async ValueTask DisposeAsync()
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown, so the
+            // scheduled message worker stops before the messaging runtime it dispatches through.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(default);
+                await hostedServices[i].StopAsync(default);
             }
 
             await provider.DisposeAsync();
