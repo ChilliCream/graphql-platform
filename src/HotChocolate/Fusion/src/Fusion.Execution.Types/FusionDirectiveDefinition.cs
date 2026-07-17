@@ -13,6 +13,8 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 {
+    private bool _completed;
+
     /// <summary>
     /// Represents a GraphQL directive definition.
     /// </summary>
@@ -107,6 +109,14 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     public bool IsPublic { get; init; } = true;
 
     /// <summary>
+    /// Gets the directives applied to this directive definition.
+    /// </summary>
+    public FusionDirectiveCollection Directives { get; private set; } =
+        FusionDirectiveCollection.Empty;
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+
+    /// <summary>
     /// Gets the arguments that are defined on this directive.
     /// </summary>
     public FusionInputFieldDefinitionCollection Arguments { get; }
@@ -126,6 +136,20 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// Gets the runtime type of the directive.
     /// </summary>
     public Type RuntimeType { get; } = typeof(object);
+
+    internal void Complete(FusionDirectiveCollection directives)
+    {
+        ArgumentNullException.ThrowIfNull(directives);
+
+        if (_completed)
+        {
+            throw new InvalidOperationException(
+                "The directive definition has already been completed.");
+        }
+
+        Directives = directives;
+        _completed = true;
+    }
 
     /// <inheritdoc />
     public IFeatureCollection Features => field ??= new FeatureCollection();
