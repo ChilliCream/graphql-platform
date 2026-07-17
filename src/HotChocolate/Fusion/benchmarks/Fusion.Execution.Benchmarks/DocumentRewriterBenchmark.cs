@@ -4,7 +4,7 @@ using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [ShortRunJob(RuntimeMoniker.Net10_0)]

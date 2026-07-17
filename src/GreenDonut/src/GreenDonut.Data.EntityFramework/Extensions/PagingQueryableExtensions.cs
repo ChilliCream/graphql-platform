@@ -254,9 +254,7 @@ public static class PagingQueryableExtensions
                 totalCount = await originalQuery.CountAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            return totalCount is null
-                ? Page<T>.Empty
-                : Page<T>.Create([], false, false, _ => string.Empty, totalCount);
+            return Page<T>.Create([], false, false, _ => string.Empty, totalCount);
         }
 
         if (isBackward)
@@ -546,9 +544,7 @@ public static class PagingQueryableExtensions
 
             if (item.Items.Count == 0)
             {
-                var page = totalCount is null
-                    ? Page<TValue>.Empty
-                    : Page<TValue>.Create([], false, false, _ => string.Empty, totalCount);
+                var page = Page<TValue>.Create([], false, false, static _ => string.Empty, totalCount);
                 map.Add(item.Key, page);
                 continue;
             }

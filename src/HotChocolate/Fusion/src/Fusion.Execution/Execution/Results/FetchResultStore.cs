@@ -1013,7 +1013,6 @@ AddErrors_Next:
             nextIndex++;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1128,7 +1127,6 @@ AddErrors_Next:
             }
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1204,7 +1202,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1251,7 +1248,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1337,7 +1333,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1400,7 +1395,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1505,7 +1499,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1584,7 +1577,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -2331,6 +2323,7 @@ AddErrors_Next:
 
         _memory.Clear();
 
+        _variableDedupTable.Dispose();
         _variableWriter.Dispose();
         _pathPool?.Dispose();
     }
@@ -2402,24 +2395,29 @@ AddErrors_Next:
     {
         private const int DefaultBucketSize = 4;
         private const int DefaultBucketCount = 16;
+        private const int TrackedSlotCapacity = 16;
 
         private readonly ChunkedArrayWriter _writer = writer;
-        private Entry[] _table = ArrayPool<Entry>.Shared.Rent(DefaultBucketCount * DefaultBucketSize);
+        private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
+        private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
+        private int _writtenCount;
+        private bool _clearFullTable;
 
         public void Initialize(int capacity)
         {
-            _bucketCount = NextPowerOfTwo(Math.Max(capacity, DefaultBucketCount));
-            var totalSize = _bucketCount * _bucketSize;
+            var bucketCount = NextPowerOfTwo(Math.Max(capacity, DefaultBucketCount));
+            var totalSize = bucketCount * _bucketSize;
+
+            ClearPreviousEntries();
 
             if (_table.Length < totalSize)
             {
-                ArrayPool<Entry>.Shared.Return(_table);
-                _table = ArrayPool<Entry>.Shared.Rent(totalSize);
+                Resize(totalSize);
             }
 
-            _table.AsSpan(0, totalSize).Clear();
+            _bucketCount = bucketCount;
         }
 
         public bool TryGet(
@@ -2467,6 +2465,8 @@ AddErrors_Next:
 
                 if (entry.Index == 0)
                 {
+                    RecordWrittenSlot(s);
+
                     entry.Hash = hash;
                     entry.Index = index + 1;
                     entry.Location = location;
@@ -2479,36 +2479,119 @@ AddErrors_Next:
             Add(hash, index, location, length);
         }
 
-        public void Clear()
-            => _table.AsSpan(0, _bucketCount * _bucketSize).Clear();
-
         public void Dispose()
         {
-            ArrayPool<Entry>.Shared.Return(_table);
-            _table = [];
+            if (_table.Length > 0)
+            {
+                ArrayPool<Entry>.Shared.Return(_table);
+                _table = [];
+            }
+
+            if (_writtenSlots.Length > 0)
+            {
+                ArrayPool<int>.Shared.Return(_writtenSlots);
+                _writtenSlots = [];
+            }
+
+            ResetClearState();
         }
 
         private void Grow()
         {
             var oldTable = _table;
             var oldTotal = _bucketCount * _bucketSize;
+            var newBucketCount = _bucketCount * 2;
+            var newTotal = newBucketCount * _bucketSize;
+            var newTable = RentClearedTable(newTotal);
 
-            _bucketCount *= 2;
-            var newTotal = _bucketCount * _bucketSize;
-            _table = ArrayPool<Entry>.Shared.Rent(newTotal);
-            _table.AsSpan(0, newTotal).Clear();
+            _bucketCount = newBucketCount;
+            _table = newTable;
+            _clearFullTable = true;
+            _writtenCount = 0;
 
-            for (var i = 0; i < oldTotal; i++)
+            try
             {
-                var entry = oldTable[i];
-
-                if (entry.Index != 0)
+                for (var i = 0; i < oldTotal; i++)
                 {
-                    Add(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                    var entry = oldTable[i];
+
+                    if (entry.Index != 0)
+                    {
+                        Add(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<Entry>.Shared.Return(oldTable);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Resize(int totalSize)
+        {
+            var newTable = RentClearedTable(totalSize);
+            var oldTable = _table;
+            _table = newTable;
+            ArrayPool<Entry>.Shared.Return(oldTable);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void RecordWrittenSlot(int slot)
+        {
+            if (_clearFullTable)
+            {
+                return;
+            }
+
+            if (_writtenCount == TrackedSlotCapacity)
+            {
+                _clearFullTable = true;
+                _writtenCount = 0;
+                return;
+            }
+
+            if (_writtenSlots.Length == 0)
+            {
+                RentWrittenSlots();
+            }
+
+            _writtenSlots[_writtenCount++] = slot;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void RentWrittenSlots()
+            => _writtenSlots = ArrayPool<int>.Shared.Rent(TrackedSlotCapacity);
+
+        private void ClearPreviousEntries()
+        {
+            if (_clearFullTable)
+            {
+                _table.AsSpan(0, _bucketCount * _bucketSize).Clear();
+            }
+            else
+            {
+                for (var i = 0; i < _writtenCount; i++)
+                {
+                    _table[_writtenSlots[i]] = default;
                 }
             }
 
-            ArrayPool<Entry>.Shared.Return(oldTable);
+            ResetClearState();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ResetClearState()
+        {
+            _writtenCount = 0;
+            _clearFullTable = false;
+        }
+
+        private static Entry[] RentClearedTable(int minimumLength)
+        {
+            var table = ArrayPool<Entry>.Shared.Rent(minimumLength);
+            table.AsSpan().Clear();
+            return table;
         }
 
         private static int NextPowerOfTwo(int n)
