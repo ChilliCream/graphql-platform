@@ -25,6 +25,7 @@ internal static class FusionBuiltIns
     public const string GatewayField = "fusion__gateway_field";
     public const string SchemaMetadata = "fusion__schema_metadata";
     public const string EventStream = "fusion__eventStream";
+    public const string Tag = "fusion__tag";
 
     public static bool IsBuiltInType(string typeName)
         => typeName.StartsWith(Prefix, StringComparison.Ordinal);

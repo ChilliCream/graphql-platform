@@ -29,10 +29,17 @@ internal static class CompletionTools
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
-            var directiveType = context.GetDirectiveType(directive.Name.Value);
+            var isPublic = !FusionBuiltIns.Tag.Equals(
+                directive.Name.Value,
+                StringComparison.Ordinal);
+            var directiveName = isPublic
+                ? directive.Name.Value
+                : DirectiveNames.Tag.Name;
+            var directiveType = context.GetDirectiveType(directiveName);
             var arguments = CreateArgumentAssignments(directive.Arguments);
             temp[i] = new FusionDirective(
                 directiveType,
+                isPublic,
                 ImmutableCollectionsMarshal.AsImmutableArray(arguments));
         }
 
