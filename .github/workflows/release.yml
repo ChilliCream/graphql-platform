@@ -438,7 +438,7 @@ jobs:
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-22.04
-    needs: [compute-release-context, pack-nuget, pack-npm]
+    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -476,7 +476,7 @@ jobs:
   publish-npm:
     name: 🚀 Publish Nitro CLI to npm
     runs-on: ubuntu-latest
-    needs: [compute-release-context, pack-nuget, pack-npm]
+    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops]
     permissions:
       contents: read
       id-token: write
