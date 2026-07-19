@@ -13,7 +13,7 @@ public sealed class AzureServiceBusDefaultEndpointOptions
 
     /// <summary>
     /// Gets or sets the default maximum number of messages to process concurrently.
-    /// Default is null (uses the endpoint default of <see cref="Environment.ProcessorCount"/>).
+    /// Default is null (uses the endpoint default of <see cref="Environment.ProcessorCount"/> * 2).
     /// </summary>
     public int? MaxConcurrency { get; set; }
 

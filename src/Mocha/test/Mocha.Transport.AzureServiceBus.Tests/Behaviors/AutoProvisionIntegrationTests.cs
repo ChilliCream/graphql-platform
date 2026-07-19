@@ -21,12 +21,12 @@ public class AutoProvisionIntegrationTests
     {
         // arrange - default auto-provision (true)
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -46,7 +46,7 @@ public class AutoProvisionIntegrationTests
     {
         // arrange - explicit auto-provision true
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -54,6 +54,7 @@ public class AutoProvisionIntegrationTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(true);
             })
             .BuildTestBusAsync();
@@ -75,12 +76,12 @@ public class AutoProvisionIntegrationTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -99,13 +100,14 @@ public class AutoProvisionIntegrationTests
     public async Task DeclareQueue_Should_ProvisionQueueOnBroker_When_AutoProvisionEnabled()
     {
         // arrange - declare a custom queue with non-default knobs and verify it lands on the broker
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("explicit-q");
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(true);
                 t.DeclareQueue(queueName)
                     .WithLockDuration(TimeSpan.FromSeconds(45))
@@ -114,7 +116,7 @@ public class AutoProvisionIntegrationTests
             .BuildTestBusAsync();
 
         // act - inspect the broker via the admin client
-        var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
+        var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         var properties = await adminClient.GetQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
 
         // assert - the queue exists with the configured knobs propagated
@@ -127,7 +129,7 @@ public class AutoProvisionIntegrationTests
     public async Task DeclareSubscription_Should_ProvisionTopicAndSubscriptionOnBroker_When_AutoProvisionEnabled()
     {
         // arrange - declare a topic, queue, and subscription that links them
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var topicName = ctx.TopicName("topic");
         var queueName = ctx.QueueName("q");
         await using var bus = await new ServiceCollection()
@@ -135,6 +137,7 @@ public class AutoProvisionIntegrationTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(true);
                 t.DeclareTopic(topicName);
                 t.DeclareQueue(queueName);
@@ -143,7 +146,7 @@ public class AutoProvisionIntegrationTests
             .BuildTestBusAsync();
 
         // act - inspect the broker
-        var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
+        var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
         var topicExists = (await adminClient.TopicExistsAsync(topicName, cancellationToken)).Value;
         var queueExists = (await adminClient.QueueExistsAsync(queueName, cancellationToken)).Value;
@@ -169,7 +172,7 @@ public class AutoProvisionIntegrationTests
     {
         // arrange - transport auto-provision disabled, but individual resources enabled
         var capture = new OrderCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var topicName = ctx.TopicName("ap-topic");
         var queueName = ctx.QueueName("ap-q");
         await using var bus = await new ServiceCollection()
@@ -179,6 +182,7 @@ public class AutoProvisionIntegrationTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(false);
                 t.BindExplicitly();
                 t.DeclareTopic(topicName).AutoProvision(true);
@@ -206,13 +210,14 @@ public class AutoProvisionIntegrationTests
     public async Task DeclareQueue_Should_NotProvisionOnBroker_When_AutoProvisionDisabled()
     {
         // arrange - transport auto-provision disabled, no resource overrides
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("not-provisioned");
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(false);
                 t.BindExplicitly();
                 t.DeclareQueue(queueName);
@@ -220,7 +225,7 @@ public class AutoProvisionIntegrationTests
             .BuildTestBusAsync();
 
         // act - inspect the broker
-        var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
+        var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         var queueExists =
             (await adminClient.QueueExistsAsync(queueName, Xunit.TestContext.Current.CancellationToken)).Value;
 

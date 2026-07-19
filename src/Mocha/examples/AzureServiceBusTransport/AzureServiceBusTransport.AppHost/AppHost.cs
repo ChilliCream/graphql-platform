@@ -14,7 +14,11 @@ var serviceBus = builder
         // Queues — point-to-point and request-reply targets
         ns["Queues"] = new JsonArray(
             Queue("process-order"),
+            Queue("process-order_error"),
+            Queue("process-order_skipped"),
             Queue("prepare-shipment"),
+            Queue("prepare-shipment_error"),
+            Queue("prepare-shipment_skipped"),
             Queue("get-order-status-request"),
             Queue("fulfill-order-request"),
             Queue("order-service.order-shipped-event"),

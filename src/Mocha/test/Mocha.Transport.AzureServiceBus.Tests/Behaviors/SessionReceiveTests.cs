@@ -23,7 +23,7 @@ public class SessionReceiveTests
     {
         // arrange
         var capture = new SessionMessageCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-recv");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -33,6 +33,7 @@ public class SessionReceiveTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.DeclareQueue(queueName).WithRequiresSession();
                 t.Endpoint("session-recv-ep").Consumer<SessionCapturingConsumer>().Queue(queueName);
             })
@@ -62,7 +63,7 @@ public class SessionReceiveTests
     {
         // arrange
         var capture = new SessionMessageCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-order");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -72,6 +73,7 @@ public class SessionReceiveTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.DeclareQueue(queueName).WithRequiresSession();
                 t.Endpoint("session-order-ep").Consumer<SessionCapturingConsumer>().Queue(queueName);
             })
@@ -106,7 +108,7 @@ public class SessionReceiveTests
         // path: (1) message lands in the DLQ; (2) processorErrors does not contain a lock-lost
         // exception that escaped to ProcessErrorAsync.
         var processorErrors = new ConcurrentBag<Exception>();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-idemp");
         await using var bus = await new ServiceCollection()
             .AddSingleton(processorErrors)
@@ -116,6 +118,7 @@ public class SessionReceiveTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.DeclareQueue(queueName).WithRequiresSession();
                 t.Endpoint("session-idemp-ep").Consumer<SessionDeadLetteringConsumer>().Queue(queueName);
             })
@@ -148,7 +151,7 @@ public class SessionReceiveTests
     {
         // arrange - the first message stores session state; the second reads it back.
         var capture = new SessionStateCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-state");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -158,6 +161,7 @@ public class SessionReceiveTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.DeclareQueue(queueName).WithRequiresSession();
                 t.Endpoint("session-state-ep").Consumer<SessionStateConsumer>().Queue(queueName);
             })
@@ -186,7 +190,7 @@ public class SessionReceiveTests
     public async Task EndpointStartup_Should_Throw_When_SessionKnobsSetOnNonSessionQueue()
     {
         // arrange - the queue does NOT have WithRequiresSession; the endpoint sets a session-only knob.
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-misconf");
         var act = () =>
             new ServiceCollection()
@@ -195,6 +199,7 @@ public class SessionReceiveTests
                 .AddAzureServiceBus(t =>
                 {
                     t.ConnectionString(ctx.ConnectionString);
+                    t.AdministrationConnectionString(ctx.AdminConnectionString);
                     t.DeclareQueue(queueName);
                     t.Endpoint("session-misconf-ep")
                         .Consumer<SessionCapturingConsumer>()
@@ -217,7 +222,7 @@ public class SessionReceiveTests
     {
         // arrange
         var capture = new SessionMessageCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-id");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -227,6 +232,7 @@ public class SessionReceiveTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.DeclareQueue(queueName).WithRequiresSession();
                 t.Endpoint("session-id-ep").Consumer<SessionCapturingConsumer>().Queue(queueName);
             })
@@ -252,7 +258,7 @@ public class SessionReceiveTests
         // arrange - a consumer that calls GetAzureServiceBusEventArgs() on a session endpoint
         // should fail because the non-session args are unavailable.
         var capture = new ExceptionCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-throws");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -262,6 +268,7 @@ public class SessionReceiveTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.DeclareQueue(queueName).WithRequiresSession().WithMaxDeliveryCount(1);
                 t.Endpoint("session-throws-ep").Consumer<NonSessionEventArgsCallingConsumer>().Queue(queueName);
             })

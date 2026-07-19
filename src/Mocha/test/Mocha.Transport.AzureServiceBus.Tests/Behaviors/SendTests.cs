@@ -19,12 +19,12 @@ public class SendTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -48,14 +48,14 @@ public class SendTests
         // arrange
         var paymentRecorder = new MessageRecorder();
         var refundRecorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddKeyedSingleton("payment", paymentRecorder)
             .AddKeyedSingleton("refund", refundRecorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentKeyedHandler>()
             .AddRequestHandler<ProcessRefundKeyedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -82,14 +82,14 @@ public class SendTests
         // arrange
         var paymentRecorder = new MessageRecorder();
         var refundRecorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddKeyedSingleton("payment", paymentRecorder)
             .AddKeyedSingleton("refund", refundRecorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentKeyedHandler>()
             .AddRequestHandler<ProcessRefundKeyedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();

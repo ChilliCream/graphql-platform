@@ -14,6 +14,7 @@ public sealed class AzureServiceBusSubscription
     , IAzureServiceBusResource
 {
     private const int MaxSubscriptionNameLength = 50;
+    private string? _configuredName;
 
     /// <summary>
     /// Gets the deterministic broker subscription name.
@@ -78,6 +79,7 @@ public sealed class AzureServiceBusSubscription
 
     protected override void OnInitialize(AzureServiceBusSubscriptionConfiguration configuration)
     {
+        _configuredName = configuration.Name;
         AutoProvision = configuration.AutoProvision;
         LockDuration = configuration.LockDuration;
         MaxDeliveryCount = configuration.MaxDeliveryCount;
@@ -108,7 +110,30 @@ public sealed class AzureServiceBusSubscription
     internal void SetDestination(AzureServiceBusQueue destination)
     {
         Destination = destination;
-        Name = CreateSubscriptionName(destination.Name);
+        Name = _configuredName ?? GetForwardingSubscriptionName(destination.Name);
+    }
+
+    /// <summary>
+    /// Computes the deterministic broker subscription name used by a topic-to-queue forwarding subscription
+    /// for the specified destination queue. Infrastructure-as-code tooling can use this method to pre-create
+    /// the subscription with the identical name. The result never exceeds 50 characters.
+    /// </summary>
+    /// <param name="queueName">The destination queue name.</param>
+    /// <returns>The forwarding subscription name.</returns>
+    public static string GetForwardingSubscriptionName(string queueName)
+    {
+        var candidate = "fwd-" + queueName;
+        if (candidate.Length <= MaxSubscriptionNameLength)
+        {
+            return candidate;
+        }
+
+        var hash = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(queueName)),
+            0,
+            4).ToLowerInvariant();
+        var prefixLength = MaxSubscriptionNameLength - hash.Length - 1;
+        return candidate[..prefixLength] + "-" + hash;
     }
 
     /// <inheritdoc />
@@ -170,21 +195,5 @@ public sealed class AzureServiceBusSubscription
         {
             // Already provisioned by another instance, safe to ignore.
         }
-    }
-
-    private static string CreateSubscriptionName(string destinationName)
-    {
-        var candidate = "fwd-" + destinationName;
-        if (candidate.Length <= MaxSubscriptionNameLength)
-        {
-            return candidate;
-        }
-
-        var hash = Convert.ToHexString(
-            SHA256.HashData(Encoding.UTF8.GetBytes(destinationName)),
-            0,
-            4).ToLowerInvariant();
-        var prefixLength = MaxSubscriptionNameLength - hash.Length - 1;
-        return candidate[..prefixLength] + "-" + hash;
     }
 }

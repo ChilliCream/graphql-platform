@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.AzureCloudServiceBus" />
-    <!-- Squadron 1.0.1 still depends on the xUnit v2 runner assemblies. The repository uses
-         xUnit v3, while Squadron only needs xunit.abstractions at runtime for its fixture sink. -->
-    <PackageReference Include="xunit.extensibility.core" ExcludeAssets="compile" />
-    <PackageReference Include="xunit.extensibility.execution" ExcludeAssets="compile" />
+    <PackageReference Include="Testcontainers.ServiceBus" />
   </ItemGroup>
 
   <ItemGroup>

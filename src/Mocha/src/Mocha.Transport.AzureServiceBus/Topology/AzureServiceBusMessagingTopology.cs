@@ -221,13 +221,6 @@ public sealed class AzureServiceBusMessagingTopology(
                 + "cannot require sessions because modeled subscriptions auto-forward messages.");
         }
 
-        if (destination.RequiresSession == true)
-        {
-            throw new InvalidOperationException(
-                $"Azure Service Bus subscription from '{sourceName}' cannot auto-forward to "
-                + $"session-enabled queue '{destinationName}'.");
-        }
-
         configuration.Topology = this;
 
         var subscription = new AzureServiceBusSubscription();

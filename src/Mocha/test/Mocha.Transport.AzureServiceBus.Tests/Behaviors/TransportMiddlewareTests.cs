@@ -21,7 +21,7 @@ public class TransportMiddlewareTests
         // arrange
         var tracker = new MiddlewareTracker();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -30,6 +30,7 @@ public class TransportMiddlewareTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.UseReceive(
                     new ReceiveMiddlewareConfiguration(
                         (ctx, next) =>
@@ -65,7 +66,7 @@ public class TransportMiddlewareTests
         // arrange
         var tracker = new MiddlewareTracker();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -74,6 +75,7 @@ public class TransportMiddlewareTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.UseReceive(
                     new ReceiveMiddlewareConfiguration(
                         (ctx, next) =>
@@ -110,7 +112,7 @@ public class TransportMiddlewareTests
         // arrange
         var tracker = new MiddlewareTracker();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -119,6 +121,7 @@ public class TransportMiddlewareTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.UseReceive(
                     new ReceiveMiddlewareConfiguration(
                         (ctx, next) =>
@@ -155,7 +158,7 @@ public class TransportMiddlewareTests
         // arrange
         var tracker = new MiddlewareTracker();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -164,6 +167,7 @@ public class TransportMiddlewareTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>
@@ -193,7 +197,7 @@ public class TransportMiddlewareTests
         // arrange
         var tracker = new MiddlewareTracker();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -202,6 +206,7 @@ public class TransportMiddlewareTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>
@@ -232,7 +237,7 @@ public class TransportMiddlewareTests
         // arrange
         var tracker = new MiddlewareTracker();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -241,6 +246,7 @@ public class TransportMiddlewareTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>

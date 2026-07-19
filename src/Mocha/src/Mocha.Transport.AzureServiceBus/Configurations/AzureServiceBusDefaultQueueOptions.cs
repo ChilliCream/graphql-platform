@@ -47,11 +47,6 @@ public sealed class AzureServiceBusDefaultQueueOptions
     public bool? EnablePartitioning { get; set; }
 
     /// <summary>
-    /// Default entity to which messages received on queues are auto-forwarded.
-    /// </summary>
-    public string? ForwardTo { get; set; }
-
-    /// <summary>
     /// Default entity to which dead-lettered messages from queues are auto-forwarded.
     /// </summary>
     public string? ForwardDeadLetteredMessagesTo { get; set; }
@@ -74,7 +69,6 @@ public sealed class AzureServiceBusDefaultQueueOptions
         configuration.MaxSizeInMegabytes ??= MaxSizeInMegabytes;
         configuration.RequiresSession ??= RequiresSession;
         configuration.EnablePartitioning ??= EnablePartitioning;
-        configuration.ForwardTo ??= ForwardTo;
         configuration.ForwardDeadLetteredMessagesTo ??= ForwardDeadLetteredMessagesTo;
         configuration.DeadLetteringOnMessageExpiration ??= DeadLetteringOnMessageExpiration;
     }

@@ -116,6 +116,42 @@ public class AzureServiceBusUnifiedQueueTests
     }
 
     [Fact]
+    public void Queue_Should_RejectAutoForwardingSource_When_NoConsumerAttached()
+    {
+        // arrange
+        Action action = () => CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("forwarding-source").WithForwardTo("forwarding-target");
+        });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(action);
+
+        // assert
+        Assert.Contains("DeclareQueue", exception.Message);
+    }
+
+    [Fact]
+    public void Queue_Should_RejectAutoForwardingSource_When_ConsumerAttached()
+    {
+        // arrange
+        Action action = () => CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("forwarding-consumer-source")
+                .WithForwardTo("forwarding-consumer-target")
+                .Consumer<OrderConsumer>();
+        });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(action);
+
+        // assert
+        Assert.Contains("DeclareQueue", exception.Message);
+    }
+
+    [Fact]
     public void Queue_Should_ClaimConsumerOnNamedEndpoint_When_BindingIsExplicit()
     {
         var services = new ServiceCollection();

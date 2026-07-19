@@ -34,14 +34,14 @@ public class ConnectionRecoveryTests
     {
         // arrange - same test context across both bus instances so we converge on the same
         // queue on the broker (the queue persists after the first transport tears down).
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
 
         var firstRecorder = new MessageRecorder();
         await using (var firstBus = await new ServiceCollection()
             .AddSingleton(firstRecorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync())
         {
             using var firstScope = firstBus.Provider.CreateScope();
@@ -62,7 +62,7 @@ public class ConnectionRecoveryTests
             .AddSingleton(secondRecorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var secondScope = secondBus.Provider.CreateScope();
@@ -85,14 +85,14 @@ public class ConnectionRecoveryTests
         // arrange - the dispatcher in the second bus must rebuild its sender cache from scratch
         // on the same queue. The first bus is only used to provision and prove end-to-end
         // delivery; the second bus exercises a fresh ServiceBusClient and ServiceBusSender pool.
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
 
         var firstRecorder = new MessageRecorder();
         await using (var firstBus = await new ServiceCollection()
             .AddSingleton(firstRecorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync())
         {
             using var firstScope = firstBus.Provider.CreateScope();
@@ -113,7 +113,7 @@ public class ConnectionRecoveryTests
             .AddSingleton(secondRecorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var secondScope = secondBus.Provider.CreateScope();

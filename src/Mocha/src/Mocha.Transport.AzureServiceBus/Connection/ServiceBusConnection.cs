@@ -48,6 +48,23 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
 
     public ValueTask DisposeAsync() => _client.DisposeAsync();
 
+    internal static string? ResolveAdministrationConnectionString(
+        AzureServiceBusTransportConfiguration configuration)
+    {
+        if (configuration.ConnectionString is not null)
+        {
+            return configuration.AdministrationConnectionString ?? configuration.ConnectionString;
+        }
+
+        if (configuration.AdministrationConnectionString is not null)
+        {
+            throw new InvalidOperationException(
+                "AdministrationConnectionString requires ConnectionString-based configuration.");
+        }
+
+        return null;
+    }
+
     public static ServiceBusConnection Create(
         AzureServiceBusTransportConfiguration configuration,
         ServiceBusClientOptions clientOptions)
@@ -56,12 +73,15 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
         {
             return new ServiceBusConnection(
                 new ServiceBusClient(configuration.ConnectionString, clientOptions),
-                new ServiceBusAdministrationClient(configuration.ConnectionString));
+                new ServiceBusAdministrationClient(
+                    ResolveAdministrationConnectionString(configuration)!));
         }
 
         if (configuration.FullyQualifiedNamespace is not null
             && configuration.Credential is not null)
         {
+            ResolveAdministrationConnectionString(configuration);
+
             return new ServiceBusConnection(
                 new ServiceBusClient(configuration.FullyQualifiedNamespace, configuration.Credential, clientOptions),
                 new ServiceBusAdministrationClient(configuration.FullyQualifiedNamespace, configuration.Credential));

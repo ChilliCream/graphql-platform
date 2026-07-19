@@ -20,12 +20,12 @@ public class SchedulingTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -57,12 +57,12 @@ public class SchedulingTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -89,12 +89,12 @@ public class SchedulingTests
     public async Task SchedulePublishAsync_Should_DelayDelivery_When_ScheduledTimeInFuture()
     {
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -118,14 +118,18 @@ public class SchedulingTests
     [Fact]
     public async Task CancelScheduledMessageAsync_Should_PreventDelivery_When_CalledBeforeScheduledTime()
     {
+        Assert.SkipUnless(
+            AzureServiceBusFixture.SupportsScheduledCancellation,
+            "Carve-out: scheduled-message cancellation (emulator bug #119).");
+
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -152,10 +156,10 @@ public class SchedulingTests
     public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_TokenIsMalformed()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -179,12 +183,12 @@ public class SchedulingTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();

@@ -13,6 +13,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 {
     private readonly ServiceBusConnection _connection;
     private readonly ConcurrentDictionary<string, SenderEntry> _senders = new();
+    private readonly object _createLock = new();
     private volatile bool _isDisposed;
 
     /// <summary>
@@ -47,21 +48,37 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// </summary>
     public SenderLease AcquireSender(string entityPath)
     {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-
         while (true)
         {
-            var entry = _senders.GetOrAdd(
-                entityPath,
-                static (path, connection) => new SenderEntry(connection.CreateSender(path)),
-                _connection);
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            if (_senders.TryGetValue(entityPath, out var entry))
+            {
+                if (entry.TryAcquire())
+                {
+                    return new SenderLease(entry);
+                }
+
+                _senders.TryRemove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
+                continue;
+            }
+
+            lock (_createLock)
+            {
+                ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+                entry = _senders.GetOrAdd(
+                    entityPath,
+                    static (path, connection) => new SenderEntry(connection.CreateSender(path)),
+                    _connection);
+            }
+
             if (entry.TryAcquire())
             {
                 return new SenderLease(entry);
             }
 
-            ((ICollection<KeyValuePair<string, SenderEntry>>)_senders)
-                .Remove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
+            _senders.TryRemove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
         }
     }
 
@@ -79,8 +96,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        ((ICollection<KeyValuePair<string, SenderEntry>>)_senders)
-            .Remove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
+        _senders.TryRemove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
 
         return entry.RetireAsync();
     }
@@ -172,17 +188,27 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (_isDisposed)
+        List<Task> disposalTasks;
+
+        lock (_createLock)
         {
-            return;
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+
+            disposalTasks = new List<Task>(_senders.Count);
+            foreach (var entry in _senders.Values)
+            {
+                disposalTasks.Add(entry.RetireAsync());
+            }
+
+            _senders.Clear();
         }
 
-        _isDisposed = true;
-
-        var disposalTasks = _senders.Values.Select(static entry => entry.RetireAsync()).ToList();
-        _senders.Clear();
         await Task.WhenAll(disposalTasks);
-
         await _connection.DisposeAsync();
     }
 

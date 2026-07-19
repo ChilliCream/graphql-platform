@@ -19,7 +19,7 @@ public class BatchingTests
     {
         // arrange - MaxBatchSize=1 so each message immediately triggers a batch
         var recorder = new BatchMessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -27,6 +27,7 @@ public class BatchingTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("batch-ep").Handler<TestBatchHandler>().MaxConcurrency(1).PrefetchCount(10);
             })
             .BuildTestBusAsync();
@@ -51,7 +52,7 @@ public class BatchingTests
     {
         // arrange - high max size so only the timer triggers dispatch
         var recorder = new BatchMessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -63,6 +64,7 @@ public class BatchingTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("batch-ep").Handler<TestBatchHandler>().MaxConcurrency(1).PrefetchCount(10);
             })
             .BuildTestBusAsync();
@@ -88,7 +90,7 @@ public class BatchingTests
         // concurrently, filling the batch by size before any handler completes
         var recorder = new BatchMessageRecorder();
         const int messageCount = 5;
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -96,6 +98,7 @@ public class BatchingTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("batch-ep")
                     .Handler<TestBatchHandler>()
                     .MaxConcurrency(messageCount)

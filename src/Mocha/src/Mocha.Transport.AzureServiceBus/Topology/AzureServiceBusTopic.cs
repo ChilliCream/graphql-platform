@@ -75,6 +75,11 @@ public sealed class AzureServiceBusTopic
         DuplicateDetectionHistoryTimeWindow = configuration.DuplicateDetectionHistoryTimeWindow;
         AutoDeleteOnIdle = configuration.AutoDeleteOnIdle;
         SupportOrdering = configuration.SupportOrdering;
+
+        if (EnablePartitioning == true && SupportOrdering == true)
+        {
+            throw ThrowHelper.TopicCannotEnablePartitioningWithOrdering(Name);
+        }
     }
 
     protected override void OnComplete(AzureServiceBusTopicConfiguration configuration)

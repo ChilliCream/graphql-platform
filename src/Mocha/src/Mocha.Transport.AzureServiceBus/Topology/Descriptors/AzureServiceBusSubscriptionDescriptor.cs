@@ -52,13 +52,6 @@ internal sealed class AzureServiceBusSubscriptionDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithRequiresSession(bool requiresSession = true)
-    {
-        Configuration.RequiresSession = requiresSession;
-        return this;
-    }
-
-    /// <inheritdoc />
     public IAzureServiceBusSubscriptionDescriptor WithForwardTo(string entityName)
     {
         Configuration.ForwardTo = entityName;

@@ -20,12 +20,12 @@ public class CustomHeaderTests
     {
         // arrange
         var capture = new HeaderCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
             .AddConsumer<HeaderSpyConsumer>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();

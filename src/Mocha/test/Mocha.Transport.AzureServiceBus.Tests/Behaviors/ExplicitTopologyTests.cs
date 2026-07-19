@@ -20,7 +20,7 @@ public class ExplicitTopologyTests
     {
         // arrange
         var capture = new OrderCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
@@ -28,6 +28,7 @@ public class ExplicitTopologyTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.BindExplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
@@ -57,7 +58,7 @@ public class ExplicitTopologyTests
     {
         // arrange
         var capture = new OrderCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
@@ -65,6 +66,7 @@ public class ExplicitTopologyTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.BindImplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");

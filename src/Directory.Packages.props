@@ -64,7 +64,6 @@
     <PackageVersion Include="Spectre.Console" Version="0.55.2" />
     <PackageVersion Include="Spectre.Console.Testing" Version="0.55.2" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
-    <PackageVersion Include="Squadron.AzureCloudServiceBus" Version="1.0.1" />
     <PackageVersion Include="Squadron.AzureStorage" Version="2.0.0-p.1" />
     <PackageVersion Include="Squadron.Mongo" Version="2.0.0-p.1" />
     <PackageVersion Include="Squadron.Nats" Version="2.0.0-p.1" />
@@ -82,6 +81,7 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="Testcontainers" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.LocalStack" Version="4.12.0" />
+    <PackageVersion Include="Testcontainers.ServiceBus" Version="4.13.0" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />

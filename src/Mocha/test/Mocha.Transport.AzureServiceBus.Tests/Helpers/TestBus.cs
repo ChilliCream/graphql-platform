@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Transport.AzureServiceBus;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
@@ -14,6 +15,8 @@ public sealed class TestBus(ServiceProvider provider, MessagingRuntime runtime) 
             {
                 await transport.StopAsync(runtime, CancellationToken.None);
             }
+
+            await transport.DisposeAsync();
         }
 
         await provider.DisposeAsync();
@@ -22,6 +25,17 @@ public sealed class TestBus(ServiceProvider provider, MessagingRuntime runtime) 
 
 internal static class MessageBusHostBuilderTestExtensions
 {
+    public static IMessageBusHostBuilder AddAzureServiceBus(
+        this IMessageBusHostBuilder builder,
+        TestContext ctx)
+    {
+        return builder.AddAzureServiceBus(t =>
+        {
+            t.ConnectionString(ctx.ConnectionString);
+            t.AdministrationConnectionString(ctx.AdminConnectionString);
+        });
+    }
+
     public static async Task<TestBus> BuildTestBusAsync(this IMessageBusHostBuilder builder)
     {
         var provider = builder.Services.BuildServiceProvider();

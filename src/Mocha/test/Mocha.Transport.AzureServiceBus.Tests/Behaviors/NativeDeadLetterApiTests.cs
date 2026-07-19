@@ -20,7 +20,7 @@ public class NativeDeadLetterApiTests
     public async Task DeadLetterAsync_Should_MoveMessageToDeadLetterQueue_When_CalledFromHandler()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("dl-api");
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
@@ -28,6 +28,7 @@ public class NativeDeadLetterApiTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("dl-api-ep").Consumer<DeadLetteringConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();
@@ -50,7 +51,7 @@ public class NativeDeadLetterApiTests
     {
         // arrange
         var capture = new DeliveryCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("abandon-api");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -59,6 +60,7 @@ public class NativeDeadLetterApiTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 // Allow at least 2 deliveries so the message redelivers after our abandon.
                 t.DeclareQueue(queueName).WithMaxDeliveryCount(5);
                 t.Endpoint("abandon-api-ep").Consumer<AbandoningConsumer>().Queue(queueName);
@@ -90,7 +92,7 @@ public class NativeDeadLetterApiTests
         // path in the acknowledgement middleware. If MessageLockLost escapes, the processor's error
         // handler fires and the test will record the failure.
         var processorErrors = new ConcurrentBag<Exception>();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("idempotent");
         await using var bus = await new ServiceCollection()
             .AddSingleton(processorErrors)
@@ -99,6 +101,7 @@ public class NativeDeadLetterApiTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("idempotent-ep").Consumer<DeadLetteringConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();

@@ -18,13 +18,14 @@ public class BusDefaultsIntegrationTests
     public async Task ConfigureDefaults_Should_ApplyPrefetchCount_When_EndpointDoesNotOverride()
     {
         // arrange - bus-level default for PrefetchCount is applied to all endpoints unless overridden
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Endpoint.PrefetchCount = 8);
             })
             .BuildTestBusAsync();
@@ -40,13 +41,14 @@ public class BusDefaultsIntegrationTests
     public async Task ConfigureDefaults_Should_ApplyMaxConcurrency_When_EndpointDoesNotOverride()
     {
         // arrange - bus-level default for MaxConcurrency is applied to all endpoints unless overridden
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Endpoint.MaxConcurrency = 3);
             })
             .BuildTestBusAsync();
@@ -62,13 +64,14 @@ public class BusDefaultsIntegrationTests
     public async Task ConfigureDefaults_Should_NotOverrideExplicitPrefetch_When_EndpointSpecifiesValue()
     {
         // arrange - per-endpoint PrefetchCount must win over bus-level defaults
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Endpoint.PrefetchCount = 8);
                 t.Endpoint("override-ep").Handler<OrderCreatedHandler>().PrefetchCount(2);
             })
@@ -85,13 +88,14 @@ public class BusDefaultsIntegrationTests
     public async Task ConfigureDefaults_Should_NotOverrideExplicitMaxConcurrency_When_EndpointSpecifiesValue()
     {
         // arrange - per-endpoint MaxConcurrency must win over bus-level defaults
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Endpoint.MaxConcurrency = 3);
                 t.Endpoint("override-ep").Handler<OrderCreatedHandler>().MaxConcurrency(7);
             })
@@ -109,7 +113,7 @@ public class BusDefaultsIntegrationTests
     {
         // arrange - confirm the configured endpoints still operate end-to-end with defaults
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -117,6 +121,7 @@ public class BusDefaultsIntegrationTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d =>
                 {
                     d.Endpoint.PrefetchCount = 4;
@@ -142,12 +147,13 @@ public class BusDefaultsIntegrationTests
     public async Task ConfigureDefaults_Should_PropagateAutoDeleteOnIdle_When_QueueOmitsValue()
     {
         // arrange - a queue without an idle policy should inherit the bus-level default
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDeleteOnIdle = TimeSpan.FromMinutes(10));
                 t.DeclareQueue("default-applies-q");
             })
@@ -166,12 +172,13 @@ public class BusDefaultsIntegrationTests
     public async Task ConfigureDefaults_Should_NotOverrideExplicitAutoDeleteOnIdle()
     {
         // arrange - a queue that explicitly sets an idle policy must keep its own value
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDeleteOnIdle = TimeSpan.FromMinutes(10));
                 t.DeclareQueue("override-q").WithAutoDeleteOnIdle(TimeSpan.FromMinutes(5));
             })

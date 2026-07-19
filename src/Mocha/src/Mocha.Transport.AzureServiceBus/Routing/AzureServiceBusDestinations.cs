@@ -62,6 +62,14 @@ internal static class AzureServiceBusDestinations
             var kind = path[ranges[0]];
             var name = new string(path[ranges[1]]);
 
+            if (destination.Scheme != schema
+                && ((destination.Scheme is "queue" && kind is "t")
+                    || (destination.Scheme is "topic" && kind is "q")))
+            {
+                resolution = null;
+                return false;
+            }
+
             if (kind is "t")
             {
                 resolution = Topic(name);

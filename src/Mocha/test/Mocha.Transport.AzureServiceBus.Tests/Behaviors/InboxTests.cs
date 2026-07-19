@@ -25,7 +25,7 @@ public class InboxTests
         var inbox = new InMemoryMessageInbox();
         var recorder = new MessageRecorder();
         var fixedMessageId = Guid.NewGuid().ToString();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
@@ -48,7 +48,7 @@ public class InboxTests
                 before: "Instrumentation"));
 
         await using var bus = await builder
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -77,14 +77,14 @@ public class InboxTests
         // arrange
         var inbox = new InMemoryMessageInbox();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddSingleton<IMessageInbox>(inbox)
             .AddMessageBus()
             .AddEventHandler<InboxEventHandler>()
             .UseInboxCore()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -112,7 +112,7 @@ public class InboxTests
         var inbox = new InMemoryMessageInbox();
         var recorder = new MessageRecorder();
         var fixedMessageId = Guid.NewGuid().ToString();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
@@ -151,7 +151,7 @@ public class InboxTests
         });
 
         await using var bus = await builder
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -175,7 +175,7 @@ public class InboxTests
         // arrange
         var inbox = new InMemoryMessageInbox();
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
@@ -198,7 +198,7 @@ public class InboxTests
                 before: "Instrumentation"));
 
         await using var bus = await builder
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();

@@ -20,12 +20,12 @@ public class FaultHandlingTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ThrowingRequestHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -45,14 +45,14 @@ public class FaultHandlingTests
         // arrange
         var throwingRecorder = new MessageRecorder();
         var normalRecorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddKeyedSingleton("throwing", throwingRecorder)
             .AddKeyedSingleton("shipment", normalRecorder)
             .AddMessageBus()
             .AddEventHandler<ThrowingEventHandler>()
             .AddEventHandler<ItemShippedKeyedHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();

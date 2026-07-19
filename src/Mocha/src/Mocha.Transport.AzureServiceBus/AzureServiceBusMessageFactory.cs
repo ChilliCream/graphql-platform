@@ -16,12 +16,17 @@ internal static class AzureServiceBusMessageFactory
     {
         var message = new ServiceBusMessage(envelope.Body)
         {
-            MessageId = envelope.MessageId,
             CorrelationId = envelope.CorrelationId,
             ContentType = envelope.ContentType,
             Subject = envelope.MessageType,
             ReplyTo = envelope.ResponseAddress
         };
+
+        // A null MessageId is left unset so the SDK/broker assigns one (setting null would throw).
+        if (envelope.MessageId is not null)
+        {
+            message.MessageId = envelope.MessageId;
+        }
 
         if (envelope.DeliverBy is { } deliverBy)
         {
@@ -139,15 +144,7 @@ internal static class AzureServiceBusMessageFactory
                 continue;
             }
 
-            if (header.Value is DateTimeOffset dateTimeOffset)
-            {
-                properties[header.Key] = dateTimeOffset.ToUnixTimeMilliseconds();
-            }
-            else if (header.Value is DateTime dateTime)
-            {
-                properties[header.Key] = new DateTimeOffset(dateTime).ToUnixTimeMilliseconds();
-            }
-            else if (header.Value is not null)
+            if (header.Value is not null)
             {
                 properties[header.Key] = header.Value;
             }

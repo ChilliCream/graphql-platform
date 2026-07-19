@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Mediator;
 using Mocha.Sagas;
 using Mocha.Transport.AzureServiceBus;
@@ -353,7 +352,6 @@ app.MapGet(
         return Results.Ok(response);
     });
 
-app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

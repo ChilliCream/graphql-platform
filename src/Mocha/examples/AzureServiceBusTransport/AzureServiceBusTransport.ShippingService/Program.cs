@@ -1,5 +1,4 @@
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Transport.AzureServiceBus;
 using AzureServiceBusTransport.Contracts.Commands;
 using AzureServiceBusTransport.Contracts.Events;
@@ -63,7 +62,6 @@ app.MapPost(
         });
     });
 
-app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

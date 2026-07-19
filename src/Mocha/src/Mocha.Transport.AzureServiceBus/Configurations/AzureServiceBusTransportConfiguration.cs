@@ -36,6 +36,16 @@ public class AzureServiceBusTransportConfiguration : MessagingTransportConfigura
     public string? ConnectionString { get; set; }
 
     /// <summary>
+    /// Gets or sets the connection string used for management operations, including entity provisioning,
+    /// through <see cref="Azure.Messaging.ServiceBus.Administration.ServiceBusAdministrationClient"/>.
+    /// When <c>null</c>, <see cref="ConnectionString"/> is used for management operations as well.
+    /// This is only honored with connection string-based configuration and is rejected with namespace and
+    /// credential-based configuration. It supports brokers that serve data and management on different
+    /// endpoints, such as the Azure Service Bus emulator (AMQP on 5672 and management over HTTP on 5300).
+    /// </summary>
+    public string? AdministrationConnectionString { get; set; }
+
+    /// <summary>
     /// Gets or sets the fully qualified Service Bus namespace (e.g., "mynamespace.servicebus.windows.net").
     /// Used together with <see cref="Credential"/> for token-based authentication.
     /// </summary>

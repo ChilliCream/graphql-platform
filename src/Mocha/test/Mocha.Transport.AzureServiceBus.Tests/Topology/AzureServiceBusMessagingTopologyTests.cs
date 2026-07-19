@@ -110,6 +110,27 @@ public class AzureServiceBusMessagingTopologyTests
     }
 
     [Fact]
+    public void AddTopic_Should_Throw_When_PartitionedTopicSupportsOrdering()
+    {
+        // arrange
+        var (_, _, topology) = CreateTopology();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            topology.AddTopic(new AzureServiceBusTopicConfiguration
+            {
+                Name = "orders",
+                EnablePartitioning = true,
+                SupportOrdering = true
+            }));
+
+        // assert
+        Assert.Equal(
+            "Azure Service Bus topic 'orders' cannot enable partitioning and support ordering.",
+            exception.Message);
+    }
+
+    [Fact]
     public void AddSubscription_Should_Throw_When_SubscriptionRequiresSession()
     {
         var (_, _, topology) = CreateTopology();
@@ -131,8 +152,9 @@ public class AzureServiceBusMessagingTopologyTests
     }
 
     [Fact]
-    public void AddSubscription_Should_Throw_When_DestinationRequiresSession()
+    public void AddSubscription_Should_Succeed_When_DestinationRequiresSession()
     {
+        // arrange
         var (_, _, topology) = CreateTopology();
         topology.AddTopic(new AzureServiceBusTopicConfiguration { Name = "orders" });
         topology.AddQueue(new AzureServiceBusQueueConfiguration
@@ -141,17 +163,17 @@ public class AzureServiceBusMessagingTopologyTests
             RequiresSession = true
         });
 
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            topology.AddSubscription(new AzureServiceBusSubscriptionConfiguration
-            {
-                Source = "orders",
-                Destination = "accounting"
-            }));
+        // act
+        var subscription = topology.AddSubscription(new AzureServiceBusSubscriptionConfiguration
+        {
+            Source = "orders",
+            Destination = "accounting"
+        });
 
-        Assert.Equal(
-            "Azure Service Bus subscription from 'orders' cannot auto-forward to session-enabled "
-            + "queue 'accounting'.",
-            exception.Message);
+        // assert
+        Assert.Equal("accounting", subscription.Destination.Name);
+        Assert.True(subscription.Destination.RequiresSession);
+        Assert.Null(subscription.ForwardTo);
     }
 
     [Fact]
@@ -209,6 +231,45 @@ public class AzureServiceBusMessagingTopologyTests
         Assert.Equal(50, first.Name.Length);
         Assert.Equal(50, second.Name.Length);
         Assert.NotEqual(first.Name, second.Name);
+    }
+
+    [Fact]
+    public void GetForwardingSubscriptionName_Should_ReturnDeterministicConvention_When_Called()
+    {
+        // act
+        var shortName = AzureServiceBusSubscription.GetForwardingSubscriptionName("accounting");
+        var longName = AzureServiceBusSubscription.GetForwardingSubscriptionName(
+            "orders-processing-and-fulfillment-notification-queue");
+
+        // assert
+        Assert.Equal("fwd-accounting", shortName);
+        Assert.Equal("fwd-orders-processing-and-fulfillment-not-a0c46eb0", longName);
+        Assert.Equal(50, longName.Length);
+    }
+
+    [Fact]
+    public void DeclareSubscription_Should_FlowExplicitName_When_NameOverloadUsed()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        var runtime = services
+            .AddMessageBus()
+            .AddAzureServiceBus(t =>
+            {
+                t.ConnectionString(DummyConnectionString);
+                t.DeclareTopic("orders");
+                t.DeclareQueue("accounting");
+                t.DeclareSubscription("orders", "accounting", "custom-sub");
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+
+        // act
+        var subscription = ((AzureServiceBusMessagingTopology)transport.Topology).Subscriptions.Single();
+
+        // assert
+        Assert.Equal("custom-sub", subscription.Name);
+        Assert.Equal("accounting", subscription.Destination.Name);
     }
 
     [Fact]

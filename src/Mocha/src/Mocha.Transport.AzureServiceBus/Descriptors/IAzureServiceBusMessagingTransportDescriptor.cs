@@ -57,11 +57,30 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     IAzureServiceBusSubscriptionDescriptor DeclareSubscription(string topic, string queue);
 
     /// <summary>
+    /// Declares a subscription that routes messages from a topic to a queue using an explicit broker subscription name.
+    /// </summary>
+    /// <param name="topic">The source topic name.</param>
+    /// <param name="queue">The destination queue name.</param>
+    /// <param name="subscriptionName">The explicit broker subscription name to use instead of the derived name.</param>
+    /// <returns>A descriptor for further configuring the subscription.</returns>
+    IAzureServiceBusSubscriptionDescriptor DeclareSubscription(string topic, string queue, string subscriptionName);
+
+    /// <summary>
     /// Sets the Azure Service Bus connection string for this transport.
     /// </summary>
     /// <param name="connectionString">The connection string.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IAzureServiceBusMessagingTransportDescriptor ConnectionString(string connectionString);
+
+    /// <summary>
+    /// Sets the connection string used for management operations, including entity provisioning.
+    /// When configured, it is used with connection string-based configuration to support brokers
+    /// that serve data and management on different endpoints.
+    /// </summary>
+    /// <param name="administrationConnectionString">The management connection string.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusMessagingTransportDescriptor AdministrationConnectionString(
+        string administrationConnectionString);
 
     /// <summary>
     /// Sets the fully qualified namespace and token credential for this transport.

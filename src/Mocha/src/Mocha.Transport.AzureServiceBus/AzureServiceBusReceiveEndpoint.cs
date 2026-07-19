@@ -45,8 +45,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             1,
             1000);
 
-        // Compute a sensible PrefetchCount default when not explicitly set.
-        // Without this, ServiceBusProcessor falls back to synchronous one-at-a-time pull (PrefetchCount=0).
+        // PrefetchCount 0 disables local buffering and fetches messages on demand.
+        // Handler concurrency is governed independently by MaxConcurrentCalls.
         _prefetchCount = configuration.PrefetchCount ?? _maxConcurrentCalls * 2;
     }
 
@@ -66,6 +66,14 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             ?? throw ThrowHelper.ReceiveEndpointQueueNotFound();
 
         Source = Queue;
+
+        if (Queue.ForwardTo is not null)
+        {
+            throw new InvalidOperationException(
+                $"Receive endpoint '{Name}' cannot target queue '{Queue.Name}' configured with auto-forwarding "
+                + "(ForwardTo). The broker rejects receivers on an auto-forwarding source. Declare forwarding-only "
+                + "queues with DeclareQueue instead of Queue or Endpoint.");
+        }
 
         if (Queue.RequiresSession != true)
         {
@@ -97,29 +105,73 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        if (Transport is not AzureServiceBusMessagingTransport asbTransport)
-        {
-            throw ThrowHelper.TransportIsNotAzureServiceBus();
-        }
-
         _logger = context.Services.GetRequiredService<ILogger<AzureServiceBusReceiveEndpoint>>();
         _processorLifetime = new CancellationTokenSource();
 
-        if (Queue.RequiresSession == true)
+        try
         {
-            _processor = MessageProcessor.ForSessionProcessor(CreateSessionProcessor(asbTransport));
-        }
-        else
-        {
-            _processor = MessageProcessor.ForProcessor(CreateProcessor(asbTransport));
-        }
+            if (Queue.RequiresSession == true)
+            {
+                _processor = MessageProcessor.ForSessionProcessor(CreateSessionProcessor(transport));
+            }
+            else
+            {
+                _processor = MessageProcessor.ForProcessor(CreateProcessor(transport));
+            }
 
-        await _processor.StartProcessingAsync(cancellationToken);
+            await _processor.StartProcessingAsync(cancellationToken);
 
-        if (Configuration.Kind == ReceiveEndpointKind.Reply)
+            if (Configuration.Kind == ReceiveEndpointKind.Reply)
+            {
+                var receiver = transport.ClientManager.CreateReceiver(Queue.Name);
+                _heartbeat = new QueueHeartbeat(receiver, _logger, Queue.Name);
+            }
+        }
+        catch
         {
-            var receiver = asbTransport.ClientManager.CreateReceiver(Queue.Name);
-            _heartbeat = new QueueHeartbeat(receiver, _logger, Queue.Name);
+            if (_heartbeat is not null)
+            {
+                try
+                {
+                    await _heartbeat.DisposeAsync();
+                }
+                catch
+                {
+                }
+                finally
+                {
+                    _heartbeat = null;
+                }
+            }
+
+            if (_processor is not null)
+            {
+                try
+                {
+                    await _processor.DisposeAsync();
+                }
+                catch
+                {
+                }
+                finally
+                {
+                    _processor = null;
+                }
+            }
+
+            if (_processorLifetime is not null)
+            {
+                try
+                {
+                    _processorLifetime.Dispose();
+                }
+                finally
+                {
+                    _processorLifetime = null;
+                }
+            }
+
+            throw;
         }
     }
 
@@ -136,6 +188,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             MaxAutoLockRenewalDuration = maxAutoLockRenewal
         };
 
+        _logger.ReceiveEndpointStarted(Queue.Name, _prefetchCount, _maxConcurrentCalls);
+
         var processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
         processor.ProcessMessageAsync += OnNonSessionMessage;
         processor.ProcessErrorAsync += OnProcessorError;
@@ -147,6 +201,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         var maxAutoLockRenewal = Configuration.MaxAutoLockRenewalDuration ?? TimeSpan.FromMinutes(5);
         var maxSessions = Configuration.MaxConcurrentSessions ?? _maxConcurrentCalls;
         var maxCallsPerSession = Configuration.MaxConcurrentCallsPerSession ?? 1;
+        var prefetchCount = Configuration.PrefetchCount ?? maxSessions * maxCallsPerSession * 2;
 
         var options = new ServiceBusSessionProcessorOptions
         {
@@ -154,7 +209,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             MaxConcurrentCallsPerSession = maxCallsPerSession,
             AutoCompleteMessages = false,
             ReceiveMode = ServiceBusReceiveMode.PeekLock,
-            PrefetchCount = Configuration.PrefetchCount ?? maxSessions * maxCallsPerSession * 2,
+            PrefetchCount = prefetchCount,
             MaxAutoLockRenewalDuration = maxAutoLockRenewal
         };
 
@@ -162,6 +217,12 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         {
             options.SessionIdleTimeout = idle;
         }
+
+        _logger.SessionReceiveEndpointStarted(
+            Queue.Name,
+            prefetchCount,
+            maxSessions,
+            maxCallsPerSession);
 
         var sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
         sessionProcessor.ProcessMessageAsync += OnSessionMessage;
@@ -220,28 +281,37 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         try
         {
-            await processorRecoveryTask;
-        }
-        catch (OperationCanceledException) when (processorLifetime?.IsCancellationRequested == true)
-        {
-            // Expected when endpoint shutdown interrupts an in-flight recovery.
-        }
+            try
+            {
+                await processorRecoveryTask;
+            }
+            catch (OperationCanceledException) when (processorLifetime?.IsCancellationRequested == true)
+            {
+                // Expected when endpoint shutdown interrupts an in-flight recovery.
+            }
 
-        if (_heartbeat is not null)
-        {
-            await _heartbeat.DisposeAsync();
-            _heartbeat = null;
+            if (_processor is not null)
+            {
+                await _processor.StopProcessingAsync(cancellationToken);
+            }
         }
-
-        if (_processor is not null)
+        finally
         {
-            await _processor.StopProcessingAsync(cancellationToken);
-            await _processor.DisposeAsync();
-            _processor = null;
-        }
+            if (_heartbeat is not null)
+            {
+                await _heartbeat.DisposeAsync();
+                _heartbeat = null;
+            }
 
-        processorLifetime?.Dispose();
-        _processorLifetime = null;
+            if (_processor is not null)
+            {
+                await _processor.DisposeAsync();
+                _processor = null;
+            }
+
+            processorLifetime?.Dispose();
+            _processorLifetime = null;
+        }
     }
 
     private void BeginProcessorRecovery()
@@ -363,6 +433,25 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
 internal static partial class Logs
 {
+    [LoggerMessage(
+        LogLevel.Information,
+        "Azure Service Bus receive endpoint '{EntityPath}' started (PrefetchCount: {PrefetchCount}, MaxConcurrentCalls: {MaxConcurrentCalls})")]
+    public static partial void ReceiveEndpointStarted(
+        this ILogger logger,
+        string entityPath,
+        int prefetchCount,
+        int maxConcurrentCalls);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "Azure Service Bus session receive endpoint '{EntityPath}' started (PrefetchCount: {PrefetchCount}, MaxConcurrentSessions: {MaxConcurrentSessions}, MaxConcurrentCallsPerSession: {MaxConcurrentCallsPerSession})")]
+    public static partial void SessionReceiveEndpointStarted(
+        this ILogger logger,
+        string entityPath,
+        int prefetchCount,
+        int maxConcurrentSessions,
+        int maxConcurrentCallsPerSession);
+
     [LoggerMessage(
         LogLevel.Warning,
         "Azure Service Bus processor transient error on entity {EntityPath} (Source: {ErrorSource})")]

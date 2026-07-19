@@ -44,7 +44,7 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
                 ?? props.GetString(AzureServiceBusMessageHeaders.MessageType),
             SentAt = sentAt ?? message.EnqueuedTime,
             DeliverBy = message.ExpiresAt != DateTimeOffset.MaxValue ? message.ExpiresAt : null,
-            DeliveryCount = message.DeliveryCount,
+            DeliveryCount = Math.Max(message.DeliveryCount - 1, 0), // Convention: first delivery = 0, matching RabbitMQ and core dispatch/retry semantics.
             Headers = BuildHeaders(props, message),
             EnclosedMessageTypes = ParseEnclosedMessageTypes(props),
             Body = message.Body.ToMemory()  // Zero-copy
@@ -125,7 +125,8 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
                 continue;
             }
 
-            result.Set(key, value);
+            // Date/time headers are normalized to DateTimeOffset and compared by instant/UTC.
+            result.Set(key, value is DateTime dateTime ? new DateTimeOffset(dateTime) : value);
         }
 
         SetIfPresent(result, AzureServiceBusMessageHeaders.SessionId, message.SessionId);

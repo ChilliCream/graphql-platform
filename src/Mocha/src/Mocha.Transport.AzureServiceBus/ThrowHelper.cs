@@ -76,6 +76,10 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Subscription from topic '{source}' to queue '{destination}' already exists");
 
+    public static Exception TopicCannotEnablePartitioningWithOrdering(string topicName)
+        => new InvalidOperationException(
+            $"Azure Service Bus topic '{topicName}' cannot enable partitioning and support ordering.");
+
     // DispatchEndpoint
     public static Exception DispatchEndpointTopicOrQueueNameRequired()
         => new InvalidOperationException("Topic name or queue name is required");

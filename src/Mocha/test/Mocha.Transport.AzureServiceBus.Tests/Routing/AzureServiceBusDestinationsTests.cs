@@ -130,6 +130,104 @@ public class AzureServiceBusDestinationsTests
         Assert.Equal((isQueue ? "q/" : "t/") + expectedName, configuration.Name);
     }
 
+    [Fact]
+    public void TryResolveSourceTopic_Should_ReturnFalse_When_QueueSchemeHasTopicMarker()
+    {
+        // arrange
+
+        // act
+        var success = AzureServiceBusDestinations.TryResolveSourceTopic(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            new Uri("queue://host/t/orders"),
+            out var topicName);
+
+        // assert
+        Assert.False(success);
+        Assert.Null(topicName);
+    }
+
+    [Fact]
+    public void Resolve_Should_FallBackToConventionTopic_When_TopicSchemeHasQueueMarker()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddMessage<OrderCreated>(d =>
+                d.Publish(r => r.Destination(new Uri("topic://host/q/orders")))));
+        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
+        var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
+        var expectedName = runtime.Naming.GetPublishEndpointName(typeof(OrderCreated));
+
+        // act
+        var resolution = AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
+
+        // assert
+        Assert.Equal(AzureServiceBusDestinationKind.Topic, resolution.Kind);
+        Assert.Equal(expectedName, resolution.Name);
+    }
+
+    [Fact]
+    public void Resolve_Should_ResolveExplicitQueue_When_NeutralQueueSchemeHasQueueMarker()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddMessage<OrderCreated>(d =>
+                d.Send(r => r.Destination(new Uri("queue://host/q/orders")))));
+        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
+        var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
+
+        // act
+        var resolution = AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
+
+        // assert
+        Assert.Equal(AzureServiceBusDestinationKind.Queue, resolution.Kind);
+        Assert.Equal("orders", resolution.Name);
+        Assert.Equal("q/orders", resolution.EndpointName);
+    }
+
+    [Fact]
+    public void TryResolveSourceTopic_Should_ResolveTopic_When_NeutralTopicSchemeHasTopicMarker()
+    {
+        // arrange
+
+        // act
+        var success = AzureServiceBusDestinations.TryResolveSourceTopic(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            new Uri("topic://host/t/orders"),
+            out var topicName);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal("orders", topicName);
+    }
+
+    [Fact]
+    public void Resolve_Should_PreserveSlashInName_When_NameContainsSlash()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddMessage<OrderCreated>(d =>
+                d.Send(r => r.Destination(new Uri("azuresb:q/orders/eu")))));
+        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
+        var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
+
+        // act
+        var resolution = AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
+
+        // assert
+        Assert.Equal(AzureServiceBusDestinationKind.Queue, resolution.Kind);
+        Assert.Equal("orders/eu", resolution.Name);
+        Assert.Equal("q/orders/eu", resolution.EndpointName);
+    }
+
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();

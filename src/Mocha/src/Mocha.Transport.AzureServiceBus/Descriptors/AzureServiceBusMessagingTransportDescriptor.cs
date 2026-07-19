@@ -157,6 +157,15 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IAzureServiceBusMessagingTransportDescriptor AdministrationConnectionString(
+        string administrationConnectionString)
+    {
+        Configuration.AdministrationConnectionString = administrationConnectionString;
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IAzureServiceBusMessagingTransportDescriptor Namespace(
         string fullyQualifiedNamespace,
         TokenCredential credential)
@@ -244,6 +253,27 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
             _subscriptions.Add(subscription);
         }
 
+        return subscription;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor DeclareSubscription(
+        string topic,
+        string queue,
+        string subscriptionName)
+    {
+        var subscription = _subscriptions.FirstOrDefault(b =>
+            b.Extend().Configuration.Source.EqualsOrdinal(topic)
+            && b.Extend().Configuration.Destination.EqualsOrdinal(queue)
+        );
+
+        if (subscription is null)
+        {
+            subscription = AzureServiceBusSubscriptionDescriptor.New(Context, topic, queue);
+            _subscriptions.Add(subscription);
+        }
+
+        subscription.Configuration.Name = subscriptionName;
         return subscription;
     }
 

@@ -20,7 +20,7 @@ public class ErrorQueueTests
     {
         // arrange
         var capture = new ErrorCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
@@ -29,6 +29,7 @@ public class ErrorQueueTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("handler-ep")
                     .Handler<ThrowingOrderHandler>()
                     .FaultEndpoint(new Uri("azuresb:q/handler-q_error"));
@@ -62,7 +63,7 @@ public class ErrorQueueTests
     {
         // arrange
         var capture = new ErrorCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
@@ -71,6 +72,7 @@ public class ErrorQueueTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("payment-ep")
                     .Handler<ThrowingPaymentHandler>()
                     .FaultEndpoint(new Uri("azuresb:q/payment-q_error"));
@@ -104,7 +106,7 @@ public class ErrorQueueTests
     {
         // arrange
         var capture = new ErrorCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
@@ -113,6 +115,7 @@ public class ErrorQueueTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("handler-ep")
                     .Handler<ThrowingOrderHandler>()
                     .FaultEndpoint(new Uri("azuresb:q/handler-q_error"));

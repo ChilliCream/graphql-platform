@@ -16,6 +16,11 @@ public sealed class AzureServiceBusSubscriptionConfiguration : TopologyConfigura
     public string? Destination { get; set; }
 
     /// <summary>
+    /// Explicit broker subscription name. When set, it overrides the derived forwarding name.
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
     /// Gets or sets whether this subscription should be auto-provisioned.
     /// When true, the subscription will be created in Azure Service Bus during topology provisioning.
     /// </summary>

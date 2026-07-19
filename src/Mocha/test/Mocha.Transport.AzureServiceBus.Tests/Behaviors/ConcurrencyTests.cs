@@ -24,7 +24,7 @@ public class ConcurrencyTests
         var recorder = new MessageRecorder();
         const int messageCount = 20;
 
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -33,6 +33,7 @@ public class ConcurrencyTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("slow-ep").Handler<TrackingOrderHandler>().MaxConcurrency(1).PrefetchCount(20);
             })
             .BuildTestBusAsync();
@@ -69,7 +70,7 @@ public class ConcurrencyTests
         var recorder = new MessageRecorder();
         var gate = new ParallelGate(expectedConcurrency: expectedOverlap);
 
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(tracker)
             .AddSingleton(recorder)
@@ -79,6 +80,7 @@ public class ConcurrencyTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("slow-ep").Handler<GatedParallelOrderHandler>()
                     .MaxConcurrency(maxConcurrency).PrefetchCount(20);
             })

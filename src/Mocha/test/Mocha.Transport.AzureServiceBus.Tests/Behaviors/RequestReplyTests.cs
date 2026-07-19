@@ -18,11 +18,11 @@ public class RequestReplyTests
     public async Task RequestAsync_Should_ReturnTypedResponse_When_HandlerRegistered()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -41,11 +41,11 @@ public class RequestReplyTests
     public async Task RequestAsync_Should_CorrelateResponses_When_ConcurrentRequests()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         // act
@@ -74,12 +74,12 @@ public class RequestReplyTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -98,12 +98,12 @@ public class RequestReplyTests
     public async Task RequestAsync_Should_ReturnCorrectResponse_When_MultipleRequestTypesRegistered()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
             .AddRequestHandler<GetShipmentStatusHandler>()
-            .AddAzureServiceBus(ctx.ConnectionString)
+            .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();

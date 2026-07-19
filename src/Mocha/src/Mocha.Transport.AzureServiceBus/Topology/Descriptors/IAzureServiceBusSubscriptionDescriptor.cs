@@ -29,11 +29,6 @@ public interface IAzureServiceBusSubscriptionDescriptor : IMessagingDescriptor<A
     IAzureServiceBusSubscriptionDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive);
 
     /// <summary>
-    /// Sets whether the subscription requires sessions. Once provisioned, this cannot be changed.
-    /// </summary>
-    IAzureServiceBusSubscriptionDescriptor WithRequiresSession(bool requiresSession = true);
-
-    /// <summary>
     /// Sets the entity to which messages received on this subscription are auto-forwarded.
     /// Overrides the default forward target derived from the destination queue.
     /// </summary>

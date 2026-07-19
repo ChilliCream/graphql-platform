@@ -21,7 +21,7 @@ public class NativeDeadLetterForwardingTests
     public async Task UseNativeDeadLetterForwarding_Should_SetForwardDeadLetteredMessagesToOnQueue_When_Configured()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("dlq-fwd");
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
@@ -29,6 +29,7 @@ public class NativeDeadLetterForwardingTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.Endpoint("dlq-fwd-ep")
                     .Handler<OrderCreatedHandler>()
                     .Queue(queueName)
@@ -45,7 +46,7 @@ public class NativeDeadLetterForwardingTests
         Assert.Equal($"{queueName}_error", queue.ForwardDeadLetteredMessagesTo);
 
         // and the broker reflects it
-        var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
+        var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         var properties = await adminClient.GetQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
         Assert.Equal($"{queueName}_error", properties.Value.ForwardDeadLetteredMessagesTo);
     }
@@ -54,7 +55,7 @@ public class NativeDeadLetterForwardingTests
     public async Task UseNativeDeadLetterForwarding_Should_ThrowAtProvisioning_When_CustomForwardingAlreadyConfigured()
     {
         // arrange
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("dlq-conflict");
 
         // act & assert - building the bus should surface the conflict thrown by the topology convention
@@ -66,6 +67,7 @@ public class NativeDeadLetterForwardingTests
                 .AddAzureServiceBus(t =>
                 {
                     t.ConnectionString(ctx.ConnectionString);
+                    t.AdministrationConnectionString(ctx.AdminConnectionString);
                     t.DeclareQueue(queueName).WithForwardDeadLetteredMessagesTo("custom-dlq");
                     t.Endpoint("dlq-conflict-ep")
                         .Handler<OrderCreatedHandler>()
@@ -84,7 +86,7 @@ public class NativeDeadLetterForwardingTests
     {
         // arrange
         var capture = new ErrorCapture();
-        var ctx = _fixture.CreateTestContext();
+        await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("max-dl");
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
@@ -94,6 +96,7 @@ public class NativeDeadLetterForwardingTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
                 // MaxDeliveryCount = 1 -> first failed delivery moves the message to the broker DLQ,
                 // which is then forwarded into the Mocha-managed _error queue by the queue's
                 // ForwardDeadLetteredMessagesTo binding.

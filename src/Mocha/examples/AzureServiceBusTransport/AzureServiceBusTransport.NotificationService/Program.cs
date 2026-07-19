@@ -1,5 +1,4 @@
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Transport.AzureServiceBus;
 using AzureServiceBusTransport.NotificationService.Handlers;
 
@@ -29,6 +28,5 @@ app.MapDefaultEndpoints();
 
 app.MapGet("/", () => "Notification Service (Azure Service Bus Transport)");
 
-app.MapMessageBusDeveloperTopology();
 
 app.Run();
