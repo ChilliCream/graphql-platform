@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using GreenDonut;
 
 namespace HotChocolate.Fetching;
@@ -30,7 +29,6 @@ public sealed partial class BatchDispatcher
         }
 
         Interlocked.Increment(ref _openBatches);
-        Volatile.Write(ref _lastEnqueued, Stopwatch.GetTimestamp());
 
         Send(BatchDispatchEventType.Enqueued);
     }
