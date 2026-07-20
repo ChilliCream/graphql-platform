@@ -18,7 +18,7 @@ public class VariableFilterTests
             .AddType<CollectionType>()
             .AddType<ItemType>()
             .AddTypeExtension(typeof(Query))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(
@@ -63,7 +63,7 @@ public class VariableFilterTests
             .AddType<CollectionType>()
             .AddType<ItemType>()
             .AddTypeExtension(typeof(Query))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(
