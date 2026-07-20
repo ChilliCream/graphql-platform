@@ -40,9 +40,4 @@ public class SagaTransitionConfiguration : MessagingConfiguration
     /// Gets or sets a factory that creates new saga state instances for transitions from the initial state.
     /// </summary>
     public Func<object, SagaStateBase>? StateFactory { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the messaging infrastructure for this transition is automatically provisioned.
-    /// </summary>
-    public bool AutoProvision { get; set; } = true;
 }

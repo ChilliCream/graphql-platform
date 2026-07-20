@@ -162,7 +162,6 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// <summary>
     /// Gets the name that the field will have in the response map.
     /// </summary>
-    /// <value></value>
     string ResponseName { get; }
 
     /// <summary>

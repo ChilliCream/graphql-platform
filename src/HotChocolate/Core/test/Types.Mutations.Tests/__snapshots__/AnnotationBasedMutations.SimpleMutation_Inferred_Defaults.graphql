@@ -2,8 +2,8 @@ schema {
   mutation: SimpleMutationWithSingleError
 }
 
-interface Error {
-  message: String!
+type SimpleMutationWithSingleError {
+  doSomething(inputArgument: DoSomethingIn!): DoSomethingOut!
 }
 
 type CustomError implements Error {
@@ -15,8 +15,8 @@ type DoSomethingOut {
   errors: [DoSomethingFault!]
 }
 
-type SimpleMutationWithSingleError {
-  doSomething(inputArgument: DoSomethingIn!): DoSomethingOut!
+interface Error {
+  message: String!
 }
 
 union DoSomethingFault = CustomError

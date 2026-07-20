@@ -8,6 +8,13 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __InputValue : ITypeResolverInterceptor
 {
+    private readonly bool _enableOptInFeatures;
+
+    public __InputValue(bool enableOptInFeatures = false)
+    {
+        _enableOptInFeatures = enableOptInFeatures;
+    }
+
     public void OnApplyResolver(string fieldName, IFeatureCollection features)
     {
         switch (fieldName)
@@ -34,6 +41,10 @@ internal sealed class __InputValue : ITypeResolverInterceptor
 
             case "defaultValue":
                 features.Set(new ResolveFieldValue(DefaultValue));
+                break;
+
+            case "requiresOptIn" when _enableOptInFeatures:
+                features.Set(new ResolveFieldValue(RequiresOptIn));
                 break;
         }
     }
@@ -78,5 +89,11 @@ internal sealed class __InputValue : ITypeResolverInterceptor
         {
             context.WriteValue(field.DefaultValue.Print());
         }
+    }
+
+    public static void RequiresOptIn(FieldContext context)
+    {
+        var field = context.Parent<IInputValueDefinition>();
+        __Field.WriteRequiresOptIn(context, field.Directives);
     }
 }

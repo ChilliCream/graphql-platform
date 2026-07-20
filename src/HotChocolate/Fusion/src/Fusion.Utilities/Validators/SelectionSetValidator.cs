@@ -22,13 +22,39 @@ public sealed class SelectionSetValidator(ISchemaDefinition schema)
         FieldNode node,
         SelectionSetValidatorContext context)
     {
+        if (node.Name.Value == IntrospectionFieldNames.TypeName)
+        {
+            if (node.SelectionSet is not null)
+            {
+                context.Errors.Add(
+                    string.Format(
+                        SelectionSetValidator_FieldInvalidSubselections,
+                        node.Name.Value));
+
+                return Break;
+            }
+
+            return Skip;
+        }
+
         var type = context.TypeContext.Peek();
+
+        if (type is IUnionTypeDefinition unionType)
+        {
+            context.Errors.Add(
+                string.Format(
+                    SelectionSetValidator_FieldDoesNotExistOnType,
+                    node.Name.Value,
+                    unionType.Name));
+
+            return Skip;
+        }
 
         if (type is IComplexTypeDefinition complexType)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
-                var fieldType = field.Type.NullableType();
+                var fieldType = field.Type.NamedType();
 
                 if (fieldType is IComplexTypeDefinition or IUnionTypeDefinition)
                 {

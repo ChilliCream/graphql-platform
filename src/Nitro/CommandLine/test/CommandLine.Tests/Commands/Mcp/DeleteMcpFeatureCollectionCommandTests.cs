@@ -27,8 +27,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
             Options:
               --force                  Skip confirmation prompts for deletes and overwrites
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -57,7 +57,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -78,7 +78,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            The 'id' option is required in non-interactive mode.
+            Missing required argument 'id'.
             """);
     }
 
@@ -96,7 +96,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -154,6 +154,25 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """
             Deleting MCP feature collection 'mcp-1'
             └── ✕ Failed to delete the MCP feature collection.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupDeleteMcpFeatureCollectionMutation(
+            new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_McpFeatureCollectionNotFoundError(
+                "MCP Feature Collection not found", McpFeatureCollectionId));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "delete", McpFeatureCollectionId, "--force");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -249,7 +268,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -258,11 +277,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
     public static TheoryData<IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors, string>
         GetDeleteMcpFeatureCollectionErrors() => new()
     {
-        {
-            new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_McpFeatureCollectionNotFoundError(
-                "MCP Feature Collection not found", McpFeatureCollectionId),
-            "MCP Feature Collection not found"
-        },
         {
             new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_UnauthorizedOperation(
                 "Not authorized", "UnauthorizedOperation"),

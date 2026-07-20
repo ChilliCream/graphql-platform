@@ -89,6 +89,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        users: [User]
+      }
+
       type Discussion {
         id: ID!
         product: Product
@@ -101,10 +105,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        users: [User]
       }
 
       type User {
@@ -214,13 +214,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:

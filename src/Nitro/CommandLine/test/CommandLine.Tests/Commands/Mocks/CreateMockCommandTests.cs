@@ -28,8 +28,8 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : MocksC
               --schema <schema> (REQUIRED)        The path to the graphql file with the schema [env: NITRO_SCHEMA_FILE]
               --url <url> (REQUIRED)              The URL of the downstream service [env: NITRO_DOWNSTREAM_URL]
               --name <name> (REQUIRED)            The name of the mock schema [env: NITRO_MOCK_SCHEMA_NAME]
-              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
 
@@ -71,7 +71,7 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : MocksC
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -262,6 +262,27 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : MocksC
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupCreateMockMutation(CreateCreateMockApiNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "mock", "create", "--api-id", ApiId, "--extension", ExtensionFile,
+            "--schema", SchemaFile, "--url", DownstreamUrl, "--name", MockSchemaName);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
         // arrange
@@ -377,7 +398,6 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : MocksC
     public static TheoryData<ICreateMockSchema_CreateMockSchema_Errors, string>
         GetCreateMockErrors() => new()
     {
-        { CreateCreateMockApiNotFoundError(), "API not found" },
         { CreateCreateMockNonUniqueNameError(), "Name already in use" },
         { CreateCreateMockUnauthorizedError(), "Not authorized" },
         { CreateCreateMockValidationError(), "Validation failed" }

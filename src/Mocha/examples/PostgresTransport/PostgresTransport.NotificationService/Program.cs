@@ -1,5 +1,4 @@
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Transport.Postgres;
 using PostgresTransport.NotificationService.Handlers;
 
@@ -25,7 +24,5 @@ var app = builder.Build();
 app.MapDefaultEndpoints();
 
 app.MapGet("/", () => "Notification Service (Postgres Transport)");
-
-app.MapMessageBusDeveloperTopology();
 
 app.Run();

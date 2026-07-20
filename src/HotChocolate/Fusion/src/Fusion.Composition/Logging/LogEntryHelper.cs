@@ -153,6 +153,86 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry EventCursorArgumentNotString(
+        MutableInputFieldDefinition argument,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventCursorArgumentNotString,
+                argument.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.CursorArgumentNotString)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventCursorArgumentRequiresCursorField(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventCursorArgumentRequiresCursorField,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.CursorArgumentRequiresCursorField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventCursorFieldNotString(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventCursorFieldNotString,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.CursorFieldNotString)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventCursorMarkerOnNonSubscriptionField(
+        MutableInputFieldDefinition argument,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventCursorMarkerOnNonSubscriptionField,
+                argument.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.CursorMarkerOnNonSubscriptionField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventCursorMarkerOnNonSubscriptionField(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventCursorMarkerOnNonSubscriptionField,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.CursorMarkerOnNonSubscriptionField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry EnumTypeDefaultValueInaccessible(
         MutableInputFieldDefinition inputField,
         SchemaCoordinate inaccessibleCoordinate,
@@ -520,6 +600,105 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InterfaceObjectFieldRequiresImplement(
+        string interfaceName,
+        string fieldName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectFieldRequiresImplement,
+                fieldName,
+                schema.Name,
+                interfaceName)
+            .SetCode(LogEntryCodes.InterfaceObjectFieldRequiresImplement)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ImplementWithoutDefault(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ImplementWithoutDefault,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.ImplementWithoutDefault)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InvalidProjectedFieldSharing(
+        string typeName,
+        string fieldName,
+        string interfaceNames,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidProjectedFieldSharing,
+                fieldName,
+                typeName,
+                interfaceNames)
+            .SetCode(LogEntryCodes.InvalidProjectedFieldSharing)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InterfaceObjectKeyMismatch(
+        MutableObjectTypeDefinition standIn,
+        string keyFields,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectKeyMismatch,
+                standIn.Name,
+                schema.Name,
+                keyFields)
+            .SetCode(LogEntryCodes.InterfaceObjectKeyMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InterfaceObjectKeyMissing(
+        MutableObjectTypeDefinition standIn,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectKeyMissing,
+                standIn.Name,
+                schema.Name)
+            .SetCode(LogEntryCodes.InterfaceObjectKeyMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InterfaceObjectNoInterface(
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectNoInterface,
+                typeName)
+            .SetCode(LogEntryCodes.InterfaceObjectNoInterface)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InvalidFieldSharing(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -536,10 +715,17 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry InvalidGraphQL(string exceptionMessage, MutableSchemaDefinition schema)
+    public static LogEntry InvalidGraphQL(
+        string exceptionMessage,
+        MutableSchemaDefinition schema,
+        bool inExtensions = false)
     {
         return LogEntryBuilder.New()
-            .SetMessage(LogEntryHelper_InvalidGraphQL, exceptionMessage)
+            .SetMessage(
+                inExtensions
+                    ? LogEntryHelper_InvalidGraphQLInExtensions
+                    : LogEntryHelper_InvalidGraphQL,
+                exceptionMessage)
             .SetCode(LogEntryCodes.InvalidGraphQL)
             .SetSeverity(LogSeverity.Error)
             .SetSchema(schema)
@@ -556,6 +742,86 @@ internal static class LogEntryHelper
                 field.Coordinate.ToString(),
                 schema.Name)
             .SetCode(LogEntryCodes.InvalidShareableUsage)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry MultipleEventStreamSources(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_MultipleEventStreamSources,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.MultipleEventStreamSources)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry MultipleCursorArguments(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_MultipleCursorArguments,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.MultipleCursorArguments)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventStreamTopicsEmpty(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventStreamTopicsEmpty,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.EventStreamTopicsEmpty)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventStreamMessageAbstractTypeRequiresTypeName(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.EventStreamMessageAbstractTypeRequiresTypeName)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry MultipleCursorFields(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_MultipleCursorFields,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.MultipleCursorFields)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schema)
@@ -653,26 +919,6 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry KeyFieldsHasArguments(
-        MutableOutputFieldDefinition keyField,
-        Directive keyDirective,
-        MutableComplexTypeDefinition type,
-        MutableSchemaDefinition schema)
-    {
-        return LogEntryBuilder.New()
-            .SetMessage(
-                LogEntryHelper_KeyFieldsHasArguments,
-                type.Name,
-                schema.Name,
-                keyField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.KeyFieldsHasArguments)
-            .SetSeverity(LogSeverity.Error)
-            .SetCoordinate(type.Coordinate)
-            .SetTypeSystemMember(keyDirective)
-            .SetSchema(schema)
-            .Build();
-    }
-
     public static LogEntry KeyFieldsSelectInvalidType(
         MutableOutputFieldDefinition keyField,
         Directive keyDirective,
@@ -686,6 +932,26 @@ internal static class LogEntryHelper
                 schema.Name,
                 keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsSelectInvalidType)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(type.Coordinate)
+            .SetTypeSystemMember(keyDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry KeyInvalidArguments(
+        Directive keyDirective,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_KeyInvalidArguments,
+                type.Name,
+                schema.Name,
+                string.Join(" ", errors))
+            .SetCode(LogEntryCodes.KeyInvalidArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -742,6 +1008,22 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry LookupMustHaveArguments(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_LookupMustHaveArguments,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.LookupMustHaveArguments)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
             .SetSchema(schema)
             .Build();
     }
@@ -806,6 +1088,27 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(queryType)
             .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry OptInFeatureStabilityMismatch(
+        string feature,
+        MutableSchemaDefinition schemaA,
+        string stabilityA,
+        MutableSchemaDefinition schemaB,
+        string stabilityB)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_OptInFeatureStabilityMismatch,
+                feature,
+                schemaA.Name,
+                stabilityA,
+                schemaB.Name,
+                stabilityB)
+            .SetCode(LogEntryCodes.OptInFeatureStabilityMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schemaA)
             .Build();
     }
 
@@ -996,6 +1299,25 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry EventStreamMessageInvalidFields(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
+    {
+        var coordinate = field.Coordinate;
+
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_EventStreamMessageInvalidFields, coordinate.ToString(), schema.Name)
+            .SetCode(LogEntryCodes.EventStreamMessageInvalidFields)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 

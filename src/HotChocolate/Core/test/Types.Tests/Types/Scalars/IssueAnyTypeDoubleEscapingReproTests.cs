@@ -20,7 +20,8 @@ public class IssueAnyTypeDoubleEscapingReproTests
                 {
                   foo
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         using var json = JsonDocument.Parse(result.ToJson());

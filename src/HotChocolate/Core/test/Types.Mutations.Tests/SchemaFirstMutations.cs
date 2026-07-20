@@ -24,7 +24,7 @@ public class SchemaFirstMutations
                         ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -49,7 +49,7 @@ public class SchemaFirstMutations
                         ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -175,7 +175,8 @@ public class SchemaFirstMutations
                             string
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

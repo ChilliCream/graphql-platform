@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -34,6 +33,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.SortFieldsByName"/>
     public bool SortFieldsByName { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.SortEnumValuesByName"/>
+    public bool SortEnumValuesByName { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.RemoveUnreachableTypes"/>
     public bool RemoveUnreachableTypes { get; set; }
@@ -82,6 +84,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DisableInternalDirectives"/>
+    public bool DisableInternalDirectives { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultResolverStrategy"/>
     public ExecutionStrategy DefaultResolverStrategy { get; set; } =
         ExecutionStrategy.Parallel;
@@ -104,9 +109,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableStream"/>
     public bool EnableStream { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticNonNull"/>
-    public bool EnableSemanticNonNull { get; set; }
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
 
@@ -115,6 +117,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOptInFeatures"/>
     public bool EnableOptInFeatures { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticIntrospection"/>
+    public bool EnableSemanticIntrospection { get; set; } = true;
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
@@ -190,8 +195,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultErrorHandlingMode"/>
-    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
+    /// <inheritdoc cref="IReadOnlySchemaOptions.InferKeysFromLookups"/>
+    public bool InferKeysFromLookups { get; set; }
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -211,21 +216,23 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultBindingBehavior = options.DefaultBindingBehavior,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
+            DisableInternalDirectives = options.DisableInternalDirectives,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
+            SortEnumValuesByName = options.SortEnumValuesByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
-            EnableSemanticNonNull = options.EnableSemanticNonNull,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             EnableOptInFeatures = options.EnableOptInFeatures,
+            EnableSemanticIntrospection = options.EnableSemanticIntrospection,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,
@@ -235,6 +242,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ApplyShareableToConnections = options.ApplyShareableToConnections,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
             ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
-            DefaultErrorHandlingMode = options.DefaultErrorHandlingMode
+            InferKeysFromLookups = options.InferKeysFromLookups
         };
 }

@@ -109,6 +109,27 @@ public sealed partial class OperationFeatureCollection : IFeatureCollection
         return feature;
     }
 
+    internal TFeature GetOrSetSafe<TFeature, TContext>(
+        Func<TContext, TFeature> factory,
+        TContext context)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        if (!TryGet<TFeature>(out var feature))
+        {
+            lock (_writeLock)
+            {
+                if (!TryGet(out feature))
+                {
+                    feature = factory(context);
+                    this[typeof(TFeature)] = feature;
+                }
+            }
+        }
+
+        return feature;
+    }
+
     /// <inheritdoc />
     public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
     {

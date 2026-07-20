@@ -9,14 +9,18 @@ internal sealed class DataMessageObserver(string id) : IObserver<IOperationMessa
 
     public async ValueTask<IDataMessage?> TryReadNextAsync(CancellationToken ct)
     {
-        try
+        // WaitToReadAsync rethrows the error the channel was completed with (for example a
+        // SocketClosedException) so it surfaces to the consumer, and returns false on a
+        // clean completion.
+        while (await _channel.Reader.WaitToReadAsync(ct))
         {
-            return await _channel.Reader.ReadAsync(ct);
+            if (_channel.Reader.TryRead(out var message))
+            {
+                return message;
+            }
         }
-        catch (ChannelClosedException)
-        {
-            return null;
-        }
+
+        return null;
     }
 
     public void OnNext(IOperationMessage value)

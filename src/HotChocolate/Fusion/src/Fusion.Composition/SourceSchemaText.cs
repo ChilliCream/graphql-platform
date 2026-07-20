@@ -5,6 +5,7 @@ namespace HotChocolate.Fusion;
 /// and its SDL as raw text (unparsed).
 /// See: https://graphql.github.io/composite-schemas-spec/draft/#2
 /// </summary>
-public readonly record struct SourceSchemaText(
+internal readonly record struct SourceSchemaText(
     string Name,
-    string SourceText);
+    string SourceText,
+    string? ExtensionsSourceText = null);

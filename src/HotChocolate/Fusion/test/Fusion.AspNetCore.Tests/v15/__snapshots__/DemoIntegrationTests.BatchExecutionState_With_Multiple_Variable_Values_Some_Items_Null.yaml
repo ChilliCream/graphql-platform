@@ -66,10 +66,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
@@ -78,6 +74,10 @@ sourceSchemas:
       type User implements Node {
         id: ID!
         displayName: String!
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -139,10 +139,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @null(atIndex: 1) @shareable
@@ -151,6 +147,10 @@ sourceSchemas:
 
       type User implements Node {
         relativeUrl: String!
+        id: ID!
+      }
+
+      interface Node {
         id: ID!
       }
     interactions:
@@ -231,8 +231,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type FeedbacksConnection {
@@ -241,11 +242,6 @@ sourceSchemas:
 
       type FeedbacksEdge {
         node: ResaleFeedback!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type ResaleFeedback implements Node {
@@ -260,6 +256,10 @@ sourceSchemas:
       type User implements Node {
         id: ID!
         feedbacks: FeedbacksConnection
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

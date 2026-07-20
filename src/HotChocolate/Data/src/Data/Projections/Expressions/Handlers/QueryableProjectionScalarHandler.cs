@@ -175,5 +175,5 @@ public class QueryableProjectionScalarHandler
         }
     }
 
-    public static QueryableProjectionScalarHandler Create(ProjectionProviderContext context) => new();
+    public static QueryableProjectionScalarHandler Create(ProjectionProviderContext _) => new();
 }

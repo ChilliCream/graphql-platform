@@ -23,14 +23,14 @@ a Result:
 
 a SQL:
 ---------------
-.param set @__p_0 'a'
+.param set @p 'a'
 
 SELECT "d"."Id"
 FROM "Data" AS "d"
 WHERE NOT EXISTS (
     SELECT 1
     FROM "FooNested" AS "f"
-    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" <> @__p_0 OR "f"."Bar" IS NULL))
+    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" <> @p OR "f"."Bar" IS NULL))
 ---------------
 
 d Result:
@@ -44,14 +44,14 @@ d Result:
 
 d SQL:
 ---------------
-.param set @__p_0 'd'
+.param set @p 'd'
 
 SELECT "d"."Id"
 FROM "Data" AS "d"
 WHERE NOT EXISTS (
     SELECT 1
     FROM "FooNested" AS "f"
-    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" <> @__p_0 OR "f"."Bar" IS NULL))
+    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" <> @p OR "f"."Bar" IS NULL))
 ---------------
 
 null Result:

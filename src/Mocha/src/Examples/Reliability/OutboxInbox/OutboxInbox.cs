@@ -13,7 +13,6 @@ using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 using RabbitMQ.Client;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,11 +63,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

@@ -27,20 +27,20 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: ID!
-      }
-
-      type Book {
-        author: Author
-        id: ID!
-        title: String!
-      }
-
       type Query {
         books: [Book!]!
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        author: Author
+        id: ID!
+        title: String!
       }
     interactions:
       - request:

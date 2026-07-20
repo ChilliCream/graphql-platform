@@ -37,7 +37,9 @@ public static class TypeExtensions
         if (type.IsListType())
         {
             var elementType = ToRuntimeType(type.ElementType());
+#pragma warning disable IL3050
             return typeof(List<>).MakeGenericType(elementType);
+#pragma warning restore IL3050
         }
 
         if (type.IsLeafType())
@@ -64,7 +66,9 @@ public static class TypeExtensions
         {
             if (!type.IsNonNullType() && t.RuntimeType.IsValueType)
             {
+#pragma warning disable IL3050
                 return typeof(Nullable<>).MakeGenericType(t.RuntimeType);
+#pragma warning restore IL3050
             }
 
             return t.RuntimeType;

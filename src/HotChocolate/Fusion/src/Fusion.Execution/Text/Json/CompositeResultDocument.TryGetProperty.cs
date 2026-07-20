@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -11,7 +12,7 @@ public sealed partial class CompositeResultDocument
         string propertyName,
         out CompositeResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -118,10 +119,82 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
+        string propertyName,
+        ref PropertyLookupMemo memo,
+        out CompositeResultElement value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSetId = row.OperationReferenceId;
+
+            if (memo.Valid && memo.LastSelectionSetId == selectionSetId)
+            {
+                if (!memo.Hit)
+                {
+                    value = default;
+                    return false;
+                }
+
+                var memoizedPropertyCursor = startCursor + memo.PropertyRowIndex;
+                Debug.Assert(
+                    _metaDb.GetElementTokenType(memoizedPropertyCursor)
+                        is ElementTokenType.PropertyName);
+                Debug.Assert(
+                    _metaDb.Get(memoizedPropertyCursor).OperationReferenceId
+                        == selectionSetId + ((memo.PropertyRowIndex + 1) / 2));
+                value = new CompositeResultElement(this, memoizedPropertyCursor + 1);
+                return true;
+            }
+
+            var selectionSet = _operation.GetSelectionSetById(selectionSetId);
+            memo.LastSelectionSetId = selectionSetId;
+            memo.Valid = true;
+
+            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+
+                memo.PropertyRowIndex = propertyRowIndex;
+                memo.Hit = true;
+
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            memo.PropertyRowIndex = 0;
+            memo.Hit = false;
+            value = default;
+            return false;
+        }
+
+        // Raw objects keep the existing linear lookup and do not participate in the memo.
+        return TryGetNamedPropertyValue(startCursor, propertyName, out value);
+    }
+
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -160,6 +233,59 @@ public sealed partial class CompositeResultDocument
             endCursor,
             propertyName,
             out value);
+    }
+
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var found))
+            {
+                selection = found;
+                var propertyIndex = found.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == found.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        if (TryGetNamedPropertyValue(startCursor + 1, endCursor, propertyName, out value))
+        {
+            selection = value.AssertSelection();
+            return true;
+        }
+
+        selection = null!;
+        return false;
     }
 
     private bool TryGetNamedPropertyValue(
@@ -241,11 +367,40 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
+    internal CompositeObjectContext GetObjectContext(Cursor startCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // Resolves the target object once (StartObject row, type check, selection-set
+        // metadata) so each property lookup only joins the name and computes the cursor.
+        // This is safe because the StartObject row does not change while its child values
+        // are written and the document cannot be disposed while an object is completed.
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+        SelectionSet? selectionSet = null;
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        }
+
+        return new CompositeObjectContext(this, startCursor, selectionSet, numberOfRows);
+    }
+
+    internal bool TryFindPropertyLinear(
+        Cursor startCursor,
+        Cursor endCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+        => TryGetNamedPropertyValue(startCursor, endCursor, propertyName, out value);
+
     internal CompositeResultElement GetPropertyBySelectionId(
         Cursor startCursor,
         int selectionId)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
         Debug.Assert(row.TokenType is ElementTokenType.StartObject);
@@ -263,14 +418,14 @@ public sealed partial class CompositeResultDocument
 
     internal Cursor GetStartCursor(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
         (cursor, _) = _metaDb.GetStartCursor(cursor);
         return cursor;
     }
 
     internal Cursor GetEndCursor(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
         return cursor + _metaDb.GetNumberOfRows(cursor);
     }
 }

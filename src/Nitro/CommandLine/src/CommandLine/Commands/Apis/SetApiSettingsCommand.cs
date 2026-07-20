@@ -50,14 +50,14 @@ internal sealed class SetApiSettingsApiCommand : Command
             .ConfirmAsync(
                 parseResult,
                 Opt<TreatDangerousAsBreakingOption>.Instance,
-                "Treat dangerous changes as breaking?",
+                Prompts.TreatDangerousChangesAsBreaking,
                 ct);
 
         var allowBreakingSchemaChanges = await console
             .ConfirmAsync(
                 parseResult,
                 Opt<AllowBreakingSchemaChangesOption>.Instance,
-                "Allow breaking schema changes when no client breaks?",
+                Prompts.AllowBreakingSchemaChanges,
                 ct);
 
         await using var activity = console.StartActivity(
@@ -72,13 +72,14 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var mutationError in data.Errors)
             {
                 var errorMessage = mutationError switch
                 {
-                    ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError err => err.Message,
+                    ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_UnauthorizedOperation err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()

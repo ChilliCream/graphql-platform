@@ -27,8 +27,8 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
               --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
               --tag <tag> (REQUIRED)                  The tag of the schema version to deploy [env: NITRO_TAG]
               --schema-file <schema-file> (REQUIRED)  The path to the graphql file with the schema definition [env: NITRO_SCHEMA_FILE]
-              --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                     The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                     The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                          Show help and usage information
 
@@ -64,7 +64,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -114,7 +114,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -145,8 +145,36 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✕ Failed to upload a new schema version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSchemaFile();
+        SetupUploadSchemaMutation(CreateUploadSchemaApiNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--tag",
+            Tag,
+            "--schema-file",
+            SchemaFile,
+            "--api-id",
+            ApiId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -186,7 +214,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -215,7 +243,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✓ Uploaded new schema version 'v1'.
             """);
     }
@@ -227,7 +255,6 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
         string> GetUploadSchemaErrors() => new()
     {
         { CreateUploadSchemaUnauthorizedError(), "Unauthorized." },
-        { CreateUploadSchemaApiNotFoundError(), $"API '{ApiId}' was not found." },
         { CreateUploadSchemaDuplicatedTagError(), $"Tag '{Tag}' already exists." },
         { CreateUploadSchemaConcurrentOperationError(), "A concurrent operation is in progress." }
     };

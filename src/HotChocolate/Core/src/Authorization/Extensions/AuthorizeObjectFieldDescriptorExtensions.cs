@@ -26,7 +26,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
 
         if (apply is ApplyPolicy.Validation)
         {
-            descriptor.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
+            descriptor.Extend().Context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
         return descriptor.Directive(new AuthorizeDirective(apply: apply));
@@ -53,7 +53,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
 
         if (apply is ApplyPolicy.Validation)
         {
-            descriptor.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
+            descriptor.Extend().Context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
         return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));

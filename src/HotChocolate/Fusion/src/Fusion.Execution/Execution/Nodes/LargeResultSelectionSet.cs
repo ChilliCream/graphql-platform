@@ -12,8 +12,9 @@ internal sealed class LargeResultSelectionSet : ResultSelectionSet
     internal LargeResultSelectionSet(
         ResultSelection[] selections,
         ResultFragment[] fragments,
-        string[] allResponseNames)
-        : base(fragments, allResponseNames)
+        string[] allResponseNames,
+        SourceResponseNameMapping[]? sourceResponseNameMappings)
+        : base(fragments, allResponseNames, sourceResponseNameMappings)
     {
         _selections = selections;
         _childLookup = new Dictionary<string, ResultSelectionSet?>(selections.Length, StringComparer.Ordinal);

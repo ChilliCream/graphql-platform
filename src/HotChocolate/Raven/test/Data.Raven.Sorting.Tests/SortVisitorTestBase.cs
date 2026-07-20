@@ -14,9 +14,9 @@ public class SortVisitorTestBase : IAsyncLifetime
 {
     protected RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
 
-    public Task InitializeAsync() => Resource.InitializeAsync();
+    public ValueTask InitializeAsync() => Resource.InitializeAsync();
 
-    public Task DisposeAsync() => Resource.DisposeAsync();
+    public ValueTask DisposeAsync() => Resource.DisposeAsync();
 
     private Func<IResolverContext, IRavenQueryable<TResult>> BuildResolver<TResult>(
         IDocumentStore store,

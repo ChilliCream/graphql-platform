@@ -55,5 +55,5 @@ public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryablePro
     {
     }
 
-    public static QueryableSortInterceptor Create(ProjectionProviderContext context) => new();
+    public static QueryableSortInterceptor Create(ProjectionProviderContext _) => new();
 }

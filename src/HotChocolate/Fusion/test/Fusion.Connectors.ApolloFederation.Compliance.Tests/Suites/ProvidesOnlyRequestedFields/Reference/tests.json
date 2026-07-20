@@ -1,0 +1,136 @@
+[
+  {
+    "query": "\n      query {\n        entity {\n          id\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          name\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1",
+          "name": "Entity One"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          displayName: name\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1",
+          "displayName": "Entity One"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          ... on Entity {\n            name\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1",
+          "name": "Entity One"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          ...EntityName\n        }\n      }\n\n      fragment EntityName on Entity {\n        name\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1",
+          "name": "Entity One"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          name\n          extra\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1",
+          "name": "Entity One",
+          "extra": "Extra One"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entities {\n          id\n          name\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entities": [
+          {
+            "id": "e1",
+            "name": "Entity One"
+          },
+          {
+            "id": "e2",
+            "name": "Entity Two"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entities {\n          id\n          name\n          extra\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entities": [
+          {
+            "id": "e1",
+            "name": "Entity One",
+            "extra": "Extra One"
+          },
+          {
+            "id": "e2",
+            "name": "Entity Two",
+            "extra": "Extra Two"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          ... on Entity @skip(if: true) {\n            description\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          ... on Entity @include(if: false) {\n            description\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        entity {\n          id\n          ... {\n            name\n          }\n          ... {\n            extra\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "entity": {
+          "id": "e1",
+          "name": "Entity One",
+          "extra": "Extra One"
+        }
+      }
+    }
+  }
+]

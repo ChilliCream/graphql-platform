@@ -1,9 +1,11 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
 internal sealed class HttpSourceSchemaClientFactory
-    : SourceSchemaClientFactory<SourceSchemaHttpClientConfiguration>
+    : SourceSchemaClientFactory<HttpSourceSchemaClientConfiguration>
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
@@ -14,13 +16,15 @@ internal sealed class HttpSourceSchemaClientFactory
     }
 
     protected override ISourceSchemaClient CreateClient(
-        SourceSchemaHttpClientConfiguration configuration)
+        FusionSchemaDefinition schema,
+        HttpSourceSchemaClientConfiguration configuration)
     {
         var httpClient = _httpClientFactory.CreateClient(configuration.HttpClientName);
         httpClient.BaseAddress = configuration.BaseAddress;
 
-        return new SourceSchemaHttpClient(
+        return new HttpSourceSchemaClient(
             GraphQLHttpClient.Create(httpClient, disposeHttpClient: true),
-            configuration);
+            configuration,
+            schema.GetRequestOptions().AnnotateOperationKind);
     }
 }

@@ -30,8 +30,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Discussion implements Node {
@@ -39,8 +39,8 @@ sourceSchemas:
         name: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -78,8 +78,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node @key(fields: "id") {
-        id: ID!
+      type Query {
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
 
       type Discussion implements Node {
@@ -87,8 +87,8 @@ sourceSchemas:
         commentCount: Int
       }
 
-      type Query {
-        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      interface Node @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:

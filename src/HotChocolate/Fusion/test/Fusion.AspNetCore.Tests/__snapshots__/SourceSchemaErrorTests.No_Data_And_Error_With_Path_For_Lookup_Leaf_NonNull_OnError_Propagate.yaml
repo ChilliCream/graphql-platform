@@ -27,16 +27,16 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: Int!
-        price: Float!
-      }
-
       type Query {
         topProduct: Product!
         nullableTopProduct: Product
         topProducts: [Product!]!
         productById(id: Int!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        price: Float!
       }
     interactions:
       - request:
@@ -65,13 +65,13 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        name: String!
-        id: Int!
+      type Query {
+        productById(id: Int!): Product @lookup
       }
 
-      type Query {
-        productById(id: Int!): Product! @lookup
+      type Product @key(fields: "id") {
+        name: String!
+        id: Int!
       }
     interactions:
       - request:
@@ -99,7 +99,9 @@ sourceSchemas:
                     ]
                   }
                 ],
-                "data": null
+                "data": {
+                  "productById": null
+                }
               }
 operationPlan:
   operation:

@@ -10,6 +10,7 @@ using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -55,17 +56,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -102,17 +101,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -149,17 +146,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -205,17 +200,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -262,17 +255,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -318,17 +309,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -375,17 +364,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -431,17 +418,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -487,17 +472,15 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddQueries(queries)
             .Add(result, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -542,17 +525,18 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var operationResult = result.ExpectOperationResult();
         operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -598,16 +582,17 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
             .Add(operationResult, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -623,14 +608,13 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
 
         var pagingArgs = new PagingArguments();
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(
                 new
@@ -643,7 +627,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -659,14 +643,13 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
 
         var pagingArgs = new PagingArguments { First = 5 };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(
                 new
@@ -679,7 +662,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -699,14 +682,13 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             First = 5,
             After = "QnJhbmQxMjoxMw=="
         };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddQueries(queries)
             .Add(
                 new
@@ -719,7 +701,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -735,14 +717,13 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
 
         var pagingArgs = new PagingArguments { Last = 5 };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(
                 new
@@ -755,7 +736,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -775,14 +756,13 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             Last = 5,
             Before = "QnJhbmQ5NTo5Ng=="
         };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddQueries(queries)
             .Add(
                 new
@@ -795,7 +775,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -822,7 +802,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
             .OrderBy(p => p.Name)
             .ThenBy(p => p.Id)
-            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs, TestContext.Current.CancellationToken);
 
         // Assert
         foreach (var page in results)
@@ -864,7 +844,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var results = await context.Products
             .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
             .OrderBy(p => p.Id)
-            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs, TestContext.Current.CancellationToken);
 
         // Assert
         foreach (var page in results)
@@ -903,12 +883,13 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .ToBatchPageAsync(
                 keySelector: t => t.BrandId,
                 valueSelector: t => t.Product,
-                pagingArgs);
+                pagingArgs,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(results.TryGetValue(brandId, out var page));
 
-        var connection = await new ValueTask<Page<Product>>(page!).ToConnectionAsync();
+        var connection = await new ValueTask<Page<Product>>(page).ToConnectionAsync();
         Assert.Equal(2, connection.Edges.Count);
         Assert.All(connection.Edges, edge => Assert.False(string.IsNullOrEmpty(edge.Cursor)));
     }
@@ -933,15 +914,16 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .ToBatchPageAsync(
                 keySelector: t => t.BrandId,
                 valueSelector: t => t.Product,
-                pagingArgs);
+                pagingArgs,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(results.TryGetValue(brandId, out var page));
 
-        var connection = await new ValueTask<Page<Product>>(page!).ToConnectionAsync();
+        var connection = await new ValueTask<Page<Product>>(page).ToConnectionAsync();
         Assert.Equal(2, connection.Edges.Count);
         Assert.All(connection.Edges, edge => Assert.False(string.IsNullOrEmpty(edge.Cursor)));
-        Assert.True(page!.HasPreviousPage);
+        Assert.True(page.HasPreviousPage);
         Assert.False(page.HasNextPage);
         Assert.Equal("Product 0-2", connection.Edges[0].Node.Name);
         Assert.Equal("Product 0-3", connection.Edges[1].Node.Name);
@@ -981,19 +963,17 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1030,19 +1010,17 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1087,16 +1065,17 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
             .Add(operationResult, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1143,16 +1122,17 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
             .Add(operationResult, "Result")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     private static async Task SeedAsync(string connectionString)

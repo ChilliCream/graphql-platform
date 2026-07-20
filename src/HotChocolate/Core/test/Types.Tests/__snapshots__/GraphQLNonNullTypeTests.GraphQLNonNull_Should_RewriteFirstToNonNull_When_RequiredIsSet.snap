@@ -1,9 +1,5 @@
-﻿schema {
+schema {
   query: QueryRequired
-}
-
-type Foo {
-  bar: String!
 }
 
 type QueryRequired {
@@ -13,4 +9,8 @@ type QueryRequired {
   object: Foo!
   objectArray: [Foo]!
   objectNestedArray: [[Foo]]!
+}
+
+type Foo {
+  bar: String!
 }

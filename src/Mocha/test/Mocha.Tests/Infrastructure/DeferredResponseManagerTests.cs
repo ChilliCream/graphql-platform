@@ -273,7 +273,7 @@ public class DeferredResponseManagerTests
                     manager.CompletePromise(correlationId, $"result-{correlationId}");
                     var result = await tcs.Task;
                     Assert.Equal($"result-{correlationId}", result);
-                }, default));
+                }, TestContext.Current.CancellationToken));
         }
 
         // assert - all should complete without error

@@ -9,7 +9,6 @@ public interface ITypeSystemConfigurationTask
     /// <summary>
     /// The definition of the type system member that shall be configured.
     /// </summary>
-    /// <value></value>
     ITypeSystemConfiguration Owner { get; }
 
     /// <summary>

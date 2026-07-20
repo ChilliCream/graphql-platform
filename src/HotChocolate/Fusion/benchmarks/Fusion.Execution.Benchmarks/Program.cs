@@ -1,11 +1,15 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
-using Fusion.Execution.Benchmarks;
+using HotChocolate.Fusion.Execution.Benchmarks;
 
 var config = DefaultConfig.Instance
     .WithOption(ConfigOptions.DisableOptimizationsValidator, true);
 
-if (args.Length == 0)
+if (args.Length > 0 && args[0] == "probe")
+{
+    CorpusPlanningProbe.Run(args);
+}
+else if (args.Length == 0)
 {
     BenchmarkRunner.Run<GraphQLQueryBenchmark>(config);
 }

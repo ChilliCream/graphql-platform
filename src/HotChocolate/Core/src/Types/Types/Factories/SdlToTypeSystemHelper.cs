@@ -52,6 +52,19 @@ internal static class SdlToTypeSystemHelper
         return DirectiveNames.Deprecated.Arguments.DefaultReason;
     }
 
+    public static string DeprecationReason(this DirectiveNode directive)
+    {
+        if (directive.Arguments.Count != 0
+            && directive.Arguments[0].Name.Value == DirectiveNames.Deprecated.Arguments.Reason
+            && directive.Arguments[0].Value is StringValueNode s
+            && !string.IsNullOrEmpty(s.Value))
+        {
+            return s.Value;
+        }
+
+        return DirectiveNames.Deprecated.Arguments.DefaultReason;
+    }
+
     public static bool IsDeprecationReason(this DirectiveNode directiveNode)
         => string.Equals(directiveNode.Name.Value,
             DirectiveNames.Deprecated.Name,

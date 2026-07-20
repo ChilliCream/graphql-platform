@@ -27,12 +27,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         search: SearchResult
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
       }
 
       type User @key(fields: "id") {
@@ -72,14 +72,14 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: ID!
-        price: Float!
-      }
-
       type Query {
         userById(id: ID!): User @lookup @shareable
         productById(id: ID!): Product @lookup
+      }
+
+      type Product {
+        id: ID!
+        price: Float!
       }
 
       type User {

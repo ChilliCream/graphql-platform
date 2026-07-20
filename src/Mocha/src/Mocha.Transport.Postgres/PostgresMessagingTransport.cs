@@ -1,10 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
-using Mocha.Scheduling;
 using Mocha.Transport.Postgres.Tasks;
-using static System.StringSplitOptions;
 
 namespace Mocha.Transport.Postgres;
 
@@ -113,8 +110,6 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             _topology.AddSubscription(subscription);
         }
-
-        Features.Configure<SchedulingTransportFeature>(f => f.SupportsSchedulingNatively = true);
     }
 
     /// <summary>
@@ -215,17 +210,23 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(topic.Address.ToString(), "topic", topic.Name),
                     "topic",
                     topic.Name,
                     topic.Address.ToString(),
                     "inbound",
-                    new Dictionary<string, object?> { ["autoProvision"] = topic.AutoProvision }));
+                    new Dictionary<string, object?>
+                    {
+                        ["autoProvision"] = topic.AutoProvision,
+                        ["origin"] = topic.Origin
+                    }));
         }
 
         foreach (var queue in _topology.Queues)
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(queue.Address.ToString(), "queue", queue.Name),
                     "queue",
                     queue.Name,
                     queue.Address.ToString(),
@@ -233,7 +234,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision
+                        ["autoProvision"] = queue.AutoProvision,
+                        ["origin"] = queue.Origin
                     }));
         }
 
@@ -241,17 +243,27 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             links.Add(
                 new TopologyLinkDescription(
+                    MochaUrn.TopologyLink(
+                        subscription.Address.ToString(),
+                        "subscription",
+                        subscription.Source.Address.ToString(),
+                        subscription.Destination.Address.ToString()),
                     "subscription",
                     subscription.Address.ToString(),
                     subscription.Source.Address.ToString(),
                     subscription.Destination.Address.ToString(),
                     "forward",
-                    new Dictionary<string, object?> { ["autoProvision"] = subscription.AutoProvision }));
+                    new Dictionary<string, object?>
+                    {
+                        ["autoProvision"] = subscription.AutoProvision,
+                        ["origin"] = subscription.Origin
+                    }));
         }
 
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);
 
         return new TransportDescription(
+            Urn,
             _topology.Address.ToString(),
             Name,
             Schema,
@@ -264,10 +276,20 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     /// <inheritdoc />
     public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
     {
+        if (TryGetReplyDispatchEndpoint(address, out endpoint))
+        {
+            return true;
+        }
+
         if (address.Scheme == Schema)
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -280,6 +302,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -288,10 +315,15 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "queue", Host: { Length: > 0 } queueName })
+        if (TryGetResourceName(address, "queue", out var queueName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is PostgresQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -300,10 +332,15 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "topic", Host: { Length: > 0 } topicName })
+        if (TryGetResourceName(address, "topic", out var topicName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is PostgresTopic topic && topic.Name == topicName)
                 {
                     endpoint = candidate;
@@ -349,162 +386,6 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         return new PostgresDispatchEndpoint(this);
     }
 
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        OutboundRoute route)
-    {
-        PostgresDispatchEndpointConfiguration? configuration = null;
-        if (route.Kind == OutboundRouteKind.Send)
-        {
-            var queueName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
-            configuration = new PostgresDispatchEndpointConfiguration
-            {
-                QueueName = queueName,
-                Name = "q/" + queueName
-            };
-        }
-        else if (route.Kind == OutboundRouteKind.Publish)
-        {
-            var topicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            configuration = new PostgresDispatchEndpointConfiguration
-            {
-                TopicName = topicName,
-                Name = "t/" + topicName
-            };
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        Uri address)
-    {
-        PostgresDispatchEndpointConfiguration? configuration = null;
-
-        var path = address.AbsolutePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        if (address.Scheme == Schema && address.Host is "")
-        {
-            if (segmentCount == 1 && path[ranges[0]] is "replies")
-            {
-                var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    Kind = DispatchEndpointKind.Reply,
-                    QueueName = instanceEndpointName,
-                    Name = "Replies"
-                };
-            }
-
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "t" && name is var topicName)
-                {
-                    configuration = new PostgresDispatchEndpointConfiguration
-                    {
-                        TopicName = new string(topicName),
-                        Name = "t/" + new string(topicName)
-                    };
-                }
-
-                if (kind is "q" && name is var queueName)
-                {
-                    configuration = new PostgresDispatchEndpointConfiguration
-                    {
-                        QueueName = new string(queueName),
-                        Name = "q/" + new string(queueName)
-                    };
-                }
-            }
-        }
-
-        if (configuration is null && _topology.Address.IsBaseOf(address) && segmentCount == 2)
-        {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "t" && name is var topicName)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    TopicName = new string(topicName),
-                    Name = "t/" + new string(topicName)
-                };
-            }
-
-            if (kind is "q" && name is var queueName)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
-                };
-            }
-        }
-
-        if (configuration is null && address is { Scheme: "queue" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration { QueueName = name, Name = "q/" + name };
-            }
-        }
-
-        if (configuration is null && address is { Scheme: "topic" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration { TopicName = name, Name = "t/" + name };
-            }
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        PostgresReceiveEndpointConfiguration configuration;
-        if (route.Kind == InboundRouteKind.Reply)
-        {
-            var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new PostgresReceiveEndpointConfiguration
-            {
-                Name = "Replies",
-                QueueName = instanceEndpointName,
-                IsTemporary = true,
-                Kind = ReceiveEndpointKind.Reply,
-                AutoProvision = true,
-                ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-            };
-        }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
-
-        return configuration;
-    }
-
     /// <summary>
     /// Recovers from consumer eviction by re-registering the consumer, re-provisioning
     /// all queues (idempotent via ON CONFLICT DO UPDATE), and re-provisioning all
@@ -513,15 +394,22 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     private async Task RecoverFromEvictionAsync(CancellationToken cancellationToken)
     {
         await ConsumerManager.RegisterAsync(cancellationToken);
+        var autoProvision = _topology.AutoProvision;
 
         foreach (var queue in _topology.Queues)
         {
-            await queue.ProvisionAsync(ConnectionManager, _schemaOptions, ConsumerManager, cancellationToken);
+            if (queue.AutoProvision ?? autoProvision)
+            {
+                await queue.ProvisionAsync(ConnectionManager, _schemaOptions, ConsumerManager, cancellationToken);
+            }
         }
 
         foreach (var subscription in _topology.Subscriptions)
         {
-            await subscription.ProvisionAsync(ConnectionManager, _schemaOptions, cancellationToken);
+            if (subscription.AutoProvision ?? autoProvision)
+            {
+                await subscription.ProvisionAsync(ConnectionManager, _schemaOptions, cancellationToken);
+            }
         }
     }
 

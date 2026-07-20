@@ -68,13 +68,6 @@ public abstract class SessionCommandTestBase : CommandTestBase
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
-    protected void SetupLogoutThrowsExitException(string message = "Session deletion failed.")
-    {
-        _sessionServiceMock
-            .Setup(x => x.LogoutAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ExitException(message));
-    }
-
     #endregion
 
     #region Workspace Selection

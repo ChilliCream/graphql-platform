@@ -1,10 +1,28 @@
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public class SourceResultDocumentTests
 {
+    [Fact]
+    public void Parse_Should_NotThrow_When_DisposedAndInputBufferIsNotPooled()
+    {
+        var json = """
+                   {
+                     "id": 1
+                   }
+                   """u8.ToArray();
+
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), json, json.Length);
+        var exception = Record.Exception(result.Dispose);
+
+        Assert.Null(exception);
+    }
+
     [Fact]
     public void TryGetProperty_String_Name()
     {
@@ -21,7 +39,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         if (result.Root.TryGetProperty("user", out var user))
         {
             Assert.Equal(JsonValueKind.Object, user.ValueKind);
@@ -52,7 +70,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var user = result.Root.GetProperty("user");
         Assert.Equal(JsonValueKind.Object, user.ValueKind);
     }
@@ -73,7 +91,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         if (result.Root.TryGetProperty("user"u8, out var user))
         {
             Assert.Equal(JsonValueKind.Object, user.ValueKind);
@@ -104,7 +122,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var user = result.Root.GetProperty("user"u8);
         Assert.Equal(JsonValueKind.Object, user.ValueKind);
     }
@@ -124,7 +142,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         using var enumerator = result.Root.EnumerateObject().GetEnumerator();
 
@@ -162,7 +180,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         using var enumerator = result.Root.EnumerateObject().GetEnumerator();
 
@@ -200,7 +218,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         using var enumerator = result.Root.EnumerateObject().GetEnumerator();
 
@@ -235,7 +253,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var prop = result.Root.GetProperty("a");
         using var enumerator = prop.EnumerateArray().GetEnumerator();
 
@@ -263,7 +281,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var prop = result.Root.GetProperty("a");
         using var enumerator = prop.EnumerateArray().GetEnumerator();
 
@@ -302,10 +320,10 @@ public class SourceResultDocumentTests
         json.AsSpan(chunkSize).CopyTo(chunk2);
 
         var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
             [chunk1, chunk2],
             json.Length - chunkSize,
-            2,
-            pooledMemory: false);
+            2);
 
         // Assert small array parses and enumerates correctly.
         var a = result.Root.GetProperty("a");
@@ -364,10 +382,10 @@ public class SourceResultDocumentTests
 
         // last arg is bytes used in the last chunk
         var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
             [chunk1, chunk2],
             json.Length - chunkSize,
-            2,
-            pooledMemory: false);
+            2);
 
         // Compare against System.Text.Json to validate unescape correctness
         using var stj = JsonDocument.Parse(json);
@@ -426,10 +444,10 @@ public class SourceResultDocumentTests
         }
 
         var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
             chunks,
             lastChunkDataLength,
-            chunkCount,
-            pooledMemory: false);
+            chunkCount);
         var prop = result.Root.GetProperty("a");
 
         var count = 0;
@@ -450,7 +468,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         Assert.Equal(JsonValueKind.Object, result.Root.ValueKind);
         Assert.Equal(0, result.Root.GetPropertyCount());
     }
@@ -462,7 +480,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var arr = result.Root.GetProperty("arr");
         Assert.Equal(0, arr.GetArrayLength());
     }
@@ -474,7 +492,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         Assert.Throws<KeyNotFoundException>(() => result.Root.GetProperty("nonexistent"));
     }
 
@@ -485,7 +503,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var arr = result.Root.GetProperty("arr");
         Assert.Throws<IndexOutOfRangeException>(() => arr[5]);
     }
@@ -513,7 +531,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         Assert.True(result.Root.GetProperty("sbyte").TryGetSByte(out var sb));
         Assert.Equal(-128, sb);
@@ -532,7 +550,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         Assert.False(result.Root.GetProperty("big").TryGetInt32(out _));
     }
 
@@ -552,7 +570,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         Assert.Equal("line1\nline2", result.Root.GetProperty("newline").GetString());
         Assert.Equal("say \"hello\"", result.Root.GetProperty("quote").GetString());
@@ -566,11 +584,103 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var prop = result.Root.GetProperty("escaped");
 
         Assert.True(prop.ValueEquals("hello\nworld"));
         Assert.False(prop.ValueEquals("hello\\nworld"));
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnRawUtf8_When_StringIsNotEscaped()
+    {
+        var json = "{\"__typename\":\"Product\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        var success = result.Root
+            .GetProperty("__typename")
+            .TryGetRawStringValue(out var typeName);
+
+        Assert.True(success);
+        Assert.True(typeName.SequenceEqual("Product"u8));
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnFalse_When_StringIsEscaped()
+    {
+        var json = "{\"__typename\":\"Pro\\u0064uct\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        var success = result.Root
+            .GetProperty("__typename")
+            .TryGetRawStringValue(out var typeName);
+
+        Assert.False(success);
+        Assert.True(typeName.IsEmpty);
+        Assert.Equal("Product", result.Root.GetProperty("__typename").AssertString());
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnFalse_When_ValueIsNotString()
+    {
+        var json = "{\"__typename\":42}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        var success = result.Root
+            .GetProperty("__typename")
+            .TryGetRawStringValue(out var typeName);
+
+        Assert.False(success);
+        Assert.True(typeName.IsEmpty);
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ThrowInvalidOperation_When_ElementIsDefault()
+    {
+        Assert.Throws<InvalidOperationException>(
+            () => default(SourceResultElement).TryGetRawStringValue(out _));
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnFalseWithoutAllocating_When_StringSpansChunks()
+    {
+        var json = Encoding.UTF8.GetBytes(
+            $"{{\"padding\":\"{new string('x', 993)}\",\"__typename\":\"Product\"}}");
+        var chunks = new[]
+        {
+            json[..1024],
+            json[1024..]
+        };
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            chunks,
+            chunks[1].Length,
+            chunks.Length);
+        var element = result.Root.GetProperty("__typename");
+
+        element.TryGetRawStringValue(out _);
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+        var success = false;
+
+        for (var i = 0; i < 1000; i++)
+        {
+            success |= element.TryGetRawStringValue(out _);
+        }
+
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+
+        Assert.False(success);
+        Assert.Equal(0, allocated);
+        Assert.Equal("Product", element.AssertString());
     }
 
     [Fact]
@@ -580,7 +690,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         Assert.True(result.Root.TryGetProperty("prop\nname", out var value));
         Assert.Equal(42, value.GetInt32());
@@ -593,7 +703,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         Assert.Equal(3, result.Root.GetProperty("key").GetInt32());
     }
 
@@ -617,7 +727,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var deep = result.Root
             .GetProperty("level1")
             .GetProperty("level2")
@@ -647,7 +757,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var firstUser = result.Root.GetProperty("users")[0];
         Assert.Equal("Alice", firstUser.GetProperty("name").GetString());
         Assert.Equal(95, firstUser.GetProperty("scores")[0].GetInt32());
@@ -660,7 +770,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         result.Dispose();
         result.Dispose(); // Should not throw
     }
@@ -672,7 +782,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         result.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() => result.Root.GetProperty("a"));
@@ -692,7 +802,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         Assert.True(result.Root.GetProperty("isTrue").GetBoolean());
         Assert.False(result.Root.GetProperty("isFalse").GetBoolean());
@@ -706,7 +816,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var prop = result.Root.GetProperty("str");
 
         Assert.True(prop.ValueEquals("test value"));
@@ -722,7 +832,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         Assert.True(result.Root.GetProperty("null").ValueEquals((string?)null));
         Assert.False(result.Root.GetProperty("str").ValueEquals((string?)null));
@@ -735,7 +845,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
         var arr = result.Root.GetProperty("arr");
 
         Assert.Equal("zero", arr[0].GetString());
@@ -758,7 +868,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         var foundNames = new List<string>();
         foreach (var property in result.Root.EnumerateObject())
@@ -792,7 +902,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         Assert.Equal("42", result.Root.GetProperty("number").GetRawText());
         Assert.Equal("\"hello\"", result.Root.GetProperty("string").GetRawText());
@@ -806,10 +916,124 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+        var result = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), [chunk], json.Length, 1);
 
         var array = result.Root.GetProperty("arr");
         Assert.Equal("[1,2,3]", array.GetRawText());
         Assert.Equal("[1,2,3]", Encoding.UTF8.GetString(array.GetRawValueAsMemory().Span));
+    }
+
+    [Fact]
+    public void RawJsonFormatter_Should_PreservePropertyNames_When_SourceNamesContainEscapes()
+    {
+        var json =
+            """
+            {
+              "ascii": 1,
+              "quote\"name": 2,
+              "backslash\\name": 3,
+              "newline\nname": 4
+            }
+            """u8.ToArray();
+        using var arena = new MemoryArena();
+        using var document = SourceResultDocument.Parse(arena, json, json.Length);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions());
+        var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
+
+        formatter.WriteValue(default);
+
+        var serialized = Encoding.UTF8.GetString(output.WrittenSpan);
+        Assert.Equal(
+            """{"ascii":1,"quote\"name":2,"backslash\\name":3,"newline\nname":4}""",
+            serialized);
+
+        using var emitted = JsonDocument.Parse(output.WrittenMemory);
+        var actual = emitted.RootElement
+            .EnumerateObject()
+            .Select(static property => (property.Name, property.Value.GetInt32()))
+            .ToArray();
+        var expected = new[]
+        {
+            ("ascii", 1),
+            ("quote\"name", 2),
+            ("backslash\\name", 3),
+            ("newline\nname", 4)
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RawJsonFormatter_Should_WriteCrossChunkScalars_When_ValuesStraddleChunkBoundaries(
+        bool indented)
+    {
+        var escapedString = new string('a', 1018) + "\\nxx";
+        var padding = new string('b', 2037);
+        const string number = "1234567890";
+        var json = Encoding.UTF8.GetBytes($"[0,\"{escapedString}\",\"{padding}\",{number},1]");
+        const int stringStart = 3;
+        var stringEnd = stringStart + Encoding.UTF8.GetByteCount(escapedString) + 2;
+        var numberStart = stringEnd + Encoding.UTF8.GetByteCount(padding) + 4;
+        var numberEnd = numberStart + number.Length;
+        var firstChunkEnd = SourceResultDocument.GetDataChunkSize(0);
+        var secondChunkEnd = firstChunkEnd + SourceResultDocument.GetDataChunkSize(1);
+
+        Assert.True(stringStart < firstChunkEnd && firstChunkEnd < stringEnd);
+        Assert.True(numberStart < secondChunkEnd && secondChunkEnd < numberEnd);
+
+        using var arena = new MemoryArena();
+        using var input = new ArenaBufferWriter(arena);
+        var inputSpan = input.GetSpan(json.Length);
+        json.CopyTo(inputSpan);
+        input.Advance(json.Length);
+        using var document = SourceResultDocument.ParseFilled(
+            arena,
+            input.Segments,
+            input.UsedChunks,
+            input.LastLength);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions { Indented = indented });
+        var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
+
+        formatter.WriteValue(default);
+
+        var expected = indented
+            ? $"[\n  0,\n  \"{escapedString}\",\n  \"{padding}\",\n  {number},\n  1\n]"
+            : Encoding.UTF8.GetString(json);
+        Assert.Equal(expected, Encoding.UTF8.GetString(output.WrittenSpan));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WriteRawValueTo_Should_ValidateBeforeWriting_When_ValueIsTooLarge(bool isString)
+    {
+        using var document = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            "0"u8.ToArray(),
+            1);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions());
+
+        var exception = Assert.Throws<ArgumentException>(() =>
+        {
+            if (isString)
+            {
+                document.WriteRawStringValueTo(writer, location: 0, size: 166_666_667);
+            }
+            else
+            {
+                document.WriteRawNumberValueTo(writer, location: 0, size: 166_666_667);
+            }
+        });
+
+        Assert.Equal(
+            "The JSON value of length 166666667 is too large and not supported. (Parameter 'value')",
+            exception.Message);
+        Assert.Equal("value", exception.ParamName);
+        Assert.Equal(0, output.WrittenCount);
     }
 }

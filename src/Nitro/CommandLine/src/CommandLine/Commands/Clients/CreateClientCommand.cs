@@ -45,7 +45,7 @@ internal sealed class CreateClientCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to create a client?",
+            Prompts.SelectApiForCreateClient,
             parseResult,
             apisClient,
             sessionService,
@@ -62,14 +62,16 @@ internal sealed class CreateClientCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
                     var errorMessage = error switch
                     {
-                        ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_DuplicateNameError => Messages.DuplicateName(name, "Client"),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

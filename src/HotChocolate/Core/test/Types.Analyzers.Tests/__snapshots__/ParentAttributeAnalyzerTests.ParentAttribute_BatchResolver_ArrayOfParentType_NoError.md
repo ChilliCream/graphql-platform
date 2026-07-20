@@ -74,6 +74,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
@@ -128,7 +129,7 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (60,61)-(60,63)",
+    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (61,61)-(61,63)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1586)",
     "MessageFormat": "Array creation must have array size or array initializer",
     "Message": "Array creation must have array size or array initializer",

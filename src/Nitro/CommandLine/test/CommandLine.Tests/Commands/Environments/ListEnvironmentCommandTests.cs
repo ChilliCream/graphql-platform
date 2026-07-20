@@ -24,8 +24,8 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
             Options:
               --cursor <cursor>              The pagination cursor to resume from [env: NITRO_CURSOR]
               --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
-              --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>            The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                 Show help and usage information
 
@@ -52,7 +52,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -74,7 +74,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
@@ -99,7 +99,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
             WorkspaceId);
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -167,7 +167,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
             "cursor-1");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

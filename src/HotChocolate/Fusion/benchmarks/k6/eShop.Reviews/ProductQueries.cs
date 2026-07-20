@@ -8,6 +8,6 @@ namespace eShop.Reviews;
 public static partial class ProductQueries
 {
     [Lookup, Internal]
-    public static Product GetProduct([ID] string upc)
+    public static Product? GetProduct([ID] string upc)
         => new() { Upc = upc };
 }

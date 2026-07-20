@@ -49,7 +49,6 @@ public static class ErrorCodes
         public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
-        public const string SemanticNonNullViolation = "HC0088";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
         public const string OperationDocumentNotFound = "HC0015";
@@ -202,6 +201,12 @@ public static class ErrorCodes
         /// Multi-part requests must include a GraphQL preflight header.
         /// </summary>
         public const string MultiPartPreflightRequired = "HC0077";
+
+        /// <summary>
+        /// A multipart file upload variable location held a non-null value while
+        /// null values are enforced.
+        /// </summary>
+        public const string MultiPartFileVariableValueNotNull = "HC0115";
     }
 
     public static class Schema
@@ -255,6 +260,11 @@ public static class ErrorCodes
         public const string UnknownDirectiveArgument = "HC0072";
 
         /// <summary>
+        /// A directive extension targets a directive that is not defined.
+        /// </summary>
+        public const string DirectiveExtensionUnknownTarget = "HC0116";
+
+        /// <summary>
         /// A mutation field must return a value.
         /// </summary>
         public const string MutationMustReturnValue = "HC0089";
@@ -301,6 +311,7 @@ public static class ErrorCodes
         public const string FilteringProjectionFailed = "HC0023";
         public const string SortingProjectionFailed = "HC0024";
         public const string NoPaginationProviderFound = "HC0025";
+        public const string MaxFilterOperationsExceeded = "HC0117";
 
         /// <summary>
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported

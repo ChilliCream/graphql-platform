@@ -1,0 +1,114 @@
+operation:
+  - document: |
+      {
+        feed {
+          author {
+            id
+          }
+          comments(limit: 1) {
+            id
+          }
+          id @fusion__requirement
+          fusion__requirement_comments_0: comments(limit: 3) @fusion__requirement {
+            somethingElse @fusion__requirement
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 7
+nodes:
+  - id: 1
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        postById(id: $__fusion_1_id) {
+          comments(limit: 1) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
+        postById(id: $__fusion_5_id) {
+          fusion__requirement_comments_0: comments(limit: 3) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_somethingElse: [String]
+        $__fusion_3_id: ID!
+      ) {
+        postById(id: $__fusion_3_id) {
+          author(somethingElse: $__fusion_2_somethingElse) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_2_somethingElse
+        internalAlias: fusion__requirement_comments_0
+        selectionMap: >-
+          comments(limit: 3)[somethingElse]
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 4
+  - id: 4
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
+        commentById(id: $__fusion_4_id) {
+          somethingElse
+        }
+      }
+    source: $.commentById
+    target: $.feed.fusion__requirement_comments_0
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

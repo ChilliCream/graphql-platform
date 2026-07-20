@@ -170,5 +170,5 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 ? new SelectionSetNode(((SelectionSetNode)n).Selections)
                 : n);
 
-    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

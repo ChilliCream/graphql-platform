@@ -2,8 +2,8 @@ schema {
   mutation: MutationWithPayloadOverride
 }
 
-interface Error {
-  message: String!
+type MutationWithPayloadOverride {
+  doSomething2(input: DoSomething2Input!): DoSomething2Payload!
 }
 
 type Custom2Error implements Error {
@@ -19,8 +19,8 @@ type DoSomething2Payload {
   errors: [DoSomething2Error!]
 }
 
-type MutationWithPayloadOverride {
-  doSomething2(input: DoSomething2Input!): DoSomething2Payload!
+interface Error {
+  message: String!
 }
 
 union DoSomething2Error = CustomError | Custom2Error

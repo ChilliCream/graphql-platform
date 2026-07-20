@@ -24,8 +24,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        votable: Votable
       }
 
       type Comment implements Votable @key(fields: "id") {
@@ -36,8 +36,8 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        votable: Votable
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -66,9 +66,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        viewerCanVote: Boolean!
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+        commentById(id: ID!): Comment @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -81,9 +81,9 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
-        commentById(id: ID!): Comment @lookup @shareable
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
       }
   - name: C
     schema: |
@@ -91,9 +91,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        totalVotes: Int!
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+        commentById(id: ID!): Comment @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -106,9 +106,9 @@ sourceSchemas:
         totalVotes: Int!
       }
 
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
-        commentById(id: ID!): Comment @lookup @shareable
+      interface Votable {
+        id: ID!
+        totalVotes: Int!
       }
     interactions:
       - request:

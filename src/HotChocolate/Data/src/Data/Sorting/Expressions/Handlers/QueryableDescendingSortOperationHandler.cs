@@ -15,7 +15,7 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
         SortEnumValue? sortEnumValue)
         => DescendingSortOperation.From(fieldSelector);
 
-    public static QueryableDescendingSortOperationHandler Create(SortProviderContext context) => new();
+    public static QueryableDescendingSortOperationHandler Create(SortProviderContext _) => new();
 
     private sealed class DescendingSortOperation : QueryableSortOperation
     {

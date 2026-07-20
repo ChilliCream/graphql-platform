@@ -21,6 +21,15 @@
   <data name="NonNullType_InnerTypeCannotBeNonNull" xml:space="preserve">
     <value>The inner type cannot be a non-null type.</value>
   </data>
+  <data name="SchemaParser_ArgumentDefaultValueMismatchInExtension" xml:space="preserve">
+    <value>The argument '{0}' on field '{1}' was extended with a different default value than the original definition.</value>
+  </data>
+  <data name="SchemaParser_ArgumentDescriptionMismatchInExtension" xml:space="preserve">
+    <value>The description on argument '{0}' of field '{1}' in the extension does not match the original definition.</value>
+  </data>
+  <data name="SchemaParser_ArgumentTypeMismatchInExtension" xml:space="preserve">
+    <value>The argument '{0}' on field '{1}' was extended with a different type than the original definition.</value>
+  </data>
   <data name="SchemaParser_DuplicateArgumentDefinition" xml:space="preserve">
     <value>An argument with the name '{0}' has already been defined on the field '{1}'.</value>
   </data>
@@ -36,6 +45,12 @@
   <data name="SchemaParser_DuplicateTypeDefinition" xml:space="preserve">
     <value>A type with the name '{0}' has already been defined.</value>
   </data>
+  <data name="SchemaParser_FieldDescriptionMismatchInExtension" xml:space="preserve">
+    <value>The description on field '{0}' of type '{1}' in the extension does not match the original definition.</value>
+  </data>
+  <data name="SchemaParser_FieldTypeMismatchInExtension" xml:space="preserve">
+    <value>The field '{0}' on type '{1}' was extended with a different type than the original definition.</value>
+  </data>
   <data name="SchemaParser_InvalidArgumentType" xml:space="preserve">
     <value>The argument '{0}' must accept an input type.</value>
   </data>
@@ -47,5 +62,8 @@
   </data>
   <data name="SchemaParser_InvalidUnionMemberType" xml:space="preserve">
     <value>The Union type '{0}' cannot include the type '{1}'. Unions can only contain Object types.</value>
+  </data>
+  <data name="SchemaParser_NonRepeatableDirectiveAlreadyApplied" xml:space="preserve">
+    <value>The non-repeatable directive '@{0}' was already applied to '{1}' and cannot be applied again by an extension.</value>
   </data>
 </root>

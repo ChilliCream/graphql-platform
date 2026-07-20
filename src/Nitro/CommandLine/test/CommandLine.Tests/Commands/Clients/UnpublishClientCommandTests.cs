@@ -26,8 +26,8 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
               --tag <tag> (REQUIRED)              One or more client version tags to unpublish [env: NITRO_TAG]
               --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
               --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
-              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
 
@@ -62,7 +62,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -158,6 +158,57 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
     }
 
     [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupUnpublishClientMutation(errors: [CreateUnpublishClientStageNotFoundError()]);
+
+        var result = await ExecuteCommandAsync(
+            "client", "unpublish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientVersionNotFound_ReturnsError()
+    {
+        SetupUnpublishClientMutation(errors: [CreateUnpublishClientVersionNotFoundError()]);
+
+        var result = await ExecuteCommandAsync(
+            "client", "unpublish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client version not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientNotFound_ReturnsError()
+    {
+        SetupUnpublishClientMutation(errors: [CreateUnpublishClientClientNotFoundError()]);
+
+        var result = await ExecuteCommandAsync(
+            "client", "unpublish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client 'client-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UnpublishThrows_ReturnsError()
     {
         // arrange
@@ -199,27 +250,9 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
                 """
             },
             {
-                CreateUnpublishClientStageNotFoundError(),
-                """
-                Stage 'dev' was not found.
-                """
-            },
-            {
-                CreateUnpublishClientVersionNotFoundError(),
-                """
-                Client version not found.
-                """
-            },
-            {
                 CreateUnpublishClientUnauthorizedError(),
                 """
                 Unauthorized.
-                """
-            },
-            {
-                CreateUnpublishClientClientNotFoundError(),
-                """
-                Client 'client-1' was not found.
                 """
             }
         };

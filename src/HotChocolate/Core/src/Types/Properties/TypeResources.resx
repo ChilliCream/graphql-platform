@@ -72,8 +72,14 @@
   <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
     <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
   </data>
+  <data name="DirectiveExtension_UnknownTarget" xml:space="preserve">
+    <value>The directive extension `extend directive @{0}` targets an undefined directive.</value>
+  </data>
   <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
     <value>Location adjacent to an argument definition</value>
+  </data>
+  <data name="DirectiveLocation_DirectiveDefinition" xml:space="preserve">
+    <value>Location adjacent to a directive definition.</value>
   </data>
   <data name="DirectiveLocation_Description" xml:space="preserve">
     <value>A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.</value>
@@ -951,6 +957,9 @@ Type: `{0}`</value>
   <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
     <value>The directive arguments have invalid values: '{0}' at {1}.</value>
   </data>
+  <data name="ErrorHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
+    <value>The directive definition '@{0}' must not reference itself.</value>
+  </data>
   <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
     <value>TypeReference kind not supported.</value>
   </data>
@@ -1036,7 +1045,7 @@ Type: `{0}`</value>
     <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
   </data>
   <data name="RequiresOptInDirectiveType_TypeDescription" xml:space="preserve">
-    <value>Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used.</value>
+    <value>Indicates that the given field, argument, input field, enum value, or directive definition requires giving explicit consent before being used.</value>
   </data>
   <data name="RequiresOptInDirectiveType_FeatureDescription" xml:space="preserve">
     <value>The name of the feature that requires opt in.</value>
