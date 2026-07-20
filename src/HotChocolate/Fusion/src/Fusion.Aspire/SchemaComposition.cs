@@ -48,6 +48,10 @@ internal sealed class SchemaComposition(
                     }
                 }
             }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
             catch
             {
                 compositionFailed = true;
@@ -106,9 +110,9 @@ internal sealed class SchemaComposition(
                 }
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // we do nothing when we are cancelled.
+            throw;
         }
         catch (Exception ex)
         {
@@ -136,27 +140,40 @@ internal sealed class SchemaComposition(
             "Found {Count} referenced resources for {ResourceName}",
             referencedResources.Count, compositionResource.Name);
 
-        foreach (var referencedResource in referencedResources)
+        try
         {
-            if (!referencedResource.HasGraphQLSchema())
+            foreach (var referencedResource in referencedResources)
             {
-                logger.LogDebug(
-                    "Resource {ResourceName} does not have a GraphQL schema, skipping",
-                    referencedResource.Name);
-                continue;
+                if (!referencedResource.HasGraphQLSchema())
+                {
+                    logger.LogDebug(
+                        "Resource {ResourceName} does not have a GraphQL schema, skipping",
+                        referencedResource.Name);
+                    continue;
+                }
+
+                var schemaInfo = await GetSourceSchemaInfoAsync(referencedResource, cancellationToken);
+                if (schemaInfo is null)
+                {
+                    continue;
+                }
+
+                sourceSchemas.Add(schemaInfo);
+
+                logger.LogInformation(
+                    "Discovered source schema {Name} for resource {ResourceName}",
+                    schemaInfo.Name,
+                    schemaInfo.ResourceName);
+            }
+        }
+        catch
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
             }
 
-            var schemaInfo = await GetSourceSchemaInfoAsync(referencedResource, cancellationToken);
-            if (schemaInfo is null)
-            {
-                continue;
-            }
-
-            sourceSchemas.Add(schemaInfo);
-
-            logger.LogInformation("Discovered source schema: {Name} -> {SchemaSource}",
-                schemaInfo.Name,
-                schemaInfo.HttpEndpointUrl?.ToString() ?? $"file://{schemaInfo.Schema.Name}");
+            throw;
         }
 
         return sourceSchemas;
@@ -210,7 +227,10 @@ internal sealed class SchemaComposition(
         switch (sourceSchemaSettings.Location)
         {
             case SourceSchemaLocationType.SchemaEndpoint:
-                return await GetSourceSchemaFromEndpointAsync(resource, cancellationToken);
+                return await GetSourceSchemaFromEndpointAsync(
+                    resource,
+                    sourceSchemaSettings,
+                    cancellationToken);
 
             case SourceSchemaLocationType.ProjectDirectory:
                 return await GetSourceSchemaFromFileAsync(resource, sourceSchemaSettings, cancellationToken);
@@ -226,40 +246,116 @@ internal sealed class SchemaComposition(
 
     private async Task<SourceSchemaInfo?> GetSourceSchemaFromEndpointAsync(
         IResourceWithEndpoints resource,
+        GraphQLSourceSchemaAnnotation annotation,
         CancellationToken cancellationToken)
     {
-        var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
-
-        var schemaUrl = resource.GetGraphQLSchemaUrl();
-        if (schemaUrl == null)
-        {
-            logger.LogWarning("Could not determine schema URL for {ResourceName}", resource.Name);
-            return null;
-        }
-
-        // Wait for the service to be ready and fetch schema
-        var schemaText = await FetchSchemaFromEndpointAsync(schemaUrl, cancellationToken);
-        if (schemaText == null)
-        {
-            return null;
-        }
-
-        // For endpoint schemas, look for "schema-settings.json" in the project directory
-        var schemaSettings = await GetSourceSchemaSettingsAsync(resource, "schema-settings.json", cancellationToken);
+        // For endpoint schemas, look for "schema-settings.json" in the project directory.
+        var schemaSettings = await GetSourceSchemaSettingsAsync(
+            resource,
+            "schema-settings.json",
+            cancellationToken);
         if (schemaSettings == null)
         {
             logger.LogWarning("Could not find schema-settings.json for {ResourceName}", resource.Name);
             return null;
         }
 
-        return new SourceSchemaInfo
+        var ownershipTransferred = false;
+
+        try
         {
-            Name = sourceSchemaName,
-            ResourceName = resource.Name,
-            HttpEndpointUrl = new Uri(schemaUrl),
-            Schema = new SourceSchemaText(sourceSchemaName, schemaText),
-            SchemaSettings = schemaSettings
-        };
+            var endpointConfiguration = ReadEndpointConfiguration(
+                resource.Name,
+                annotation.SourceSchemaName,
+                schemaSettings);
+            var schemaUrl = resource.GetGraphQLSchemaUrl(endpointConfiguration.DefaultPath);
+
+            if (schemaUrl is null)
+            {
+                logger.LogWarning("Could not determine schema URL for {ResourceName}", resource.Name);
+                return null;
+            }
+
+            var schemaText = await FetchSchemaFromEndpointAsync(
+                endpointConfiguration.SourceSchemaName,
+                schemaUrl,
+                endpointConfiguration.Protocol,
+                cancellationToken);
+            if (schemaText == null)
+            {
+                return null;
+            }
+
+            var sourceSchema = new SourceSchemaInfo
+            {
+                Name = endpointConfiguration.SourceSchemaName,
+                ResourceName = resource.Name,
+                HttpEndpointUrl = new Uri(schemaUrl),
+                Schema = new SourceSchemaText(endpointConfiguration.SourceSchemaName, schemaText),
+                SchemaSettings = schemaSettings
+            };
+
+            ownershipTransferred = true;
+            return sourceSchema;
+        }
+        finally
+        {
+            if (!ownershipTransferred)
+            {
+                schemaSettings.Dispose();
+            }
+        }
+    }
+
+    internal static SchemaEndpointConfiguration ReadEndpointConfiguration(
+        string resourceName,
+        string? configuredSourceSchemaName,
+        JsonDocument schemaSettings)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(resourceName);
+        ArgumentNullException.ThrowIfNull(schemaSettings);
+
+        var root = schemaSettings.RootElement;
+
+        if (root.ValueKind is not JsonValueKind.Object)
+        {
+            if (!ApolloFederationSourceSchemaSettings.TryReadVersion(
+                configuredSourceSchemaName ?? resourceName,
+                root,
+                out _,
+                out var errorMessage))
+            {
+                throw new InvalidOperationException(errorMessage);
+            }
+        }
+
+        if (!root.TryGetProperty("name", out var name)
+            || name.ValueKind is not JsonValueKind.String
+            || string.IsNullOrWhiteSpace(name.GetString()))
+        {
+            throw new InvalidOperationException(
+                $"Schema settings for resource '{resourceName}' must specify a non-empty string 'name'.");
+        }
+
+        var sourceSchemaName = name.GetString()!;
+
+        if (configuredSourceSchemaName?.Equals(sourceSchemaName, StringComparison.Ordinal) is false)
+        {
+            throw new InvalidOperationException(
+                $"The configured source schema name '{configuredSourceSchemaName}' for resource "
+                + $"'{resourceName}' does not match schema-settings.json name '{sourceSchemaName}'.");
+        }
+
+        if (!ApolloFederationSourceSchemaSettings.TryReadVersion(
+            sourceSchemaName,
+            root,
+            out var version,
+            out var versionErrorMessage))
+        {
+            throw new InvalidOperationException(versionErrorMessage);
+        }
+
+        return new(sourceSchemaName, version);
     }
 
     private async Task<SourceSchemaInfo?> GetSourceSchemaFromFileAsync(
@@ -269,16 +365,25 @@ internal sealed class SchemaComposition(
     {
         var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
 
-        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, annotation.SchemaPath, cancellationToken);
-        if (schemaFromFile == null)
+        var schemaPath = annotation.SchemaPath ?? "schema.graphql";
+
+        if (IsExtensionsSchemaPath(schemaPath))
+        {
+            logger.LogWarning(
+                "Schema extensions file '{SchemaPath}' cannot be used as a source schema file. Provide the base schema file instead.",
+                schemaPath);
+            return null;
+        }
+
+        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, schemaPath, cancellationToken);
+        if (schemaFromFile is not { } schemaFiles)
         {
             return null;
         }
 
         // For file schemas, settings file is named after the schema file
         // e.g., "foo.graphql" -> "foo-settings.json"
-        var schemaFileName = annotation.SchemaPath ?? "schema.graphql";
-        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaFileName)}-settings.json";
+        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaPath)}-settings.json";
 
         var schemaSettings = await GetSourceSchemaSettingsAsync(resource, settingsFileName, cancellationToken);
         if (schemaSettings == null)
@@ -291,7 +396,7 @@ internal sealed class SchemaComposition(
             Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
-            Schema = new SourceSchemaText(sourceSchemaName, schemaFromFile),
+            Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
             SchemaSettings = schemaSettings
         };
     }
@@ -322,6 +427,10 @@ internal sealed class SchemaComposition(
             var settingsJson = await File.ReadAllTextAsync(settingsFile, cancellationToken);
             return JsonDocument.Parse(settingsJson);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(
@@ -333,33 +442,105 @@ internal sealed class SchemaComposition(
         }
     }
 
-    private async Task<string?> FetchSchemaFromEndpointAsync(string schemaUrl, CancellationToken cancellationToken)
+    private async Task<string?> FetchSchemaFromEndpointAsync(
+        string sourceSchemaName,
+        string schemaUrl,
+        SchemaEndpointProtocol protocol,
+        CancellationToken cancellationToken)
     {
-        try
+        const int maxRetries = 60;
+        var endpoint = new Uri(schemaUrl);
+
+        using var httpClient = new HttpClient
         {
-            // Wait for the service to be ready
-            if (!await WaitForServiceReadyAsync(schemaUrl, cancellationToken))
-            {
-                logger.LogWarning("Service not ready at {SchemaUrl}", schemaUrl);
-                return null;
-            }
+            Timeout = TimeSpan.FromSeconds(10)
+        };
 
-            using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(30);
-
-            var response = await httpClient.GetAsync(schemaUrl, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadAsStringAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to fetch schema from {SchemaUrl}", schemaUrl);
-            return null;
-        }
+        return await FetchSchemaFromEndpointAsync(
+            sourceSchemaName,
+            endpoint,
+            protocol,
+            httpClient,
+            maxRetries,
+            TimeSpan.FromSeconds(2),
+            cancellationToken);
     }
 
-    private async Task<string?> ReadSchemaFromProjectDirectoryAsync(
+    internal async Task<string?> FetchSchemaFromEndpointAsync(
+        string sourceSchemaName,
+        Uri endpoint,
+        SchemaEndpointProtocol protocol,
+        HttpClient httpClient,
+        int maxRetries,
+        TimeSpan retryDelay,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxRetries, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(retryDelay, TimeSpan.Zero);
+
+        logger.LogDebug("Waiting for schema service {SourceSchemaName}", sourceSchemaName);
+
+        for (var i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                if (protocol is SchemaEndpointProtocol.ApolloFederation)
+                {
+                    return await ApolloFederationSchemaFetcher.FetchAsync(
+                        httpClient,
+                        sourceSchemaName,
+                        endpoint,
+                        cancellationToken);
+                }
+
+                return await DefaultSchemaFetcher.FetchAsync(
+                    httpClient,
+                    sourceSchemaName,
+                    endpoint,
+                    cancellationToken);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                logger.LogDebug(
+                    "Schema service {SourceSchemaName} timed out (attempt {Attempt}/{MaxRetries})",
+                    sourceSchemaName,
+                    i + 1,
+                    maxRetries);
+            }
+            catch (HttpRequestException exception) when (exception.StatusCode is null)
+            {
+                logger.LogDebug(
+                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
+                    sourceSchemaName,
+                    i + 1,
+                    maxRetries);
+            }
+            catch (IOException)
+            {
+                logger.LogDebug(
+                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
+                    sourceSchemaName,
+                    i + 1,
+                    maxRetries);
+            }
+
+            if (i + 1 < maxRetries)
+            {
+                await Task.Delay(retryDelay, cancellationToken);
+            }
+        }
+
+        logger.LogWarning(
+            "Schema service {SourceSchemaName} failed to become ready after {MaxRetries} attempts",
+            sourceSchemaName,
+            maxRetries);
+        return null;
+    }
+
+    private async Task<(string Schema, string? Extensions)?> ReadSchemaFromProjectDirectoryAsync(
         IResourceWithEndpoints resource,
         string? fileName,
         CancellationToken cancellationToken)
@@ -383,7 +564,25 @@ internal sealed class SchemaComposition(
                 return null;
             }
 
-            return await File.ReadAllTextAsync(schemaFile, cancellationToken);
+            var schemaText = await File.ReadAllTextAsync(schemaFile, cancellationToken);
+
+            var extensionsFile = IOPath.Combine(
+                IOPath.GetDirectoryName(schemaFile)!,
+                IOPath.GetFileNameWithoutExtension(schemaFile)
+                + "-extensions"
+                + IOPath.GetExtension(schemaFile));
+
+            string? extensionsText = null;
+            if (File.Exists(extensionsFile))
+            {
+                extensionsText = await File.ReadAllTextAsync(extensionsFile, cancellationToken);
+            }
+
+            return (schemaText, extensionsText);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -430,58 +629,6 @@ internal sealed class SchemaComposition(
         return null;
     }
 
-    private async Task<bool> WaitForServiceReadyAsync(string url, CancellationToken cancellationToken)
-    {
-        const int maxRetries = 60;
-        const int delayMs = 2000;
-
-        logger.LogDebug("Waiting for service to be ready at {Url}", url);
-
-        for (var i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(10);
-
-                var response = await httpClient.GetAsync(url, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    // For GraphQL schema endpoints, also verify the content is valid
-                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                    if (!string.IsNullOrWhiteSpace(content))
-                    {
-                        logger.LogDebug("Service ready at {Url}", url);
-                        return true;
-                    }
-                }
-
-                logger.LogDebug(
-                    "Service not ready yet at {Url} (attempt {Attempt}/{MaxRetries})",
-                    url,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (Exception ex)
-            {
-                logger.LogDebug(
-                    "Service check failed at {Url}: {Error} (attempt {Attempt}/{MaxRetries})",
-                    url,
-                    ex.Message,
-                    i + 1,
-                    maxRetries);
-            }
-
-            await Task.Delay(delayMs, cancellationToken);
-        }
-
-        logger.LogWarning(
-            "Service failed to become ready at {Url} after {MaxRetries} attempts",
-            url,
-            maxRetries);
-        return false;
-    }
-
     private async Task<bool> ComposeSchemaAsync(
         string archivePath,
         List<SourceSchemaInfo> sourceSchemas,
@@ -518,4 +665,9 @@ internal sealed class SchemaComposition(
 
         return false;
     }
+
+    private static bool IsExtensionsSchemaPath(string filePath)
+        => IOPath.GetFileNameWithoutExtension(filePath).EndsWith(
+            "-extensions",
+            StringComparison.OrdinalIgnoreCase);
 }

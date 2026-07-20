@@ -30,7 +30,7 @@ public class MessageEnvelopeWriterTests
             Headers = new Headers(),
             Body = """{"orderId":"1"}"""u8.ToArray()
         };
-        envelope.Headers!.Set("x-trace", "abc123");
+        envelope.Headers.Set("x-trace", "abc123");
 
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -444,7 +444,7 @@ public class MessageEnvelopeWriterTests
             Headers = new Headers(),
             Body = """{"orderId":"1"}"""u8.ToArray()
         };
-        original.Headers!.Set("x-trace", "abc123");
+        original.Headers.Set("x-trace", "abc123");
 
         // act - write
         using var stream = new MemoryStream();
@@ -471,9 +471,9 @@ public class MessageEnvelopeWriterTests
         Assert.Equal(original.DeliverBy, result.DeliverBy);
         Assert.Equal(original.DeliveryCount, result.DeliveryCount);
         Assert.NotNull(result.EnclosedMessageTypes);
-        Assert.Equal(2, result.EnclosedMessageTypes!.Value.Length);
+        Assert.Equal(2, result.EnclosedMessageTypes.Value.Length);
         Assert.NotNull(result.Headers);
-        Assert.True(result.Headers!.TryGetValue("x-trace", out var traceValue));
+        Assert.True(result.Headers.TryGetValue("x-trace", out var traceValue));
         Assert.Equal("abc123", traceValue);
         Assert.False(result.Body.IsEmpty);
     }
@@ -523,7 +523,7 @@ public class MessageEnvelopeWriterTests
 
         // assert
         Assert.NotNull(result.EnclosedMessageTypes);
-        Assert.Empty(result.EnclosedMessageTypes!.Value);
+        Assert.Empty(result.EnclosedMessageTypes.Value);
     }
 
     [Fact]

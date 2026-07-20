@@ -72,19 +72,22 @@ public class QueryableFilterVisitorListTests
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { fooNested: { some: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -92,7 +95,7 @@ public class QueryableFilterVisitorListTests
             .Add(res1, "a")
             .Add(res2, "d")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -106,19 +109,22 @@ public class QueryableFilterVisitorListTests
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -126,7 +132,7 @@ public class QueryableFilterVisitorListTests
             .Add(res1, "a")
             .Add(res2, "d")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -139,17 +145,20 @@ public class QueryableFilterVisitorListTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument("{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument("{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument("{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -157,7 +166,7 @@ public class QueryableFilterVisitorListTests
             .Add(res1, "a")
             .Add(res2, "d")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -170,17 +179,20 @@ public class QueryableFilterVisitorListTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -188,7 +200,7 @@ public class QueryableFilterVisitorListTests
             .Add(res1, "false")
             .Add(res2, "true")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

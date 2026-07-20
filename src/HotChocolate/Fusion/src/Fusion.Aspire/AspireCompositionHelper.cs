@@ -21,10 +21,7 @@ internal static class AspireCompositionHelper
 
         var compositionLog = new CompositionLog();
         var environment = settings.EnvironmentName ?? "Aspire";
-        var compositionSettings = new CompositionSettings
-        {
-            Merger = { EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification }
-        };
+        var compositionSettings = CreateCompositionSettings(settings);
         var sourceSchemas = newSourceSchemas.ToDictionary(
             s => s.Name,
             s => (s.Schema, s.SchemaSettings));
@@ -35,6 +32,7 @@ internal static class AspireCompositionHelper
             archive,
             environment,
             compositionSettings,
+            legacyArchive: null,
             cancellationToken);
 
         var output = new StringBuilder();
@@ -62,6 +60,28 @@ internal static class AspireCompositionHelper
         logger.LogInformation("{Message}", output.ToString());
 
         return true;
+    }
+
+    internal static CompositionSettings CreateCompositionSettings(
+        GraphQLCompositionSettings settings)
+    {
+        return new CompositionSettings
+        {
+            Merger =
+            {
+                CacheControlMergeBehavior = settings.CacheControlMergeBehavior,
+                EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
+                NodeResolution = settings.NodeResolution,
+                TagMergeBehavior = settings.TagMergeBehavior
+            },
+            Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
+            ApolloFederationCompatibility =
+            {
+                AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects,
+                ShareableFieldRuntimeTypeRouting = settings.ShareableFieldRuntimeTypeRouting
+            },
+            Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
+        };
     }
 
     /// <summary>

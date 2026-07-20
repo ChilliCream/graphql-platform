@@ -2,12 +2,12 @@ schema {
   mutation: MultipleArgumentMutation
 }
 
-type DoSomethingPayload {
-  string: String
-}
-
 type MultipleArgumentMutation {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type DoSomethingPayload {
+  string: String
 }
 
 input DoSomethingInput {

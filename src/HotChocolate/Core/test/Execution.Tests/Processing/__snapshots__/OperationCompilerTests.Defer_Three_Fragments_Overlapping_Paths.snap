@@ -1,8 +1,8 @@
 {
   stage {
-    ... FragmentA @defer(label: "a")
-    ... FragmentB @defer(label: "b")
-    ... FragmentC @defer(label: "c")
+    ...FragmentA @defer(label: "a")
+    ...FragmentB @defer(label: "b")
+    ...FragmentC @defer(label: "c")
     id
   }
 }
@@ -94,25 +94,60 @@ fragment FragmentC on Stage {
           @__execute(id: 4, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
           ... on Metrics {
             operations
-              @__execute(id: 9, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              @__execute(
+                id: 9
+                kind: DEFAULT
+                type: COMPOSITE
+                isDeferred: true
+              ) {
               ... on OperationMetrics {
                 summary
-                  @__execute(id: 13, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                  @__execute(
+                    id: 13
+                    kind: DEFAULT
+                    type: COMPOSITE
+                    isDeferred: true
+                  ) {
                   ... on OperationSummary {
                     latency
-                      @__execute(id: 15, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                      @__execute(
+                        id: 15
+                        kind: DEFAULT
+                        type: COMPOSITE
+                        isDeferred: true
+                      ) {
                       ... on Latency {
                         mean
-                          @__execute(id: 18, kind: DEFAULT, type: LEAF, isDeferred: true)
+                          @__execute(
+                            id: 18
+                            kind: DEFAULT
+                            type: LEAF
+                            isDeferred: true
+                          )
                       }
                     }
                     throughput
-                      @__execute(id: 16, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                      @__execute(
+                        id: 16
+                        kind: DEFAULT
+                        type: COMPOSITE
+                        isDeferred: true
+                      ) {
                       ... on Throughput {
                         opm
-                          @__execute(id: 20, kind: DEFAULT, type: LEAF, isDeferred: true)
+                          @__execute(
+                            id: 20
+                            kind: DEFAULT
+                            type: LEAF
+                            isDeferred: true
+                          )
                         errorRate
-                          @__execute(id: 21, kind: DEFAULT, type: LEAF, isDeferred: true)
+                          @__execute(
+                            id: 21
+                            kind: DEFAULT
+                            type: LEAF
+                            isDeferred: true
+                          )
                       }
                     }
                   }
@@ -120,21 +155,51 @@ fragment FragmentC on Stage {
               }
             }
             clients
-              @__execute(id: 10, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              @__execute(
+                id: 10
+                kind: DEFAULT
+                type: COMPOSITE
+                isDeferred: true
+              ) {
               ... on ClientMetrics {
                 insights
-                  @__execute(id: 23, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                  @__execute(
+                    id: 23
+                    kind: DEFAULT
+                    type: COMPOSITE
+                    isDeferred: true
+                  ) {
                   ... on ClientInsightsConnection {
                     edges
-                      @__execute(id: 25, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
+                      @__execute(
+                        id: 25
+                        kind: DEFAULT
+                        type: COMPOSITE_LIST
+                        isDeferred: true
+                      ) {
                       ... on ClientInsightsEdge {
                         node
-                          @__execute(id: 27, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                          @__execute(
+                            id: 27
+                            kind: DEFAULT
+                            type: COMPOSITE
+                            isDeferred: true
+                          ) {
                           ... on ClientInsight {
                             id
-                              @__execute(id: 29, kind: DEFAULT, type: LEAF, isDeferred: true)
+                              @__execute(
+                                id: 29
+                                kind: DEFAULT
+                                type: LEAF
+                                isDeferred: true
+                              )
                             name
-                              @__execute(id: 30, kind: DEFAULT, type: LEAF, isDeferred: true)
+                              @__execute(
+                                id: 30
+                                kind: DEFAULT
+                                type: LEAF
+                                isDeferred: true
+                              )
                           }
                         }
                       }
@@ -144,49 +209,129 @@ fragment FragmentC on Stage {
               }
             }
             subgraphs
-              @__execute(id: 11, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              @__execute(
+                id: 11
+                kind: DEFAULT
+                type: COMPOSITE
+                isDeferred: true
+              ) {
               ... on SubgraphMetrics {
                 insights
-                  @__execute(id: 32, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                  @__execute(
+                    id: 32
+                    kind: DEFAULT
+                    type: COMPOSITE
+                    isDeferred: true
+                  ) {
                   ... on SubgraphInsightsConnection {
                     edges
-                      @__execute(id: 34, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
+                      @__execute(
+                        id: 34
+                        kind: DEFAULT
+                        type: COMPOSITE_LIST
+                        isDeferred: true
+                      ) {
                       ... on SubgraphInsightsEdge {
                         node
-                          @__execute(id: 37, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                          @__execute(
+                            id: 37
+                            kind: DEFAULT
+                            type: COMPOSITE
+                            isDeferred: true
+                          ) {
                           ... on SubgraphInsight {
                             id
-                              @__execute(id: 40, kind: DEFAULT, type: LEAF, isDeferred: true)
+                              @__execute(
+                                id: 40
+                                kind: DEFAULT
+                                type: LEAF
+                                isDeferred: true
+                              )
                             name
-                              @__execute(id: 41, kind: DEFAULT, type: LEAF, isDeferred: true)
+                              @__execute(
+                                id: 41
+                                kind: DEFAULT
+                                type: LEAF
+                                isDeferred: true
+                              )
                             impact
-                              @__execute(id: 42, kind: DEFAULT, type: LEAF, isDeferred: true)
+                              @__execute(
+                                id: 42
+                                kind: DEFAULT
+                                type: LEAF
+                                isDeferred: true
+                              )
                             latency
-                              @__execute(id: 43, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                              @__execute(
+                                id: 43
+                                kind: DEFAULT
+                                type: COMPOSITE
+                                isDeferred: true
+                              ) {
                               ... on LatencyDataset {
                                 dataset
-                                  @__execute(id: 46, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
+                                  @__execute(
+                                    id: 46
+                                    kind: DEFAULT
+                                    type: COMPOSITE_LIST
+                                    isDeferred: true
+                                  ) {
                                   ... on LatencyDataPoint {
                                     epoch
-                                      @__execute(id: 48, kind: DEFAULT, type: LEAF, isDeferred: true)
+                                      @__execute(
+                                        id: 48
+                                        kind: DEFAULT
+                                        type: LEAF
+                                        isDeferred: true
+                                      )
                                     mean
-                                      @__execute(id: 49, kind: DEFAULT, type: LEAF, isDeferred: true)
+                                      @__execute(
+                                        id: 49
+                                        kind: DEFAULT
+                                        type: LEAF
+                                        isDeferred: true
+                                      )
                                   }
                                 }
                               }
                             }
                             throughput
-                              @__execute(id: 44, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                              @__execute(
+                                id: 44
+                                kind: DEFAULT
+                                type: COMPOSITE
+                                isDeferred: true
+                              ) {
                               ... on ThroughputDataset {
                                 dataset
-                                  @__execute(id: 51, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
+                                  @__execute(
+                                    id: 51
+                                    kind: DEFAULT
+                                    type: COMPOSITE_LIST
+                                    isDeferred: true
+                                  ) {
                                   ... on ThroughputDataPoint {
                                     epoch
-                                      @__execute(id: 53, kind: DEFAULT, type: LEAF, isDeferred: true)
+                                      @__execute(
+                                        id: 53
+                                        kind: DEFAULT
+                                        type: LEAF
+                                        isDeferred: true
+                                      )
                                     opm
-                                      @__execute(id: 54, kind: DEFAULT, type: LEAF, isDeferred: true)
+                                      @__execute(
+                                        id: 54
+                                        kind: DEFAULT
+                                        type: LEAF
+                                        isDeferred: true
+                                      )
                                     errorRate
-                                      @__execute(id: 55, kind: DEFAULT, type: LEAF, isDeferred: true)
+                                      @__execute(
+                                        id: 55
+                                        kind: DEFAULT
+                                        type: LEAF
+                                        isDeferred: true
+                                      )
                                   }
                                 }
                               }
@@ -194,16 +339,36 @@ fragment FragmentC on Stage {
                           }
                         }
                         cursor
-                          @__execute(id: 38, kind: DEFAULT, type: LEAF, isDeferred: true)
+                          @__execute(
+                            id: 38
+                            kind: DEFAULT
+                            type: LEAF
+                            isDeferred: true
+                          )
                       }
                     }
                     pageInfo
-                      @__execute(id: 35, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+                      @__execute(
+                        id: 35
+                        kind: DEFAULT
+                        type: COMPOSITE
+                        isDeferred: true
+                      ) {
                       ... on PageInfo {
                         endCursor
-                          @__execute(id: 57, kind: DEFAULT, type: LEAF, isDeferred: true)
+                          @__execute(
+                            id: 57
+                            kind: DEFAULT
+                            type: LEAF
+                            isDeferred: true
+                          )
                         hasNextPage
-                          @__execute(id: 58, kind: DEFAULT, type: LEAF, isDeferred: true)
+                          @__execute(
+                            id: 58
+                            kind: DEFAULT
+                            type: LEAF
+                            isDeferred: true
+                          )
                       }
                     }
                   }

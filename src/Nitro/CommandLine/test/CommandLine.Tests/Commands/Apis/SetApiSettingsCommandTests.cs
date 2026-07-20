@@ -28,8 +28,8 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
             Options:
                             --treat-dangerous-as-breaking    Treat dangerous changes as breaking [env: NITRO_TREAT_DANGEROUS_AS_BREAKING]
                             --allow-breaking-schema-changes  Allow breaking schema changes when no client breaks [env: NITRO_ALLOW_BREAKING_SCHEMA_CHANGES]
-                            --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-                            --api-key <api-key>              The API key used for authentication [env: NITRO_API_KEY]
+                            --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+                            --api-key <api-key>              The API key or PAT used for authentication [env: NITRO_API_KEY]
                             --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help                   Show help and usage information
 
@@ -63,7 +63,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -167,6 +167,33 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupUpdateApiSettingsMutation(ApiId, true, false, errors: CreateUpdateApiSettingsApiNotFoundError());
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "set-settings",
+            ApiId,
+            "--treat-dangerous-as-breaking",
+            "true",
+            "--allow-breaking-schema-changes",
+            "false");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task MutationReturnsNoData_ReturnsError_NonInteractive()
     {
         // arrange
@@ -211,7 +238,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -233,7 +260,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -284,7 +311,6 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
     public static TheoryData<ISetApiSettingsCommandMutation_UpdateApiSettings_Errors, string>
         GetUpdateApiSettingsErrors() => new()
     {
-        { CreateUpdateApiSettingsApiNotFoundError(), "API not found" },
         { CreateUpdateApiSettingsUnauthorizedError(), "Not authorized" },
         { CreateUpdateApiSettingsUnknownError(), "Unexpected mutation error: payload denied" }
     };

@@ -37,11 +37,25 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        bookById(id: Int!): Book @lookup
+        books(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): BooksConnection
+      }
+
       type Author @key(fields: "id") {
         id: Int!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
         author: Author! @shareable
@@ -75,20 +89,6 @@ sourceSchemas:
         startCursor: String
         "When paginating forwards, the cursor to continue."
         endCursor: String
-      }
-
-      type Query {
-        bookById(id: Int!): Book! @lookup
-        books(
-          "Returns the first _n_ elements from the list."
-          first: Int
-          "Returns the elements in the list that come after the specified cursor."
-          after: String
-          "Returns the last _n_ elements from the list."
-          last: Int
-          "Returns the elements in the list that come before the specified cursor."
-          before: String
-        ): BooksConnection
       }
     interactions:
       - request:
@@ -130,7 +130,21 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Query {
+        authorById(id: Int!): Author @internal @lookup
+        authors(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): AuthorsConnection
+      }
+
+      type Author @key(fields: "id") {
         books: [Book!]!
         id: Int!
         name: String!
@@ -169,20 +183,6 @@ sourceSchemas:
         startCursor: String
         "When paginating forwards, the cursor to continue."
         endCursor: String
-      }
-
-      type Query {
-        authorById(id: Int!): Author! @internal @lookup
-        authors(
-          "Returns the first _n_ elements from the list."
-          first: Int
-          "Returns the elements in the list that come after the specified cursor."
-          after: String
-          "Returns the last _n_ elements from the list."
-          last: Int
-          "Returns the elements in the list that come before the specified cursor."
-          before: String
-        ): AuthorsConnection
       }
 operationPlan:
   operation:

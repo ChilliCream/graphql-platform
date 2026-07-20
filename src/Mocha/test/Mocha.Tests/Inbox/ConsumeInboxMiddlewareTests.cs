@@ -217,11 +217,6 @@ public class ConsumeInboxMiddlewareTests
     /// </summary>
     private sealed class TestConsumer : Consumer
     {
-        public TestConsumer()
-        {
-            SetIdentity(typeof(TestConsumer));
-        }
-
         protected override ValueTask ConsumeAsync(IConsumeContext context)
             => ValueTask.CompletedTask;
     }

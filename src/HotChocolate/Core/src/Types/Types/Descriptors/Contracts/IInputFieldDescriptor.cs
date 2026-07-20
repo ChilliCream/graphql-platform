@@ -97,7 +97,7 @@ public interface IInputFieldDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <typeparam name="TInputType"></typeparam>
+    /// <typeparam name="TInputType">The input type.</typeparam>
     IInputFieldDescriptor Type<TInputType>()
         where TInputType : IInputType;
 
@@ -115,7 +115,7 @@ public interface IInputFieldDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <typeparam name="TInputType"></typeparam>
+    /// <typeparam name="TInputType">The input type.</typeparam>
     IInputFieldDescriptor Type<TInputType>(TInputType inputType)
         where TInputType : class, IInputType;
 
@@ -171,7 +171,9 @@ public interface IInputFieldDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">
+    /// The GraphQL value literal representing the default value.
+    /// </param>
     IInputFieldDescriptor DefaultValue(IValueNode value);
 
     /// <summary>
@@ -188,7 +190,9 @@ public interface IInputFieldDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">
+    /// The runtime default value.
+    /// </param>
     IInputFieldDescriptor DefaultValue(object value);
 
     /// <summary>

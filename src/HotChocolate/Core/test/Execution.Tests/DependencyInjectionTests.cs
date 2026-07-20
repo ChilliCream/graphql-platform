@@ -17,15 +17,15 @@ public class DependencyInjectionTests
                 .AddGraphQL()
                 .AddQueryType<Query1>()
                 .AddType<ExtendQuery1>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         new
         {
             result1 = await executor
-                .ExecuteAsync("{ hello }")
+                .ExecuteAsync("{ hello }", TestContext.Current.CancellationToken)
                 .ToJsonAsync(),
             result2 = await executor
-                .ExecuteAsync("{ hello }")
+                .ExecuteAsync("{ hello }", TestContext.Current.CancellationToken)
                 .ToJsonAsync()
         }.MatchSnapshot();
     }
@@ -43,7 +43,7 @@ public class DependencyInjectionTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = new string[2];
 
@@ -55,7 +55,8 @@ public class DependencyInjectionTests
                         .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Build())
+                        .Build(),
+                    TestContext.Current.CancellationToken)
                 .ToJsonAsync();
         }
 
@@ -67,7 +68,8 @@ public class DependencyInjectionTests
                         .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Build())
+                        .Build(),
+                    TestContext.Current.CancellationToken)
                 .ToJsonAsync();
         }
 
@@ -84,15 +86,15 @@ public class DependencyInjectionTests
                 .AddSingleton<SomeService>()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         new
         {
             result1 = await executor
-                .ExecuteAsync("{ hello }")
+                .ExecuteAsync("{ hello }", TestContext.Current.CancellationToken)
                 .ToJsonAsync(),
             result2 = await executor
-                .ExecuteAsync("{ hello }")
+                .ExecuteAsync("{ hello }", TestContext.Current.CancellationToken)
                 .ToJsonAsync()
         }.MatchSnapshot();
     }
@@ -109,7 +111,7 @@ public class DependencyInjectionTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = new string[2];
 
@@ -121,7 +123,8 @@ public class DependencyInjectionTests
                         .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Build())
+                        .Build(),
+                    TestContext.Current.CancellationToken)
                 .ToJsonAsync();
         }
 
@@ -133,7 +136,8 @@ public class DependencyInjectionTests
                         .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Build())
+                        .Build(),
+                    TestContext.Current.CancellationToken)
                 .ToJsonAsync();
         }
 
@@ -153,7 +157,7 @@ public class DependencyInjectionTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using var scope = services.CreateScope();
 
@@ -163,7 +167,8 @@ public class DependencyInjectionTests
                     .New()
                     .SetDocument("{ hello }")
                     .SetServices(scope.ServiceProvider)
-                    .Build())
+                    .Build(),
+                TestContext.Current.CancellationToken)
             .ToJsonAsync()
             .MatchSnapshotAsync();
     }

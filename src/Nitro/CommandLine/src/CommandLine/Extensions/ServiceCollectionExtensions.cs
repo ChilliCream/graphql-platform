@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
@@ -10,6 +11,8 @@ internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddNitroServices(this IServiceCollection services)
     {
+        services.AddHttpClient();
+
         services.TryAddSingleton<IConfigurationService, ConfigurationService>();
 
         services.TryAddSingleton<ISessionService, SessionService>();
@@ -20,6 +23,8 @@ internal static class ServiceCollectionExtensions
 
         services.TryAddSingleton<IResultHolder, ResultHolder>();
         services.TryAddSingleton<IResultFormatter, JsonResultFormatter>();
+
+        services.TryAddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
 
         return services;
     }

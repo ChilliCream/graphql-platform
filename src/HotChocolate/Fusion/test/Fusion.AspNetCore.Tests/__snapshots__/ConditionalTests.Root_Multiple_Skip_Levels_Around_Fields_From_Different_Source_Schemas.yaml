@@ -30,13 +30,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+
       type Product {
         id: ID!
         name: String!
-      }
-
-      type Query {
-        productBySlug(slug: String!): Product
       }
   - name: B
     schema: |

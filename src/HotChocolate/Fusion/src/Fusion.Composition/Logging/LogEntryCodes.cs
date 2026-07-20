@@ -2,7 +2,13 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string ConflictingApolloFederationVersion =
+        "CONFLICTING_APOLLO_FEDERATION_VERSION";
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
+    public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
+    public const string CursorArgumentRequiresCursorField = "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD";
+    public const string CursorFieldNotString = "CURSOR_FIELD_NOT_STRING";
+    public const string CursorMarkerOnNonSubscriptionField = "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
     public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
     public const string EmptyMergedInputObjectType = "EMPTY_MERGED_INPUT_OBJECT_TYPE";
@@ -21,32 +27,51 @@ public static class LogEntryCodes
     public const string ExternalRequireCollision = "EXTERNAL_REQUIRE_COLLISION";
     public const string ExternalTypeMismatch = "EXTERNAL_TYPE_MISMATCH";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
+    public const string FederationDirectiveNotSupported = "FEDERATION_DIRECTIVE_NOT_SUPPORTED";
+    public const string FederationV1NotSupported = "FEDERATION_V1_NOT_SUPPORTED";
+    public const string FederationV1DirectiveNotSupported =
+        "FEDERATION_V1_DIRECTIVE_NOT_SUPPORTED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
     public const string ImplementedByInaccessible = "IMPLEMENTED_BY_INACCESSIBLE";
+    public const string ImplementWithoutDefault = "IMPLEMENT_WITHOUT_DEFAULT";
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";
     public const string InputWithMissingOneOf = "INPUT_WITH_MISSING_ONEOF";
     public const string InterfaceFieldNoImplementation = "INTERFACE_FIELD_NO_IMPLEMENTATION";
+    public const string InterfaceObjectFieldRequiresImplement = "INTERFACE_OBJECT_FIELD_REQUIRES_IMPLEMENT";
+    public const string InterfaceObjectKeyMismatch = "INTERFACE_OBJECT_KEY_MISMATCH";
+    public const string InterfaceObjectKeyMissing = "INTERFACE_OBJECT_KEY_MISSING";
+    public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
+    public const string InvalidApolloFederationSupportSettings =
+        "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
+    public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
+    public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
+    public const string InvalidShareableFieldRuntimeTypeRouting =
+        "INVALID_SHAREABLE_FIELD_RUNTIME_TYPE_ROUTING";
     public const string IsInvalidFields = "IS_INVALID_FIELDS";
     public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
     public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";
     public const string IsInvalidUsage = "IS_INVALID_USAGE";
     public const string KeyDirectiveInFieldsArgument = "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT";
-    public const string KeyFieldsHasArguments = "KEY_FIELDS_HAS_ARGUMENTS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
+    public const string KeyInvalidArguments = "KEY_INVALID_ARGUMENTS";
     public const string KeyInvalidFields = "KEY_INVALID_FIELDS";
     public const string KeyInvalidFieldsType = "KEY_INVALID_FIELDS_TYPE";
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
+    public const string LookupMustHaveArguments = "LOOKUP_MUST_HAVE_ARGUMENTS";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
-    public const string ModifiedCompositionSetting = "MODIFIED_COMPOSITION_SETTING";
+    public const string MultipleCursorArguments = "MULTIPLE_CURSOR_ARGUMENTS";
+    public const string MultipleCursorFields = "MULTIPLE_CURSOR_FIELDS";
+    public const string MultipleEventStreamSources = "MULTIPLE_EVENT_STREAM_SOURCES";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
+    public const string OptInFeatureStabilityMismatch = "OPT_IN_FEATURE_STABILITY_MISMATCH";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
@@ -67,6 +92,10 @@ public static class LogEntryCodes
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
+    public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
+    public const string EventStreamMessageAbstractTypeRequiresTypeName =
+        "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME";
+    public const string EventStreamTopicsEmpty = "EVENT_STREAM_TOPICS_EMPTY";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
-    public const string Unsatisfiable = "UNSATISFIABLE";
+    public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }

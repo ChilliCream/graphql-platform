@@ -1,3 +1,5 @@
+using static CookieCrumble.TestEnvironment;
+
 namespace HotChocolate.Data;
 
 public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<AuthorFixture>
@@ -55,7 +57,7 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
 
         // assert
         new { result, executable = executable.Print() }
-            .MatchSnapshot(postFix: TestEnvironment.TargetFramework);
+            .MatchSnapshot(Postfix([NET8_0]));
     }
 
     [Fact]

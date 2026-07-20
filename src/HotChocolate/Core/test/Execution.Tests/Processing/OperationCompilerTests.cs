@@ -35,6 +35,33 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void Compile_Should_ExposeObjectSelectionSetThroughPublicContract()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        ISelectionSet selectionSet = operation.RootSelectionSet;
+
+        // assert
+        Assert.Equal("Query", selectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selectionSet.Type);
+
+        var selection = Assert.Single(selectionSet.GetSelections());
+        Assert.Equal("Query", selection.DeclaringSelectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selection.DeclaringSelectionSet.Type);
+    }
+
+    [Fact]
     public void Prepare_Duplicate_Field()
     {
         // arrange
@@ -103,7 +130,7 @@ public class OperationCompilerTests
                         homePlanet
                     }
                 }
-             }");
+            }");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -139,7 +166,7 @@ public class OperationCompilerTests
               fragment def on Human {
                   homePlanet
               }
-             ");
+            ");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -947,7 +974,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1016,7 +1043,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1089,7 +1116,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1153,7 +1180,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1316,7 +1343,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1511,7 +1538,7 @@ public class OperationCompilerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWarsTypes()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("LargeQuery.graphql"));
@@ -1535,7 +1562,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoDetailQuery.graphql"));
@@ -1559,7 +1586,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1598,7 +1625,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1637,7 +1664,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1677,7 +1704,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoQuery.graphql"));
@@ -1732,7 +1759,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1814,7 +1841,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1867,7 +1894,7 @@ public class OperationCompilerTests
                 .AddType<TypeOne>()
                 .AddType<TypeTwo>()
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1907,7 +1934,7 @@ public class OperationCompilerTests
                 .AddQueryType<UnionQuery>()
                 .AddType<TypeOne>()
                 .AddType<TypeTwo>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1928,7 +1955,9 @@ public class OperationCompilerTests
             """);
 
         // act
-        var result = await executor.ExecuteAsync(builder => builder.SetDocument(document));
+        var result = await executor.ExecuteAsync(
+            builder => builder.SetDocument(document),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

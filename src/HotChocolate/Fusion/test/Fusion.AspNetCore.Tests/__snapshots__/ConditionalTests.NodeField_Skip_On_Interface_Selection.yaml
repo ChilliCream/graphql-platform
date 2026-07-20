@@ -33,12 +33,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
-      }
-
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Author implements Node {
@@ -51,8 +47,12 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Authorable {
+        author: Author
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -91,14 +91,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         username: String
         rating: Int
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
 operationPlan:
   operation:

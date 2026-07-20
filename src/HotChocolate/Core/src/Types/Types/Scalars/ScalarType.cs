@@ -42,9 +42,9 @@ public abstract partial class ScalarType
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     /// <summary>
-    /// Gets the optional description of this scalar type.
+    /// Gets the URL that specifies the behavior and constraints of this scalar type.
     /// </summary>
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get;
         protected set

@@ -1,3 +1,5 @@
+using Mocha.Scheduling;
+
 namespace Mocha;
 
 internal static class ThrowHelper
@@ -9,8 +11,31 @@ internal static class ThrowHelper
     public static Exception MiddlewareKeyNotFound(string key)
         => new InvalidOperationException($"Middleware with key {key} not found");
 
-    public static Exception RouteEndpointNotConnected()
-        => new InvalidOperationException("Endpoint is not connected");
+    public static Exception RouteEndpointNotConnected(InboundRoute route)
+    {
+        var consumer = route.Consumer?.Identity.FullName
+            ?? route.Consumer?.Name
+            ?? "(unknown consumer)";
+        var message = route.MessageType?.RuntimeType.FullName
+            ?? route.MessageType?.Identity
+            ?? "(no message type)";
+
+        return new InvalidOperationException(
+            $"Inbound route for consumer '{consumer}', message '{message}', and kind '{route.Kind}' "
+            + "is not connected to a receive endpoint.");
+    }
+
+    public static Exception RouteEndpointNotConnected(OutboundRoute route)
+    {
+        var message = route.MessageType?.RuntimeType.FullName
+            ?? route.MessageType?.Identity
+            ?? "(no message type)";
+        var destination = route.Destination?.ToString() ?? "(no destination)";
+
+        return new InvalidOperationException(
+            $"Outbound route for message '{message}', kind '{route.Kind}', and destination '{destination}' "
+            + "is not connected to a dispatch endpoint.");
+    }
 
     public static Exception RouteMustNotBeInitialized()
         => new InvalidOperationException("Route must not be initialized");
@@ -30,6 +55,11 @@ internal static class ThrowHelper
     public static Exception RouteNotInitialized()
         => new InvalidOperationException("Route is not initialized");
 
+    public static Exception NoHandlerForMessageType(Type messageType, string? endpointName)
+        => new InvalidOperationException(
+            $"No handler or consumer handles message type '{messageType.FullName}' "
+            + $"declared on receive endpoint '{endpointName}'.");
+
     public static Exception TransportConfigurationMissing()
         => new InvalidOperationException("Could not create configuration for transport");
 
@@ -38,6 +68,9 @@ internal static class ThrowHelper
 
     public static Exception TransportSchemaRequired()
         => new InvalidOperationException("Transport schema is required");
+
+    public static Exception TransportRoutingStrategyRequired()
+        => new InvalidOperationException("Transport routing strategy is required");
 
     public static Exception TransportAlreadyStarted()
         => new InvalidOperationException("Transport is already started");
@@ -75,11 +108,17 @@ internal static class ThrowHelper
     public static Exception NoTransportForAddress(string address)
         => new InvalidOperationException($"No transport can handle address: {address}");
 
+    public static Exception NoTransportForMessageType(MessageType messageType)
+        => new InvalidOperationException(
+            $"No transport can handle message type '{messageType.RuntimeType.FullName}'.");
+
+    public static Exception MultipleDefaultTransports(IEnumerable<string> transportNames)
+        => new InvalidOperationException(
+            $"Multiple transports are flagged as default: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
+            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default.");
+
     public static Exception EndpointMustBeRegistered()
         => new InvalidOperationException("Endpoint must be registered before adding addresses");
-
-    public static Exception NoTransportForMessageType(MessageType messageType)
-        => new InvalidOperationException($"No transport can handle message type: {messageType}");
 
     public static Exception TransportNotFoundForAddress(string address)
         => new InvalidOperationException($"Transport not found for address {address}");
@@ -134,6 +173,46 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"No serializer found for content type {contentType} and message type {messageType}");
 
+    public static Exception ScheduledDispatchUnsupported(Type transportType)
+        => new NotSupportedException(
+            "Scheduled dispatch is not supported for transport "
+            + $"'{transportType.FullName}'. Register a transport-specific scheduled "
+            + "message store or configure a fallback scheduler.");
+
+    public static Exception ScheduledStoreTokenPrefixEmpty()
+        => new InvalidOperationException(
+            "Scheduled message store registrations must define a non-empty token prefix.");
+
+    public static Exception ScheduledStoreTypeInvalid(Type storeType)
+        => new InvalidOperationException(
+            $"Scheduled message store type '{storeType.FullName}' must implement "
+            + $"'{typeof(IScheduledMessageStore).FullName}'.");
+
+    public static Exception ScheduledStoreFallbackMustNotSpecifyTransport()
+        => new InvalidOperationException(
+            "Fallback scheduled message store registrations must not specify a transport type.");
+
+    public static Exception ScheduledStoreTransportRequired()
+        => new InvalidOperationException(
+            "Transport-specific scheduled message store registrations must specify a transport type.");
+
+    public static Exception ScheduledStoreTokenPrefixesOverlap(string left, string right)
+        => new InvalidOperationException(
+            $"Scheduled message store token prefixes '{left}' and '{right}' overlap.");
+
+    public static Exception ScheduledStoreDuplicateTransport(Type transportType)
+        => new InvalidOperationException(
+            $"Duplicate scheduled message store registration for transport '{transportType.FullName}'.");
+
+    public static Exception ScheduledStoreMultipleFallbacks()
+        => new InvalidOperationException(
+            "Only one fallback scheduled message store registration is allowed.");
+
+    public static Exception ScheduledStoreAmbiguousMatch(Type transportType)
+        => new InvalidOperationException(
+            "Multiple scheduled message store registrations match transport "
+            + $"'{transportType.FullName}'.");
+
     public static Exception TopologyRequired()
         => new InvalidOperationException("Topology is required");
 
@@ -163,4 +242,9 @@ internal static class ThrowHelper
 
     public static Exception HostDescriptionMissing()
         => new InvalidOperationException("Host description is missing.");
+
+    public static Exception ReceivesClaimedType(string messageTypeName, string claimingEndpoint, string conflictingEndpoint)
+        => new InvalidOperationException(
+            $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
+            + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
 }

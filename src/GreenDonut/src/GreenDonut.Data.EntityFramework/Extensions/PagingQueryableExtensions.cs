@@ -248,7 +248,13 @@ public static class PagingQueryableExtensions
 
         if (builder.Count == 0)
         {
-            return Page<T>.Empty;
+            if (includeTotalCount)
+            {
+                TryGetQueryInterceptor()?.OnBeforeExecute(originalQuery);
+                totalCount = await originalQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return Page<T>.Create([], false, false, _ => string.Empty, totalCount);
         }
 
         if (isBackward)
@@ -295,7 +301,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TValue">
     /// The type of the items in the queryable.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -337,7 +345,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TValue">
     /// The type of the items in the queryable.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -383,7 +393,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TElement">
     /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -432,7 +444,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TElement">
     /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -526,14 +540,16 @@ public static class PagingQueryableExtensions
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
+            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
+
             if (item.Items.Count == 0)
             {
-                map.Add(item.Key, Page<TValue>.Empty);
+                var page = Page<TValue>.Create([], false, false, static _ => string.Empty, totalCount);
+                map.Add(item.Key, page);
                 continue;
             }
 
             var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
-            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
             var pageIndex = CreateIndex(arguments, batchExpression.Cursor, totalCount);
 
             if (valueSelector is not null)
@@ -831,11 +847,8 @@ public static class PagingQueryableExtensions
         s_interceptor.Value.Interceptor = pagingQueryInterceptor;
     }
 
-    internal static void ClearQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
+    internal static void ClearQueryInterceptor()
     {
-        if (s_interceptor.Value is not null)
-        {
-            s_interceptor.Value.Interceptor = null;
-        }
+        s_interceptor.Value?.Interceptor = null;
     }
 }

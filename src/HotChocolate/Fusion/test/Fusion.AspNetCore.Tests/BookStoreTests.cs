@@ -41,7 +41,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -103,7 +104,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -142,14 +144,16 @@ public class BookStoreTests : FusionTestBase
 
         using var result1 = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result1);
 
         using var result2 = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result2);
@@ -190,7 +194,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -246,7 +251,8 @@ public class BookStoreTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -291,7 +297,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            uri: new Uri("http://localhost:5000/graphql"));
+            uri: new Uri("http://localhost:5000/graphql"),
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -336,7 +343,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            uri: new Uri("http://localhost:5000/graphql"));
+            uri: new Uri("http://localhost:5000/graphql"),
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -381,7 +389,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            uri: new Uri("http://localhost:5000/graphql"));
+            uri: new Uri("http://localhost:5000/graphql"),
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -421,7 +430,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -461,7 +471,8 @@ public class BookStoreTests : FusionTestBase
         {
             using var result = await client.PostAsync(
                 request,
-                new Uri("http://localhost:5000/graphql"));
+                new Uri("http://localhost:5000/graphql"),
+                TestContext.Current.CancellationToken);
 
             // assert 1
             await MatchSnapshotAsync(gateway, request, result);
@@ -472,7 +483,8 @@ public class BookStoreTests : FusionTestBase
         {
             using var result = await client.PostAsync(
                 request,
-                new Uri("http://localhost:5000/graphql"));
+                new Uri("http://localhost:5000/graphql"),
+                TestContext.Current.CancellationToken);
 
             // assert 2
             await MatchSnapshotAsync(gateway, request, result);
@@ -483,7 +495,8 @@ public class BookStoreTests : FusionTestBase
         {
             using var result = await client.PostAsync(
                 request,
-                new Uri("http://localhost:5000/graphql"));
+                new Uri("http://localhost:5000/graphql"),
+                TestContext.Current.CancellationToken);
 
             // assert 3
             await MatchSnapshotAsync(gateway, request, result);
@@ -530,7 +543,8 @@ public class BookStoreTests : FusionTestBase
 
             using var result = await client.PostAsync(
                 request,
-                new Uri("http://localhost:5000/graphql"));
+                new Uri("http://localhost:5000/graphql"),
+                TestContext.Current.CancellationToken);
 
             // assert
             await MatchSnapshotAsync(gateway, request, result);
@@ -567,7 +581,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -604,7 +619,8 @@ public class BookStoreTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -629,7 +645,7 @@ public class BookStoreTests : FusionTestBase
                 };
 
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [UsePaging]
@@ -684,12 +700,12 @@ public class BookStoreTests : FusionTestBase
 
             [Internal]
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [Internal]
             [Lookup]
-            public Author GetAuthorById(int id)
+            public Author? GetAuthorById(int id)
                 => _authors[id];
 
             [UsePaging]

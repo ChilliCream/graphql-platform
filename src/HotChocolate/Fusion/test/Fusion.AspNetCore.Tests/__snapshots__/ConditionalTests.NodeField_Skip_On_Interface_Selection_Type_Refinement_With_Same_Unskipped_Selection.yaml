@@ -23,7 +23,11 @@ response:
   body: |
     {
       "data": {
-        "node": {}
+        "node": {
+          "author": {
+            "rating": 123
+          }
+        }
       }
     }
 sourceSchemas:
@@ -33,12 +37,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
-      }
-
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Author implements Node {
@@ -50,30 +50,27 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Authorable {
+        author: Author
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_ff22954e_3($skip: Boolean!) {
+            query testQuery_ff22954e_3 {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
                   __typename
-                  author @skip(if: $skip) {
-                    id
-                  }
                   author {
                     id
                   }
                 }
               }
-            }
-          variables: |
-            {
-              "skip": true
             }
         response:
           results:
@@ -94,14 +91,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         username: String
         rating: Int
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
@@ -172,22 +169,17 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_ff22954e_3($skip: Boolean!) {
+        query testQuery_ff22954e_3 {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {
               __typename
-              author @skip(if: $skip) {
-                id
-              }
               author {
                 id
               }
             }
           }
         }
-      forwardedVariables:
-        - skip
       dependencies:
         - id: 1
     - id: 4

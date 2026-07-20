@@ -1,4 +1,3 @@
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
 using HotChocolate.Language;

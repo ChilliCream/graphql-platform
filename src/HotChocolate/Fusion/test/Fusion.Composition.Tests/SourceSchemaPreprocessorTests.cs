@@ -74,6 +74,8 @@ public sealed class SourceSchemaPreprocessorTests
 
                 scalar Scalar1 @tag(name: "remove")
 
+                directive @directive1 @tag(name: "remove") on FIELD_DEFINITION
+
                 directive @tag(name: String!) repeatable on
                     | SCHEMA
                     | SCALAR
@@ -86,6 +88,7 @@ public sealed class SourceSchemaPreprocessorTests
                     | ENUM_VALUE
                     | INPUT_OBJECT
                     | INPUT_FIELD_DEFINITION
+                    | DIRECTIVE_DEFINITION
                 """);
         var compositionLog = new CompositionLog();
         var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
@@ -101,9 +104,10 @@ public sealed class SourceSchemaPreprocessorTests
         preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
-        schema.DirectiveDefinitions.Clear();
 
         // assert
+        Assert.False(schema.DirectiveDefinitions.ContainsName("directive1"));
+        schema.DirectiveDefinitions.Clear();
         schema.ToString().MatchSnapshot(extension: ".graphql");
     }
 
@@ -250,6 +254,92 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
+    public void Preprocess_ExcludeByTag_RemovesTaggedDirectiveDefinitionAndCascadesToAllApplicationSites()
+    {
+        // arrange
+        // @drop is tagged for exclusion and applied at every kind of application site: the
+        // schema, object/enum/input types, an object field, a field argument, an enum value, an
+        // input field, the surviving @keep directive definition itself, and a @keep argument.
+        // Removing @drop cascades to all of them, so the preprocessed schema contains no @drop
+        // definition and no @drop application anywhere, while the untagged @keep survives.
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                schema @drop {
+                    query: Query
+                }
+
+                type Query @drop {
+                    field(argument: Int @drop): Int @drop
+                }
+
+                enum Enum1 @drop {
+                    VALUE1
+                    VALUE2 @drop
+                }
+
+                input Input1 @drop {
+                    field1: ID!
+                    field2: Int @drop
+                }
+
+                directive @keep(argument: Int @drop) @drop on FIELD_DEFINITION
+
+                directive @drop @tag(name: "remove") on
+                    | SCHEMA
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                    | DIRECTIVE_DEFINITION
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                    | DIRECTIVE_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
+
+        // act
+        var result = preprocessor.Preprocess();
+        // Trim the Fusion built-in types and directive definitions the parser injects, so the
+        // snapshot only shows the user-defined @keep and @tag definitions (and proves @drop is
+        // gone). @keep and @tag are user-defined and therefore retained.
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        foreach (var builtInDirectiveName in FusionBuiltIns.SourceSchemaDirectives.Keys)
+        {
+            schema.DirectiveDefinitions.Remove(builtInDirectiveName);
+        }
+
+        // assert
+        Assert.True(result.IsSuccess);
+        schema.ToString().MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
     public void Preprocess_InferKeysFromLookupsEnabled_AppliesInferredKeyDirectives()
     {
         // arrange
@@ -357,6 +447,46 @@ public sealed class SourceSchemaPreprocessorTests
 
         // assert
         Assert.False(schema.Types["Person"].Directives.ContainsName(WellKnownDirectiveNames.Key));
+    }
+
+    [Fact]
+    public void Preprocess_InferKeysFromLookups_DoesNotApplyToInvalidLookups()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    personById(id1: ID!): Person @lookup
+                    personByIdNoArguments: Person @lookup
+                    personByIdNonNull(id2: ID!): Person! @lookup
+                    personByIdListType(id3: ID!): [Person] @lookup
+                }
+
+                type Person {
+                    id1: ID!
+                    id2: ID!
+                    id3: ID!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog);
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var keyDirective =
+            Assert.Single(schema.Types["Person"].Directives, d => d.Name == WellKnownDirectiveNames.Key);
+        Assert.Equal("id1", keyDirective.Arguments["fields"].Value);
     }
 
     [Fact]
@@ -745,5 +875,143 @@ public sealed class SourceSchemaPreprocessorTests
               name: String! @shareable
             }
             """);
+    }
+
+    [Fact]
+    public void FusionV1CompatibilityMode_Should_Not_Apply_Shareable_To_Subscription_Root_Fields()
+    {
+        // arrange
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Subscription {
+                  productAdded: Product
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Subscription {
+                  productAdded: Product
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        var schema = schemas[0];
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                schemas,
+                compositionLog,
+                new Version(1, 0, 0));
+
+        // act
+        preprocessor.Preprocess();
+
+        // assert
+        var subscriptionType = schema.SubscriptionType!;
+        var productAdded = subscriptionType.Fields["productAdded"];
+        Assert.False(productAdded.Directives.ContainsName(WellKnownDirectiveNames.Shareable));
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Preprocess_Should_NotInferShareable_When_EitherDuplicateFieldIsExternal(
+        bool currentFieldIsExternal,
+        bool otherFieldIsExternal)
+    {
+        // arrange
+        var currentField = currentFieldIsExternal
+            ? "sku: String @external"
+            : "sku: String";
+        var currentQueryField = currentFieldIsExternal
+            ? "product: Product @provides(fields: \"sku\")"
+            : "product: Product";
+        var otherField = otherFieldIsExternal
+            ? "sku: String @external"
+            : "sku: String";
+        var otherQueryField = otherFieldIsExternal
+            ? "product: Product @provides(fields: \"sku\")"
+            : "product: Product";
+        var log = new CompositionLog();
+        var currentSchema = new SourceSchemaParser(
+            new SourceSchemaText(
+                "A",
+                $$"""
+                type Query {
+                  {{currentQueryField}}
+                }
+
+                type Product {
+                  {{currentField}}
+                }
+                """),
+            log,
+            isApolloFederationV1: true).Parse().Value;
+        var otherSchema = new SourceSchemaParser(
+            new SourceSchemaText(
+                "B",
+                $$"""
+                type Query {
+                  {{otherQueryField}}
+                }
+
+                type Product {
+                  {{otherField}}
+                }
+                """),
+            log).Parse().Value;
+        var schemas = ImmutableSortedSet.Create(
+            new SchemaByNameComparer<MutableSchemaDefinition>(),
+            currentSchema,
+            otherSchema);
+        var preprocessor = new SourceSchemaPreprocessor(
+            currentSchema,
+            schemas,
+            log,
+            isApolloFederationV1: true);
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var product = Assert.IsType<MutableObjectTypeDefinition>(
+            currentSchema.Types["Product"]);
+        string[] expectedDirectives = currentFieldIsExternal ? ["external"] : [];
+        Assert.Equal(
+            expectedDirectives,
+            product.Fields["sku"].Directives
+                .AsEnumerable()
+                .Select(directive => directive.Name)
+                .ToArray());
     }
 }

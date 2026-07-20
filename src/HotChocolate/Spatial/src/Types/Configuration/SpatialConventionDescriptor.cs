@@ -15,7 +15,7 @@ public class SpatialConventionDescriptor : ISpatialConventionDescriptor
     /// <summary>
     /// Creates the definition of this descriptor
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The spatial convention configuration.</returns>
     public SpatialConventionConfiguration CreateConfiguration() => Configuration;
 
     /// <inheritdoc />

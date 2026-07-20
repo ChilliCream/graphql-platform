@@ -43,11 +43,14 @@ public sealed class K6ExecutionTests : FusionTestBase
 
         // act
         using var result = await client.PostAsync(
-                K6Query,
-                new Uri("http://localhost:5000/graphql"))
-            .WaitAsync(TimeSpan.FromSeconds(10));
+            K6Query,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken)
+            .WaitAsync(
+                TimeSpan.FromSeconds(10),
+                TestContext.Current.CancellationToken);
 
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEqual(JsonValueKind.Array, response.Errors.ValueKind);
@@ -178,11 +181,11 @@ public sealed class K6ExecutionTests : FusionTestBase
             => ReviewRepository.GetById(id);
 
         [Lookup, Internal]
-        public ReviewProduct GetProduct([ID] string upc)
+        public ReviewProduct? GetProduct([ID] string upc)
             => new() { Upc = upc };
 
         [Lookup, Internal]
-        public ReviewUser GetUser([ID] string id)
+        public ReviewUser? GetUser([ID] string id)
             => new() { Id = id };
     }
 

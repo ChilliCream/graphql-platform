@@ -1,0 +1,146 @@
+title: Provides_On_Interface
+request:
+  document: |
+    {
+      book {
+        featured {
+          ... on Cat {
+            age
+          }
+          ... on Dog {
+            tricks
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "book": {
+          "featured": {
+            "age": 123
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        book: Book
+      }
+
+      type Book @key(fields: "id") {
+        id: ID!
+        featured: Animal @provides(fields: "... on Cat { age } ... on Dog { tricks }")
+      }
+
+      type Cat implements Animal @key(fields: "id") {
+        id: ID!
+        age: Int @external
+      }
+
+      type Dog implements Animal @key(fields: "id") {
+        id: ID!
+        tricks: [String] @external
+      }
+
+      interface Animal {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8b7ea24b_1 {
+              book {
+                featured {
+                  __typename
+                  ... on Cat {
+                    age
+                  }
+                  ... on Dog {
+                    tricks
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "featured": {
+                      "__typename": "Cat",
+                      "age": 123
+                    }
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        catById(id: ID! @is(field: "id")): Cat @lookup @internal
+        dogById(id: ID! @is(field: "id")): Dog @lookup @internal
+      }
+
+      type Cat implements Animal @key(fields: "id") {
+        id: ID!
+        age: Int
+      }
+
+      type Dog implements Animal @key(fields: "id") {
+        id: ID!
+        tricks: [String]
+      }
+
+      interface Animal {
+        id: ID!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          book {
+            featured {
+              __typename @fusion__requirement
+              ... on Cat {
+                age
+              }
+              ... on Dog {
+                tricks
+              }
+            }
+          }
+        }
+      hash: 8b7ea24bc6ecb9e6ae749a4304e01e70
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_8b7ea24b_1 {
+          book {
+            featured {
+              __typename
+              ... on Cat {
+                age
+              }
+              ... on Dog {
+                tricks
+              }
+            }
+          }
+        }

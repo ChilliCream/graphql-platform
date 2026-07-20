@@ -70,23 +70,17 @@ sourceSchemas:
         LIST
       }
 
+      "The `Any` scalar type represents any valid GraphQL value."
+      scalar Any
+        @serializeAs(type: [STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST])
+        @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
+
       directive @serializeAs(
         "The primitive type a scalar is serialized to."
         type: [ScalarSerializationType!]!
         "The ECMA-262 regex pattern that the serialized scalar value conforms to."
         pattern: String
       ) on SCALAR
-
-      "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-      directive @specifiedBy(
-        "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-        url: String!
-      ) on SCALAR
-
-      "The `Any` scalar type represents any valid GraphQL value."
-      scalar Any
-        @serializeAs(type: [STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST])
-        @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8

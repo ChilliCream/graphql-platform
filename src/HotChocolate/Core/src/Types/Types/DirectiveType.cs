@@ -82,6 +82,24 @@ public partial class DirectiveType
         => Arguments.AsReadOnlyFieldDefinitionCollection();
 
     /// <summary>
+    /// Gets the directives that are annotated to this directive definition.
+    /// </summary>
+    public DirectiveCollection Directives { get; private set; } = null!;
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
+
+    /// <summary>
+    /// Defines if this directive is deprecated.
+    /// </summary>
+    public bool IsDeprecated { get; private set; }
+
+    /// <summary>
+    /// Gets the deprecation reason of this directive.
+    /// </summary>
+    public string? DeprecationReason { get; private set; }
+
+    /// <summary>
     /// Gets the directive field middleware.
     /// </summary>
     public DirectiveMiddleware? Middleware { get; private set; }
@@ -126,7 +144,7 @@ public partial class DirectiveType
     /// <summary>
     /// Defines if instances of this directive type are publicly visible through introspection.
     /// </summary>
-    internal bool IsPublic { get; private set; }
+    public bool IsPublic { get; private set; }
 
     private Type? TypeIdentity { get; set; }
 

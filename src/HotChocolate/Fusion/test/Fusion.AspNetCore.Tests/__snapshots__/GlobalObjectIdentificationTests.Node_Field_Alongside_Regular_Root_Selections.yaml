@@ -36,8 +36,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
+        viewer: Viewer
       }
 
       type Discussion implements Node {
@@ -45,13 +46,12 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
-        viewer: Viewer
-      }
-
       type Viewer {
         username: String
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

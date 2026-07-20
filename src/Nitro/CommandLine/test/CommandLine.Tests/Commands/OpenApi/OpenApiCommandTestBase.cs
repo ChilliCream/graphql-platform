@@ -1,6 +1,6 @@
 using System.Text;
+using ChilliCream.Nitro.Adapters.OpenApi.Packaging;
 using ChilliCream.Nitro.Client;
-using HotChocolate.Adapters.OpenApi.Packaging;
 using Moq;
 using Moq.Language;
 

@@ -45,23 +45,35 @@
   <data name="SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup" xml:space="preserve">
     <value>The execution node with id '{0}' is registered to be part of batching group '{1}', but no request was submitted for that node.</value>
   </data>
-  <data name="SourceSchemaHttpClient_SubscriptionBatchNotSupported" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_SubscriptionBatchNotSupported" xml:space="preserve">
     <value>Subscription requests are not supported by batch execution.</value>
   </data>
-  <data name="SourceSchemaHttpClient_InvalidRequestIndex" xml:space="preserve">
+  <data name="SourceSchemaClient_SubscriptionsNotSupportedByExecute" xml:space="preserve">
+    <value>Subscription requests must be executed through SubscribeAsync.</value>
+  </data>
+  <data name="SourceSchemaClient_SubscriptionsNotSupported" xml:space="preserve">
+    <value>The source schema client does not support subscription requests.</value>
+  </data>
+  <data name="HttpSourceSchemaClient_InvalidRequestIndex" xml:space="preserve">
     <value>The batch response contains an invalid requestIndex '{0}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_NoResponseChannelForNode" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_NoResponseChannelForNode" xml:space="preserve">
     <value>No response channel exists for node '{0}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_InvalidVariableIndex" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_InvalidVariableIndex" xml:space="preserve">
     <value>The batch response contains an invalid variableIndex '{0}' for node '{1}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_VariableIndexOutOfRange" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_VariableIndexOutOfRange" xml:space="preserve">
     <value>The batch response contains an out-of-range variableIndex '{0}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_NoResultForNode" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_NoResultForNode" xml:space="preserve">
     <value>The batch response does not contain any result for node '{0}'.</value>
+  </data>
+  <data name="FetchResultStore_InvalidRepresentationResultKind" xml:space="preserve">
+    <value>The representation result at '{0}' must be an array but was '{1}'.</value>
+  </data>
+  <data name="FetchResultStore_RepresentationResultCountMismatch" xml:space="preserve">
+    <value>The representation result at '{0}' contains {1} entries, but {2} were expected.</value>
   </data>
   <data name="SourceSchemaRequestDispatcher_DuplicateNodeSubmission" xml:space="preserve">
     <value>Node '{0}' was already submitted to its batching group.</value>
@@ -72,11 +84,11 @@
   <data name="SourceSchemaRequestDispatcher_OperationAborted" xml:space="preserve">
     <value>The operation execution was aborted.</value>
   </data>
-  <data name="SourceSchemaRequestDispatcher_BatchResponseCountMismatch" xml:space="preserve">
-    <value>The client did not return a response for each request in the batch.</value>
-  </data>
   <data name="OperationPlan_NodeNotFound" xml:space="preserve">
     <value>No execution node with id '{0}' exists in this plan.</value>
+  </data>
+  <data name="OperationPlan_IncrementalPlanParentNotFound" xml:space="preserve">
+    <value>Could not resolve parent execution node for incremental plan at path '{0}'.</value>
   </data>
   <data name="OperationBatchExecutionNode_MissingBatchResult" xml:space="preserve">
     <value>The batch response does not contain any result for operation '{0}'.</value>
@@ -84,7 +96,16 @@
   <data name="ExecutionNode_MissingBooleanVariable" xml:space="preserve">
     <value>Expected to have a boolean value for variable '${0}'.</value>
   </data>
+  <data name="PlanQueue_NodeLookupNotFound" xml:space="preserve">
+    <value>Expected to have at least one lookup with just an 'id' argument for type '{0}'.</value>
+  </data>
   <data name="JsonOperationPlanParser_SingleOperationRequired" xml:space="preserve">
     <value>There must be exactly one operation definition in the operation document of the operation plan.</value>
+  </data>
+  <data name="NodeFieldExecutionNode_InvalidNodeIdFormat" xml:space="preserve">
+    <value>The node ID string has an invalid format.</value>
+  </data>
+  <data name="FetchResultStore_InvalidTargetValueKind" xml:space="preserve">
+    <value>Expected the value at result path '{1}' for selection path '{0}' to be an object or list, but found '{2}'.</value>
   </data>
 </root>

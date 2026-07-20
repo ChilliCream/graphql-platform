@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: QueryA
+}
+
+type QueryA {
+  bar(id: FOO): Bar
 }
 
 type Bar {
@@ -7,11 +11,11 @@ type Bar {
 }
 
 type Baz {
-  text: Int!
+  text: Decimal!
 }
 
-type QueryA {
-  bar(id: FOO): Bar
-}
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
 
 scalar FOO

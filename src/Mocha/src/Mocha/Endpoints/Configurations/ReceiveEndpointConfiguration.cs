@@ -16,19 +16,14 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public ReceiveEndpointKind Kind { get; set; } = ReceiveEndpointKind.Default;
 
     /// <summary>
-    /// Gets or sets the URI of the error/fault endpoint where failed messages are forwarded.
-    /// </summary>
-    public Uri? ErrorEndpoint { get; set; }
-
-    /// <summary>
-    /// Gets or sets the URI of the endpoint where skipped messages are forwarded.
-    /// </summary>
-    public Uri? SkippedEndpoint { get; set; }
-
-    /// <summary>
     /// Gets or sets the list of consumer identity types explicitly bound to this endpoint.
     /// </summary>
     public List<Type> ConsumerIdentities { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the list of message types that this endpoint receives, used to bind all handlers for those types.
+    /// </summary>
+    public List<Type> ReceivedMessageTypes { get; set; } = [];
 
     /// <summary>
     /// Gets or sets whether this is a temporary (auto-delete) endpoint.
@@ -39,6 +34,14 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     /// Gets or sets whether the transport should automatically provision infrastructure for this endpoint.
     /// </summary>
     public bool? AutoProvision { get; set; }
+
+    /// <summary>
+    /// Gets or sets the bind mode override at the queue scope.
+    /// A null value inherits the transport scope. <see cref="MessagingBindMode.Implicit"/> generates
+    /// convention binds for consumed message types that reach this endpoint, while
+    /// <see cref="MessagingBindMode.Explicit"/> suppresses them.
+    /// </summary>
+    public MessagingBindMode? BindMode { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of messages that can be processed concurrently on this endpoint.

@@ -28,8 +28,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
               --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
               -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
               -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                                      Show help and usage information
 
@@ -67,7 +67,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -141,7 +141,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -175,9 +175,30 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupMcpDefinitionFiles();
+        SetupUploadMcpFeatureCollectionMutation(
+            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                McpFeatureCollectionId, "MCP Feature Collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "upload", "--tag", Tag, "--mcp-feature-collection-id", McpFeatureCollectionId,
+            "--prompt-pattern", "**/*.json", "--tool-pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -209,7 +230,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -240,7 +261,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✓ Uploaded new MCP feature collection version 'v1'.
             """);
@@ -257,11 +278,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
         return new()
         {
-            {
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    "mcp-1", "MCP Feature Collection not found."),
-                "MCP Feature Collection not found."
-            },
             {
                 new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_UnauthorizedOperation(
                     "UnauthorizedOperation", "Not authorized to upload."),

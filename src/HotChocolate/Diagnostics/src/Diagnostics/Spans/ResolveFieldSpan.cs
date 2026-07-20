@@ -26,18 +26,23 @@ internal sealed class ResolveFieldSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Resolve);
 
-        activity.SetTag(GraphQL.Selection.Name, selection.ResponseName);
-        activity.SetTag(GraphQL.Selection.Path, context.Path.Print());
-        activity.SetTag(GraphQL.Selection.Field.Name, coordinate.MemberName);
-        activity.SetTag(GraphQL.Selection.Field.Coordinate, activity.DisplayName);
-        activity.SetTag(GraphQL.Selection.Field.ParentType, coordinate.Name);
+        activity.SetTag(GraphQL.Field.Alias, selection.ResponseName);
+        activity.SetTag(GraphQL.Field.Path, context.Path.Print());
+        activity.SetTag(GraphQL.Field.Name, coordinate.MemberName);
+        activity.SetTag(GraphQL.Field.SchemaCoordinate, activity.DisplayName);
+        activity.SetTag(GraphQL.Field.ParentType, coordinate.Name);
 
         return new ResolveFieldSpan(activity, context, enricher);
     }
 
     protected override void OnComplete()
     {
-        if (Activity.Status != ActivityStatusCode.Error)
+        // A resolver that was still in flight when the request was cancelled did
+        // not complete successfully, so it is left Unset instead of being forced
+        // to Ok, mirroring the request and subscription event spans. A resolver
+        // that finished before any cancellation is reported as Ok.
+        if (Activity.Status != ActivityStatusCode.Error
+            && !context.RequestAborted.IsCancellationRequested)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }

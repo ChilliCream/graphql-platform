@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Extensions;

@@ -49,7 +49,7 @@ internal sealed class DeleteApiCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you really want to delete API {apiName.AsHighlight()}",
+                Prompts.ConfirmDeleteApi(apiName.AsHighlight()),
                 cancellationToken);
 
             if (!confirmed)
@@ -65,12 +65,14 @@ internal sealed class DeleteApiCommand : Command
         var data = await client.DeleteApiAsync(apiId, cancellationToken);
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var mutationError in data.Errors)
             {
                 var errorMessage = mutationError switch
                 {
+                    IDeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
                 };

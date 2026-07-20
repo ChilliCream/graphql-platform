@@ -3,8 +3,12 @@ schema {
   mutation: Mutation
 }
 
-interface Error {
-  message: String!
+type Query {
+  foo: Foo!
+}
+
+type Mutation {
+  addFoo: AddFooPayload!
 }
 
 type AddFooPayload {
@@ -21,12 +25,8 @@ type Foo {
   bar: String!
 }
 
-type Mutation {
-  addFoo: AddFooPayload!
-}
-
-type Query {
-  foo: Foo!
+interface Error {
+  message: String!
 }
 
 union AddFooError = CustomError

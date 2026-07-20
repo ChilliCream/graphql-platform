@@ -27,8 +27,8 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
             Options:
               --force                  Skip confirmation prompts for deletes and overwrites
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -56,7 +56,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -76,7 +76,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertError(
             """
-            The 'id' option is required in non-interactive mode.
+            Missing required argument 'id'.
             """);
     }
 
@@ -94,7 +94,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -170,7 +170,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);
@@ -230,6 +230,25 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
     }
 
     [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupDeleteOpenApiCollectionMutation(
+            new DeleteOpenApiCollectionByIdCommandMutation_DeleteOpenApiCollectionById_Errors_OpenApiCollectionNotFoundError(
+                "OpenAPI collection not found", OpenApiCollectionId));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "delete", OpenApiCollectionId, "--force");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            OpenAPI collection not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task DeleteOpenApiCollectionThrows_ReturnsError()
     {
         // arrange
@@ -258,13 +277,6 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
     public static TheoryData<IDeleteOpenApiCollectionByIdCommandMutation_DeleteOpenApiCollectionById_Errors, string> DeleteMutationErrorCases =>
         new()
         {
-            {
-                new DeleteOpenApiCollectionByIdCommandMutation_DeleteOpenApiCollectionById_Errors_OpenApiCollectionNotFoundError(
-                    "OpenAPI collection not found", "oa-1"),
-                """
-                OpenAPI collection not found
-                """
-            },
             {
                 new DeleteOpenApiCollectionByIdCommandMutation_DeleteOpenApiCollectionById_Errors_UnauthorizedOperation(
                     "Not authorized", "UnauthorizedOperation"),

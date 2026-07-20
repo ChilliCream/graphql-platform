@@ -193,6 +193,30 @@ public class SubscriptionSingleRootFieldRuleTests
                 t.Message));
     }
 
+    // The rule must fire once per lexical @skip directive, not once per fragment spread.
+    [Fact]
+    public void DisallowedSkipDirectiveOnRootFieldWithinReusedFragment()
+    {
+        ExpectErrors(
+            """
+            subscription sub {
+              ...newMessageFields
+              ...newMessageFields
+            }
+
+            fragment newMessageFields on Subscription {
+              newMessage @skip(if: true) {
+                body
+                sender
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
+                t.Message));
+    }
+
     [Fact]
     public void DisallowedIncludeDirectiveOnRootFieldWithinFragment()
     {

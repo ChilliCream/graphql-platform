@@ -147,7 +147,9 @@ internal static class PlannerCostEstimator
 
                     if (inlineFragmentNode.TypeCondition is not null)
                     {
-                        typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+                        typeCondition = schema.Types.GetType(
+                            inlineFragmentNode.TypeCondition.Name.Value,
+                            allowInaccessibleFields: true);
                     }
 
                     CollectSpilloverSchemas(
@@ -167,12 +169,13 @@ internal static class PlannerCostEstimator
         PlanNode current)
     {
         var selectionSetId = workItem.Selection.SelectionSetId;
+        var consumerStepId = workItem.Consumer is StepConsumer stepConsumer ? stepConsumer.StepId : -1;
 
         for (var i = 0; i < current.Steps.Count; i++)
         {
             if (current.Steps[i] is OperationPlanStep step
                 && step.SelectionSets.Contains(selectionSetId)
-                && step.Id != workItem.StepId)
+                && step.Id != consumerStepId)
             {
                 return 0.0;
             }

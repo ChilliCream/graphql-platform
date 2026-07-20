@@ -1,0 +1,243 @@
+using System.Buffers;
+using System.Collections.Immutable;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Events;
+using Mocha.Features;
+using Mocha.Transport.InMemory;
+
+namespace Mocha.Tests;
+
+public class AotMessageTypeTests
+{
+    [Fact]
+    public void Complete_Should_ResolveFrameworkIdentityViaRuntimeNaming_When_AotConfigurationIncludesFrameworkBaseType()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(builder =>
+        {
+            AddAotMessage<GetOrderStatus>(
+                builder,
+                typeof(GetOrderStatus),
+                typeof(IEventRequest<OrderStatusResponse>));
+            AddAotMessage<OrderStatusResponse>(builder, typeof(OrderStatusResponse));
+        });
+
+        // act
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+        var expected = runtime.Naming.GetMessageIdentity(typeof(IEventRequest<OrderStatusResponse>));
+
+        // assert
+        Assert.True(messageType.IsCompleted);
+        Assert.Contains(expected, messageType.EnclosedMessageIdentities);
+    }
+
+    [Fact]
+    public void Complete_Should_UseCustomNamingConvention_When_FrameworkBaseTypeResolvedViaRuntimeNaming()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(
+            builder =>
+            {
+                // Registered on the outer service provider because MessageBusBuilder.AddCoreServices
+                // resolves IBusNamingConventions from application services.
+                builder.Services.AddSingleton<IBusNamingConventions, PrefixingNamingConventions>();
+
+                AddAotMessage<GetOrderStatus>(
+                    builder,
+                    typeof(GetOrderStatus),
+                    typeof(IEventRequest<OrderStatusResponse>));
+                AddAotMessage<OrderStatusResponse>(builder, typeof(OrderStatusResponse));
+            });
+
+        // act
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+        var defaultIdentity = new DefaultNamingConventions(runtime.Host)
+            .GetMessageIdentity(typeof(IEventRequest<OrderStatusResponse>));
+
+        // assert
+        Assert.True(messageType.IsCompleted);
+        Assert.Contains(
+            $"custom:{typeof(IEventRequest<OrderStatusResponse>).FullName}",
+            messageType.EnclosedMessageIdentities);
+        Assert.DoesNotContain(defaultIdentity, messageType.EnclosedMessageIdentities);
+    }
+
+    [Fact]
+    public void Complete_Should_Throw_When_AotModeWithoutEnclosedTypes()
+    {
+        // act & assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Contains("No enclosed types provided", exception.Message);
+
+        static void Act()
+        {
+            CreateAotRuntime(
+                builder => builder.ConfigureMessageBus(static bus => bus.AddMessage<GetOrderStatus>()));
+        }
+    }
+
+    [Fact]
+    public void Complete_Should_RegisterInternalAcknowledgementEvents_When_AotMode()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(static _ => { });
+
+        // act
+        var acknowledged = runtime.Messages.GetMessageType(typeof(AcknowledgedEvent))!;
+        var notAcknowledged = runtime.Messages.GetMessageType(typeof(NotAcknowledgedEvent))!;
+
+        // assert
+        Assert.True(acknowledged.IsCompleted);
+        Assert.Contains(acknowledged.Identity, acknowledged.EnclosedMessageIdentities);
+        Assert.True(notAcknowledged.IsCompleted);
+        Assert.Contains(notAcknowledged.Identity, notAcknowledged.EnclosedMessageIdentities);
+    }
+
+    [Fact]
+    public void GetSerializer_Should_UseConfiguredJsonTypeInfoResolver_When_AotMode()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(builder =>
+        {
+            builder.AddJsonTypeInfoResolver(AotMessageTypeJsonContext.Default);
+            builder.ConfigureMessageBus(bus => bus.AddMessage<GetOrderStatus>(
+                static descriptor => descriptor.Extend().Configuration.EnclosedTypes = [typeof(GetOrderStatus)]));
+        });
+
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+
+        // act
+        var serializer = messageType.GetSerializer(MessageContentType.Json);
+        var writer = new ArrayBufferWriter<byte>();
+        serializer!.Serialize(new GetOrderStatus { OrderId = "42" }, writer);
+        var deserialized = serializer.Deserialize<GetOrderStatus>(writer.WrittenMemory);
+
+        // assert
+        Assert.Equal("42", deserialized?.OrderId);
+    }
+
+    [Fact]
+    public void GetSerializer_Should_UseUserSerializer_When_UserConfigurationRunsAfterSourceGenerator()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(builder =>
+        {
+            AddAotMessage<GetOrderStatus>(
+                builder,
+                typeof(GetOrderStatus),
+                typeof(IEventRequest<OrderStatusResponse>));
+
+            builder.AddMessage<GetOrderStatus>(
+                static descriptor => descriptor.AddSerializer(new OverrideMessageSerializer()));
+        });
+
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+
+        // act
+        var serializer = messageType.GetSerializer(MessageContentType.Json);
+
+        // assert
+        Assert.IsType<OverrideMessageSerializer>(serializer);
+    }
+
+    public sealed class GetOrderStatus : IEventRequest<OrderStatusResponse>
+    {
+        public string OrderId { get; init; } = "";
+    }
+
+    public sealed class OrderStatusResponse
+    {
+        public string Status { get; init; } = "";
+    }
+
+    private static void AddAotMessage<TMessage>(
+        IMessageBusHostBuilder builder,
+        params Type[] enclosedTypes)
+        where TMessage : class
+    {
+        builder.ConfigureMessageBus(static bus => bus.AddMessage<TMessage>());
+        builder.ConfigureDescriptorContext(ctx =>
+            ctx.Features.GetRequired<MessagingConfigurationFeature>()
+                .Configurations.Add<IMessageTypeDescriptor>(typeof(TMessage), descriptor =>
+                {
+                    descriptor.AddSerializer(new StubMessageSerializer());
+                    descriptor.Extend().Configuration.EnclosedTypes =
+                        ImmutableArray.Create<Type>(enclosedTypes);
+                }));
+    }
+
+    private sealed class StubMessageSerializer : IMessageSerializer
+    {
+        public MessageContentType ContentType => MessageContentType.Json;
+
+        public T? Deserialize<T>(ReadOnlyMemory<byte> body) => default;
+
+        public object? Deserialize(ReadOnlyMemory<byte> body) => null;
+
+        public void Serialize<T>(T message, IBufferWriter<byte> writer)
+        {
+        }
+
+        public void Serialize(object message, IBufferWriter<byte> writer)
+        {
+        }
+    }
+
+    private sealed class OverrideMessageSerializer : IMessageSerializer
+    {
+        public MessageContentType ContentType => MessageContentType.Json;
+
+        public T? Deserialize<T>(ReadOnlyMemory<byte> body) => default;
+
+        public object? Deserialize(ReadOnlyMemory<byte> body) => null;
+
+        public void Serialize<T>(T message, IBufferWriter<byte> writer)
+        {
+        }
+
+        public void Serialize(object message, IBufferWriter<byte> writer)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Test double that prefixes every identity with "custom:" so we can observe whether
+    /// the runtime resolves framework base type identities through the configured convention
+    /// instead of a compile-time-baked URN.
+    /// </summary>
+    private sealed class PrefixingNamingConventions : IBusNamingConventions
+    {
+        public string GetReceiveEndpointName(InboundRoute route, ReceiveEndpointKind kind) => route.Consumer?.Name ?? "unknown";
+
+        public string GetReceiveEndpointName(Type handlerType, ReceiveEndpointKind kind) => handlerType.Name;
+
+        public string GetReceiveEndpointName(string name, ReceiveEndpointKind kind) => name;
+
+        public string GetSagaName(Type sagaType) => sagaType.Name;
+
+        public string GetInstanceEndpoint(Guid instanceId) => $"response-{instanceId:N}";
+
+        public string GetSendEndpointName(Type messageType) => messageType.Name;
+
+        public string GetPublishEndpointName(Type messageType) => messageType.Name;
+
+        public string GetMessageIdentity(Type messageType) => $"custom:{messageType.FullName}";
+    }
+
+    private static MessagingRuntime CreateAotRuntime(Action<IMessageBusHostBuilder> configure)
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.ModifyOptions(static o => o.IsAotCompatible = true);
+
+        configure(builder);
+        builder.AddInMemory();
+
+        var provider = services.BuildServiceProvider();
+        return (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+    }
+}
+
+[JsonSerializable(typeof(AotMessageTypeTests.GetOrderStatus))]
+internal partial class AotMessageTypeJsonContext : JsonSerializerContext;

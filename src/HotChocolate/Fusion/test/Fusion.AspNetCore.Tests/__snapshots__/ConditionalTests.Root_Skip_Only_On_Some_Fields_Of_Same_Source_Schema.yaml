@@ -29,14 +29,14 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: ID!
-        name: String!
-      }
-
       type Query {
         productBySlug(slug: String!): Product
         viewer: Viewer
+      }
+
+      type Product {
+        id: ID!
+        name: String!
       }
 
       type Viewer {

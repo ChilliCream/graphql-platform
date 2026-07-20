@@ -1,0 +1,62 @@
+operation:
+  - document: |
+      {
+        trendingMedia {
+          __typename @fusion__requirement
+          id @fusion__requirement
+          ... on Book {
+            views
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        trendingMedia {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        mediaById(id: $__fusion_1_id) {
+          __typename
+          ... on Book {
+            id
+          }
+        }
+      }
+    source: $.mediaById
+    target: $.trendingMedia
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
+        mediaByKey(id: $__fusion_2_id) {
+          views
+        }
+      }
+    source: $.mediaByKey
+    target: $.trendingMedia<Book>
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

@@ -133,7 +133,15 @@ internal class ForwardPaginationContainer<TResult, TEdge>
 
         var result = await _fetchAsync(_latestPageInfo?.EndCursor, _pageSize, cancellationToken);
 
-        var data = result.EnsureData();
+        if (result.Data is not { } data)
+        {
+            if (result.Errors.FirstOrDefault() is { } error)
+            {
+                throw new ExitException(error.Message);
+            }
+
+            throw new ExitException("There was an issue with the request to the server.");
+        }
 
         _latestPageInfo = _pageInfoSelector(data) ?? throw NoPageInfoFound();
         var edges = _selectEdgesSelector(data)?.ToArray() ?? throw CouldNotSelectEdges();

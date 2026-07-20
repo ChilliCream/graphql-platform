@@ -25,7 +25,7 @@ public sealed class ObjectField : OutputField
         Member = configuration.Member;
         ResolverMember = configuration.ResolverMember ?? configuration.Member;
         Middleware = s_empty;
-        Resolver = configuration.Resolver!;
+        Resolver = configuration.Resolver;
         ResolverExpression = configuration.Expression;
         SubscribeResolver = configuration.SubscribeResolver;
     }
@@ -36,7 +36,7 @@ public sealed class ObjectField : OutputField
         Member = original.Member;
         ResolverMember = original.ResolverMember ?? original.Member;
         Middleware = original.Middleware;
-        Resolver = original.Resolver!;
+        Resolver = original.Resolver;
         ResolverExpression = original.ResolverExpression;
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
@@ -189,12 +189,17 @@ public sealed class ObjectField : OutputField
         var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
 
-        if (resolvers.PureResolver is not null && IsPureContext())
+        if (resolvers.PureResolver is not null)
         {
-            PureResolver = FieldMiddlewareCompiler.Compile(
-                definition.GetResultConverters(),
-                resolvers.PureResolver,
-                skipMiddleware);
+            Flags |= CoreFieldFlags.HasPureResolver;
+
+            if (IsPureContext())
+            {
+                PureResolver = FieldMiddlewareCompiler.Compile(
+                    definition.GetResultConverters(),
+                    resolvers.PureResolver,
+                    skipMiddleware);
+            }
         }
 
         // by definition, fields with pure resolvers are parallel executable.
@@ -307,7 +312,7 @@ file static class ResolverHelpers
 
         if (extendedType.IsArrayOrList)
         {
-            var elementType = extendedType.ElementType!.Type;
+            var elementType = extendedType.ElementType.Type;
             return GetFactoryMethod(elementType);
         }
 
@@ -317,7 +322,9 @@ file static class ResolverHelpers
     private static IResolverResultPostProcessor GetFactoryMethod(Type elementType)
         => s_methodCache.GetOrAdd(
             elementType,
+#pragma warning disable IL2060, IL3050
             static t => (IResolverResultPostProcessor)s_createListPostProcessor.MakeGenericMethod(t).Invoke(null, [])!);
+#pragma warning restore IL2060, IL3050
 
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
         => ListPostProcessor<T>.Default;

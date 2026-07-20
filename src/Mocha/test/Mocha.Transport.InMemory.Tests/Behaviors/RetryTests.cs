@@ -95,7 +95,7 @@ public sealed class RetryTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-IGNORED" }, CancellationToken.None);
 
         // assert - only 1 invocation, exception propagates without retry
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         Assert.Equal(1, counter.Count);
     }
 
@@ -126,7 +126,7 @@ public sealed class RetryTests
         await matchingBus.PublishAsync(new OrderCreated { OrderId = "ORD-MATCH" }, CancellationToken.None);
 
         // assert - matching predicate: no retry, only 1 invocation
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         Assert.Equal(1, matchingCounter.Count);
 
         // Test 2: non-matching predicate (ParamName == "other") - SHOULD retry
@@ -248,7 +248,7 @@ public sealed class RetryTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-INHERIT" }, CancellationToken.None);
 
         // assert - ArgumentNullException is a subclass of ArgumentException, so it's ignored: only 1 invocation
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         Assert.Equal(1, counter.Count);
     }
 

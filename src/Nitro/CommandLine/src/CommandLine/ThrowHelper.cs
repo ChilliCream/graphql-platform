@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
-
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class ThrowHelper
@@ -10,32 +8,19 @@ internal static class ThrowHelper
     }
 
     public static ExitException MissingRequiredOption(string optionName)
-        => Exit($"The '{optionName}' option is required in non-interactive mode.");
+        => Exit($"Missing required option '{optionName}'.");
 
     public static ExitException MissingRequiredArgument(string argumentName)
-        => Exit($"The '{argumentName}' argument is required.");
-
-    public static ExitException NoDefaultWorkspace() => new(
-        $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or manually specify the '{OptionalWorkspaceIdOption.OptionName}' option (if available).");
+        => Exit($"Missing required argument '{argumentName}'.");
 
     public static Exception NoPageInfoFound()
-        => ThereWasAnIssueWithTheRequest("No page info found in the response.");
+        => new ExitException("No page info found in the response.");
 
     public static Exception CouldNotSelectEdges()
-        => ThereWasAnIssueWithTheRequest("Could not select edges.");
-
-    public static Exception NoApiSelected() => Exit("You did not select an API!");
+        => new ExitException("Could not select edges.");
 
     public static Exception NoClientSelected() => Exit("You did not select a client!");
 
-    public static Exception NoOpenApiCollectionSelected() => Exit("You did not select an OpenAPI collection!");
-
-    public static Exception NoMcpFeatureCollectionSelected() => Exit("You did not select an MCP Feature Collection!");
-
     public static ExitException MutationReturnedNoData()
         => Exit("The GraphQL mutation completed without errors, but the server did not return the expected data.");
-
-    public static Exception ThereWasAnIssueWithTheRequest(string? additional = null)
-        => new ExitException(
-            $"There was an issue with the request to the server.\n{additional ?? ""}");
 }

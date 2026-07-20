@@ -21,7 +21,6 @@ public sealed class DataLoaderModuleAttribute : Attribute
     /// <summary>
     /// Gets the module name.
     /// </summary>
-    /// <value></value>
     public string Name { get; }
 
     /// <summary>

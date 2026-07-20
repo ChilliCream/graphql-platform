@@ -155,7 +155,7 @@ public class TypeModuleSyntaxGeneratorTests
                 }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class TypeModuleSyntaxGeneratorTests
             internal class ATestBType: ObjectType<ATestB>;
             internal record ATestB(int Id);
             """
-        ], assemblyName: "Custom-Module").MatchMarkdownAsync();
+        ], assemblyName: "Custom-Module").MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class TypeModuleSyntaxGeneratorTests
                 public static int Value => throw new System.NotImplementedException();
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public class TypeModuleSyntaxGeneratorTests
                 public static int Value => throw new System.NotImplementedException();
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class TypeModuleSyntaxGeneratorTests
                 public static int Value => throw new System.NotImplementedException();
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -270,6 +270,6 @@ public class TypeModuleSyntaxGeneratorTests
                     => new DepositStatementTransaction { Id = 1, CollectionAmount = 42m };
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

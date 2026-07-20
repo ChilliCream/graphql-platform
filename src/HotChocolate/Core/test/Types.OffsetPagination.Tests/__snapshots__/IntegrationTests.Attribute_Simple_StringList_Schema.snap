@@ -2,6 +2,12 @@ schema {
   query: QueryAttr
 }
 
+type QueryAttr {
+  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
+  letters(skip: Int, take: Int): LettersCollectionSegment
+  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
+}
+
 "Information about the offset pagination."
 type CollectionSegmentInfo {
   "Indicates whether more items exist following the set defined by the clients arguments."
@@ -37,10 +43,4 @@ type NestedObjectListCollectionSegment {
   "A flattened list of the items."
   items: [[Foo!]!]
   totalCount: Int!
-}
-
-type QueryAttr {
-  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
-  letters(skip: Int, take: Int): LettersCollectionSegment
-  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }

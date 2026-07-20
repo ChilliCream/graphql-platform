@@ -43,7 +43,8 @@ public class LookupTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -87,7 +88,8 @@ public class LookupTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -133,7 +135,90 @@ public class LookupTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_Return_Null_When_Nested_Entity_Not_Found()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<NullLookup.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<NullLookup.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              resources {
+                displayImage {
+                  id
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_Null_Field_When_Nullable_Entity_Not_Found()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<NullableNullLookup.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<NullableNullLookup.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              resources {
+                displayImage {
+                  id
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -184,7 +269,7 @@ public class LookupTests : FusionTestBase
                 };
 
                 [Lookup]
-                public Author GetAuthorById([ID] int id)
+                public Author? GetAuthorById([ID] int id)
                     => _authors[id];
             }
 
@@ -241,7 +326,7 @@ public class LookupTests : FusionTestBase
                 };
 
                 [Lookup, Internal]
-                public Author GetAuthor([Is("{ id } | { name }")] AuthorByInput by)
+                public Author? GetAuthor([Is("{ id } | { name }")] AuthorByInput by)
                 {
                     if (by.Id is not null)
                     {
@@ -271,6 +356,72 @@ public class LookupTests : FusionTestBase
             }
 
             public record Author([property: Shareable] string Name);
+        }
+    }
+
+    public static class NullLookup
+    {
+        public static class SourceSchema1
+        {
+            public record Resource(int Id, [property: Shareable] File DisplayImage);
+
+            [EntityKey("originId")]
+            public record File(int OriginId);
+
+            public class Query
+            {
+                public IEnumerable<Resource> GetResources()
+                    => [new Resource(1, new File(42))];
+            }
+        }
+
+        public static class SourceSchema2
+        {
+            public record File(int OriginId, string Id);
+
+            public class Query
+            {
+                [Lookup]
+                [Internal]
+                public File? GetFileByOriginId(int originId)
+                    => null;
+            }
+        }
+    }
+
+    public static class NullableNullLookup
+    {
+        public enum FileOrigin
+        {
+            Internal,
+            External
+        }
+
+        public static class SourceSchema1
+        {
+            public record Resource(int Id, File? DisplayImage);
+
+            [EntityKey("originId origin")]
+            public record File(Guid OriginId, FileOrigin Origin);
+
+            public class Query
+            {
+                public IEnumerable<Resource> GetResources()
+                    => [new Resource(1, new File(Guid.Empty, FileOrigin.External))];
+            }
+        }
+
+        public static class SourceSchema2
+        {
+            public record File(Guid OriginId, FileOrigin Origin, string Id);
+
+            public class Query
+            {
+                [Lookup]
+                [Internal]
+                public File? GetFileByOriginIdAndOrigin(Guid originId, FileOrigin origin)
+                    => null;
+            }
         }
     }
 }

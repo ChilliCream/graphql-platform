@@ -14,7 +14,7 @@ public class MediatorDispatchTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.SendAsync(new DispatchVoidCommand("hello"));
+        await mediator.SendAsync(new DispatchVoidCommand("hello"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(DispatchVoidCommandHandler.WasInvoked);
@@ -30,7 +30,8 @@ public class MediatorDispatchTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.SendAsync(new DispatchVoidCommand("missing")).AsTask());
+            () => mediator.SendAsync(new DispatchVoidCommand("missing"), TestContext.Current.CancellationToken)
+                .AsTask());
     }
 
     [Fact]
@@ -43,7 +44,8 @@ public class MediatorDispatchTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.SendAsync(new DispatchThrowingCommand("boom")).AsTask());
+            () => mediator.SendAsync(new DispatchThrowingCommand("boom"), TestContext.Current.CancellationToken)
+                .AsTask());
         Assert.Equal("handler-exploded", ex.Message);
     }
 
@@ -74,7 +76,7 @@ public class MediatorDispatchTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync(new DispatchCommand("test"));
+        var result = await mediator.SendAsync(new DispatchCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -90,7 +92,7 @@ public class MediatorDispatchTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync(new DispatchAsyncCommand("async"));
+        var result = await mediator.SendAsync(new DispatchAsyncCommand("async"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -106,7 +108,7 @@ public class MediatorDispatchTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.QueryAsync(new DispatchQuery(42));
+        var result = await mediator.QueryAsync(new DispatchQuery(42), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -123,7 +125,7 @@ public class MediatorDispatchTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.PublishAsync(new DispatchNotification("ping"));
+        await mediator.PublishAsync(new DispatchNotification("ping"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(DispatchNotificationHandler.WasInvoked);
@@ -140,7 +142,7 @@ public class MediatorDispatchTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.PublishAsync(new DispatchNotification("fan-out"));
+        await mediator.PublishAsync(new DispatchNotification("fan-out"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(DispatchNotificationHandler.WasInvoked);
@@ -157,11 +159,12 @@ public class MediatorDispatchTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.SendAsync(new DispatchCommand("missing")).AsTask());
+            () => mediator.SendAsync(new DispatchCommand("missing"), TestContext.Current.CancellationToken).AsTask());
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.QueryAsync(new DispatchQuery(1)).AsTask());
+            () => mediator.QueryAsync(new DispatchQuery(1), TestContext.Current.CancellationToken).AsTask());
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.PublishAsync(new DispatchNotification("missing")).AsTask());
+            () => mediator.PublishAsync(new DispatchNotification("missing"), TestContext.Current.CancellationToken)
+                .AsTask());
     }
 
     [Fact]
@@ -173,7 +176,9 @@ public class MediatorDispatchTests
         var sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
         // Act - dispatch a command-with-response via the untyped overload
-        var result = await sender.SendAsync((object)new DispatchCommand("untyped"));
+        var result = await sender.SendAsync(
+            (object)new DispatchCommand("untyped"),
+            TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -191,7 +196,9 @@ public class MediatorDispatchTests
         var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
 
         // Act
-        await publisher.PublishAsync((object)new DispatchNotification("untyped"));
+        await publisher.PublishAsync(
+            (object)new DispatchNotification("untyped"),
+            TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(DispatchNotificationHandler.WasInvoked);

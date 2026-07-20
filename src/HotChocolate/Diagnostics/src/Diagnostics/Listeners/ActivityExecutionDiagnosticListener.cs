@@ -14,7 +14,10 @@ internal sealed class ActivityExecutionDiagnosticListener(
 {
     private const string ResolveFieldSpanKey = "HotChocolate.Diagnostics.ResolveFieldSpan";
 
-    public override bool EnableResolveFieldValue => true;
+    private static readonly AsyncLocal<SubscriptionEventSpan?> s_currentSubscriptionEventSpan =
+        new();
+
+    public override bool EnableResolveFieldValue => options.EnableResolveFieldValue;
 
     public override IDisposable ExecuteRequest(RequestContext context)
     {
@@ -50,12 +53,25 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
     public override void RequestError(RequestContext context, Exception error)
     {
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) surfaces here as an OperationCanceledException. Per the
+        // OpenTelemetry semantic conventions this is not an error, so the span
+        // is left Unset with no error.type and no exception event. Server-side
+        // execution timeouts never reach RequestError as an exception (the
+        // timeout middleware turns them into an HC0045 result), so only genuine
+        // client cancellations are filtered out here.
+        if (error is OperationCanceledException)
+        {
+            return;
+        }
+
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -68,7 +84,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -116,9 +132,17 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         activity.SetStatus(ActivityStatusCode.Error);
 
-        foreach (var error in errors)
+        if (errors is [var firstError, ..])
         {
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(firstError, ActivityExtensions.ValidationErrorType);
+
+            // Propagate the phase-specific error.type to the root request span so
+            // it does not fall back to EXECUTION_ERROR when validation produced
+            // the failure. SetErrorType is a no-op if the tag is already set.
+            if (context.Features.TryGet<ExecuteRequestSpan>(out var rootSpan))
+            {
+                rootSpan.Activity.SetErrorType(firstError, ActivityExtensions.ValidationErrorType);
+            }
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -234,9 +258,30 @@ internal sealed class ActivityExecutionDiagnosticListener(
             && value is ResolveFieldSpan span)
         {
             span.Activity.SetStatus(ActivityStatusCode.Error);
-            span.Activity.AddGraphQLError(error);
+            span.Activity.SetErrorType(
+                error,
+                ActivityExtensions.ExecutionErrorType,
+                preferException: true);
 
             enricher.EnrichResolverError(context, error, span.Activity);
+        }
+
+        // For subscription operations, the per-event errors are not visible to
+        // ExecuteRequestSpanBase.OnComplete (each event is its own result). Emit
+        // the graphql.error event on the subscription event span (the effective
+        // root for the event) so the error surfaces there too.
+        if (s_currentSubscriptionEventSpan.Value is { } eventSpan)
+        {
+            var eventActivity = eventSpan.Activity;
+            eventActivity.SetStatus(ActivityStatusCode.Error);
+            eventActivity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
+            eventActivity.AddGraphQLErrorEvent(
+                error,
+                operationType: SemanticConventions.GraphQL.Operation.TypeValues[
+                    context.Operation.Definition.Operation],
+                operationName: context.Operation.Name,
+                schemaCoordinate: context.Selection.Field.Coordinate.ToString(),
+                documentInfo: context.Features.Get<OperationDocumentInfo>());
         }
     }
 
@@ -282,6 +327,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         enricher.EnrichOnSubscriptionEvent(context, subscriptionId, span.Activity);
 
+        s_currentSubscriptionEventSpan.Value = span;
+
         return span;
     }
 
@@ -290,10 +337,31 @@ internal sealed class ActivityExecutionDiagnosticListener(
         ulong subscriptionId,
         Exception exception)
     {
+        // A subscription event can be cancelled for two very different reasons:
+        // the caller intentionally dropped the connection (client abort) or the
+        // event exceeded its server-side execution budget (per-event timeout).
+        // Only the latter is an error.
+        //
+        // Both surface as an OperationCanceledException, but they differ in the
+        // token that fired: a client abort cancels the request itself
+        // (RequestAborted), whereas a per-event timeout cancels an internal,
+        // per-event source while leaving the request abort untouched. Crucially,
+        // the request-level timeout token is released once the subscription
+        // stream is established, so RequestAborted only ever signals a genuine
+        // caller cancellation for a running subscription. We therefore treat a
+        // cancellation as a client abort only when the request was aborted,
+        // leaving the span Unset per the OpenTelemetry semantic conventions.
+        if (exception is OperationCanceledException
+            && context.RequestAborted.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+            activity.SetErrorType(exception);
         }
     }
 
@@ -317,7 +385,14 @@ internal sealed class ActivityExecutionDiagnosticListener(
     {
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            span.Activity.AddEvent(new(nameof(DocumentNotFoundInStorage)));
+            var tags = new ActivityTagsCollection();
+
+            if (documentId.HasValue)
+            {
+                tags[SemanticConventions.GraphQL.Document.Id] = documentId.Value;
+            }
+
+            span.Activity.AddEvent(new ActivityEvent(nameof(DocumentNotFoundInStorage), default, tags));
             enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
         }
     }

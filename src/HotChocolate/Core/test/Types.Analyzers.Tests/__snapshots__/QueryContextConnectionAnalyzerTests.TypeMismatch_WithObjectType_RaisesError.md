@@ -85,6 +85,7 @@ namespace HotChocolate.Types.Pagination
                     configuration.Description = GetDescription("A list of edges.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.Pagination.ProductEdgeType>>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::HotChocolate.Types.Pagination.PageEdge<global::TestNamespace.Product>>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionEdgesFieldFlags();
@@ -107,6 +108,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionNodesFieldFlags();
@@ -129,6 +131,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.PageInfo), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__HotChocolate_Types_Pagination_PageInfo")));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageInfo);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -146,10 +149,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = GetDescription("Identifies the total count of items in the connection.", false, field.Context.Options.UseXmlDocumentation);
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
-                    configuration.ResultType = typeof(int);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.IntType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(int?);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionTotalCountFieldFlags();
@@ -261,6 +263,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")));
                     configuration.ResultType = typeof(global::TestNamespace.Product);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -282,6 +285,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -362,6 +366,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.Pagination.ProductConnectionType>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageConnection<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionFlags();

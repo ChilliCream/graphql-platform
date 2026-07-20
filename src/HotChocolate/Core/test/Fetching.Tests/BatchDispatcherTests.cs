@@ -17,12 +17,12 @@ public class BatchDispatcherTests
         Assert.Equal(BatchDispatchEventType.Enqueued, observer.Events[0]);
 
         // act
-        scheduler.BeginDispatch();
+        scheduler.BeginDispatch(TestContext.Current.CancellationToken);
 
         // assert
         for (var i = 0; i < 10; i++)
         {
-            await Task.Delay(10);
+            await Task.Delay(10, TestContext.Current.CancellationToken);
 
             if (observer.Events.Count >= 5)
             {
@@ -32,7 +32,7 @@ public class BatchDispatcherTests
 
         scheduler.Dispose();
 
-        await Task.Delay(10);
+        await Task.Delay(10, TestContext.Current.CancellationToken);
 
         Assert.Collection(
             observer.Events.Take(5),
@@ -57,7 +57,7 @@ public class BatchDispatcherTests
         // assert
         for (var i = 0; i < 10; i++)
         {
-            await Task.Delay(10);
+            await Task.Delay(10, TestContext.Current.CancellationToken);
 
             if (observer.Events.Count >= 3)
             {
@@ -115,8 +115,10 @@ public class BatchDispatcherTests
         scheduler.Schedule(outerBatch);
 
         // act
-        scheduler.BeginDispatch();
-        var completedTask = await Task.WhenAny(outerCompleted.Task, Task.Delay(3_000));
+        scheduler.BeginDispatch(TestContext.Current.CancellationToken);
+        var completedTask = await Task.WhenAny(
+            outerCompleted.Task,
+            Task.Delay(3_000, TestContext.Current.CancellationToken));
 
         // assert
         scheduler.Dispose();
@@ -167,8 +169,10 @@ public class BatchDispatcherTests
         }
 
         // act
-        scheduler.BeginDispatch();
-        var completedTask = await Task.WhenAny(allCompleted.Task, Task.Delay(5_000));
+        scheduler.BeginDispatch(TestContext.Current.CancellationToken);
+        var completedTask = await Task.WhenAny(
+            allCompleted.Task,
+            Task.Delay(5_000, TestContext.Current.CancellationToken));
 
         // assert
         scheduler.Dispose();

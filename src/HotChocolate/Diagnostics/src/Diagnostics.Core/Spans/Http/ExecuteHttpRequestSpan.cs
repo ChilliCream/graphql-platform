@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Diagnostics.SemanticConventions;
@@ -42,6 +43,9 @@ internal sealed class ExecuteHttpRequestSpan(
                 break;
             case HttpRequestKind.HttpGetSchema:
                 activity.DisplayName = "GraphQL HTTP GET SDL";
+                break;
+            case HttpRequestKind.HttpGetSemanticNonNullSchema:
+                activity.DisplayName = "GraphQL HTTP GET Semantic Non-Null SDL";
                 break;
         }
 
@@ -223,7 +227,20 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         if (Activity.Status != ActivityStatusCode.Error)
         {
-            Activity.SetStatus(ActivityStatusCode.Ok);
+            if (httpContext.RequestAborted.IsCancellationRequested)
+            {
+                // An intentional caller cancellation (browser tab closed, connection
+                // dropped) is not an error: per the OpenTelemetry semantic conventions
+                // the span is left Unset and no error.type is reported.
+            }
+            else if (httpContext.Response.StatusCode >= 400)
+            {
+                Activity.SetStatus(ActivityStatusCode.Error);
+            }
+            else
+            {
+                Activity.SetStatus(ActivityStatusCode.Ok);
+            }
         }
 
         enricher.EnrichExecuteHttpRequest(httpContext, kind, Activity);
@@ -232,7 +249,8 @@ internal sealed class ExecuteHttpRequestSpan(
     public void RecordError(IError error)
     {
         Activity.SetStatus(ActivityStatusCode.Error);
-        Activity.AddGraphQLError(error);
+        Activity.AddGraphQLErrorEvent(error);
+        Activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
         enricher.EnrichHttpRequestError(httpContext, error, Activity);
     }
@@ -241,6 +259,7 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddException(exception);
+        Activity.SetErrorType(exception);
 
         enricher.EnrichHttpRequestError(httpContext, exception, Activity);
     }

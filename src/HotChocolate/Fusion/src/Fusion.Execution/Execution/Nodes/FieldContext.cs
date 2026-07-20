@@ -13,5 +13,6 @@ internal abstract class FieldContext
     public abstract ulong IncludeFlags { get; }
     public abstract T Parent<T>();
     public abstract T ArgumentValue<T>(string name) where T : IValueNode;
+    public abstract CancellationToken RequestAborted { get; }
     public abstract void AddRuntimeResult<T>(T result);
 }

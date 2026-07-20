@@ -80,7 +80,9 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         FieldNode field,
         IType parentType)
     {
-        if (parentType is not IComplexTypeDefinition complex
+        var namedParentType = parentType.NamedType();
+
+        if (namedParentType is not IComplexTypeDefinition complex
             || !complex.Fields.TryGetField(field.Name.Value, out var fieldDef))
         {
             // handled by other rules like KnownFieldNames

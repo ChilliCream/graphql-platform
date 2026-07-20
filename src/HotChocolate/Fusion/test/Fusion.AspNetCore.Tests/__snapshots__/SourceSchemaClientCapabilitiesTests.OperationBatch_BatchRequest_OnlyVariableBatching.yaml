@@ -42,20 +42,20 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: ID!
-      }
-
-      type Book {
-        author: Author
-        id: ID!
-        title: String!
-      }
-
       type Query {
         books: [Book!]!
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        author: Author
+        id: ID!
+        title: String!
       }
     interactions:
       - request:
@@ -102,55 +102,74 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        name(postFix: String): String!
-        id: ID!
-      }
-
-      type Book {
-        rating: String!
-        id: ID!
-      }
-
       type Query {
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
       }
+
+      type Author @key(fields: "id") {
+        name(postFix: String): String!
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        rating: String!
+        id: ID!
+      }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_1b3419da_2($__fusion_1_id: ID!) {
-                  authorById(id: $__fusion_1_id) {
-                    b: name(postFix: "2")
+          document: |
+            query Op_1b3419da_2($__fusion_1_id: ID!) {
+              authorById(id: $__fusion_1_id) {
+                b: name(postFix: "2")
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 1 - 2"
                   }
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "1"
-                  },
-                  {
-                    "__fusion_1_id": "2"
-                  }
-                ]
-            - document: |
-                query Op_1b3419da_3($__fusion_2_id: ID!) {
-                  authorById(id: $__fusion_2_id) {
-                    a: name
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 2 - 2"
                   }
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "1"
-                  },
-                  {
-                    "__fusion_2_id": "2"
-                  }
-                ]
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_1b3419da_3($__fusion_2_id: ID!) {
+              authorById(id: $__fusion_2_id) {
+                a: name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_2_id": "2"
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -167,22 +186,6 @@ sourceSchemas:
                 "data": {
                   "authorById": {
                     "a": "Author 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "b": "Author 1 - 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "b": "Author 2 - 2"
                   }
                 }
               }

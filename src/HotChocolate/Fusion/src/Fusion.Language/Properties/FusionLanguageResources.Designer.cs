@@ -60,6 +60,15 @@ namespace HotChocolate.Fusion.Language.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Arguments are not allowed on an object field that selects an explicit value..
+        /// </summary>
+        internal static string ArgumentsNotAllowedOnObjectFieldWithValue {
+            get {
+                return ResourceManager.GetString("ArgumentsNotAllowedOnObjectFieldWithValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code is not a punctuator..
         /// </summary>
         internal static string CodeIsNotPunctuator {
@@ -69,11 +78,56 @@ namespace HotChocolate.Fusion.Language.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected character `{0}` following a number..
+        /// </summary>
+        internal static string DisallowedNameCharacterAfterNumber {
+            get {
+                return ResourceManager.GetString("DisallowedNameCharacterAfterNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid character escape sequence: `\{0}`..
+        /// </summary>
+        internal static string InvalidCharacterEscapeSequence {
+            get {
+                return ResourceManager.GetString("InvalidCharacterEscapeSequence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid character within string: `{0}`..
+        /// </summary>
+        internal static string InvalidCharacterWithinString {
+            get {
+                return ResourceManager.GetString("InvalidCharacterWithinString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid number, expected a digit but got `{0}`..
+        /// </summary>
+        internal static string InvalidNumber {
+            get {
+                return ResourceManager.GetString("InvalidNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected a `{0}`-token, but found a `{1}`-token..
         /// </summary>
         internal static string InvalidToken {
             get {
                 return ResourceManager.GetString("InvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid Unicode escape sequence..
+        /// </summary>
+        internal static string InvalidUnicodeEscapeSequence {
+            get {
+                return ResourceManager.GetString("InvalidUnicodeEscapeSequence", resourceCulture);
             }
         }
         
@@ -114,11 +168,29 @@ namespace HotChocolate.Fusion.Language.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid number, unexpected digit after 0: `{0}`..
+        /// </summary>
+        internal static string UnexpectedDigit {
+            get {
+                return ResourceManager.GetString("UnexpectedDigit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unexpected token: {0}..
         /// </summary>
         internal static string UnexpectedToken {
             get {
                 return ResourceManager.GetString("UnexpectedToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unterminated string value..
+        /// </summary>
+        internal static string UnterminatedString {
+            get {
+                return ResourceManager.GetString("UnterminatedString", resourceCulture);
             }
         }
     }

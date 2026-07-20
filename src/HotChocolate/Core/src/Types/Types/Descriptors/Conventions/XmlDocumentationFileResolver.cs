@@ -6,13 +6,14 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.Descriptors;
 
-public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
+public class XmlDocumentationFileResolver
+    : IXmlDocumentationFileResolver
+    , IXmlDocumentationResolver
 {
     private const string Bin = "bin";
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
-
-    private readonly ConcurrentDictionary<string, XDocument?> _cache =
+    private readonly ConcurrentDictionary<string, Lazy<XmlDocumentation?>> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     public XmlDocumentationFileResolver()
@@ -29,22 +30,55 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
         Assembly assembly,
         [NotNullWhen(true)] out XDocument? document)
     {
-        var fullName = assembly.GetName().FullName;
+        var documentation = GetXmlDocumentation(assembly);
+        document = documentation?.Document;
+        return document is not null;
+    }
 
-        if (!_cache.TryGetValue(fullName, out var doc))
+    bool IXmlDocumentationResolver.TryGetMemberLookup(
+        Assembly assembly,
+        [NotNullWhen(true)] out IReadOnlyDictionary<string, XElement>? memberLookup)
+    {
+        var documentation = GetXmlDocumentation(assembly);
+        memberLookup = documentation?.MemberLookup;
+        return memberLookup is not null;
+    }
+
+    private XmlDocumentation? GetXmlDocumentation(Assembly assembly)
+    {
+        var fullName = assembly.GetName().FullName!;
+
+        if (!_cache.TryGetValue(fullName, out var documentation))
         {
-            var xmlDocumentFileName = GetXmlDocumentationPath(assembly);
-
-            if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
-            {
-                doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
-            }
-
-            _cache[fullName] = doc;
+            var candidate = new Lazy<XmlDocumentation?>(
+                () => LoadXmlDocumentation(assembly),
+                LazyThreadSafetyMode.ExecutionAndPublication);
+            documentation = _cache.GetOrAdd(fullName, candidate);
         }
 
-        document = doc;
-        return document != null;
+        try
+        {
+            return documentation.Value;
+        }
+        catch
+        {
+            _cache.TryRemove(fullName, out _);
+            throw;
+        }
+    }
+
+    private XmlDocumentation? LoadXmlDocumentation(Assembly assembly)
+    {
+        var xmlDocumentationFileName = GetXmlDocumentationPath(assembly);
+        if (xmlDocumentationFileName is null || !File.Exists(xmlDocumentationFileName))
+        {
+            return null;
+        }
+
+        var document = XDocument.Load(xmlDocumentationFileName, LoadOptions.PreserveWhitespace);
+        var memberLookup = XmlDocumentationMemberLookup.Create(document);
+
+        return new XmlDocumentation(document, memberLookup);
     }
 
     private string? GetXmlDocumentationPath(Assembly? assembly)
@@ -62,19 +96,16 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                 return null;
             }
 
-            if (_cache.ContainsKey(assemblyName.FullName))
-            {
-                return null;
-            }
-
             var expectedDocFile = _resolveXmlDocumentationFileName is null
                 ? $"{assemblyName.Name}.xml"
                 : _resolveXmlDocumentationFileName(assembly);
 
             string path;
+#pragma warning disable IL3000 // Accessing Assembly.Location can return an empty string for assemblies embedded in a single-file app.
             if (!string.IsNullOrEmpty(assembly.Location))
             {
                 var assemblyDirectory = IOPath.GetDirectoryName(assembly.Location);
+#pragma warning restore IL3000
                 path = IOPath.Combine(assemblyDirectory!, expectedDocFile);
                 if (File.Exists(path))
                 {
@@ -83,7 +114,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
             }
 
 #pragma warning disable SYSLIB0012
+#pragma warning disable IL3002 // Accessing Assembly.CodeBase can cause issues in single-file and AOT publishing.
             var codeBase = assembly.CodeBase;
+#pragma warning restore IL3002
 #pragma warning restore SYSLIB0012
             if (!string.IsNullOrEmpty(codeBase))
             {
@@ -131,4 +164,8 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
             return null;
         }
     }
+
+    private sealed record XmlDocumentation(
+        XDocument Document,
+        IReadOnlyDictionary<string, XElement> MemberLookup);
 }

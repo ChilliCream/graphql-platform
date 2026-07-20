@@ -1,0 +1,14 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@inaccessible", "@shareable"]
+  )
+
+type Query {
+  usersInAge: [User!]! @shareable
+}
+
+type User @key(fields: "id") {
+  id: ID
+  age: Int
+}

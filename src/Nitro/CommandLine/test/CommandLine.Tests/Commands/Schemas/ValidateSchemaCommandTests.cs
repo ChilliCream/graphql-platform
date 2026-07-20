@@ -27,8 +27,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
               --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)              The name of the stage [env: NITRO_STAGE]
               --schema-file <schema-file> (REQUIRED)  The path to the graphql file with the schema definition [env: NITRO_SCHEMA_FILE]
-              --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                     The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                     The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                          Show help and usage information
 
@@ -64,7 +64,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -114,7 +114,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -145,8 +145,59 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupSchemaFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "validate", "--stage", Stage, "--api-id", ApiId, "--schema-file", SchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupSchemaFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "validate", "--stage", Stage, "--api-id", ApiId, "--schema-file", SchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_ReturnsError()
+    {
+        SetupSchemaFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "validate", "--stage", Stage, "--api-id", ApiId, "--schema-file", SchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -188,7 +239,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -222,9 +273,9 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema passed validation.
             """);
     }
 
@@ -248,9 +299,9 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.AssertSuccess(
             """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema passed validation.
             """);
     }
 
@@ -279,15 +330,15 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Validation failed.
+            Schema failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
-            └── ✕ Failed to validate the schema.
+            └── ✕ Schema failed validation.
                 ├── GraphQL schema changes
                 │   ├── ✕ Directive foo was modified
                 │   │   ├── ✓ Directive location FieldDefinition added
@@ -301,7 +352,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
                 │   ├── ✓ Type system member NewType was added.
                 │   └── ✕ Type system member OldType was removed.
                 ├── Invalid GraphQL schema
-                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
                 ├── Client 'TestClient' (ID: client-1)
                 │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                 │       └── foo (10:10)
@@ -322,10 +373,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         IValidateSchemaVersion_ValidateSchema_Errors,
         string> GetValidateSchemaVersionErrors() => new()
     {
-        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." },
-        { CreateValidateSchemaVersionApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreateValidateSchemaVersionStageNotFoundError(), $"Stage '{Stage}' was not found." },
-        { CreateValidateSchemaVersionSchemaNotFoundError(), "Schema not found." }
+        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." }
     };
 
     #endregion

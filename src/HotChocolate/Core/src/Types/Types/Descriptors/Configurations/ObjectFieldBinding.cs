@@ -42,6 +42,5 @@ public readonly struct ObjectFieldBinding
     /// <summary>
     /// Defines if the bound property shall be replaced.
     /// </summary>
-    /// <value></value>
     public bool Replace { get; }
 }

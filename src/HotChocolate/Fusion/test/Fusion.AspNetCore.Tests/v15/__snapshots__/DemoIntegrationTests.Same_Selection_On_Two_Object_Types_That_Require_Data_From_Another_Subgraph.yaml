@@ -40,8 +40,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node @key(fields: "id") {
-        id: ID!
+      type Query {
+        item1: Item1!
+        item2: Item2!
       }
 
       type Item1 {
@@ -56,9 +57,8 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        item1: Item1!
-        item2: Item2!
+      interface Node @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -99,8 +99,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
       }
 
       type Product implements Node {
@@ -108,9 +109,8 @@ sourceSchemas:
         name: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

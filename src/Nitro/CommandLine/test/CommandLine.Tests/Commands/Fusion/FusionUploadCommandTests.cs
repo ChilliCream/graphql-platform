@@ -27,8 +27,8 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
               --tag <tag> (REQUIRED)                                    The tag of the schema version to deploy [env: NITRO_TAG]
               -f, --source-schema-file <source-schema-file> (REQUIRED)  The path to a source schema file (.graphqls) or directory containing a source schema file
               -w, --working-directory <working-directory>               Set the working directory for the command
-              --cloud-url <cloud-url>                                   The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                       The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                   The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                       The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                           The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                            Show help and usage information
 
@@ -64,7 +64,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -120,8 +120,37 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new source schema version 'v1' to API 'api-1'
+            Uploading new version 'v1' for source schema 'products' of API 'api-1'
             └── ✕ Failed to upload a new source schema version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupUploadSourceSchemaMutation(
+            new UploadFusionSubgraph_UploadFusionSubgraph_Errors_ApiNotFoundError("API 'api-1' was not found."));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "upload",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -148,7 +177,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         await AssertFusionSourceSchemaArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new source schema version 'v1' to API 'api-1'
+            Uploading new version 'v1' for source schema 'products' of API 'api-1'
             └── ✓ Uploaded new source schema version 'v1'.
             """);
     }
@@ -174,7 +203,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new source schema version 'v1' to API 'api-1'
+            Uploading new version 'v1' for source schema 'products' of API 'api-1'
             └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(

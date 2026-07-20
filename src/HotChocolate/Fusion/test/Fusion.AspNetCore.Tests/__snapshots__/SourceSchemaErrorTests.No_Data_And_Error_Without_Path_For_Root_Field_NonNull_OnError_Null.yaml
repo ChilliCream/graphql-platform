@@ -32,13 +32,13 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        name: String!
-        id: Int!
+      type Query {
+        productById(id: Int!): Product @lookup
       }
 
-      type Query {
-        productById(id: Int!): Product! @lookup
+      type Product @key(fields: "id") {
+        name: String!
+        id: Int!
       }
     interactions:
       - request:

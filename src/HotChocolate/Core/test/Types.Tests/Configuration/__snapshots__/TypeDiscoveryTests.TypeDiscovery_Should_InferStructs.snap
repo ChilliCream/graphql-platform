@@ -2,11 +2,6 @@ schema {
   query: QueryTypeWithStruct
 }
 
-type InferStruct {
-  id: UUID!
-  number: Int!
-}
-
 type QueryTypeWithStruct {
   struct: InferStruct!
   nullableStruct: InferStruct
@@ -18,11 +13,10 @@ type QueryTypeWithStruct {
   scalarDateTime: DateTime!
 }
 
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
+type InferStruct {
+  id: UUID!
+  number: Int!
+}
 
 "The `DateTime` scalar type represents a date and time with time zone offset information."
 scalar DateTime

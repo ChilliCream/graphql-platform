@@ -16,7 +16,7 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         // act
-        var features = await IntrospectionClient.InspectServerAsync(client);
+        var features = await IntrospectionClient.InspectServerAsync(client, TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(features.HasArgumentDeprecation);
@@ -48,7 +48,7 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         // act
-        var schema = await IntrospectionClient.IntrospectServerAsync(client);
+        var schema = await IntrospectionClient.IntrospectServerAsync(client, TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString(true).MatchSnapshot();

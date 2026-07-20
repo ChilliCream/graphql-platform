@@ -1,7 +1,7 @@
 query DashboardContainerQuery {
-  ... DashboardTickerFragment_query
-  ... DashboardFeaturedFragment_query
-  ... DashboardSpotlightFragment_query
+  ...DashboardTickerFragment_query
+  ...DashboardFeaturedFragment_query
+  ...DashboardSpotlightFragment_query
     @defer(label: "DashboardContainerQuery$defer$spotlight")
 }
 
@@ -29,7 +29,7 @@ fragment DashboardFeaturedFragment_query on Query {
   featured: assets(where: { symbol: { in: ["BTC", "ADA", "ALGO"] } }) {
     nodes {
       id
-      ... DashboardFeaturedCardFragment_asset
+      ...DashboardFeaturedCardFragment_asset
     }
   }
 }
@@ -37,13 +37,13 @@ fragment DashboardFeaturedFragment_query on Query {
 fragment DashboardSpotlightCardFragment_asset on AssetsConnection {
   nodes {
     id
-    ... DashboardSpotlightItemFragment_asset
+    ...DashboardSpotlightItemFragment_asset
   }
 }
 
 fragment DashboardSpotlightFragment_query on Query {
-  ... DashboardSpotlightGainersFragment_query
-  ... DashboardSpotlightLosersFragment_query
+  ...DashboardSpotlightGainersFragment_query
+  ...DashboardSpotlightLosersFragment_query
 }
 
 fragment DashboardSpotlightGainersFragment_query on Query {
@@ -52,7 +52,7 @@ fragment DashboardSpotlightGainersFragment_query on Query {
     where: { price: { change24Hour: { gt: 0 } } }
     order: { price: { change24Hour: DESC } }
   ) {
-    ... DashboardSpotlightCardFragment_asset
+    ...DashboardSpotlightCardFragment_asset
       @defer(label: "DashboardSpotlightGainersFragment_query$defer$gainers")
   }
 }
@@ -77,7 +77,7 @@ fragment DashboardSpotlightLosersFragment_query on Query {
     where: { price: { change24Hour: { lt: 0 } } }
     order: { price: { change24Hour: ASC } }
   ) {
-    ... DashboardSpotlightCardFragment_asset
+    ...DashboardSpotlightCardFragment_asset
       @defer(label: "DashboardSpotlightLosersFragment_query$defer$losers")
   }
 }
@@ -86,7 +86,7 @@ fragment DashboardTickerFragment_query on Query {
   ticker: assets(first: 10, order: { price: { tradableMarketCapRank: ASC } }) {
     nodes {
       symbol
-      ... DashboardTickerItemFragment_asset
+      ...DashboardTickerItemFragment_asset
       id
     }
   }
@@ -146,7 +146,11 @@ query DashboardContainerQuery {
                     history @__execute(id: 32, kind: DEFAULT, type: COMPOSITE) {
                       ... on HistoryConnection {
                         nodes
-                          @__execute(id: 35, kind: DEFAULT, type: COMPOSITE_LIST) {
+                          @__execute(
+                            id: 35
+                            kind: DEFAULT
+                            type: COMPOSITE_LIST
+                          ) {
                           ... on AssetPriceHistory {
                             epoch @__execute(id: 37, kind: DEFAULT, type: LEAF)
                             price @__execute(id: 38, kind: DEFAULT, type: LEAF)
@@ -171,7 +175,12 @@ query DashboardContainerQuery {
     ) @__execute(id: 4, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
       ... on AssetsConnection {
         nodes
-          @__execute(id: 40, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
+          @__execute(
+            id: 40
+            kind: DEFAULT
+            type: COMPOSITE_LIST
+            isDeferred: true
+          ) {
           ... on Asset {
             id @__execute(id: 42, kind: DEFAULT, type: LEAF, isDeferred: true)
             symbol
@@ -182,16 +191,41 @@ query DashboardContainerQuery {
             isInWatchlist
               @__execute(id: 46, kind: DEFAULT, type: LEAF, isDeferred: true)
             price
-              @__execute(id: 47, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              @__execute(
+                id: 47
+                kind: DEFAULT
+                type: COMPOSITE
+                isDeferred: true
+              ) {
               ... on AssetPrice {
                 currency
-                  @__execute(id: 49, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 49
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
                 lastPrice
-                  @__execute(id: 50, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 50
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
                 change24Hour
-                  @__execute(id: 51, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 51
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
                 id
-                  @__execute(id: 52, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 52
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
               }
             }
           }
@@ -205,7 +239,12 @@ query DashboardContainerQuery {
     ) @__execute(id: 5, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
       ... on AssetsConnection {
         nodes
-          @__execute(id: 54, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
+          @__execute(
+            id: 54
+            kind: DEFAULT
+            type: COMPOSITE_LIST
+            isDeferred: true
+          ) {
           ... on Asset {
             id @__execute(id: 56, kind: DEFAULT, type: LEAF, isDeferred: true)
             symbol
@@ -216,16 +255,41 @@ query DashboardContainerQuery {
             isInWatchlist
               @__execute(id: 60, kind: DEFAULT, type: LEAF, isDeferred: true)
             price
-              @__execute(id: 61, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              @__execute(
+                id: 61
+                kind: DEFAULT
+                type: COMPOSITE
+                isDeferred: true
+              ) {
               ... on AssetPrice {
                 currency
-                  @__execute(id: 63, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 63
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
                 lastPrice
-                  @__execute(id: 64, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 64
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
                 change24Hour
-                  @__execute(id: 65, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 65
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
                 id
-                  @__execute(id: 66, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 66
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
               }
             }
           }

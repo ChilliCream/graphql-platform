@@ -83,7 +83,7 @@ public interface ISocketProtocol : IAsyncDisposable
     /// <summary>
     /// Unsubscribes a listener from the protocol..
     /// </summary>
-    /// <param name="listener"></param>
+    /// <param name="listener">The listener to remove from the protocol.</param>
     void Unsubscribe(OnReceiveAsync listener);
 
     /// <summary>

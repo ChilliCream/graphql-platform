@@ -55,7 +55,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_MessageTypeUnspecified,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
@@ -65,7 +65,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
@@ -77,7 +77,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name,
                     subscribeResolverName)
                 .SetExtension("member", member)
@@ -734,10 +734,7 @@ internal static class ThrowHelper
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    string.Format(
-                        TypeResources.RegexType_InvalidFormat,
-                        name))
+                .SetMessage(TypeResources.RegexType_InvalidFormat, name)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .Build(),
             type);

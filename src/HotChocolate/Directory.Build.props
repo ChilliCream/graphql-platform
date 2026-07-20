@@ -1,9 +1,9 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
   <PropertyGroup>
-    <PackageIcon>hotchocolate-signet.png</PackageIcon>
-  </PropertyGroup>
-  <PropertyGroup>
-    <NitroVersion>30.0.2</NitroVersion>
+    <Product>Hot Chocolate</Product>
+    <PackageIcon>hotchocolate-icon.png</PackageIcon>
+    <NitroVersion>31.0.3</NitroVersion>
   </PropertyGroup>
 </Project>

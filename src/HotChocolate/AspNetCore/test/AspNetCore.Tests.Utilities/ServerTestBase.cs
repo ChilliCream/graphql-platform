@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
-using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -128,6 +127,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         var builder = endpoints.MapGraphQL(pattern);
 
                         configureConventions?.Invoke(builder);
+                        endpoints.MapGraphQLSemanticNonNullSchema();
                         endpoints.MapGraphQL("/notnull", "notnull");
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");

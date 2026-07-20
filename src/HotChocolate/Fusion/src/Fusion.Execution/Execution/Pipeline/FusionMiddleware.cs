@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
@@ -21,4 +22,7 @@ public static class FusionMiddleware
 
     public static RequestMiddlewareConfiguration Timeout
         => TimeoutMiddleware.Create();
+
+    public static RequestMiddlewareConfiguration ConcurrencyGate
+        => CommonMiddleware.ConcurrencyGate;
 }

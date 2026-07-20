@@ -17,7 +17,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Execution;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]
@@ -25,15 +25,15 @@ namespace Fusion.Execution.Benchmarks;
 public class GraphQLQueryBenchmark
 {
     private readonly Uri _requestUri = new Uri("http://localhost:5000/graphql");
-    private TestServer _server = null!;
-    private WebApplication _app = null!;
-    private HttpClient _client = null!;
-    private FusionClient _fusionClient = null!;
-    private FusionGraphQLHttpRequest _fusionItemsRequest = null!;
-    private FusionGraphQLHttpRequest _fusionFewItemsRequest = null!;
-    private TransportClient _transportClient = null!;
-    private TransportGraphQLHttpRequest _transportItemsRequest = null!;
-    private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
+    private TestServer _server;
+    private WebApplication _app;
+    private HttpClient _client;
+    private FusionClient _fusionClient;
+    private FusionGraphQLHttpRequest _fusionItemsRequest;
+    private FusionGraphQLHttpRequest _fusionFewItemsRequest;
+    private TransportClient _transportClient;
+    private TransportGraphQLHttpRequest _transportItemsRequest;
+    private TransportGraphQLHttpRequest _transportFewItemsRequest;
 
     private sealed class PercentilesConfig : ManualConfig
     {
@@ -108,7 +108,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Large_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("items"u8).GetArrayLength();
     }
 
@@ -125,7 +126,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Small_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionFewItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("fewItems"u8).GetArrayLength();
     }
 }

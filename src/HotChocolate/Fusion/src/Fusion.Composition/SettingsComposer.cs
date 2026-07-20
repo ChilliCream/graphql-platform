@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Composes source schema settings into gateway settings for a specific environment
 /// </summary>
-public sealed partial class SettingsComposer
+internal sealed partial class SettingsComposer
 {
     private static readonly Regex s_variablePattern = VariablePatternRegex();
 

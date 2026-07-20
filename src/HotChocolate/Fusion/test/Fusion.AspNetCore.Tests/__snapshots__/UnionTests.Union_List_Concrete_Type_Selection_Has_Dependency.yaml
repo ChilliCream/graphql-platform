@@ -45,6 +45,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        posts: [Post]
+      }
+
       type Author @key(fields: "id") {
         id: ID!
       }
@@ -61,10 +65,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        posts: [Post]
       }
 
       union Post = Photo | Discussion
@@ -120,13 +120,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:
@@ -171,13 +171,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         subgraph3: String!
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
