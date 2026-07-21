@@ -1,4 +1,4 @@
-true Result:
+1 Result:
 ---------------
 {
   "data": {
@@ -11,15 +11,15 @@ true Result:
 }
 ---------------
 
-true SQL:
+1 SQL:
 ---------------
--- @p='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
+-- @__p_0='POINT (1 1)' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE ST_Intersects(d."Bar", @p)
+WHERE ST_Contains(d."Bar", @__p_0)
 ---------------
 
-false Result:
+2 Result:
 ---------------
 {
   "data": {
@@ -32,10 +32,10 @@ false Result:
 }
 ---------------
 
-false SQL:
+2 SQL:
 ---------------
--- @p='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
+-- @__p_0='POINT (-1 -1)' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE NOT (ST_Intersects(d."Bar", @p))
+WHERE ST_Contains(d."Bar", @__p_0)
 ---------------
