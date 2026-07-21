@@ -15,11 +15,17 @@ using GreenDonut;
 
 namespace TestNamespace.DataAccess.Entities
 {
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Entities.EntityDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, global::TestNamespace.DataAccess.Entities.Entity>
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Entities.EntityDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.DataAccess.Entities.Entity>
         , IEntityByIdDataLoader
@@ -70,11 +76,17 @@ namespace TestNamespace.DataAccess.Entities
 namespace TestNamespace.DataAccess.Products
 {
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Products.ProductDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, global::TestNamespace.DataAccess.Products.Product>
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Products.ProductDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.DataAccess.Products.Product>
         , IEntityByIdDataLoader

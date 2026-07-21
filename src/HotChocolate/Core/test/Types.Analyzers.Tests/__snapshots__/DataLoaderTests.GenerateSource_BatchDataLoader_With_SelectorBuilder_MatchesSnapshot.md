@@ -15,11 +15,17 @@ using GreenDonut;
 
 namespace TestNamespace
 {
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.TestClass.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::GreenDonut.Data.ISelectorBuilder, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, string>
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.TestClass.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::GreenDonut.Data.ISelectorBuilder, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, string>
         , IEntityByIdDataLoader
