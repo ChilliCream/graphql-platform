@@ -7,6 +7,7 @@ public sealed class OpenApiDefinitionValidator
 {
     private static readonly ImmutableArray<IOpenApiModelDefinitionValidationRule> s_modelValidationRules =
     [
+        new ModelNoHoistDirectiveRule(),
         new ModelNoDeferStreamDirectiveRule()
     ];
 
@@ -15,6 +16,8 @@ public sealed class OpenApiDefinitionValidator
         new EndpointMustHaveNameRule(),
         new EndpointMustBeQueryOrMutationRule(),
         new EndpointMustHaveSingleRootFieldRule(),
+        new EndpointNoHoistDirectiveInFragmentsRule(),
+        new EndpointSingleHoistDirectiveRule(),
         new EndpointNoDeferStreamDirectiveRule(),
         new EndpointHttpMethodMustBeValidRule(),
         new EndpointMustHaveValidRouteRule(),

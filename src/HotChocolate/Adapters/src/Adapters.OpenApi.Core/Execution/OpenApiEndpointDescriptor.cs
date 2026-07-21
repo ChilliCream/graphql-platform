@@ -11,7 +11,7 @@ internal sealed record OpenApiEndpointDescriptor(
     RoutePattern Route,
     VariableValueInsertionTrie ParameterTrie,
     string? VariableFilledThroughBody,
-    string ResponseNameToExtract);
+    OpenApiHoistedSelection HoistedSelection);
 
 internal interface IVariableValueInsertionTrieSegment;
 

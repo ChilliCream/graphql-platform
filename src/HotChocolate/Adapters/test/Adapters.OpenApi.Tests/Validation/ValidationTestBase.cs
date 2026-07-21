@@ -64,6 +64,44 @@ public abstract class ValidationTestBase : OpenApiTestBase
         Assert.Equal("Model contains the '@stream' directive, which is not supported for OpenAPI models.", error.Message);
     }
 
+    [Fact]
+    public async Task External_Model_Contains_Hoist_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                address @hoist {
+                  street
+                }
+                ...UserPreferences
+              }
+            }
+            """,
+            """
+            fragment UserPreferences on User {
+              preferences @hoist {
+                color
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Model contains the '@hoist' directive, which is not supported for OpenAPI models.",
+            error.Message);
+    }
+
     #endregion
 
     #region Endpoint
@@ -152,6 +190,99 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal("Endpoint must select exactly one root field.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Should_RaiseError_When_Multiple_Hoist_Directives_Are_In_Operation()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                address @hoist {
+                  street
+                }
+                preferences @hoist {
+                  color
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Endpoint must contain at most one '@hoist' directive.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Should_RaiseError_When_Named_Fragment_Contains_Hoist_Directive()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ...UserPreferences
+              }
+            }
+
+            fragment UserPreferences on User {
+              preferences @hoist {
+                color
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint named fragments cannot contain the '@hoist' directive.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Should_RaiseError_When_Field_Has_Multiple_Hoist_Directives()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                address @hoist @hoist {
+                  street
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Endpoint must contain at most one '@hoist' directive.", error.Message);
     }
 
     [Fact]

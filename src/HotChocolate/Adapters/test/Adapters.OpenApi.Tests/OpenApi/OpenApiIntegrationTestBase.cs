@@ -51,6 +51,30 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task OperationDocument_Should_Use_Hoisted_Field_For_Response_Schema()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
+              userById(id: $userId) {
+                address @hoist {
+                  road: street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
     public async Task OperationDocument_With_Default_Value_For_Variable()
     {
         // arrange
@@ -857,6 +881,37 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
               usersWithoutAuth {
                 address {
                   street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OpenApi_Should_Use_Valid_Hoisted_Selection_When_First_Duplicated_Route_Is_Invalid()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query AInvalidFirst @http(method: GET, route: "/users/1") {
+              doesNotExist {
+                id @hoist
+              }
+            }
+            """,
+            """
+            query BValidSecond @http(method: GET, route: "/users/1") {
+              userById(id: "1") {
+                address @hoist {
+                  road: street
                 }
               }
             }
