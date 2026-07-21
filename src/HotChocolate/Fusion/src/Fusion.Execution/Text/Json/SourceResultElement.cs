@@ -498,9 +498,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>
     /// Creates a stack-only snapshot of this element that carries the element's
-    /// decoded metadata row so repeated row lookups are avoided. A default element
-    /// produces a default snapshot whose <see cref="SourceResultElementSnapshot.ValueKind"/>
-    /// is <see cref="JsonValueKind.Undefined"/>.
+    /// decoded metadata row so repeated row lookups are avoided.
     /// </summary>
     internal SourceResultElementSnapshot CreateSnapshot()
     {
