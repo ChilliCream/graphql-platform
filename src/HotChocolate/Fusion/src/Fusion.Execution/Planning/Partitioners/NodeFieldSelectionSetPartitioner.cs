@@ -57,9 +57,33 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
                         continue;
                     }
 
-                    if (field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+                    var isNodeField = field is
                     {
-                        var nodeField = new NodeField { Field = fieldNode, ParentFragments = context.FragmentPath?.ToArray() };
+                        Name: "node",
+                        Type: IInterfaceTypeDefinition { Name: "Node" }
+                    };
+                    var isNodesField = schema.NodeResolution == NodeResolution.Gateway
+                        && field.IsGatewayField
+                        && field is
+                        {
+                            Name: "nodes",
+                            Type: NonNullType
+                            {
+                                NullableType: ListType
+                                {
+                                    ElementType: IInterfaceTypeDefinition { Name: "Node" }
+                                }
+                            }
+                        };
+
+                    if (isNodeField || isNodesField)
+                    {
+                        var nodeField = new NodeField
+                        {
+                            Field = fieldNode,
+                            IsPlural = isNodesField,
+                            ParentFragments = context.FragmentPath?.ToArray()
+                        };
 
                         context.NodeFields ??= [];
                         context.NodeFields.Add(nodeField);

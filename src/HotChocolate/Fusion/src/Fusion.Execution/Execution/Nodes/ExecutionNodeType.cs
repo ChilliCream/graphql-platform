@@ -6,5 +6,6 @@ public enum ExecutionNodeType
     OperationBatch,
     EventStream,
     Introspection,
-    Node
+    Node,
+    Nodes
 }

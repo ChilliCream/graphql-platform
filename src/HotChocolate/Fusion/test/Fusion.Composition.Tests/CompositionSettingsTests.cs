@@ -82,6 +82,7 @@ public sealed class CompositionSettingsTests
             Merger =
             {
                 EnableGlobalObjectIdentification = true,
+                AddNodesField = true,
                 NodeResolution = NodeResolution.SourceSchema
             }
         };
@@ -99,6 +100,8 @@ public sealed class CompositionSettingsTests
                 .GetProperty("nodeResolution")
                 .GetString());
         Assert.Equal(NodeResolution.SourceSchema, roundTripped!.Merger.NodeResolution);
+        Assert.True(roundTripped.Merger.AddNodesField);
+        Assert.True(roundTripped.Merger.ToOptions().AddNodesField);
         Assert.Equal(NodeResolution.SourceSchema, roundTripped.Merger.ToOptions().NodeResolution);
     }
 

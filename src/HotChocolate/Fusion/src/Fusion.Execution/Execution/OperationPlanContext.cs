@@ -30,6 +30,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _dependentBitsetWordCount;
     private string?[] _schemaNames = [];
     private ImmutableArray<VariableValues>[] _variableValueSets = [];
+    private ImmutableArray<VariableValues>[] _dynamicVariableValueSets = [];
     private Uri?[] _transportUris = [];
     private string?[] _transportContentTypes = [];
     private List<IOperationPlanNode>?[] _skippedDefinitions = [];
@@ -185,6 +186,15 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal void EnqueueForExecution(ExecutionNode node, ExecutionNode dependentNode)
     {
+        var nodeCompletionSet = GetOrCreateDependentSelection(node);
+        nodeCompletionSet.Add(dependentNode);
+    }
+
+    internal void BeginDependentSelection(ExecutionNode node)
+        => GetOrCreateDependentSelection(node);
+
+    private NodeCompletionSet GetOrCreateDependentSelection(ExecutionNode node)
+    {
         var nodeId = node.Id;
         var nodeCompletionSet = _nodesToComplete[nodeId];
 
@@ -194,7 +204,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             nodeCompletionSet = Interlocked.CompareExchange(ref _nodesToComplete[nodeId], newSet, null) ?? newSet;
         }
 
-        nodeCompletionSet.Add(dependentNode);
+        return nodeCompletionSet;
     }
 
     internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
@@ -306,6 +316,34 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         _variableValueSets[node.Id] = variableValueSets;
     }
+
+    internal void SetDynamicVariableValueSets(
+        ExecutionNode node,
+        ImmutableArray<VariableValues> variableValueSets)
+        => _dynamicVariableValueSets[node.Id] = variableValueSets;
+
+    internal bool TryGetDynamicVariableValueSets(
+        ExecutionNode node,
+        out ImmutableArray<VariableValues> variableValueSets)
+    {
+        variableValueSets = _dynamicVariableValueSets[node.Id];
+        return !variableValueSets.IsDefault;
+    }
+
+    internal void InitializeNodesResult(string responseName, int count)
+        => _resultStore.InitializeNodesResult(responseName, count);
+
+    internal CompactPath CreateNodesResultPath(string responseName, int index)
+        => _resultStore.CreateNodesResultPath(responseName, index);
+
+    internal void AddNodesError(string responseName, int index, IError error)
+        => _resultStore.AddNodesError(responseName, index, error);
+
+    internal ImmutableArray<VariableValues> CreateNodesVariableValueSets(
+        string responseName,
+        string variableName,
+        IReadOnlyList<NodeIdValue> values)
+        => _resultStore.CreateNodesVariableValueSets(responseName, variableName, values);
 
     internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)
     {

@@ -42,6 +42,8 @@ internal sealed record CompositionSettings
 
         public bool? EnableGlobalObjectIdentification { get; set; }
 
+        public bool? AddNodesField { get; set; }
+
         public NodeResolution? NodeResolution { get; set; }
 
         public bool? RemoveUnreferencedDefinitions { get; init; }

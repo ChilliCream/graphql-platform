@@ -176,6 +176,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 case NodeFieldExecutionNode nodeExecutionNode:
                     WriteNodeFieldNode(jsonWriter, operation, nodeExecutionNode, nodeTrace);
                     break;
+
+                case NodesFieldExecutionNode nodesExecutionNode:
+                    WriteNodesFieldNode(jsonWriter, operation, nodesExecutionNode, nodeTrace);
+                    break;
             }
         }
 
@@ -1117,6 +1121,36 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteNodesFieldNode(
+        JsonWriter jsonWriter,
+        Operation operation,
+        NodesFieldExecutionNode node,
+        ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+        jsonWriter.WritePropertyName("idsValue");
+        jsonWriter.WriteStringValue(node.IdsValue.ToString());
+        jsonWriter.WritePropertyName("responseName");
+        jsonWriter.WriteStringValue(node.ResponseName);
+        jsonWriter.WritePropertyName("branches");
+        jsonWriter.WriteStartObject();
+
+        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+        {
+            jsonWriter.WritePropertyName(branch.Key);
+            jsonWriter.WriteNumberValue(branch.Value.Id);
+        }
+
+        jsonWriter.WriteEndObject();
+        TryWriteConditions(jsonWriter, node);
+        TryWriteNodeTrace(jsonWriter, operation, trace);
         jsonWriter.WriteEndObject();
     }
 

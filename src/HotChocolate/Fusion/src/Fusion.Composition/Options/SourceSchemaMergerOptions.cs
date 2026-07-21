@@ -21,6 +21,12 @@ public sealed class SourceSchemaMergerOptions
     public bool EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
+    /// Adds the plural <c>Query.nodes(ids: [ID!]!): [Node]!</c> gateway field when Global Object
+    /// Identification is enabled.
+    /// </summary>
+    public bool AddNodesField { get; set; }
+
+    /// <summary>
     /// Defines how the gateway resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution NodeResolution { get; set; } = NodeResolution.Gateway;

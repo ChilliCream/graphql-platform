@@ -7,4 +7,5 @@ internal sealed record NodeLookupWorkItem(
     Lookup? Lookup,
     string ResponseName,
     IValueNode IdArgumentValue,
-    SelectionSet SelectionSet) : WorkItem;
+    SelectionSet SelectionSet,
+    bool IsPlural) : WorkItem;

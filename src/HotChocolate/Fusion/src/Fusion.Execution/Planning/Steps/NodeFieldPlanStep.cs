@@ -10,6 +10,8 @@ public record NodeFieldPlanStep : PlanStep
 
     public required IValueNode IdValue { get; init; }
 
+    public bool IsPlural { get; init; }
+
     public required ExecutionNodeCondition[] Conditions { get; init; }
 
     public required OperationPlanStep FallbackQuery { get; init; }
