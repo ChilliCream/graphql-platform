@@ -75,7 +75,7 @@ public sealed class DataLoaderTests
                 cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
-            .Create(Postfix([NET8_0], [NET9_0]))
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -290,7 +290,9 @@ public sealed class DataLoaderTests
             CancellationToken cancellationToken)
             => await brandById
                 .Where(x => x.Name.StartsWith("Brand"))
-                .Where(x => x.Name.EndsWith('0'))
+#pragma warning disable CA1866 // EF Core 8 and 9 cannot translate the char overload
+                .Where(x => x.Name.EndsWith("0"))
+#pragma warning restore CA1866
                 .LoadAsync(id, cancellationToken);
 
         [UseFiltering]
