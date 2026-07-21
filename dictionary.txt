@@ -134,6 +134,7 @@ Linq
 Liquibase
 longpaths
 lscache
+mapfile
 Marek
 marocchino
 matchesBrics

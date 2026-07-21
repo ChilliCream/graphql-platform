@@ -1,24 +1,3 @@
-1 Result:
----------------
-{
-  "data": {
-    "root": [
-      {
-        "id": 1
-      }
-    ]
-  }
-}
----------------
-
-1 SQL:
----------------
--- @p='POINT (1 1)' (DbType = Object)
-SELECT d."Id", d."Bar"
-FROM "Data" AS d
-WHERE ST_Contains(d."Bar", @p)
----------------
-
 2 Result:
 ---------------
 {
@@ -34,8 +13,31 @@ WHERE ST_Contains(d."Bar", @p)
 
 2 SQL:
 ---------------
--- @p='POINT (-1 -1)' (DbType = Object)
+-- @__p_0='POINT (1 1)' (DbType = Object)
+-- @__p_1='1'
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE ST_Contains(d."Bar", @p)
+WHERE ST_Distance(d."Bar", @__p_0) > @__p_1
+---------------
+
+1 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "id": 1
+      }
+    ]
+  }
+}
+---------------
+
+1 SQL:
+---------------
+-- @__p_0='POINT (-1 -1)' (DbType = Object)
+-- @__p_1='1'
+SELECT d."Id", d."Bar"
+FROM "Data" AS d
+WHERE ST_Distance(d."Bar", @__p_0) > @__p_1
 ---------------
