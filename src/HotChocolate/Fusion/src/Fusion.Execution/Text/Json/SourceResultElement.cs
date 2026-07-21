@@ -505,7 +505,7 @@ public readonly partial struct SourceResultElement
     internal SourceResultElementSnapshot CreateSnapshot()
     {
         CheckValidInstance();
-        return new SourceResultElementSnapshot(_parent, _cursor, _parent.GetValueRow(_cursor))
+        return new SourceResultElementSnapshot(_parent, _cursor, _parent.GetValueRow(_cursor));
     }
 
     /// <summary>
