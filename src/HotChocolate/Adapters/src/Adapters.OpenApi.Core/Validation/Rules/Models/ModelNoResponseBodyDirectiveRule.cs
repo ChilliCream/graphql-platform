@@ -1,17 +1,17 @@
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that a model definition cannot contain the @hoist directive.
+/// Validates that a model definition cannot contain the @responseBody directive.
 /// </summary>
-internal sealed class ModelNoHoistDirectiveRule : IOpenApiModelDefinitionValidationRule
+internal sealed class ModelNoResponseBodyDirectiveRule : IOpenApiModelDefinitionValidationRule
 {
-    private static readonly HoistDirectiveFinder s_finder = new();
+    private static readonly ResponseBodyDirectiveFinder s_finder = new();
 
     public OpenApiDefinitionValidationResult Validate(
         OpenApiModelDefinition model,
         IOpenApiDefinitionValidationContext context)
     {
-        var finderContext = new HoistDirectiveFinder.Context();
+        var finderContext = new ResponseBodyDirectiveFinder.Context();
 
         s_finder.Visit(model.Document, finderContext);
 
@@ -19,7 +19,7 @@ internal sealed class ModelNoHoistDirectiveRule : IOpenApiModelDefinitionValidat
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    "Model contains the '@hoist' directive, which is not supported for OpenAPI models.",
+                    "OpenAPI models cannot contain the '@responseBody' directive.",
                     model));
         }
 

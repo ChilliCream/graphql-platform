@@ -58,10 +58,10 @@ internal static class OpenApiEndpointFactory
         IDictionary<string, OpenApiModelDefinition> modelsByName,
         ISchemaDefinition schema)
     {
-        var hoistedSelection = endpointDefinition.GetHoistedSelection(schema);
+        var responseBodySelection = endpointDefinition.GetResponseBodySelection(schema);
         var document = ComposeExecutionDocument(endpointDefinition, modelsByName);
 
-        document = HoistDirectiveRewriter.Instance.Rewrite(document);
+        document = ResponseBodyDirectiveRewriter.Instance.Rewrite(document);
 
         var route = RoutePatternFactory.Parse(endpointDefinition.Route);
 
@@ -82,7 +82,7 @@ internal static class OpenApiEndpointFactory
             route,
             parameterTrie,
             endpointDefinition.BodyVariableName,
-            hoistedSelection);
+            responseBodySelection);
 
         void InsertParametersIntoTrie(
             IEnumerable<OpenApiEndpointDefinitionParameter> parameters,

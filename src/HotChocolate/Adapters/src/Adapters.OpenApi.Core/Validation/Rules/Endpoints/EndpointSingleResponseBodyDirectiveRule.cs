@@ -1,17 +1,18 @@
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates the @hoist directive on an endpoint definition.
+/// Validates the @responseBody directive on an endpoint definition.
 /// </summary>
-internal sealed class EndpointSingleHoistDirectiveRule : IOpenApiEndpointDefinitionValidationRule
+internal sealed class EndpointSingleResponseBodyDirectiveRule
+    : IOpenApiEndpointDefinitionValidationRule
 {
-    private static readonly HoistDirectiveFinder s_finder = new();
+    private static readonly ResponseBodyDirectiveFinder s_finder = new();
 
     public OpenApiDefinitionValidationResult Validate(
         OpenApiEndpointDefinition endpoint,
         IOpenApiDefinitionValidationContext context)
     {
-        var finderContext = new HoistDirectiveFinder.Context();
+        var finderContext = new ResponseBodyDirectiveFinder.Context();
 
         s_finder.Visit(endpoint.OperationDefinition, finderContext);
 
@@ -19,7 +20,7 @@ internal sealed class EndpointSingleHoistDirectiveRule : IOpenApiEndpointDefinit
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    "Endpoint must contain at most one '@hoist' directive.",
+                    "Endpoint operations can contain at most one '@responseBody' directive.",
                     endpoint));
         }
 

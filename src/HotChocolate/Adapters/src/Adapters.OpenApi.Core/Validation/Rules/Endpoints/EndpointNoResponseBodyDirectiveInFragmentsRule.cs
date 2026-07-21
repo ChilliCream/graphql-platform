@@ -1,17 +1,18 @@
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that named fragments on an endpoint cannot contain the @hoist directive.
+/// Validates that named fragments on an endpoint cannot contain the @responseBody directive.
 /// </summary>
-internal sealed class EndpointNoHoistDirectiveInFragmentsRule : IOpenApiEndpointDefinitionValidationRule
+internal sealed class EndpointNoResponseBodyDirectiveInFragmentsRule
+    : IOpenApiEndpointDefinitionValidationRule
 {
-    private static readonly HoistDirectiveFinder s_finder = new();
+    private static readonly ResponseBodyDirectiveFinder s_finder = new();
 
     public OpenApiDefinitionValidationResult Validate(
         OpenApiEndpointDefinition endpoint,
         IOpenApiDefinitionValidationContext context)
     {
-        var finderContext = new HoistDirectiveFinder.Context();
+        var finderContext = new ResponseBodyDirectiveFinder.Context();
 
         foreach (var fragment in endpoint.LocalFragmentsByName.Values)
         {
@@ -22,7 +23,7 @@ internal sealed class EndpointNoHoistDirectiveInFragmentsRule : IOpenApiEndpoint
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    "Endpoint named fragments cannot contain the '@hoist' directive.",
+                    "Endpoint named fragments cannot contain the '@responseBody' directive.",
                     endpoint));
         }
 

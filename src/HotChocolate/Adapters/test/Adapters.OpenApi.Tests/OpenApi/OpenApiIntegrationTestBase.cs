@@ -51,14 +51,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task OperationDocument_Should_Use_Hoisted_Field_For_Response_Schema()
+    public async Task OperationDocument_With_ResponseBody_Field()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
             query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
               userById(id: $userId) {
-                address @hoist {
+                address @responseBody {
                   road: street
                 }
               }
@@ -896,21 +896,21 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task OpenApi_Should_Use_Valid_Hoisted_Selection_When_First_Duplicated_Route_Is_Invalid()
+    public async Task Duplicated_Routes_FirstInvalidSecondValid_UsesValidResponseBodySelection()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
             query AInvalidFirst @http(method: GET, route: "/users/1") {
               doesNotExist {
-                id @hoist
+                id @responseBody
               }
             }
             """,
             """
             query BValidSecond @http(method: GET, route: "/users/1") {
               userById(id: "1") {
-                address @hoist {
+                address @responseBody {
                   road: street
                 }
               }

@@ -255,7 +255,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Http_Get_Should_Hoist_Nested_Aliased_Field_When_Directive_Is_In_Inline_Fragment()
+    public async Task Http_Get_With_ResponseBody_On_Nested_Aliased_Field_In_Inline_Fragment()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
@@ -263,7 +263,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
               user: userById(id: $userId) {
                 ... on User {
-                  address: address @hoist {
+                  address: address @responseBody {
                     road: street
                   }
                 }
@@ -283,14 +283,14 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Http_Get_Should_Return_NotFound_When_Hoisted_Field_Is_Null()
+    public async Task Http_Get_ResponseBody_Field_Returns_NotFound()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
             query GetPreferences($userId: ID!) @http(method: GET, route: "/users/{userId}/preferences") {
               userById(id: $userId) {
-                preferences @hoist {
+                preferences @responseBody {
                   color
                 }
               }
@@ -309,14 +309,14 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Http_Get_Should_Return_NotFound_When_Hoist_Ancestor_Is_Null()
+    public async Task Http_Get_ResponseBody_Ancestor_Returns_NotFound()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
             query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
               userById(id: $userId) {
-                address @hoist {
+                address @responseBody {
                   street
                 }
               }
@@ -405,7 +405,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     #region POST
 
     [Fact]
-    public async Task Http_Post_Should_Return_InternalServerError_When_Hoisted_Field_Is_Null()
+    public async Task Http_Post_ResponseBody_Field_Returns_InternalServerError()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
@@ -413,7 +413,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             mutation UpdatePreferences($user: UserInput! @body)
               @http(method: POST, route: "/users/preferences") {
               updateUser(user: $user) {
-                preferences @hoist {
+                preferences @responseBody {
                   color
                 }
               }
@@ -1047,14 +1047,14 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """
             query AInvalidFirst @http(method: GET, route: "/users/1") {
               doesNotExist {
-                id @hoist
+                id @responseBody
               }
             }
             """,
             """
             query BValidSecond @http(method: GET, route: "/users/1") {
               userById(id: "1") {
-                address @hoist {
+                address @responseBody {
                   road: street
                 }
               }

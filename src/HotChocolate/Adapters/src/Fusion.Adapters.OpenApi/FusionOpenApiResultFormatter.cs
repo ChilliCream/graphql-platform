@@ -20,7 +20,7 @@ internal sealed class FusionOpenApiResultFormatter : IOpenApiResultFormatter
 
         var responseValue = resultDocument.Data;
 
-        foreach (var segment in endpoint.HoistedSelection.ResponseNamePath)
+        foreach (var segment in endpoint.ResponseBodySelection.ResponseNamePath)
         {
             if (!responseValue.TryGetProperty(segment, out responseValue))
             {

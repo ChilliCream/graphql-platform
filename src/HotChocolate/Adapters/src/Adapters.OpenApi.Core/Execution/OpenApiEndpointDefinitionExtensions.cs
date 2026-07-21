@@ -6,7 +6,7 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal static class OpenApiEndpointDefinitionExtensions
 {
-    public static OpenApiHoistedSelection GetHoistedSelection(
+    public static OpenApiResponseBodySelection GetResponseBodySelection(
         this OpenApiEndpointDefinition endpoint,
         ISchemaDefinition schema)
     {
@@ -14,15 +14,15 @@ internal static class OpenApiEndpointDefinitionExtensions
         var rootType = schema.GetOperationType(operation.Operation);
         var rootField = operation.SelectionSet.Selections.FirstOrDefault() as FieldNode
             ?? throw new InvalidOperationException("Expected to have a response field.");
-        var defaultResponse = new OpenApiHoistedSelection(
+        var defaultResponseBody = new OpenApiResponseBodySelection(
             [rootField.Alias?.Value ?? rootField.Name.Value],
             rootField.SelectionSet,
             ResolveFieldType(rootField, rootType));
         var responseNamePath = new List<string>();
 
-        return FindHoistedResponse(operation.SelectionSet, rootType) ?? defaultResponse;
+        return FindResponseBody(operation.SelectionSet, rootType) ?? defaultResponseBody;
 
-        OpenApiHoistedSelection? FindHoistedResponse(
+        OpenApiResponseBodySelection? FindResponseBody(
             SelectionSetNode selectionSet,
             IOutputType? declaringType)
         {
@@ -34,30 +34,31 @@ internal static class OpenApiEndpointDefinitionExtensions
                         var fieldType = ResolveFieldType(field, declaringType);
                         responseNamePath.Add(field.Alias?.Value ?? field.Name.Value);
 
-                        if (field.Directives.Any(d => d.Name.Value == WellKnownDirectiveNames.Hoist))
+                        if (field.Directives.Any(
+                                d => d.Name.Value == WellKnownDirectiveNames.ResponseBody))
                         {
-                            return new OpenApiHoistedSelection(
+                            return new OpenApiResponseBodySelection(
                                 responseNamePath.ToImmutableArray(),
                                 field.SelectionSet,
                                 fieldType);
                         }
 
                         if (field.SelectionSet is not null
-                            && FindHoistedResponse(field.SelectionSet, fieldType) is { } nestedResponse)
+                            && FindResponseBody(field.SelectionSet, fieldType) is { } nestedResponseBody)
                         {
-                            return nestedResponse;
+                            return nestedResponseBody;
                         }
 
                         responseNamePath.RemoveAt(responseNamePath.Count - 1);
                         break;
 
                     case InlineFragmentNode inlineFragment:
-                        if (FindHoistedResponse(
+                        if (FindResponseBody(
                                 inlineFragment.SelectionSet,
                                 ResolveTypeCondition(inlineFragment.TypeCondition, declaringType))
-                            is { } inlineResponse)
+                            is { } inlineResponseBody)
                         {
-                            return inlineResponse;
+                            return inlineResponseBody;
                         }
                         break;
                 }
@@ -91,7 +92,7 @@ internal static class OpenApiEndpointDefinitionExtensions
     }
 }
 
-internal sealed record OpenApiHoistedSelection(
+internal sealed record OpenApiResponseBodySelection(
     ImmutableArray<string> ResponseNamePath,
     SelectionSetNode? SelectionSet,
     IOutputType? FieldType);

@@ -65,7 +65,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task External_Model_Contains_Hoist_Directive_RaisesError()
+    public async Task External_Model_Contains_ResponseBody_Directive_RaisesError()
     {
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
@@ -73,7 +73,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
             """
             query GetUser @http(method: GET, route: "/user") {
               userById(id: "1") {
-                address @hoist {
+                address @responseBody {
                   street
                 }
                 ...UserPreferences
@@ -82,7 +82,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
             """,
             """
             fragment UserPreferences on User {
-              preferences @hoist {
+              preferences @responseBody {
                 color
               }
             }
@@ -98,7 +98,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal(
-            "Model contains the '@hoist' directive, which is not supported for OpenAPI models.",
+            "OpenAPI models cannot contain the '@responseBody' directive.",
             error.Message);
     }
 
@@ -193,7 +193,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Endpoint_Should_RaiseError_When_Multiple_Hoist_Directives_Are_In_Operation()
+    public async Task Endpoint_Multiple_ResponseBody_Directives_In_Operation_RaisesError()
     {
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
@@ -201,10 +201,10 @@ public abstract class ValidationTestBase : OpenApiTestBase
             """
             query GetUser @http(method: GET, route: "/user") {
               userById(id: "1") {
-                address @hoist {
+                address @responseBody {
                   street
                 }
-                preferences @hoist {
+                preferences @responseBody {
                   color
                 }
               }
@@ -220,11 +220,13 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint must contain at most one '@hoist' directive.", error.Message);
+        Assert.Equal(
+            "Endpoint operations can contain at most one '@responseBody' directive.",
+            error.Message);
     }
 
     [Fact]
-    public async Task Endpoint_Should_RaiseError_When_Named_Fragment_Contains_Hoist_Directive()
+    public async Task Endpoint_Named_Fragment_Contains_ResponseBody_Directive_RaisesError()
     {
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
@@ -237,7 +239,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
             }
 
             fragment UserPreferences on User {
-              preferences @hoist {
+              preferences @responseBody {
                 color
               }
             }
@@ -253,12 +255,12 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal(
-            "Endpoint named fragments cannot contain the '@hoist' directive.",
+            "Endpoint named fragments cannot contain the '@responseBody' directive.",
             error.Message);
     }
 
     [Fact]
-    public async Task Endpoint_Should_RaiseError_When_Field_Has_Multiple_Hoist_Directives()
+    public async Task Endpoint_Field_Has_Multiple_ResponseBody_Directives_RaisesError()
     {
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
@@ -266,7 +268,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
             """
             query GetUser @http(method: GET, route: "/user") {
               userById(id: "1") {
-                address @hoist @hoist {
+                address @responseBody @responseBody {
                   street
                 }
               }
@@ -282,7 +284,9 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint must contain at most one '@hoist' directive.", error.Message);
+        Assert.Equal(
+            "Endpoint operations can contain at most one '@responseBody' directive.",
+            error.Message);
     }
 
     [Fact]

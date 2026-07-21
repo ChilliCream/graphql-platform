@@ -303,13 +303,13 @@ internal sealed class DynamicOpenApiDocumentTransformer
                 operation.RequestBody = requestBody;
             }
 
-            var hoistedSelection = endpoint.GetHoistedSelection(_schema);
-            var fieldType = hoistedSelection.FieldType
+            var responseBodySelection = endpoint.GetResponseBodySelection(_schema);
+            var fieldType = responseBodySelection.FieldType
                 ?? throw new InvalidOperationException("Expected to resolve the response field type.");
 
-            var responseSchema = hoistedSelection.SelectionSet is not null
+            var responseSchema = responseBodySelection.SelectionSet is not null
                 ? CreateOpenApiSchemaForSelectionSet(
-                    hoistedSelection.SelectionSet,
+                    responseBodySelection.SelectionSet,
                     fieldType,
                     endpoint.LocalFragmentsByName)
                 : CreateOpenApiSchemaForType(fieldType);
