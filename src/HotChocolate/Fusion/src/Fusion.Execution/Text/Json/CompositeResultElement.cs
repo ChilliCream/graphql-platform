@@ -1042,11 +1042,11 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
-    internal void SetLeafValue(SourceResultElement source, SourceResultDocument.DbRow row)
+    internal void SetLeafValue(SourceResultElementSnapshot source)
     {
         CheckValidInstance();
 
-        _parent.AssignSourceValue(this, source, row);
+        _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
     }
 
     internal void SetNullValue()

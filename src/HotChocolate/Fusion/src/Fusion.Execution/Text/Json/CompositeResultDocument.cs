@@ -513,15 +513,16 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
-        => AssignSourceValue(target, source, source.GetValueRow());
+        => AssignSourceValue(target, source._parent, source._cursor, source.GetValueRow());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignSourceValue(
         CompositeResultElement target,
-        SourceResultElement source,
-        SourceResultDocument.DbRow row)
+        SourceResultDocument source,
+        SourceResultDocument.Cursor sourceCursor,
+        SourceResultDocument.DbRow sourceRow)
     {
-        var parent = source._parent;
+        var parent = source;
 
         if (parent.Id == -1)
         {
@@ -532,12 +533,10 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
-        var tokenType = row.TokenType.ToElementTokenType();
+        var tokenType = sourceRow.TokenType.ToElementTokenType();
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
-            var sourceCursor = source._cursor;
-
             _metaDb.ReplacePreserveParent(
                 cursor: target.Cursor,
                 tokenType: tokenType,
@@ -551,8 +550,8 @@ public sealed partial class CompositeResultDocument : IDisposable
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: tokenType,
-            location: row.Location,
-            sizeOrLength: row.SizeOrLength,
+            location: sourceRow.Location,
+            sizeOrLength: sourceRow.SizeOrLength,
             sourceDocumentId: parent.Id,
             flags: ElementFlags.SourceResult);
     }
