@@ -2,35 +2,41 @@ using System.Diagnostics;
 using System.Text.Json;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
-#pragma warning disable CS1574, CS1584, CS1581, CS1580
-
 namespace HotChocolate.Fusion.Text.Json;
 
-[DebuggerDisplay("{DebuggerDisplay,nq}")]
-public readonly partial struct SourceResultElement
+/// <summary>
+/// A transient, stack-only view of a source result element that carries the element's
+/// decoded metadata row so repeated row lookups are avoided. Instances are obtained via
+/// <see cref="SourceResultElement.CreateSnapshot"/> and are only valid while the parent
+/// <see cref="SourceResultDocument"/> is alive.
+/// </summary>
+internal readonly ref struct SourceResultElementSnapshot
 {
     internal readonly SourceResultDocument _parent;
     internal readonly SourceResultDocument.Cursor _cursor;
+    internal readonly SourceResultDocument.DbRow _row;
 
-    internal SourceResultElement(SourceResultDocument parent, SourceResultDocument.Cursor cursor)
+    internal SourceResultElementSnapshot(
+        SourceResultDocument parent,
+        SourceResultDocument.Cursor cursor,
+        SourceResultDocument.DbRow row)
     {
-        // parent is usually not null, but the Current property
-        // on the enumerators (when initialized as `default`) can
-        // get here with a null.
         _parent = parent;
         _cursor = cursor;
+        _row = row;
     }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    internal JsonTokenType TokenType => _parent?.GetElementTokenType(_cursor) ?? JsonTokenType.None;
+    /// <summary>
+    /// Gets the <see cref="SourceResultElement"/> this snapshot was created from.
+    /// </summary>
+    public SourceResultElement Element => new(_parent, _cursor);
+
+    internal JsonTokenType TokenType => _row.TokenType;
 
     /// <summary>
     /// The <see cref="JsonValueKind"/> the value is.
     /// </summary>
-    /// <exception cref="ObjectDisposedException">
-    /// The parent <see cref="SourceResultDocument"/> has been disposed.
-    /// </exception>
-    public JsonValueKind ValueKind => TokenType.ToValueKind();
+    public JsonValueKind ValueKind => _row.TokenType.ToValueKind();
 
     /// <summary>
     /// Get the value at a specified index when the current value is a
@@ -46,14 +52,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
-    public SourceResultElement this[int index]
-    {
-        get
-        {
-            CheckValidInstance();
-            return _parent.GetArrayIndexElement(_cursor, index);
-        }
-    }
+    public SourceResultElement this[int index] => Element[index];
 
     /// <summary>
     /// Gets the number of elements in the current array.
@@ -65,11 +64,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
-    public int GetArrayLength()
-    {
-        CheckValidInstance();
-        return _parent.GetArrayLength(_cursor);
-    }
+    public int GetArrayLength() => _parent.GetArrayLength(_row);
 
     /// <summary>
     /// Gets the number of properties in the current object.
@@ -81,11 +76,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
-    public int GetPropertyCount()
-    {
-        CheckValidInstance();
-        return _parent.GetPropertyCount(_cursor);
-    }
+    public int GetPropertyCount() => _parent.GetPropertyCount(_row);
 
     /// <summary>
     /// Gets the value of a required property with name <paramref name="propertyName"/>.
@@ -109,14 +100,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public SourceResultElement GetProperty(string propertyName)
-    {
-        ArgumentNullException.ThrowIfNull(propertyName);
-        if (TryGetProperty(propertyName, out var property))
-        {
-            return property;
-        }
-        throw new KeyNotFoundException();
-    }
+        => Element.GetProperty(propertyName);
 
     /// <summary>
     /// Gets the value of a required property with name <paramref name="propertyName"/>.
@@ -137,9 +121,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public SourceResultElement GetProperty(ReadOnlySpan<char> propertyName)
-        => TryGetProperty(propertyName, out var property)
-            ? property
-            : throw new KeyNotFoundException();
+        => Element.GetProperty(propertyName);
 
     /// <summary>
     /// Gets the value of a required property with name <paramref name="utf8PropertyName"/>.
@@ -160,9 +142,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public SourceResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
-        => TryGetProperty(utf8PropertyName, out var property)
-            ? property
-            : throw new KeyNotFoundException();
+        => Element.GetProperty(utf8PropertyName);
 
     /// <summary>
     /// Tries to get the value of property <paramref name="propertyName"/> without throwing.
@@ -180,10 +160,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public bool TryGetProperty(string propertyName, out SourceResultElement value)
-    {
-        ArgumentNullException.ThrowIfNull(propertyName);
-        return TryGetProperty(propertyName.AsSpan(), out value);
-    }
+        => Element.TryGetProperty(propertyName, out value);
 
     /// <summary>
     /// Tries to get the value of property <paramref name="propertyName"/> without throwing.
@@ -198,10 +175,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public bool TryGetProperty(ReadOnlySpan<char> propertyName, out SourceResultElement value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
-    }
+        => Element.TryGetProperty(propertyName, out value);
 
     /// <summary>
     /// Tries to get the value of property <paramref name="utf8PropertyName"/> without throwing.
@@ -216,10 +190,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public bool TryGetProperty(ReadOnlySpan<byte> utf8PropertyName, out SourceResultElement value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
-    }
+        => Element.TryGetProperty(utf8PropertyName, out value);
 
     /// <summary>
     /// Gets the value as a <see cref="bool"/>.
@@ -264,11 +235,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
-    public string? GetString()
-    {
-        CheckValidInstance();
-        return _parent.GetString(_cursor, JsonTokenType.String);
-    }
+    public string? GetString() => _parent.GetString(_row, JsonTokenType.String);
 
     /// <summary>
     /// Gets the value as a non-null <see cref="string"/>, throwing if null.
@@ -287,11 +254,7 @@ public readonly partial struct SourceResultElement
     /// <remarks>This method does not parse JSON strings.</remarks>
     /// <exception cref="InvalidOperationException">The value kind is not Number.</exception>
     /// <exception cref="ObjectDisposedException">Parent <see cref="SourceResultDocument"/> disposed.</exception>
-    public bool TryGetSByte(out sbyte value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetSByte(out sbyte value) => Element.TryGetSByte(out value);
 
     /// <summary>Gets the current JSON number as an <see cref="sbyte"/>.</summary>
     /// <returns>The parsed value.</returns>
@@ -299,7 +262,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="InvalidOperationException">The value kind is not Number.</exception>
     /// <exception cref="FormatException">The value is out of range for <see cref="sbyte"/>.</exception>
     /// <exception cref="ObjectDisposedException">Parent <see cref="SourceResultDocument"/> disposed.</exception>
-    public sbyte GetSByte() => TryGetSByte(out var value) ? value : throw ThrowHelper.FormatException();
+    public sbyte GetSByte() => Element.GetSByte();
 
     /// <summary>
     /// Attempts to represent the current JSON number as a <see cref="byte"/>.
@@ -318,132 +281,84 @@ public readonly partial struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
-    public bool TryGetByte(out byte value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetByte(out byte value) => Element.TryGetByte(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="byte"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="byte"/>.</exception>
-    public byte GetByte() => TryGetByte(out var value) ? value : throw ThrowHelper.FormatException();
+    public byte GetByte() => Element.GetByte();
 
     /// <summary>Tries to get the current JSON number as a <see cref="short"/> without throwing.</summary>
-    public bool TryGetInt16(out short value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetInt16(out short value) => Element.TryGetInt16(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="short"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="short"/>.</exception>
-    public short GetInt16() => TryGetInt16(out var value) ? value : throw ThrowHelper.FormatException();
+    public short GetInt16() => Element.GetInt16();
 
     /// <summary>Tries to get the current JSON number as a <see cref="ushort"/> without throwing.</summary>
-    public bool TryGetUInt16(out ushort value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetUInt16(out ushort value) => Element.TryGetUInt16(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="ushort"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="ushort"/>.</exception>
-    public ushort GetUInt16() => TryGetUInt16(out var value) ? value : throw ThrowHelper.FormatException();
+    public ushort GetUInt16() => Element.GetUInt16();
 
     /// <summary>Tries to get the current JSON number as an <see cref="int"/> without throwing.</summary>
-    public bool TryGetInt32(out int value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetInt32(out int value) => Element.TryGetInt32(out value);
 
     /// <summary>Gets the current JSON number as an <see cref="int"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="int"/>.</exception>
-    public int GetInt32() => TryGetInt32(out var value) ? value : throw ThrowHelper.FormatException();
+    public int GetInt32() => Element.GetInt32();
 
     /// <summary>Tries to get the current JSON number as a <see cref="uint"/> without throwing.</summary>
-    public bool TryGetUInt32(out uint value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetUInt32(out uint value) => Element.TryGetUInt32(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="uint"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="uint"/>.</exception>
-    public uint GetUInt32() => TryGetUInt32(out var value) ? value : throw ThrowHelper.FormatException();
+    public uint GetUInt32() => Element.GetUInt32();
 
     /// <summary>Tries to get the current JSON number as a <see cref="long"/> without throwing.</summary>
-    public bool TryGetInt64(out long value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetInt64(out long value) => Element.TryGetInt64(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="long"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="long"/>.</exception>
-    public long GetInt64() => TryGetInt64(out var value) ? value : throw ThrowHelper.FormatException();
+    public long GetInt64() => Element.GetInt64();
 
     /// <summary>Tries to get the current JSON number as a <see cref="ulong"/> without throwing.</summary>
-    public bool TryGetUInt64(out ulong value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetUInt64(out ulong value) => Element.TryGetUInt64(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="ulong"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="ulong"/>.</exception>
-    public ulong GetUInt64() => TryGetUInt64(out var value) ? value : throw ThrowHelper.FormatException();
+    public ulong GetUInt64() => Element.GetUInt64();
 
     /// <summary>Tries to get the current JSON number as a <see cref="double"/> without throwing.</summary>
-    public bool TryGetDouble(out double value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetDouble(out double value) => Element.TryGetDouble(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="double"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="double"/>.</exception>
-    public double GetDouble() => TryGetDouble(out var value) ? value : throw ThrowHelper.FormatException();
+    public double GetDouble() => Element.GetDouble();
 
     /// <summary>Tries to get the current JSON number as a <see cref="float"/> without throwing.</summary>
-    public bool TryGetSingle(out float value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetSingle(out float value) => Element.TryGetSingle(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="float"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="float"/>.</exception>
-    public float GetSingle() => TryGetSingle(out var value) ? value : throw ThrowHelper.FormatException();
+    public float GetSingle() => Element.GetSingle();
 
     /// <summary>Tries to get the current JSON number as a <see cref="decimal"/> without throwing.</summary>
-    public bool TryGetDecimal(out decimal value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetValue(_cursor, out value);
-    }
+    public bool TryGetDecimal(out decimal value) => Element.TryGetDecimal(out value);
 
     /// <summary>Gets the current JSON number as a <see cref="decimal"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="decimal"/>.</exception>
-    public decimal GetDecimal() => TryGetDecimal(out var value) ? value : throw ThrowHelper.FormatException();
+    public decimal GetDecimal() => Element.GetDecimal();
 
     /// <summary>
     /// Gets the property name for the current property value.
     /// </summary>
-    internal string GetPropertyName()
-    {
-        CheckValidInstance();
-        return _parent.GetNameOfPropertyValue(_cursor);
-    }
+    internal string GetPropertyName() => Element.GetPropertyName();
 
     /// <summary>
     /// Gets the property name (UTF-8 raw span) for the current property value.
     /// </summary>
-    internal ReadOnlySpan<byte> GetPropertyNameRaw()
-    {
-        CheckValidInstance();
-        return _parent.GetPropertyNameRaw(_cursor);
-    }
+    internal ReadOnlySpan<byte> GetPropertyNameRaw() => Element.GetPropertyNameRaw();
 
     /// <summary>
     /// Returns the raw JSON text of the current value.
@@ -452,61 +367,27 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public string GetRawText()
-    {
-        CheckValidInstance();
-        return _parent.GetRawValueAsString(_cursor);
-    }
+        => JsonReaderHelper.TranscodeHelper(_parent.GetRawValue(_cursor, _row, includeQuotes: true));
 
-    internal string GetPropertyRawText()
-    {
-        CheckValidInstance();
-        return _parent.GetPropertyRawValueAsString(_cursor);
-    }
+    internal string GetPropertyRawText() => Element.GetPropertyRawText();
 
     internal ReadOnlySpan<byte> GetRawValue()
-    {
-        CheckValidInstance();
-        return _parent.GetRawValue(_cursor, includeQuotes: true);
-    }
+        => _parent.GetRawValue(_cursor, _row, includeQuotes: true);
 
     public ReadOnlyMemory<byte> GetRawValueAsMemory()
-    {
-        CheckValidInstance();
-        return _parent.GetRawValueAsMemory(_cursor, includeQuotes: true);
-    }
+        => _parent.GetRawValueAsMemory(_cursor, _row, includeQuotes: true);
 
-    internal ReadOnlySpan<byte> ValueSpan
-    {
-        get
-        {
-            CheckValidInstance();
-            return _parent.GetRawValue(_cursor, includeQuotes: false);
-        }
-    }
+    internal ReadOnlySpan<byte> ValueSpan => _parent.GetRawValue(_cursor, _row, includeQuotes: false);
 
-    internal ValueRange GetValuePointer()
-    {
-        CheckValidInstance();
-        return _parent.GetRawValuePointer(_cursor, includeQuotes: true);
-    }
+    internal ValueRange GetValuePointer() => Element.GetValuePointer();
 
-    internal SourceResultDocument.DbRow GetValueRow()
-    {
-        CheckValidInstance();
-        return _parent.GetValueRow(_cursor);
-    }
+    internal SourceResultDocument.DbRow GetValueRow() => _row;
 
     /// <summary>
-    /// Creates a stack-only snapshot of this element that carries the element's
-    /// decoded metadata row so repeated row lookups are avoided. A default element
-    /// produces a default snapshot whose <see cref="SourceResultElementSnapshot.ValueKind"/>
-    /// is <see cref="JsonValueKind.Undefined"/>.
+    /// Returns this snapshot, so that snapshot-creating code paths can operate on either
+    /// a <see cref="SourceResultElement"/> or an existing snapshot.
     /// </summary>
-    internal SourceResultElementSnapshot CreateSnapshot()
-    {
-        CheckValidInstance();
-        return new SourceResultElementSnapshot(_parent, _cursor, _parent.GetValueRow(_cursor))
-    }
+    internal SourceResultElementSnapshot CreateSnapshot() => this;
 
     /// <summary>
     /// Tries to get the raw UTF-8 bytes of a JSON string value that contains no escape sequences.
@@ -517,10 +398,7 @@ public readonly partial struct SourceResultElement
     /// or is not backed by contiguous memory.
     /// </returns>
     internal bool TryGetRawStringValue(out ReadOnlySpan<byte> utf8Value)
-    {
-        CheckValidInstance();
-        return _parent.TryGetRawStringValue(_cursor, out utf8Value);
-    }
+        => _parent.TryGetRawStringValue(_row, out utf8Value);
 
     /// <summary>
     /// Compares the string value of this element to <paramref name="text"/> without allocation.
@@ -532,7 +410,7 @@ public readonly partial struct SourceResultElement
             return text == null;
         }
 
-        return TextEqualsHelper(text.AsSpan(), isPropertyName: false);
+        return Element.TextEqualsHelper(text.AsSpan(), isPropertyName: false);
     }
 
     /// <summary>
@@ -546,7 +424,8 @@ public readonly partial struct SourceResultElement
             return utf8Text[..0] == default;
 #pragma warning restore CA2265
         }
-        return TextEqualsHelper(utf8Text, isPropertyName: false, shouldUnescape: true);
+
+        return Element.TextEqualsHelper(utf8Text, isPropertyName: false, shouldUnescape: true);
     }
 
     /// <summary>
@@ -560,20 +439,15 @@ public readonly partial struct SourceResultElement
             return text[..0] == default;
 #pragma warning restore CA2265
         }
-        return TextEqualsHelper(text, isPropertyName: false);
+
+        return Element.TextEqualsHelper(text, isPropertyName: false);
     }
 
     internal bool TextEqualsHelper(ReadOnlySpan<byte> utf8Text, bool isPropertyName, bool shouldUnescape)
-    {
-        CheckValidInstance();
-        return _parent.TextEquals(_cursor, utf8Text, isPropertyName, shouldUnescape);
-    }
+        => Element.TextEqualsHelper(utf8Text, isPropertyName, shouldUnescape);
 
     internal bool TextEqualsHelper(ReadOnlySpan<char> text, bool isPropertyName)
-    {
-        CheckValidInstance();
-        return _parent.TextEquals(_cursor, text, isPropertyName);
-    }
+        => Element.TextEqualsHelper(text, isPropertyName);
 
     /// <summary>
     /// Returns an enumerator over the elements of the current JSON array.
@@ -581,22 +455,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="InvalidOperationException">
     /// The current value is not a JSON array.
     /// </exception>
-    public ArrayEnumerator EnumerateArray()
-    {
-        CheckValidInstance();
-
-        var tokenType = TokenType;
-        if (tokenType != JsonTokenType.StartArray)
-        {
-            throw new InvalidOperationException(string.Format(
-                "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
-                JsonTokenType.StartArray,
-                tokenType))
-            { Source = Rethrowable };
-        }
-
-        return new ArrayEnumerator(this);
-    }
+    public SourceResultElement.ArrayEnumerator EnumerateArray() => Element.EnumerateArray();
 
     /// <summary>
     /// Returns an enumerator over the properties of the current JSON object.
@@ -604,17 +463,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="InvalidOperationException">
     /// The current value is not a JSON object.
     /// </exception>
-    public ObjectEnumerator EnumerateObject()
-    {
-        CheckValidInstance();
-
-        if (TokenType != JsonTokenType.StartObject)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return new ObjectEnumerator(this);
-    }
+    public SourceResultElement.ObjectEnumerator EnumerateObject() => Element.EnumerateObject();
 
     /// <inheritdoc />
     public override string ToString()
@@ -635,7 +484,8 @@ public readonly partial struct SourceResultElement
             case JsonTokenType.StartArray:
             case JsonTokenType.StartObject:
                 Debug.Assert(_parent != null);
-                return _parent.GetRawValueAsString(_cursor);
+                return JsonReaderHelper.TranscodeHelper(
+                    _parent.GetRawValue(_cursor, _row, includeQuotes: true));
 
             case JsonTokenType.String:
                 return GetString()!;
@@ -646,18 +496,6 @@ public readonly partial struct SourceResultElement
             default:
                 Debug.Fail($"No handler for {nameof(JsonTokenType)}.{TokenType}");
                 return string.Empty;
-        }
-    }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay
-        => ValueKind == JsonValueKind.Undefined ? "<Undefined>" : ToString();
-
-    private void CheckValidInstance()
-    {
-        if (_parent == null)
-        {
-            throw new InvalidOperationException();
         }
     }
 }
