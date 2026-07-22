@@ -4,7 +4,6 @@ using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -429,27 +428,36 @@ public sealed partial class CompositeResultDocument : IDisposable
         SelectionSet selectionSet,
         out CompositeObjectContext objectContext)
     {
-        var selections = selectionSet.Selections;
-        var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
+        var template = selectionSet.ObjectTemplate;
+        Debug.Assert(template.Rows.Length > 0, "The selection set is in an invalid state.");
 
-        foreach (var selection in selections)
+        // The template rows are canonical: they never carry IsExcluded. Each document evaluates
+        // its own skip/include and defer state and hands the block-relative property row offsets
+        // of the selections it excludes to the block append, which stamps the flag alongside the
+        // parent pointers.
+        var conditionalSelections = template.ConditionalSelections;
+        var excludedRowOffsets = conditionalSelections.Length <= 256
+            ? stackalloc int[conditionalSelections.Length]
+            : new int[conditionalSelections.Length];
+        var excludedCount = 0;
+        var selections = selectionSet.Selections;
+
+        if (conditionalSelections.Length > 0)
         {
-            if (selection.Field.IsIntrospectionField
-                && selection.Field.Name == IntrospectionFieldNames.TypeName)
+            foreach (var index in conditionalSelections)
             {
-                // __typename resolves to the concrete type of this selection set. Synthesizing it
-                // here means payloads that never echo __typename (such as broker event streams)
-                // still report it, while a subgraph that does echo it simply overwrites the slot
-                // with the identical value.
-                WriteTypeNameProperty(startObjectCursor, selection, selectionSet.Id);
-            }
-            else
-            {
-                WriteEmptyProperty(startObjectCursor, selection);
+                if (IsExcluded(selections[index]))
+                {
+                    // The property row of selection index i is row (i * 2) + 1 of the object block.
+                    excludedRowOffsets[excludedCount++] = (index * 2) + 1;
+                }
             }
         }
 
-        _metaDb.AppendEndObject();
+        var startObjectCursor = _metaDb.AppendObjectBlock(
+            template.Rows,
+            parent.Value,
+            excludedRowOffsets[..excludedCount]);
 
         objectContext = new CompositeObjectContext(
             this,
@@ -459,6 +467,11 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         return new CompositeResultElement(this, startObjectCursor);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsExcluded(Selection selection)
+        => !selection.IsIncluded(_includeFlags)
+            || selection.IsDeferred(_deferFlags);
 
     /// <summary>
     /// Upgrades an interface-typed element produced by an <c>@interfaceObject</c> stand-in to its
@@ -565,66 +578,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Cursor WriteStartObject(Cursor parent, int selectionSetId, int propertyCount)
-        => _metaDb.AppendStartObject(parent.Value, selectionSetId, propertyCount, ElementFlags.None);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartArray(Cursor parent, int length = 0)
         => _metaDb.AppendStartArray(parent.Value, length, ElementFlags.None);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEndArray() => _metaDb.AppendEndArray();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyProperty(Cursor parent, Selection selection)
-        => _metaDb.AppendEmptyPropertyWithNullValue(
-            parentRow: parent.Value,
-            selectionId: selection.Id,
-            flags: GetPropertyFlags(selection));
-
-    // Writes the __typename property with its value already set to the concrete type name of the
-    // enclosing selection set. The value row stores the selection-set id as an inline string
-    // reference, so the interned type name is resolved (and quoted) lazily when read.
-    private void WriteTypeNameProperty(Cursor parent, Selection selection, int selectionSetId)
-    {
-        var propertyCursor = _metaDb.AppendEmptyProperty(
-            parentRow: parent.Value,
-            selectionId: selection.Id,
-            flags: GetPropertyFlags(selection));
-
-        _metaDb.Append(
-            ElementTokenType.String,
-            location: selectionSetId,
-            parentRow: propertyCursor.Value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ElementFlags GetPropertyFlags(Selection selection)
-    {
-        var flags = ElementFlags.None;
-
-        if (selection.IsInternal)
-        {
-            flags = ElementFlags.IsInternal;
-        }
-
-        if (!selection.IsIncluded(_includeFlags) || selection.IsDeferred(_deferFlags))
-        {
-            flags |= ElementFlags.IsExcluded;
-        }
-
-        if (selection.Type.Kind is not TypeKind.NonNull)
-        {
-            flags |= ElementFlags.IsNullable;
-        }
-
-        if (selection.IsEnumValue)
-        {
-            flags |= ElementFlags.IsEnumValue;
-        }
-
-        return flags;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyValue(Cursor parent) => _metaDb.AppendNull(parent.Value);

@@ -239,6 +239,11 @@ public sealed class Selection : ISelection
     public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
 
     /// <summary>
+    /// Gets a value indicating whether this selection can be deferred for some request.
+    /// </summary>
+    internal bool CanBeDeferred => _deferMask != 0;
+
+    /// <summary>
     /// Returns the active delivery groups for this selection after resolving
     /// each occurrence to its nearest active ancestor and pruning child groups
     /// whose parent is also active. Returns <c>null</c> when the selection
