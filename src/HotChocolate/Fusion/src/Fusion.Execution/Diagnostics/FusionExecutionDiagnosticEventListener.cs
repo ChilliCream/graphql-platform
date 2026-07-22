@@ -191,6 +191,15 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
         => EmptyScope;
 

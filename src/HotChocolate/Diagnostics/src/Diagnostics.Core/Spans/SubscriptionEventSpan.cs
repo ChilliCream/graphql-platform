@@ -8,6 +8,8 @@ namespace HotChocolate.Diagnostics;
 
 internal sealed class SubscriptionEventSpan(Activity activity, RequestContext context) : SpanBase(activity)
 {
+    private bool _delivered;
+
     public static SubscriptionEventSpan? Start(
         ActivitySource source,
         RequestContext context,
@@ -32,10 +34,25 @@ internal sealed class SubscriptionEventSpan(Activity activity, RequestContext co
         return new SubscriptionEventSpan(activity, context);
     }
 
+    /// <summary>
+    /// Marks the event result as fully written to the client so that completing the
+    /// span records success even if the client disconnects afterwards.
+    /// </summary>
+    public void SetDelivered() => _delivered = true;
+
     protected override void OnComplete()
     {
         if (Activity.Status == ActivityStatusCode.Error)
         {
+            return;
+        }
+
+        // An event that was fully written to the client is a success even when the
+        // client drops the connection right after receiving it, so a teardown that
+        // races the delivery must not leave the span Unset.
+        if (_delivered)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
             return;
         }
 
