@@ -11,8 +11,8 @@ public class CodeFirstAuthorizationTests
     [Fact]
     public async Task Authorize_Field_Roles_Apply_And_Policy_Roles_Apply()
     {
-        // arrange & act
-        var schema = await new ServiceCollection()
+        // arrange
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddAuthorizationCore()
             .AddQueryType(d =>
@@ -24,18 +24,73 @@ public class CodeFirstAuthorizationTests
                 d.Field("fieldPolicyRolesApply")
                     .Resolve("x")
                     .Authorize("READ", ["admin", "user"], ApplyPolicy.AfterResolver);
-            })
-            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
     }
 
     [Fact]
+    public async Task Authorize_Field_Roles_Validation_Authorizes_At_Request_Level()
+    {
+        // arrange
+        // both fields carry a roles-based validation policy;
+        // request-level enforcement must be triggered by the field configuration alone.
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.NotAllowed);
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("rolesValidation")
+                    .Type<StringType>()
+                    .Resolve("x")
+                    .Authorize(["admin", "user"], ApplyPolicy.Validation);
+                d.Field("policyRolesValidation")
+                    .Type<StringType>()
+                    .Resolve("x")
+                    .Authorize("READ", ["admin", "user"], ApplyPolicy.Validation);
+            })
+            .AddAuthorizationHandler(_ => handler)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ rolesValidation policyRolesValidation }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // request-level rejection: an error with no path, raised before resolvers run
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_Type_Roles_Apply_And_Policy_Roles_Apply()
     {
-        // arrange & act
-        var schema = await new ServiceCollection()
+        // arrange
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddAuthorizationCore()
             .AddQueryType(d =>
@@ -44,8 +99,11 @@ public class CodeFirstAuthorizationTests
                 d.Authorize(["type_reader", "type_writer"], ApplyPolicy.AfterResolver);
                 d.Authorize("READ", ["type_reader", "type_writer"], ApplyPolicy.AfterResolver);
                 d.Field("field").Resolve("x");
-            })
-            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -54,8 +112,8 @@ public class CodeFirstAuthorizationTests
     [Fact]
     public async Task Authorize_Type_Roles_Apply_And_Policy_Roles_Apply_Generic()
     {
-        // arrange & act
-        var schema = await new ServiceCollection()
+        // arrange
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddAuthorizationCore()
             .AddQueryType(d =>
@@ -67,8 +125,11 @@ public class CodeFirstAuthorizationTests
                 d.Field("policyRolesApply")
                     .Type<PolicyRolesApplyType>()
                     .Resolve(new PolicyRolesApplyModel("b"));
-            })
-            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
