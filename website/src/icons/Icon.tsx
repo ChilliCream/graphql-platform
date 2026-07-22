@@ -55,6 +55,7 @@ import {
   faShirt,
   faStar,
   faUsers,
+  faWindowMaximize,
   faWrench,
   faX,
 } from "@fortawesome/free-solid-svg-icons";
@@ -104,6 +105,7 @@ const USED_ICONS = {
   faLifeRing,
   faLink,
   faList,
+  faWindowMaximize,
   faMagnifyingGlass,
   faMap,
   faMessage,

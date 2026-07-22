@@ -2,7 +2,7 @@ import { CheckListItem } from "@/src/components/CheckListItem";
 import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
-import { IconName } from "../icons/Icon";
+import { Icon, IconName } from "@/src/icons/Icon";
 
 type PerkAccent = "accent" | "violet" | "coral";
 
@@ -53,7 +53,6 @@ export function PerkCard({
   subtitle,
   intro,
   listLabel,
-  Icon,
   icon,
   accent = "accent",
   cta,
@@ -96,11 +95,6 @@ export function PerkCard({
             </p>
           )}
         </div>
-        {Icon && (
-          <span className={`flex-none ${accentText}`}>
-            <Icon />
-          </span>
-        )}
         {icon && (
           <span className={`flex-none ${accentText}`}>
             <Icon icon={icon} />

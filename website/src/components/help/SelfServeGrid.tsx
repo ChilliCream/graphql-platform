@@ -42,7 +42,7 @@ const CHANNELS: readonly Channel[] = [
     copy: "Workshops, talks, and walkthroughs from the ChilliCream team.",
     href: YOUTUBE,
     external: true,
-    icon: <Icon icon="play-circle" size="2x" />,
+    icon: <Icon icon="circle-play" size="2x" />,
   },
   {
     title: "GitHub",

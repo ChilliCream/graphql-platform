@@ -20,7 +20,6 @@ const meta = {
     highlight: { control: "boolean" },
     highlightLabel: { control: "text" },
     cta: { control: "object" },
-    Icon: { control: false },
   },
   args: {
     title: "Beginner team",

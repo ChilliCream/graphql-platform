@@ -12,7 +12,7 @@ const CHIPS = ["gRPC", "GraphQL", "OpenAPI", "MCP"] as const;
 
 const PROTOCOLS: readonly Protocol[] = [
   {
-    icon: "browser",
+    icon: "window-maximize",
     title: "Web",
     subtitle: "SPA / MPA",
     tags: ["GraphQL"],
