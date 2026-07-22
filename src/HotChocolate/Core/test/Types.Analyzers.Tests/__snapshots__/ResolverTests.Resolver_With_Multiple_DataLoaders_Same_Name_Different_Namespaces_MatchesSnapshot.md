@@ -15,9 +15,6 @@ using GreenDonut;
 
 namespace TestNamespace.DataAccess.Entities
 {
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Entities.EntityDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, global::TestNamespace.DataAccess.Entities.Entity>
     {
@@ -76,9 +73,6 @@ namespace TestNamespace.DataAccess.Entities
 namespace TestNamespace.DataAccess.Products
 {
 
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Products.ProductDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, global::TestNamespace.DataAccess.Products.Product>
     {

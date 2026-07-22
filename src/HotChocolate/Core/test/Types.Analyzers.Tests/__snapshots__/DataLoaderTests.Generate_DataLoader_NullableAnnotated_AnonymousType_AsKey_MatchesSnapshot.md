@@ -15,9 +15,6 @@ using GreenDonut;
 
 namespace TestNamespace
 {
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.Dataloaders.GetStuff(global::System.Collections.Generic.IReadOnlyList&lt;global::System.ValueTuple&lt;global::TestNamespace.Id1, global::TestNamespace.Id2&gt;&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IStuffDataLoader
         : global::GreenDonut.IDataLoader<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff[]>
     {

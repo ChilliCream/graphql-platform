@@ -89,9 +89,6 @@ using GreenDonut;
 
 namespace TestNamespace
 {
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.TestBDataLoaderAttr.GetObjectByIdBAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IObjectByIdBDataLoader
         : global::GreenDonut.IDataLoader<int, object>
     {
@@ -146,9 +143,6 @@ namespace TestNamespace
         }
     }
 
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.TestADataLoaderAttr.GetObjectByIdAAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IObjectByIdADataLoader
         : global::GreenDonut.IDataLoader<int, object>
     {

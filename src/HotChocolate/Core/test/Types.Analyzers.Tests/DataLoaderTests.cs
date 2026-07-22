@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 public class DataLoaderTests
 {
     [Fact]
-    public async Task Generate_Should_LinkBothTypesToAnnotatedMethod_When_SourceMethodIsOverloaded()
+    public async Task Generate_Should_LinkImplementationToAnnotatedMethod_When_SourceMethodIsOverloaded()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """
@@ -56,16 +56,12 @@ public class DataLoaderTests
                     .Select(a => a.Cref)
                     .ToArray();
 
-                Assert.Collection(crefs, AssertCref, AssertCref);
-
-                void AssertCref(CrefSyntax cref)
-                {
-                    Assert.Empty(cref.GetDiagnostics());
-                    Assert.True(
-                        SymbolEqualityComparer.Default.Equals(
-                            sourceMethod,
-                            semanticModel.GetSymbolInfo(cref).Symbol));
-                }
+                var cref = Assert.Single(crefs);
+                Assert.Empty(cref.GetDiagnostics());
+                Assert.True(
+                    SymbolEqualityComparer.Default.Equals(
+                        sourceMethod,
+                        semanticModel.GetSymbolInfo(cref).Symbol));
             }).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 

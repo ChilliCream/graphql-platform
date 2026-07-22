@@ -1,4 +1,4 @@
-# Generate_Should_LinkBothTypesToAnnotatedMethod_When_SourceMethodIsOverloaded
+# Generate_Should_LinkImplementationToAnnotatedMethod_When_SourceMethodIsOverloaded
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -15,9 +15,6 @@ using GreenDonut;
 
 namespace TestNamespace
 {
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.TestClass.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Nullable&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity>
     {

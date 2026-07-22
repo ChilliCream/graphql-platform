@@ -15,9 +15,6 @@ using GreenDonut;
 
 namespace TestNamespace.DataAccess
 {
-    /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.DataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
-    /// </summary>
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, global::TestNamespace.DataAccess.Entity>
     {

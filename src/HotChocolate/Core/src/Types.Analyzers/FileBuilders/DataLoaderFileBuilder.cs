@@ -62,13 +62,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public void WriteDataLoaderInterface(
         string name,
-        IMethodSymbol method,
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
         ITypeSymbol value)
     {
-        WriteDataLoaderDocumentation(method);
         _writer.WriteIndentedLine(
             "{0} interface {1}",
             isPublic

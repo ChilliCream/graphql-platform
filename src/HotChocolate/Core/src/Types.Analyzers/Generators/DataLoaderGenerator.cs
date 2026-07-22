@@ -143,7 +143,6 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         {
             generator.WriteDataLoaderInterface(
                 dataLoader.InterfaceName,
-                dataLoader.MethodSymbol,
                 isInterfacePublic,
                 kind,
                 keyType,
