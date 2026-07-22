@@ -23,7 +23,7 @@ export function CheckListItem({
 }: CheckListItemProps) {
   return (
     <li className={`flex items-start gap-3 ${className}`.trim()}>
-      <span className="mt-1 inline-flex">
+      <span className="inline-flex">
         <Icon icon="check" size="xs" className={iconClassName} />
       </span>
       <span className="text-cc-ink text-sm">{children}</span>
