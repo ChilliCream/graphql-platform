@@ -1,4 +1,4 @@
-namespace HotChocolate.Types;
+namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// Defines the consequence that applies when a policy expression denies access.

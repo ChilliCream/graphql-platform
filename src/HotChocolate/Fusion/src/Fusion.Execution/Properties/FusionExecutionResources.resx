@@ -108,19 +108,19 @@
   <data name="FetchResultStore_InvalidTargetValueKind" xml:space="preserve">
     <value>Expected the value at result path '{1}' for selection path '{0}' to be an object or list, but found '{2}'.</value>
   </data>
-  <data name="ErrorHelper_AuthorizationPolicyDenied" xml:space="preserve">
+  <data name="ErrorHelper_PolicyDenied" xml:space="preserve">
     <value>The current user is not authorized to access this resource.</value>
   </data>
-  <data name="ErrorHelper_AuthorizationPolicyExecutionFailed" xml:space="preserve">
+  <data name="ErrorHelper_PolicyExecutionFailed" xml:space="preserve">
     <value>Authorization policy execution failed.</value>
   </data>
-  <data name="AuthorizationPolicyCollection_PolicyNameEmpty" xml:space="preserve">
+  <data name="PolicyCollection_PolicyNameEmpty" xml:space="preserve">
     <value>An authorization policy must have a name.</value>
   </data>
-  <data name="AuthorizationPolicyCollection_PolicyNameDuplicate" xml:space="preserve">
+  <data name="PolicyCollection_PolicyNameDuplicate" xml:space="preserve">
     <value>Authorization policy '{0}' is registered more than once.</value>
   </data>
-  <data name="AuthorizationPolicyCollection_PolicyNameNotFound" xml:space="preserve">
+  <data name="PolicyCollection_PolicyNameNotFound" xml:space="preserve">
     <value>Authorization policy '{0}' was not found.</value>
   </data>
 </root>

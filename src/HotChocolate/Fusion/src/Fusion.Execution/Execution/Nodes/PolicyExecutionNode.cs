@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Execution;
-using HotChocolate.Features;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;

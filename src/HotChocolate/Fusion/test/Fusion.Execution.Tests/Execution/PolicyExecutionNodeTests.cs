@@ -76,13 +76,25 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(listener.Error);
-        Assert.Collection(
-            secretClient.Requests,
-            request => Assert.Contains("secret", request, StringComparison.Ordinal));
-        Assert.Collection(
-            roleClient.Requests,
-            request => Assert.Contains("role", request, StringComparison.Ordinal));
+        var report = $"""
+            error: {listener.Error?.Message ?? "<none>"}
+            secretRequests: {secretClient.Requests.Count}
+            secretContainsSecret: {secretClient.Requests.Any(r => r.Contains("secret", StringComparison.Ordinal))}
+            roleRequests: {roleClient.Requests.Count}
+            roleContainsRole: {roleClient.Requests.Any(r => r.Contains("role", StringComparison.Ordinal))}
+            policyEvaluated: {policy.Evaluated}
+            policyRole: {policy.Role}
+            """;
+        report.MatchInlineSnapshot(
+            """
+            error: <none>
+            secretRequests: 1
+            secretContainsSecret: True
+            roleRequests: 1
+            roleContainsRole: True
+            policyEvaluated: True
+            policyRole: admin
+            """);
         result.ToJson().MatchInlineSnapshot(
             """
             {
@@ -91,7 +103,6 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
               }
             }
             """);
-        Assert.Equal((Evaluated: true, Role: "admin"), (policy.Evaluated, policy.Role));
     }
 
     [Fact]
@@ -907,33 +918,6 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_DeactivateAuthorizationContext_When_EvaluationCompletes()
-    {
-        // arrange
-        var policy = new CaptureContextPolicy();
-        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
-
-        // act
-        await using var result = await executor.ExecuteAsync(
-            "{ secret }",
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "secret": "classified"
-              }
-            }
-            """);
-        Assert.Equal(
-            (SelectionField: "secret", TypeName: "Query"),
-            (policy.SelectionField, policy.TypeName));
-        Assert.Throws<ObjectDisposedException>(() => policy.Context!.Deny(0));
-    }
-
-    [Fact]
     public async Task CreateExecutorAsync_Should_Fail_When_PolicyNameIsDuplicated()
     {
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -1349,8 +1333,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         PolicyDenialBehavior behavior,
-        IAuthorizationPolicy? policy = null,
-        Func<IReadOnlyList<IAuthorizationPolicy>>? createPolicies = null,
+        IPolicy? policy = null,
+        Func<IReadOnlyList<IPolicy>>? createPolicies = null,
         FusionExecutionDiagnosticEventListener? diagnosticListener = null,
         Action<IServiceProvider>? captureRequestServices = null)
     {
@@ -1380,11 +1364,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         if (policy is not null)
         {
-            ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+            ConfigurePolicies(builder, new TestPolicyProvider(policy));
         }
         else if (createPolicies is not null)
         {
-            ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(createPolicies));
+            ConfigurePolicies(builder, new TestPolicyProvider(createPolicies));
         }
 
         if (diagnosticListener is not null)
@@ -1409,7 +1393,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private static async Task<IRequestExecutor> CreateExpressionExecutorAsync(
         string secretFieldDirectives,
-        params IAuthorizationPolicy[] policies)
+        params IPolicy[] policies)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1431,7 +1415,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policies));
+        ConfigurePolicies(builder, new TestPolicyProvider(policies));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(("a", new RecordingRequirementClient())));
 
@@ -1445,7 +1429,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private static async Task<IRequestExecutor> CreateTwoProductExpressionExecutorAsync(
         string productDirectives,
-        params IAuthorizationPolicy[] policies)
+        params IPolicy[] policies)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1470,7 +1454,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policies));
+        ConfigurePolicies(builder, new TestPolicyProvider(policies));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(("a", new TwoProductResultClient())));
 
@@ -1483,7 +1467,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     private static async Task<IRequestExecutor> CreateRequirementExecutorAsync(
-        IAuthorizationPolicy policy,
+        IPolicy policy,
         RecordingRequirementClient client,
         PlanningErrorListener listener)
     {
@@ -1507,7 +1491,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
         builder.AddDiagnosticEventListener(_ => listener);
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(("a", client)));
@@ -1521,7 +1505,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     private static async Task<IRequestExecutor> CreateMultipleTargetExecutorAsync(
-        IAuthorizationPolicy policy)
+        IPolicy policy)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1543,7 +1527,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(
                 ("a", new RecordingRequirementClient(
@@ -1558,7 +1542,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     private static async Task<IRequestExecutor> CreateCrossSourceRequirementExecutorAsync(
-        IAuthorizationPolicy policy,
+        IPolicy policy,
         RecordingRequirementClient secretClient,
         RecordingRequirementClient roleClient,
         PlanningErrorListener listener)
@@ -1588,7 +1572,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
         builder.AddDiagnosticEventListener(_ => listener);
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(
@@ -1609,7 +1593,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     private static async Task<IRequestExecutor> CreateLookupExecutorAsync(
         ISourceSchemaClient downstreamClient,
         FusionExecutionDiagnosticEventListener? diagnosticListener = null,
-        IAuthorizationPolicy? policy = null)
+        IPolicy? policy = null)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1647,7 +1631,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         ConfigurePolicies(
             builder,
-            new TestAuthorizationPolicyProvider(policy ?? new DenyPolicy()));
+            new TestPolicyProvider(policy ?? new DenyPolicy()));
 
         if (diagnosticListener is not null)
         {
@@ -1692,7 +1676,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     private static async Task<IRequestExecutor> CreateRootObjectPolicyExecutorAsync(
-        IAuthorizationPolicy policy)
+        IPolicy policy)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1713,7 +1697,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(policy));
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(("a", new StaticResultClient())));
 
@@ -1766,7 +1750,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         ConfigurePolicies(
             builder,
-            new TestAuthorizationPolicyProvider(new DenySecondProductPolicy()));
+            new TestPolicyProvider(new DenySecondProductPolicy()));
 
         if (diagnosticListener is not null)
         {
@@ -1842,7 +1826,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(new DenyPolicy()));
+        ConfigurePolicies(builder, new TestPolicyProvider(new DenyPolicy()));
 
         if (diagnosticListener is not null)
         {
@@ -1914,7 +1898,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     }
                     """));
 
-        ConfigurePolicies(builder, new TestAuthorizationPolicyProvider(new DenyPolicy()));
+        ConfigurePolicies(builder, new TestPolicyProvider(new DenyPolicy()));
         builder.AddDiagnosticEventListener(_ => diagnosticListener);
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestClientFactory(
@@ -1934,22 +1918,22 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private static void ConfigurePolicies(
         IFusionGatewayBuilder builder,
-        IAuthorizationPolicyProvider provider)
+        IPolicyProvider provider)
         => builder.ConfigureSchemaServices(
             (_, services) => services.AddSingleton(_ => provider));
 
-    private sealed class DenyPolicy : IAuthorizationPolicy
+    private sealed class DenyPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
                 context.Deny(i, "denied by test policy");
             }
@@ -1959,20 +1943,20 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     private sealed class NamedStaticPolicy(string name, bool deny, string? reason = null)
-        : IAuthorizationPolicy
+        : IPolicy
     {
         public string Name => name;
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             if (deny)
             {
-                for (var i = 0; i < entities.Count; i++)
+                for (var i = 0; i < entities.Length; i++)
                 {
                     context.Deny(i, reason);
                 }
@@ -1982,20 +1966,20 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class NamedThrowingPolicy(string name) : IAuthorizationPolicy
+    private sealed class NamedThrowingPolicy(string name) : IPolicy
     {
         public string Name => name;
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("policy backend unavailable");
     }
 
-    private sealed class CaptureOnDeniedPolicy(string name) : IAuthorizationPolicy
+    private sealed class CaptureOnDeniedPolicy(string name) : IPolicy
     {
         private int _evaluationCount;
 
@@ -2008,8 +1992,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public PolicyDenialBehavior? ObservedOnDenied { get; private set; }
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _evaluationCount);
@@ -2018,7 +2002,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class DenyMatchingIdPolicy(string name, string deniedId) : IAuthorizationPolicy
+    private sealed class DenyMatchingIdPolicy(string name, string deniedId) : IPolicy
     {
         private static readonly SelectionSetNode s_requirements =
             Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
@@ -2028,13 +2012,15 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public SelectionSetNode? Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
-            for (var i = 0; i < entities.Count; i++)
+            var span = entities.Span;
+
+            for (var i = 0; i < span.Length; i++)
             {
-                if (entities[i].GetProperty("id").GetString() == deniedId)
+                if (span[i].GetProperty("id").GetString() == deniedId)
                 {
                     context.Deny(i, $"denied product {deniedId}");
                 }
@@ -2044,7 +2030,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class CountingRequirementPolicy(string name) : IAuthorizationPolicy
+    private sealed class CountingRequirementPolicy(string name) : IPolicy
     {
         private static readonly SelectionSetNode s_requirements =
             Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }");
@@ -2057,8 +2043,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _evaluationCount);
@@ -2066,18 +2052,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class DenyWithoutReasonPolicy : IAuthorizationPolicy
+    private sealed class DenyWithoutReasonPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
                 context.Deny(i);
             }
@@ -2086,7 +2072,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class CountingDenyPolicy : IAuthorizationPolicy
+    private sealed class CountingDenyPolicy : IPolicy
     {
         private int _evaluationCount;
 
@@ -2097,8 +2083,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _evaluationCount);
@@ -2107,7 +2093,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class BlockingPolicy : IAuthorizationPolicy
+    private sealed class BlockingPolicy : IPolicy
     {
         private int _evaluationCount;
 
@@ -2124,8 +2110,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public async ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _evaluationCount);
@@ -2135,7 +2121,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class RoleRequirementPolicy : IAuthorizationPolicy
+    private sealed class RoleRequirementPolicy : IPolicy
     {
         private static readonly SelectionSetNode s_requirements =
             Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }");
@@ -2149,18 +2135,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public string? Role { get; private set; }
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
-            Assert.Equal(1, entities.Count);
+            Assert.Equal(1, entities.Length);
             Evaluated = true;
-            Role = entities[0].GetProperty("role").GetString();
+            Role = entities.Span[0].GetProperty("role").GetString();
             return ValueTask.CompletedTask;
         }
     }
 
-    private sealed class UnknownRequirementPolicy : IAuthorizationPolicy
+    private sealed class UnknownRequirementPolicy : IPolicy
     {
         private static readonly SelectionSetNode s_requirements =
             Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }");
@@ -2170,13 +2156,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public SelectionSetNode? Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => ValueTask.CompletedTask;
     }
 
-    private sealed class DriftingRequirementsPolicy : IAuthorizationPolicy
+    private sealed class DriftingRequirementsPolicy : IPolicy
     {
         private static readonly SelectionSetNode s_requirements =
             Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }");
@@ -2188,26 +2174,26 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             => Interlocked.Increment(ref _readCount) == 1 ? null : s_requirements;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => ValueTask.CompletedTask;
     }
 
-    private sealed class AllowPolicy : IAuthorizationPolicy
+    private sealed class AllowPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => ValueTask.CompletedTask;
     }
 
-    private sealed class ThrowingPolicy : IAuthorizationPolicy
+    private sealed class ThrowingPolicy : IPolicy
     {
         private int _evaluationCount;
 
@@ -2218,8 +2204,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _evaluationCount);
@@ -2228,7 +2214,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     private sealed class CooperativeCancellationPolicy(CancellationTokenSource cancellationSource)
-        : IAuthorizationPolicy
+        : IPolicy
     {
         public string Name => "CanReadSecret";
 
@@ -2237,8 +2223,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public bool Evaluated { get; private set; }
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Evaluated = true;
@@ -2248,33 +2234,33 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class NonCooperativeCancellationPolicy : IAuthorizationPolicy
+    private sealed class NonCooperativeCancellationPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => throw new OperationCanceledException("non-cooperative cancellation");
     }
 
-    private sealed class ThrowingNamePolicy : IAuthorizationPolicy
+    private sealed class ThrowingNamePolicy : IPolicy
     {
         public string Name => throw new InvalidOperationException("test name failure");
 
         public SelectionSetNode? Requirements => null;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => ValueTask.CompletedTask;
     }
 
-    private sealed class ThrowingRequirementsPolicy : IAuthorizationPolicy
+    private sealed class ThrowingRequirementsPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
 
@@ -2282,37 +2268,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             => throw new InvalidOperationException("test requirements failure");
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
             => ValueTask.CompletedTask;
     }
 
-    private sealed class CaptureContextPolicy : IAuthorizationPolicy
-    {
-        public string Name => "CanReadSecret";
-
-        public SelectionSetNode? Requirements => null;
-
-        public IAuthorizationContext? Context { get; private set; }
-
-        public string? SelectionField { get; private set; }
-
-        public string? TypeName { get; private set; }
-
-        public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
-            CancellationToken cancellationToken = default)
-        {
-            Context = context;
-            SelectionField = context.Selection?.Field.Name;
-            TypeName = context.Type.Name;
-            return ValueTask.CompletedTask;
-        }
-    }
-
-    private sealed class RootContextPolicy : IAuthorizationPolicy
+    private sealed class RootContextPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
 
@@ -2325,8 +2287,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public string? TypeName { get; private set; }
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
             Evaluated = true;
@@ -2421,7 +2383,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class DenySecondProductPolicy : IAuthorizationPolicy
+    private sealed class DenySecondProductPolicy : IPolicy
     {
         private static readonly SelectionSetNode s_requirements =
             Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
@@ -2431,13 +2393,15 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         public SelectionSetNode? Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
-            IAuthorizationContext context,
-            EntityData entities,
+            IPolicyContext context,
+            ReadOnlyMemory<CompositeResultElement> entities,
             CancellationToken cancellationToken = default)
         {
-            for (var i = 0; i < entities.Count; i++)
+            var span = entities.Span;
+
+            for (var i = 0; i < span.Length; i++)
             {
-                if (entities[i].GetProperty("id").GetString() == "2")
+                if (span[i].GetProperty("id").GetString() == "2")
                 {
                     context.Deny(i, "denied product 2");
                 }

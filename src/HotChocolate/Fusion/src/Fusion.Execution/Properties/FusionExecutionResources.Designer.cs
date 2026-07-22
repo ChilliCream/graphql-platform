@@ -225,33 +225,33 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string ErrorHelper_AuthorizationPolicyDenied {
+        internal static string ErrorHelper_PolicyDenied {
             get {
-                return ResourceManager.GetString("ErrorHelper_AuthorizationPolicyDenied", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PolicyDenied", resourceCulture);
             }
         }
 
-        internal static string ErrorHelper_AuthorizationPolicyExecutionFailed {
+        internal static string ErrorHelper_PolicyExecutionFailed {
             get {
-                return ResourceManager.GetString("ErrorHelper_AuthorizationPolicyExecutionFailed", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PolicyExecutionFailed", resourceCulture);
             }
         }
 
-        internal static string AuthorizationPolicyCollection_PolicyNameEmpty {
+        internal static string PolicyCollection_PolicyNameEmpty {
             get {
-                return ResourceManager.GetString("AuthorizationPolicyCollection_PolicyNameEmpty", resourceCulture);
+                return ResourceManager.GetString("PolicyCollection_PolicyNameEmpty", resourceCulture);
             }
         }
 
-        internal static string AuthorizationPolicyCollection_PolicyNameDuplicate {
+        internal static string PolicyCollection_PolicyNameDuplicate {
             get {
-                return ResourceManager.GetString("AuthorizationPolicyCollection_PolicyNameDuplicate", resourceCulture);
+                return ResourceManager.GetString("PolicyCollection_PolicyNameDuplicate", resourceCulture);
             }
         }
 
-        internal static string AuthorizationPolicyCollection_PolicyNameNotFound {
+        internal static string PolicyCollection_PolicyNameNotFound {
             get {
-                return ResourceManager.GetString("AuthorizationPolicyCollection_PolicyNameNotFound", resourceCulture);
+                return ResourceManager.GetString("PolicyCollection_PolicyNameNotFound", resourceCulture);
             }
         }
     }

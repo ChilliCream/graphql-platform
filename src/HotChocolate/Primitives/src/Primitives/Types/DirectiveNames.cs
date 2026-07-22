@@ -605,6 +605,33 @@ public static class DirectiveNames
         public const string Name = "eventCursor";
     }
 
+    /// <summary>
+    /// The name constants of the @policy directive.
+    /// </summary>
+    public static class Policy
+    {
+        /// <summary>
+        /// The name of the @policy directive.
+        /// </summary>
+        public const string Name = "policy";
+
+        /// <summary>
+        /// The argument names of the @policy directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the names argument.
+            /// </summary>
+            public const string Names = "names";
+
+            /// <summary>
+            /// The name of the onDenied argument.
+            /// </summary>
+            public const string OnDenied = "onDenied";
+        }
+    }
+
     public static bool IsSpecDirective(string name)
         => name switch
         {

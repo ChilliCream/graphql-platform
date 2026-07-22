@@ -217,11 +217,11 @@ public sealed class PolicyApplicationsTests : FusionTestBase
         params string[] policyNames)
     {
         var policies = policyNames
-            .Select(static name => (IAuthorizationPolicy)new TestAuthorizationPolicy(name))
+            .Select(static name => (IPolicy)new TestPolicy(name))
             .ToArray();
         var services = new ServiceCollection()
-            .AddSingleton<IAuthorizationPolicyProvider>(
-                _ => new TestAuthorizationPolicyProvider(policies))
+            .AddSingleton<IPolicyProvider>(
+                _ => new TestPolicyProvider(policies))
             .BuildServiceProvider();
 
         return FusionSchemaDefinition.Create(Utf8GraphQLParser.Parse(schemaText), services);

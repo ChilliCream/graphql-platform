@@ -14,7 +14,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Policies.Rego;
 
-public sealed class RegoAuthorizationPolicyTests
+public sealed class RegoPolicyTests
 {
     private static readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> s_fieldMapPool =
         new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
@@ -42,13 +42,13 @@ public sealed class RegoAuthorizationPolicyTests
             """);
         using var first = CreateEntity("1", "first", "hidden-1");
         using var second = CreateEntity("2", "second", "hidden-2");
-        var context = new TestAuthorizationContext();
+        var context = new TestPolicyContext();
         var entities = new[] { first.Data, second.Data };
 
         // act
         await policy.EvaluateAsync(
             context,
-            new EntityData(entities, entities.Length),
+            entities,
             TestContext.Current.CancellationToken);
 
         // assert
@@ -66,13 +66,13 @@ public sealed class RegoAuthorizationPolicyTests
             {"allow": [input.entities[0] == {"id": "1", "nested": {"code": "visible"}}]}
             """);
         using var entity = CreateEntity("1", "visible", "hidden");
-        var context = new TestAuthorizationContext();
+        var context = new TestPolicyContext();
         var entities = new[] { entity.Data };
 
         // act
         await policy.EvaluateAsync(
             context,
-            new EntityData(entities, entities.Length),
+            entities,
             TestContext.Current.CancellationToken);
 
         // assert
@@ -80,17 +80,17 @@ public sealed class RegoAuthorizationPolicyTests
     }
 
     [Fact]
-    public async Task EvaluateAsync_Should_NotReadEntityData_When_RequirementsAreNull()
+    public async Task EvaluateAsync_Should_NotReadEntities_When_RequirementsAreNull()
     {
         // arrange
         using var policy = CreatePolicy(requirements: null, """{"allow": [false]}""");
-        var context = new TestAuthorizationContext();
+        var context = new TestPolicyContext();
         var entities = new CompositeResultElement[1];
 
         // act
         await policy.EvaluateAsync(
             context,
-            new EntityData(entities, entities.Length),
+            entities,
             TestContext.Current.CancellationToken);
 
         // assert
@@ -102,14 +102,14 @@ public sealed class RegoAuthorizationPolicyTests
     {
         // arrange
         using var policy = CreatePolicy(requirements: null, """{"allow": [true]}""");
-        var context = new TestAuthorizationContext();
+        var context = new TestPolicyContext();
         var entities = new CompositeResultElement[2];
 
         // act
         var error = await Assert.ThrowsAsync<InvalidOperationException>(
             () => policy.EvaluateAsync(
                 context,
-                new EntityData(entities, entities.Length),
+                entities,
                 TestContext.Current.CancellationToken).AsTask());
 
         // assert
@@ -128,14 +128,14 @@ public sealed class RegoAuthorizationPolicyTests
     {
         // arrange
         using var policy = CreatePolicy(requirements: null, decision);
-        var context = new TestAuthorizationContext();
+        var context = new TestPolicyContext();
         var entities = new CompositeResultElement[1];
 
         // act
         var error = await Assert.ThrowsAsync<InvalidOperationException>(
             () => policy.EvaluateAsync(
                 context,
-                new EntityData(entities, entities.Length),
+                entities,
                 TestContext.Current.CancellationToken).AsTask());
 
         // assert
@@ -146,31 +146,60 @@ public sealed class RegoAuthorizationPolicyTests
     }
 
     [Fact]
+    public async Task Dispose_Should_KeepPolicyAlive_When_StillPinned()
+    {
+        // arrange
+        var policy = CreatePolicy(requirements: null, """{"allow": [true]}""");
+        Assert.True(((IPolicyLifetime)policy).TryAddRef());
+        var context = new TestPolicyContext();
+        var entities = new CompositeResultElement[1];
+
+        // act
+        // A direct dispose drops only the caller's reference; the outstanding pin keeps the native
+        // policy alive so an in-flight evaluation is never freed underneath it.
+        policy.Dispose();
+
+        // assert
+        await policy.EvaluateAsync(
+            context,
+            entities,
+            TestContext.Current.CancellationToken);
+        Assert.Empty(context.DeniedIndices);
+
+        ((IPolicyLifetime)policy).Release();
+        await Assert.ThrowsAsync<ObjectDisposedException>(
+            () => policy.EvaluateAsync(
+                context,
+                entities,
+                TestContext.Current.CancellationToken).AsTask());
+    }
+
+    [Fact]
     public async Task EvaluateAsync_Should_Throw_When_PolicyIsDisposed()
     {
         // arrange
         var policy = CreatePolicy(requirements: null, """{"allow": [true]}""");
         policy.Dispose();
-        var context = new TestAuthorizationContext();
+        var context = new TestPolicyContext();
         var entities = new CompositeResultElement[1];
 
         // act
         var error = await Assert.ThrowsAsync<ObjectDisposedException>(
             () => policy.EvaluateAsync(
                 context,
-                new EntityData(entities, entities.Length),
+                entities,
                 TestContext.Current.CancellationToken).AsTask());
 
         // assert
-        Assert.Equal(typeof(RegoAuthorizationPolicy).FullName, error.ObjectName);
+        Assert.Equal(typeof(RegoPolicy).FullName, error.ObjectName);
     }
 
-    private static RegoAuthorizationPolicy CreatePolicy(
+    private static RegoPolicy CreatePolicy(
         SelectionSetNode? requirements,
         string decision)
         => CreatePolicy(requirements, decision, "{}");
 
-    private static RegoAuthorizationPolicy CreatePolicy(
+    private static RegoPolicy CreatePolicy(
         SelectionSetNode? requirements,
         string decision,
         string dataJson)
@@ -182,10 +211,10 @@ public sealed class RegoAuthorizationPolicyTests
             decision := {{decision}}
             """;
 
-        return new RegoAuthorizationPolicy(
+        return new RegoPolicy(
             "CanReadProduct",
             requirements,
-            dataJson,
+            Encoding.UTF8.GetBytes(dataJson),
             [new PolicyModule("fusion_test.rego", source)],
             "data.fusion_test.decision");
     }
@@ -265,7 +294,7 @@ public sealed class RegoAuthorizationPolicyTests
         return result;
     }
 
-    private sealed class TestAuthorizationContext : IAuthorizationContext
+    private sealed class TestPolicyContext : IPolicyContext
     {
         public List<int> DeniedIndices { get; } = [];
 

@@ -227,7 +227,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
                   price: Float!
                 }
                 """),
-            new TestAuthorizationPolicy("CanReadProduct"));
+            new TestPolicy("CanReadProduct"));
 
         // act
         var plan = PlanOperation(
@@ -284,12 +284,12 @@ public sealed class PolicyPlanningTests : FusionTestBase
               A @fusion__schema_metadata(name: "A")
             }
             """,
-            new TestAuthorizationPolicy("CanReadQuery"),
-            new TestAuthorizationPolicy("CanReadProductField"),
-            new TestAuthorizationPolicy("CanReadProductObject"),
-            new TestAuthorizationPolicy("CanReadName"),
-            new TestAuthorizationPolicy("CanAudit"),
-            new TestAuthorizationPolicy("CanAdmin"));
+            new TestPolicy("CanReadQuery"),
+            new TestPolicy("CanReadProductField"),
+            new TestPolicy("CanReadProductObject"),
+            new TestPolicy("CanReadName"),
+            new TestPolicy("CanAudit"),
+            new TestPolicy("CanAdmin"));
 
     private static FusionSchemaDefinition CreateRequirementPolicySchema()
         => CreateSchema(
@@ -309,22 +309,22 @@ public sealed class PolicyPlanningTests : FusionTestBase
               A @fusion__schema_metadata(name: "A")
             }
             """,
-            new TestAuthorizationPolicy(
+            new TestPolicy(
                 "CanReadSecret",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }")));
 
     private static FusionSchemaDefinition CreateSchema(
         string schemaText,
-        params IAuthorizationPolicy[] policies)
+        params IPolicy[] policies)
         => CreateSchema(Utf8GraphQLParser.Parse(schemaText), policies);
 
     private static FusionSchemaDefinition CreateSchema(
         DocumentNode schemaDocument,
-        params IAuthorizationPolicy[] policies)
+        params IPolicy[] policies)
     {
         var services = new ServiceCollection()
-            .AddSingleton<IAuthorizationPolicyProvider>(
-                _ => new TestAuthorizationPolicyProvider(policies))
+            .AddSingleton<IPolicyProvider>(
+                _ => new TestPolicyProvider(policies))
             .BuildServiceProvider();
 
         return FusionSchemaDefinition.Create(schemaDocument, services);
