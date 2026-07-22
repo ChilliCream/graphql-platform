@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +23,8 @@ internal sealed class FusionOpenApiResultFormatter : IOpenApiResultFormatter
 
         foreach (var segment in endpoint.ResponseBodySelection.ResponseNamePath)
         {
-            if (!responseValue.TryGetProperty(segment, out responseValue))
+            if (responseValue.ValueKind is not JsonValueKind.Object
+                || !responseValue.TryGetProperty(segment, out responseValue))
             {
                 await Results.InternalServerError().ExecuteAsync(httpContext);
                 return;
