@@ -1240,6 +1240,18 @@ internal static class OperationPlanExecutor
                 }
 
                 yield return result;
+
+                // Execution resumes here only after the consumer finished writing the
+                // yielded result to the client and asked for the next event. Record the
+                // delivery before the event scope is disposed at the end of this loop
+                // iteration, so a client abort that races the resume cannot erase the
+                // delivered event's success status. An event whose write failed never
+                // resumes the stream and therefore is never reported as delivered.
+                context.DiagnosticEvents.SubscriptionEventDelivered(
+                    context,
+                    subscriptionNode,
+                    schemaName,
+                    subscriptionResult.Id);
             }
         }
         finally
