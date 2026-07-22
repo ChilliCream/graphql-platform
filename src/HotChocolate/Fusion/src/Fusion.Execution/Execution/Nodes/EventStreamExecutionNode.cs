@@ -206,6 +206,7 @@ public sealed class EventStreamExecutionNode : ExecutionNode
         private readonly IDisposable _subscriptionScope;
         private readonly BrokerSubscription _subscription;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
+        private bool _completed;
         private bool _disposed;
 
         public EventStreamSubscriptionEnumerator(
@@ -244,13 +245,64 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
         public async ValueTask<bool> MoveNextAsync()
         {
-            if (_disposed || _cancellationToken.IsCancellationRequested)
+            if (_disposed || _completed || _cancellationToken.IsCancellationRequested)
             {
                 Current = null!;
                 return false;
             }
 
-            if (!await _subscription.Enumerator.MoveNextAsync().ConfigureAwait(false))
+            bool hasResult;
+
+            try
+            {
+                hasResult = await _subscription.Enumerator.MoveNextAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                _completed = true;
+
+                // A cancellation signalled while the broker read was in flight (client
+                // abort, shutdown or enumerator disposal) is the same graceful teardown
+                // as observing the token before the read, not a subscription event
+                // error. The broker enumerator runs on the dispose token, which links
+                // the external cancellation token.
+                if (exception is OperationCanceledException
+                    && _disposeCts.IsCancellationRequested)
+                {
+                    Current = null!;
+                    return false;
+                }
+
+                _diagnosticEvents.SubscriptionEventError(
+                    _context,
+                    _node,
+                    _subscription.Source.SchemaName,
+                    _subscriptionId,
+                    exception);
+
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
+
+                // A failed broker read ends the stream, mirroring how the operation
+                // subscription node terminates on a failed transport read. No per-event
+                // scope is open at read stage.
+                var timestamp = Stopwatch.GetTimestamp();
+                Current = new EventMessageResult(
+                    _node.Id,
+                    Activity.Current,
+                    ExecutionStatus.Failed,
+                    Disposable.Empty,
+                    timestamp,
+                    Stopwatch.GetTimestamp(),
+                    Exception: exception,
+                    VariableValueSets: [],
+                    DependentsToExecute: default);
+                return false;
+            }
+
+            if (!hasResult)
             {
                 Current = null!;
                 return false;
