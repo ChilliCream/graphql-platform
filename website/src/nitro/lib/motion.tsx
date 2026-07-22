@@ -1,17 +1,25 @@
 import { MotionConfig, cubicBezier, useReducedMotion } from "motion/react";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 
 export type ReducedMotionMode = "user" | "always" | "never";
 
 const ReducedMotionContext = createContext<ReducedMotionMode>("user");
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export function useReducedMotionPreference(): boolean {
   const mode = useContext(ReducedMotionContext);
   const media = useReducedMotion() ?? false;
+  const hydrated = useSyncExternalStore(
+    emptySubscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   if (mode === "always") return true;
   if (mode === "never") return false;
-  return media;
+  return hydrated && media;
 }
 
 export const ease = {
