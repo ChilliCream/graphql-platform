@@ -24,6 +24,15 @@ internal sealed class EndpointSingleResponseBodyDirectiveRule
                     endpoint));
         }
 
+        if (finderContext.HasResponseBodyInTypedInlineFragment)
+        {
+            return OpenApiDefinitionValidationResult.Failure(
+                new OpenApiDefinitionValidationError(
+                    "Endpoint operations cannot contain the '@responseBody' directive "
+                    + "within an inline fragment with a type condition.",
+                    endpoint));
+        }
+
         return OpenApiDefinitionValidationResult.Success();
     }
 }

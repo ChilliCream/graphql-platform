@@ -255,7 +255,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Http_Get_With_ResponseBody_On_Nested_Aliased_Field_In_Inline_Fragment()
+    public async Task Http_Get_With_ResponseBody_And_Unrelated_Type_Refinements()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
@@ -263,7 +263,13 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
               user: userById(id: $userId) {
                 ... on User {
-                  address: address @responseBody {
+                  name
+                }
+                ... {
+                  email
+                }
+                address: address @responseBody {
+                  ... on Address {
                     road: street
                   }
                 }
@@ -328,6 +334,34 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // act
         var response = await client.GetAsync(
             "/users/4/address",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Skipped_ResponseBody_Field_Returns_InternalServerError()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
+              userById(id: $userId) {
+                ... {
+                  address @skip(if: true) @responseBody {
+                    street
+                  }
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync(
+            "/users/1/address",
             TestContext.Current.CancellationToken);
 
         // assert

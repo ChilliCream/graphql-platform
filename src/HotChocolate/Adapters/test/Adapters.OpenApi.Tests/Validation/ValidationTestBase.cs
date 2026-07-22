@@ -268,8 +268,10 @@ public abstract class ValidationTestBase : OpenApiTestBase
             """
             query GetUser @http(method: GET, route: "/user") {
               userById(id: "1") {
-                address @responseBody @responseBody {
-                  street
+                ... on User {
+                  address @responseBody @responseBody {
+                    street
+                  }
                 }
               }
             }
@@ -286,6 +288,44 @@ public abstract class ValidationTestBase : OpenApiTestBase
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal(
             "Endpoint operations can contain at most one '@responseBody' directive.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_ResponseBody_Path_Contains_Type_Refinement_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ... on User {
+                  ... on User {
+                    name
+                  }
+                  ... {
+                    address @responseBody {
+                      street
+                    }
+                  }
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint operations cannot contain the '@responseBody' directive "
+            + "within an inline fragment with a type condition.",
             error.Message);
     }
 

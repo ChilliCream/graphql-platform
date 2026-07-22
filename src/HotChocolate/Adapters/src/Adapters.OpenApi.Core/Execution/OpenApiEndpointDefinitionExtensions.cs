@@ -52,10 +52,8 @@ internal static class OpenApiEndpointDefinitionExtensions
                         responseNamePath.RemoveAt(responseNamePath.Count - 1);
                         break;
 
-                    case InlineFragmentNode inlineFragment:
-                        if (FindResponseBody(
-                                inlineFragment.SelectionSet,
-                                ResolveTypeCondition(inlineFragment.TypeCondition, declaringType))
+                    case InlineFragmentNode { TypeCondition: null } inlineFragment:
+                        if (FindResponseBody(inlineFragment.SelectionSet, declaringType)
                             is { } inlineResponseBody)
                         {
                             return inlineResponseBody;
@@ -76,18 +74,6 @@ internal static class OpenApiEndpointDefinitionExtensions
             }
 
             return null;
-        }
-
-        IOutputType? ResolveTypeCondition(NamedTypeNode? typeCondition, IOutputType? fallback)
-        {
-            if (typeCondition is not null
-                && schema.Types.TryGetType(typeCondition.Name.Value, out var type)
-                && type is IOutputType outputType)
-            {
-                return outputType;
-            }
-
-            return fallback;
         }
     }
 }

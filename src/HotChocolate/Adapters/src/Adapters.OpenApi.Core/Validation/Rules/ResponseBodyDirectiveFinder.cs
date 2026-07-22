@@ -9,10 +9,29 @@ internal sealed class ResponseBodyDirectiveFinder()
 {
     protected override ISyntaxVisitorAction Enter(ISyntaxNode node, Context context)
     {
-        if (node is DirectiveNode directive
+        if (node is InlineFragmentNode { TypeCondition: not null })
+        {
+            context.TypedInlineFragmentDepth++;
+        }
+        else if (node is DirectiveNode directive
             && directive.Name.Value == WellKnownDirectiveNames.ResponseBody)
         {
             context.Count++;
+
+            if (context.TypedInlineFragmentDepth > 0)
+            {
+                context.HasResponseBodyInTypedInlineFragment = true;
+            }
+        }
+
+        return Continue;
+    }
+
+    protected override ISyntaxVisitorAction Leave(ISyntaxNode node, Context context)
+    {
+        if (node is InlineFragmentNode { TypeCondition: not null })
+        {
+            context.TypedInlineFragmentDepth--;
         }
 
         return Continue;
@@ -21,5 +40,9 @@ internal sealed class ResponseBodyDirectiveFinder()
     public sealed class Context
     {
         public int Count { get; set; }
+
+        public int TypedInlineFragmentDepth { get; set; }
+
+        public bool HasResponseBodyInTypedInlineFragment { get; set; }
     }
 }
