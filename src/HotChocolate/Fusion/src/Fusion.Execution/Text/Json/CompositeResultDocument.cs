@@ -436,7 +436,9 @@ public sealed partial class CompositeResultDocument : IDisposable
         // of the selections it excludes to the block append, which stamps the flag alongside the
         // parent pointers.
         var conditionalSelections = template.ConditionalSelections;
-        Span<int> excludedRowOffsets = stackalloc int[conditionalSelections.Length];
+        var excludedRowOffsets = conditionalSelections.Length <= 256
+            ? stackalloc int[conditionalSelections.Length]
+            : new int[conditionalSelections.Length];
         var excludedCount = 0;
         var selections = selectionSet.Selections;
 

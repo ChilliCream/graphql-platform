@@ -376,7 +376,8 @@ public sealed partial class CompositeResultDocument
                     ref MemoryMarshal.GetReference(template),
                     (uint)template.Length);
 
-                // The trailing EndObject row keeps its template parent of zero.
+                // Stamp the StartObject row's parent; the trailing EndObject row keeps its
+                // template parent of zero.
                 Unsafe.WriteUnaligned(ref dest, parentRow);
 
                 var rowCount = template.Length / DbRow.Size;
@@ -385,7 +386,7 @@ public sealed partial class CompositeResultDocument
                 // Excluded offsets are ascending and always odd (property rows), so the loop
                 // visits every one of them; a sentinel merge stamps the flag into the int right
                 // next to the parent pointer that was just written.
-                var e = 0;
+                var excludedIndex = 0;
                 var nextExcluded = excludedRowOffsets.IsEmpty ? int.MaxValue : excludedRowOffsets[0];
 
                 for (var rowOffset = 1; rowOffset < rowCount - 1; rowOffset += 2)
@@ -406,12 +407,12 @@ public sealed partial class CompositeResultDocument
                             ref flagsRef,
                             Unsafe.ReadUnaligned<int>(ref flagsRef)
                                 | ((int)ElementFlags.IsExcluded << DbRow.FlagsShift));
-                        e++;
-                        nextExcluded = e < excludedRowOffsets.Length ? excludedRowOffsets[e] : int.MaxValue;
+                        excludedIndex++;
+                        nextExcluded = excludedIndex < excludedRowOffsets.Length ? excludedRowOffsets[excludedIndex] : int.MaxValue;
                     }
                 }
 
-                Debug.Assert(e == excludedRowOffsets.Length);
+                Debug.Assert(excludedIndex == excludedRowOffsets.Length);
 
                 _next = next + rowCount;
                 return next;
@@ -443,7 +444,7 @@ public sealed partial class CompositeResultDocument
             // by that segment's walk; the value row opening the next segment is even and never
             // matches. The StartObject and EndObject rows are skipped below, and no excluded
             // offset can name them: the largest property offset is totalRows - 3.
-            var e = 0;
+            var excludedIndex = 0;
             var nextExcluded = excludedRowOffsets.IsEmpty ? int.MaxValue : excludedRowOffsets[0];
 
             while (rowIndex < totalRows)
@@ -502,8 +503,8 @@ public sealed partial class CompositeResultDocument
                             ref flagsRef,
                             Unsafe.ReadUnaligned<int>(ref flagsRef)
                                 | ((int)ElementFlags.IsExcluded << DbRow.FlagsShift));
-                        e++;
-                        nextExcluded = e < excludedRowOffsets.Length ? excludedRowOffsets[e] : int.MaxValue;
+                        excludedIndex++;
+                        nextExcluded = excludedIndex < excludedRowOffsets.Length ? excludedRowOffsets[excludedIndex] : int.MaxValue;
                     }
                 }
 
@@ -512,7 +513,7 @@ public sealed partial class CompositeResultDocument
                 _next = cursor + segmentRows;
             }
 
-            Debug.Assert(e == excludedRowOffsets.Length);
+            Debug.Assert(excludedIndex == excludedRowOffsets.Length);
 
             return startObjectCursor;
         }
