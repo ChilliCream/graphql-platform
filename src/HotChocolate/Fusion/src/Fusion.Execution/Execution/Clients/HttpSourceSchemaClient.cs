@@ -93,7 +93,11 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
             try
             {
                 var httpRequest = CreateHttpRequest(context, request, ref buffer);
-                ConfigureCallbacks(httpRequest, context, request.Node);
+                SourceSchemaCallbackHelper.ConfigureCallbacks(
+                    httpRequest,
+                    context,
+                    request.Node,
+                    _configuration);
 
                 httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
                 context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
@@ -160,7 +164,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 requests,
                 requiresFileUpload,
                 ref buffer);
-            ConfigureCallbacks(httpRequest, context, requests[0].Node);
+            SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, requests[0].Node, _configuration);
 
             var results = ExecuteBatchStreamAsync(context, requests, httpRequest, buffer, cancellationToken);
 
@@ -197,7 +201,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         try
         {
             var httpRequest = CreateHttpRequest(context, request, ref buffer);
-            ConfigureCallbacks(httpRequest, context, request.Node);
+            SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, request.Node, _configuration);
 
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
@@ -851,36 +855,6 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
-    }
-
-    /// <summary>
-    /// Attaches <see cref="HttpSourceSchemaClientConfiguration.OnBeforeSend"/> and
-    /// <see cref="HttpSourceSchemaClientConfiguration.OnAfterReceive"/> callbacks to
-    /// the HTTP request.
-    /// </summary>
-    private void ConfigureCallbacks(
-        GraphQLHttpRequest request,
-        OperationPlanContext context,
-        ExecutionNode node)
-    {
-        if (_configuration.OnBeforeSend is null && _configuration.OnAfterReceive is null)
-        {
-            return;
-        }
-
-        request.State = new RequestCallbackState(context, node, _configuration);
-
-        if (_configuration.OnBeforeSend is not null)
-        {
-            request.OnMessageCreated += static (_, requestMessage, state) =>
-                state.Configuration.OnBeforeSend!.Invoke(state.Context, state.Node, requestMessage);
-        }
-
-        if (_configuration.OnAfterReceive is not null)
-        {
-            request.OnMessageReceived += static (_, responseMessage, state) =>
-                state.Configuration.OnAfterReceive!.Invoke(state.Context, state.Node, responseMessage);
-        }
     }
 
     private static bool ContainsSubscriptionRequest(

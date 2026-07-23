@@ -22,5 +22,19 @@ public enum SourceSchemaClientCapabilities
     /// </summary>
     RequestBatching = 1 << 2,
 
+    /// <summary>
+    /// The client supports alias batching, where each row of a batch is rewritten into an
+    /// aliased copy of the root selections within a single spec-conformant GraphQL request.
+    /// Unlike <see cref="VariableBatching"/> and <see cref="RequestBatching"/>, this mode
+    /// requires no protocol extension from the downstream service.
+    /// </summary>
+    AliasBatching = 1 << 3,
+
+    /// <summary>
+    /// Combines the protocol-extension batching capabilities (<see cref="VariableBatching"/>
+    /// and <see cref="RequestBatching"/>). <see cref="AliasBatching"/> is deliberately excluded
+    /// because it supersedes those modes and is selected through an explicit opt-in rather than
+    /// advertised as a default capability.
+    /// </summary>
     All = VariableBatching | RequestBatching
 }

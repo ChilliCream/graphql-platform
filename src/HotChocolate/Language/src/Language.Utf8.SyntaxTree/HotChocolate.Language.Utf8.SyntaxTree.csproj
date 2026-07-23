@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Language.Utf8.SyntaxTree</PackageId>
+    <AssemblyName>HotChocolate.Language.Utf8.SyntaxTree</AssemblyName>
+    <RootNamespace>HotChocolate.Language</RootNamespace>
+    <Description>This package contains the packed UTF-8 syntax tree representation used by Hot Chocolate.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Language.Utf8" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Utf8.SyntaxTree.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
+  </ItemGroup>
+
+</Project>
