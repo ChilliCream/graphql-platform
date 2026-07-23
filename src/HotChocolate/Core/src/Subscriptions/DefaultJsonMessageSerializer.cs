@@ -14,7 +14,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     private const string Completed = "{\"kind\":1}";
 
     private static readonly JsonSerializerOptions s_options =
-        JsonSerializerOptionDefaults.GraphQL;
+        CreateOptions();
 
     /// <inheritdoc />
     public string CompleteMessage => Completed;
@@ -55,5 +55,12 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
         /// Gets the message kind.
         /// </summary>
         public MessageKind Kind { get; set; }
+    }
+
+    private static JsonSerializerOptions CreateOptions()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerOptionDefaults.GraphQL);
+        options.Converters.Add(new PolymorphicMessageJsonConverterFactory());
+        return options;
     }
 }
