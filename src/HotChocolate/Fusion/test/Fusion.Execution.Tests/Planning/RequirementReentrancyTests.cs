@@ -165,6 +165,101 @@ public class RequirementReentrancyTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Resolve_User_When_Node_Entry_Crosses_Required_Field()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: PRODUCTS
+            schema {
+              query: Query
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product implements Node @key(fields: "productId") {
+              productId: Int!
+              id: ID!
+              reviewAudience: String!
+            }
+            """,
+            """
+            # name: REVIEWS
+            schema {
+              query: Query
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              reviews(
+                audience: String! @require(field: "reviewAudience"))
+                : [Review!]
+            }
+
+            type Review implements Node {
+              id: ID!
+              author: User
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+            }
+            """,
+            """
+            # name: USERS
+            schema {
+              query: Query
+            }
+
+            type Query {
+              userById(id: ID! @is(field: "userId"))
+                : User @lookup @internal
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+              name: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetProduct($id: ID!) {
+              node(id: $id) {
+                ... on Product {
+                  reviews {
+                    author {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateRecommendationSchema()
     {
         return ComposeSchema(

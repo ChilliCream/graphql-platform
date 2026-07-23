@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
@@ -5,6 +6,120 @@ namespace HotChocolate.Fusion;
 
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
+    [Fact]
+    public async Task Node_Entry_With_Required_Field_And_Nested_Lookup()
+    {
+        // arrange
+        using var products = CreateSourceSchema(
+            "PRODUCTS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node @key(fields: "productId") {
+              productId: Int!
+              id: ID!
+              reviewAudience: String!
+            }
+            """);
+        using var reviews = CreateSourceSchema(
+            "REVIEWS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              reviews(
+                audience: String! @require(field: "reviewAudience"))
+                : [Review!]
+            }
+
+            type Review implements Node {
+              id: ID!
+              author: User
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+            }
+            """);
+        using var users = CreateSourceSchema(
+            "USERS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "userId")): User @lookup @internal
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+              name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("PRODUCTS", products),
+            ("REVIEWS", reviews),
+            ("USERS", users)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetProduct($id: ID!) {
+              node(id: $id) {
+                ... on Product {
+                  reviews {
+                    author {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["id"] = /* Product:1 */ "UHJvZHVjdDox"
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjo1"}},{"author":{"name":"User: VXNlcjo2"}},{"author":{"name":"User: VXNlcjo3"}}]}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
     [Fact]
     public async Task Concrete_Type_Branch_Requested()
     {
