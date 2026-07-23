@@ -1,0 +1,106 @@
+operation:
+  - document: |
+      query GetProduct($id: ID!, $include: Boolean!) {
+        node(id: $id) {
+          __typename @fusion__requirement
+          ... on Product @include(if: $include) {
+            reviews {
+              author {
+                name
+                userId @fusion__requirement
+              }
+            }
+            productId @fusion__requirement
+            reviewAudience @fusion__requirement
+          }
+        }
+      }
+    name: GetProduct
+    hash: 123456789101112
+    searchSpace: 4
+    expandedNodes: 11
+nodes:
+  - id: 1
+    type: Node
+    idValue: $id
+    responseName: node
+    branches:
+      - Product: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query GetProduct_123456789101112_2($id: ID!) {
+        node(id: $id) {
+          __typename
+        }
+      }
+    forwardedVariables:
+      - id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: PRODUCTS
+    operation: |
+      query GetProduct_123456789101112_3($id: ID!, $include: Boolean!) {
+        node(id: $id) {
+          __typename
+          ... on Product {
+            __typename
+            ... @include(if: $include) {
+              productId
+              reviewAudience
+            }
+          }
+        }
+      }
+    forwardedVariables:
+      - id
+      - include
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: REVIEWS
+    operation: |
+      query GetProduct_123456789101112_5(
+        $__fusion_2_audience: String!
+        $__fusion_3_id: Int!
+      ) {
+        productById(id: $__fusion_3_id) {
+          reviews(audience: $__fusion_2_audience) {
+            author {
+              userId
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.node<Product>
+    requirements:
+      - name: __fusion_2_audience
+        selectionMap: >-
+          reviewAudience
+      - name: __fusion_3_id
+        selectionMap: >-
+          productId
+    dependencies:
+      - id: 3
+  - id: 6
+    type: Operation
+    schema: USERS
+    operation: |
+      query GetProduct_123456789101112_6($__fusion_4_id: ID!) {
+        userById(id: $__fusion_4_id) {
+          name
+        }
+      }
+    source: $.userById
+    target: $.node<Product>.reviews.author
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          userId
+    dependencies:
+      - id: 5

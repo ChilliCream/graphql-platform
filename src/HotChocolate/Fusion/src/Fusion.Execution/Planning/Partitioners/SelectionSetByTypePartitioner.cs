@@ -41,7 +41,12 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
                 ..selections
             ]);
 
-            indexBuilder.Register(input.SelectionSet.Id, selectionSetNode);
+            // Concrete branches are independently planned aggregates and must not
+            // share the abstract input selection set's logical identity.
+            indexBuilder.RegisterConcreteBranch(
+                input.SelectionSet.Id,
+                type,
+                selectionSetNode);
 
             selectionSetByType.Add(new SelectionSetByType(
                 (FusionObjectTypeDefinition)schema.Types.GetType(type, allowInaccessibleFields: true),
@@ -182,10 +187,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         {
             var newSelectionSet = new SelectionSetNode(start);
 
-            if (!indexBuilder.IsRegistered(newSelectionSet))
-            {
-                indexBuilder.Register(newSelectionSet);
-            }
+            indexBuilder.RegisterCloned(fragment.SelectionSet, newSelectionSet);
 
             start = [fragment.WithSelectionSet(newSelectionSet)];
         }

@@ -1,0 +1,336 @@
+title: Node_Entry_Should_Resolve_When_Required_Field_Is_In_Conditional_Fragment
+request:
+  document: |
+    query GetProduct($id: ID!, $include: Boolean!) {
+      node(id: $id) {
+        ... on Product @include(if: $include) {
+          reviews {
+            author {
+              name
+            }
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "UHJvZHVjdDox",
+      "include": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "reviews": [
+            {
+              "author": {
+                "name": "User: VXNlcjo1"
+              }
+            },
+            {
+              "author": {
+                "name": "User: VXNlcjo2"
+              }
+            },
+            {
+              "author": {
+                "name": "User: VXNlcjo3"
+              }
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: PRODUCTS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: Int! @is(field: "productId")): Product @lookup @internal
+      }
+
+      type Product implements Node @key(fields: "productId") {
+        productId: Int!
+        id: ID!
+        reviewAudience: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetProduct_a287508a_3($id: ID!, $include: Boolean!) {
+              node(id: $id) {
+                __typename
+                ... on Product {
+                  __typename
+                  ... @include(if: $include) {
+                    productId
+                    reviewAudience
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "UHJvZHVjdDox",
+              "include": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "productId": 123,
+                    "reviewAudience": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+  - name: REVIEWS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: Int! @is(field: "productId")): Product @lookup @internal
+      }
+
+      type Product @key(fields: "productId") {
+        productId: Int!
+        reviews(audience: String! @require(field: "reviewAudience")): [Review!]
+      }
+
+      type Review implements Node {
+        id: ID!
+        author: User
+      }
+
+      type User @key(fields: "userId") {
+        userId: ID!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetProduct_a287508a_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) {
+              productById(id: $__fusion_3_id) {
+                reviews(audience: $__fusion_2_audience) {
+                  author {
+                    userId
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_audience": "Product: UHJvZHVjdDox",
+              "__fusion_3_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "author": {
+                          "userId": "VXNlcjo1"
+                        }
+                      },
+                      {
+                        "author": {
+                          "userId": "VXNlcjo2"
+                        }
+                      },
+                      {
+                        "author": {
+                          "userId": "VXNlcjo3"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: USERS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "userId")): User @lookup @internal
+      }
+
+      type User @key(fields: "userId") {
+        userId: ID!
+        name: String
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetProduct_a287508a_6($__fusion_4_id: ID!) {
+              userById(id: $__fusion_4_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_4_id": "VXNlcjo1"
+              },
+              {
+                "__fusion_4_id": "VXNlcjo2"
+              },
+              {
+                "__fusion_4_id": "VXNlcjo3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "name": "User: VXNlcjo1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "name": "User: VXNlcjo2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "name": "User: VXNlcjo3"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetProduct($id: ID!, $include: Boolean!) {
+          node(id: $id) {
+            __typename @fusion__requirement
+            ... on Product @include(if: $include) {
+              reviews {
+                author {
+                  name
+                  userId @fusion__requirement
+                }
+              }
+              productId @fusion__requirement
+              reviewAudience @fusion__requirement
+            }
+          }
+        }
+      name: GetProduct
+      hash: a287508ad182b294e8e3f67464dd13dd
+      searchSpace: 4
+      expandedNodes: 11
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Product: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query GetProduct_a287508a_2($id: ID!) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: PRODUCTS
+      operation: |
+        query GetProduct_a287508a_3($id: ID!, $include: Boolean!) {
+          node(id: $id) {
+            __typename
+            ... on Product {
+              __typename
+              ... @include(if: $include) {
+                productId
+                reviewAudience
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+        - include
+      dependencies:
+        - id: 1
+    - id: 5
+      type: Operation
+      schema: REVIEWS
+      operation: |
+        query GetProduct_a287508a_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) {
+          productById(id: $__fusion_3_id) {
+            reviews(audience: $__fusion_2_audience) {
+              author {
+                userId
+              }
+            }
+          }
+        }
+      source: $.productById
+      target: $.node<Product>
+      requirements:
+        - name: __fusion_2_audience
+          selectionMap: >-
+            reviewAudience
+        - name: __fusion_3_id
+          selectionMap: >-
+            productId
+      dependencies:
+        - id: 3
+    - id: 6
+      type: Operation
+      schema: USERS
+      operation: |
+        query GetProduct_a287508a_6($__fusion_4_id: ID!) {
+          userById(id: $__fusion_4_id) {
+            name
+          }
+        }
+      source: $.userById
+      target: $.node<Product>.reviews.author
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            userId
+      dependencies:
+        - id: 5

@@ -1,10 +1,11 @@
-title: Two_Node_Fields_With_Alias
+title: Node_Fields_Should_Resolve_Independently_When_Aliases_Require_Downstream_Lookup
 request:
   document: |
     {
       a: node(id: "RGlzY3Vzc2lvbjox") {
         ... on Discussion {
           title
+          commentCount
         }
       }
       b: node(id: "RGlzY3Vzc2lvbjoy") {
@@ -19,7 +20,8 @@ response:
     {
       "data": {
         "a": {
-          "title": "Discussion: RGlzY3Vzc2lvbjox"
+          "title": "Discussion: RGlzY3Vzc2lvbjox",
+          "commentCount": 123
         },
         "b": {
           "title": "Discussion: RGlzY3Vzc2lvbjoy",
@@ -51,7 +53,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_a361113f_3 {
+            query Op_c1d0eac8_3 {
               b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
                 __typename
                 title
@@ -73,10 +75,11 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_a361113f_7 {
+            query Op_c1d0eac8_7 {
               a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
                 __typename
                 title
+                id
               }
             }
         response:
@@ -86,7 +89,8 @@ sourceSchemas:
                 "data": {
                   "a": {
                     "__typename": "Discussion",
-                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                    "title": "Discussion: RGlzY3Vzc2lvbjox",
+                    "id": "RGlzY3Vzc2lvbjox"
                   }
                 }
               }
@@ -113,7 +117,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_a361113f_4($__fusion_1_id: ID!) {
+            query Op_c1d0eac8_4($__fusion_1_id: ID!) {
               discussion(id: $__fusion_1_id) {
                 commentCount
               }
@@ -121,6 +125,28 @@ sourceSchemas:
           variables: |
             {
               "__fusion_1_id": "RGlzY3Vzc2lvbjoy"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "discussion": {
+                    "commentCount": 123
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_c1d0eac8_8($__fusion_2_id: ID!) {
+              discussion(id: $__fusion_2_id) {
+                commentCount
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "RGlzY3Vzc2lvbjox"
             }
         response:
           results:
@@ -140,6 +166,8 @@ operationPlan:
             __typename @fusion__requirement
             ... on Discussion {
               title
+              commentCount
+              id @fusion__requirement
             }
           }
           b: node(id: "RGlzY3Vzc2lvbjoy") {
@@ -151,7 +179,7 @@ operationPlan:
             }
           }
         }
-      hash: a361113ff8d3c2a57d63e65e469e73a7
+      hash: c1d0eac831b9f73e02c6224e23908928
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -165,7 +193,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_a361113f_2 {
+        query Op_c1d0eac8_2 {
           b: node(id: "RGlzY3Vzc2lvbjoy") {
             __typename
           }
@@ -176,7 +204,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_a361113f_3 {
+        query Op_c1d0eac8_3 {
           b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
             __typename
             title
@@ -189,7 +217,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_a361113f_4($__fusion_1_id: ID!) {
+        query Op_c1d0eac8_4($__fusion_1_id: ID!) {
           discussion(id: $__fusion_1_id) {
             commentCount
           }
@@ -212,7 +240,7 @@ operationPlan:
     - id: 6
       type: Operation
       operation: |
-        query Op_a361113f_6 {
+        query Op_c1d0eac8_6 {
           a: node(id: "RGlzY3Vzc2lvbjox") {
             __typename
           }
@@ -223,11 +251,29 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_a361113f_7 {
+        query Op_c1d0eac8_7 {
           a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
             __typename
             title
+            id
           }
         }
       dependencies:
         - id: 5
+    - id: 8
+      type: Operation
+      schema: B
+      operation: |
+        query Op_c1d0eac8_8($__fusion_2_id: ID!) {
+          discussion(id: $__fusion_2_id) {
+            commentCount
+          }
+        }
+      source: $.discussion
+      target: $.a<Discussion>
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 7

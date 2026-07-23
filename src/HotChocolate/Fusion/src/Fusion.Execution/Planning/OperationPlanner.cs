@@ -1291,9 +1291,8 @@ public sealed partial class OperationPlanner
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
             // A step can only carry a requirement that lives within the data it produces.
-            // Abstract branches share a selection set id, so a candidate can match by id yet
-            // resolve a sibling concrete type (e.g. a Magazine lookup for a Book requirement);
-            // inlining there would emit an invalid cross-type fragment.
+            // Match the candidate's response scope so a requirement cannot be inlined into
+            // a step producing the same logical selection at a different path.
             if (!step.Target.IsParentOfOrSame(workItemSelectionSet.Path))
             {
                 continue;
@@ -1308,9 +1307,8 @@ public sealed partial class OperationPlanner
             var relativePath = workItemSelectionSet.Path.RelativeTo(step.Target);
 
             // A lookup key can already be present in this step because an ancestor @provides
-            // scope selected the concrete runtime field. Match the actual operation path so
-            // sibling abstract branches that share a selection-set id cannot satisfy each
-            // other's requirements.
+            // scope selected the concrete runtime field. Match the actual operation path to
+            // verify that this response scope already contains the requirement.
             if (ContainsSelectionsAtPath(
                 step.Definition.SelectionSet,
                 relativePath,
@@ -2325,18 +2323,34 @@ public sealed partial class OperationPlanner
                     branch => branch.Type.Name,
                     StringComparer.Ordinal);
                 var branchBuilder = ImmutableArray.CreateBuilder<SelectionSetByType>();
+                var branchIndexBuilder = index.ToBuilder();
 
                 foreach (var possibleType in _schema.GetPossibleTypes(
                     abstractType,
                     includeInaccessible: true).OrderBy(type => type.Name, StringComparer.Ordinal))
                 {
-                    branchBuilder.Add(
-                        branchesByType.TryGetValue(possibleType.Name, out var branch)
-                            ? branch
-                            : new SelectionSetByType(possibleType, sharedSelectionSet!));
+                    if (branchesByType.TryGetValue(possibleType.Name, out var branch))
+                    {
+                        branchBuilder.Add(branch);
+                    }
+                    else
+                    {
+                        var sharedOnlyBranch = new SelectionSetNode(
+                            sharedSelectionSet!.Selections);
+                        branchIndexBuilder.RegisterConcreteBranch(
+                            selectionSet.Id,
+                            possibleType.Name,
+                            sharedOnlyBranch);
+
+                        branchBuilder.Add(
+                            new SelectionSetByType(
+                                possibleType,
+                                sharedOnlyBranch));
+                    }
                 }
 
                 branches = branchBuilder.ToImmutable();
+                index = branchIndexBuilder;
             }
         }
 
@@ -3395,6 +3409,24 @@ public sealed partial class OperationPlanner
         if (index.TryGetOriginalIdFromCloned(targetSelectionSetId, out var originalId))
         {
             targetSelectionSetId = originalId;
+        }
+
+        if (index.TryTakeConcreteBranchScope(
+            targetSelectionSetId,
+            out var branchScope))
+        {
+            index.Register(targetSelectionSetId, selectionsToInline);
+
+            selectionsToInline = new SelectionSetNode(
+            [
+                new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(branchScope.TypeCondition),
+                    [],
+                    selectionsToInline)
+            ]);
+
+            targetSelectionSetId = branchScope.ParentSelectionSetId;
         }
 
         return InlineSelections(

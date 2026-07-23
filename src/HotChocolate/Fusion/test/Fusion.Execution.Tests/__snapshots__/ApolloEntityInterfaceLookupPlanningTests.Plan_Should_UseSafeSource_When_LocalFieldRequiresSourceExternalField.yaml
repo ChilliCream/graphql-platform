@@ -3,9 +3,9 @@ operation:
       {
         node(id: "a1") {
           __typename @fusion__requirement
-          id @fusion__requirement
           ... on Account {
             displayName
+            id @fusion__requirement
           }
         }
       }
