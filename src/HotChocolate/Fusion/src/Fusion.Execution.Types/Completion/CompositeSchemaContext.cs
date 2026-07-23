@@ -177,10 +177,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var type = new FusionScalarTypeDefinition(name, GetSpecScalarDescription(name), isInaccessible: false);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
         type.Complete(new CompositeScalarTypeCompletionContext(
-            default,
             FusionDirectiveCollection.Empty,
             specifiedBy: null,
-            serializationType: GetSpecScalarSerializationType(name),
+            serializationType: ScalarSerializationType.Undefined,
             pattern: null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
@@ -203,19 +202,6 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             SpecScalarNames.ID.Name =>
                 "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
             _ => null
-        };
-
-    private static ScalarSerializationType GetSpecScalarSerializationType(string name)
-        => name switch
-        {
-            SpecScalarNames.String.Name => ScalarSerializationType.String,
-            SpecScalarNames.Int.Name => ScalarSerializationType.Int,
-            SpecScalarNames.Float.Name => ScalarSerializationType.Float,
-            SpecScalarNames.Boolean.Name => ScalarSerializationType.Boolean,
-            SpecScalarNames.ID.Name => ScalarSerializationType.String | ScalarSerializationType.Int,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(name),
-                $"The specified name `{name}` is not a valid spec scalar name.")
         };
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition compositeNamedType)

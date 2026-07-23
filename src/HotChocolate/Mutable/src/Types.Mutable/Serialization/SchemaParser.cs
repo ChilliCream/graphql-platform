@@ -824,6 +824,8 @@ public static class SchemaParser
         type.Description = node.Description?.Value;
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
 
+        // The explicit @serializeAs directive is the primary source of the serialization type
+        // and pattern.
         var serializeAs = type.Directives.FirstOrDefault(BuiltIns.SerializeAs.Name);
         if (serializeAs is not null)
         {
@@ -860,6 +862,13 @@ public static class SchemaParser
                     }
                 }
             }
+        }
+
+        // Fall back to the well-known type resolved from the @specifiedBy URL or spec-scalar name
+        // when @serializeAs did not provide one.
+        if (type.SerializationType is ScalarSerializationType.Undefined)
+        {
+            type.SerializationType = type.GetScalarSerializationType();
         }
     }
 
