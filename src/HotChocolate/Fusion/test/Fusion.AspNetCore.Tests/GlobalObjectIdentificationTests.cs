@@ -6,6 +6,131 @@ namespace HotChocolate.Fusion;
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
     [Fact]
+    public async Task Nodes_Should_Group_By_Type_And_Preserve_Input_Order()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node { id: ID! }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node { id: ID! }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ],
+            addNodesField: true);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query GetNodes($ids: [ID!]!) {
+              results: nodes(ids: $ids) {
+                __typename
+                id
+                ... on Discussion {
+                  title
+                }
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["ids"] = new[]
+                {
+                    "UHJvZHVjdDox",
+                    "invalid",
+                    "RGlzY3Vzc2lvbjox",
+                    "VXNlcjox",
+                    "UHJvZHVjdDox"
+                }
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Return_Empty_List_When_Ids_Are_Empty()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node { id: ID! }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ],
+            addNodesField: true);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query GetNodes($ids: [ID!]!) {
+              nodes(ids: $ids) {
+                id
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["ids"] = Array.Empty<string>()
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task Concrete_Type_Branch_Requested()
     {
         // arrange

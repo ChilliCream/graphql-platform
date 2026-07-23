@@ -277,6 +277,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     parsedNodes.Add(ParseNodeFieldNodeInfo(nodeElement, id, operation));
                     break;
 
+                case "Nodes":
+                    parsedNodes.Add(ParseNodesFieldNodeInfo(nodeElement, id, operation));
+                    break;
+
                 default:
                     throw new NotSupportedException($"Unsupported node type: {nodeType}");
             }
@@ -447,6 +451,23 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     {
                         throw new InvalidOperationException(
                             $"Fallback node with ID {fallback} not found for node {node.Id}.");
+                    }
+                }
+            }
+            else if (node is NodesFieldExecutionNode nodesExecutionNode && branches is not null)
+            {
+                foreach (var (typeName, rawNodeId) in branches)
+                {
+                    var nodeId = idRedirects.TryGetValue(rawNodeId, out var rId) ? rId : rawNodeId;
+
+                    if (nodeMap.TryGetValue(nodeId, out var branchNode))
+                    {
+                        nodesExecutionNode.AddBranch(typeName, branchNode);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Branch node with ID {nodeId} not found for node {node.Id}.");
                     }
                 }
             }
@@ -990,6 +1011,39 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         };
     }
 
+    private static ParsedNodeInfo ParseNodesFieldNodeInfo(
+        JsonElement nodeElement,
+        int id,
+        Operation operation)
+    {
+        var responseName = nodeElement.GetProperty("responseName").GetString()!;
+        var idsValueText = nodeElement.GetProperty("idsValue").GetString()!;
+        var idsValue = Utf8GraphQLParser.Syntax.ParseValueLiteral(idsValueText, false);
+
+        if (idsValue is VariableNode variableNode
+            && !operation.Definition.VariableDefinitions
+                .Any(v => v.Variable.Equals(variableNode, SyntaxComparison.Syntax)))
+        {
+            throw new InvalidOperationException(
+                $"'idsValue' references non-existent '{variableNode.Name}' variable.");
+        }
+
+        var branches = new Dictionary<string, int>();
+        foreach (var branch in nodeElement.GetProperty("branches").EnumerateObject())
+        {
+            branches.Add(branch.Name, branch.Value.GetInt32());
+        }
+
+        return new ParsedNodesFieldNodeInfo
+        {
+            Id = id,
+            ResponseName = responseName,
+            IdsValue = idsValue,
+            Conditions = TryParseConditions(nodeElement),
+            Branches = branches
+        };
+    }
+
     private static ExecutionNodeCondition[] TryParseConditions(JsonElement nodeElement)
     {
         if (!nodeElement.TryGetProperty("conditions", out var conditionsElement))
@@ -1264,6 +1318,20 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             var node = new NodeFieldExecutionNode(Id, ResponseName, IdValue, Conditions);
 
             return (node, Dependencies, Branches, FallbackNodeId);
+        }
+    }
+
+    private sealed class ParsedNodesFieldNodeInfo : ParsedNodeInfo
+    {
+        public string ResponseName { get; init; } = "";
+        public IValueNode IdsValue { get; init; } = null!;
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+        public Dictionary<string, int>? Branches { get; init; }
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new NodesFieldExecutionNode(Id, ResponseName, IdsValue, Conditions);
+            return (node, Dependencies, Branches, null);
         }
     }
 }

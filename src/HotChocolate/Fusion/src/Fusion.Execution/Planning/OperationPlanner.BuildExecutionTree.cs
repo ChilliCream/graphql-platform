@@ -45,9 +45,10 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext();
-        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
-
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
+        var hasVariables = operationDefinition.VariableDefinitions.Count > 0
+            || planSteps.OfType<OperationPlanStep>()
+                .Any(step => step.Definition.VariableDefinitions.Count > 0);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
@@ -389,6 +390,11 @@ public sealed partial class OperationPlanner
         {
             forwardVariableContext.Reset();
 
+            foreach (var variableDefinition in step.Definition.VariableDefinitions)
+            {
+                forwardVariableContext.Variables[variableDefinition.Variable.Name.Value] = variableDefinition;
+            }
+
             foreach (var (key, requirement) in step.Requirements.OrderBy(t => t.Key))
             {
                 forwardVariableContext.Requirements[key] =
@@ -508,8 +514,19 @@ public sealed partial class OperationPlanner
                 }
                 else if (step is NodeFieldPlanStep nodeStep)
                 {
-                    ctx.ExecutionNodes.Add(step.Id,
-                        new NodeFieldExecutionNode(nodeStep.Id, nodeStep.ResponseName, nodeStep.IdValue, nodeStep.Conditions));
+                    ctx.ExecutionNodes.Add(
+                        step.Id,
+                        nodeStep.IsPlural
+                            ? new NodesFieldExecutionNode(
+                                nodeStep.Id,
+                                nodeStep.ResponseName,
+                                nodeStep.IdValue,
+                                nodeStep.Conditions)
+                            : new NodeFieldExecutionNode(
+                                nodeStep.Id,
+                                nodeStep.ResponseName,
+                                nodeStep.IdValue,
+                                nodeStep.Conditions));
                 }
             }
 
@@ -1323,7 +1340,7 @@ public sealed partial class OperationPlanner
         foreach (var dependencyId in dependencies)
         {
             if (ctx.ExecutionNodes.TryGetValue(dependencyId, out var dependencyNode)
-                && dependencyNode is NodeFieldExecutionNode)
+                && dependencyNode is NodeFieldExecutionNode or NodesFieldExecutionNode)
             {
                 cache[nodeId] = true;
                 return true;
@@ -1410,6 +1427,7 @@ public sealed partial class OperationPlanner
                         or ApolloOperationExecutionNode
                         or ApolloOperationBatchExecutionNode
                         or NodeFieldExecutionNode
+                        or NodesFieldExecutionNode
                         or EventStreamExecutionNode))
                 {
                     continue;
@@ -1467,7 +1485,7 @@ public sealed partial class OperationPlanner
     {
         foreach (var (nodeId, branches) in ctx.BranchesByNodeId)
         {
-            if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
+            if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry))
             {
                 continue;
             }
@@ -1476,7 +1494,14 @@ public sealed partial class OperationPlanner
             {
                 if (ctx.ExecutionNodes.TryGetValue(branchNodeId, out var branchNode))
                 {
-                    node.AddBranch(typeName, branchNode);
+                    if (entry is NodeFieldExecutionNode node)
+                    {
+                        node.AddBranch(typeName, branchNode);
+                    }
+                    else if (entry is NodesFieldExecutionNode nodes)
+                    {
+                        nodes.AddBranch(typeName, branchNode);
+                    }
                 }
             }
         }

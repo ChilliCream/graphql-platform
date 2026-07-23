@@ -49,6 +49,13 @@ internal sealed class SchemaComposer
                 "Source-schema node resolution requires global object identification to be enabled.");
         }
 
+        if (_schemaComposerOptions.Merger.NodeResolution is NodeResolution.SourceSchema
+            && _schemaComposerOptions.Merger.AddNodesField)
+        {
+            return InvalidNodeResolution(
+                "The nodes field requires gateway node resolution.");
+        }
+
         if (!Enum.IsDefined(
             _schemaComposerOptions.ApolloFederationCompatibility
                 .ShareableFieldRuntimeTypeRouting))

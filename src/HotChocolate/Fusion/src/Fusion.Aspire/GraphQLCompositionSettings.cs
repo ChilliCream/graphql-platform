@@ -18,6 +18,11 @@ public struct GraphQLCompositionSettings
     public bool? EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the plural Global Object Identification field is added.
+    /// </summary>
+    public bool? AddNodesField { get; set; }
+
+    /// <summary>
     /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution? NodeResolution { get; set; }

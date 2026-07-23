@@ -31,6 +31,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
 
             type Query @fusion__type(schema: A) {
               node(id: ID!): Node @fusion__gateway_field
+              nodes(ids: [ID!]!): [Node]! @fusion__gateway_field
             }
 
             type Product implements Node
@@ -52,7 +53,11 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
               id: ID! @fusion__field(schema: A)
             }
             """,
-            options => options.EnableGlobalObjectIdentification = true);
+            options =>
+            {
+                options.EnableGlobalObjectIdentification = true;
+                options.AddNodesField = true;
+            });
     }
 
     // Node interface exists, node field has NO @lookup, option is set to true.

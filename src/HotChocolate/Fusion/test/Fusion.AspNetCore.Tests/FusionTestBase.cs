@@ -40,7 +40,8 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
         string? environmentName = "Development",
-        bool disableDefaultSecurity = false)
+        bool disableDefaultSecurity = false,
+        bool addNodesField = false)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -137,7 +138,8 @@ public abstract partial class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = true
+                EnableGlobalObjectIdentification = true,
+                AddNodesField = addNodesField
             }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);

@@ -104,7 +104,9 @@ public sealed class OperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+        var variables = context.TryGetDynamicVariableValueSets(this, out var dynamicVariables)
+            ? dynamicVariables
+            : context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {

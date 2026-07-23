@@ -91,6 +91,10 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             case NodeFieldExecutionNode nodeExecutionNode:
                 WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
                 break;
+
+            case NodesFieldExecutionNode nodesExecutionNode:
+                WriteNodesFieldNode(nodesExecutionNode, nodeTrace, writer);
+                break;
         }
     }
 
@@ -776,6 +780,30 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         TryWriteNodeTrace(writer, trace);
 
+        writer.Unindent();
+    }
+
+    private static void WriteNodesFieldNode(NodesFieldExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+        writer.WriteLine("type: {0}", node.Type.ToString());
+        writer.WriteLine("idsValue: {0}", node.IdsValue.ToString());
+        writer.WriteLine("responseName: {0}", node.ResponseName);
+
+        if (node.Branches.Count > 0)
+        {
+            writer.WriteLine("branches:");
+            writer.Indent();
+            foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+            {
+                writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
+            }
+            writer.Unindent();
+        }
+
+        TryWriteConditions(writer, node);
+        TryWriteNodeTrace(writer, trace);
         writer.Unindent();
     }
 

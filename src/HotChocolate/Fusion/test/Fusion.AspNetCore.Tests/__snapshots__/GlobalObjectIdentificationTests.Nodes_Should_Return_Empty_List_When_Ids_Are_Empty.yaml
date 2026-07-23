@@ -1,0 +1,89 @@
+title: Nodes_Should_Return_Empty_List_When_Ids_Are_Empty
+request:
+  document: |
+    query GetNodes($ids: [ID!]!) {
+      nodes(ids: $ids) {
+        id
+      }
+    }
+  variables: |
+    {
+      "ids": []
+    }
+response:
+  body: |
+    {
+      "data": {
+        "nodes": []
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query GetNodes($ids: [ID!]!) {
+          nodes(ids: $ids) {
+            __typename @fusion__requirement
+            id
+          }
+        }
+      name: GetNodes
+      hash: f2d13f2972ef2971b745dabdcdf84503
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Nodes
+      idsValue: $ids
+      responseName: nodes
+      branches:
+        - Discussion: 3
+    - id: 2
+      type: Operation
+      operation: |
+        query GetNodes_f2d13f29_2($ids: [ID!]!) {
+          nodes(ids: $ids) {
+            __typename
+            id
+          }
+        }
+      forwardedVariables:
+        - ids
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query GetNodes_f2d13f29_3($__fusion_nodes_id: ID!) {
+          nodes: node(id: $__fusion_nodes_id) {
+            __typename
+            ... on Discussion {
+              __typename
+              id
+            }
+          }
+        }
+      source: $.nodes
+      forwardedVariables:
+        - __fusion_nodes_id
+      dependencies:
+        - id: 1

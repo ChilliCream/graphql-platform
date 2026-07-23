@@ -132,6 +132,7 @@ public sealed partial class OperationPlanContext
         {
             DisposeNodeState(activeNodeSlotCount);
             Array.Clear(_nodesToComplete, 0, activeNodeSlotCount);
+            Array.Clear(_dynamicVariableValueSets, 0, activeNodeSlotCount);
 
             if (_usesDynamicSchemaNames)
             {
@@ -229,6 +230,7 @@ public sealed partial class OperationPlanContext
             _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
             _batchRequestErrors = new Dictionary<int, Exception>?[nodeSlotCount];
             _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
+            _dynamicVariableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
             _transportUris = new Uri?[nodeSlotCount];
             _transportContentTypes = new string?[nodeSlotCount];
             _nodeSlotCapacity = nodeSlotCount;

@@ -332,6 +332,21 @@ internal sealed partial class SourceSchemaMerger
 
                 queryType.Fields.Add(canonicalNodeField);
             }
+
+            if (_options.AddNodesField && !queryType.Fields.ContainsName(FieldNames.Nodes))
+            {
+                var canonicalNodesField = new MutableOutputFieldDefinition(
+                    FieldNames.Nodes,
+                    new NonNullType(new ListType(nodeType)));
+                canonicalNodesField.Arguments.Add(
+                    new MutableInputFieldDefinition(
+                        ArgumentNames.Ids,
+                        new NonNullType(new ListType(new NonNullType(idType)))));
+                canonicalNodesField.Directives.Add(
+                    new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
+
+                queryType.Fields.Add(canonicalNodesField);
+            }
         }
     }
 
@@ -358,8 +373,16 @@ internal sealed partial class SourceSchemaMerger
         IInterfaceTypeDefinition nodeType,
         IScalarTypeDefinition idType)
     {
+        var listType = field.Type switch
+        {
+            ListType list => list,
+            NonNullType { NullableType: ListType list } => list,
+            _ => null
+        };
+
         if (field.Name != FieldNames.Nodes
-            || field.Type.NamedType() != nodeType
+            || listType is null
+            || listType.ElementType.NamedType() != nodeType
             || field.Arguments.Count != 1
             || !field.Arguments.TryGetField(ArgumentNames.Ids, out var argument))
         {

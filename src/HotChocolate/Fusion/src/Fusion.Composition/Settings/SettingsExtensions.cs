@@ -21,6 +21,9 @@ internal static class SettingsExtensions
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
+                    AddNodesField =
+                        compositionSettings.Merger.AddNodesField
+                        ?? settings.Merger.AddNodesField,
                     NodeResolution =
                         compositionSettings.Merger.NodeResolution
                         ?? settings.Merger.NodeResolution,
@@ -111,6 +114,11 @@ internal static class SettingsExtensions
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)
             {
                 mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            }
+
+            if (mergerSettings.AddNodesField is { } addNodesField)
+            {
+                mergerOptions.AddNodesField = addNodesField;
             }
 
             if (mergerSettings.NodeResolution is { } nodeResolution)

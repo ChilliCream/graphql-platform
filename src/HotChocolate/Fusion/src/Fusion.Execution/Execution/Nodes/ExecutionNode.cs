@@ -142,6 +142,12 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         context.EnqueueForExecution(this, dependent);
     }
 
+    protected void BeginDependentSelection(OperationPlanContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        context.BeginDependentSelection(this);
+    }
+
     internal void AddDependency(IOperationPlanNode node)
     {
         ExpectMutable();

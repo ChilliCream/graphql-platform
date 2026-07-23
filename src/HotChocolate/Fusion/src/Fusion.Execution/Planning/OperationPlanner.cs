@@ -2159,6 +2159,20 @@ public sealed partial class OperationPlanner
 
         (var definition, index, _) = operationBuilder.Build(indexBuilder);
 
+        if (workItem.IsPlural)
+        {
+            definition = definition.WithVariableDefinitions(
+            [
+                new VariableDefinitionNode(
+                    location: null,
+                    new VariableNode(NodesFieldExecutionNode.IdVariableName),
+                    description: null,
+                    new NonNullTypeNode(new NamedTypeNode("ID")),
+                    defaultValue: null,
+                    directives: [])
+            ]);
+        }
+
         var operationPlanStep = new OperationPlanStep
         {
             Id = stepId,
@@ -2174,7 +2188,9 @@ public sealed partial class OperationPlanner
             Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
 #endif
             Target = SelectionPath.Root,
-            Source = SelectionPath.Root,
+            Source = workItem.IsPlural
+                ? SelectionPath.Root.AppendField(workItem.ResponseName)
+                : SelectionPath.Root,
             Lookup = lookup
         };
 
@@ -2295,7 +2311,9 @@ public sealed partial class OperationPlanner
         var selectionPath = SelectionPath.Root.AppendField(responseName);
         var sourceSchemaResolution = _schema.NodeResolution == NodeResolution.SourceSchema;
 
-        var idArgumentValue = nodeField.Arguments.First(a => a.Name.Value == "id").Value;
+        var idArgumentValue = nodeField.Arguments
+            .First(a => a.Name.Value == (workItem.NodeField.IsPlural ? "ids" : "id"))
+            .Value;
 
         var selectionSet = new SelectionSet(
             index.GetId(nodeField.SelectionSet!),
@@ -2338,6 +2356,28 @@ public sealed partial class OperationPlanner
 
                 branches = branchBuilder.ToImmutable();
             }
+        }
+        else if (workItem.NodeField.IsPlural)
+        {
+            var abstractType = (FusionComplexTypeDefinition)selectionSet.Type;
+            var pluralSharedSelectionSet = sharedSelectionSet
+                ?? new SelectionSetNode([new FieldNode(IntrospectionFieldNames.TypeName)]);
+            var branchesByType = selectionSetsByType.ToDictionary(
+                branch => branch.Type.Name,
+                StringComparer.Ordinal);
+            var branchBuilder = ImmutableArray.CreateBuilder<SelectionSetByType>();
+
+            foreach (var possibleType in _schema.GetPossibleTypes(
+                abstractType,
+                includeInaccessible: true).OrderBy(type => type.Name, StringComparer.Ordinal))
+            {
+                branchBuilder.Add(
+                    branchesByType.TryGetValue(possibleType.Name, out var branch)
+                        ? branch
+                        : new SelectionSetByType(possibleType, pluralSharedSelectionSet));
+            }
+
+            branches = branchBuilder.ToImmutable();
         }
 
         var sharedSelections = sharedSelectionSet?.Selections ?? [];
@@ -2394,6 +2434,7 @@ public sealed partial class OperationPlanner
             Id = stepId,
             ResponseName = responseName,
             IdValue = idArgumentValue,
+            IsPlural = workItem.NodeField.IsPlural,
             Conditions = ExtractConditions(workItem.NodeField),
             FallbackQuery = fallbackQueryStep,
             SourceSchemaResolution = sourceSchemaResolution
@@ -2423,8 +2464,11 @@ public sealed partial class OperationPlanner
             var newWorkItem = new NodeLookupWorkItem(
                 Lookup: null,
                 responseName,
-                idArgumentValue,
-                nodeSelectionSet)
+                workItem.NodeField.IsPlural
+                    ? new VariableNode(NodesFieldExecutionNode.IdVariableName)
+                    : idArgumentValue,
+                nodeSelectionSet,
+                workItem.NodeField.IsPlural)
             {
                 ParentDepth = stepDepth,
                 SourceSchemaNodePolicy = sourceSchemaNodePolicy

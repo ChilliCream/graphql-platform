@@ -72,6 +72,65 @@ internal sealed partial class FetchResultStore : IDisposable
 
     public IReadOnlyList<IError>? Errors => _errors;
 
+    internal void InitializeNodesResult(string responseName, int count)
+    {
+        lock (_lock)
+        {
+            if (!_operation.RootSelectionSet.TryGetSelection(responseName, out var selection))
+            {
+                throw new InvalidOperationException($"Expected root selection '{responseName}'.");
+            }
+
+            _result.Data.GetPropertyBySelectionId(selection.Id).SetArrayValue(count);
+        }
+    }
+
+    internal CompactPath CreateNodesResultPath(string responseName, int index)
+    {
+        if (!_operation.RootSelectionSet.TryGetSelection(responseName, out var selection))
+        {
+            throw new InvalidOperationException($"Expected root selection '{responseName}'.");
+        }
+
+        return new CompactPath([2, selection.Id, ~index]);
+    }
+
+    internal void AddNodesError(string responseName, int index, IError error)
+    {
+        lock (_lock)
+        {
+            var path = CreateNodesResultPath(responseName, index);
+            GetStartResult(path).SetNullValue();
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(path.ToPath(_operation))
+                .Build();
+            _errors ??= [];
+            _errors.Add(_errorHandler.Handle(errorWithPath));
+        }
+    }
+
+    internal ImmutableArray<VariableValues> CreateNodesVariableValueSets(
+        string responseName,
+        string variableName,
+        IReadOnlyList<NodeIdValue> values)
+    {
+        lock (_lock)
+        {
+            var builder = ImmutableArray.CreateBuilder<VariableValues>(values.Count);
+
+            foreach (var value in values)
+            {
+                var path = CreateNodesResultPath(responseName, value.Index);
+                builder.Add(
+                    CreateVariableValueSets(
+                        path,
+                        [new ObjectFieldNode(variableName, new StringValueNode(value.Id))]));
+            }
+
+            return builder.MoveToImmutable();
+        }
+    }
+
     public List<IDisposable> MemoryOwners => _memory;
 
     public bool AddPartialResult(

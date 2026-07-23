@@ -1,0 +1,263 @@
+title: Nodes_Should_Group_By_Type_And_Preserve_Input_Order
+request:
+  document: |
+    query GetNodes($ids: [ID!]!) {
+      results: nodes(ids: $ids) {
+        __typename
+        id
+        ... on Discussion {
+          title
+        }
+        ... on Product {
+          name
+        }
+      }
+    }
+  variables: |
+    {
+      "ids": [
+        "UHJvZHVjdDox",
+        "invalid",
+        "RGlzY3Vzc2lvbjox",
+        "VXNlcjox",
+        "UHJvZHVjdDox"
+      ]
+    }
+response:
+  body: |
+    {
+      "data": {
+        "results": [
+          {
+            "__typename": "Product",
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          },
+          null,
+          {
+            "__typename": "Discussion",
+            "id": "RGlzY3Vzc2lvbjox",
+            "title": "Discussion: RGlzY3Vzc2lvbjox"
+          },
+          null,
+          {
+            "__typename": "Product",
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "The node ID string has an invalid format.",
+          "path": [
+            "results",
+            1
+          ],
+          "extensions": {
+            "originalValue": "invalid"
+          }
+        },
+        {
+          "message": "The node ID string has an invalid format.",
+          "path": [
+            "results",
+            3
+          ],
+          "extensions": {
+            "originalValue": "VXNlcjox"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetNodes_6eba3329_4($__fusion_nodes_id: ID!) {
+              results: node(id: $__fusion_nodes_id) {
+                __typename
+                ... on Discussion {
+                  __typename
+                  id
+                  title
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_nodes_id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "results": {
+                    "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjox",
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetNodes_6eba3329_3($__fusion_nodes_id: ID!) {
+              results: node(id: $__fusion_nodes_id) {
+                __typename
+                ... on Product {
+                  __typename
+                  id
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_nodes_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_nodes_id": "UHJvZHVjdDox"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "results": {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDox",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "results": {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDox",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetNodes($ids: [ID!]!) {
+          results: nodes(ids: $ids) {
+            __typename
+            id
+            ... on Discussion {
+              title
+            }
+            ... on Product {
+              name
+            }
+          }
+        }
+      name: GetNodes
+      hash: 6eba3329bd1609c8e063d688e82e8b2a
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Nodes
+      idsValue: $ids
+      responseName: results
+      branches:
+        - Discussion: 4
+        - Product: 3
+    - id: 2
+      type: Operation
+      operation: |
+        query GetNodes_6eba3329_2($ids: [ID!]!) {
+          results: nodes(ids: $ids) {
+            __typename
+            id
+          }
+        }
+      forwardedVariables:
+        - ids
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query GetNodes_6eba3329_3($__fusion_nodes_id: ID!) {
+          results: node(id: $__fusion_nodes_id) {
+            __typename
+            ... on Product {
+              __typename
+              id
+              name
+            }
+          }
+        }
+      source: $.results
+      forwardedVariables:
+        - __fusion_nodes_id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query GetNodes_6eba3329_4($__fusion_nodes_id: ID!) {
+          results: node(id: $__fusion_nodes_id) {
+            __typename
+            ... on Discussion {
+              __typename
+              id
+              title
+            }
+          }
+        }
+      source: $.results
+      forwardedVariables:
+        - __fusion_nodes_id
+      dependencies:
+        - id: 1

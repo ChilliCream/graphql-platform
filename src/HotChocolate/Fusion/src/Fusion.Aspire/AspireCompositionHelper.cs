@@ -71,6 +71,7 @@ internal static class AspireCompositionHelper
             {
                 CacheControlMergeBehavior = settings.CacheControlMergeBehavior,
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
+                AddNodesField = settings.AddNodesField,
                 NodeResolution = settings.NodeResolution,
                 TagMergeBehavior = settings.TagMergeBehavior
             },
