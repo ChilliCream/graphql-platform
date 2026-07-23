@@ -824,20 +824,18 @@ public static class SchemaParser
         type.Description = node.Description?.Value;
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
 
-        // The explicit @serializeAs directive is the primary source of the serialization type
-        // and pattern.
+        // Parse the type (and pattern) from an explicit @serializeAs directive, if present.
         var serializeAs = type.Directives.FirstOrDefault(BuiltIns.SerializeAs.Name);
+        var serializeAsType = ScalarSerializationType.Undefined;
         if (serializeAs is not null)
         {
             if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Type, out var typeArg)
                 && typeArg is { Kind: SyntaxKind.ListValue or SyntaxKind.EnumValue })
             {
-                var serializationType = ScalarSerializationType.Undefined;
-
                 if (typeArg is EnumValueNode enumValue
                     && Enum.TryParse(enumValue.Value, ignoreCase: true, out ScalarSerializationType parsedValue))
                 {
-                    serializationType |= parsedValue;
+                    serializeAsType |= parsedValue;
                 }
                 else if (typeArg is ListValueNode listValue
                     && listValue.Items.All(t => t.Kind is SyntaxKind.EnumValue))
@@ -846,30 +844,26 @@ public static class SchemaParser
                     {
                         if (Enum.TryParse(item.Value, ignoreCase: true, out parsedValue))
                         {
-                            serializationType |= parsedValue;
+                            serializeAsType |= parsedValue;
                         }
                     }
                 }
 
-                if (serializationType is not ScalarSerializationType.Undefined)
+                if (serializeAsType is not ScalarSerializationType.Undefined
+                    && serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Pattern, out var patternArg)
+                    && patternArg is StringValueNode patternValue)
                 {
-                    type.SerializationType = serializationType;
-
-                    if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Pattern, out var patternArg)
-                        && patternArg is StringValueNode patternValue)
-                    {
-                        type.Pattern = patternValue.Value;
-                    }
+                    type.Pattern = patternValue.Value;
                 }
             }
         }
 
-        // Fall back to the well-known type resolved from the @specifiedBy URL or spec-scalar name
-        // when @serializeAs did not provide one.
-        if (type.SerializationType is ScalarSerializationType.Undefined)
-        {
-            type.SerializationType = type.GetScalarSerializationType();
-        }
+        // The @serializeAs type is primary; otherwise resolve from the @specifiedBy URL or the
+        // spec-scalar name. Resolving here (rather than only when undefined) ensures a @specifiedBy
+        // URL still takes effect for spec scalars that were pre-initialized in the constructor.
+        type.SerializationType = serializeAsType is not ScalarSerializationType.Undefined
+            ? serializeAsType
+            : type.GetScalarSerializationType();
     }
 
     private static void ExtendScalarType(
