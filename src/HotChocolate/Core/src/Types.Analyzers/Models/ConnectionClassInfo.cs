@@ -80,7 +80,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
         {
             switch (member)
             {
-                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary, ReturnsVoid: false } method:
                     resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, name));
                     break;
 

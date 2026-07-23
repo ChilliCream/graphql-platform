@@ -96,6 +96,7 @@ public static class WellKnownTypes
     public const string ListType = "HotChocolate.Types.ListType";
     public const string ConnectionFlags = "HotChocolate.Types.Pagination.ConnectionFlags";
     public const string ConnectionFlagsHelper = "HotChocolate.Types.Pagination.ConnectionFlagsHelper";
+    public const string ConnectionTypeHelper = "HotChocolate.Types.Pagination.ConnectionTypeHelper";
     public const string Shareable = "HotChocolate.Types.Composite.Shareable";
     public const string Inaccessible = "HotChocolate.Types.Composite.Inaccessible";
     public const string ArgumentConfiguration = "HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration";
