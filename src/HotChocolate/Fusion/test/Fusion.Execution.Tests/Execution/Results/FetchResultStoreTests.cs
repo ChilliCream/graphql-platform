@@ -1468,6 +1468,72 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_WriteFourRequirements_When_FastPathIsUsed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID
+              sku: String
+              optional: String
+              required: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { __fusion_internal_id: id sku optional required } }",
+            """
+            {"data":{"foos":[
+              {"__fusion_internal_id":"1","sku":"s1","optional":null,"required":"r1"},
+              {"__fusion_internal_id":"1","sku":"s1","optional":null,"required":"r1"},
+              {"__fusion_internal_id":"2","sku":"s2","optional":"o2","required":null}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirements = new OperationRequirement[]
+        {
+            new(
+                "__fusion_1_id",
+                new NamedTypeNode("String"),
+                SelectionPath.Root,
+                new FieldSelectionMapParser("id").Parse(),
+                "__fusion_internal_id"),
+            Requirement(schema, "__fusion_2_sku", "sku", new NamedTypeNode("String")),
+            Requirement(schema, "__fusion_3_optional", "optional", new NamedTypeNode("String")),
+            Requirement(
+                schema,
+                "__fusion_4_required",
+                "required",
+                new NonNullTypeNode(new NamedTypeNode("String")))
+        };
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            requirements);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[1]]
+            Variables: {"__fusion_1_id":"1","__fusion_2_sku":"s1","__fusion_3_optional":null,"__fusion_4_required":"r1"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ReadInternalAlias_When_RequirementHasInternalAlias()
     {
         // arrange
