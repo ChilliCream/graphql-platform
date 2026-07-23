@@ -180,6 +180,113 @@ public class BatchDispatcherTests
         await allCompleted.Task;
     }
 
+    [Fact]
+    public async Task BeginDispatch_Should_IncludeLateArrivingItems_When_BatchIsStillFilling()
+    {
+        // arrange
+        var options = new BatchDispatcherOptions { BatchSettleTimeUs = 25_000 };
+        var dispatcher = new BatchDispatcher(new DataLoaderDiagnosticEventListener(), options);
+        var batch = new CollectingBatch();
+        dispatcher.Schedule(batch);
+        dispatcher.BeginDispatch(TestContext.Current.CancellationToken);
+
+        // act
+        // add items spaced roughly 1000 microseconds apart using a tight stopwatch spin.
+        // Task.Delay cannot be used here because its granularity is milliseconds.
+        for (var i = 0; i < 7; i++)
+        {
+            var start = Stopwatch.GetTimestamp();
+
+            while (Stopwatch.GetElapsedTime(start).TotalMicroseconds < 1_000)
+            {
+            }
+
+            batch.AddItem();
+        }
+
+        var completed = await Task.WhenAny(
+            batch.Dispatched,
+            Task.Delay(5_000, TestContext.Current.CancellationToken));
+
+        // assert
+        dispatcher.Dispose();
+        Assert.Same(batch.Dispatched, completed);
+        Assert.Equal(8, batch.DispatchedSize);
+    }
+
+    [Fact]
+    public async Task BeginDispatch_Should_NotForceDispatch_When_MaxBatchWaitTimeIsExplicitlyZero()
+    {
+        // arrange
+        var observer = new TestObserver();
+        var options = new BatchDispatcherOptions { MaxBatchWaitTimeUs = 0 };
+        var dispatcher = new BatchDispatcher(new DataLoaderDiagnosticEventListener(), options);
+        using var session = dispatcher.Subscribe(observer);
+        var batch = new ContinuouslyModifiedBatch();
+        dispatcher.Schedule(batch);
+        dispatcher.BeginDispatch(TestContext.Current.CancellationToken);
+
+        // act
+        await Task.Delay(150, TestContext.Current.CancellationToken);
+
+        // assert
+        // the batch must have been evaluated but deliberately never dispatched
+        dispatcher.Dispose();
+        Assert.Contains(BatchDispatchEventType.Evaluated, observer.Events);
+        Assert.False(batch.Dispatched.IsCompleted);
+    }
+
+    [Fact]
+    public async Task BeginDispatch_Should_ForceDispatch_When_BatchNeverSettles()
+    {
+        // arrange
+        var dispatcher = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
+        var batch = new ContinuouslyModifiedBatch();
+        dispatcher.Schedule(batch);
+        dispatcher.BeginDispatch(TestContext.Current.CancellationToken);
+
+        // act
+        var completed = await Task.WhenAny(
+            batch.Dispatched,
+            Task.Delay(5_000, TestContext.Current.CancellationToken));
+
+        // assert
+        dispatcher.Dispose();
+        Assert.Same(batch.Dispatched, completed);
+    }
+
+    [Fact]
+    public void MaxBatchWaitTimeUs_Should_ReturnDefault_When_NotSet()
+    {
+        // arrange
+        var defaultOptions = default(BatchDispatcherOptions);
+        var explicitOptions = new BatchDispatcherOptions { MaxBatchWaitTimeUs = 0 };
+
+        // act
+        var defaultValue = defaultOptions.MaxBatchWaitTimeUs;
+        var explicitValue = explicitOptions.MaxBatchWaitTimeUs;
+
+        // assert
+        Assert.Equal(50_000, defaultValue);
+        Assert.Equal(0, explicitValue);
+    }
+
+    [Fact]
+    public void BatchSettleTimeUs_Should_ReturnDefault_When_NotSet()
+    {
+        // arrange
+        var defaultOptions = default(BatchDispatcherOptions);
+        var explicitOptions = new BatchDispatcherOptions { BatchSettleTimeUs = 1_000 };
+
+        // act
+        var defaultValue = defaultOptions.BatchSettleTimeUs;
+        var explicitValue = explicitOptions.BatchSettleTimeUs;
+
+        // assert
+        Assert.Equal(250, defaultValue);
+        Assert.Equal(1_000, explicitValue);
+    }
+
     public class TestObserver : IObserver<BatchDispatchEventArgs>
     {
         public ImmutableList<BatchDispatchEventType> Events { get; private set; } = [];
@@ -255,5 +362,77 @@ public class BatchDispatcherTests
         }
 
         public override Task DispatchAsync() => _dispatch();
+    }
+
+    public class CollectingBatch : Batch
+    {
+        private readonly TaskCompletionSource _dispatched =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private volatile BatchStatus _status = BatchStatus.Enqueued;
+        private volatile int _size = 1;
+        private long _modifiedTimestamp = Stopwatch.GetTimestamp();
+        private readonly long _createdTimestamp = Stopwatch.GetTimestamp();
+
+        public Task Dispatched => _dispatched.Task;
+
+        public int DispatchedSize { get; private set; }
+
+        public override int Size => _size;
+
+        public override BatchStatus Status => _status;
+
+        public override long ModifiedTimestamp => _modifiedTimestamp;
+
+        public override long CreatedTimestamp => _createdTimestamp;
+
+        public void AddItem()
+        {
+            Interlocked.Increment(ref _size);
+            _modifiedTimestamp = Stopwatch.GetTimestamp();
+            _status = BatchStatus.Enqueued;
+        }
+
+        public override bool Touch()
+        {
+            if (_status is BatchStatus.Touched)
+            {
+                return true;
+            }
+
+            _status = BatchStatus.Touched;
+            return false;
+        }
+
+        public override Task DispatchAsync()
+        {
+            DispatchedSize = Size;
+            _dispatched.TrySetResult();
+            return Task.CompletedTask;
+        }
+    }
+
+    public class ContinuouslyModifiedBatch : Batch
+    {
+        private readonly TaskCompletionSource _dispatched =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly long _createdTimestamp = Stopwatch.GetTimestamp();
+
+        public Task Dispatched => _dispatched.Task;
+
+        public override int Size => 1;
+
+        public override BatchStatus Status => BatchStatus.Enqueued;
+
+        public override long ModifiedTimestamp => Stopwatch.GetTimestamp();
+
+        public override long CreatedTimestamp => _createdTimestamp;
+
+        public override bool Touch() => false;
+
+        public override Task DispatchAsync()
+        {
+            _dispatched.TrySetResult();
+            return Task.CompletedTask;
+        }
     }
 }

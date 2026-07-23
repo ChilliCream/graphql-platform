@@ -497,6 +497,22 @@ public readonly partial struct SourceResultElement
     }
 
     /// <summary>
+    /// Creates a stack-only snapshot of this element that carries the element's
+    /// decoded metadata row so repeated row lookups are avoided. A default element
+    /// yields a default snapshot whose <see cref="SourceResultElementSnapshot.ValueKind"/>
+    /// is <see cref="JsonValueKind.Undefined"/>.
+    /// </summary>
+    internal SourceResultElementSnapshot CreateSnapshot()
+    {
+        if (_parent == null)
+        {
+            return default;
+        }
+
+        return new SourceResultElementSnapshot(_parent, _cursor, _parent.GetValueRow(_cursor));
+    }
+
+    /// <summary>
     /// Tries to get the raw UTF-8 bytes of a JSON string value that contains no escape sequences.
     /// </summary>
     /// <param name="utf8Value">Receives the raw UTF-8 span when successful.</param>
@@ -519,6 +535,7 @@ public readonly partial struct SourceResultElement
         {
             return text == null;
         }
+
         return TextEqualsHelper(text.AsSpan(), isPropertyName: false);
     }
 

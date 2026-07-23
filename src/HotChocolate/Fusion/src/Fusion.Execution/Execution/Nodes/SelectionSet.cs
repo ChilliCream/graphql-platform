@@ -16,6 +16,7 @@ public sealed class SelectionSet : ISelectionSet
     private readonly Selection[] _selections;
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private readonly SelectionLookup _utf8ResponseNameLookup;
+    private ObjectTemplate _objectTemplate;
     private bool _isSealed;
 
     public SelectionSet(
@@ -86,6 +87,13 @@ public sealed class SelectionSet : ISelectionSet
     /// Gets a value indicating whether the selection set contains deferred selections.
     /// </summary>
     public bool HasIncrementalParts { get; }
+
+    /// <summary>
+    /// Gets the prepared result row block shared by every object instance of this selection
+    /// set. It is built when the selection set is sealed and reused across all requests of
+    /// the declaring operation.
+    /// </summary>
+    internal ObjectTemplate ObjectTemplate => _objectTemplate;
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 
@@ -266,5 +274,7 @@ public sealed class SelectionSet : ISelectionSet
         {
             selection.Seal(this);
         }
+
+        _objectTemplate = ObjectTemplate.Create(this);
     }
 }

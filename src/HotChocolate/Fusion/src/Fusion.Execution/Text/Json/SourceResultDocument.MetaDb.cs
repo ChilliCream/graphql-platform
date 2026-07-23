@@ -185,10 +185,14 @@ public sealed partial class SourceResultDocument
         {
             AssertValidCursor(cursor);
 
-            var chunk = _chunks[cursor.Chunk];
-            var dataPos = chunk.Buffer.AsSpan(chunk.Offset + cursor.ByteOffset);
+            ref readonly var chunk = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(_chunks),
+                cursor.Chunk);
 
-            return MemoryMarshal.Read<DbRow>(dataPos);
+            return Unsafe.ReadUnaligned<DbRow>(
+                ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + cursor.ByteOffset));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -197,10 +201,15 @@ public sealed partial class SourceResultDocument
             AssertValidCursor(cursor);
 
             // _numberOfRowsAndTypeUnion is the third int in the row.
-            var chunk = _chunks[cursor.Chunk];
-            var dataPos = chunk.Buffer.AsSpan(chunk.Offset + cursor.ByteOffset + 8);
+            ref readonly var chunk = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(_chunks),
+                cursor.Chunk);
 
-            var union = MemoryMarshal.Read<uint>(dataPos);
+            var union = Unsafe.ReadUnaligned<uint>(
+                ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + cursor.ByteOffset + 8));
+
             return (JsonTokenType)(union >> 28);
         }
 

@@ -1,25 +1,4 @@
-2 Result:
----------------
-{
-  "data": {
-    "root": [
-      {
-        "id": 2
-      }
-    ]
-  }
-}
----------------
-
-2 SQL:
----------------
--- @p='POINT (1 1)' (DbType = Object)
-SELECT d."Id", d."Bar"
-FROM "Data" AS d
-WHERE NOT (ST_Contains(d."Bar", @p))
----------------
-
-1 Result:
+true Result:
 ---------------
 {
   "data": {
@@ -32,10 +11,31 @@ WHERE NOT (ST_Contains(d."Bar", @p))
 }
 ---------------
 
-1 SQL:
+true SQL:
 ---------------
--- @p='POINT (-1 -1)' (DbType = Object)
+-- @__p_0='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE NOT (ST_Contains(d."Bar", @p))
+WHERE ST_Intersects(d."Bar", @__p_0)
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "id": 2
+      }
+    ]
+  }
+}
+---------------
+
+false SQL:
+---------------
+-- @__p_0='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
+SELECT d."Id", d."Bar"
+FROM "Data" AS d
+WHERE NOT (ST_Intersects(d."Bar", @__p_0))
 ---------------

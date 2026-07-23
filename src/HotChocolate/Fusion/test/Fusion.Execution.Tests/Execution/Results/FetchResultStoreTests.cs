@@ -561,6 +561,79 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void AddPartialResults_Should_MaskUnknownEnumValue_When_EnumValueIsListElement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              colors: [Color]
+            }
+
+            enum Color {
+              RED
+              GREEN
+              BLUE
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ colors }",
+            """{"data":{"colors":["RED","YELLOW","BLUE"]}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"colors":["RED",null,"BLUE"]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_MaskEnumValue_When_PayloadContainsEscapeSequence()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              color: Color
+              sibling: String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // the payload spells RED with a JSON escape sequence, which can never match an enum name
+        using var store = CreateLiveStore(
+            schema,
+            "{ color sibling }",
+            """{"data":{"color":"R\u0045D","sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"color":null,"sibling":"visible"}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
     public void AddErrors_Should_UseAliasesInErrorPath()
     {
         // arrange

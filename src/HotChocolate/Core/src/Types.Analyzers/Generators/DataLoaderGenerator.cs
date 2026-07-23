@@ -141,12 +141,18 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
         if (defaults.GenerateInterfaces)
         {
-            generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+            generator.WriteDataLoaderInterface(
+                dataLoader.InterfaceName,
+                isInterfacePublic,
+                kind,
+                keyType,
+                valueType);
         }
 
         generator.WriteBeginDataLoaderClass(
             dataLoader.Name,
             dataLoader.InterfaceName,
+            dataLoader.MethodSymbol,
             isPublic,
             kind,
             keyType,

@@ -127,11 +127,29 @@ public sealed partial class SourceResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    internal int GetArrayLength(DbRow row)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        CheckExpectedType(JsonTokenType.StartArray, row.TokenType);
+
+        return row.SizeOrLength;
+    }
+
     internal int GetPropertyCount(Cursor cursor)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(cursor);
+
+        CheckExpectedType(JsonTokenType.StartObject, row.TokenType);
+
+        return row.SizeOrLength;
+    }
+
+    internal int GetPropertyCount(DbRow row)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         CheckExpectedType(JsonTokenType.StartObject, row.TokenType);
 

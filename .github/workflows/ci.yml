@@ -216,7 +216,7 @@ jobs:
             8.x
             9.x
             10.x
-            11.0.100-preview.5.26302.115
+            11.0.100-preview.6.26359.118
 
       - name: Run Build
         id: run-build
@@ -289,7 +289,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
-          dotnet-version: 11.0.100-preview.5.26302.115
+          dotnet-version: 11.0.100-preview.6.26359.118
 
       - name: Download all coverage artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8

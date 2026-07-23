@@ -94,6 +94,9 @@ namespace TestNamespace
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.TestBDataLoaderAttr.GetObjectByIdBAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class ObjectByIdBDataLoader
         : global::GreenDonut.DataLoaderBase<int, object>
         , IObjectByIdBDataLoader
@@ -145,6 +148,9 @@ namespace TestNamespace
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.TestADataLoaderAttr.GetObjectByIdAAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class ObjectByIdADataLoader
         : global::GreenDonut.DataLoaderBase<int, object>
         , IObjectByIdADataLoader
