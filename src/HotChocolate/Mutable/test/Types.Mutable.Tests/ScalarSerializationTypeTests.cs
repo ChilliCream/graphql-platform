@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Types.Mutable;
@@ -195,5 +196,40 @@ public class ScalarSerializationTypeTests
         // assert
         var type = schema.Types.GetType<IScalarTypeDefinition>("Custom");
         Assert.Equal(ScalarSerializationType.Int, type.SerializationType);
+    }
+
+    [Fact]
+    public void IsValueCompatible_UndefinedType_AcceptsAnyLiteral()
+    {
+        // arrange
+        // A scalar with no declared serialization type cannot prove any literal is incompatible.
+        IScalarTypeDefinition type = new MutableScalarTypeDefinition("Custom");
+
+        // act
+        var acceptsInt = type.IsValueCompatible(new IntValueNode(1));
+        var acceptsString = type.IsValueCompatible(new StringValueNode("x"));
+        var acceptsEnum = type.IsValueCompatible(new EnumValueNode("FOO"));
+
+        // assert
+        Assert.Equal(ScalarSerializationType.Undefined, type.SerializationType);
+        Assert.True(acceptsInt);
+        Assert.True(acceptsString);
+        Assert.True(acceptsEnum);
+    }
+
+    [Fact]
+    public void IsValueCompatible_ListType_AcceptsOnlyListLiterals()
+    {
+        // arrange
+        IScalarTypeDefinition type =
+            new MutableScalarTypeDefinition("Custom") { SerializationType = ScalarSerializationType.List };
+
+        // act
+        var acceptsList = type.IsValueCompatible(new ListValueNode([]));
+        var acceptsString = type.IsValueCompatible(new StringValueNode("x"));
+
+        // assert
+        Assert.True(acceptsList);
+        Assert.False(acceptsString);
     }
 }
