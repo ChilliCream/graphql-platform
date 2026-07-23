@@ -121,6 +121,161 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Node_Entry_Should_Resolve_When_Required_Field_Is_In_Conditional_Fragment()
+    {
+        // arrange
+        using var gateway = await CreateNodeEntryWithRequiredFieldGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+              node(id: $id) {
+                ... on Product @include(if: $include) {
+                  reviews {
+                    author {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["id"] = /* Product:1 */ "UHJvZHVjdDox",
+                ["include"] = true
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjo1"}},{"author":{"name":"User: VXNlcjo2"}},{"author":{"name":"User: VXNlcjo3"}}]}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
+    [Fact]
+    public async Task Node_Selections_Should_Resolve_Independently_When_Concrete_Types_Require_Distinct_Lookups()
+    {
+        // arrange
+        using var schemaA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              accountById(id: ID! @is(field: "id")): Account @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+              displayName(requirement: String): String!
+            }
+
+            type Account implements Node @key(fields: "id") {
+              id: ID!
+              accountRequirement: String! @external
+              displayName(
+                requirement: String @require(field: "accountRequirement"))
+                : String!
+            }
+
+            type Chat implements Node @key(fields: "chatId") {
+              id: ID! @shareable
+              chatId: ID!
+              chatRequirement: String!
+              displayName(requirement: String): String! @external
+            }
+            """);
+        using var schemaB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              chatById(chatId: ID! @is(field: "chatId")): Chat @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+              displayName(requirement: String): String!
+            }
+
+            type Account implements Node @key(fields: "id") {
+              id: ID!
+              accountRequirement: String!
+              displayName(requirement: String): String! @external
+            }
+
+            type Chat implements Node @key(fields: "chatId") {
+              id: ID! @shareable
+              chatId: ID!
+              chatRequirement: String! @external
+              displayName(
+                requirement: String @require(field: "chatRequirement"))
+                : String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", schemaA),
+            ("B", schemaB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              account: node(id: "QWNjb3VudDox") {
+                displayName
+              }
+              chat: node(id: "Q2hhdDox") {
+                displayName
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"account":{"displayName":"Account: QWNjb3VudDox"},"chat":{"displayName":"Chat: Q2hhdDox"}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
+    [Fact]
     public async Task Concrete_Type_Branch_Requested()
     {
         // arrange
@@ -796,6 +951,44 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               a: node(id: "RGlzY3Vzc2lvbjox") {
                 ... on Discussion {
                   title
+                }
+              }
+              # Discussion:2
+              b: node(id: "RGlzY3Vzc2lvbjoy") {
+                ... on Discussion {
+                  title
+                  commentCount
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Node_Fields_Should_Resolve_Independently_When_Aliases_Require_Downstream_Lookup()
+    {
+        // arrange
+        using var gateway = await CreateAliasedNodeFieldsGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              # Discussion:1
+              a: node(id: "RGlzY3Vzc2lvbjox") {
+                ... on Discussion {
+                  title
+                  commentCount
                 }
               }
               # Discussion:2
@@ -1768,5 +1961,118 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private Task<Gateway> CreateNodeEntryWithRequiredFieldGatewayAsync()
+    {
+        var products = CreateSourceSchema(
+            "PRODUCTS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node @key(fields: "productId") {
+              productId: Int!
+              id: ID!
+              reviewAudience: String!
+            }
+            """);
+        var reviews = CreateSourceSchema(
+            "REVIEWS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              reviews(
+                audience: String! @require(field: "reviewAudience"))
+                : [Review!]
+            }
+
+            type Review implements Node {
+              id: ID!
+              author: User
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+            }
+            """);
+        var users = CreateSourceSchema(
+            "USERS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "userId")): User @lookup @internal
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+              name: String
+            }
+            """);
+
+        return CreateCompositeSchemaAsync(
+        [
+            ("PRODUCTS", products),
+            ("REVIEWS", reviews),
+            ("USERS", users)
+        ]);
+    }
+
+    private Task<Gateway> CreateAliasedNodeFieldsGatewayAsync()
+    {
+        var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              discussion(id: ID!): Discussion @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+            """);
+
+        return CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
     }
 }

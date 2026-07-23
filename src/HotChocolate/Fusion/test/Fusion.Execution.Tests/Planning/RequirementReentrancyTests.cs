@@ -260,6 +260,196 @@ public class RequirementReentrancyTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Resolve_User_When_Node_ConcreteFragment_IsConditional()
+    {
+        // arrange
+        var schema = CreateNodeEntryWithRequiredFieldSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+              node(id: $id) {
+                ... on Product @include(if: $include) {
+                  reviews {
+                    author {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Inline_Separate_LookupRequirements_When_Targeting_Same_NodeBranch()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: PRODUCTS
+            schema {
+              query: Query
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product implements Node @key(fields: "productId") {
+              productId: Int!
+              id: ID!
+              reviewAudience: String!
+              recommendationAudience: String!
+            }
+            """,
+            """
+            # name: REVIEWS
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              reviews(
+                audience: String! @require(field: "reviewAudience"))
+                : [Review!]
+            }
+
+            type Review {
+              body: String
+            }
+            """,
+            """
+            # name: RECOMMENDATIONS
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              recommendations(
+                audience: String! @require(field: "recommendationAudience"))
+                : [Recommendation!]
+            }
+
+            type Recommendation {
+              text: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetProduct($id: ID!) {
+              node(id: $id) {
+                ... on Product {
+                  reviews {
+                    body
+                  }
+                  recommendations {
+                    text
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition CreateNodeEntryWithRequiredFieldSchema()
+        => ComposeSchema(
+            """
+            # name: PRODUCTS
+            schema {
+              query: Query
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product implements Node @key(fields: "productId") {
+              productId: Int!
+              id: ID!
+              reviewAudience: String!
+            }
+            """,
+            """
+            # name: REVIEWS
+            schema {
+              query: Query
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              reviews(
+                audience: String! @require(field: "reviewAudience"))
+                : [Review!]
+            }
+
+            type Review implements Node {
+              id: ID!
+              author: User
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+            }
+            """,
+            """
+            # name: USERS
+            schema {
+              query: Query
+            }
+
+            type Query {
+              userById(id: ID! @is(field: "userId"))
+                : User @lookup @internal
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+              name: String
+            }
+            """);
+
     private static FusionSchemaDefinition CreateRecommendationSchema()
     {
         return ComposeSchema(

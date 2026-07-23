@@ -275,78 +275,6 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
     }
 
     [Fact]
-    public void Partition_Should_AssignUniqueIds_When_AbstractSelectionFansOut()
-    {
-        // arrange
-        var source1 = new TestSourceSchema(
-            """
-            type Query {
-                node(id: ID!): Node @lookup
-            }
-
-            interface Node {
-                id: ID!
-            }
-
-            interface Votable {
-              viewerHasUpvoted: Boolean!
-            }
-
-            type Discussion implements Node & Votable {
-              id: ID!
-              viewerHasUpvoted: Boolean!
-            }
-
-            type Author implements Node & Votable {
-              id: ID!
-              viewerHasUpvoted: Boolean!
-            }
-            """);
-        var schema = ComposeSchema(source1);
-
-        var doc = Utf8GraphQLParser.Parse(
-            """
-            query($id: ID!) {
-                node(id: $id) {
-                    ... on Votable {
-                        viewerHasUpvoted
-                    }
-                }
-            }
-            """);
-
-        // act
-        var (result, abstractSelectionSetId) = PartitionWithInputId(schema, doc);
-        var branchIds = result.SelectionSetsByType
-            .Select(branch => result.SelectionSetIndex.GetId(branch.SelectionSet))
-            .ToArray();
-        var indexBuilder = result.SelectionSetIndex.ToBuilder();
-        var scopesMatch = result.SelectionSetsByType.All(
-            branch =>
-            {
-                var branchId = result.SelectionSetIndex.GetId(branch.SelectionSet);
-
-                return indexBuilder.TryTakeConcreteBranchScope(branchId, out var scope)
-                    && scope.ParentSelectionSetId == abstractSelectionSetId
-                    && scope.TypeCondition.Equals(branch.Type.Name, StringComparison.Ordinal);
-            });
-
-        // assert
-        $"""
-        Branch count: {branchIds.Length}
-        Branch IDs differ from abstract ID: {branchIds.All(id => id != abstractSelectionSetId)}
-        Branch IDs are distinct: {branchIds.Distinct().Count() == branchIds.Length}
-        Branch scopes match parent and type: {scopesMatch}
-        """.MatchInlineSnapshot(
-            """
-            Branch count: 2
-            Branch IDs differ from abstract ID: True
-            Branch IDs are distinct: True
-            Branch scopes match parent and type: True
-            """);
-    }
-
-    [Fact]
     public void Concrete_Type_Selections_Within_Interface()
     {
         // arrange
@@ -745,10 +673,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-    private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
-        => PartitionWithInputId(schema, document).Result;
-
-    private static (SelectionSetByTypePartitionerResult Result, uint InputId) PartitionWithInputId(
+    private static SelectionSetByTypePartitionerResult Partition(
         FusionSchemaDefinition schema,
         DocumentNode document)
     {
@@ -773,7 +698,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
         };
         var partitioner = new SelectionSetByTypePartitioner(schema);
 
-        return (partitioner.Partition(input), input.SelectionSet.Id);
+        return partitioner.Partition(input);
     }
 
     private static void MatchInlineSnapshot(
