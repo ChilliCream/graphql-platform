@@ -1206,7 +1206,6 @@ internal static class CompositeSchemaBuilder
 
         typeDefinition.Complete(
             new CompositeScalarTypeCompletionContext(
-                default,
                 directives,
                 specifiedBy,
                 type,

@@ -124,6 +124,12 @@ public abstract partial class ScalarType
     {
         ArgumentNullException.ThrowIfNull(valueLiteral);
 
+        // A scalar whose serialization type is unknown cannot reject any literal.
+        if (SerializationType is ScalarSerializationType.Undefined)
+        {
+            return true;
+        }
+
         if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
             && valueLiteral is { Kind: SyntaxKind.StringValue })
         {
@@ -137,7 +143,7 @@ public abstract partial class ScalarType
         }
 
         if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
-            && valueLiteral is { Kind: SyntaxKind.FloatValue })
+            && valueLiteral is { Kind: SyntaxKind.FloatValue or SyntaxKind.IntValue })
         {
             return true;
         }

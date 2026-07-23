@@ -21,6 +21,13 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     public MutableScalarTypeDefinition(string name)
     {
         Name = name.EnsureGraphQLName();
+
+        // Spec scalars have fixed serialization types resolved by name. Any other scalar's type
+        // is set from its @serializeAs directive, or left undefined (which accepts any literal).
+        if (SpecScalarNames.IsSpecScalar(Name))
+        {
+            SerializationType = this.GetScalarSerializationType();
+        }
     }
 
     /// <inheritdoc />
@@ -111,13 +118,6 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
 
     /// <inheritdoc />
     public string? Pattern { get; set; }
-
-    /// <inheritdoc />
-    public bool IsValueCompatible(IValueNode valueLiteral)
-    {
-        ArgumentNullException.ThrowIfNull(valueLiteral);
-        return true;
-    }
 
     /// <summary>
     /// Gets the string representation of this instance.
