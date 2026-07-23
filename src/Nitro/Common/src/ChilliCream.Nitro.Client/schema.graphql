@@ -16,6 +16,7 @@ type Query {
   openApiCollectionById(id: ID!): OpenApiCollection
   organizationById(id: ID!): Organization
   stageById(id: ID!): Stage
+  version: String
   workspaceById(workspaceId: ID!): Workspace
 }
 
@@ -108,6 +109,9 @@ type Mutation {
   ): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
+  updateStageCompositionSettings(
+    input: UpdateStageCompositionSettingsInput!
+  ): UpdateStageCompositionSettingsPayload!
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
   updateThemeSettings(
     input: UpdateThemeSettingsInput!
@@ -270,6 +274,7 @@ type Api implements Node {
     last: Int
   ): SchemaVersionsConnection
   settings: ApiSettings!
+  stage(name: String!): Stage
   stages: [Stage!]!
   version: Version!
   workspace: Workspace
@@ -4725,6 +4730,7 @@ type Stage implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): StageClientDeploymentsConnection
+  compositionSettings: StageCompositionSettings
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -4890,6 +4896,14 @@ type StageClientsMetrics {
     orderBy: [ClientInsightsOrderByInput!]
     to: DateTime!
   ): ClientInsightsConnection
+}
+
+type StageCompositionSettings {
+  cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
+  enableGlobalObjectIdentification: Boolean
+  excludeByTag: [String!]
+  removeUnreferencedDefinitions: Boolean
+  tagMergeBehavior: CompositionDirectiveMergeBehavior
 }
 
 type StageErrorsMetrics {
@@ -5402,6 +5416,11 @@ type UpdateMockSchemaPayload {
 type UpdatePreferencesPayload {
   errors: [UpdatePreferencesError!]
   preferences: Any
+}
+
+type UpdateStageCompositionSettingsPayload {
+  errors: [UpdateStageCompositionSettingsError!]
+  stage: Stage
 }
 
 type UpdateStagesPayload {
@@ -6302,6 +6321,10 @@ union UpdateMockSchemaError =
 
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
 
+union UpdateStageCompositionSettingsError =
+  | StageNotFoundError
+  | UnauthorizedOperation
+
 union UpdateStagesError =
   | ApiNotFoundError
   | StageNotFoundError
@@ -6782,6 +6805,14 @@ input PartialSchemaRegistrySettingsInput {
   treatDangerousAsBreaking: Boolean! = false
 }
 
+input PartialStageCompositionSettingsInput {
+  cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
+  enableGlobalObjectIdentification: Boolean
+  excludeByTag: [String!]
+  removeUnreferencedDefinitions: Boolean
+  tagMergeBehavior: CompositionDirectiveMergeBehavior
+}
+
 input PollClientVersionPublishRequestInput {
   id: ID!
 }
@@ -6965,6 +6996,12 @@ input UpdateMockSchemaInput {
 
 input UpdatePreferencesInput {
   preferences: Any!
+}
+
+input UpdateStageCompositionSettingsInput {
+  apiId: ID!
+  settings: PartialStageCompositionSettingsInput!
+  stageName: String!
 }
 
 input UpdateStagesInput {
@@ -7160,6 +7197,12 @@ enum AuthorizationEventType {
   PERMISSION_NO_MATCH
   TENANT_ACCESS
   TENANT_ACCESS_BYPASSED
+}
+
+enum CompositionDirectiveMergeBehavior {
+  IGNORE
+  INCLUDE
+  INCLUDE_PRIVATE
 }
 
 enum CoordinateKind {

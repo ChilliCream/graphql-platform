@@ -208,6 +208,35 @@ internal sealed class FusionConfigurationClient(
         return memoryStream;
     }
 
+    public async Task<StageCompositionSettings?> GetStageCompositionSettingsAsync(
+        string apiId,
+        string stageName,
+        CancellationToken cancellationToken)
+    {
+        var result = await apiClient.FusionStageCompositionSettings.ExecuteAsync(apiId, stageName, cancellationToken);
+
+        var data = OperationResultHelper.EnsureData(result);
+
+        if (data.Node is not IFusionStageCompositionSettings_Node_Api api)
+        {
+            return null;
+        }
+
+        if (api.Stage?.CompositionSettings is not { } compositionSettings)
+        {
+            return null;
+        }
+
+        return new StageCompositionSettings
+        {
+            CacheControlMergeBehavior = compositionSettings.CacheControlMergeBehavior,
+            EnableGlobalObjectIdentification = compositionSettings.EnableGlobalObjectIdentification,
+            ExcludeByTag = compositionSettings.ExcludeByTag,
+            RemoveUnreferencedDefinitions = compositionSettings.RemoveUnreferencedDefinitions,
+            TagMergeBehavior = compositionSettings.TagMergeBehavior
+        };
+    }
+
     private static HttpRequestMessage CreateDownloadLatestFusionArchiveRequest(
         string apiId,
         string stageName,
