@@ -29,7 +29,8 @@ That registration produces:
 - A **dispatch endpoint** for sending `GetOrderStatusRequest`
 - A **reply receive endpoint** for inbound responses
 - A **reply dispatch endpoint** for outbound responses
-- **Error endpoints** (`_error` suffix) for each receive endpoint
+- **Error endpoints** (`_error` suffix) for each receive endpoint - destination of the `Fault` middleware when a handler throws
+- **Skipped endpoints** (`_skipped` suffix) for each receive endpoint - destination of the `DeadLetter` middleware when no consumer matched the message
 
 All derived from your handler types and message types through naming conventions.
 
@@ -156,7 +157,16 @@ For publish (fan-out) endpoints, the name includes the message namespace in keba
 | Skipped queue | `{endpoint}_skipped` | `catalog.order-placed-event_skipped`        |
 | Reply queue   | `response-{guid:N}`  | `response-3f2504e04f8911d39a0c0305e82c3301` |
 
-Error queues receive messages that failed processing. Skipped queues receive messages that no consumer could handle. Reply queues are temporary, per-instance queues used for request/reply correlation.
+The two failure-side endpoints are populated by different middlewares:
+
+- **Error queue (`_error`)** receives messages whose handler threw an exception. The `Fault` middleware (`ReceiveFaultMiddleware`) catches the exception, attaches `fault-*` headers (exception type, message, stack trace, timestamp), and forwards the original envelope to the configured `ErrorEndpoint`.
+- **Skipped queue (`_skipped`)** receives messages that completed the pipeline without any consumer marking them as consumed. The `DeadLetter` middleware (`ReceiveDeadLetterMiddleware`) re-dispatches the original envelope to the configured `SkippedEndpoint`.
+
+:::info
+Earlier releases routed both handler exceptions and unmatched-consumer messages to `_error`. As of the current release, unmatched messages are routed to `_skipped` so operators can distinguish "the handler threw" from "no consumer claimed this message" without inspecting headers. The behavior is transport-agnostic - it lives in `ReceiveDeadLetterMiddleware` in core.
+:::
+
+Reply queues are temporary, per-instance queues used for request/reply correlation.
 
 # Customize outbound routes
 

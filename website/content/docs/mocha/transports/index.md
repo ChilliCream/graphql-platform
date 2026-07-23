@@ -1,19 +1,20 @@
 ---
 title: "Transports"
-description: "Understand how transports move messages in Mocha, how the transport abstraction works, and how to choose between InMemory, PostgreSQL, and RabbitMQ."
+description: "Understand how transports move messages in Mocha, how the transport abstraction works, and how to choose between InMemory, PostgreSQL, RabbitMQ, and Azure Service Bus."
 ---
 
 A transport is the infrastructure layer that connects Mocha to a message broker. It manages connections, provisions topology (exchanges, queues, bindings), and handles the low-level details of dispatching and receiving messages. You write handlers and publish messages. The transport handles the rest.
 
-The transport abstraction means your handlers, patterns, and pipeline are identical regardless of which broker you use. Only the infrastructure changes. Swap `.AddInMemory()` for `.AddPostgres()` or `.AddRabbitMQ()` and your application code stays unchanged. This portability is the core value of the [Message Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageChannel.html) pattern: the sender and receiver are decoupled from the physical infrastructure that carries the message.
+The transport abstraction means your handlers, patterns, and pipeline are identical regardless of which broker you use. Only the infrastructure changes. Swap `.AddInMemory()` for `.AddPostgres()`, `.AddRabbitMQ()`, or `.AddAzureServiceBus()` and your application code stays unchanged. This portability is the core value of the [Message Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageChannel.html) pattern: the sender and receiver are decoupled from the physical infrastructure that carries the message.
 
-Mocha ships with three transports:
+Mocha ships with four transports:
 
-| Transport      | Package                    | Use case                                                     |
-| -------------- | -------------------------- | ------------------------------------------------------------ |
-| **InMemory**   | `Mocha.Transport.InMemory` | Development, testing, single-process scenarios               |
-| **PostgreSQL** | `Mocha.Transport.Postgres` | Database-backed messaging when you already operate Postgres  |
-| **RabbitMQ**   | `Mocha.Transport.RabbitMQ` | Production, distributed systems, multi-service architectures |
+| Transport             | Package                           | Use case                                                     |
+| --------------------- | --------------------------------- | ------------------------------------------------------------ |
+| **InMemory**          | `Mocha.Transport.InMemory`        | Development, testing, single-process scenarios               |
+| **PostgreSQL**        | `Mocha.Transport.Postgres`        | Database-backed messaging when you already operate Postgres  |
+| **RabbitMQ**          | `Mocha.Transport.RabbitMQ`        | Production, distributed systems, multi-service architectures |
+| **Azure Service Bus** | `Mocha.Transport.AzureServiceBus` | Managed cloud messaging on Azure                             |
 
 # Add a transport
 
@@ -43,27 +44,37 @@ builder.Services
     .AddPostgres("Host=localhost;Database=mocha_messaging;Username=postgres;Password=postgres");
 ```
 
+```csharp
+// Azure Service Bus - managed cloud messaging
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddAzureServiceBus(connectionString);
+```
+
 Each `Add{Transport}()` method registers a transport instance, applies default conventions, and wires up the middleware pipelines.
 
 # Choose a transport
 
 Use this decision matrix to pick the right transport. Each column includes trade-offs - choose the one whose trade-offs you can accept:
 
-| Criterion          | InMemory                                  | PostgreSQL                                  | RabbitMQ                                    |
-| ------------------ | ----------------------------------------- | ------------------------------------------- | ------------------------------------------- |
-| Setup effort       | None - zero dependencies                  | Requires a PostgreSQL database              | Requires a running broker                   |
-| Message durability | **Messages lost on process exit**         | Messages are stored in database tables      | Messages survive broker restarts            |
-| Multi-process      | **Single process only**                   | Multiple services sharing the same database | Multiple services, multiple instances       |
-| Request/reply      | Supported                                 | Supported                                   | Supported                                   |
-| Native scheduling  | None - requires `UsePostgresScheduling()` | Yes, built-in and cancellable               | None - requires `UsePostgresScheduling()`   |
-| Operational cost   | None                                      | Database capacity, migrations, monitoring   | Broker infrastructure, monitoring, upgrades |
-| Network latency    | None - in-process                         | Database round trip                         | Broker round trip                           |
+| Criterion          | InMemory                                  | PostgreSQL                                  | RabbitMQ                                    | Azure Service Bus                     |
+| ------------------ | ----------------------------------------- | ------------------------------------------- | ------------------------------------------- | ------------------------------------- |
+| Setup effort       | None, zero dependencies                   | Requires a PostgreSQL database              | Requires a running broker                   | Azure subscription and namespace      |
+| Message durability | **Messages lost on process exit**         | Messages are stored in database tables      | Messages survive broker restarts            | Durable, broker-managed               |
+| Multi-process      | **Single process only**                   | Multiple services sharing the same database | Multiple services, multiple instances       | Multiple services, multiple instances |
+| Request/reply      | Supported                                 | Supported                                   | Supported                                   | Supported                             |
+| Native scheduling  | None, requires `UsePostgresScheduling()` | Yes, built-in and cancellable               | None, requires `UsePostgresScheduling()`   | Yes, durable and cancellable          |
+| Operational cost   | None                                      | Database capacity, migrations, monitoring   | Broker infrastructure, monitoring, upgrades | Pay-per-use Azure resource            |
+| Network latency    | None, in-process                          | Database round trip                         | Broker round trip                           | Cloud network round trip              |
 
 **InMemory limitations:** Because all messages live in process memory, the InMemory transport cannot model multi-service fan-out, cannot survive process restarts, and does not exercise RabbitMQ-specific behavior like connection recovery, acknowledgement semantics, or topology conflicts.
 
 **PostgreSQL trade-offs:** PostgreSQL is a good fit when you already operate PostgreSQL and want database-backed messaging without another broker. It favors operational simplicity and transactional consistency over dedicated broker throughput.
 
 **RabbitMQ operational cost:** RabbitMQ requires expertise to operate in production - cluster management, disk and memory alarms, queue type selection, and monitoring. Use a managed broker (CloudAMQP, Amazon MQ) if you want to reduce operational burden.
+
+**Azure Service Bus trade-offs:** Azure Service Bus is fully managed and durable, with native scheduling and cancellation. It is a strong fit for Azure-hosted workloads, while cost and available throughput depend on the namespace SKU.
 
 # Scope and middleware
 
@@ -218,5 +229,6 @@ Each transport manages its own connections, topology, and middleware pipeline in
 - [InMemory Transport](./in-memory.md) - Set up the InMemory transport for development and testing.
 - [PostgreSQL Transport](./postgres.md) - Configure database-backed messaging with PostgreSQL.
 - [RabbitMQ Transport](./rabbitmq.md) - Configure the RabbitMQ transport for production deployments.
+- [Azure Service Bus Transport](./azure-service-bus.md) - Configure managed cloud messaging on Azure.
 
 > **Runnable example:** [MultiTransport](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/MultiTransport)
