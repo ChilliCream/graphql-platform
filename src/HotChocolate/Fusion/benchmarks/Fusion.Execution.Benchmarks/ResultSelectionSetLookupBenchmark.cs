@@ -126,17 +126,17 @@ public class ResultSelectionSetLookupBenchmark : FusionBenchmarkBase
         var fragmentProduct = ResultSelectionSet.Create(fragmentNode, schema);
 
         // The candidate claim is linear-scan vs dictionary behavior per shape,
-        // so the shapes must keep mapping to the expected product classes.
-        if (smallProduct is not SmallResultSelectionSet)
+        // so the shapes must keep mapping to the expected lookup strategies.
+        if (smallProduct.UsesDictionaryLookup)
         {
             throw new InvalidOperationException(
-                "The 4-field shape no longer produces a SmallResultSelectionSet.");
+                "The 4-field shape no longer uses a linear scan.");
         }
 
-        if (largeProduct is not LargeResultSelectionSet)
+        if (!largeProduct.UsesDictionaryLookup)
         {
             throw new InvalidOperationException(
-                "The 12-field shape no longer produces a LargeResultSelectionSet.");
+                "The 12-field shape no longer uses a dictionary lookup.");
         }
 
         var smallFlat = FlatResultSelectionSet.Create(smallNode, schema);
