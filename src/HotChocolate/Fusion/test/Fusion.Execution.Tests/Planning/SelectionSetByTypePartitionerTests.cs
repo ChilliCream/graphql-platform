@@ -673,7 +673,9 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-    private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
+    private static SelectionSetByTypePartitionerResult Partition(
+        FusionSchemaDefinition schema,
+        DocumentNode document)
     {
         var rewriter = new DocumentRewriter(schema);
         var operation = rewriter.RewriteDocument(document).Definitions
