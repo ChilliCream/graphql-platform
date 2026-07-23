@@ -34,7 +34,7 @@ body:
     attributes:
       label: Version
       description: What version of the selected product are you running?
-      placeholder: "12.0.0"
+      placeholder: "16.0.0"
     validations:
       required: true
   - type: input
@@ -42,7 +42,7 @@ body:
     attributes:
       label: Link to minimal reproduction
       description: |
-        Add the URL to a public Git repository or ZIP file.
+        Add the URL to a public GitHub repository.
 
         The reproduction should be **minimal** - i.e. it should contain only the bare minimum amount of code needed
         to show the bug.
