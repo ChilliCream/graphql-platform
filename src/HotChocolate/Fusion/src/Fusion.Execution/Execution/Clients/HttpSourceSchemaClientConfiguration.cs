@@ -48,13 +48,6 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
     /// <param name="onSourceSchemaResult">
     /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
     /// </param>
-    /// <param name="aliasBatching">
-    /// Selects the alias-batching client, which rewrites each row of a batch into an aliased
-    /// copy of the root selections within a single spec-conformant GraphQL request.
-    /// </param>
-    /// <param name="aliasBatchingCacheCapacity">
-    /// The number of rewritten alias-batched operations cached per source schema.
-    /// </param>
     public HttpSourceSchemaClientConfiguration(
         string name,
         Uri baseAddress,
@@ -66,9 +59,7 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
-        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null,
-        bool aliasBatching = false,
-        int aliasBatchingCacheCapacity = 256)
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
         : this(
             name,
             DefaultClientName,
@@ -81,9 +72,7 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
             subscriptionAcceptHeaderValues,
             onBeforeSend,
             onAfterReceive,
-            onSourceSchemaResult,
-            aliasBatching,
-            aliasBatchingCacheCapacity)
+            onSourceSchemaResult)
     {
     }
 
@@ -126,13 +115,6 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
     /// <param name="onSourceSchemaResult">
     /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
     /// </param>
-    /// <param name="aliasBatching">
-    /// Selects the alias-batching client, which rewrites each row of a batch into an aliased
-    /// copy of the root selections within a single spec-conformant GraphQL request.
-    /// </param>
-    /// <param name="aliasBatchingCacheCapacity">
-    /// The number of rewritten alias-batched operations cached per source schema.
-    /// </param>
     public HttpSourceSchemaClientConfiguration(
         string name,
         string httpClientName,
@@ -145,14 +127,11 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
-        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null,
-        bool aliasBatching = false,
-        int aliasBatchingCacheCapacity = 256)
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(httpClientName);
         ArgumentNullException.ThrowIfNull(baseAddress);
-        ArgumentOutOfRangeException.ThrowIfLessThan(aliasBatchingCacheCapacity, 1);
 
         Name = name;
         HttpClientName = httpClientName;
@@ -160,8 +139,6 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         SupportedOperations = supportedOperations;
         Capabilities = capabilities;
         OnError = onError;
-        AliasBatching = aliasBatching;
-        AliasBatchingCacheCapacity = aliasBatchingCacheCapacity;
 
         DefaultAcceptHeaderValue = defaultAcceptHeaderValues is null
             ? AcceptContentTypes.DefaultHeader
@@ -204,18 +181,6 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
     /// Gets the client capabilities.
     /// </summary>
     public SourceSchemaClientCapabilities Capabilities { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the alias-batching client is selected for this source
-    /// schema. When enabled, each row of a batch is rewritten into an aliased copy of the root
-    /// selections within a single spec-conformant GraphQL request.
-    /// </summary>
-    public bool AliasBatching { get; }
-
-    /// <summary>
-    /// Gets the number of rewritten alias-batched operations cached per source schema.
-    /// </summary>
-    public int AliasBatchingCacheCapacity { get; }
 
     /// <summary>
     /// Gets the error handling mode requested by the source schema.

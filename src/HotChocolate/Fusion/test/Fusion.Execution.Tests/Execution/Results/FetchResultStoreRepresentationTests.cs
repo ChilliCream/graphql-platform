@@ -2842,7 +2842,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             foreach (var operation in batchNode.Operations)
             {
                 if (operation is SingleOperationDefinition definition
-                    && definition.Operation.SourceText.Contains(lookupFieldName, StringComparison.Ordinal))
+                    && Encoding.UTF8.GetString(definition.Operation.SourceText.Span)
+                        .Contains(lookupFieldName, StringComparison.Ordinal))
                 {
                     return definition;
                 }
@@ -2865,7 +2866,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             [],
             definition.Requirements,
             entityTypeName,
-            ParseLookupField(definition.Operation.SourceText));
+            ParseLookupField(Encoding.UTF8.GetString(definition.Operation.SourceText.Span)));
 
     // The representation shape is a plan-time constant, so the production code
     // builds it once at node creation. These harness helpers mirror that by

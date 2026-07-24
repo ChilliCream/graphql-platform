@@ -29,8 +29,7 @@ public abstract partial class FusionTestBase
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
-        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockHttpResponse = null,
-        bool aliasBatching = false)
+        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockHttpResponse = null)
     {
         configureApplication ??=
             app =>
@@ -63,7 +62,6 @@ public abstract partial class FusionTestBase
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
-                    opt.AliasBatching = aliasBatching;
                 });
             },
             configureApplication);

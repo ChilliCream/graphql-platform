@@ -128,8 +128,7 @@ public abstract partial class FusionTestBase : IDisposable
                         var interaction = GetSourceSchemaInteraction(context, node);
 
                         interaction.Results.Add(SerializeSourceSchemaResult(result));
-                    },
-                    aliasBatching: sourceSchemaOptions.AliasBatching);
+                    });
             }
         }
 
@@ -347,8 +346,6 @@ public abstract partial class FusionTestBase : IDisposable
         public Func<HttpRequestMessage, Task<HttpResponseMessage>>? MockHttpResponse { get; set; }
 
         public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.All;
-
-        public bool AliasBatching { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? DefaultAcceptHeaderValues { get; set; }
 

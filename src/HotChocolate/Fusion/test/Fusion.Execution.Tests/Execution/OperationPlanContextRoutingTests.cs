@@ -254,7 +254,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             Node = fixture.GetRootNode(),
             SchemaName = "a",
             OperationType = OperationType.Subscription,
-            OperationSourceText = "subscription { field }",
+            OperationSourceText = "subscription { field }"u8.ToArray(),
             OperationHash = 0
         };
 

@@ -25,9 +25,9 @@ public readonly record struct SourceSchemaClientRequest()
     public required OperationType OperationType { get; init; }
 
     /// <summary>
-    /// Gets the GraphQL operation source text to send.
+    /// Gets the UTF-8 encoded GraphQL operation source text to send.
     /// </summary>
-    public required string OperationSourceText { get; init; }
+    public required ReadOnlyMemory<byte> OperationSourceText { get; init; }
 
     /// <summary>
     /// Gets the xxhash64 of the operation source text.

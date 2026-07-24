@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
@@ -55,8 +57,8 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
         Assert.Equal("b", node.SchemaName);
         string[] documents =
         [
-            node.Lookups[0].Operation.SourceText,
-            node.Lookups[1].Operation.SourceText
+            Encoding.UTF8.GetString(node.Lookups[0].Operation.SourceText.Span),
+            Encoding.UTF8.GetString(node.Lookups[1].Operation.SourceText.Span)
         ];
         documents.MatchInlineSnapshots(
         [

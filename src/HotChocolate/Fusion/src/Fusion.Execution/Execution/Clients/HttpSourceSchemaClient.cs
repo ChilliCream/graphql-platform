@@ -728,7 +728,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     }
 
     private static VariableBatchRequest CreateVariableBatchRequest(
-        string operationSourceText,
+        ReadOnlyMemory<byte> operationSourceText,
         SourceSchemaClientRequest originalRequest,
         ErrorHandlingMode? onError)
     {

@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Gets the type of the operation.
 /// </param>
 /// <param name="SourceText">
-/// Gets the GraphQL operation document source text.
+/// Gets the UTF-8 encoded GraphQL operation document source text.
 /// </param>
 /// <param name="Hash">
 /// Gets the SHA256 hash of the operation source text as hex string.
@@ -20,5 +20,5 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public readonly record struct OperationSourceText(
     string Name,
     OperationType Type,
-    string SourceText,
+    ReadOnlyMemory<byte> SourceText,
     string Hash);

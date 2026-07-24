@@ -1,10 +1,10 @@
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using NameNode = HotChocolate.Language.NameNode;
@@ -203,7 +203,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.Operation.SourceText.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -237,7 +237,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.Operation.SourceText.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -268,7 +268,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.Operation.SourceText.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -304,7 +304,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "inested", operation);
 
         // assert
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.Operation.SourceText.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -340,7 +340,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.Operation.SourceText.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -455,7 +455,7 @@ public class LookupEntityQueryRewriterTests
     // GraphQL), so the multi-candidate tie-break cannot be constructed realistically here.
 
     private static OperationSourceText CreateOperation(string sourceText)
-        => new("Op", OperationType.Query, sourceText, "hash");
+        => new("Op", OperationType.Query, Encoding.UTF8.GetBytes(sourceText), "hash");
 
     private static OperationRequirement CreateRequirement(
         FusionSchemaDefinition schema,

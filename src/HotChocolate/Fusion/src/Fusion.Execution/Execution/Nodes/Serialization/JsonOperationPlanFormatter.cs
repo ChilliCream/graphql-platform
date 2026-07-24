@@ -354,7 +354,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(node.Operation.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(node.Operation.SourceText);
+        jsonWriter.WriteStringValue(node.Operation.SourceText.Span);
 
         jsonWriter.WritePropertyName("hash");
         jsonWriter.WriteStringValue(node.Operation.Hash);
@@ -599,7 +599,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(operationDef.Operation.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operationDef.Operation.SourceText);
+        jsonWriter.WriteStringValue(operationDef.Operation.SourceText.Span);
 
         jsonWriter.WritePropertyName("hash");
         jsonWriter.WriteStringValue(operationDef.Operation.Hash);
@@ -715,7 +715,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(operationDef.Operation.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operationDef.Operation.SourceText);
+        jsonWriter.WriteStringValue(operationDef.Operation.SourceText.Span);
 
         jsonWriter.WritePropertyName("hash");
         jsonWriter.WriteStringValue(operationDef.Operation.Hash);
@@ -944,7 +944,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(operationSource.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operationSource.SourceText);
+        jsonWriter.WriteStringValue(operationSource.SourceText.Span);
 
         jsonWriter.WritePropertyName("hash");
         jsonWriter.WriteStringValue(operationSource.Hash);

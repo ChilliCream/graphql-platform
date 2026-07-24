@@ -210,7 +210,7 @@ public sealed class KafkaSubscriptionTests : IClassFixture<KafkaFixture>
 
     private static string GetRootResponseName(SourceSchemaClientRequest request)
     {
-        var document = Utf8GraphQLParser.Parse(request.OperationSourceText);
+        var document = Utf8GraphQLParser.Parse(request.OperationSourceText.Span);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var field = operation.SelectionSet.Selections.OfType<FieldNode>().Single();
 

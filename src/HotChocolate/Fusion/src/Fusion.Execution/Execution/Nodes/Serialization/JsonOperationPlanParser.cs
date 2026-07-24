@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
@@ -788,9 +789,14 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
         var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
+        // The parsed document string is transient: encode it to UTF-8 once and discard it.
         var document = operationElement.GetProperty("document").GetString()!;
         var hash = operationElement.GetProperty("hash").GetString()!;
-        var opSource = new OperationSourceText(operationName, operationType, document, hash);
+        var opSource = new OperationSourceText(
+            operationName,
+            operationType,
+            Encoding.UTF8.GetBytes(document),
+            hash);
 
         SelectionPath? source = null;
         List<OperationRequirement>? requirements = null;

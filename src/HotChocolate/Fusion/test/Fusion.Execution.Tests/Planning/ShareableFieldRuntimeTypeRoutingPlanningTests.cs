@@ -335,7 +335,7 @@ public sealed class ShareableFieldRuntimeTypeRoutingPlanningTests : FusionTestBa
         params string[] fieldPath)
     {
         var root = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
-        var document = Utf8GraphQLParser.Parse(root.Operation.SourceText);
+        var document = Utf8GraphQLParser.Parse(root.Operation.SourceText.Span);
         var operation = Assert.Single(document.Definitions.OfType<OperationDefinitionNode>());
         var selectionSet = operation.SelectionSet;
 
@@ -375,7 +375,7 @@ public sealed class ShareableFieldRuntimeTypeRoutingPlanningTests : FusionTestBa
 
         foreach (var node in plan.AllNodes)
         {
-            var sourceText = node switch
+            ReadOnlyMemory<byte>? sourceText = node switch
             {
                 OperationExecutionNode operationNode => operationNode.Operation.SourceText,
                 ApolloOperationExecutionNode operationNode => operationNode.Operation.SourceText,
@@ -387,7 +387,7 @@ public sealed class ShareableFieldRuntimeTypeRoutingPlanningTests : FusionTestBa
                 continue;
             }
 
-            var document = Utf8GraphQLParser.Parse(sourceText);
+            var document = Utf8GraphQLParser.Parse(sourceText.Value.Span);
             var operation = Assert.Single(document.Definitions.OfType<OperationDefinitionNode>());
             Collect(operation.SelectionSet);
         }

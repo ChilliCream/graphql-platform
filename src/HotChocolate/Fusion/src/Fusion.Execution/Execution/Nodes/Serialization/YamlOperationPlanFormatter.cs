@@ -222,7 +222,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(node.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.SourceText.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -414,7 +415,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.Operation.SourceText.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -468,7 +470,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.Operation.SourceText.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -530,7 +533,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         // from the lookup operation when it is created.
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(node.LookupOperation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(node.LookupOperation.SourceText.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -593,7 +597,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.Operation.SourceText.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
