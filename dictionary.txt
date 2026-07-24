@@ -8,6 +8,7 @@ agrc
 Alderaan
 ALPN
 Andi
+annotatable
 anthropics
 apphost
 appsettings
@@ -260,6 +261,7 @@ starwars
 Storeless
 strawberryshake
 streamable
+strikethrough
 Structs
 subfolders
 subgraphs
