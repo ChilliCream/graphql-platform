@@ -978,6 +978,139 @@ public class AbstractTypeTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Union_Entry_Should_Resolve_Nested_Lookups_When_Members_Have_Different_Selections()
+    {
+        // arrange
+        using var products = CreateSourceSchema(
+            "PRODUCTS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              searchProduct: SearchResult
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            union SearchResult = ProductSearchResult | ReviewSearchResult
+
+            type ProductSearchResult {
+              product: Product!
+            }
+
+            type ReviewSearchResult {
+              review: Review!
+            }
+
+            type Product implements Node @key(fields: "productId") {
+              productId: Int!
+              id: ID!
+              reviewAudience: String!
+            }
+
+            type Review implements Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+        using var reviews = CreateSourceSchema(
+            "REVIEWS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: Int! @is(field: "productId")): Product @lookup @internal
+              reviewById(id: ID!): Review @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product @key(fields: "productId") {
+              productId: Int!
+              reviews(
+                audience: String! @require(field: "reviewAudience"))
+                : [Review!]
+            }
+
+            type Review implements Node @key(fields: "id") {
+              id: ID!
+              body: String!
+              author: User
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+            }
+            """);
+        using var users = CreateSourceSchema(
+            "USERS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "userId"))
+                : User @lookup @internal
+            }
+
+            type User @key(fields: "userId") {
+              userId: ID!
+              name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("PRODUCTS", products),
+            ("REVIEWS", reviews),
+            ("USERS", users)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query SearchProduct {
+              searchProduct {
+                ... on ProductSearchResult {
+                  product {
+                    reviews {
+                      author {
+                        name
+                      }
+                    }
+                  }
+                }
+                ... on ReviewSearchResult {
+                  review {
+                    body
+                    author {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+            });
+    }
+
+    [Fact]
     public async Task Union_Field_With_Type_Refinements_And_Concrete_Lookups()
     {
         // arrange
