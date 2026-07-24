@@ -255,6 +255,144 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Get_With_ResponseBody_And_Unrelated_Type_Refinements()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
+              user: userById(id: $userId) {
+                ... on User {
+                  name
+                }
+                ... {
+                  email
+                }
+                address: address @responseBody {
+                  ... on Address {
+                    road: street
+                  }
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync(
+            "/users/1/address",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_ResponseBody_Field_Returns_NotFound()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetPreferences($userId: ID!) @http(method: GET, route: "/users/{userId}/preferences") {
+              userById(id: $userId) {
+                preferences @responseBody {
+                  color
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync(
+            "/users/1/preferences",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_ResponseBody_Ancestor_Returns_NotFound()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
+              userById(id: $userId) {
+                address @responseBody {
+                  street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync(
+            "/users/4/address",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Skipped_ResponseBody_Field_Returns_InternalServerError()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
+              userById(id: $userId) {
+                ... {
+                  address @skip(if: true) @responseBody {
+                    street
+                  }
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync(
+            "/users/1/address",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Should_Return_List_When_ResponseBody_Field_Returns_List()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth @responseBody {
+                name
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync(
+            "/users",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Get_Has_GraphQL_Errors()
     {
         // arrange
@@ -323,6 +461,38 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     #endregion
 
     #region POST
+
+    [Fact]
+    public async Task Http_Post_ResponseBody_Field_Returns_InternalServerError()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            mutation UpdatePreferences($user: UserInput! @body)
+              @http(method: POST, route: "/users/preferences") {
+              updateUser(user: $user) {
+                preferences @responseBody {
+                  color
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+        var content = new StringContent(
+            """{ "id": "1", "name": "Test", "email": "test@example.com" }""",
+            Encoding.UTF8,
+            "application/json");
+
+        // act
+        var response = await client.PostAsync(
+            "/users/preferences",
+            content,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
 
     [Fact]
     public async Task Http_Post()
@@ -855,6 +1025,47 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Request_Should_Return_InternalServerError_When_Models_Contain_Duplicate_Fragment_Names()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/users/1") {
+              userById(id: "1") {
+                ...UserId
+                ...UserName
+              }
+            }
+            """,
+            """
+            fragment UserId on User {
+              ...UserFields
+            }
+
+            fragment UserFields on User {
+              id
+            }
+            """,
+            """
+            fragment UserName on User {
+              ...UserFields
+            }
+
+            fragment UserFields on User {
+              name
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users/1", TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Duplicated_Routes()
     {
         // arrange
@@ -892,16 +1103,18 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
-            query A_InvalidFirst @http(method: GET, route: "/users") {
+            query AInvalidFirst @http(method: GET, route: "/users/1") {
               doesNotExist {
-                id
+                id @responseBody
               }
             }
             """,
             """
-            query B_ValidSecond @http(method: GET, route: "/users") {
-              usersWithoutAuth {
-                id
+            query BValidSecond @http(method: GET, route: "/users/1") {
+              userById(id: "1") {
+                address @responseBody {
+                  road: street
+                }
               }
             }
             """);
@@ -909,7 +1122,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync("/users/1", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();

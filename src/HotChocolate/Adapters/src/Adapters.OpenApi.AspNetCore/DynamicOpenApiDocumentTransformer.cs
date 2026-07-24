@@ -21,7 +21,9 @@ using OperationType = Microsoft.OpenApi.Models.OperationType;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransformer, IDynamicOpenApiDocumentTransformer
+internal sealed class DynamicOpenApiDocumentTransformer
+    : IOpenApiDocumentTransformer,
+      IDynamicOpenApiDocumentTransformer
 {
     private const string JsonContentType = "application/json";
 
@@ -301,18 +303,13 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 operation.RequestBody = requestBody;
             }
 
-            var operationType = _schema.GetOperationType(endpoint.OperationDefinition.Operation);
+            var responseBodySelection = endpoint.GetResponseBodySelection(_schema);
+            var fieldType = responseBodySelection.FieldType
+                ?? throw new InvalidOperationException("Expected to resolve the response field type.");
 
-            if (endpoint.OperationDefinition.SelectionSet.Selections is not [FieldNode rootField])
-            {
-                throw new InvalidOperationException("Expected to have a single field selection on the root");
-            }
-
-            var fieldType = operationType.Fields[rootField.Name.Value].Type;
-
-            var responseSchema = rootField.SelectionSet is not null
+            var responseSchema = responseBodySelection.SelectionSet is not null
                 ? CreateOpenApiSchemaForSelectionSet(
-                    rootField.SelectionSet,
+                    responseBodySelection.SelectionSet,
                     fieldType,
                     endpoint.LocalFragmentsByName)
                 : CreateOpenApiSchemaForType(fieldType);

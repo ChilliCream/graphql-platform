@@ -1,0 +1,35 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HotChocolate.Adapters.OpenApi.Tests | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/users/1": {
+      "get": {
+        "operationId": "bValidSecond",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "road"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "road": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": { }
+}
