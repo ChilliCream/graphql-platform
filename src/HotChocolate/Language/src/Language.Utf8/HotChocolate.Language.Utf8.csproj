@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\Language.Utf8.SyntaxTree\HotChocolate.Language.Utf8.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,6 +18,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
     <InternalsVisibleTo Include="HotChocolate.Language.Web" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Utf8" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Abstractions" />
