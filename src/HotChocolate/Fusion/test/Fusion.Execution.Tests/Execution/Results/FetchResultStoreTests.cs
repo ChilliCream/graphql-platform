@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -13,6 +14,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
 using IntValueNode = HotChocolate.Language.IntValueNode;
+using NullValueNode = HotChocolate.Language.NullValueNode;
 using StringValueNode = HotChocolate.Language.StringValueNode;
 using ListValueNode = HotChocolate.Language.ListValueNode;
 using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
@@ -1466,6 +1468,72 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_WriteFourRequirements_When_FastPathIsUsed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID
+              sku: String
+              optional: String
+              required: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { __fusion_internal_id: id sku optional required } }",
+            """
+            {"data":{"foos":[
+              {"__fusion_internal_id":"1","sku":"s1","optional":null,"required":"r1"},
+              {"__fusion_internal_id":"1","sku":"s1","optional":null,"required":"r1"},
+              {"__fusion_internal_id":"2","sku":"s2","optional":"o2","required":null}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirements = new OperationRequirement[]
+        {
+            new(
+                "__fusion_1_id",
+                new NamedTypeNode("String"),
+                SelectionPath.Root,
+                new FieldSelectionMapParser("id").Parse(),
+                "__fusion_internal_id"),
+            Requirement(schema, "__fusion_2_sku", "sku", new NamedTypeNode("String")),
+            Requirement(schema, "__fusion_3_optional", "optional", new NamedTypeNode("String")),
+            Requirement(
+                schema,
+                "__fusion_4_required",
+                "required",
+                new NonNullTypeNode(new NamedTypeNode("String")))
+        };
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            requirements);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[1]]
+            Variables: {"__fusion_1_id":"1","__fusion_2_sku":"s1","__fusion_3_optional":null,"__fusion_4_required":"r1"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ReadInternalAlias_When_RequirementHasInternalAlias()
     {
         // arrange
@@ -1796,6 +1864,146 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Normalize(entry.Values).MatchInlineSnapshot(
             """
             {"__fusion_1_size":{"width":1,"height":2}}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromResolvedVariables_Should_WriteForwardedValuesBeforeFourRequirements_When_FastPathIsUsed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID
+              sku: String
+              optional: String
+              required: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { __fusion_internal_id: id sku optional required } }",
+            """
+            {"data":{"foos":[
+              {"__fusion_internal_id":"1","sku":"s1","optional":null,"required":"r1"},
+              {"__fusion_internal_id":"1","sku":"s1","optional":null,"required":"r1"},
+              {"__fusion_internal_id":"2","sku":"s2","optional":"o2","required":null}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirements = new OperationRequirement[]
+        {
+            new(
+                "__fusion_1_id",
+                new NamedTypeNode("String"),
+                SelectionPath.Root,
+                new FieldSelectionMapParser("id").Parse(),
+                "__fusion_internal_id"),
+            Requirement(schema, "__fusion_2_sku", "sku", new NamedTypeNode("String")),
+            Requirement(schema, "__fusion_3_optional", "optional", new NamedTypeNode("String")),
+            Requirement(
+                schema,
+                "__fusion_4_required",
+                "required",
+                new NonNullTypeNode(new NamedTypeNode("String")))
+        };
+        var forwardedVariables = new ForwardedVariableValue[]
+        {
+            new("limit", new IntValueNode(10)),
+            new("nullable", NullValueNode.Default),
+            new("limit", new IntValueNode(20))
+        };
+
+        // act
+        var result = store.CreateVariableValueSetsFromResolvedVariables(
+            SelectionPath.Root.AppendField("foos"),
+            forwardedVariables,
+            requirements);
+
+        // assert
+        var entry = Assert.Single(result);
+        var operation = store.Result.Data.Operation;
+        var additionalPath = Assert.Single(entry.AdditionalPaths.AsSpan().ToArray());
+        var rawVariables = Encoding.UTF8.GetString(entry.Values.AsSequence().ToArray());
+        $"""
+        Path: {entry.Path.ToPath(operation).Print()}
+        Additional path: {additionalPath.ToPath(operation).Print()}
+        Variables bytes: {rawVariables}
+        """.MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional path: foos[1]
+            Variables bytes: {"limit":10,"nullable":null,"limit":20,"__fusion_1_id":"1","__fusion_2_sku":"s1","__fusion_3_optional":null,"__fusion_4_required":"r1"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromResolvedVariables_Should_RejectNullListElement_When_FourthRequirementForcesSlowPath()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID
+              sku: String
+              category: String
+              tags: [String]
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id sku category tags } }",
+            """
+            {"data":{"foos":[
+              {"id":"1","sku":"s1","category":"c1","tags":["bad",null]},
+              {"id":"2","sku":"s2","category":"c2","tags":["a","b"]}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirements = new OperationRequirement[]
+        {
+            Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("String")),
+            Requirement(schema, "__fusion_2_sku", "sku", new NamedTypeNode("String")),
+            Requirement(schema, "__fusion_3_category", "category", new NamedTypeNode("String")),
+            Requirement(
+                schema,
+                "__fusion_4_tags",
+                "tags",
+                new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("String"))))
+        };
+
+        // act
+        var result = store.CreateVariableValueSetsFromResolvedVariables(
+            SelectionPath.Root.AppendField("foos"),
+            [new ForwardedVariableValue("tenant", new StringValueNode("acme"))],
+            requirements);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[1]
+            Additional paths: []
+            Variables: {"tenant":"acme","__fusion_1_id":"2","__fusion_2_sku":"s2","__fusion_3_category":"c2","__fusion_4_tags":["a","b"]}
             """);
     }
 
