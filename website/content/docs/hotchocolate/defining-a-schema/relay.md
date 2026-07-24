@@ -1,40 +1,209 @@
 ---
 title: "Relay"
-description: "Implement the Relay server specification in Hot Chocolate: global object identification with [Node] and [ID], node refetching, and mutation payload query fields."
+description: "Give objects global IDs and let clients refetch them through the Relay node field."
 ---
 
-The Relay GraphQL Server Specification defines patterns for globally unique identifiers, object refetching, and cursor-based pagination. While these patterns originated in Facebook's Relay client, they improve schema design for any GraphQL client.
+A `Product` and an `Order` can both have the ID `1`. The value `1` alone does not tell a client which object it belongs to. This can cause collisions in a client cache.
 
-> [!NOTE]
-> The patterns on this page benefit all GraphQL clients, not only Relay. We recommend them for every Hot Chocolate project.
+Hot Chocolate solves this problem with a global ID. The server combines the object type and its ID into one opaque string. Opaque means that the client stores and returns the string without trying to read it. Your application still works with the original ID.
 
-# Global Identifiers
+By the end of this guide, you will return a global ID for a product and use that ID to fetch the same product through the `node` query field.
 
-GraphQL clients often use the `id` field to build a client-side cache. If two different types both have a row with `id: 1`, the cache encounters collisions. Global identifiers solve this by encoding the type name and the underlying ID into an opaque, Base64-encoded string that is unique across the entire schema.
+These patterns follow the [GraphQL Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm). They work with every GraphQL client, not only Relay. For Relay-style connections and cursors, see [Pagination](../fetching-data/pagination.md).
 
-Hot Chocolate handles this through a middleware. The `[ID]` attribute opts a field into global identifier behavior. At runtime, Hot Chocolate combines the type name with the raw ID to produce a globally unique value. Your business code continues to work with the original ID.
+# Before You Begin
 
-## Output Fields
+Start with a running Hot Chocolate server created from the server template. If you do not have one, complete [Getting Started](../get-started-with-graphql-in-net-core.md) first.
 
-<ExampleTabs>
-<Implementation>
+The examples use an Entity Framework Core `CatalogContext` with a `Products` set. See [Entity Framework](../fetching-data/integrations/entity-framework.md) for database registration. The examples assume the database contains this product:
+
+| ID  | Name      |
+| --- | --------- |
+| 1   | Green Tea |
+
+The examples use these namespaces:
 
 ```csharp
-public class Product
+using HotChocolate;
+using HotChocolate.Types;
+using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
+```
+
+# Add Global Object Identification
+
+Add global object identification to the existing server registration. Keep the template's generated `.AddTypes()` call:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddGlobalObjectIdentification()
+    .AddTypes();
+```
+
+This enables global ID encoding and decoding. It also adds the `Node` interface and the `node` and `nodes` fields to Query.
+
+# Make Product Refetchable
+
+Add `[Node]` to `Product` and provide a method that loads one product by ID:
+
+```csharp
+[Node]
+public sealed class Product
 {
-    [ID]
     public int Id { get; set; }
 
-    public string Name { get; set; }
+    public required string Name { get; set; }
+
+    public static async Task<Product?> GetAsync(
+        int id,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Products.FindAsync([id], cancellationToken);
 }
 ```
 
-The `[ID]` attribute rewrites the field type to `ID!` and serializes the value as a global identifier. By default, it uses the owning type name (`Product`) for serialization.
+`[Node]` does three things:
 
-For foreign key fields that reference another type, specify the target type name:
+1. It makes `Product` implement the GraphQL `Node` interface.
+2. It exposes `Product.Id` as a global `ID!` field.
+3. It uses `GetAsync` when a client fetches a product through `node`.
+
+Next, add a regular query field that returns the sample product:
 
 ```csharp
-public class OrderItem
+[QueryType]
+public static partial class ProductQueries
+{
+    public static Product? GetFeaturedProduct(CatalogContext db)
+        => db.Products.Find(1);
+}
+```
+
+If your setup is correct, the schema contains these fields:
+
+```graphql
+interface Node {
+  id: ID!
+}
+
+type Product implements Node {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  featuredProduct: Product
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+}
+```
+
+The `node` field fetches one object. The `nodes` field fetches several objects in one request.
+
+# Get a Global ID
+
+Query the regular `featuredProduct` field:
+
+```graphql
+query GetFeaturedProduct {
+  featuredProduct {
+    id
+    name
+  }
+}
+```
+
+With the default serializer, the response is:
+
+```json
+{
+  "data": {
+    "featuredProduct": {
+      "id": "UHJvZHVjdDox",
+      "name": "Green Tea"
+    }
+  }
+}
+```
+
+The product still has the ID `1` in your application. Hot Chocolate can read `UHJvZHVjdDox` and determine that it refers to a `Product`.
+
+The default serializer uses Base64. Other configurations can produce a different string, so clients must treat every global ID as opaque.
+
+# Refetch the Product Through `node`
+
+Pass the returned ID to the `node` field:
+
+```graphql
+query RefetchProduct($id: ID!) {
+  node(id: $id) {
+    id
+    ... on Product {
+      name
+    }
+  }
+}
+```
+
+**Variables**
+
+```json
+{
+  "id": "UHJvZHVjdDox"
+}
+```
+
+**Response**
+
+```json
+{
+  "data": {
+    "node": {
+      "id": "UHJvZHVjdDox",
+      "name": "Green Tea"
+    }
+  }
+}
+```
+
+Hot Chocolate reads the global ID, finds the `Product` type, and calls `Product.GetAsync` with the original integer `1`. If no product has that ID, `node` returns `null`.
+
+# Accept a Global ID as Input
+
+Add a query field that accepts the global Product ID returned above:
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    public static Product? GetProduct(
+        [ID<Product>] int id,
+        CatalogContext db)
+        => db.Products.Find(id);
+}
+```
+
+This declaration can live beside the earlier `ProductQueries` declaration because both are `partial`.
+
+On an argument or input property, `[ID<Product>]` checks that the supplied global ID belongs to `Product`. Hot Chocolate then passes the original integer to your code. A global ID for another type is rejected before the resolver runs.
+
+The field appears in the schema as:
+
+```graphql
+type Query {
+  product(id: ID!): Product
+}
+```
+
+# Expose Other Values as Global IDs
+
+The GraphQL [`ID` scalar](./scalars.md#id) is not automatically a global ID. Add `[ID]` only when you want Hot Chocolate to encode a value as a global ID.
+
+For an object's own ID, use `[ID]`. For a field that points to another object type, supply that type to the attribute:
+
+```csharp
+public sealed class OrderItem
 {
     [ID]
     public int Id { get; set; }
@@ -44,330 +213,200 @@ public class OrderItem
 }
 ```
 
-The generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `[ID("Product")]` to specify it as a string.
+On this output type, `[ID]` uses `OrderItem` as the type name for `id`. `[ID<Product>]` uses `Product` as the type name for `productId`.
 
-</Implementation>
-<Code>
+You can apply the typed attribute to an input property too:
 
 ```csharp
-public class ProductType : ObjectType<Product>
+public sealed class UpdateProductInput
 {
-    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
-    {
-        descriptor.Field(f => f.Id).ID();
-    }
-}
-```
-
-For foreign key fields:
-
-```csharp
-descriptor.Field(f => f.ProductId).ID("Product");
-```
-
-</Code>
-</ExampleTabs>
-
-## Input Arguments
-
-When a field returns a serialized global ID, any argument that accepts that ID must also be marked with `[ID]` to deserialize it back to the raw value.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-[QueryType]
-public static partial class ProductQueries
-{
-    public static Product? GetProduct(
-        [ID] int id,
-        CatalogContext db)
-        => db.Products.Find(id);
-}
-```
-
-To restrict the argument to IDs serialized for a specific type:
-
-```csharp
-public static Product? GetProduct(
-    [ID<Product>] int id,
-    CatalogContext db)
-    => db.Products.Find(id);
-```
-
-This rejects IDs that were serialized for a different type.
-
-</Implementation>
-<Code>
-
-```csharp
-descriptor
-    .Field("product")
-    .Argument("id", a => a.Type<NonNullType<IdType>>().ID())
-    .Type<ProductType>()
-    .Resolve(context =>
-    {
-        var id = context.ArgumentValue<int>("id");
-        // ...
-    });
-```
-
-To restrict to a specific type:
-
-```csharp
-.Argument("id", a => a.Type<NonNullType<IdType>>().ID(nameof(Product)))
-```
-
-</Code>
-</ExampleTabs>
-
-## Input Object Fields
-
-Mark input object properties with `[ID]` to deserialize global IDs in input types.
-
-```csharp
-public class UpdateProductInput
-{
-    [ID]
+    [ID<Product>]
     public int ProductId { get; set; }
 
-    public string Name { get; set; }
+    public required string Name { get; set; }
 }
 ```
 
-## ID Serializer
+On input, the attribute checks that the ID belongs to `Product` and then supplies the original integer value. Hot Chocolate also preserves nullability. For example, `[ID] int` becomes `ID!`, while `[ID] int?` becomes `ID`.
 
-You can access the `IIdSerializer` service directly to serialize or deserialize global IDs in custom code.
+For more argument and input examples, see [Arguments](./arguments.md).
 
-```csharp
-[QueryType]
-public static partial class ProductQueries
-{
-    public static string GetGlobalId(int productId, IIdSerializer serializer)
-    {
-        return serializer.Serialize(null, "Product", productId);
-    }
-}
-```
+# Optional: Query Updated Data from a Mutation
 
-The `Serialize` method takes the schema name (or `null` for the default schema), the type name, and the raw ID.
+Mutation payload querying is a separate feature. It lets a client change data and read the updated state through top-level Query fields in one request.
 
-# Global Object Identification
-
-Global object identification extends global identifiers by enabling clients to refetch any object by its ID through a standardized `node` query field. This requires three things:
-
-1. The type implements the `Node` interface.
-2. The type has an `id: ID!` field.
-3. A node resolver method can fetch the object by its ID.
-
-## Enabling Global Object Identification
+Add it to the registration from the main tutorial:
 
 ```csharp
 builder
     .AddGraphQL()
-    .AddGlobalObjectIdentification();
+    .AddGlobalObjectIdentification()
+    .AddQueryFieldToMutationPayloads()
+    .AddTypes();
 ```
 
-This adds the `Node` interface and the `node` / `nodes` query fields:
+Hot Chocolate adds `query: Query!` to mutation result types whose names end in `Payload`. For example:
+
+```csharp
+[MutationType]
+public static partial class ProductMutations
+{
+    public static async Task<RenameProductPayload> RenameProductAsync(
+        [ID<Product>] int id,
+        string name,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+    {
+        var product = await db.Products.FindAsync([id], cancellationToken)
+            ?? throw new GraphQLException("Product not found.");
+
+        product.Name = name;
+        await db.SaveChangesAsync(cancellationToken);
+        return new RenameProductPayload(product);
+    }
+}
+
+public sealed record RenameProductPayload(Product Product);
+```
+
+The client can return the changed product and query it again from the same payload:
 
 ```graphql
-interface Node {
-  id: ID!
-}
-
-type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
+mutation RenameProduct($id: ID!) {
+  renameProduct(id: $id, name: "Black Tea") {
+    product {
+      id
+      name
+    }
+    query {
+      product(id: $id) {
+        name
+      }
+    }
+  }
 }
 ```
 
-You can configure options when enabling global object identification:
+**Variables**
+
+```json
+{
+  "id": "UHJvZHVjdDox"
+}
+```
+
+**Response**
+
+```json
+{
+  "data": {
+    "renameProduct": {
+      "product": {
+        "id": "UHJvZHVjdDox",
+        "name": "Black Tea"
+      },
+      "query": {
+        "product": {
+          "name": "Black Tea"
+        }
+      }
+    }
+  }
+}
+```
+
+# Advanced: Use a Composite ID
+
+This section is an alternative to the integer ID used in the main tutorial. Do not apply it if your Product uses a single integer ID.
+
+Assume that Entity Framework is configured to use both `Sku` and `BatchNumber` as the Product key. Define an ID type with those two parts:
+
+```csharp
+public readonly record struct ProductId(string Sku, int BatchNumber);
+```
+
+Register a generated serializer for this ID type before global object identification:
 
 ```csharp
 builder
     .AddGraphQL()
-    .AddGlobalObjectIdentification(opts =>
-    {
-        opts.MaxAllowedNodeBatchSize = 50;
-    });
+    .AddNodeIdValueSerializerFrom<ProductId>()
+    .AddGlobalObjectIdentification()
+    .AddTypes();
 ```
 
-At least one type in the schema must implement `Node`, or the schema fails to build.
-
-## Implementing Node
-
-<ExampleTabs>
-<Implementation>
-
-Annotate your class with `[Node]`. Hot Chocolate looks for a static method named `Get`, `GetAsync`, `Get{TypeName}`, or `Get{TypeName}Async` that accepts the ID as its first parameter and returns the type.
+Then replace the integer ID and resolvers from the main tutorial with these versions:
 
 ```csharp
 [Node]
-public class Product
+public sealed class Product
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-
-    public static async Task<Product?> GetAsync(
-        int id,
-        CatalogContext db,
-        CancellationToken ct)
-        => await db.Products.FindAsync([id], ct);
-}
-```
-
-The `[Node]` attribute causes the type to implement the `Node` interface and turns the `Id` property into a global identifier.
-
-If your ID property is not named `Id`, specify it:
-
-```csharp
-[Node(IdField = nameof(ProductId))]
-public class Product
-{
-    public int ProductId { get; set; }
-    // ...
-}
-```
-
-If your resolver method does not follow the naming convention, annotate it with `[NodeResolver]`:
-
-```csharp
-[NodeResolver]
-public static async Task<Product?> FetchByIdAsync(int id, CatalogContext db, CancellationToken ct)
-    => await db.Products.FindAsync([id], ct);
-```
-
-To place the node resolver in a separate class:
-
-```csharp
-[Node(
-    NodeResolverType = typeof(ProductNodeResolver),
-    NodeResolver = nameof(ProductNodeResolver.GetProductAsync))]
-public class Product
-{
-    public int Id { get; set; }
-}
-
-public class ProductNodeResolver
-{
-    public static async Task<Product?> GetProductAsync(
-        int id, CatalogContext db, CancellationToken ct)
-        => await db.Products.FindAsync([id], ct);
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class ProductType : ObjectType<Product>
-{
-    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
-    {
-        descriptor
-            .ImplementsNode()
-            .IdField(f => f.Id)
-            .ResolveNode(async (context, id) =>
-            {
-                var db = context.Service<CatalogContext>();
-                return await db.Products.FindAsync([id]);
-            });
-    }
-}
-```
-
-If the ID property is not named `Id`, specify it with `IdField`. Hot Chocolate renames it to `id` in the schema to satisfy the `Node` interface contract.
-
-To resolve using a separate class:
-
-```csharp
-descriptor
-    .ImplementsNode()
-    .IdField(f => f.ProductId)
-    .ResolveNodeWith<ProductNodeResolver>(r => r.GetProductAsync(default!));
-```
-
-</Code>
-</ExampleTabs>
-
-Node resolvers are ideal places to use [DataLoaders](../fetching-data/batching/dataloader.md) for efficient batched fetching.
-
-## Node with Type Extensions
-
-When adding Node support through a type extension, place the `[Node]` attribute on the extension class:
-
-```csharp
-[Node]
-[ExtendObjectType<Product>]
-public static partial class ProductExtensions
-{
-    public static async Task<Product?> GetAsync(
-        int id, CatalogContext db, CancellationToken ct)
-        => await db.Products.FindAsync([id], ct);
-}
-```
-
-# Complex IDs
-
-Some data models use composite keys (multiple fields forming a unique identifier). Hot Chocolate supports complex IDs through custom ID types and type converters.
-
-```csharp
-public readonly record struct ProductId(string Sku, int BatchNumber)
-{
-    public override string ToString() => $"{Sku}:{BatchNumber}";
-
-    public static ProductId Parse(string value)
-    {
-        var parts = value.Split(':');
-        return new ProductId(parts[0], int.Parse(parts[1]));
-    }
-}
-
-public class Product
-{
-    [ID]
     public ProductId Id { get; set; }
+
+    public required string Name { get; set; }
+
+    public static async Task<Product?> GetAsync(
+        ProductId id,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Products.FindAsync([id.Sku, id.BatchNumber], cancellationToken);
+}
+
+[QueryType]
+public static partial class ProductQueries
+{
+    public static Product? GetFeaturedProduct(CatalogContext db)
+        => db.Products.Find("ABC", 42);
+
+    public static Product? GetProduct(
+        [ID<Product>] ProductId id,
+        CatalogContext db)
+        => db.Products.Find(id.Sku, id.BatchNumber);
 }
 ```
 
-Register type converters so Hot Chocolate can serialize and deserialize the complex ID:
+`AddNodeIdValueSerializerFrom<T>()` needs the `HotChocolate.Types.Analyzers` package. The Hot Chocolate server template already includes it. If your project does not, add the package with the same version as your other Hot Chocolate packages:
 
-```csharp
-builder
-    .AddGraphQL()
-    .AddTypeConverter<string, ProductId>(ProductId.Parse)
-    .AddTypeConverter<ProductId, string>(x => x.ToString())
-    .AddGlobalObjectIdentification();
+```bash
+dotnet add package HotChocolate.Types.Analyzers --version <VERSION>
 ```
 
-The source generator can produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
+With the default serializer, a Product ID containing `"ABC"` and `42` is returned as:
 
-# Query Field in Mutation Payloads
-
-Mutation payloads can include a `query` field that gives clients access to the full Query type. This lets a client fetch everything it needs to update its state in a single round trip.
-
-```csharp
-builder
-    .AddGraphQL()
-    .AddQueryFieldToMutationPayloads();
+```json
+{
+  "data": {
+    "featuredProduct": {
+      "id": "UHJvZHVjdDpBQkM6NDI=",
+      "name": "Green Tea"
+    }
+  }
+}
 ```
 
-By default, a `query: Query` field is added to every mutation payload type whose name ends in `Payload`. You can customize this:
+Clients must still treat this value as opaque. The generated serializer supports ID parts of type `string`, `short`, `int`, `long`, `bool`, and `Guid`. If your ID uses other part types, implement `INodeIdValueSerializer` and register it with `AddNodeIdValueSerializer<TSerializer>()`.
 
-```csharp
-builder
-    .AddGraphQL()
-    .AddQueryFieldToMutationPayloads(options =>
-    {
-        options.QueryFieldName = "rootQuery";
-        options.MutationPayloadPredicate =
-            (type) => type.Name.Value.EndsWith("Result");
-    });
-```
+# Troubleshooting
+
+## Attributed Fields Are Missing from the Schema
+
+Keep the generated `.AddTypes()` call from the server template. It registers types marked with attributes such as `[QueryType]` and `[MutationType]`.
+
+## `There is no object type implementing interface Node.`
+
+`AddGlobalObjectIdentification()` adds the `Node` interface. Add `[Node]` to at least one object type and give that type a node resolver.
+
+## A Node Type Has No Resolver
+
+Every Node type needs a public static method that can load one object by ID. Hot Chocolate recognizes `Get`, `GetAsync`, `Get{TypeName}`, and `Get{TypeName}Async`. Use `[NodeResolver]` if the method has another name.
+
+## `HotChocolate.Types.Analyzers is required to use this method.`
+
+Your project called `AddNodeIdValueSerializerFrom<T>()` without the build-time generator. Add `HotChocolate.Types.Analyzers` with the same version as your other Hot Chocolate packages, then rebuild.
 
 # Next Steps
 
-- **Need to fetch data efficiently?** See [DataLoader](../fetching-data/batching/dataloader.md).
-- **Need pagination?** See [Pagination](../fetching-data/pagination.md).
-- **Need to understand ID types?** See [Scalars](./scalars.md).
-- **Need to extend types?** See [Extending Types](./object-types.md).
+- Use [DataLoader](../fetching-data/batching/dataloader.md) to batch or cache repeated node lookups.
+- Review [global object identification options](../server/options.md#global-object-identification-options), including the `nodes` batch limit.
+- Add Relay-style connections with [Pagination](../fetching-data/pagination.md).
+- For distributed schemas, see [GraphQL global object identification in Fusion](../../fusion/entities-and-lookups.md#graphql-global-object-identification).
