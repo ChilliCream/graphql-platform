@@ -49,15 +49,15 @@ Each `Add{Transport}()` method registers a transport instance, applies default c
 
 Use this decision matrix to pick the right transport. Each column includes trade-offs - choose the one whose trade-offs you can accept:
 
-| Criterion          | InMemory                                  | PostgreSQL                                  | RabbitMQ                                    |
-| ------------------ | ----------------------------------------- | ------------------------------------------- | ------------------------------------------- |
-| Setup effort       | None - zero dependencies                  | Requires a PostgreSQL database              | Requires a running broker                   |
-| Message durability | **Messages lost on process exit**         | Messages are stored in database tables      | Messages survive broker restarts            |
-| Multi-process      | **Single process only**                   | Multiple services sharing the same database | Multiple services, multiple instances       |
-| Request/reply      | Supported                                 | Supported                                   | Supported                                   |
-| Native scheduling  | None - requires `UsePostgresScheduling()` | Yes, built-in and cancellable               | None - requires `UsePostgresScheduling()`   |
-| Operational cost   | None                                      | Database capacity, migrations, monitoring   | Broker infrastructure, monitoring, upgrades |
-| Network latency    | None - in-process                         | Database round trip                         | Broker round trip                           |
+| Criterion          | InMemory                                    | PostgreSQL                                  | RabbitMQ                                    |
+| ------------------ | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| Setup effort       | None - zero dependencies                    | Requires a PostgreSQL database              | Requires a running broker                   |
+| Message durability | **Messages lost on process exit**           | Messages are stored in database tables      | Messages survive broker restarts            |
+| Multi-process      | **Single process only**                     | Multiple services sharing the same database | Multiple services, multiple instances       |
+| Request/reply      | Supported                                   | Supported                                   | Supported                                   |
+| Native scheduling  | Yes, built-in and cancellable (non-durable) | Yes, built-in and cancellable               | None - requires `UsePostgresScheduling()`   |
+| Operational cost   | None                                        | Database capacity, migrations, monitoring   | Broker infrastructure, monitoring, upgrades |
+| Network latency    | None - in-process                           | Database round trip                         | Broker round trip                           |
 
 **InMemory limitations:** Because all messages live in process memory, the InMemory transport cannot model multi-service fan-out, cannot survive process restarts, and does not exercise RabbitMQ-specific behavior like connection recovery, acknowledgement semantics, or topology conflicts.
 

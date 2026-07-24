@@ -1,4 +1,10 @@
-﻿namespace Mocha.Transport.InMemory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Mocha.Scheduling;
+using Mocha.Transport.InMemory.Scheduling;
+
+namespace Mocha.Transport.InMemory;
 
 /// <summary>
 /// Extension methods for registering the in-memory messaging transport on an <see cref="IMessageBusHostBuilder"/>.
@@ -18,6 +24,28 @@ public static class InMemoryMessageBusBuilderExtensions
         var transport = new InMemoryMessagingTransport(configure);
 
         busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
+
+        busBuilder.Services.TryAddSingleton(
+            sp => new InMemoryTransportScheduledMessageStore(
+                sp.GetService<TimeProvider>() ?? TimeProvider.System));
+
+        busBuilder.Services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                transport,
+                InMemoryTransportScheduledMessageStore.TokenPrefix,
+                static sp => sp.GetRequiredService<InMemoryTransportScheduledMessageStore>()));
+
+        busBuilder.Services.TryAddSingleton(
+            sp => new InMemoryScheduledMessageWorker(
+                sp,
+                sp.GetRequiredService<IMessagingRuntime>(),
+                sp.GetRequiredService<IMessagingPools>(),
+                sp.GetRequiredService<InMemoryTransportScheduledMessageStore>(),
+                sp.GetService<TimeProvider>() ?? TimeProvider.System,
+                sp.GetRequiredService<ILogger<InMemoryScheduledMessageWorker>>()));
+
+        busBuilder.Services.AddHostedService(
+            static sp => sp.GetRequiredService<InMemoryScheduledMessageWorker>());
 
         return busBuilder;
     }
