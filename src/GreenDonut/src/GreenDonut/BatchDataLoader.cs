@@ -57,7 +57,7 @@ public abstract class BatchDataLoader<TKey, TValue>
             }
             else
             {
-                results[i] = null;
+                results[i] = Result<TValue?>.Resolve(default);
             }
         }
     }
@@ -133,7 +133,7 @@ public abstract class StatefulBatchDataLoader<TKey, TValue>
             }
             else
             {
-                results[i] = null;
+                results[i] = Result<TValue?>.Resolve(default);
             }
         }
     }
