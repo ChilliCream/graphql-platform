@@ -1,43 +1,23 @@
 "use client";
 
-import React, {
-  FC,
-  useMemo,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import {
+  TopologyFlow,
+  type DiagramData,
+  type MessageActivity,
+  type MessageTrace,
+  type SidebarTab,
+  type TraceTopologyMapping,
+} from "@chillicream/mocha-visualizer";
+import type { IconName } from "@fortawesome/fontawesome-svg-core";
 import {
   ReactFlowProvider,
   useReactFlow,
   useStore,
-  type Node,
   type Edge,
+  type Node,
 } from "@xyflow/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import {
-  faEnvelope,
-  faArrowRightArrowLeft,
-  faGear,
-  faDiagramProject,
-  faRightLeft,
-  faLayerGroup,
-  faHashtag,
-  faCubes,
-  faRoute,
-  faLink,
-  faEllipsis,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  TopologyFlow,
-  type DiagramData,
-  type MessageTrace,
-  type MessageActivity,
-  type TraceTopologyMapping,
-  type SidebarTab,
-} from "@chillicream/mocha-visualizer";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { IconElement } from "../icons/IconElement";
 
 /**
  * Minimal scoped styles for embedding the visualizer in the docs page.
@@ -230,7 +210,7 @@ const ts = {
 } as const;
 
 function getOperationIcon(activity: MessageActivity): {
-  icon: IconDefinition;
+  icon: IconName;
   color: string;
 } {
   switch (activity.operation) {
@@ -239,15 +219,15 @@ function getOperationIcon(activity: MessageActivity): {
     case "request":
     case "reply":
     case "subscribe":
-      return { icon: faEnvelope, color: "#d29922" };
+      return { icon: "envelope", color: "#d29922" };
     case "dispatch":
-      return { icon: faArrowRightArrowLeft, color: "#db61a2" };
+      return { icon: "arrow-right-arrow-left", color: "#db61a2" };
     case "receive":
-      return { icon: faArrowRightArrowLeft, color: "#58a6ff" };
+      return { icon: "arrow-right-arrow-left", color: "#58a6ff" };
     case "consume":
-      return { icon: faGear, color: "#3fb950" };
+      return { icon: "gear", color: "#3fb950" };
     case "saga-transition":
-      return { icon: faDiagramProject, color: "#a371f7" };
+      return { icon: "diagram-project", color: "#a371f7" };
   }
 }
 
@@ -275,7 +255,7 @@ function getOperationLabel(activity: MessageActivity): string {
 }
 
 function getNodeIcon(node: Node): {
-  icon: IconDefinition;
+  icon: IconName;
   color: string;
   label: string;
 } {
@@ -286,29 +266,29 @@ function getNodeIcon(node: Node): {
 
   if (nodeType === "entity") {
     if (entityKind === "exchange")
-      return { icon: faRightLeft, color: "#d29922", label };
+      return { icon: "right-left", color: "#d29922", label };
     if (entityKind === "queue")
-      return { icon: faLayerGroup, color: "#3fb950", label };
+      return { icon: "layer-group", color: "#3fb950", label };
     if (entityKind === "topic")
-      return { icon: faHashtag, color: "#58a6ff", label };
-    return { icon: faCubes, color: "#a371f7", label };
+      return { icon: "hashtag", color: "#58a6ff", label };
+    return { icon: "cubes", color: "#a371f7", label };
   }
-  if (nodeType === "route") return { icon: faRoute, color: "#6e7681", label };
-  if (nodeType === "binding") return { icon: faLink, color: "#6e7681", label };
+  if (nodeType === "route") return { icon: "route", color: "#6e7681", label };
+  if (nodeType === "binding") return { icon: "link", color: "#6e7681", label };
   if (nodeType === "endpoint") {
     const subType = data.subType as string | undefined;
     return {
-      icon: faArrowRightArrowLeft,
+      icon: "arrow-right-arrow-left",
       color: subType === "receive" ? "#58a6ff" : "#db61a2",
       label,
     };
   }
-  if (nodeType === "consumer") return { icon: faGear, color: "#3fb950", label };
+  if (nodeType === "consumer") return { icon: "gear", color: "#3fb950", label };
   if (nodeType === "message")
-    return { icon: faEnvelope, color: "#d29922", label };
+    return { icon: "envelope", color: "#d29922", label };
   if (nodeType === "saga")
-    return { icon: faDiagramProject, color: "#a371f7", label };
-  return { icon: faEllipsis, color: "#484f58", label };
+    return { icon: "diagram-project", color: "#a371f7", label };
+  return { icon: "ellipsis", color: "#484f58", label };
 }
 
 function formatDuration(ms: number): string {
@@ -453,7 +433,7 @@ function TraceStepList({
               >
                 <div style={ts.inferredDot(info.color)} />
                 <span style={ts.inferredIcon(info.color)}>
-                  <FontAwesomeIcon icon={info.icon} />
+                  <IconElement icon={info.icon} />
                 </span>
                 <span style={ts.inferredLabel} title={info.label}>
                   {info.label}
@@ -488,7 +468,7 @@ function TraceStepList({
             >
               <div style={ts.badge}>{index + 1}</div>
               <span style={ts.icon(color)}>
-                <FontAwesomeIcon icon={icon} />
+                <IconElement icon={icon} />
               </span>
               <div style={ts.content}>
                 <div style={ts.topRow}>

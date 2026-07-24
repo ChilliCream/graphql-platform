@@ -1,10 +1,10 @@
 "use client";
 
+import type { BlogPostSummary } from "@/src/helpers/blogPosts";
+import { formatDate } from "@/src/helpers/formatDate";
+import { IconElement } from "@/src/icons/IconElement";
 import Link from "next/link";
 import { type MouseEvent, type ReactNode, useState } from "react";
-import { formatDate } from "@/src/helpers/formatDate";
-import type { BlogPostSummary } from "@/src/helpers/blogPosts";
-import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import {
   NAV_ITEMS,
   type NavItem,
@@ -98,7 +98,7 @@ function NavWithSubmenu({
         className="text-cc-heading flex items-center gap-1.5 px-4 text-sm font-medium no-underline"
       >
         {item.label}
-        <ChevronDownIcon className="h-3 w-3 fill-current" />
+        <IconElement icon="chevron-down" widthAuto size="sm" />
       </Link>
 
       <SubmenuPanel
@@ -212,7 +212,8 @@ function SubLinkRow({
   const linkProps = isExternal
     ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
     : {};
-  const Icon = link.icon;
+  // const Icon = link.icon;
+  const { icon } = link;
 
   return (
     <Link
@@ -222,9 +223,9 @@ function SubLinkRow({
       {...linkProps}
       className="group/link text-cc-ink-dim hover:bg-cc-hover flex items-start gap-3 rounded-md px-2 py-2 no-underline transition-colors"
     >
-      {Icon && (
+      {icon && (
         <span className="text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none items-center justify-center transition-colors">
-          <Icon className="h-4 w-4 fill-current" />
+          <SubLinkRowIcon link={link} />
         </span>
       )}
       <div>
@@ -237,6 +238,19 @@ function SubLinkRow({
       </div>
     </Link>
   );
+}
+
+function SubLinkRowIcon({ link }: { link: SubLink }) {
+  const { icon } = link;
+  if (!icon) {
+    return null;
+  }
+  if (typeof icon === "string") {
+    return <IconElement icon={icon} />;
+  }
+
+  const IconComponent = icon;
+  return <IconComponent className="h-4 w-4 fill-current" />;
 }
 
 function LatestBlogPanel({
