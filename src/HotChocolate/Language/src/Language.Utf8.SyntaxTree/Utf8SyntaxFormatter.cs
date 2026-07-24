@@ -41,6 +41,48 @@ internal static class Utf8SyntaxFormatter
         }
 
         var copyStart = start;
+        for (var i = document.FindFirstVariableSite(start); i < siteCount; i++)
+        {
+            var position = document.GetVariableSitePosition(i);
+            if (position >= end)
+            {
+                break;
+            }
+
+            var ordinal = document.GetVariableSiteOrdinal(i);
+            if (variables.TryGetReplacement(ordinal, out var name))
+            {
+                writer.Write(document.GetSource(copyStart, position - copyStart));
+                writer.Write(name.Span);
+                copyStart = position + document.GetVariableName(ordinal).Length;
+            }
+        }
+
+        writer.Write(document.GetSource(copyStart, end - copyStart));
+    }
+
+    /// <summary>
+    /// Writes the source range <c>[start, end)</c>, inserting <paramref name="variablePrefix"/>
+    /// in front of the name token of every variable site whose ordinal is not in
+    /// <paramref name="shared"/>. Shared variables keep their original name, so their bytes stay
+    /// in the verbatim flow.
+    /// </summary>
+    internal static void WriteRange(
+        Utf8OperationDocument document,
+        int start,
+        int end,
+        IBufferWriter<byte> writer,
+        ReadOnlySpan<byte> variablePrefix,
+        SharedOrdinalSet shared)
+    {
+        var siteCount = document.VariableSiteCount;
+        if (siteCount == 0)
+        {
+            writer.Write(document.GetSource(start, end - start));
+            return;
+        }
+
+        var copyStart = start;
         var index = document.FindFirstVariableSite(start);
 
         while (index < siteCount)
@@ -52,11 +94,11 @@ internal static class Utf8SyntaxFormatter
             }
 
             var ordinal = document.GetVariableSiteOrdinal(index);
-            if (variables.TryGetReplacement(ordinal, out var name))
+            if (!shared.Contains(ordinal))
             {
                 writer.Write(document.GetSource(copyStart, position - copyStart));
-                writer.Write(name.Span);
-                copyStart = position + document.GetVariableName(ordinal).Length;
+                writer.Write(variablePrefix);
+                copyStart = position;
             }
 
             index++;

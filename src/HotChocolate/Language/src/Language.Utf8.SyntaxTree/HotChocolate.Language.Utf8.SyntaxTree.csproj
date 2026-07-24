@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Language.Utf8" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Language.Utf8.SyntaxTree.Tests" />
   </ItemGroup>

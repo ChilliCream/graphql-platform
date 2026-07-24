@@ -21,6 +21,11 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
     }
 
     /// <summary>
+    /// Gets the document this field belongs to.
+    /// </summary>
+    internal Utf8OperationDocument Document => _document;
+
+    /// <summary>
     /// Gets the field name.
     /// </summary>
     internal string Name
@@ -129,6 +134,31 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
     {
         CheckValidInstance();
         Utf8SyntaxFormatter.Write(_document, _cursor, writer, variables);
+    }
+
+    /// <summary>
+    /// Writes this field's GraphQL source text to the specified buffer writer, inserting
+    /// <paramref name="variablePrefix"/> in front of every variable name whose ordinal is not in
+    /// <paramref name="shared"/>.
+    /// </summary>
+    /// <param name="writer">
+    /// The buffer writer that receives the UTF-8 encoded output.
+    /// </param>
+    /// <param name="variablePrefix">
+    /// The bytes inserted in front of each renamed variable name.
+    /// </param>
+    /// <param name="shared">
+    /// The ordinals of the variables that keep their original name.
+    /// </param>
+    internal void Format(
+        IBufferWriter<byte> writer,
+        ReadOnlySpan<byte> variablePrefix,
+        SharedOrdinalSet shared)
+    {
+        CheckValidInstance();
+        var row = _document.GetRow(_cursor);
+        Utf8SyntaxFormatter.WriteRange(
+            _document, row.Location, row.SourceEnd, writer, variablePrefix, shared);
     }
 
     private int NameCursor()
