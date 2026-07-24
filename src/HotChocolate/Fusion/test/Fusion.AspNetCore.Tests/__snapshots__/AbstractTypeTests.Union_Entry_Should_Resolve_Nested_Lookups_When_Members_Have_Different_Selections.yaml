@@ -1,0 +1,385 @@
+title: Union_Entry_Should_Resolve_Nested_Lookups_When_Members_Have_Different_Selections
+request:
+  document: |
+    query SearchProduct {
+      searchProduct {
+        ... on ProductSearchResult {
+          product {
+            reviews {
+              author {
+                name
+              }
+            }
+          }
+        }
+        ... on ReviewSearchResult {
+          review {
+            body
+            author {
+              name
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "searchProduct": {
+          "product": {
+            "reviews": [
+              {
+                "author": {
+                  "name": "User: VXNlcjo1"
+                }
+              },
+              {
+                "author": {
+                  "name": "User: VXNlcjo2"
+                }
+              },
+              {
+                "author": {
+                  "name": "User: VXNlcjo3"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: PRODUCTS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        searchProduct: SearchResult
+        productById(id: Int! @is(field: "productId")): Product @lookup @internal
+      }
+
+      type Product implements Node @key(fields: "productId") {
+        productId: Int!
+        id: ID!
+        reviewAudience: String!
+      }
+
+      type ProductSearchResult {
+        product: Product!
+      }
+
+      type Review implements Node @key(fields: "id") {
+        id: ID!
+      }
+
+      type ReviewSearchResult {
+        review: Review!
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      union SearchResult = ProductSearchResult | ReviewSearchResult
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query SearchProduct_8e254f5e_1 {
+              searchProduct {
+                __typename
+                ... on ProductSearchResult {
+                  product {
+                    productId
+                    reviewAudience
+                  }
+                }
+                ... on ReviewSearchResult {
+                  review {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "searchProduct": {
+                    "__typename": "ProductSearchResult",
+                    "product": {
+                      "productId": 123,
+                      "reviewAudience": "Product: UHJvZHVjdDoy"
+                    }
+                  }
+                }
+              }
+  - name: REVIEWS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: Int! @is(field: "productId")): Product @lookup @internal
+        reviewById(id: ID!): Review @lookup @internal
+      }
+
+      type Product @key(fields: "productId") {
+        productId: Int!
+        reviews(audience: String! @require(field: "reviewAudience")): [Review!]
+      }
+
+      type Review implements Node @key(fields: "id") {
+        id: ID!
+        body: String!
+        author: User
+      }
+
+      type User @key(fields: "userId") {
+        userId: ID!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query SearchProduct_8e254f5e_5(
+              $__fusion_4_audience: String!
+              $__fusion_5_id: Int!
+            ) {
+              productById(id: $__fusion_5_id) {
+                reviews(audience: $__fusion_4_audience) {
+                  author {
+                    userId
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_4_audience": "Product: UHJvZHVjdDoy",
+              "__fusion_5_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "author": {
+                          "userId": "VXNlcjo1"
+                        }
+                      },
+                      {
+                        "author": {
+                          "userId": "VXNlcjo2"
+                        }
+                      },
+                      {
+                        "author": {
+                          "userId": "VXNlcjo3"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: USERS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "userId")): User @lookup @internal
+      }
+
+      type User @key(fields: "userId") {
+        userId: ID!
+        name: String
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query SearchProduct_8e254f5e_3($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "VXNlcjo1"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo2"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "name": "User: VXNlcjo1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "name": "User: VXNlcjo2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "name": "User: VXNlcjo3"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query SearchProduct {
+          searchProduct {
+            __typename @fusion__requirement
+            ... on ProductSearchResult {
+              product {
+                reviews {
+                  author {
+                    name
+                    userId @fusion__requirement
+                  }
+                }
+                productId @fusion__requirement
+                reviewAudience @fusion__requirement
+              }
+            }
+            ... on ReviewSearchResult {
+              review {
+                body
+                author {
+                  name
+                  userId @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: SearchProduct
+      hash: 8e254f5eea1e0fc464f9cf28677e9ea1
+      searchSpace: 4
+      expandedNodes: 12
+  nodes:
+    - id: 1
+      type: Operation
+      schema: PRODUCTS
+      operation: |
+        query SearchProduct_8e254f5e_1 {
+          searchProduct {
+            __typename
+            ... on ProductSearchResult {
+              product {
+                productId
+                reviewAudience
+              }
+            }
+            ... on ReviewSearchResult {
+              review {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: REVIEWS
+      operation: |
+        query SearchProduct_8e254f5e_2($__fusion_1_id: ID!) {
+          reviewById(id: $__fusion_1_id) {
+            body
+            author {
+              userId
+            }
+          }
+        }
+      source: $.reviewById
+      target: $.searchProduct<ReviewSearchResult>.review
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 5
+      type: Operation
+      schema: REVIEWS
+      operation: |
+        query SearchProduct_8e254f5e_5(
+          $__fusion_4_audience: String!
+          $__fusion_5_id: Int!
+        ) {
+          productById(id: $__fusion_5_id) {
+            reviews(audience: $__fusion_4_audience) {
+              author {
+                userId
+              }
+            }
+          }
+        }
+      source: $.productById
+      target: $.searchProduct<ProductSearchResult>.product
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_4_audience
+          selectionMap: >-
+            reviewAudience
+        - name: __fusion_5_id
+          selectionMap: >-
+            productId
+      dependencies:
+        - id: 1
+    - id: 3
+      type: OperationBatch
+      schema: USERS
+      operation: |
+        query SearchProduct_8e254f5e_3($__fusion_2_id: ID!) {
+          userById(id: $__fusion_2_id) {
+            name
+          }
+        }
+      source: $.userById
+      targets:
+        - $.searchProduct<ReviewSearchResult>.review.author
+        - $.searchProduct<ProductSearchResult>.product.reviews.author
+      batchingGroupId: 3
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            userId
+      dependencies:
+        - id: 2
+        - id: 5

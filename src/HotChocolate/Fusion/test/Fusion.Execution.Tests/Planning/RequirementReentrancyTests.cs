@@ -264,7 +264,7 @@ public class RequirementReentrancyTests : FusionTestBase
     public void Plan_Should_Resolve_User_When_Node_ConcreteFragment_IsConditional()
     {
         // arrange
-        var schema = CreateNodeEntryWithRequiredFieldSchema();
+        var schema = CreateRequiredFieldSchema();
 
         // act
         var plan = PlanOperation(
@@ -276,6 +276,35 @@ public class RequirementReentrancyTests : FusionTestBase
                   reviews {
                     author {
                       name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_User_When_Union_Entry_Crosses_Required_Field()
+    {
+        // arrange
+        var schema = CreateRequiredFieldSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query SearchProduct {
+              searchProduct {
+                ... on ProductSearchResult {
+                  product {
+                    reviews {
+                      author {
+                        name
+                      }
                     }
                   }
                 }
@@ -379,7 +408,7 @@ public class RequirementReentrancyTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    private static FusionSchemaDefinition CreateNodeEntryWithRequiredFieldSchema()
+    private static FusionSchemaDefinition CreateRequiredFieldSchema()
         => ComposeSchema(
             """
             # name: PRODUCTS
@@ -393,7 +422,14 @@ public class RequirementReentrancyTests : FusionTestBase
 
             type Query {
               node(id: ID!): Node @lookup @shareable
+              searchProduct: SearchResult
               productById(id: Int! @is(field: "productId")): Product @lookup @internal
+            }
+
+            union SearchResult = ProductSearchResult
+
+            type ProductSearchResult {
+              product: Product!
             }
 
             type Product implements Node @key(fields: "productId") {
