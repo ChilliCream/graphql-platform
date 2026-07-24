@@ -121,7 +121,7 @@ public sealed class BatchBufferTests : FusionTestBase
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = "query { field }",
+            OperationSourceText = "query { field }"u8.ToArray(),
             OperationHash = 1,
             Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
         };
@@ -132,14 +132,14 @@ public sealed class BatchBufferTests : FusionTestBase
         return new OperationBatchRequest(
             ImmutableArray.Create<FusionIOperationRequest>(
                 new FusionOperationRequest(
-                    "query { field }",
+                    "query { field }"u8.ToArray(),
                     id: null,
                     operationName: null,
                     onError: null,
                     VariableValues.Empty,
                     JsonSegment.Empty),
                 new FusionOperationRequest(
-                    "query { field }",
+                    "query { field }"u8.ToArray(),
                     id: null,
                     operationName: null,
                     onError: null,
