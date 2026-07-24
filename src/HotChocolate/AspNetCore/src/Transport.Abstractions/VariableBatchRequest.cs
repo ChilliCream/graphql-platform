@@ -24,7 +24,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
     /// </summary>
     /// <param name="query">
-    /// The query document containing the operation to execute.
+    /// The UTF-8 encoded query document containing the operation to execute.
     /// </param>
     /// <param name="id">
     /// The ID of a previously persisted operation that should be executed.
@@ -45,7 +45,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// Thrown if the query, ID, and extensions parameters are all null.
     /// </exception>
     public VariableBatchRequest(
-        string? query,
+        ReadOnlyMemory<byte> query,
         string? id,
         string? operationName,
         ErrorHandlingMode? onError,
@@ -146,10 +146,17 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// </summary>
     public string? Id { get; }
 
+#if FUSION
+    /// <summary>
+    /// Gets the UTF-8 encoded query document containing the operation to execute.
+    /// </summary>
+    public ReadOnlyMemory<byte> Query { get; }
+#else
     /// <summary>
     /// Gets the query string or document containing the operation to execute.
     /// </summary>
     public string? Query { get; }
+#endif
 
     /// <summary>
     /// Gets the name of the operation to execute.
@@ -230,7 +237,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         }
 
         return Id == other.Id
-            && Query == other.Query
+            && Query.Span.SequenceEqual(other.Query.Span)
             && Variables.Equals(other.Variables)
             && Extensions.Equals(other.Extensions);
     }
@@ -241,7 +248,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
 
     /// <inheritdoc/>
     public override int GetHashCode()
-        => HashCode.Combine(Id, Query, Variables, Extensions);
+        => HashCode.Combine(Id, Query.Length, Variables, Extensions);
 #else
     public bool Equals(VariableBatchRequest? other)
     {

@@ -49,13 +49,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="onSourceSchemaResult">
     /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
     /// </param>
-    /// <param name="aliasBatching">
-    /// Selects the alias-batching client, which rewrites each row of a batch into an aliased
-    /// copy of the root selections within a single spec-conformant GraphQL request.
-    /// </param>
-    /// <param name="aliasBatchingCacheCapacity">
-    /// The number of rewritten alias-batched operations cached per source schema.
-    /// </param>
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
@@ -71,9 +64,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
-        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null,
-        bool aliasBatching = false,
-        int aliasBatchingCacheCapacity = 256)
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
         => AddHttpClientConfiguration(
             builder,
             name,
@@ -87,9 +78,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             subscriptionAcceptHeaderValues,
             onBeforeSend,
             onAfterReceive,
-            onSourceSchemaResult,
-            aliasBatching,
-            aliasBatchingCacheCapacity);
+            onSourceSchemaResult);
 
     /// <summary>
     /// Adds an http client configuration to the fusion gateway.
@@ -133,13 +122,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="onSourceSchemaResult">
     /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
     /// </param>
-    /// <param name="aliasBatching">
-    /// Selects the alias-batching client, which rewrites each row of a batch into an aliased
-    /// copy of the root selections within a single spec-conformant GraphQL request.
-    /// </param>
-    /// <param name="aliasBatchingCacheCapacity">
-    /// The number of rewritten alias-batched operations cached per source schema.
-    /// </param>
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
@@ -156,9 +138,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
-        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null,
-        bool aliasBatching = false,
-        int aliasBatchingCacheCapacity = 256)
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(name);
@@ -179,9 +159,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
                 subscriptionAcceptHeaderValues,
                 onBeforeSend,
                 onAfterReceive,
-                onSourceSchemaResult,
-                aliasBatching,
-                aliasBatchingCacheCapacity));
+                onSourceSchemaResult));
     }
 
     /// <summary>

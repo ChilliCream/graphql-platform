@@ -4,7 +4,6 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -76,12 +75,6 @@ public static class HotChocolateFusionServiceCollectionExtensions
     private static void AddSourceSchemaScope(
         IServiceCollection services)
     {
-        // Registered before the default HTTP factory so that alias-batched configurations select
-        // this factory while all other HTTP configurations fall through to the default client.
-        services.AddSingleton<ISourceSchemaClientFactory>(
-            static sp => new AliasBatchingHttpSourceSchemaClientFactory(
-                sp.GetRequiredService<IHttpClientFactory>()));
-
         services.AddSingleton<ISourceSchemaClientFactory>(
             static sp => new HttpSourceSchemaClientFactory(
                 sp.GetRequiredService<IHttpClientFactory>()));

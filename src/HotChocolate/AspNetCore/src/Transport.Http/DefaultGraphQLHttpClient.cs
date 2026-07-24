@@ -443,11 +443,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(Uri.EscapeDataString(or.Id));
         }
 
-        if (!string.IsNullOrWhiteSpace(or.Query))
+        if (!or.Query.IsEmpty)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(or.Query));
+            sb.Append(Uri.EscapeDataString(Encoding.UTF8.GetString(or.Query.Span)));
         }
 
         if (!string.IsNullOrWhiteSpace(or.OperationName))
