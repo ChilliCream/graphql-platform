@@ -72,26 +72,141 @@ public sealed partial class OperationCompiler
             if (schema.DirectiveTypes.TryGetDirective(directiveNode.Name.Value, out var directiveType)
                 && directiveType.Middleware is not null)
             {
-                Directive directive;
-                try
-                {
-                    directive = new Directive(
-                        directiveType,
-                        directiveNode,
-                        directiveType.Parse(directiveNode));
-                }
-                catch (LeafCoercionException ex)
-                {
-                    throw new LeafCoercionException(
-                        ErrorBuilder.FromError(ex.Errors[0])
-                            .TryAddLocation(directiveNode)
-                            .Build(),
-                        ex.Type);
-                }
-
                 var directiveMiddleware = directiveType.Middleware;
-                pipelineComponents.Add(next => directiveMiddleware(next, directive));
+
+                if (ContainsVariable(directiveNode))
+                {
+                    pipelineComponents.Add(
+                        next => context =>
+                        {
+                            var rewrittenDirectiveNode =
+                                RewriteDirectiveNode(directiveType, directiveNode, context.Variables);
+
+                            var directive = CreateDirective(
+                                directiveType,
+                                rewrittenDirectiveNode,
+                                directiveNode);
+
+                            return directiveMiddleware(next, directive)(context);
+                        });
+                }
+                else
+                {
+                    var directive = CreateDirective(directiveType, directiveNode);
+                    pipelineComponents.Add(next => directiveMiddleware(next, directive));
+                }
             }
         }
+    }
+
+    private static Directive CreateDirective(
+        DirectiveType directiveType,
+        DirectiveNode directiveNode,
+        DirectiveNode? errorLocationNode = null)
+    {
+        try
+        {
+            return new Directive(
+                directiveType,
+                directiveNode,
+                directiveType.Parse(directiveNode));
+        }
+        catch (LeafCoercionException ex)
+        {
+            throw new LeafCoercionException(
+                ErrorBuilder.FromError(ex.Errors[0])
+                    .TryAddLocation(errorLocationNode ?? directiveNode)
+                    .Build(),
+                ex.Type);
+        }
+    }
+
+    private static DirectiveNode RewriteDirectiveNode(
+        DirectiveType directiveType,
+        DirectiveNode directiveNode,
+        IVariableValueCollection variableValues)
+    {
+        if (directiveNode.Arguments.Count == 0)
+        {
+            return directiveNode;
+        }
+
+        var hasChanges = false;
+        var rewrittenArguments = new ArgumentNode[directiveNode.Arguments.Count];
+
+        for (var i = 0; i < directiveNode.Arguments.Count; i++)
+        {
+            var argumentNode = directiveNode.Arguments[i];
+            var rewrittenValue = argumentNode.Value;
+
+            if (directiveType.Arguments.TryGetField(argumentNode.Name.Value, out var argument))
+            {
+                rewrittenValue = VariableRewriter.Rewrite(
+                    argumentNode.Value,
+                    argument.Type,
+                    argument.DefaultValue,
+                    variableValues);
+            }
+
+            if (!ReferenceEquals(rewrittenValue, argumentNode.Value))
+            {
+                rewrittenArguments[i] = argumentNode.WithValue(rewrittenValue);
+                hasChanges = true;
+            }
+            else
+            {
+                rewrittenArguments[i] = argumentNode;
+            }
+        }
+
+        return hasChanges
+            ? directiveNode.WithArguments(rewrittenArguments)
+            : directiveNode;
+    }
+
+    private static bool ContainsVariable(DirectiveNode directiveNode)
+    {
+        for (var i = 0; i < directiveNode.Arguments.Count; i++)
+        {
+            if (ContainsVariable(directiveNode.Arguments[i].Value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsVariable(IValueNode value)
+    {
+        switch (value.Kind)
+        {
+            case SyntaxKind.Variable:
+                return true;
+
+            case SyntaxKind.ListValue:
+                var list = (ListValueNode)value;
+                for (var i = 0; i < list.Items.Count; i++)
+                {
+                    if (ContainsVariable(list.Items[i]))
+                    {
+                        return true;
+                    }
+                }
+                break;
+
+            case SyntaxKind.ObjectValue:
+                var obj = (ObjectValueNode)value;
+                for (var i = 0; i < obj.Fields.Count; i++)
+                {
+                    if (ContainsVariable(obj.Fields[i].Value))
+                    {
+                        return true;
+                    }
+                }
+                break;
+        }
+
+        return false;
     }
 }
