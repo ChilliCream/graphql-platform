@@ -1,13 +1,13 @@
 import Link from "next/link";
 
-import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { PageSection } from "@/src/components/PageSection";
-import { CoffeeTray } from "@/src/icons/CoffeeTray";
-import { Fusion } from "@/src/icons/Fusion";
-import { HotChocolate } from "@/src/icons/HotChocolate";
-import { Mocha } from "@/src/icons/Mocha";
-import { Nitro } from "@/src/icons/Nitro";
-import { StrawberryShake } from "@/src/icons/StrawberryShake";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { Fusion } from "@/src/icons/chillicream/Fusion";
+import { HotChocolate } from "@/src/icons/chillicream/HotChocolate";
+import { Mocha } from "@/src/icons/chillicream/Mocha";
+import { Nitro } from "@/src/icons/chillicream/Nitro";
+import { StrawberryShake } from "@/src/icons/chillicream/StrawberryShake";
+import { CoffeeTray } from "@/src/illustrations/CoffeeTray";
 
 import { DrinkIcon } from "./DrinkIcon";
 

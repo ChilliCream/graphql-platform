@@ -15,7 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { SearchIcon } from "@/src/icons/Search";
+import { Icon } from "../icons/Icon";
 
 // The DocSearch modal (and its ~120 KB of JS plus CSS) is code-split into its
 // own chunk and loaded on demand, so it stays out of every page's first load.
@@ -138,7 +138,7 @@ export function Search({
         }
         className={className}
       >
-        <SearchIcon className="h-5 w-5 fill-current" aria-hidden="true" />
+        <Icon icon="magnifying-glass" size="lg" />
       </button>
       {IS_CONFIGURED &&
       open &&

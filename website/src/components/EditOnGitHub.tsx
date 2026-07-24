@@ -1,4 +1,4 @@
-import { GitHubIcon } from "@/src/icons/GitHub";
+import { GitHubIcon } from "@/src/icons/brands/GitHub";
 
 type EditOnGitHubProps = {
   /** URL to the source file on github.com (web-edit view). */

@@ -1,17 +1,8 @@
-import type { ComponentType } from "react";
-
 import { PageSection } from "@/src/components/PageSection";
-import { BrowserIcon } from "@/src/icons/BrowserIcon";
-import { HandshakeIcon } from "@/src/icons/HandshakeIcon";
-import { PhoneIcon } from "@/src/icons/PhoneIcon";
-import { RobotIcon } from "@/src/icons/RobotIcon";
-
-interface IconProps {
-  readonly className?: string;
-}
+import { Icon, IconName } from "@/src/icons/Icon";
 
 interface Protocol {
-  readonly Icon: ComponentType<IconProps>;
+  readonly icon: IconName;
   readonly title: string;
   readonly subtitle: string;
   readonly tags: readonly string[];
@@ -21,25 +12,25 @@ const CHIPS = ["gRPC", "GraphQL", "OpenAPI", "MCP"] as const;
 
 const PROTOCOLS: readonly Protocol[] = [
   {
-    Icon: BrowserIcon,
+    icon: "window-maximize",
     title: "Web",
     subtitle: "SPA / MPA",
     tags: ["GraphQL"],
   },
   {
-    Icon: PhoneIcon,
+    icon: "mobile-screen",
     title: "Mobile",
     subtitle: "Android / iOS",
     tags: ["GraphQL"],
   },
   {
-    Icon: RobotIcon,
+    icon: "robot",
     title: "AI Agents",
     subtitle: "MCP Tools",
     tags: ["GraphQL", "MCP"],
   },
   {
-    Icon: HandshakeIcon,
+    icon: "handshake",
     title: "Partners",
     subtitle: "Federated API",
     tags: ["OpenAPI", "gRPC"],
@@ -165,10 +156,10 @@ export function ProtocolCards() {
         </div>
 
         <div className="relative grid grid-cols-2 gap-x-6 gap-y-12 sm:gap-x-10 md:grid-cols-4">
-          {PROTOCOLS.map(({ Icon, title, subtitle, tags }) => (
+          {PROTOCOLS.map(({ icon, title, subtitle, tags }) => (
             <div key={title} className="flex flex-col items-center text-center">
               <div className="border-cc-card-border bg-cc-card-bg flex size-20 items-center justify-center rounded-2xl border">
-                <Icon className="text-cc-nav-text size-11" />
+                <Icon className="text-cc-nav-text size-11" icon={icon} />
               </div>
               <h3 className="font-heading text-cc-heading mt-5 text-xl font-semibold">
                 {title}

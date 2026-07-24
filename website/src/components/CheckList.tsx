@@ -1,5 +1,5 @@
-import { CheckIcon } from "@/src/components/CheckIcon";
 import { CheckListItem } from "@/src/components/CheckListItem";
+import { Icon } from "../icons/Icon";
 
 type CheckListVariant = "plain" | "pill";
 
@@ -44,8 +44,8 @@ export function CheckList({
     >
       {items.map((item) => (
         <li key={item} className="flex items-start gap-2">
-          <span className="text-cc-accent mt-1 flex-none">
-            <CheckIcon />
+          <span className="text-cc-accent mt-0.5 inline-flex">
+            <Icon icon="check" size="sm" />
           </span>
           <span>{item}</span>
         </li>

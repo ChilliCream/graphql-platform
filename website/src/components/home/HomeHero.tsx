@@ -9,7 +9,7 @@ import {
   HERO_SWIRLS_MOBILE,
 } from "@/src/components/home/heroArtwork";
 import { PageSection } from "@/src/components/PageSection";
-import { Swirl } from "@/src/icons/Swirl";
+import { Swirl } from "@/src/illustrations/Swirl";
 
 function position(
   left: string,

@@ -8,8 +8,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { ChevronDownIcon } from "@/src/icons/ChevronDown";
-import { XmarkIcon } from "@/src/icons/Xmark";
+import { Icon } from "../icons/Icon";
 
 interface PhotoLightboxImage {
   readonly src: string;
@@ -124,7 +123,7 @@ export function PhotoLightbox({
             autoFocus
             className={`${LIGHTBOX_BUTTON_CLASS} top-3 right-3 sm:top-5 sm:right-5`}
           >
-            <XmarkIcon className="h-5 w-5 fill-current" aria-hidden="true" />
+            <Icon icon="x" />
           </button>
 
           {hasMultiple ? (
@@ -137,10 +136,7 @@ export function PhotoLightbox({
               }}
               className={`${LIGHTBOX_BUTTON_CLASS} top-1/2 left-2 -translate-y-1/2 sm:left-5`}
             >
-              <ChevronDownIcon
-                className="h-5 w-5 rotate-90 fill-current"
-                aria-hidden="true"
-              />
+              <Icon icon="chevron-down" size="lg" className="rotate-90" />
             </button>
           ) : null}
 
@@ -162,10 +158,7 @@ export function PhotoLightbox({
               }}
               className={`${LIGHTBOX_BUTTON_CLASS} top-1/2 right-2 -translate-y-1/2 sm:right-5`}
             >
-              <ChevronDownIcon
-                className="h-5 w-5 -rotate-90 fill-current"
-                aria-hidden="true"
-              />
+              <Icon icon="chevron-down" size="lg" className="-rotate-90" />
             </button>
           ) : null}
 

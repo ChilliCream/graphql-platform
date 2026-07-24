@@ -1,6 +1,6 @@
 import { CheckList } from "@/src/components/CheckList";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
-import { SlackIcon } from "@/src/icons/Slack";
+import { SlackIcon } from "@/src/icons/brands/Slack";
 
 const POINTS = [
   "A reply within one business day",

@@ -5,11 +5,7 @@ import { CardGrid } from "@/src/components/CardGrid";
 import { GITHUB, SLACK, YOUTUBE } from "@/src/components/help/helpLinks";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { ArticleIcon } from "@/src/icons/Article";
-import { BranchIcon } from "@/src/icons/BranchIcon";
-import { ChatIcon } from "@/src/icons/ChatIcon";
-import { DocsIcon } from "@/src/icons/Docs";
-import { PlayIcon } from "@/src/icons/Play";
+import { Icon } from "@/src/icons/Icon";
 
 interface Channel {
   readonly title: string;
@@ -25,35 +21,35 @@ const CHANNELS: readonly Channel[] = [
     copy: "Guides, recipes, and the full Hot Chocolate and Fusion reference.",
     href: "/docs",
     external: false,
-    icon: <DocsIcon />,
+    icon: <Icon icon="file-lines" size="lg" />,
   },
   {
     title: "Blog",
     copy: "Release notes, deep dives, and patterns from the team.",
     href: "/blog",
     external: false,
-    icon: <ArticleIcon />,
+    icon: <Icon icon="newspaper" size="lg" />,
   },
   {
     title: "Slack",
     copy: "Live conversation with maintainers and 7000+ developers.",
     href: SLACK,
     external: true,
-    icon: <ChatIcon />,
+    icon: <Icon icon="message" size="lg" />,
   },
   {
     title: "YouTube",
     copy: "Workshops, talks, and walkthroughs from the ChilliCream team.",
     href: YOUTUBE,
     external: true,
-    icon: <PlayIcon />,
+    icon: <Icon icon="circle-play" size="lg" />,
   },
   {
     title: "GitHub",
     copy: "Source, issues, and discussions for graphql-platform.",
     href: GITHUB,
     external: true,
-    icon: <BranchIcon />,
+    icon: <Icon icon="code-branch" size="lg" />,
   },
 ];
 

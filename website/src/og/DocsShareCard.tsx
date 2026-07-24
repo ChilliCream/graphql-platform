@@ -1,4 +1,4 @@
-import { Swirl } from "@/src/icons/Swirl";
+import { Swirl } from "@/src/illustrations/Swirl";
 import { PRODUCT_DRINKS } from "@/src/og/productDrinks";
 import { ccAccent, ccBg, ccDarkSurface, ccInk } from "@/src/theme/colors";
 

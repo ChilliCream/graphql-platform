@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { CheckIcon } from "./CheckIcon";
+import { Icon } from "../icons/Icon";
 import { IconFeatureCard } from "./IconFeatureCard";
 
 const meta = {
@@ -32,7 +32,7 @@ const meta = {
       </div>
     ),
   ],
-  args: { icon: <CheckIcon size={16} />, title: "", copy: "" },
+  args: { icon: <Icon icon="check" />, title: "", copy: "" },
 } satisfies Meta<typeof IconFeatureCard>;
 
 export default meta;

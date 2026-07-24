@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { CheckIcon } from "./CheckIcon";
 import { PerkCard } from "./PerkCard";
 
 const meta = {
@@ -21,7 +20,6 @@ const meta = {
     highlight: { control: "boolean" },
     highlightLabel: { control: "text" },
     cta: { control: "object" },
-    Icon: { control: false },
   },
   args: {
     title: "Beginner team",
@@ -97,7 +95,7 @@ export const CoralWithIcon: Story = {
       "Operational guardrails and observability",
     ],
     accent: "coral",
-    Icon: () => <CheckIcon size={28} />,
+    icon: "check",
   },
 };
 

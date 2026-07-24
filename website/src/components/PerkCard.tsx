@@ -1,9 +1,8 @@
-import type { ReactElement } from "react";
-
 import { CheckListItem } from "@/src/components/CheckListItem";
 import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { Icon, IconName } from "@/src/icons/Icon";
 
 type PerkAccent = "accent" | "violet" | "coral";
 
@@ -25,7 +24,7 @@ interface PerkCardProps {
   /** Mono label above the perk list (e.g. "What we cover"). */
   readonly listLabel?: string;
   /** Optional illustration in the top-right of the card. */
-  readonly Icon?: () => ReactElement;
+  readonly icon?: IconName;
   /** Tints the tag, icon, and perk checks. Defaults to the brand accent. */
   readonly accent?: PerkAccent;
   readonly cta?: {
@@ -54,7 +53,7 @@ export function PerkCard({
   subtitle,
   intro,
   listLabel,
-  Icon,
+  icon,
   accent = "accent",
   cta,
   highlight = false,
@@ -96,9 +95,9 @@ export function PerkCard({
             </p>
           )}
         </div>
-        {Icon && (
+        {icon && (
           <span className={`flex-none ${accentText}`}>
-            <Icon />
+            <Icon icon={icon} />
           </span>
         )}
       </div>

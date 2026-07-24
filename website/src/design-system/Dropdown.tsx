@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useId, type ComponentProps, type ReactNode } from "react";
-import { ChevronDownIcon } from "@/src/icons/ChevronDown";
+import { Icon } from "../icons/Icon";
 import { DropdownAutoClose } from "./DropdownAutoClose";
 
 type DropdownProps = {
@@ -47,8 +47,8 @@ export function Dropdown({
           ].join(" ")}
         >
           <span className="min-w-0 flex-1">{trigger}</span>
-          <ChevronDownIcon
-            aria-hidden="true"
+          <Icon
+            icon="chevron-down"
             className="text-cc-ink-dim group-open:text-cc-accent h-3 w-3 flex-none fill-current transition-transform duration-200 group-open:rotate-180"
           />
         </summary>

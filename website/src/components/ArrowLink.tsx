@@ -1,7 +1,7 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import NextLink from "next/link";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-import { ArrowRightIcon } from "@/src/icons/ArrowRight";
+import { Icon } from "../icons/Icon";
 
 interface ArrowLinkProps extends Omit<ComponentPropsWithoutRef<"a">, "href"> {
   readonly href: string;
@@ -24,7 +24,7 @@ export function ArrowLink({
   const content = (
     <>
       {children}
-      <ArrowRightIcon className="size-3.5" />
+      <Icon icon="arrow-right" size="sm" />
     </>
   );
 

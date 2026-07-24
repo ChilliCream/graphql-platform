@@ -3,28 +3,31 @@ import { CardGrid } from "@/src/components/CardGrid";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { MarketingHero } from "@/src/components/MarketingHero";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
-import { CalendarIcon } from "@/src/icons/CalendarIcon";
-import { CallIcon } from "@/src/icons/CallIcon";
-import { ChannelIcon } from "@/src/icons/ChannelIcon";
+import { Icon, IconName } from "@/src/icons/Icon";
 
-const SCENARIOS = [
+const SCENARIOS: {
+  label: string;
+  title: string;
+  copy: string;
+  icon: IconName;
+}[] = [
   {
     label: "A quick question",
     title: "Message us, hear back in minutes",
     copy: "You hit an exception you've never seen before. Instead of debugging for hours, you send us a message and get an answer in no time.",
-    Icon: ChannelIcon,
+    icon: "comments",
   },
   {
     label: "Production is down",
     title: "We get on a call until you're back",
     copy: "Something critical breaks. You email us and open a ticket, and a core team member jumps on a call, staying with you until production is running again.",
-    Icon: CallIcon,
+    icon: "headset",
   },
   {
     label: "A second opinion",
     title: "Book time with the team",
     copy: "Planning a migration or reviewing a schema? Schedule a session and we'll work through it together, live, with the people who build the platform.",
-    Icon: CalendarIcon,
+    icon: "calendar-day",
   },
 ];
 
@@ -59,7 +62,7 @@ export function SupportHero() {
             <IconFeatureCard
               key={scenario.label}
               eyebrow={scenario.label}
-              icon={<scenario.Icon />}
+              icon={<Icon icon={scenario.icon} size="2xl" />}
               title={scenario.title}
               copy={scenario.copy}
               size="lg"

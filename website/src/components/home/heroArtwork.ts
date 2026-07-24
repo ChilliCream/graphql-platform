@@ -1,13 +1,13 @@
 import type { ComponentType, CSSProperties } from "react";
 
-import { CookieCrumble } from "@/src/icons/CookieCrumble";
-import { Espresso } from "@/src/icons/Espresso";
-import { Fusion } from "@/src/icons/Fusion";
-import { GreenDonut } from "@/src/icons/GreenDonut";
-import { HotChocolate } from "@/src/icons/HotChocolate";
-import { Mocha } from "@/src/icons/Mocha";
-import { Nitro } from "@/src/icons/Nitro";
-import { StrawberryShake } from "@/src/icons/StrawberryShake";
+import { Fusion } from "@/src/icons/chillicream/Fusion";
+import { GreenDonut } from "@/src/icons/chillicream/GreenDonut";
+import { HotChocolate } from "@/src/icons/chillicream/HotChocolate";
+import { Mocha } from "@/src/icons/chillicream/Mocha";
+import { Nitro } from "@/src/icons/chillicream/Nitro";
+import { StrawberryShake } from "@/src/icons/chillicream/StrawberryShake";
+import { CookieCrumble } from "@/src/illustrations/CookieCrumble";
+import { Espresso } from "@/src/illustrations/Espresso";
 
 /**
  * Single source of truth for the landing hero artwork: the scattered product

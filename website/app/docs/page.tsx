@@ -1,14 +1,14 @@
-import type { ComponentType } from "react";
-import { PRODUCTS } from "@/src/data/products";
 import { LinkCard } from "@/src/components/LinkCard";
+import { PRODUCTS } from "@/src/data/products";
 import { Typography } from "@/src/design-system/Typography";
-import { Fusion } from "@/src/icons/Fusion";
-import { HotChocolate } from "@/src/icons/HotChocolate";
-import { Mocha } from "@/src/icons/Mocha";
-import { Nitro } from "@/src/icons/Nitro";
-import { Skillz } from "@/src/icons/Skillz";
-import { StrawberryShake } from "@/src/icons/StrawberryShake";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { Fusion } from "@/src/icons/chillicream/Fusion";
+import { HotChocolate } from "@/src/icons/chillicream/HotChocolate";
+import { Mocha } from "@/src/icons/chillicream/Mocha";
+import { Nitro } from "@/src/icons/chillicream/Nitro";
+import { Skillz } from "@/src/icons/chillicream/Skillz";
+import { StrawberryShake } from "@/src/icons/chillicream/StrawberryShake";
+import type { ComponentType } from "react";
 
 export const metadata = pageMetadata({
   title: "Documentation",

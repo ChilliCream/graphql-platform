@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { OutlineButton, SolidButton } from "../design-system/Button";
+import { Icon } from "../icons/Icon";
 import { ButtonRow } from "./ButtonRow";
-import { CheckIcon } from "./CheckIcon";
 import { IconFeatureCard } from "./IconFeatureCard";
 import { MarketingHero } from "./MarketingHero";
 
@@ -67,7 +67,7 @@ export const WithCardGrid: Story = {
               key={label}
               eyebrow={label}
               size="lg"
-              icon={<CheckIcon size={20} />}
+              icon={<Icon icon="check" />}
               title="We respond fast"
               copy="A core team member jumps in and stays with you until it is resolved."
             />
