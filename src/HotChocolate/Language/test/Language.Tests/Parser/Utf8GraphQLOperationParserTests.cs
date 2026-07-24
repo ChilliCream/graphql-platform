@@ -196,7 +196,7 @@ public class Utf8GraphQLOperationParserTests
 
         // act
         var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(source));
-        var arrayFields = typeof(Utf8OperationDocumentNode)
+        var arrayFields = typeof(Utf8OperationDocument)
             .GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .Where(t => t.FieldType.IsArray)
             .Select(t => t.FieldType)
@@ -204,7 +204,7 @@ public class Utf8GraphQLOperationParserTests
 
         // assert
         Assert.Equal(Encoding.UTF8.GetByteCount(source), document.SourceLength);
-        Assert.Equal(10 * Utf8OperationDocumentNode.DbRow.Size, document.MetadataLength);
+        Assert.Equal(15 * Utf8OperationDocument.DbRow.Size, document.MetadataLength);
         Assert.Equal([typeof(byte[])], arrayFields);
     }
 
@@ -356,8 +356,9 @@ public class Utf8GraphQLOperationParserTests
         string value)
     {
         // act
+        // rows: [OperationQuery][Name Q][VariableDefinition][Name value]...
         var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(source));
-        var variable = document.GetRow(1);
+        var variable = document.GetRow(2);
 
         // assert
         Assert.Equal(source.IndexOf(value, StringComparison.Ordinal) + value.Length, variable.SourceEnd);
@@ -462,8 +463,8 @@ public class Utf8GraphQLOperationParserTests
     }
 
     [Theory]
-    [InlineData(0, Utf8OperationDocumentNode.DbRow.Size)]
-    [InlineData(2_147_483_600, 2_147_483_616)]
+    [InlineData(0, Utf8OperationDocument.DbRow.Size)]
+    [InlineData(2_147_483_600, 2_147_483_612)]
     public void GetNextMetadataLength_Should_AdvanceOneRow_When_LengthIsWithinLimit(
         int length,
         int expected)
@@ -477,7 +478,7 @@ public class Utf8GraphQLOperationParserTests
 
     [Theory]
     [InlineData(-1)]
-    [InlineData(2_147_483_632)]
+    [InlineData(2_147_483_637)]
     [InlineData(int.MaxValue)]
     public void GetNextMetadataLength_Should_Throw_When_NextRowWouldOverflow(int length)
     {
@@ -559,106 +560,64 @@ public class Utf8GraphQLOperationParserTests
     }
 
     [Fact]
-    public void GetName_Should_StopAtBufferEnd_When_LastByteIsNameCharacter()
+    public void DbRow_Should_PreserveValues_When_KindSetsSignBit()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("a1_Z");
-        var document = new Utf8OperationDocumentNode(
-            new ReadOnlyMemorySegment(source),
-            Utf8OperationDocumentNode.MetaDb.Create([], 0, pooled: false));
-
-        // act
-        var whole = document.GetName(0);
-        var suffix = document.GetName(2);
-
-        // assert
-        Assert.Equal("a1_Z", Encoding.UTF8.GetString(whole));
-        Assert.Equal("_Z", Encoding.UTF8.GetString(suffix));
-    }
-
-    [Fact]
-    public void DbRow_Should_PreserveFields_When_KindOccupiesSignBit()
-    {
-        // arrange
-        var row = new Utf8OperationDocumentNode.DbRow(
-            Utf8SyntaxKind.TypeCondition,
-            sourceStart: 7,
-            sourceEnd: 11,
-            nameStart: 7,
-            subtreeLength: 1,
-            hasName: true);
+        // FragmentSpread (8) sets the top bit of the kind nybble, locking the unsigned-shift read.
+        var row = new Utf8OperationDocument.DbRow(
+            Utf8SyntaxKind.FragmentSpread,
+            location: 7,
+            sizeOrLength: 4,
+            numberOfRows: 2);
 
         // act
         var result = RoundTrip(row);
 
         // assert
-        Assert.Equal(Utf8SyntaxKind.TypeCondition, result.Kind);
-        Assert.Equal(7, result.SourceStart);
+        Assert.Equal(Utf8SyntaxKind.FragmentSpread, result.Kind);
+        Assert.Equal(7, result.Location);
         Assert.Equal(11, result.SourceEnd);
-        Assert.True(result.HasName);
+        Assert.Equal(2, result.NumberOfRows);
     }
 
     [Fact]
-    public void DbRow_Should_PreserveFlags_When_HasAliasOccupiesSignBit()
+    public void DbRow_Should_PreserveValues_When_KindIsNameLeaf()
     {
         // arrange
-        var row = new Utf8OperationDocumentNode.DbRow(
-            Utf8SyntaxKind.Field,
-            sourceStart: 3,
-            sourceEnd: 9,
-            nameStart: 5,
-            subtreeLength: 1,
-            hasAlias: true);
+        // Name (11) also sets the top bit of the kind nybble.
+        var row = new Utf8OperationDocument.DbRow(
+            Utf8SyntaxKind.Name,
+            location: 3,
+            sizeOrLength: 5,
+            numberOfRows: 1);
 
         // act
         var result = RoundTrip(row);
 
         // assert
-        Assert.Equal(Utf8SyntaxKind.Field, result.Kind);
-        Assert.True(result.HasAlias);
-        Assert.False(result.HasName);
-        Assert.Equal(5, result.NameStart);
+        Assert.Equal(Utf8SyntaxKind.Name, result.Kind);
+        Assert.Equal(3, result.Location);
+        Assert.Equal(5, result.SizeOrLength);
+        Assert.Equal(1, result.NumberOfRows);
     }
 
     [Fact]
-    public void DbRow_Should_PreserveValues_When_OffsetsAreMax28Bit()
+    public void DbRow_Should_PreserveValues_When_LocationAndLengthAreMaxInt()
     {
         // arrange
-        const int max = 0x0FFFFFFF;
-        var row = new Utf8OperationDocumentNode.DbRow(
-            Utf8SyntaxKind.OperationDefinition,
-            sourceStart: max,
-            sourceEnd: max,
-            nameStart: max,
-            subtreeLength: max,
-            operationType: OperationType.Subscription,
-            hasName: true);
+        var row = new Utf8OperationDocument.DbRow(
+            Utf8SyntaxKind.SelectionSet,
+            location: int.MaxValue,
+            sizeOrLength: int.MaxValue,
+            numberOfRows: 0x0FFFFFFF);
 
         // act
         var result = RoundTrip(row);
 
         // assert
-        Assert.Equal(max, result.SourceStart);
-        Assert.Equal(max, result.SourceEnd);
-        Assert.Equal(max, result.SubtreeLength);
-        Assert.Equal(OperationType.Subscription, result.OperationType);
-        Assert.True(result.HasName);
-    }
-
-    [Fact]
-    public void EnsureSourceWithinLimit_Should_Throw_When_LengthExceedsMaximum()
-    {
-        // act
-        var atLimit = Record.Exception(
-            () => Utf8GraphQLOperationParser.EnsureSourceWithinLimit(
-                Utf8OperationDocumentNode.DbRow.MaxSourceLength));
-        var overLimit = Record.Exception(
-            () => Utf8GraphQLOperationParser.EnsureSourceWithinLimit(
-                Utf8OperationDocumentNode.DbRow.MaxSourceLength + 1));
-
-        // assert
-        Assert.Null(atLimit);
-        Assert.IsType<ArgumentException>(overLimit);
+        Assert.Equal(int.MaxValue, result.Location);
+        Assert.Equal(int.MaxValue, result.SizeOrLength);
+        Assert.Equal(0x0FFFFFFF, result.NumberOfRows);
     }
 
     [Fact]
@@ -766,11 +725,247 @@ public class Utf8GraphQLOperationParserTests
         Assert.IsType<ArgumentException>(exception);
     }
 
-    private static Utf8OperationDocumentNode.DbRow RoundTrip(Utf8OperationDocumentNode.DbRow row)
+    [Fact]
+    public void Parse_Should_RecordVariableSites_When_VariablesAppearInArgumentsAndDirectives()
     {
-        Span<byte> buffer = stackalloc byte[Utf8OperationDocumentNode.DbRow.Size];
+        // arrange
+        const string source =
+            "query Foo($a: Int! = 1 @x(y: 2)) "
+            + "{ field(a: $a, w: { inner: [$a, $b] }) @dir(if: $b) { child(c: $a) } }";
+        var sourceBytes = Encoding.UTF8.GetBytes(source);
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(sourceBytes);
+        var sites = DescribeSites(document, sourceBytes);
+
+        // assert
+        Assert.Equal(2, document.VariableCount);
+        sites.MatchInlineSnapshot(
+            """
+            0 @11 'a'
+            0 @45 'a'
+            0 @62 'a'
+            1 @66 'b'
+            1 @82 'b'
+            0 @97 'a'
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_ShareOrdinal_When_TwoOperationsUseSameVariableName()
+    {
+        // arrange
+        const string source = "query A($a: Int) { f(x: $a) } query B($a: Int) { g(y: $a) }";
+        var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(source));
+
+        // act
+        var ordinals = new int[document.VariableSiteCount];
+        for (var i = 0; i < ordinals.Length; i++)
+        {
+            ordinals[i] = document.GetVariableSiteOrdinal(i);
+        }
+
+        // assert
+        Assert.Equal(1, document.VariableCount);
+        Assert.Equal([0, 0, 0, 0], ordinals);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnEmptyTable_When_DocumentHasNoVariables()
+    {
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(
+            Encoding.UTF8.GetBytes("query Q { field { child } }"));
+
+        // assert
+        Assert.Equal(0, document.VariableSiteCount);
+        Assert.Equal(0, document.VariableCount);
+    }
+
+    [Fact]
+    public void Parse_Should_RecordDefinitionSite_When_TriviaSeparatesDollarAndName()
+    {
+        // arrange
+        const string source = "query ($ #c\n a: Int) { f(x: $a) }";
+        var sourceBytes = Encoding.UTF8.GetBytes(source);
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(sourceBytes);
+        var definitionSite = document.GetVariableSitePosition(0);
+
+        // assert
+        Assert.Equal((byte)'a', sourceBytes[definitionSite]);
+        Assert.Equal(source.IndexOf("a: Int", StringComparison.Ordinal), definitionSite);
+    }
+
+    [Fact]
+    public void Parse_Should_RecordFragmentVariableSites_When_FragmentVariablesAllowed()
+    {
+        // arrange
+        const string source = "fragment F($a: Int) on Item { f(x: $a) }";
+        var sourceBytes = Encoding.UTF8.GetBytes(source);
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(
+            sourceBytes,
+            new ParserOptions(allowFragmentVariables: true));
+
+        // assert
+        Assert.Equal(1, document.VariableCount);
+        Assert.Equal("a", Encoding.UTF8.GetString(document.GetVariableName(0)));
+        Assert.Equal(2, document.VariableSiteCount);
+    }
+
+    [Fact]
+    public void Dispose_Should_BlockVariableTableAccess_When_MetaDbIsPooled()
+    {
+        // arrange
+        var document = Utf8GraphQLOperationParser.Parse(
+            new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes("query Q($a: Int) { f(x: $a) }")),
+            pooledMetaDb: true);
+        document.Dispose();
+
+        // act
+        var exception = Record.Exception(() => document.GetVariableSitePosition(0));
+
+        // assert
+        Assert.IsType<ObjectDisposedException>(exception);
+    }
+
+    [Fact]
+    public void ParseOperationDocument_Should_EmitAliasThenName_When_FieldIsAliased()
+    {
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes("{ hero: name }"));
+
+        // assert
+        DescribeRows(document).MatchInlineSnapshot(
+            """
+            OperationQuery (5)
+            SelectionSet (4)
+            Field (3)
+            Alias 'hero'
+            Name 'name'
+            """);
+    }
+
+    [Fact]
+    public void ParseOperationDocument_Should_OrderRows_When_FragmentDeclaresVariables()
+    {
+        // arrange
+        const string source = "fragment F($a: Int, $b: String) on Item { id }";
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(
+            Encoding.UTF8.GetBytes(source),
+            new ParserOptions(allowFragmentVariables: true));
+
+        // assert
+        DescribeRows(document).MatchInlineSnapshot(
+            """
+            FragmentDefinition (10)
+            Name 'F'
+            VariableDefinition (2)
+            Name 'a'
+            VariableDefinition (2)
+            Name 'b'
+            TypeCondition 'Item'
+            SelectionSet (3)
+            Field (2)
+            Name 'id'
+            """);
+    }
+
+    [Fact]
+    public void ParseOperationDocument_Should_DiscoverNamePresence_When_NamedVsShorthand()
+    {
+        // act
+        var named = First(
+            Utf8GraphQLOperationParser.Parse(
+                Encoding.UTF8.GetBytes("query Q { field }")).GetOperations());
+        var shorthand = First(
+            Utf8GraphQLOperationParser.Parse(
+                Encoding.UTF8.GetBytes("{ field }")).GetOperations());
+
+        // assert
+        Assert.True(named.HasName);
+        Assert.Equal("Q", Encoding.UTF8.GetString(named.Utf8Name));
+        Assert.False(shorthand.HasName);
+        Assert.True(shorthand.Utf8Name.IsEmpty);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnVariableNames_When_DocumentHasMultipleVariables()
+    {
+        // arrange
+        const string source = "query Q($alpha: Int, $beta: String) { f(a: $alpha, b: $beta) }";
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(source));
+
+        // assert
+        Assert.Equal(2, document.VariableCount);
+        Assert.Equal("alpha", Encoding.UTF8.GetString(document.GetVariableName(0)));
+        Assert.Equal("beta", Encoding.UTF8.GetString(document.GetVariableName(1)));
+    }
+
+    private static string DescribeRows(Utf8OperationDocument document)
+    {
+        var builder = new StringBuilder();
+        for (var i = 0; i < document.RowCount; i++)
+        {
+            var row = document.GetRow(i);
+            if (i > 0)
+            {
+                builder.AppendLine();
+            }
+
+            builder.Append(row.Kind);
+            if (row.Kind is Utf8SyntaxKind.Name
+                or Utf8SyntaxKind.Alias
+                or Utf8SyntaxKind.TypeCondition)
+            {
+                builder
+                    .Append(" '")
+                    .Append(document.GetString(row.Location, row.SizeOrLength))
+                    .Append('\'');
+            }
+            else
+            {
+                builder.Append(" (").Append(row.NumberOfRows).Append(')');
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string DescribeSites(Utf8OperationDocument document, byte[] source)
+    {
+        var builder = new StringBuilder();
+        for (var i = 0; i < document.VariableSiteCount; i++)
+        {
+            var position = document.GetVariableSitePosition(i);
+            if (i > 0)
+            {
+                builder.AppendLine();
+            }
+            builder
+                .Append(document.GetVariableSiteOrdinal(i))
+                .Append(" @")
+                .Append(position)
+                .Append(" '")
+                .Append((char)source[position])
+                .Append('\'');
+        }
+
+        return builder.ToString();
+    }
+
+    private static Utf8OperationDocument.DbRow RoundTrip(Utf8OperationDocument.DbRow row)
+    {
+        Span<byte> buffer = stackalloc byte[Utf8OperationDocument.DbRow.Size];
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), row);
-        return MemoryMarshal.Read<Utf8OperationDocumentNode.DbRow>(buffer);
+        return MemoryMarshal.Read<Utf8OperationDocument.DbRow>(buffer);
     }
 
     private static Utf8OperationDefinitionNode First(Utf8OperationDefinitionEnumerable enumerable)
@@ -794,7 +989,7 @@ public class Utf8GraphQLOperationParserTests
         return enumerator.Current;
     }
 
-    private static string Describe(Utf8OperationDocumentNode document)
+    private static string Describe(Utf8OperationDocument document)
     {
         var description = new StringBuilder();
         foreach (var operation in document.GetOperations())
