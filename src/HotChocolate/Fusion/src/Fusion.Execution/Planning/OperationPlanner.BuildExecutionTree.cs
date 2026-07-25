@@ -1746,7 +1746,7 @@ public sealed partial class OperationPlanner
             rest = rest[(next + original.Length)..];
         }
 
-        var result = new byte[source.Length + count * (replacement.Length - original.Length)];
+        var result = new byte[source.Length + (count * (replacement.Length - original.Length))];
         var destination = result.AsSpan();
         var remaining = source;
         int index;

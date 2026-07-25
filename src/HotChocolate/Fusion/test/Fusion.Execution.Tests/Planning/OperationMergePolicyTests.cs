@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
@@ -107,6 +108,26 @@ public class OperationMergePolicyTests : FusionTestBase
         var batchOps = GetBatchOperationsForSchema(plan, "b");
         Assert.Single(batchOps);
         Assert.Equal(2, batchOps[0].Targets.Length);
+    }
+
+    [Fact]
+    public void Merge_Should_Dedup_Into_Single_Batch_When_Forwarded_Literal_Is_MultiByte()
+    {
+        // arrange
+        // The canonical plan signature is computed over UTF-8 bytes. A multi-byte
+        // literal ("café") in the forwarded selection combined with the
+        // __fusion_N_ variable-prefix rewriting would break dedup if the signature
+        // used character indexing instead of byte indexing.
+        var schema = CreateMultiByteLiteralSchema();
+
+        // act
+        var plan = PlanOperation(schema, MultiByteLiteralQuery, OperationMergePolicy.Aggressive);
+
+        // assert
+        var batchOps = GetBatchOperationsForSchema(plan, "b");
+        Assert.Single(batchOps);
+        Assert.Equal(2, batchOps[0].Targets.Length);
+        Assert.Contains("café", Encoding.UTF8.GetString(batchOps[0].Operation.SourceText.Span));
     }
 
     [Fact]
@@ -436,6 +457,55 @@ public class OperationMergePolicyTests : FusionTestBase
           second {
             id
             rating
+          }
+        }
+        """;
+
+    private static FusionSchemaDefinition CreateMultiByteLiteralSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              first: Product
+              second: Product
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              translation(language: String!): String!
+            }
+            """);
+    }
+
+    private const string MultiByteLiteralQuery =
+        """
+        {
+          first {
+            id
+            translation(language: "café")
+          }
+          second {
+            id
+            translation(language: "café")
           }
         }
         """;
