@@ -632,6 +632,86 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void AddPartialResults_Should_ResolveRuntimeTypes_When_AbstractTypeExceedsTypeNameLookupLimit()
+    {
+        // arrange
+        // Node has five implementers, which exceeds the type name lookup limit,
+        // so runtime type resolution goes through the schema lookup fallback.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              nodes: [Node]
+            }
+
+            interface Node {
+              common: String
+            }
+
+            type A implements Node {
+              common: String
+              a: String
+            }
+
+            type B implements Node {
+              common: String
+              b: String
+            }
+
+            type C implements Node {
+              common: String
+              c: String
+            }
+
+            type D implements Node {
+              common: String
+              d: String
+            }
+
+            type E implements Node {
+              common: String
+              e: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // repeated and alternating type names cover repeat, alternation, and first-seen elements
+        using var store = CreateLiveStore(
+            schema,
+            """
+            {
+              nodes {
+                __typename
+                common
+                ... on A { a }
+                ... on B { b }
+                ... on C { c }
+              }
+            }
+            """,
+            """
+            {"data":{"nodes":[
+              {"__typename":"A","common":"1","a":"a-1"},
+              {"__typename":"A","common":"2","a":"a-2"},
+              {"__typename":"B","common":"3","b":"b-3"},
+              {"__typename":"A","common":"4","a":"a-4"},
+              {"__typename":"C","common":"5","c":"c-5"}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"nodes":[{"__typename":"A","common":"1","a":"a-1"},{"__typename":"A","common":"2","a":"a-2"},{"__typename":"B","common":"3","b":"b-3"},{"__typename":"A","common":"4","a":"a-4"},{"__typename":"C","common":"5","c":"c-5"}]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
     public void AddErrors_Should_UseAliasesInErrorPath()
     {
         // arrange

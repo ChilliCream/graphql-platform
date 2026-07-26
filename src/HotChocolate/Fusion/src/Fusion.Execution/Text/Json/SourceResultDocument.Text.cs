@@ -39,52 +39,6 @@ public sealed partial class SourceResultDocument
             : JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal bool TryGetRawStringValue(Cursor cursor, out ReadOnlySpan<byte> utf8Value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed != 0, this);
-        return TryGetRawStringValueInternal(_parsedData.Get(cursor), out utf8Value);
-    }
-
-    internal bool TryGetRawStringValue(DbRow row, out ReadOnlySpan<byte> utf8Value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed != 0, this);
-        return TryGetRawStringValueInternal(row, out utf8Value);
-    }
-
-    private bool TryGetRawStringValueInternal(DbRow row, out ReadOnlySpan<byte> utf8Value)
-    {
-        if (row.TokenType is not JsonTokenType.String || row.HasComplexChildren)
-        {
-            utf8Value = default;
-            return false;
-        }
-
-        var chunkIndex = row.Location >>> DataOffsetBits;
-        var offset = (row.Location & DataOffsetMask) + 1;
-        var segment = _segments[chunkIndex];
-        var segmentLength = _usedChunks == 1
-            ? segment.Length
-            : GetDataChunkSize(chunkIndex);
-
-        if (offset == segmentLength)
-        {
-            segment = _segments[++chunkIndex];
-            offset = 0;
-            segmentLength = GetDataChunkSize(chunkIndex);
-        }
-
-        var length = row.SizeOrLength - 2;
-
-        if (length > segmentLength - offset)
-        {
-            utf8Value = default;
-            return false;
-        }
-
-        utf8Value = segment.Buffer.AsSpan(segment.Offset + offset, length);
-        return true;
-    }
-
     internal bool TextEquals(Cursor cursor, ReadOnlySpan<char> otherText, bool isPropertyName)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);

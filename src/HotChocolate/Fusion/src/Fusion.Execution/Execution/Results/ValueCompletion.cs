@@ -18,15 +18,17 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed class ValueCompletion
 {
     private readonly FetchResultStore _store;
-    private readonly ISchemaDefinition _schema;
+    private readonly FusionSchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly bool _propagateNullValues;
     private readonly int _maxDepth;
+    private IObjectTypeDefinition? _typeMemoA;
+    private IObjectTypeDefinition? _typeMemoB;
 
     public ValueCompletion(
         FetchResultStore store,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         IErrorHandler errorHandler,
         ErrorHandlingMode errorHandlingMode,
         int maxDepth)
@@ -1290,15 +1292,34 @@ TryCompleteList_MoveNext:
 
         // Small implementer sets resolve the type by comparing the raw UTF-8 __typename
         // bytes, which is allocation free. Beyond 4 candidates the linear scan loses to
-        // the dictionary lookup, so larger sets, escaped values, non-string values, and
-        // values that span document chunks use the existing fallback below.
+        // the dictionary lookup, so larger sets use the memo below.
         if (TryResolveType(typeNameElement, namedType, out var resolvedType))
         {
             return resolvedType;
         }
 
-        var typeName = typeNameElement.AssertString();
-        return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
+        // The memo only fronts the large-set fallback below; small implementer sets are
+        // fully handled by TryResolveType above.
+        var rawTypeName = typeNameElement.AssertUtf8String();
+
+        if (_typeMemoA is { } typeA && Ascii.Equals(rawTypeName, typeA.Name))
+        {
+            return typeA;
+        }
+
+        // Two-slot MRU: a slot B hit swaps the slots so the type just seen is
+        // checked first for the next element.
+        if (_typeMemoB is { } typeB && Ascii.Equals(rawTypeName, typeB.Name))
+        {
+            _typeMemoB = _typeMemoA;
+            _typeMemoA = typeB;
+            return typeB;
+        }
+
+        var missedType = _schema.Types.GetType<IObjectTypeDefinition>(rawTypeName);
+        _typeMemoB = _typeMemoA;
+        _typeMemoA = missedType;
+        return missedType;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1339,17 +1360,16 @@ TryCompleteList_MoveNext:
         FusionObjectTypeDefinitionCollection possibleTypes,
         [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
     {
-        if (typeNameElement.TryGetRawStringValue(out var typeName))
-        {
-            for (var i = 0; i < possibleTypes.Count; i++)
-            {
-                var possibleType = possibleTypes[i];
+        var typeName = typeNameElement.AssertUtf8String();
 
-                if (Ascii.Equals(typeName, possibleType.Name))
-                {
-                    objectType = possibleType;
-                    return true;
-                }
+        for (var i = 0; i < possibleTypes.Count; i++)
+        {
+            var possibleType = possibleTypes[i];
+
+            if (Ascii.Equals(typeName, possibleType.Name))
+            {
+                objectType = possibleType;
+                return true;
             }
         }
 
@@ -1363,17 +1383,16 @@ TryCompleteList_MoveNext:
         ImmutableArray<FusionObjectTypeDefinition> possibleTypes,
         [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
     {
-        if (typeNameElement.TryGetRawStringValue(out var typeName))
-        {
-            for (var i = 0; i < possibleTypes.Length; i++)
-            {
-                var possibleType = possibleTypes[i];
+        var typeName = typeNameElement.AssertUtf8String();
 
-                if (Ascii.Equals(typeName, possibleType.Name))
-                {
-                    objectType = possibleType;
-                    return true;
-                }
+        for (var i = 0; i < possibleTypes.Length; i++)
+        {
+            var possibleType = possibleTypes[i];
+
+            if (Ascii.Equals(typeName, possibleType.Name))
+            {
+                objectType = possibleType;
+                return true;
             }
         }
 
