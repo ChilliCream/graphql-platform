@@ -97,7 +97,7 @@ public readonly struct ReadOnlyMemorySegment
         }
 #endif
         _owner = new ArrayMemoryOwner(buffer, start, length);
-        _start = start;
+        _start = 0;
         _length = length;
     }
 

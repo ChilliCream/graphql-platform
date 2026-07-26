@@ -62,24 +62,39 @@ public sealed partial class Utf8OperationDocument : IDisposable, IUtf8SyntaxNode
 
     /// <summary>
     /// Writes the GraphQL source text of this document to the specified buffer writer,
-    /// substituting variable names through <paramref name="variables"/>. Formatting with an
-    /// empty map reproduces the original source byte for byte.
+    /// substituting variable names through <paramref name="variables"/>.
     /// </summary>
     /// <param name="writer">
     /// The buffer writer that receives the UTF-8 encoded output.
+    /// </param>
+    /// <param name="indented">
+    /// <see langword="false"/>, the default, to write compact single-line output that drops
+    /// comments and keeps only the whitespace that is required to separate two tokens;
+    /// <see langword="true"/> to preserve the formatting of the source document verbatim,
+    /// including its whitespace and comments.
+    /// </param>
+    /// <param name="formatAsJsonStringValue">
+    /// <see langword="false"/>, the default, to write plain GraphQL source text;
+    /// <see langword="true"/> to write a JSON string value that holds the GraphQL source text,
+    /// including the enclosing quotation marks.
     /// </param>
     /// <param name="variables">
     /// The ordinal-indexed variable name substitutions to apply, or the default value to keep
     /// every original name.
     /// </param>
-    public void Format(IBufferWriter<byte> writer, Utf8VariableNameMap variables = default)
+    public void Format(
+        IBufferWriter<byte> writer,
+        bool indented = false,
+        bool formatAsJsonStringValue = false,
+        Utf8VariableNameMap variables = default)
     {
         if (_disposed != 0)
         {
             throw new ObjectDisposedException(nameof(Utf8OperationDocument));
         }
 
-        Utf8SyntaxFormatter.WriteRange(this, 0, SourceLength, writer, variables);
+        Utf8SyntaxFormatter.FormatDocument(
+            this, writer, indented, formatAsJsonStringValue, variables);
     }
 
     internal int RowCount => _metaDb.RowCount;
@@ -149,6 +164,29 @@ public sealed partial class Utf8OperationDocument : IDisposable, IUtf8SyntaxNode
         }
 
         return index;
+    }
+
+    /// <summary>
+    /// Returns the index of the selection set row in the sibling run <c>[start, end)</c>, or
+    /// <c>-1</c> when the run declares no selection set. Each sibling and the rows it spans are
+    /// hopped over.
+    /// </summary>
+    internal int FindSelectionSet(int start, int end)
+    {
+        var index = start;
+
+        while (index < end)
+        {
+            var row = GetRow(index);
+            if (row.Kind is Utf8SyntaxKind.SelectionSet)
+            {
+                return index;
+            }
+
+            index += row.NumberOfRows;
+        }
+
+        return -1;
     }
 
     internal ReadOnlySpan<byte> GetSource(int start, int length)

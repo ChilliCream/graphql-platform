@@ -14,6 +14,13 @@ namespace HotChocolate.Language;
 /// </summary>
 public ref struct Utf8GraphQLOperationParser
 {
+    // A type level records the offset of its opening bracket, the exclusive end of its closing
+    // bracket and the exclusive end of the non-null marker that follows it, if there is one.
+    private const int TypeLevelSize = 3;
+
+    // The row count is capped by the row layout, which spans a node in 27 bits.
+    private const int MaxMetadataLength = DbRow.MaxNumberOfRows * DbRow.Size;
+
     private readonly ReadOnlySpan<byte> _source;
     private readonly ChunkedArrayWriter _metadata;
     private readonly bool _allowFragmentVariables;
@@ -24,6 +31,7 @@ public ref struct Utf8GraphQLOperationParser
     private Utf8GraphQLReader _reader;
     private byte[]? _variableSites;
     private byte[]? _variableDirectory;
+    private int[]? _typeLevels;
     private int _siteCount;
     private int _variableCount;
     private int _parsedNodes;
@@ -48,6 +56,7 @@ public ref struct Utf8GraphQLOperationParser
         _reader = new Utf8GraphQLReader(sourceText, options.MaxAllowedTokens);
         _variableSites = null;
         _variableDirectory = null;
+        _typeLevels = null;
         _siteCount = 0;
         _variableCount = 0;
         _parsedNodes = 0;
@@ -366,9 +375,19 @@ public ref struct Utf8GraphQLOperationParser
         while (_reader.Kind is not TokenKind.RightParenthesis)
         {
             CountNode();
-            ReadName(out _, out _);
+            var sourceStart = _reader.Start;
+            var cursor = AppendUncountedPlaceholder();
+            ReadName(out var nameStart, out var nameLength);
+            AppendRow(new DbRow(Utf8SyntaxKind.Name, nameStart, nameLength, 1));
             Expect(TokenKind.Colon);
             ParseValue(isConstant);
+            Patch(
+                cursor,
+                new DbRow(
+                    Utf8SyntaxKind.Argument,
+                    sourceStart,
+                    _previousEnd - sourceStart,
+                    RowCount - cursor));
         }
         MoveNext();
     }
@@ -385,39 +404,158 @@ public ref struct Utf8GraphQLOperationParser
             }
 
             CountNode();
+            var sourceStart = _reader.Start;
+            var cursor = AppendUncountedPlaceholder();
             MoveNext();
-            ReadName(out _, out _);
+            ReadName(out var nameStart, out var nameLength);
+            AppendRow(new DbRow(Utf8SyntaxKind.Name, nameStart, nameLength, 1));
             ParseArguments(isConstant);
+            Patch(
+                cursor,
+                new DbRow(
+                    Utf8SyntaxKind.Directive,
+                    sourceStart,
+                    _previousEnd - sourceStart,
+                    RowCount - cursor));
         }
     }
 
+    /// <summary>
+    /// Parses a type reference and appends its rows in document order. A type reference is a
+    /// run of list wrappers around a named type, and each wrapper can be marked non-null only
+    /// after its contents have been read, so the type is read first and the rows are appended
+    /// from the outermost wrapper inwards.
+    /// </summary>
     private void ParseTypeReference()
     {
-        EnterDepth();
+        // Every list wrapper enters the depth in the same frame, so the run is unwound with a
+        // single assignment instead of one ExitDepth call per wrapper.
+        var depth = _recursionDepth;
         try
         {
-            CountNode();
-            if (_reader.Kind is TokenKind.LeftBracket)
+            var levels = 0;
+            var nonNullCount = 0;
+
+            while (true)
             {
+                EnterDepth();
+                CountNode();
+
+                if (_reader.Kind is not TokenKind.LeftBracket)
+                {
+                    break;
+                }
+
+                PushTypeLevel(levels++, _reader.Start);
                 MoveNext();
-                ParseTypeReference();
-                Expect(TokenKind.RightBracket);
             }
-            else
-            {
-                ReadName(out _, out _);
-            }
+
+            ReadName(out var nameStart, out var nameLength);
+            var nameEnd = 0;
 
             if (_reader.Kind is TokenKind.Bang)
             {
                 CountNode();
+                nonNullCount++;
+                nameEnd = _reader.End;
                 MoveNext();
             }
+
+            for (var level = levels - 1; level >= 0; level--)
+            {
+                var closeEnd = _reader.End;
+                Expect(TokenKind.RightBracket);
+                var bangEnd = 0;
+
+                if (_reader.Kind is TokenKind.Bang)
+                {
+                    CountNode();
+                    nonNullCount++;
+                    bangEnd = _reader.End;
+                    MoveNext();
+                }
+
+                CloseTypeLevel(level, closeEnd, bangEnd);
+            }
+
+            AppendTypeRows(levels, nonNullCount, nameStart, nameLength, nameEnd);
         }
         finally
         {
-            ExitDepth();
+            _recursionDepth = depth;
         }
+    }
+
+    private readonly void AppendTypeRows(
+        int levels,
+        int nonNullCount,
+        int nameStart,
+        int nameLength,
+        int nameEnd)
+    {
+        // A non-null marker always ends past the start of the source text, so a zero end marks
+        // the absence of the marker: nameEnd for the named type, bangEnd for a list wrapper.
+        var remaining = levels + nonNullCount + 1;
+
+        for (var level = 0; level < levels; level++)
+        {
+            ReadTypeLevel(level, out var start, out var closeEnd, out var bangEnd);
+
+            if (bangEnd != 0)
+            {
+                AppendRow(
+                    new DbRow(Utf8SyntaxKind.NonNullType, start, bangEnd - start, remaining--));
+            }
+
+            AppendRow(new DbRow(Utf8SyntaxKind.ListType, start, closeEnd - start, remaining--));
+        }
+
+        if (nameEnd != 0)
+        {
+            AppendRow(
+                new DbRow(
+                    Utf8SyntaxKind.NonNullType,
+                    nameStart,
+                    nameEnd - nameStart,
+                    remaining--));
+        }
+
+        AppendRow(new DbRow(Utf8SyntaxKind.NamedType, nameStart, nameLength, 1));
+    }
+
+    private void PushTypeLevel(int level, int start)
+    {
+        var required = (level + 1) * TypeLevelSize;
+
+        if (_typeLevels is null || _typeLevels.Length < required)
+        {
+            var next = ArrayPool<int>.Shared.Rent(required);
+
+            if (_typeLevels is not null)
+            {
+                _typeLevels.AsSpan().CopyTo(next);
+                ArrayPool<int>.Shared.Return(_typeLevels);
+            }
+
+            _typeLevels = next;
+        }
+
+        _typeLevels[level * TypeLevelSize] = start;
+    }
+
+    private readonly void CloseTypeLevel(int level, int closeEnd, int bangEnd)
+    {
+        var offset = level * TypeLevelSize;
+        _typeLevels![offset + 1] = closeEnd;
+        _typeLevels[offset + 2] = bangEnd;
+    }
+
+    private readonly void ReadTypeLevel(int level, out int start, out int closeEnd, out int bangEnd)
+    {
+        var offset = level * TypeLevelSize;
+        start = _typeLevels![offset];
+        closeEnd = _typeLevels[offset + 1];
+        bangEnd = _typeLevels[offset + 2];
     }
 
     private void ParseValue(bool isConstant)
@@ -429,42 +567,40 @@ public ref struct Utf8GraphQLOperationParser
             switch (_reader.Kind)
             {
                 case TokenKind.Integer:
+                    AppendValueRow(Utf8SyntaxKind.IntValue);
+                    MoveNext();
+                    return;
+
                 case TokenKind.Float:
+                    AppendValueRow(Utf8SyntaxKind.FloatValue);
+                    MoveNext();
+                    return;
+
                 case TokenKind.Name:
+                    AppendValueRow(Utf8SyntaxKind.EnumValue);
                     MoveNext();
                     return;
 
                 case TokenKind.String:
                 case TokenKind.BlockString:
                     ValidateString();
+                    AppendValueRow(Utf8SyntaxKind.StringValue);
                     MoveNext();
                     return;
 
                 case TokenKind.Dollar when !isConstant:
                     MoveNext();
                     ReadName(out var nameStart, out var nameLength);
+                    AppendRow(new DbRow(Utf8SyntaxKind.Variable, nameStart, nameLength, 1));
                     RecordVariableSite(nameStart, nameLength);
                     return;
 
                 case TokenKind.LeftBracket:
-                    MoveNext();
-                    while (_reader.Kind is not TokenKind.RightBracket)
-                    {
-                        ParseValue(isConstant);
-                    }
-                    MoveNext();
+                    ParseListValue(isConstant);
                     return;
 
                 case TokenKind.LeftBrace:
-                    MoveNext();
-                    while (_reader.Kind is not TokenKind.RightBrace)
-                    {
-                        CountNode();
-                        ReadName(out _, out _);
-                        Expect(TokenKind.Colon);
-                        ParseValue(isConstant);
-                    }
-                    MoveNext();
+                    ParseObjectValue(isConstant);
                     return;
 
                 default:
@@ -476,6 +612,66 @@ public ref struct Utf8GraphQLOperationParser
             ExitDepth();
         }
     }
+
+    private void ParseListValue(bool isConstant)
+    {
+        var sourceStart = _reader.Start;
+        var cursor = AppendUncountedPlaceholder();
+        MoveNext();
+
+        while (_reader.Kind is not TokenKind.RightBracket)
+        {
+            ParseValue(isConstant);
+        }
+
+        var sourceEnd = _reader.End;
+        MoveNext();
+        Patch(
+            cursor,
+            new DbRow(
+                Utf8SyntaxKind.ListValue,
+                sourceStart,
+                sourceEnd - sourceStart,
+                RowCount - cursor));
+    }
+
+    private void ParseObjectValue(bool isConstant)
+    {
+        var sourceStart = _reader.Start;
+        var cursor = AppendUncountedPlaceholder();
+        MoveNext();
+
+        while (_reader.Kind is not TokenKind.RightBrace)
+        {
+            CountNode();
+            var fieldStart = _reader.Start;
+            var fieldCursor = AppendUncountedPlaceholder();
+            ReadName(out var nameStart, out var nameLength);
+            AppendRow(new DbRow(Utf8SyntaxKind.Name, nameStart, nameLength, 1));
+            Expect(TokenKind.Colon);
+            ParseValue(isConstant);
+            Patch(
+                fieldCursor,
+                new DbRow(
+                    Utf8SyntaxKind.ObjectField,
+                    fieldStart,
+                    _previousEnd - fieldStart,
+                    RowCount - fieldCursor));
+        }
+
+        var sourceEnd = _reader.End;
+        MoveNext();
+        Patch(
+            cursor,
+            new DbRow(
+                Utf8SyntaxKind.ObjectValue,
+                sourceStart,
+                sourceEnd - sourceStart,
+                RowCount - cursor));
+    }
+
+    private void AppendValueRow(Utf8SyntaxKind kind)
+        => AppendRow(new DbRow(kind, _reader.Start, _reader.Position - _reader.Start, 1));
 
     private void ReadFragmentName(out int start, out int length)
     {
@@ -616,7 +812,7 @@ public ref struct Utf8GraphQLOperationParser
         return VariableTable.Create(buffer, _siteCount, _variableCount, pooled);
     }
 
-    private void ReturnVariableBuffers()
+    private void ReturnScratchBuffers()
     {
         if (_variableSites is not null)
         {
@@ -629,11 +825,26 @@ public ref struct Utf8GraphQLOperationParser
             ArrayPool<byte>.Shared.Return(_variableDirectory);
             _variableDirectory = null;
         }
+
+        if (_typeLevels is not null)
+        {
+            ArrayPool<int>.Shared.Return(_typeLevels);
+            _typeLevels = null;
+        }
     }
 
     private int AppendPlaceholder()
     {
         CountNode();
+        return AppendUncountedPlaceholder();
+    }
+
+    /// <summary>
+    /// Reserves a row for a node whose syntax-node count is already accounted for by the
+    /// construct that is being parsed.
+    /// </summary>
+    private int AppendUncountedPlaceholder()
+    {
         var metadataLength = _metadata.Length;
         AssertCanAppendRow(metadataLength);
         var cursor = metadataLength / DbRow.Size;
@@ -653,9 +864,11 @@ public ref struct Utf8GraphQLOperationParser
 
     internal static void AssertCanAppendRow(int metadataLength)
     {
-        if ((uint)metadataLength > int.MaxValue - DbRow.Size)
+        if ((uint)metadataLength > MaxMetadataLength - DbRow.Size)
         {
-            throw new OverflowException("The packed syntax metadata exceeded its maximum size.");
+            throw new OverflowException(
+                "The packed syntax metadata exceeded its maximum of "
+                + $"{DbRow.MaxNumberOfRows} rows.");
         }
     }
 
@@ -779,7 +992,7 @@ public ref struct Utf8GraphQLOperationParser
         }
         finally
         {
-            parser.ReturnVariableBuffers();
+            parser.ReturnScratchBuffers();
         }
     }
 

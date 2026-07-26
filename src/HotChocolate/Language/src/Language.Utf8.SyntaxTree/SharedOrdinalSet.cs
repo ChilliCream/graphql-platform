@@ -3,6 +3,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents the set of document-scoped variable ordinals that a batched lookup item keeps
 /// unrenamed because they are shared across items. The set is a bitmask, one bit per ordinal.
+/// The default value is the empty set.
 /// </summary>
 internal readonly ref struct SharedOrdinalSet
 {
@@ -23,6 +24,11 @@ internal readonly ref struct SharedOrdinalSet
     }
 
     /// <summary>
+    /// Gets the set that contains no ordinal.
+    /// </summary>
+    internal static SharedOrdinalSet Empty => default;
+
+    /// <summary>
     /// Adds <paramref name="ordinal"/> to the set.
     /// </summary>
     /// <param name="ordinal">
@@ -41,5 +47,8 @@ internal readonly ref struct SharedOrdinalSet
     /// <see langword="true"/> when the ordinal is in the set; otherwise, <see langword="false"/>.
     /// </returns>
     internal readonly bool Contains(int ordinal)
-        => (_words[ordinal >> 6] & (1UL << (ordinal & 63))) != 0;
+    {
+        var word = ordinal >> 6;
+        return word < _words.Length && (_words[word] & (1UL << (ordinal & 63))) != 0;
+    }
 }

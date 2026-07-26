@@ -4,32 +4,6 @@ using System.Diagnostics;
 namespace HotChocolate.Language;
 
 /// <summary>
-/// Specifies the kind of executable selection represented by a <see cref="Utf8SelectionNode"/>.
-/// </summary>
-public enum Utf8SelectionKind
-{
-    /// <summary>
-    /// The selection is not initialized.
-    /// </summary>
-    None = 0,
-
-    /// <summary>
-    /// The selection is a field.
-    /// </summary>
-    Field = 1,
-
-    /// <summary>
-    /// The selection is a fragment spread.
-    /// </summary>
-    FragmentSpread = 2,
-
-    /// <summary>
-    /// The selection is an inline fragment.
-    /// </summary>
-    InlineFragment = 3
-}
-
-/// <summary>
 /// Provides a heterogeneous view over an executable selection in a packed UTF-8 syntax tree.
 /// </summary>
 public readonly struct Utf8SelectionNode : IUtf8SyntaxNode
@@ -138,14 +112,30 @@ public readonly struct Utf8SelectionNode : IUtf8SyntaxNode
     /// <param name="writer">
     /// The buffer writer that receives the UTF-8 encoded output.
     /// </param>
+    /// <param name="indented">
+    /// <see langword="false"/>, the default, to write compact single-line output that drops
+    /// comments and keeps only the whitespace that is required to separate two tokens;
+    /// <see langword="true"/> to preserve the formatting of the source document verbatim,
+    /// including its whitespace and comments.
+    /// </param>
+    /// <param name="formatAsJsonStringValue">
+    /// <see langword="false"/>, the default, to write plain GraphQL source text;
+    /// <see langword="true"/> to write a JSON string value that holds the GraphQL source text,
+    /// including the enclosing quotation marks.
+    /// </param>
     /// <param name="variables">
     /// The ordinal-indexed variable name substitutions to apply, or the default value to keep
     /// every original name.
     /// </param>
-    public void Format(IBufferWriter<byte> writer, Utf8VariableNameMap variables = default)
+    public void Format(
+        IBufferWriter<byte> writer,
+        bool indented = false,
+        bool formatAsJsonStringValue = false,
+        Utf8VariableNameMap variables = default)
     {
         CheckValidInstance();
-        Utf8SyntaxFormatter.Write(_document, _cursor, writer, variables);
+        Utf8SyntaxFormatter.Format(
+            _document, _cursor, writer, indented, formatAsJsonStringValue, variables);
     }
 
     private void CheckValidInstance()

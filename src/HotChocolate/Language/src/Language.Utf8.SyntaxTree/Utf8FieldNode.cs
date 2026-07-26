@@ -101,7 +101,7 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
         get
         {
             CheckValidInstance();
-            return HasSelectionSetCore();
+            return SelectionSetCursor() >= 0;
         }
     }
 
@@ -113,8 +113,9 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
         get
         {
             CheckValidInstance();
-            return HasSelectionSetCore()
-                ? new Utf8SelectionSetNode(_document, NameCursor() + 1)
+            var cursor = SelectionSetCursor();
+            return cursor >= 0
+                ? new Utf8SelectionSetNode(_document, cursor)
                 : throw new InvalidOperationException("The field has no selection set.");
         }
     }
@@ -126,23 +127,39 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
     /// <param name="writer">
     /// The buffer writer that receives the UTF-8 encoded output.
     /// </param>
+    /// <param name="indented">
+    /// <see langword="false"/>, the default, to write compact single-line output that drops
+    /// comments and keeps only the whitespace that is required to separate two tokens;
+    /// <see langword="true"/> to preserve the formatting of the source document verbatim,
+    /// including its whitespace and comments.
+    /// </param>
+    /// <param name="formatAsJsonStringValue">
+    /// <see langword="false"/>, the default, to write plain GraphQL source text;
+    /// <see langword="true"/> to write a JSON string value that holds the GraphQL source text,
+    /// including the enclosing quotation marks.
+    /// </param>
     /// <param name="variables">
     /// The ordinal-indexed variable name substitutions to apply, or the default value to keep
     /// every original name.
     /// </param>
-    public void Format(IBufferWriter<byte> writer, Utf8VariableNameMap variables = default)
+    public void Format(
+        IBufferWriter<byte> writer,
+        bool indented = false,
+        bool formatAsJsonStringValue = false,
+        Utf8VariableNameMap variables = default)
     {
         CheckValidInstance();
-        Utf8SyntaxFormatter.Write(_document, _cursor, writer, variables);
+        Utf8SyntaxFormatter.Format(
+            _document, _cursor, writer, indented, formatAsJsonStringValue, variables);
     }
 
     /// <summary>
-    /// Writes this field's GraphQL source text to the specified buffer writer, inserting
-    /// <paramref name="variablePrefix"/> in front of every variable name whose ordinal is not in
-    /// <paramref name="shared"/>.
+    /// Writes this field's GraphQL source text to the specified syntax writer in compact form,
+    /// inserting <paramref name="variablePrefix"/> in front of every variable name whose ordinal
+    /// is not in <paramref name="shared"/>. The delimiters of a JSON string value are not written.
     /// </summary>
     /// <param name="writer">
-    /// The buffer writer that receives the UTF-8 encoded output.
+    /// The syntax writer that receives the UTF-8 encoded output.
     /// </param>
     /// <param name="variablePrefix">
     /// The bytes inserted in front of each renamed variable name.
@@ -151,14 +168,12 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
     /// The ordinals of the variables that keep their original name.
     /// </param>
     internal void Format(
-        IBufferWriter<byte> writer,
+        Utf8SyntaxWriter writer,
         ReadOnlySpan<byte> variablePrefix,
         SharedOrdinalSet shared)
     {
         CheckValidInstance();
-        var row = _document.GetRow(_cursor);
-        Utf8SyntaxFormatter.WriteRange(
-            _document, row.Location, row.SourceEnd, writer, variablePrefix, shared);
+        Utf8SyntaxFormatter.Write(_document, _cursor, writer, variablePrefix, shared);
     }
 
     private int NameCursor()
@@ -167,8 +182,10 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
         return _document.GetRow(next).Kind is Utf8SyntaxKind.Alias ? next + 1 : next;
     }
 
-    private bool HasSelectionSetCore()
-        => NameCursor() + 1 < _cursor + _document.GetRow(_cursor).NumberOfRows;
+    private int SelectionSetCursor()
+        => _document.FindSelectionSet(
+            NameCursor() + 1,
+            _cursor + _document.GetRow(_cursor).NumberOfRows);
 
     private void CheckValidInstance()
     {

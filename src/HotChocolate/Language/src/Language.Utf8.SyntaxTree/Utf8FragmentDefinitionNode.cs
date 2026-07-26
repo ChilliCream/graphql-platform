@@ -91,7 +91,9 @@ public readonly struct Utf8FragmentDefinitionNode : IUtf8SyntaxNode
             CheckValidInstance();
             return new Utf8SelectionSetNode(
                 _document,
-                _document.SkipVariableDefinitions(_cursor + 2) + 1);
+                _document.FindSelectionSet(
+                    _document.SkipVariableDefinitions(_cursor + 2) + 1,
+                    _cursor + _document.GetRow(_cursor).NumberOfRows));
         }
     }
 
@@ -102,14 +104,30 @@ public readonly struct Utf8FragmentDefinitionNode : IUtf8SyntaxNode
     /// <param name="writer">
     /// The buffer writer that receives the UTF-8 encoded output.
     /// </param>
+    /// <param name="indented">
+    /// <see langword="false"/>, the default, to write compact single-line output that drops
+    /// comments and keeps only the whitespace that is required to separate two tokens;
+    /// <see langword="true"/> to preserve the formatting of the source document verbatim,
+    /// including its whitespace and comments.
+    /// </param>
+    /// <param name="formatAsJsonStringValue">
+    /// <see langword="false"/>, the default, to write plain GraphQL source text;
+    /// <see langword="true"/> to write a JSON string value that holds the GraphQL source text,
+    /// including the enclosing quotation marks.
+    /// </param>
     /// <param name="variables">
     /// The ordinal-indexed variable name substitutions to apply, or the default value to keep
     /// every original name.
     /// </param>
-    public void Format(IBufferWriter<byte> writer, Utf8VariableNameMap variables = default)
+    public void Format(
+        IBufferWriter<byte> writer,
+        bool indented = false,
+        bool formatAsJsonStringValue = false,
+        Utf8VariableNameMap variables = default)
     {
         CheckValidInstance();
-        Utf8SyntaxFormatter.Write(_document, _cursor, writer, variables);
+        Utf8SyntaxFormatter.Format(
+            _document, _cursor, writer, indented, formatAsJsonStringValue, variables);
     }
 
     private void CheckValidInstance()

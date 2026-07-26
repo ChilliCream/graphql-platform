@@ -464,7 +464,7 @@ public class Utf8GraphQLOperationParserTests
 
     [Theory]
     [InlineData(0, Utf8OperationDocument.DbRow.Size)]
-    [InlineData(2_147_483_600, 2_147_483_612)]
+    [InlineData(1_610_612_712, 1_610_612_724)]
     public void GetNextMetadataLength_Should_AdvanceOneRow_When_LengthIsWithinLimit(
         int length,
         int expected)
@@ -478,7 +478,7 @@ public class Utf8GraphQLOperationParserTests
 
     [Theory]
     [InlineData(-1)]
-    [InlineData(2_147_483_637)]
+    [InlineData(1_610_612_713)]
     [InlineData(int.MaxValue)]
     public void GetNextMetadataLength_Should_Throw_When_NextRowWouldOverflow(int length)
     {
@@ -602,6 +602,33 @@ public class Utf8GraphQLOperationParserTests
     }
 
     [Fact]
+    public void DbRow_Should_PreserveValues_When_KindExceedsFourBits()
+    {
+        // arrange
+        // Kinds from 16 upwards need the fifth kind bit, which locks the shift and the mask.
+        var objectValue = new Utf8OperationDocument.DbRow(
+            Utf8SyntaxKind.ObjectValue,
+            location: 9,
+            sizeOrLength: 6,
+            numberOfRows: 3);
+        var nonNullType = new Utf8OperationDocument.DbRow(
+            Utf8SyntaxKind.NonNullType,
+            location: 2,
+            sizeOrLength: 4,
+            numberOfRows: 2);
+
+        // act
+        var objectValueResult = RoundTrip(objectValue);
+        var nonNullTypeResult = RoundTrip(nonNullType);
+
+        // assert
+        Assert.Equal(Utf8SyntaxKind.ObjectValue, objectValueResult.Kind);
+        Assert.Equal(3, objectValueResult.NumberOfRows);
+        Assert.Equal(Utf8SyntaxKind.NonNullType, nonNullTypeResult.Kind);
+        Assert.Equal(2, nonNullTypeResult.NumberOfRows);
+    }
+
+    [Fact]
     public void DbRow_Should_PreserveValues_When_LocationAndLengthAreMaxInt()
     {
         // arrange
@@ -609,7 +636,7 @@ public class Utf8GraphQLOperationParserTests
             Utf8SyntaxKind.SelectionSet,
             location: int.MaxValue,
             sizeOrLength: int.MaxValue,
-            numberOfRows: 0x0FFFFFFF);
+            numberOfRows: 0x07FFFFFF);
 
         // act
         var result = RoundTrip(row);
@@ -617,7 +644,25 @@ public class Utf8GraphQLOperationParserTests
         // assert
         Assert.Equal(int.MaxValue, result.Location);
         Assert.Equal(int.MaxValue, result.SizeOrLength);
-        Assert.Equal(0x0FFFFFFF, result.NumberOfRows);
+        Assert.Equal(0x07FFFFFF, result.NumberOfRows);
+    }
+
+    [Fact]
+    public void DbRow_Should_PreserveValues_When_KindIsMaxAndNumberOfRowsIsMax()
+    {
+        // arrange
+        var row = new Utf8OperationDocument.DbRow(
+            Utf8SyntaxKind.NonNullType,
+            location: 0,
+            sizeOrLength: 0,
+            numberOfRows: 0x07FFFFFF);
+
+        // act
+        var result = RoundTrip(row);
+
+        // assert
+        Assert.Equal(Utf8SyntaxKind.NonNullType, result.Kind);
+        Assert.Equal(0x07FFFFFF, result.NumberOfRows);
     }
 
     [Fact]
@@ -863,16 +908,94 @@ public class Utf8GraphQLOperationParserTests
         // assert
         DescribeRows(document).MatchInlineSnapshot(
             """
-            FragmentDefinition (10)
+            FragmentDefinition (12)
             Name 'F'
-            VariableDefinition (2)
+            VariableDefinition (3)
             Name 'a'
-            VariableDefinition (2)
+            NamedType 'Int'
+            VariableDefinition (3)
             Name 'b'
+            NamedType 'String'
             TypeCondition 'Item'
             SelectionSet (3)
             Field (2)
             Name 'id'
+            """);
+    }
+
+    [Fact]
+    public void ParseOperationDocument_Should_EmitValueRows_When_ArgumentsCarryEveryValueKind()
+    {
+        // arrange
+        const string source =
+            """{ f(a: $v, b: 1, c: 1.5, d: "s", e: ENUM, g: [1, null], h: { i: true }) }""";
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(source));
+
+        // assert
+        DescribeRows(document).MatchInlineSnapshot(
+            """
+            OperationQuery (30)
+            SelectionSet (29)
+            Field (28)
+            Name 'f'
+            Argument (3)
+            Name 'a'
+            Variable 'v'
+            Argument (3)
+            Name 'b'
+            IntValue '1'
+            Argument (3)
+            Name 'c'
+            FloatValue '1.5'
+            Argument (3)
+            Name 'd'
+            StringValue '"s"'
+            Argument (3)
+            Name 'e'
+            EnumValue 'ENUM'
+            Argument (5)
+            Name 'g'
+            ListValue (3)
+            IntValue '1'
+            EnumValue 'null'
+            Argument (6)
+            Name 'h'
+            ObjectValue (4)
+            ObjectField (3)
+            Name 'i'
+            EnumValue 'true'
+            """);
+    }
+
+    [Fact]
+    public void ParseOperationDocument_Should_EmitTypeRows_When_TypeIsNestedAndNonNull()
+    {
+        // arrange
+        const string source = "query Q($a: [[Int!]]! = null @tag) { f }";
+
+        // act
+        var document = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(source));
+
+        // assert
+        DescribeRows(document).MatchInlineSnapshot(
+            """
+            OperationQuery (15)
+            Name 'Q'
+            VariableDefinition (10)
+            Name 'a'
+            NonNullType (5)
+            ListType (4)
+            ListType (3)
+            NonNullType (2)
+            NamedType 'Int'
+            EnumValue 'null'
+            Directive (2)
+            Name 'tag'
+            SelectionSet (3)
+            Field (2)
+            Name 'f'
             """);
     }
 
@@ -921,9 +1044,7 @@ public class Utf8GraphQLOperationParserTests
             }
 
             builder.Append(row.Kind);
-            if (row.Kind is Utf8SyntaxKind.Name
-                or Utf8SyntaxKind.Alias
-                or Utf8SyntaxKind.TypeCondition)
+            if (IsToken(row.Kind))
             {
                 builder
                     .Append(" '")
@@ -938,6 +1059,17 @@ public class Utf8GraphQLOperationParserTests
 
         return builder.ToString();
     }
+
+    private static bool IsToken(Utf8SyntaxKind kind)
+        => kind is Utf8SyntaxKind.Name
+            or Utf8SyntaxKind.Alias
+            or Utf8SyntaxKind.TypeCondition
+            or Utf8SyntaxKind.Variable
+            or Utf8SyntaxKind.IntValue
+            or Utf8SyntaxKind.FloatValue
+            or Utf8SyntaxKind.StringValue
+            or Utf8SyntaxKind.EnumValue
+            or Utf8SyntaxKind.NamedType;
 
     private static string DescribeSites(Utf8OperationDocument document, byte[] source)
     {

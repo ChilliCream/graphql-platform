@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Buffers.Text;
-using System.Text;
 
 namespace HotChocolate.Language;
 
@@ -9,27 +8,34 @@ internal struct Utf8OperationDocumentBuilder
     private const int InitialCapacity = 4;
     private const int PrefixBufferLength = 12;
     private const int StackWordThreshold = 64;
-    private static readonly Encoding s_utf8 = Encoding.UTF8;
 
-    private readonly IBufferWriter<byte> _writer;
+    private readonly Utf8SyntaxWriter _writer;
     private Utf8FieldNode[]? _items;
     private int _itemCount;
     private Utf8VariableDefinitionNode[]? _sharedDefinitions;
     private int _sharedCount;
     private WriterStage _stage;
+    private bool _opened;
     private bool _keywordWritten;
     private bool _parenOpened;
 
-    private Utf8OperationDocumentBuilder(IBufferWriter<byte> writer)
-    {
-        _writer = writer;
-    }
+    private Utf8OperationDocumentBuilder(IBufferWriter<byte> writer, bool formatAsJsonStringValue)
+        => _writer = new Utf8SyntaxWriter(writer, formatAsJsonStringValue);
 
     /// <summary>
     /// Creates a new builder that streams a batched lookup operation into <paramref name="writer"/>.
     /// </summary>
+    /// <remarks>
+    /// The operation is streamed as it is built, so when a call fails after the first content byte
+    /// was written, the destination buffer holds a partial operation and must be discarded.
+    /// </remarks>
     /// <param name="writer">
     /// The buffer writer that receives the UTF-8 encoded output.
+    /// </param>
+    /// <param name="formatAsJsonStringValue">
+    /// <see langword="false"/>, the default, to write plain GraphQL source text;
+    /// <see langword="true"/> to write a JSON string value that holds the GraphQL source text,
+    /// including the enclosing quotation marks.
     /// </param>
     /// <returns>
     /// The new builder.
@@ -37,14 +43,16 @@ internal struct Utf8OperationDocumentBuilder
     /// <exception cref="ArgumentNullException">
     /// <paramref name="writer"/> is <see langword="null"/>.
     /// </exception>
-    internal static Utf8OperationDocumentBuilder New(IBufferWriter<byte> writer)
+    internal static Utf8OperationDocumentBuilder New(
+        IBufferWriter<byte> writer,
+        bool formatAsJsonStringValue = false)
     {
         if (writer is null)
         {
             throw new ArgumentNullException(nameof(writer));
         }
 
-        return new Utf8OperationDocumentBuilder(writer);
+        return new Utf8OperationDocumentBuilder(writer, formatAsJsonStringValue);
     }
 
     /// <summary>
@@ -73,11 +81,7 @@ internal struct Utf8OperationDocumentBuilder
         EnsureCanSetName();
         EnsureKeyword();
         _writer.Write(" "u8);
-
-        var byteCount = s_utf8.GetByteCount(name);
-        var span = _writer.GetSpan(byteCount);
-        var written = s_utf8.GetBytes(name, span);
-        _writer.Advance(written);
+        _writer.Write(name);
 
         _stage = WriterStage.Named;
         return this;
@@ -114,7 +118,7 @@ internal struct Utf8OperationDocumentBuilder
     /// prefixed. Shared variables must be added before any root selection.
     /// </summary>
     /// <param name="definition">
-    /// The variable definition to declare. Its source range is written verbatim.
+    /// The variable definition to declare. Its source range is written in compact form.
     /// </param>
     /// <returns>
     /// The builder for chaining.
@@ -132,7 +136,7 @@ internal struct Utf8OperationDocumentBuilder
 
         EnsureKeyword();
         WriteDefinitionSeparator();
-        definition.Format(_writer);
+        definition.Format(_writer, indented: false);
 
         if (_sharedDefinitions is null || _sharedDefinitions.Length == _sharedCount)
         {
@@ -218,6 +222,8 @@ internal struct Utf8OperationDocumentBuilder
         ulong[]? rentedBits = null;
         try
         {
+            EnsureOpened();
+
             if (_parenOpened)
             {
                 _writer.Write(")"u8);
@@ -244,6 +250,7 @@ internal struct Utf8OperationDocumentBuilder
             }
 
             _writer.Write(" }"u8);
+            _writer.WriteDelimiter();
         }
         finally
         {
@@ -264,7 +271,7 @@ internal struct Utf8OperationDocumentBuilder
 
         _writer.Write(prefix);
         _writer.Write(field.Utf8Name);
-        _writer.Write(": "u8);
+        _writer.Write(":"u8);
 
         var variableCount = document.VariableCount;
         var shared = new SharedOrdinalSet(bits.Slice(0, (variableCount + 63) >> 6));
@@ -302,15 +309,14 @@ internal struct Utf8OperationDocumentBuilder
             {
                 WriteDefinitionSeparator();
 
-                // Insert the item prefix in front of the name; the original name and everything
-                // before it, including a leading description and the dollar sign, stay verbatim.
-                _writer.Write(document.GetSource(
-                    definitionRow.Location,
-                    nameRow.Location - definitionRow.Location));
-                _writer.Write(prefix);
-                _writer.Write(document.GetSource(
-                    nameRow.Location,
-                    definitionRow.SourceEnd - nameRow.Location));
+                // The name of the definition is its only variable site, so every site in the
+                // definition is renamed and no ordinal has to be excluded.
+                Utf8SyntaxFormatter.Write(
+                    document,
+                    cursor,
+                    _writer,
+                    prefix,
+                    SharedOrdinalSet.Empty);
             }
 
             cursor += definitionRow.NumberOfRows;
@@ -330,10 +336,22 @@ internal struct Utf8OperationDocumentBuilder
         }
     }
 
+    // The delimiter that opens the JSON string value is written with the first content byte, so a
+    // builder that throws before it writes anything leaves the destination buffer untouched.
+    private void EnsureOpened()
+    {
+        if (!_opened)
+        {
+            _writer.WriteDelimiter();
+            _opened = true;
+        }
+    }
+
     private void EnsureKeyword()
     {
         if (!_keywordWritten)
         {
+            EnsureOpened();
             _writer.Write("query"u8);
             _keywordWritten = true;
         }

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text;
+using System.Text.Json;
 
 namespace HotChocolate.Language;
 
@@ -25,9 +26,9 @@ public class Utf8OperationDocumentBuilderTests
 
         // assert
         Text(writer).MatchInlineSnapshot(
-            "query Foo($first: Int, $_0_id: ID!, $_1_id: ID!) { "
-            + "_0_productById: productById(id: $_0_id) { name(first: $first) } "
-            + "_1_productById: productById(id: $_1_id) { name(first: $first) } }");
+            "query Foo($first:Int, $_0_id:ID!, $_1_id:ID!) { "
+            + "_0_productById:productById(id:$_0_id){name(first:$first)} "
+            + "_1_productById:productById(id:$_1_id){name(first:$first)} }");
     }
 
     [Fact]
@@ -56,6 +57,76 @@ public class Utf8OperationDocumentBuilderTests
     }
 
     [Fact]
+    public void Complete_Should_EmitCompactOperation_When_SourceDocumentIsIndented()
+    {
+        // arrange
+        var document = Parse(
+            """
+            query (
+              $id: ID!
+              $first: Int
+            ) {
+              # the lookup
+              productById(id: $id) {
+                name(first: $first)
+              }
+            }
+            """);
+        var field = FirstField(document);
+        var firstDefinition = VariableDefinition(document, "first");
+        var writer = new ArrayBufferWriter<byte>();
+
+        // act
+        Utf8OperationDocumentBuilder.New(writer)
+            .SetName("Batch")
+            .AddSharedVariable(firstDefinition)
+            .AddRootSelection(field)
+            .AddRootSelection(field)
+            .Complete();
+
+        // assert
+        Text(writer).MatchInlineSnapshot(
+            "query Batch($first:Int, $_0_id:ID!, $_1_id:ID!) { "
+            + "_0_productById:productById(id:$_0_id){name(first:$first)} "
+            + "_1_productById:productById(id:$_1_id){name(first:$first)} }");
+    }
+
+    [Fact]
+    public void Complete_Should_Roundtrip_When_SourceDocumentIsIndented()
+    {
+        // arrange
+        var document = Parse(
+            """
+            query (
+              $id: ID!
+              $first: Int
+            ) {
+              # the lookup
+              productById(id: $id) {
+                name(first: $first)
+              }
+            }
+            """);
+        var field = FirstField(document);
+        var firstDefinition = VariableDefinition(document, "first");
+        var writer = new ArrayBufferWriter<byte>();
+        Utf8OperationDocumentBuilder.New(writer)
+            .SetName("Batch")
+            .AddSharedVariable(firstDefinition)
+            .AddRootSelection(field)
+            .AddRootSelection(field)
+            .Complete();
+
+        // act
+        var reparsed = Utf8GraphQLOperationParser.Parse(writer.WrittenSpan.ToArray());
+        var operation = FirstOperation(reparsed);
+
+        // assert
+        Assert.Equal("Batch", Encoding.UTF8.GetString(operation.Utf8Name));
+        Assert.Equal(2, CountSelections(operation));
+    }
+
+    [Fact]
     public void Complete_Should_EmitAnonymousQueryWithParentheses_When_NameNotSetAndItemHasVariables()
     {
         // arrange
@@ -69,7 +140,7 @@ public class Utf8OperationDocumentBuilderTests
             .Complete();
 
         // assert
-        Text(writer).MatchInlineSnapshot("query($_0_id: ID!) { _0_a: a(id: $_0_id) }");
+        Text(writer).MatchInlineSnapshot("query($_0_id:ID!) { _0_a:a(id:$_0_id) }");
     }
 
     [Fact]
@@ -86,7 +157,7 @@ public class Utf8OperationDocumentBuilderTests
             .Complete();
 
         // assert
-        Text(writer).MatchInlineSnapshot("query { _0_productById: productById { name } }");
+        Text(writer).MatchInlineSnapshot("query { _0_productById:productById{name} }");
     }
 
     [Fact]
@@ -105,13 +176,15 @@ public class Utf8OperationDocumentBuilderTests
 
         // assert
         Text(writer).MatchInlineSnapshot(
-            "query($_0_id: ID!, $_1_id: ID!) { _0_a: a(id: $_0_id) _1_b: b(id: $_1_id) }");
+            "query($_0_id:ID!, $_1_id:ID!) { _0_a:a(id:$_0_id) _1_b:b(id:$_1_id) }");
     }
 
     [Fact]
-    public void AddRootSelection_Should_PreserveDescription_When_DefinitionIsRenamed()
+    public void AddRootSelection_Should_DropDescription_When_DefinitionIsRenamed()
     {
         // arrange
+        // A description is not part of the variable definition the rows describe, so the
+        // canonical output of a renamed definition carries the definition only.
         var document = Parse("query(\"the id\" $id: ID!) { productById(id: $id) { name } }");
         var field = FirstField(document);
         var writer = new ArrayBufferWriter<byte>();
@@ -123,7 +196,52 @@ public class Utf8OperationDocumentBuilderTests
 
         // assert
         Text(writer).MatchInlineSnapshot(
-            "query(\"the id\" $_0_id: ID!) { _0_productById: productById(id: $_0_id) { name } }");
+            "query($_0_id:ID!) { _0_productById:productById(id:$_0_id){name} }");
+    }
+
+    [Fact]
+    public void AddRootSelection_Should_EmitTypeAndDefault_When_DefinitionIsRenamed()
+    {
+        // arrange
+        var document = Parse(
+            "query($ids: [ID!]! = [\"a\"] @tag) { productsByIds(ids: $ids) { name } }");
+        var field = FirstField(document);
+        var writer = new ArrayBufferWriter<byte>();
+
+        // act
+        Utf8OperationDocumentBuilder.New(writer)
+            .AddRootSelection(field)
+            .Complete();
+
+        // assert
+        Text(writer).MatchInlineSnapshot(
+            "query($_0_ids:[ID!]!=[\"a\"]@tag) { "
+            + "_0_productsByIds:productsByIds(ids:$_0_ids){name} }");
+    }
+
+    [Fact]
+    public void Complete_Should_Roundtrip_When_RenamedDefinitionHasTypeAndDefault()
+    {
+        // arrange
+        var document = Parse(
+            "query($ids: [ID!]! = [\"a\"] @tag) { productsByIds(ids: $ids) { name } }");
+        var writer = new ArrayBufferWriter<byte>();
+        Utf8OperationDocumentBuilder.New(writer)
+            .AddRootSelection(FirstField(document))
+            .Complete();
+
+        // act
+        var reparsed = Utf8GraphQLOperationParser.Parse(writer.WrittenSpan.ToArray());
+        var operation = FirstOperation(reparsed);
+        var definition = new ArrayBufferWriter<byte>();
+        VariableDefinition(reparsed, "_0_ids").Format(definition);
+
+        // assert
+        Assert.Equal(1, CountSelections(operation));
+        Text(definition).MatchInlineSnapshot(
+            """
+            $_0_ids:[ID!]!=["a"]@tag
+            """);
     }
 
     [Fact]
@@ -236,6 +354,22 @@ public class Utf8OperationDocumentBuilderTests
     }
 
     [Fact]
+    public void AddRootSelection_Should_LeaveOutputEmpty_When_SelectionHasAlias()
+    {
+        // arrange
+        var document = Parse("query($id: ID!) { alias: productById(id: $id) { name } }");
+        var buffer = new ArrayBufferWriter<byte>();
+        var writer = Utf8OperationDocumentBuilder.New(buffer, formatAsJsonStringValue: true);
+
+        // act
+        void Act() => writer.AddRootSelection(FirstField(document));
+
+        // assert
+        Assert.Throws<NotSupportedException>(Act);
+        Assert.Equal(0, buffer.WrittenCount);
+    }
+
+    [Fact]
     public void Complete_Should_UsePooledOrdinalSet_When_DocumentHasMoreThan64Variables()
     {
         // arrange
@@ -252,7 +386,7 @@ public class Utf8OperationDocumentBuilderTests
 
         // assert
         var text = Text(writer);
-        Assert.Contains("$v0: Int", text);
+        Assert.Contains("$v0:Int", text);
         Assert.Contains("$_0_v65", text);
     }
 
@@ -274,6 +408,66 @@ public class Utf8OperationDocumentBuilderTests
         }
 
         return $"query({definitions}) {{ f({arguments}) }}";
+    }
+
+    [Fact]
+    public void Complete_Should_EmitJsonStringLiteral_When_FormatAsJsonStringValue()
+    {
+        // arrange
+        var document = Parse(
+            """
+            query($id: ID!, $first: Int) {
+              productById(id: $id, tag: "a\"b") { name(first: $first) }
+            }
+            """);
+        var field = FirstField(document);
+        var firstDefinition = VariableDefinition(document, "first");
+        var writer = new ArrayBufferWriter<byte>();
+
+        // act
+        Utf8OperationDocumentBuilder.New(writer, formatAsJsonStringValue: true)
+            .SetName("Foo")
+            .AddSharedVariable(firstDefinition)
+            .AddRootSelection(field)
+            .AddRootSelection(field)
+            .Complete();
+
+        // assert
+        Text(writer).MatchInlineSnapshot(
+            """
+            "query Foo($first:Int, $_0_id:ID!, $_1_id:ID!) { _0_productById:productById(id:$_0_id,tag:\"a\\\"b\"){name(first:$first)} _1_productById:productById(id:$_1_id,tag:\"a\\\"b\"){name(first:$first)} }"
+            """);
+    }
+
+    [Fact]
+    public void Complete_Should_RoundtripDecodedOperation_When_FormatAsJsonStringValue()
+    {
+        // arrange
+        var document = Parse(
+            """
+            query($id: ID!, $first: Int) {
+              productById(id: $id, tag: "a\"b") { name(first: $first) }
+            }
+            """);
+        var field = FirstField(document);
+        var firstDefinition = VariableDefinition(document, "first");
+        var writer = new ArrayBufferWriter<byte>();
+        Utf8OperationDocumentBuilder.New(writer, formatAsJsonStringValue: true)
+            .SetName("Foo")
+            .AddSharedVariable(firstDefinition)
+            .AddRootSelection(field)
+            .AddRootSelection(field)
+            .Complete();
+
+        // act
+        using var json = JsonDocument.Parse(writer.WrittenMemory);
+        var decoded = json.RootElement.GetString()!;
+        var reparsed = Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(decoded));
+        var operation = FirstOperation(reparsed);
+
+        // assert
+        Assert.Equal("Foo", Encoding.UTF8.GetString(operation.Utf8Name));
+        Assert.Equal(2, CountSelections(operation));
     }
 
     private static Utf8OperationDocument Parse(string source)
