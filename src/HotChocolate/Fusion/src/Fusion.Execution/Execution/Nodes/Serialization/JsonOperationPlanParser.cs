@@ -535,8 +535,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId,
+            conditions, requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
 
         SelectionPath? target = null;
 
@@ -575,8 +575,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId,
+            conditions, requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
 
         SelectionPath? target = null;
 
@@ -699,8 +699,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId,
+            conditions, requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
 
         var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
             ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
@@ -730,6 +730,23 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             RequiresFileUpload = requiresFileUpload,
             Schema = schema
         };
+    }
+
+    // Resolves the type that a rehydrated lookup node's root selection is selected on. A source
+    // schema field that the composite schema does not declare, for example an internal lookup,
+    // cannot be resolved from the plan alone, so such a node keeps the classic transport paths.
+    private static string? ResolveLookupTypeName(
+        FusionSchemaDefinition schema,
+        OperationType operationType,
+        SelectionPath? source)
+    {
+        if (source is null)
+        {
+            return null;
+        }
+
+        var type = ResolveResultSelectionSetType(schema, operationType, source);
+        return type is null ? null : OperationSourceText.ResolveLookupTypeName(source, type);
     }
 
     // Reconstructs the type that declares a fetch node's result selection set by walking the
@@ -777,7 +794,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
         int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
-        ParseCommonOperationFields(JsonElement nodeElement)
+        ParseCommonOperationFields(JsonElement nodeElement, FusionSchemaDefinition schema)
     {
         string? schemaName = null;
 
@@ -792,11 +809,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         // The parsed document string is transient: encode it to UTF-8 once and discard it.
         var document = operationElement.GetProperty("document").GetString()!;
         var hash = operationElement.GetProperty("hash").GetString()!;
-        var opSource = new OperationSourceText(
-            operationName,
-            operationType,
-            Encoding.UTF8.GetBytes(document),
-            hash);
 
         SelectionPath? source = null;
         List<OperationRequirement>? requirements = null;
@@ -810,6 +822,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             source = SelectionPath.Parse(sourceElement.GetString()!);
         }
+
+        var opSource = OperationSourceText.Create(
+            operationName,
+            operationType,
+            Encoding.UTF8.GetBytes(document),
+            hash,
+            ResolveLookupTypeName(schema, operationType, source));
 
         if (nodeElement.TryGetProperty("requirements", out var requirementsElement))
         {

@@ -21,6 +21,9 @@ namespace HotChocolate.Fusion.Execution.ApolloFederation;
 /// </summary>
 internal static class LookupEntityQueryRewriter
 {
+    // The federation union that the '_entities' field returns.
+    private const string EntityUnionTypeName = "_Entity";
+
     /// <summary>
     /// Rewrites a lookup operation into an Apollo Federation <c>_entities</c> query.
     /// </summary>
@@ -75,11 +78,12 @@ internal static class LookupEntityQueryRewriter
             operationDefinition.VariableDefinitions);
 
         return new RewrittenOperation(
-            new OperationSourceText(
+            OperationSourceText.Create(
                 operation.Name,
                 operation.Type,
                 Encoding.UTF8.GetBytes(text),
-                operation.Hash),
+                operation.Hash,
+                lookupTypeName: EntityUnionTypeName),
             entityTypeName,
             lookupField);
     }

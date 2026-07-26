@@ -99,6 +99,23 @@ internal static partial class Utf8SyntaxFormatter
         walker.Write(cursor);
     }
 
+    /// <summary>
+    /// Writes the field at <paramref name="cursor"/> in canonical form, leaving out the selection
+    /// set it declares, and inserting <paramref name="variablePrefix"/> in front of the name of
+    /// every variable whose ordinal is not in <paramref name="shared"/>. Shared variables keep
+    /// their original name.
+    /// </summary>
+    internal static void WriteFieldWithoutSelectionSet(
+        Utf8OperationDocument document,
+        int cursor,
+        Utf8SyntaxWriter writer,
+        ReadOnlySpan<byte> variablePrefix,
+        SharedOrdinalSet shared)
+    {
+        var walker = new RowWalker(document, writer, default, variablePrefix, shared);
+        walker.WriteFieldWithoutSelectionSet(cursor);
+    }
+
     private static void WriteVerbatimRange(
         Utf8OperationDocument document,
         int start,

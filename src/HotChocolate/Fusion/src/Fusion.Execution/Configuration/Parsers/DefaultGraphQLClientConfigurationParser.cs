@@ -87,6 +87,13 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
                         : capabilities & ~SourceSchemaClientCapabilities.RequestBatching;
                 }
 
+                if (batchingElement.TryGetProperty("aliasBatching", out supported))
+                {
+                    capabilities = supported.GetBoolean()
+                        ? capabilities | SourceSchemaClientCapabilities.AliasBatching
+                        : capabilities & ~SourceSchemaClientCapabilities.AliasBatching;
+                }
+
                 if (batchingElement.TryGetProperty("formats", out var formats))
                 {
                     var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();

@@ -1,0 +1,200 @@
+title: BatchedLookup_Should_RouteErrorsToTheirItem_When_OneItemFails
+request:
+  document: |
+    {
+      books {
+        title
+        errorRating
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "title": "C# in Depth",
+            "errorRating": "1"
+          },
+          {
+            "title": "The Lord of the Rings",
+            "errorRating": null
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "Rating unavailable.",
+          "path": [
+            "books",
+            1,
+            "errorRating"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        author: Author
+        id: ID!
+        title: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_628dc6ef_1 {
+              books {
+                title
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "title": "C# in Depth",
+                      "id": "1"
+                    },
+                    {
+                      "title": "The Lord of the Rings",
+                      "id": "2"
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        name(postFix: String): String!
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        rating: String!
+        errorRating: String
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Batch_54a8b37e8522415a($_0___fusion_1_id: ID!, $_1___fusion_1_id: ID!) {
+              _0_bookById: bookById(id: $_0___fusion_1_id) {
+                ..._fusion_body_1
+              }
+              _1_bookById: bookById(id: $_1___fusion_1_id) {
+                ..._fusion_body_1
+              }
+            }
+
+            fragment _fusion_body_1 on Book {
+              errorRating
+            }
+          variables: |
+            {
+              "_0___fusion_1_id": "1",
+              "_1___fusion_1_id": "2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_0_bookById": {
+                    "errorRating": "1"
+                  },
+                  "_1_bookById": {
+                    "errorRating": null
+                  }
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Rating unavailable.",
+                    "path": [
+                      "_1_bookById",
+                      "errorRating"
+                    ]
+                  }
+                ],
+                "data": {
+                  "_0_bookById": {
+                    "errorRating": "1"
+                  },
+                  "_1_bookById": {
+                    "errorRating": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            title
+            errorRating
+            id @fusion__requirement
+          }
+        }
+      hash: 628dc6ef7d5d2f822ed92d1d65e89e99
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_628dc6ef_1 {
+          books {
+            title
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_628dc6ef_2($__fusion_1_id: ID!) {
+          bookById(id: $__fusion_1_id) {
+            errorRating
+          }
+        }
+      source: $.bookById
+      target: $.books
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -61,12 +61,29 @@ internal static partial class Utf8SyntaxFormatter
         /// </summary>
         internal void Write(int cursor)
         {
+            SeekVariableSites(_document.GetRow(cursor).Location);
+            WriteNode(cursor);
+        }
+
+        /// <summary>
+        /// Writes the field at <paramref name="cursor"/> and the rows it spans, leaving out the
+        /// selection set it declares.
+        /// </summary>
+        internal void WriteFieldWithoutSelectionSet(int cursor)
+        {
+            var row = _document.GetRow(cursor);
+            Debug.Assert(row.Kind is Utf8SyntaxKind.Field);
+
+            SeekVariableSites(row.Location);
+            WriteField(cursor, row, writeSelectionSet: false);
+        }
+
+        private void SeekVariableSites(int position)
+        {
             if (_siteCount > 0)
             {
-                _siteIndex = _document.FindFirstVariableSite(_document.GetRow(cursor).Location);
+                _siteIndex = _document.FindFirstVariableSite(position);
             }
-
-            WriteNode(cursor);
         }
 
         private int WriteNode(int cursor)
@@ -100,7 +117,7 @@ internal static partial class Utf8SyntaxFormatter
                     break;
 
                 case Utf8SyntaxKind.Field:
-                    WriteField(cursor, row);
+                    WriteField(cursor, row, writeSelectionSet: true);
                     break;
 
                 case Utf8SyntaxKind.FragmentSpread:
@@ -269,7 +286,7 @@ internal static partial class Utf8SyntaxFormatter
             _writer.Write("}"u8);
         }
 
-        private void WriteField(int cursor, DbRow row)
+        private void WriteField(int cursor, DbRow row, bool writeSelectionSet)
         {
             var index = cursor + 1;
             var end = cursor + row.NumberOfRows;
@@ -286,7 +303,7 @@ internal static partial class Utf8SyntaxFormatter
             index = WriteArguments(index, end);
             index = WriteDirectives(index, end);
 
-            if (index < end)
+            if (writeSelectionSet && index < end)
             {
                 WriteNode(index);
             }
