@@ -191,4 +191,118 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
           }
         ");
     }
+
+    [Fact]
+    public void AcceptArgumentWithCompatibleDefaultValue()
+    {
+        ExpectValid(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: Int! = 123): String
+          }
+        ");
+    }
+
+    [Fact]
+    public void RejectArgumentWithIncompatibleScalarDefaultValue()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: Int = "abc"): String
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectArgumentWithNullDefaultValueForNonNull()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: Int! = null): String
+          }
+        ");
+    }
+
+    [Fact]
+    public void RejectArgumentWithUnknownInputObjectFieldDefault()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: FooInput = { missing: 1 }): String
+          }
+
+          input FooInput { a: Int }
+        ");
+    }
+
+    [Fact]
+    public void RejectArgumentWithMissingRequiredInputFieldDefault()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: FooInput = {}): String
+          }
+
+          input FooInput {
+              a: Int
+              b: Int!
+          }
+        ");
+    }
+
+    [Fact]
+    public void RejectArgumentWithNestedIncompatibleDefaultValue()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: BarInput = { inner: { a: "abc" } }): String
+          }
+
+          input BarInput { inner: FooInput }
+
+          input FooInput { a: Int }
+        """);
+    }
+
+    [Fact]
+    public void RejectArgumentWithUndefinedEnumDefaultValue()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: FooEnum = MISSING): String
+          }
+
+          enum FooEnum { VALUE }
+        ");
+    }
+
+    [Fact]
+    public void RejectArgumentWithOneOfDefaultSettingMultipleFields()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: FooOneOf = { a: 1, b: 2 }): String
+          }
+
+          input FooOneOf @oneOf {
+              a: Int
+              b: Int
+          }
+        ");
+    }
 }
