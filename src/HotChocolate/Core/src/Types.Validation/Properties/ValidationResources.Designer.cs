@@ -105,7 +105,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos;, and that field must not be null..
         /// </summary>
         internal static string LogEntryHelper_ArgumentDefaultValueOneOf {
             get {
@@ -114,7 +114,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;..
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;, and that field must not be null..
         /// </summary>
         internal static string LogEntryHelper_ArgumentDefaultValueOneOfAtPath {
             get {
@@ -258,7 +258,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos;, and that field must not be null..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultValueOneOf {
             get {
@@ -267,7 +267,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;..
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;, and that field must not be null..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultValueOneOfAtPath {
             get {

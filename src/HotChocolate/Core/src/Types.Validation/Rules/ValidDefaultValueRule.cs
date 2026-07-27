@@ -100,18 +100,11 @@ public sealed class ValidDefaultValueRule : IValidationEventHandler<DefaultValue
         IInputObjectTypeDefinition inputObject,
         ObjectValueNode value)
     {
-        var providedNonNull = 0;
-
         foreach (var fieldValue in value.Fields)
         {
             if (!inputObject.Fields.ContainsName(fieldValue.Name.Value))
             {
                 context.Log.Write(UnknownFieldInDefaultValue(root, path, fieldValue.Name.Value));
-            }
-
-            if (fieldValue.Value.Kind is not SyntaxKind.NullValue)
-            {
-                providedNonNull++;
             }
         }
 
@@ -134,7 +127,8 @@ public sealed class ValidDefaultValueRule : IValidationEventHandler<DefaultValue
             }
         }
 
-        if (inputObject.IsOneOf && providedNonNull != 1)
+        if (inputObject.IsOneOf
+            && (value.Fields.Count != 1 || value.Fields[0].Value.Kind is SyntaxKind.NullValue))
         {
             context.Log.Write(OneOfDefaultValueMustHaveExactlyOneField(root, path, inputObject.Name));
         }

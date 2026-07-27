@@ -1108,10 +1108,10 @@ Type: `{0}`</value>
     <value>The default value of argument '{0}' is missing the required input field '{1}' at path '{2}'.</value>
   </data>
   <data name="ErrorHelper_ArgumentDefaultValueOneOf" xml:space="preserve">
-    <value>The default value of argument '{0}' must specify exactly one non-null field for the oneOf input object '{1}'.</value>
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
   </data>
   <data name="ErrorHelper_ArgumentDefaultValueOneOfAtPath" xml:space="preserve">
-    <value>The default value of argument '{0}' must specify exactly one non-null field for the oneOf input object '{1}' at path '{2}'.</value>
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
   </data>
   <data name="ErrorHelper_ArgumentDefaultValueUnknownField" xml:space="preserve">
     <value>The default value of argument '{0}' specifies the unknown input field '{1}'.</value>
@@ -1132,10 +1132,10 @@ Type: `{0}`</value>
     <value>The default value of input field '{0}' is missing the required input field '{1}' at path '{2}'.</value>
   </data>
   <data name="ErrorHelper_InputFieldDefaultValueOneOf" xml:space="preserve">
-    <value>The default value of input field '{0}' must specify exactly one non-null field for the oneOf input object '{1}'.</value>
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
   </data>
   <data name="ErrorHelper_InputFieldDefaultValueOneOfAtPath" xml:space="preserve">
-    <value>The default value of input field '{0}' must specify exactly one non-null field for the oneOf input object '{1}' at path '{2}'.</value>
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
   </data>
   <data name="ErrorHelper_InputFieldDefaultValueUnknownField" xml:space="preserve">
     <value>The default value of input field '{0}' specifies the unknown input field '{1}'.</value>

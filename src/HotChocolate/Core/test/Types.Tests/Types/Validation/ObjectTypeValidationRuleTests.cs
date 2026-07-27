@@ -317,4 +317,21 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
           }
         ");
     }
+
+    [Fact]
+    public void RejectArgumentWithOneOfDefaultWithExtraNullField()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: FooOneOf = { a: 1, b: null }): String
+          }
+
+          input FooOneOf @oneOf {
+              a: Int
+              b: Int
+          }
+        ");
+    }
 }

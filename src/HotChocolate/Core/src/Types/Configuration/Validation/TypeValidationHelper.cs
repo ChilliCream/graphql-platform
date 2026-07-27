@@ -194,8 +194,6 @@ internal static class TypeValidationHelper
         List<object> path,
         ICollection<ISchemaError> errors)
     {
-        var providedNonNull = 0;
-
         foreach (var fieldValue in value.Fields)
         {
             if (inputObject.Fields.TryGetField(fieldValue.Name.Value, out var inputField))
@@ -207,11 +205,6 @@ internal static class TypeValidationHelper
             else
             {
                 errors.Add(UnknownFieldInDefaultValue(root, path, fieldValue.Name.Value));
-            }
-
-            if (fieldValue.Value.Kind is not SyntaxKind.NullValue)
-            {
-                providedNonNull++;
             }
         }
 
@@ -225,7 +218,8 @@ internal static class TypeValidationHelper
             }
         }
 
-        if (inputObject.Directives.ContainsDirective(DirectiveNames.OneOf.Name) && providedNonNull != 1)
+        if (inputObject.Directives.ContainsDirective(DirectiveNames.OneOf.Name)
+            && (value.Fields.Count != 1 || value.Fields[0].Value.Kind is SyntaxKind.NullValue))
         {
             errors.Add(OneOfDefaultValueMustHaveExactlyOneField(root, path, inputObject.Name));
         }

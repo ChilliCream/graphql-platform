@@ -223,7 +223,7 @@ public sealed class ValidDefaultValueRuleTests : RuleTestBase<ValidDefaultValueR
             """,
             """
             {
-                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one non-null field for the oneOf input object 'FooOneOf' at path 'inner'.",
+                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one field for the oneOf input object 'FooOneOf' at path 'inner', and that field must not be null.",
                 "code": "HCV0028",
                 "severity": "Error",
                 "coordinate": "Query.field(arg:)",
@@ -313,7 +313,7 @@ public sealed class ValidDefaultValueRuleTests : RuleTestBase<ValidDefaultValueR
             """,
             """
             {
-                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one non-null field for the oneOf input object 'FooInput'.",
+                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one field for the oneOf input object 'FooInput', and that field must not be null.",
                 "code": "HCV0028",
                 "severity": "Error",
                 "coordinate": "Query.field(arg:)",
@@ -341,7 +341,35 @@ public sealed class ValidDefaultValueRuleTests : RuleTestBase<ValidDefaultValueR
             """,
             """
             {
-                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one non-null field for the oneOf input object 'FooInput'.",
+                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one field for the oneOf input object 'FooInput', and that field must not be null.",
+                "code": "HCV0028",
+                "severity": "Error",
+                "coordinate": "Query.field(arg:)",
+                "member": "arg",
+                "extensions": {
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_OneOfDefaultWithExtraNullField_Fails()
+    {
+        AssertInvalid(
+            """
+            type Query {
+                field(arg: FooInput = { a: 1, b: null }): Int
+            }
+
+            input FooInput @oneOf {
+                a: Int
+                b: Int
+            }
+            """,
+            """
+            {
+                "message": "The default value of argument 'Query.field(arg:)' must specify exactly one field for the oneOf input object 'FooInput', and that field must not be null.",
                 "code": "HCV0028",
                 "severity": "Error",
                 "coordinate": "Query.field(arg:)",
