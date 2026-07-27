@@ -38,7 +38,6 @@ internal sealed partial class FetchResultStore : IDisposable
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
     private static readonly ArrayPool<byte> s_bytePool = ArrayPool<byte>.Shared;
     private static readonly ArrayPool<int> s_intPool = ArrayPool<int>.Shared;
-    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
