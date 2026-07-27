@@ -124,6 +124,31 @@ public sealed class EnumValueIsDefinedRuleTests : RuleTestBase<EnumValueIsDefine
     }
 
     [Fact]
+    public void Validate_SingletonListDefaultEnumValueIsUndefined_Fails()
+    {
+        AssertInvalid(
+            """
+            type FooObject {
+                field(arg: [FooEnum] = MISSING): Int
+            }
+
+            enum FooEnum {
+                VALUE
+            }
+            """,
+            """
+            {
+                "message": "The default value 'MISSING' of argument 'FooObject.field(arg:)' is not defined in the enum 'FooEnum'.",
+                "code": "HCV0023",
+                "severity": "Error",
+                "coordinate": "FooObject.field(arg:)",
+                "member": "arg",
+                "extensions": {}
+            }
+            """);
+    }
+
+    [Fact]
     public void Validate_NestedInputObjectDefaultEnumValueIsUndefined_Fails()
     {
         AssertInvalid(

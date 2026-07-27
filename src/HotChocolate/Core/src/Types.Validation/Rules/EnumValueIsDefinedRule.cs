@@ -21,8 +21,10 @@ public sealed class EnumValueIsDefinedRule
     {
         var (value, type, _, root) = @event;
 
-        if (type.NamedType() is IEnumTypeDefinition enumType
+        // Only the enum position itself is checked; a wrapping list is validated at its element event.
+        if (type.NullableType().Kind is TypeKind.Enum
             && value is EnumValueNode enumValue
+            && type.NamedType() is IEnumTypeDefinition enumType
             && !enumType.Values.ContainsName(enumValue.Value))
         {
             var entry = root.DeclaringMember is IInputObjectTypeDefinition
