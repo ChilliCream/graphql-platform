@@ -246,8 +246,10 @@ public sealed class SchemaValidator
                 }
                 else if (value.Kind is not SyntaxKind.NullValue)
                 {
-                    // Spec list-input coercion: a non-list literal is treated as a singleton list.
+                    // Spec list-input coercion: a non-list literal is treated as a singleton list at index 0.
+                    path.Add(0);
                     PublishDefaultValueNodeEvent(value, elementType, path, root, context);
+                    path.RemoveAt(path.Count - 1);
                 }
 
                 break;

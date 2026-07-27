@@ -217,6 +217,18 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
+    public void RejectArgumentWithSingletonListElementMismatch()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: [Int] = "x"): String
+          }
+        """);
+    }
+
+    [Fact]
     public void RejectArgumentWithNonNullIncompatibleScalarDefaultValue()
     {
         ExpectError("""

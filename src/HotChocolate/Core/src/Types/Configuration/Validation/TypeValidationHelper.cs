@@ -143,7 +143,10 @@ internal static class TypeValidationHelper
                 }
                 else
                 {
+                    // Spec list-input coercion: a non-list literal is treated as a singleton list at index 0.
+                    path.Add(0);
                     ValidateDefaultValueNode(root, value, elementType, path, errors);
+                    path.RemoveAt(path.Count - 1);
                 }
 
                 break;

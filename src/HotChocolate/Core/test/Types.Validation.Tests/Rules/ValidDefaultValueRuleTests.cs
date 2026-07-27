@@ -509,6 +509,30 @@ public sealed class ValidDefaultValueRuleTests : RuleTestBase<ValidDefaultValueR
     }
 
     [Fact]
+    public void Validate_SingletonListElementMismatch_Fails()
+    {
+        AssertInvalid(
+            """
+            type Query {
+                field(arg: [Int] = "x"): Int
+            }
+            """,
+            """
+            {
+                "message": "The default value of argument 'Query.field(arg:)' is not compatible with the type 'Int' at path '[0]'.",
+                "code": "HCV0028",
+                "severity": "Error",
+                "coordinate": "Query.field(arg:)",
+                "member": "arg",
+                "extensions": {
+                    "path": "[0]",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public void Validate_NullInNonNullListElementDefault_Fails()
     {
         AssertInvalid(
