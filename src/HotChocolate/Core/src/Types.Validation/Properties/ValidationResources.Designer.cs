@@ -69,6 +69,78 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is not compatible with the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueIncompatibleType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueIncompatibleType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is not compatible with the type &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueIncompatibleTypeAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueIncompatibleTypeAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is missing the required input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueMissingField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueMissingField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is missing the required input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueMissingFieldAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueMissingFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueOneOf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueOneOfAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueOneOfAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueUnknownField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueUnknownField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueUnknownFieldAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueUnknownFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; must define the argument &apos;{1}&apos; to match the field defined in interface &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_ArgumentNotImplemented {
@@ -146,6 +218,78 @@ namespace HotChocolate.Properties {
         internal static string LogEntryHelper_FieldNotImplemented {
             get {
                 return ResourceManager.GetString("LogEntryHelper_FieldNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is not compatible with the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueIncompatibleType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueIncompatibleType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is not compatible with the type &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueIncompatibleTypeAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueIncompatibleTypeAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is missing the required input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueMissingField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueMissingField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is missing the required input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueMissingFieldAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueMissingFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueOneOf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one non-null field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueOneOfAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueOneOfAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueUnknownField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueUnknownField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueUnknownFieldAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueUnknownFieldAtPath", resourceCulture);
             }
         }
         
