@@ -1151,6 +1151,42 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        var capturedStream = SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! The composition settings could not be loaded. If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        AssertSchemaUploadAfterCompose(capturedStream);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_ConfigurationDownloadThrows_ReturnsError()
     {
         // arrange

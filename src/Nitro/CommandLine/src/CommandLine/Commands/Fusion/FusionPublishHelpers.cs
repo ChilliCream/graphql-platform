@@ -513,7 +513,14 @@ internal static class FusionPublishHelpers
                 stageCompositionSettings = ToCompositionSettings(
                     await client.GetStageCompositionSettingsAsync(apiId, stageName, cancellationToken));
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0020")
+            {
+                stageCompositionSettings = null;
+                composeActivity.Update(
+                    Messages.CompositionSettingsCouldNotBeLoaded,
+                    ActivityUpdateKind.Warning);
+            }
+            catch (Exception ex)  when (ex is not OperationCanceledException)
             {
                 composeActivity.Fail(
                     Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup()));

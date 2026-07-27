@@ -259,6 +259,18 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
+    protected void SetupStageCompositionSettingsPersistedOperationRejected()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.GetStageCompositionSettingsAsync(
+                ApiId,
+                Stage,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientGraphQLException(
+                "The persisted operation was not found.",
+                "HC0020"));
+    }
+
     protected void SetupMissingFusionConfigurationDownload(
         string version = "2.0.0",
         string archiveFormat = ArchiveFormats.Far)

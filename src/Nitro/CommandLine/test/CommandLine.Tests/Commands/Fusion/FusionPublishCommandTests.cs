@@ -2170,6 +2170,59 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! The composition settings could not be loaded. If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_CompositionErrors_ReturnsError()
     {
         // arrange
@@ -3951,6 +4004,61 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! The composition settings could not be loaded. If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
     }
 
     [Theory]
