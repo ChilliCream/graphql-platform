@@ -592,6 +592,96 @@ public class SourceResultDocumentTests
     }
 
     [Fact]
+    public void AssertUtf8String_Should_ReturnRawUtf8_When_StringIsNotEscaped()
+    {
+        // arrange
+        var json = "{\"__typename\":\"Product\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        // act
+        var typeName = result.Root.GetProperty("__typename").AssertUtf8String();
+
+        // assert
+        Assert.True(typeName.SequenceEqual("Product"u8));
+    }
+
+    [Fact]
+    public void AssertUtf8String_Should_ReturnRawEscapedBytes_When_StringIsEscaped()
+    {
+        // arrange
+        var json = "{\"__typename\":\"Pro\\u0064uct\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        // act
+        var typeName = result.Root.GetProperty("__typename").AssertUtf8String();
+
+        // assert
+        // Escape sequences are not decoded; the raw bytes as stored are returned.
+        Assert.True(typeName.SequenceEqual("Pro\\u0064uct"u8));
+    }
+
+    [Fact]
+    public void AssertUtf8String_Should_Throw_When_ValueIsNotString()
+    {
+        // arrange
+        var json = "{\"__typename\":42}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+        var property = result.Root.GetProperty("__typename");
+
+        // act
+        void Act() => property.AssertUtf8String();
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
+    [Fact]
+    public void AssertUtf8String_Should_Throw_When_ElementIsDefault()
+    {
+        // arrange
+        var element = default(SourceResultElement);
+
+        // act
+        void Act() => element.AssertUtf8String();
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
+    [Fact]
+    public void AssertUtf8String_Should_ReturnCorrectBytes_When_StringSpansChunks()
+    {
+        // arrange
+        var json = Encoding.UTF8.GetBytes(
+            $"{{\"padding\":\"{new string('x', 993)}\",\"__typename\":\"Product\"}}");
+        var chunks = new[]
+        {
+            json[..1024],
+            json[1024..]
+        };
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            chunks,
+            chunks[1].Length,
+            chunks.Length);
+
+        // act
+        var typeName = result.Root.GetProperty("__typename").AssertUtf8String();
+
+        // assert
+        Assert.True(typeName.SequenceEqual("Product"u8));
+    }
+
+    [Fact]
     public void TryGetProperty_EscapedPropertyNames_WorksCorrectly()
     {
         var json = "{\"prop\\nname\": 42}"u8.ToArray();
