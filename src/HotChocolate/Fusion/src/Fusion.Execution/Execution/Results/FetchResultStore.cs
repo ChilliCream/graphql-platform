@@ -11,6 +11,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Text.Json;
@@ -43,7 +44,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly ChunkedArrayWriter _variableWriter = new();
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
-    private ISchemaDefinition _schema = default!;
+    private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
     private ErrorHandlingMode _errorHandlingMode;

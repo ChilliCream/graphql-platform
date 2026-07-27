@@ -16,7 +16,7 @@ public class UnionTests : FusionTestBase
     #region union { ... }
 
     [Fact]
-    public async Task Union_Field_Should_ResolveType_When_TypeNameIsEscaped()
+    public async Task Union_Field_Should_Error_When_TypeNameIsEscaped()
     {
         using var server = CreateSourceSchema(
             "A",
@@ -60,11 +60,16 @@ public class UnionTests : FusionTestBase
             """
             {
               "data": {
-                "post": {
-                  "__typename": "Photo",
-                  "imageUrl": "image.jpg"
+                "post": null
+              },
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "post"
+                  ]
                 }
-              }
+              ]
             }
             """);
     }
