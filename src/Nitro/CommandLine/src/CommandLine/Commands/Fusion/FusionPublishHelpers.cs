@@ -517,10 +517,12 @@ internal static class FusionPublishHelpers
             {
                 stageCompositionSettings = null;
                 composeActivity.Update(
-                    Messages.CompositionSettingsCouldNotBeLoaded,
+                    Messages.FailedToDownloadCompositionSettings(
+                        stageName.EscapeMarkup(),
+                        Messages.SelfHostLatestVersionReminder),
                     ActivityUpdateKind.Warning);
             }
-            catch (Exception ex)  when (ex is not OperationCanceledException)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 composeActivity.Fail(
                     Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup()));

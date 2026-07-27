@@ -1321,7 +1321,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        // a null response from the API must leave every archive setting untouched
         Assert.Equal(0, result.ExitCode);
         using var archive = FusionArchive.Open(capturedStream);
         using var settings = await archive.GetCompositionSettingsAsync(
@@ -1412,7 +1411,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        // only the provided stage settings override the archive; the rest fall back to the archive
         Assert.Equal(0, result.ExitCode);
         using var archive = FusionArchive.Open(capturedStream);
         using var settings = await archive.GetCompositionSettingsAsync(
@@ -1443,6 +1441,106 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to download the composition settings from stage 'dev': Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to download the composition settings from stage 'dev'.
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! Failed to download the composition settings from stage 'dev': If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
     }
 
     [Fact]
@@ -2140,106 +2238,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_StageCompositionSettingsThrows_ReturnsError()
-    {
-        // arrange
-        SetupSourceSchemaFile();
-        SetupRequestDeploymentSlotMutation();
-        SetupRequestDeploymentSlotSubscription();
-        SetupClaimDeploymentSlotMutation();
-        SetupFusionConfigurationDownload();
-        SetupStageCompositionSettingsException();
-        SetupReleaseDeploymentSlotMutation();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--tag",
-            Tag,
-            "--source-schema-file",
-            SourceSchemaFile);
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Failed to download the composition settings from stage 'dev': Something unexpected happened.
-            """);
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Requesting deployment slot
-            │   ├── Publication request created. (ID: request-id)
-            │   └── ✓ Deployment slot ready.
-            ├── Claiming deployment slot
-            │   └── ✓ Claimed deployment slot.
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✕ Failed to download the composition settings from stage 'dev'.
-            └── ✕ Failed to publish a new Fusion configuration version.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
-    {
-        // arrange
-        SetupSourceSchemaFile();
-        SetupRequestDeploymentSlotMutation();
-        SetupRequestDeploymentSlotSubscription();
-        SetupClaimDeploymentSlotMutation();
-        SetupFusionConfigurationDownload();
-        SetupStageCompositionSettingsPersistedOperationRejected();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--tag",
-            Tag,
-            "--source-schema-file",
-            SourceSchemaFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Requesting deployment slot
-            │   ├── Publication request created. (ID: request-id)
-            │   └── ✓ Deployment slot ready.
-            ├── Claiming deployment slot
-            │   └── ✓ Claimed deployment slot.
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing configuration from 'dev'.
-            ├── Composing new configuration
-            │   ├── ! The composition settings could not be loaded. If you are targeting a self-hosted instance, make sure it's running the latest version.
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
-            """);
-        var schema = await GetFusionSchemaAsync(capturedStream);
-        AssertComposedFusionSchema(schema);
     }
 
     [Fact]
@@ -3978,6 +3976,181 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
+    public async Task WithSourceSchema_NullStageCompositionSettings_ArchiveSettingsPreserved()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_PartialStageCompositionSettings_OnlyOverridesProvidedSettings()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                ExcludeByTag = ["fromStage"],
+                TagMergeBehavior = CompositionDirectiveMergeBehavior.IncludePrivate
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromStage"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "IncludePrivate"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task WithSourceSchema_StageCompositionSettingsThrows_ReturnsError()
     {
         // arrange
@@ -4068,7 +4241,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   ├── ! The composition settings could not be loaded. If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   ├── ! Failed to download the composition settings from stage 'dev': If you are targeting a self-hosted instance, make sure it's running the latest version.
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
