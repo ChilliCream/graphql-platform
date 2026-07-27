@@ -445,7 +445,7 @@ public class DocumentValidatorTests
             """
                 {
                     dog {
-                       ... inlineFragOnScalar
+                        ... inlineFragOnScalar
                     }
                 }
 

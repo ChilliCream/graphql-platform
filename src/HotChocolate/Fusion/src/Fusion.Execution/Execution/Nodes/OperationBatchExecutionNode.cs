@@ -168,7 +168,12 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         try
         {
-            operationCount = BuildRequests(context, schemaName, requestBuilder, operationByIndex, variablesByIndex);
+            operationCount = BuildRequests(
+                context,
+                schemaName,
+                requestBuilder,
+                operationByIndex,
+                variablesByIndex);
 
             if (operationCount == 0)
             {
@@ -254,10 +259,24 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 {
                     missingCount++;
                     var operation = operationByIndex[i];
-                    context.AddErrors(
-                        ThrowHelper.MissingBatchResult(operation.Id),
-                        variablesByIndex[i],
-                        operation.ResultSelectionSet);
+
+                    // A missing result is either a transport failure that the batch
+                    // fallback isolated to this request, or a source schema that did
+                    // not honor the batch protocol. When a transport failure was
+                    // recorded we surface its cause; otherwise we report the missing
+                    // batch result.
+                    if (context.TryGetBatchRequestError(this, i, out var requestError))
+                    {
+                        diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, requestError);
+                        context.AddErrors(requestError, variablesByIndex[i], operation.ResultSelectionSet);
+                    }
+                    else
+                    {
+                        context.AddErrors(
+                            ThrowHelper.MissingBatchResult(operation.Id),
+                            variablesByIndex[i],
+                            operation.ResultSelectionSet);
+                    }
                 }
             }
 

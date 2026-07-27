@@ -1,10 +1,22 @@
+using HotChocolate.Fusion.Suites.ProvidesOnUnion.SubgraphA;
+using HotChocolate.Fusion.Suites.ProvidesOnUnion.SubgraphB;
+using HotChocolate.Fusion.Suites.ProvidesOnUnion.SubgraphC;
+
 namespace HotChocolate.Fusion.Suites;
 
-public sealed class ProvidesOnUnionTests : ComplianceTestBase
+[OfficialV2Suite("provides-on-union")]
+public sealed class ProvidesOnUnionTests
+    : OfficialV2ComplianceTestBase<ProvidesOnUnionTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => throw new NotImplementedException("Subgraphs not yet wired for this suite.");
+        => ComposeOfficialV2Async(
+            (SubgraphASubgraph.Name, SubgraphASubgraph.BuildAsync),
+            (SubgraphBSubgraph.Name, SubgraphBSubgraph.BuildAsync),
+            (SubgraphCSubgraph.Name, SubgraphCSubgraph.BuildAsync));
 
-    [Fact(Skip = "Pending: @requires/@provides coverage.")]
-    public Task Pending() => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }

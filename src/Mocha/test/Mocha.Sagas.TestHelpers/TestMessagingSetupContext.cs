@@ -21,7 +21,7 @@ public sealed class TestMessagingSetupContext : IMessagingSetupContext
     public IMessageTypeRegistry Messages => throw new NotSupportedException("Not available in test context");
     public IMessageRouter Router => throw new NotSupportedException("Not available in test context");
     public IEndpointRouter Endpoints => throw new NotSupportedException("Not available in test context");
-    public IHostInfo Host => throw new NotSupportedException("Not available in test context");
+    public IHostInfo Host { get; } = HostInfoFactory.From(new HostInfoConfiguration());
     public IConventionRegistry Conventions => throw new NotSupportedException("Not available in test context");
     public ImmutableHashSet<Consumer> Consumers => [];
     public ImmutableArray<MessagingTransport> Transports => [];

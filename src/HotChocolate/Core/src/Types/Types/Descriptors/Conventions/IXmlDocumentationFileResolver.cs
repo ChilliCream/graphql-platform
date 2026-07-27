@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 public interface IXmlDocumentationFileResolver
 {
     /// <summary>
-    /// Trues to resolve an XML documentation file from the given assembly..
+    /// Tries to resolve an XML documentation file from the given assembly.
     /// </summary>
     bool TryGetXmlDocument(
         Assembly assembly,

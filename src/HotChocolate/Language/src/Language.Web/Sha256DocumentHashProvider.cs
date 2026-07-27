@@ -11,7 +11,7 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
     private readonly ThreadLocal<SHA256> _sha = new(SHA256.Create);
 
     public Sha256DocumentHashProvider()
-       : this(HashFormat.Base64)
+        : this(HashFormat.Base64)
     {
     }
 

@@ -128,6 +128,32 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
 
+    internal ulong IncludeConditionMask
+    {
+        get
+        {
+            if (_includeFlags.Length == 0)
+            {
+                return 0;
+            }
+
+            if (_includeFlags.Length == 1)
+            {
+                return _includeFlags[0];
+            }
+
+            var mask = 0UL;
+            var includeFlags = _includeFlags.AsSpan();
+
+            for (var i = 0; i < includeFlags.Length; i++)
+            {
+                mask |= includeFlags[i];
+            }
+
+            return mask;
+        }
+    }
+
     /// <summary>
     /// Gets a value indicating whether this selection returns a list type.
     /// </summary>

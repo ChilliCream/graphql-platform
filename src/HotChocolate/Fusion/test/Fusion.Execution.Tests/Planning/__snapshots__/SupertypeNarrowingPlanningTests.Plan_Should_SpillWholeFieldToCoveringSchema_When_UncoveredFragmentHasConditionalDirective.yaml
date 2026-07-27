@@ -1,0 +1,35 @@
+operation:
+  - document: |
+      query($includeProduct: Boolean!, $includeReview: Boolean!) {
+        featured {
+          __typename @fusion__requirement
+          ... on Product @include(if: $includeProduct) {
+            name
+          }
+          ... on Review @include(if: $includeReview) {
+            rating
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1($includeProduct: Boolean!, $includeReview: Boolean!) {
+        featured {
+          __typename
+          ... on Product @include(if: $includeProduct) {
+            name
+          }
+          ... on Review @include(if: $includeReview) {
+            rating
+          }
+        }
+      }
+    forwardedVariables:
+      - includeProduct
+      - includeReview

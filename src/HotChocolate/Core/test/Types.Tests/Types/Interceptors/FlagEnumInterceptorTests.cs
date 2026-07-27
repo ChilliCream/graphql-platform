@@ -57,12 +57,11 @@ public class FlagEnumInterceptorTests
                 x
                     => x.Name("Query").Field("asd").Resolve("baz"))
             .AddDirectiveType(
-                new DirectiveType(
-                    x
-                        => x.Name("Test")
-                            .Location(DirectiveLocation.FragmentSpread)
-                            .Argument("a")
-                            .Type(typeof(FlagsEnum))))
+                x
+                    => x.Name("Test")
+                        .Location(DirectiveLocation.FragmentSpread)
+                        .Argument("a")
+                        .Type(typeof(FlagsEnum)))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.ToString().MatchSnapshot();

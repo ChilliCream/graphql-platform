@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -40,6 +39,12 @@ public sealed partial class CompositeResultDocument
         // replaces the Min+shift+div of RowsPerChunkFor on the AddRows fast path.
         private static readonly int[] s_rowsPerChunk = BuildRowsPerChunk();
 
+        // The packed value immediately after the last addressable row. This remains inside the
+        // 13-bit row field and is used as the one-past-the-end cursor by appenders and enumerators.
+        private static readonly Cursor s_end = PackUnchecked(
+            MaxChunks - 1,
+            RowsPerChunkFor(MaxChunks - 1));
+
         private readonly int _value;
 
         /// <summary>
@@ -68,10 +73,22 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Cursor From(int chunkIndex, int rowWithinChunk)
         {
-            Debug.Assert((uint)chunkIndex < MaxChunks);
-            Debug.Assert(rowWithinChunk >= 0 && rowWithinChunk <= RowMask);
-            return new Cursor((chunkIndex << ChunkShift) | rowWithinChunk);
+            if ((uint)chunkIndex >= MaxChunks)
+            {
+                throw new ArgumentOutOfRangeException(nameof(chunkIndex));
+            }
+
+            if ((uint)rowWithinChunk >= (uint)RowsPerChunkFor(chunkIndex))
+            {
+                throw new ArgumentOutOfRangeException(nameof(rowWithinChunk));
+            }
+
+            return PackUnchecked(chunkIndex, rowWithinChunk);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Cursor PackUnchecked(int chunkIndex, int rowWithinChunk)
+            => new((chunkIndex << ChunkShift) | rowWithinChunk);
 
         /// <summary>
         /// Creates the zero cursor (chunk 0, row 0).
@@ -80,12 +97,21 @@ public sealed partial class CompositeResultDocument
         public static Cursor CreateZero() => new(0);
 
         /// <summary>
+        /// Gets the one-past-the-end cursor for the complete representable metadata space.
+        /// </summary>
+        public static Cursor End => s_end;
+
+        /// <summary>
         /// Creates a cursor for a row-aligned byte offset within the given chunk.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Cursor FromByteOffset(int chunkIndex, int byteOffset)
         {
-            Debug.Assert(byteOffset % DbRow.Size == 0, "byteOffset must be row-aligned.");
+            if (byteOffset < 0 || byteOffset % DbRow.Size != 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(byteOffset));
+            }
+
             return From(chunkIndex, byteOffset / DbRow.Size);
         }
 
@@ -176,20 +202,19 @@ public sealed partial class CompositeResultDocument
             // load gives the chunk capacity and a single unsigned compare covers both bounds.
             if ((uint)row < (uint)s_rowsPerChunk[Math.Min(chunk, RampLength)])
             {
-                return From(chunk, row);
+                return PackUnchecked(chunk, row);
             }
 
             // General path: project onto the linear row index and map it back to (chunk, row) in
             // O(1). The ramp is a short prefix scan; the constant tail is closed-form division.
-            var linear = RowsBeforeChunk(chunk) + Row + delta;
+            var linear = (long)RowsBeforeChunk(chunk) + Row + delta;
 
-            if (linear < 0)
+            if ((ulong)linear > (ulong)End.Index)
             {
-                Debug.Fail("Cursor underflow");
-                return new Cursor(0);
+                throw new OverflowException("Cursor movement exceeds the representable metadata range.");
             }
 
-            return FromLinear(linear);
+            return FromLinear((int)linear);
         }
 
         /// <summary>
@@ -199,6 +224,11 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Cursor FromLinear(int linear)
         {
+            if (linear == End.Index)
+            {
+                return End;
+            }
+
             if (linear >= s_rampPrefix[RampLength])
             {
                 const int maxRowsPerChunk = (1 << (10 + (int)ChunkSize.Size128K)) / DbRow.Size;
@@ -207,14 +237,7 @@ public sealed partial class CompositeResultDocument
                 var chunk = RampLength + carry;
                 var row = rem - (carry * maxRowsPerChunk);
 
-                if (chunk >= MaxChunks)
-                {
-                    Debug.Fail("Cursor overflow");
-                    chunk = MaxChunks - 1;
-                    row = maxRowsPerChunk - 1;
-                }
-
-                return From(chunk, row);
+                return PackUnchecked(chunk, row);
             }
 
             // Ramp: locate the chunk whose prefix window contains the linear index. RampLength is a
@@ -230,7 +253,7 @@ public sealed partial class CompositeResultDocument
                 }
             }
 
-            return From(c, linear - s_rampPrefix[c]);
+            return PackUnchecked(c, linear - s_rampPrefix[c]);
         }
 
         /// <summary>

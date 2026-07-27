@@ -33,7 +33,7 @@ public static class AccountsSubgraph
             .AddType<UserType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

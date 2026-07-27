@@ -1,0 +1,197 @@
+title: Opaque_TypeName_Is_Recovered_Through_Covering_Lookup
+request:
+  document: |
+    query testQuery {
+      trendingMedia {
+        __typename
+        id
+        views
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "trendingMedia": [
+          {
+            "__typename": "Book",
+            "id": "TWVkaWE6MQ==",
+            "views": 123
+          },
+          {
+            "__typename": "Book",
+            "id": "TWVkaWE6Mg==",
+            "views": 123
+          },
+          {
+            "__typename": "Book",
+            "id": "TWVkaWE6Mw==",
+            "views": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Book implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        isbn: String!
+      }
+
+      type Movie implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        runtime: Int!
+      }
+
+      interface Media {
+        id: ID!
+        title: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_c5671534_2($__fusion_1_id: ID!) {
+              mediaById(id: $__fusion_1_id) {
+                __typename
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "TWVkaWE6MQ=="
+              },
+              {
+                "__fusion_1_id": "TWVkaWE6Mg=="
+              },
+              {
+                "__fusion_1_id": "TWVkaWE6Mw=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        trendingMedia: [Media!]!
+        mediaByKey(id: ID!): Media @lookup @internal
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+        views: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_c5671534_1 {
+              trendingMedia {
+                id
+                views
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "trendingMedia": [
+                    {
+                      "id": "TWVkaWE6MQ==",
+                      "views": 123
+                    },
+                    {
+                      "id": "TWVkaWE6Mg==",
+                      "views": 123
+                    },
+                    {
+                      "id": "TWVkaWE6Mw==",
+                      "views": 123
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          trendingMedia {
+            __typename
+            id
+            id @fusion__requirement
+            views
+          }
+        }
+      name: testQuery
+      hash: c56715340e963d08d0911cbe2073e28b
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_c5671534_1 {
+          trendingMedia {
+            id
+            views
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_c5671534_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+          }
+        }
+      source: $.mediaById
+      target: $.trendingMedia
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

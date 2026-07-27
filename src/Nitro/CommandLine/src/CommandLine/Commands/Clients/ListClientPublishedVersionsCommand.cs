@@ -85,8 +85,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
             .CreateConnectionData(async (after, first, cancellationToken) =>
             {
                 var page = await client.ListClientPublishedVersionsAsync(
-                    clientId, stage, after ?? cursor, first, cancellationToken)
-                    ?? throw new ExitException("The client was not found.");
+                    clientId, stage, after ?? cursor, first, cancellationToken);
 
                 var mappedItems = page.Items
                     .Where(e => e.Node.Version is not null)
@@ -125,8 +124,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
     {
         var clientId = parseResult.GetRequiredOptionalValue(Opt<OptionalClientIdOption>.Instance);
 
-        var page = await client.ListClientPublishedVersionsAsync(clientId, stage, cursor, 10, ct)
-            ?? throw new ExitException("The client was not found.");
+        var page = await client.ListClientPublishedVersionsAsync(clientId, stage, cursor, 10, ct);
 
         var items = page.Items
             .Where(e => e.Node.Version is not null)

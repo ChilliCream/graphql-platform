@@ -1,15 +1,20 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
 public sealed partial class OperationPlanContext
 {
+    private CancellationTokenSource _engineCancellationSource = new();
+
     internal OperationPlanContext(
         INodeIdParser nodeIdParser,
         IFusionExecutionDiagnosticEvents diagnosticEvents,
@@ -29,6 +34,10 @@ public sealed partial class OperationPlanContext
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
     {
+        _activeNodeSlotCount = 0;
+        _usesDynamicSchemaNames = true;
+        _usesBatchNodes = true;
+
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
         ArgumentNullException.ThrowIfNull(operationPlan);
@@ -45,15 +54,29 @@ public sealed partial class OperationPlanContext
 
         Variables = variables;
         OperationPlan = operationPlan;
+
+        switch (operationPlan)
+        {
+            case OperationPlan plan:
+                _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
+                _usesBatchNodes = plan.UsesBatchNodes;
+                break;
+
+            case IncrementalPlan plan:
+                _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
+                _usesBatchNodes = plan.UsesBatchNodes;
+                break;
+        }
+
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
         DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
-        _clientScope = requestContext.CreateClientScope();
+        _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
         _resultStore.Initialize(
             Memory,
-            requestContext.Schema,
+            (FusionSchemaDefinition)requestContext.Schema,
             _errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
@@ -63,7 +86,39 @@ public sealed partial class OperationPlanContext
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
-        EnsureNodeArrayCapacity(operationPlan.MaxNodeId);
+        var maxNodeId = operationPlan.MaxNodeId;
+        EnsureNodeArrayCapacity(maxNodeId);
+        _activeNodeSlotCount = maxNodeId + 1;
+    }
+
+    /// <summary>
+    /// Arms the pooled engine cancellation source against the request token and returns it for
+    /// this operation. The engine source halts the execution engine without cancelling the request
+    /// pipeline. The returned registration links the request token into the engine source so that
+    /// client-abort and server-shutdown still propagate, and it must be disposed before the source
+    /// is returned for reuse.
+    /// </summary>
+    internal (CancellationTokenSource Source, CancellationTokenRegistration Registration) RentEngineCancellation(
+        CancellationToken cancellationToken)
+    {
+        var registration = cancellationToken.UnsafeRegister(
+            static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
+            _engineCancellationSource);
+        return (_engineCancellationSource, registration);
+    }
+
+    /// <summary>
+    /// Returns the engine cancellation source for reuse. If it was cancelled and cannot be reset,
+    /// it is disposed and replaced with a fresh source. The caller must dispose the registration
+    /// from <see cref="RentEngineCancellation"/> before calling this.
+    /// </summary>
+    internal void ReturnEngineCancellation()
+    {
+        if (!_engineCancellationSource.TryReset())
+        {
+            _engineCancellationSource.Dispose();
+            _engineCancellationSource = new CancellationTokenSource();
+        }
     }
 
     /// <summary>
@@ -72,17 +127,35 @@ public sealed partial class OperationPlanContext
     /// </summary>
     internal void Clean()
     {
-        DisposeNodeState();
+        var activeNodeSlotCount = _activeNodeSlotCount;
 
-        if (_nodeSlotCapacity > 0)
+        if (activeNodeSlotCount > 0)
         {
-            Array.Clear(_nodesToComplete, 0, _nodeSlotCapacity);
-            Array.Clear(_schemaNames, 0, _nodeSlotCapacity);
-            Array.Clear(_skippedDefinitions, 0, _nodeSlotCapacity);
-            Array.Clear(_variableValueSets, 0, _nodeSlotCapacity);
-            Array.Clear(_transportUris, 0, _nodeSlotCapacity);
-            Array.Clear(_transportContentTypes, 0, _nodeSlotCapacity);
+            DisposeNodeState(activeNodeSlotCount);
+            Array.Clear(_nodesToComplete, 0, activeNodeSlotCount);
+
+            if (_usesDynamicSchemaNames)
+            {
+                Array.Clear(_schemaNames, 0, activeNodeSlotCount);
+            }
+
+            if (_usesBatchNodes)
+            {
+                Array.Clear(_skippedDefinitions, 0, activeNodeSlotCount);
+                Array.Clear(_batchRequestErrors, 0, activeNodeSlotCount);
+            }
+
+            if (_collectTelemetry)
+            {
+                Array.Clear(_variableValueSets, 0, activeNodeSlotCount);
+                Array.Clear(_transportUris, 0, activeNodeSlotCount);
+                Array.Clear(_transportContentTypes, 0, activeNodeSlotCount);
+            }
         }
+
+        _activeNodeSlotCount = 0;
+        _usesDynamicSchemaNames = true;
+        _usesBatchNodes = true;
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();
@@ -94,7 +167,11 @@ public sealed partial class OperationPlanContext
         Variables = default!;
         OperationPlan = default!;
         DeferFlags = 0;
-        _clientScope = default!;
+        // if a custom scope is used we cannot reuse it and have to null it.
+        if (_clientScope is not DefaultSourceSchemaClientScope)
+        {
+            _clientScope = default!;
+        }
         _requirementValues = default;
         _requirementKeys = null;
         Traces =
@@ -116,6 +193,7 @@ public sealed partial class OperationPlanContext
     {
         _resultStore.Dispose();
         _executionState.Destroy();
+        _engineCancellationSource.Dispose();
     }
 
     public async ValueTask DisposeAsync()
@@ -125,7 +203,15 @@ public sealed partial class OperationPlanContext
             return;
         }
 
-        await _clientScope.DisposeAsync();
+        // If Initialize fails before creating a scope, _clientScope can be null.
+        if (_clientScope is DefaultSourceSchemaClientScope reusableClientScope)
+        {
+            await reusableClientScope.ResetAsync();
+        }
+        else if (_clientScope is not null)
+        {
+            await _clientScope.DisposeAsync();
+        }
 
         var pool = _pool;
         _pool = null;
@@ -142,6 +228,7 @@ public sealed partial class OperationPlanContext
             _nodesToComplete = new NodeCompletionSet?[nodeSlotCount];
             _schemaNames = new string?[nodeSlotCount];
             _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
+            _batchRequestErrors = new Dictionary<int, Exception>?[nodeSlotCount];
             _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
             _transportUris = new Uri?[nodeSlotCount];
             _transportContentTypes = new string?[nodeSlotCount];

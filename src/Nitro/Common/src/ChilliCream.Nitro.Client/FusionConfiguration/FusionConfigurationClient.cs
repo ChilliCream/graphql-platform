@@ -142,7 +142,7 @@ internal sealed class FusionConfigurationClient(
         return OperationResultHelper.EnsureData(result).UploadFusionSubgraph;
     }
 
-    public async Task<Stream?> DownloadSourceSchemaArchiveAsync(
+    public async Task<Stream> DownloadSourceSchemaArchiveAsync(
         string apiId,
         string sourceSchemaName,
         string sourceSchemaVersion,
@@ -154,7 +154,8 @@ internal sealed class FusionConfigurationClient(
 
         if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NitroClientNotFoundException(
+                $"Could not find source schema '{sourceSchemaName}' with version '{sourceSchemaVersion}'.");
         }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -173,7 +174,7 @@ internal sealed class FusionConfigurationClient(
         return memoryStream;
     }
 
-    public async Task<Stream?> DownloadLatestFusionArchiveAsync(
+    public async Task<Stream> DownloadLatestFusionArchiveAsync(
         string apiId,
         string stageName,
         string archiveVersion,
@@ -187,7 +188,8 @@ internal sealed class FusionConfigurationClient(
 
         if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NitroClientNotFoundException(
+                $"Could not find a Fusion configuration for stage '{stageName}' that supports version '{archiveVersion}'.");
         }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)

@@ -113,6 +113,27 @@ public sealed class SelectionSetValidatorTests
                 """,
                 "Review.product"
             },
+            // A selection that descends through a list of a composite type into its element fields.
+            {
+                """
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "variations { size }")
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    variations: [ProductVariation!]!
+                    name: String!
+                }
+
+                type ProductVariation {
+                    id: String!
+                    size: String! @external
+                }
+                """,
+                "Review.product"
+            },
             {
                 """"
                 type Review {

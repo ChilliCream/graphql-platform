@@ -1,0 +1,172 @@
+title: Require_With_NonNull_Input_Field_Selecting_Nullable_Field_Returning_Null
+request:
+  document: |
+    {
+      productById(id: "1") {
+        fieldB
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "fieldB": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Cannot accept null for non-nullable input.",
+          "extensions": {
+            "code": "HC0018",
+            "inputPath": [
+              "__fusion_2_key",
+              "sku"
+            ],
+            "coordinate": "ProductKeyInput.sku"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "productById",
+            "fieldB"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product {
+        id: ID!
+        sku: String @null
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_1146a07f_1 {
+              productById(id: "1") {
+                id
+                sku
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "id": "1",
+                    "sku": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product {
+        id: ID!
+        fieldB(key: ProductKeyInput! @require(field: "{ sku }")): String
+      }
+
+      input ProductKeyInput {
+        sku: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_1146a07f_2($__fusion_1_id: ID!, $__fusion_2_key: ProductKeyInput!) {
+              productById(id: $__fusion_1_id) {
+                fieldB(key: $__fusion_2_key)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "1",
+              "__fusion_2_key": {
+                "sku": null
+              }
+            }
+        response:
+          statusCode: 400
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Cannot accept null for non-nullable input.",
+                    "extensions": {
+                      "code": "HC0018",
+                      "inputPath": [
+                        "__fusion_2_key",
+                        "sku"
+                      ],
+                      "coordinate": "ProductKeyInput.sku"
+                    }
+                  }
+                ]
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productById(id: "1") {
+            fieldB
+            id @fusion__requirement
+            sku @fusion__requirement
+          }
+        }
+      hash: 1146a07feeac63e70b9e07e888326c30
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_1146a07f_1 {
+          productById(id: "1") {
+            id
+            sku
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_1146a07f_2($__fusion_1_id: ID!, $__fusion_2_key: ProductKeyInput!) {
+          productById(id: $__fusion_1_id) {
+            fieldB(key: $__fusion_2_key)
+          }
+        }
+      source: $.productById
+      target: $.productById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_key
+          selectionMap: >-
+            {
+              sku
+            }
+      dependencies:
+        - id: 1

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Introspection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -11,6 +12,13 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ITypeResolverInterceptor
 {
+    private readonly bool _enableOptInFeatures;
+
+    public __Type(bool enableOptInFeatures = false)
+    {
+        _enableOptInFeatures = enableOptInFeatures;
+    }
+
     public void OnApplyResolver(string fieldName, IFeatureCollection features)
     {
         switch (fieldName)
@@ -28,7 +36,14 @@ internal sealed class __Type : ITypeResolverInterceptor
                 break;
 
             case "fields":
-                features.Set(new ResolveFieldValue(Fields));
+                if (_enableOptInFeatures)
+                {
+                    features.Set(new ResolveFieldValue(FieldsWithOptIn));
+                }
+                else
+                {
+                    features.Set(new ResolveFieldValue(Fields));
+                }
                 break;
 
             case "interfaces":
@@ -40,11 +55,25 @@ internal sealed class __Type : ITypeResolverInterceptor
                 break;
 
             case "enumValues":
-                features.Set(new ResolveFieldValue(EnumValues));
+                if (_enableOptInFeatures)
+                {
+                    features.Set(new ResolveFieldValue(EnumValuesWithOptIn));
+                }
+                else
+                {
+                    features.Set(new ResolveFieldValue(EnumValues));
+                }
                 break;
 
             case "inputFields":
-                features.Set(new ResolveFieldValue(InputFields));
+                if (_enableOptInFeatures)
+                {
+                    features.Set(new ResolveFieldValue(InputFieldsWithOptIn));
+                }
+                else
+                {
+                    features.Set(new ResolveFieldValue(InputFields));
+                }
                 break;
 
             case "ofType":
@@ -146,6 +175,49 @@ internal sealed class __Type : ITypeResolverInterceptor
         }
     }
 
+    public static void FieldsWithOptIn(FieldContext context)
+    {
+        var type = context.Parent<IType>();
+
+        if (type is IComplexTypeDefinition ct)
+        {
+            var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+            var includeOptIn = __Schema.ReadIncludeOptIn(context);
+            var count = ct.Fields.Count(
+                t => !t.IsIntrospectionField
+                    && (includeDeprecated || !t.IsDeprecated)
+                    && OptInIntrospectionHelper.IsIncluded(t.Directives, includeOptIn));
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
+
+            foreach (var field in ct.Fields)
+            {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                if (!includeDeprecated && field.IsDeprecated)
+                {
+                    continue;
+                }
+
+                if (!OptInIntrospectionHelper.IsIncluded(field.Directives, includeOptIn))
+                {
+                    continue;
+                }
+
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
+                context.AddRuntimeResult(field);
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            }
+        }
+    }
+
     public static void Interfaces(FieldContext context)
     {
         if (context.Parent<IType>() is IComplexTypeDefinition complexType)
@@ -210,6 +282,41 @@ internal sealed class __Type : ITypeResolverInterceptor
         }
     }
 
+    public static void EnumValuesWithOptIn(FieldContext context)
+    {
+        if (context.Parent<IType>() is IEnumTypeDefinition et)
+        {
+            var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+            var includeOptIn = __Schema.ReadIncludeOptIn(context);
+            var count = et.Values.Count(
+                v => (includeDeprecated || !v.IsDeprecated)
+                    && OptInIntrospectionHelper.IsIncluded(v.Directives, includeOptIn));
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
+
+            foreach (var value in et.Values)
+            {
+                if (!includeDeprecated && value.IsDeprecated)
+                {
+                    continue;
+                }
+
+                if (!OptInIntrospectionHelper.IsIncluded(value.Directives, includeOptIn))
+                {
+                    continue;
+                }
+
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
+                context.AddRuntimeResult(value);
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            }
+        }
+    }
+
     public static void InputFields(FieldContext context)
     {
         if (context.Parent<IType>() is IInputObjectTypeDefinition iot)
@@ -223,6 +330,41 @@ internal sealed class __Type : ITypeResolverInterceptor
             foreach (var field in iot.Fields)
             {
                 if (!includeDeprecated && field.IsDeprecated)
+                {
+                    continue;
+                }
+
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
+                context.AddRuntimeResult(field);
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            }
+        }
+    }
+
+    public static void InputFieldsWithOptIn(FieldContext context)
+    {
+        if (context.Parent<IType>() is IInputObjectTypeDefinition iot)
+        {
+            var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+            var includeOptIn = __Schema.ReadIncludeOptIn(context);
+            var count = iot.Fields.Count(
+                f => (includeDeprecated || !f.IsDeprecated)
+                    && OptInIntrospectionHelper.IsIncluded(f.Directives, includeOptIn));
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
+
+            foreach (var field in iot.Fields)
+            {
+                if (!includeDeprecated && field.IsDeprecated)
+                {
+                    continue;
+                }
+
+                if (!OptInIntrospectionHelper.IsIncluded(field.Directives, includeOptIn))
                 {
                     continue;
                 }

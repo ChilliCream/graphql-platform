@@ -156,7 +156,7 @@ internal static class ErrorHelper
     {
         var result = OperationResult.FromError(
             ErrorBuilder.New()
-                .SetMessage("Variable batch requests are only allowed for mutations and subscriptions.")
+                .SetMessage("Variable batch requests are only allowed for queries and mutations.")
                 .Build());
 
         result.ContextData = result.ContextData.Add(ExecutionContextData.ValidationErrors, null);
@@ -165,12 +165,20 @@ internal static class ErrorHelper
     }
 
     public static OperationResult RequestTimeout(TimeSpan timeout)
-        => OperationResult.FromError(
+    {
+        var result = OperationResult.FromError(
             new Error
             {
                 Message = string.Format(ErrorHelper_RequestTimeout, timeout),
                 Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
             });
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
 
     public static ErrorBuilder NonNullOutputFieldViolation()
         => ErrorBuilder.New()

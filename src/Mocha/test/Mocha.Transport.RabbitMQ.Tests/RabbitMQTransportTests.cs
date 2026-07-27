@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests;
@@ -153,7 +154,7 @@ public class RabbitMQTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "exchange");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "exchange");
     }
 
     [Fact]
@@ -168,7 +169,7 @@ public class RabbitMQTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "queue");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "queue");
     }
 
     [Fact]
@@ -183,7 +184,7 @@ public class RabbitMQTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.NotEmpty(description.Topology!.Links);
+        Assert.NotEmpty(description.Topology.Links);
         Assert.All(
             description.Topology.Links,
             link =>
@@ -247,11 +248,13 @@ public class RabbitMQTransportTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.Contains("_error", receiveEndpoint.ErrorEndpoint!.Name);
+        var faultFeature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.NotNull(faultFeature?.Endpoint);
+        Assert.Contains("_error", faultFeature.Endpoint.Name);
 
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        Assert.Contains("_skipped", receiveEndpoint.SkippedEndpoint!.Name);
+        var skippedFeature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(skippedFeature?.Endpoint);
+        Assert.Contains("_skipped", skippedFeature.Endpoint.Name);
     }
 
     [Fact]

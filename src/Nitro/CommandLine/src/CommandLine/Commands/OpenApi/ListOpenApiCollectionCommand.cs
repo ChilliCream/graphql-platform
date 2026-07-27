@@ -65,8 +65,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>
-                await client.ListOpenApiCollectionsAsync(apiId, after ?? cursor, first, token)
-                    ?? throw new ExitException("The API was not found."))
+                await client.ListOpenApiCollectionsAsync(apiId, after ?? cursor, first, token))
             .PageSize(10);
 
         var api = await PagedTable
@@ -93,8 +92,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
     {
         var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
-        var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct)
-            ?? throw new ExitException("The API was not found.");
+        var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct);
         var items = data.Items
             .Select(OpenApiCollectionDetailPrompt.From)
             .Select(x => x.ToObject())

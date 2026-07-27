@@ -467,6 +467,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         RegisterType(type);
 
         mutation.Type = Parse($"{payloadTypeName}!");
+        mutation.Flags |= CoreFieldFlags.MutationPayload;
 
         // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
@@ -584,12 +585,12 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var options = context.Features.GetOrSet<MutationConventionOptions>();
 
         return new Options(
-             options.InputTypeNamePattern,
-             options.InputArgumentName,
-             options.PayloadTypeNamePattern,
-             options.PayloadErrorTypeNamePattern,
-             options.PayloadErrorsFieldName,
-             options.ApplyToAllMutations);
+            options.InputTypeNamePattern,
+            options.InputArgumentName,
+            options.PayloadTypeNamePattern,
+            options.PayloadErrorTypeNamePattern,
+            options.PayloadErrorsFieldName,
+            options.ApplyToAllMutations);
     }
 
     private static Options CreateOptions(

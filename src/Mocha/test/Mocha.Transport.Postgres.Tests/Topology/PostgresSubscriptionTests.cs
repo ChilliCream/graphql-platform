@@ -35,7 +35,7 @@ public class PostgresSubscriptionTests
         // assert
         var subscription = Assert.Single(topology.Subscriptions);
         Assert.NotNull(subscription.Address);
-        Assert.Contains("/b/t/addr-src/q/addr-dst", subscription.Address!.AbsolutePath);
+        Assert.Contains("/b/t/addr-src/q/addr-dst", subscription.Address.AbsolutePath);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class PostgresSubscriptionTests
 
         // assert
         var subscription = Assert.Single(topology.Subscriptions);
-        Assert.True(topology.Address.IsBaseOf(subscription.Address!));
+        Assert.True(topology.Address.IsBaseOf(subscription.Address));
     }
 
     private static (

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Aspire.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
+    <TargetFrameworks>net11.0;net10.0;net9.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Aspire\HotChocolate.Fusion.Aspire.csproj" />
+  </ItemGroup>
+
+</Project>

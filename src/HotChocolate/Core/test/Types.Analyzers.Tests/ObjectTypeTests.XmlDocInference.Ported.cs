@@ -236,25 +236,25 @@ public partial class ObjectTypeXmlDocInferenceTests
         var snapshot =
             TestHelper.GetGeneratedSourceSnapshot(
                 """
-                 using System;
-                 using System.Collections.Generic;
-                 using System.Threading;
-                 using System.Threading.Tasks;
-                 using HotChocolate;
-                 using HotChocolate.Types;
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+                using HotChocolate;
+                using HotChocolate.Types;
 
-                 namespace TestNamespace;
+                namespace TestNamespace;
 
-                 [QueryType]
-                 internal static partial class Query
-                 {
-                     /// <summary>
-                     /// Query and manages users.
-                     /// </summary>
-                     /// <returns>Bar</returns>
-                     public static int Bar() => 0;
-                 }
-                 """);
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// Query and manages users.
+                    /// </summary>
+                    /// <returns>Bar</returns>
+                    public static int Bar() => 0;
+                }
+                """);
 
         var content = snapshot.Match();
         AssertFieldDocumentation(content, "Query and manages users.\\n\\n\\n**Returns:**\\nBar");

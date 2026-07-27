@@ -133,7 +133,7 @@ public static class PagingHelper
             // the element type of the list or array as our entity type.
             if (r.Type is { IsSchemaType: true, IsArrayOrList: true })
             {
-                return r.Type.ElementType!;
+                return r.Type.ElementType;
             }
 
             // if the member type is unknown we will try to infer it by extracting
@@ -166,7 +166,7 @@ public static class PagingHelper
 
                 if (typeInspector.GetType(current) is { IsArrayOrList: true } schemaType)
                 {
-                    return schemaType.ElementType!;
+                    return schemaType.ElementType;
                 }
             }
         }

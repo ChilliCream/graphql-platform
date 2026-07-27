@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using static CookieCrumble.TestEnvironment;
 
@@ -729,6 +730,61 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
               "data": null
             }
             """);
+    }
+
+    [Fact]
+    public async Task Query_Brand_Products_Aliased_Same_Operator_Different_Value()
+    {
+        // arrange
+        // Two distinct queries must be issued, one per predicate value; a single query
+        // means the aliases collapsed onto one DataLoader branch.
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(where: { name: { eq: "Daybird" } }) {
+                    nodes {
+                        name
+                        a: products(where: { name: { eq: "Wanderer Black Hiking Boots" } }) {
+                            nodes {
+                                name
+                            }
+                        }
+                        b: products(where: { name: { eq: "Trailblaze hiking backpack" } }) {
+                            nodes {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+        using var doc = JsonDocument.Parse(result.ToJson());
+
+        // assert
+        var node = doc.RootElement
+            .GetProperty("data")
+            .GetProperty("brands")
+            .GetProperty("nodes")[0];
+        var aNames = node.GetProperty("a")
+            .GetProperty("nodes")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+        var bNames = node.GetProperty("b")
+            .GetProperty("nodes")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+
+        Assert.Equal(new[] { "Wanderer Black Hiking Boots" }, aNames);
+        Assert.Equal(new[] { "Trailblaze hiking backpack" }, bNames);
+
+        // One query for the brands page and one per product predicate value. A count of
+        // two means the aliases collapsed onto a single DataLoader branch.
+        Assert.Equal(3, interceptor.Queries.Count);
     }
 
     private static ServiceProvider CreateServer(string connectionString, int? maxPageSize = null)

@@ -42,10 +42,9 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
-    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(
-        Exception ex) =>
-         new GraphQLRequestException(
-             ErrorBuilder.New()
+    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(Exception ex) =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
                 .SetException(ex)
                 .SetCode(ErrorCodes.Server.MultiPartInvalidForm)

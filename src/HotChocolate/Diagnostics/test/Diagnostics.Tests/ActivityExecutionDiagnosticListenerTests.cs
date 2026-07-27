@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -349,6 +350,50 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
             // assert
             activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteOperationSpan_Should_Be_Exported_When_Cancelled_Without_RequestSpan()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // only the operation scope is instrumented, so there is no request span (and no
+            // HTTP request span to reuse) to drain a deferred operation span. The operation
+            // span must finalize itself on cancellation instead of leaking.
+            var signal = new ResolverCancellationSignal();
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.ExecuteOperation)
+                .AddQueryType<SimpleQuery>()
+                .Services
+                .AddSingleton(signal)
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync(cancellationToken: guard.Token);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ blockUntilCancelled }")
+                .Build();
+
+            // act
+            // start the request, wait until the resolver is executing, then abort the request
+            var executeTask = ExecuteAndIgnoreCancellationAsync(executor, request, requestCts.Token);
+            await signal.Entered.Task.WaitAsync(guard.Token);
+            await requestCts.CancelAsync();
+            await executeTask;
+
+            // assert
+            // the operation span was exported, proving it completed instead of leaking. Without a
+            // request span an in-flight cancellation cannot be told apart from an execution
+            // timeout, so it is recorded as Error.
+            var operationSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation Execution");
+            Assert.Equal(ActivityStatusCode.Error, operationSpan.Status);
         }
     }
 
@@ -715,9 +760,35 @@ public partial class ActivityExecutionDiagnosticListenerTests
         }
     }
 
+    private static async Task ExecuteAndIgnoreCancellationAsync(
+        IRequestExecutor executor,
+        IOperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await executor.ExecuteAsync(request, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the request was aborted while the resolver was in flight
+        }
+    }
+
     public class SimpleQuery
     {
         public string SayHello() => "hello";
+
+        public async Task<string> BlockUntilCancelled(
+            IResolverContext context,
+            [Service] ResolverCancellationSignal signal)
+        {
+            // signal that execution reached the resolver, then block until the request
+            // is aborted (the request abort token fires)
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, context.RequestAborted);
+            return "unreachable";
+        }
 
         public string Greeting(string name) => $"Hello, {name}!";
 
@@ -759,6 +830,12 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         public Task<string?> DataLoader(CustomDataLoader dataLoader, string key)
             => dataLoader.LoadAsync(key);
+    }
+
+    public sealed class ResolverCancellationSignal
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     public sealed class MoodScalarType : StringType

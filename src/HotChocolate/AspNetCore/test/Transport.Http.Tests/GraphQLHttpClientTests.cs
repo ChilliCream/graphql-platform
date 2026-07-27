@@ -975,6 +975,7 @@ public class GraphQLHttpClientTests : ServerTestBase
     [Theory]
     [InlineData((string?)null)]
     [InlineData("application/pdf")]
+    [InlineData("text/plain; charset=utf-8")]
     public async Task Post_GraphQL_FileUpload(string? contentType)
     {
         // arrange
@@ -1746,7 +1747,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("\\u2019", handler.LastBody, StringComparison.OrdinalIgnoreCase);
 
-        using var body = JsonDocument.Parse(handler.LastBody!);
+        using var body = JsonDocument.Parse(handler.LastBody);
         var serializedDescription = body.RootElement
             .GetProperty("variables")
             .GetProperty("description")

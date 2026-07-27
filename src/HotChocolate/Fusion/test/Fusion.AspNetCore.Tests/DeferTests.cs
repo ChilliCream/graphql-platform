@@ -537,6 +537,202 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_NotEmitDescendantData_When_InaccessibleRuntimeTypeNullsPendingAncestor()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                entity: Entity
+            }
+
+            type Entity {
+                id: ID!
+                wrapper: Wrapper
+            }
+
+            type Wrapper {
+                visible: String
+                value: Foo! @returns(types: ["Baz"])
+            }
+
+            interface Foo {
+                name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+                name: String
+            }
+
+            type Qux implements Foo {
+                name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                entity {
+                    id
+                    wrapper {
+                        visible
+                        ... @defer(label: "hidden") {
+                            value {
+                                __typename
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+        rawBody.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Defer_Should_EmitSingleNullPatch_When_InaccessibleRuntimeTypeNullsPendingList()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                entities: [Entity!]
+            }
+
+            type Entity {
+                id: ID!
+                value: Foo! @returns(types: ["Baz"])
+            }
+
+            interface Foo {
+                name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+                name: String
+            }
+
+            type Qux implements Foo {
+                name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                entities {
+                    id
+                    ... @defer(label: "hidden") {
+                        value {
+                            __typename
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+        rawBody.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Defer_Should_SuppressDescendantPatch_When_NullMarkerBubblesAbovePendingPath()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                deep: Deep
+            }
+
+            type Deep {
+                parent: Parent
+            }
+
+            type Parent {
+                visible: String
+                child: Child!
+            }
+
+            type Child {
+                visible: String
+                value: Foo! @returns(types: ["Baz"])
+            }
+
+            interface Foo {
+                name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+                name: String
+            }
+
+            type Qux implements Foo {
+                name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                deep {
+                    parent {
+                        visible
+                        child {
+                            visible
+                            ... @defer(label: "hidden") {
+                                value {
+                                    __typename
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+        rawBody.MatchSnapshot();
+    }
+
     [Fact(Skip = "Requires validation of @skip/@include interaction with @defer at the planning level")]
     public async Task Defer_With_Skip_Directive_Should_Skip_Deferred_Fragment()
     {
@@ -958,6 +1154,355 @@ public class DeferTests : FusionTestBase
         // assert
         // The deferred subgraph call expands across all imported user entries. Each
         // outbound variable set carries the forwarded $limit alongside the parent key.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Composite_Field_Under_Type_Condition_On_Abstract_Parent_Is_Wrapped()
+    {
+        // arrange
+        // Connector is a Node entity split across two schemas. The non-deferred selection and
+        // one @defer resolve from schema A, while the second @defer requires an entity lookup
+        // into schema B for the `devices` connection.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                node(id: ID!): Node @lookup @shareable
+                connectorById(id: ID!): Connector @lookup @internal
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Connector implements Node {
+                id: ID!
+                system: String!
+                version: String!
+                vendor: String!
+                description: String
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                node(id: ID!): Node @lookup @shareable
+                connectorById(id: ID!): Connector @lookup @internal
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Connector implements Node {
+                id: ID!
+                devices(first: Int): ConnectorDeviceConnection!
+            }
+
+            type ConnectorDevice implements Node {
+                id: ID!
+                name: String!
+            }
+
+            type ConnectorDeviceConnection {
+                edges: [ConnectorDeviceEdge!]
+                nodes: [ConnectorDevice!]
+                totalCount: Int!
+            }
+
+            type ConnectorDeviceEdge {
+                node: ConnectorDevice!
+                cursor: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query ConnectorDetailsQuery($id: ID!) {
+                node(id: $id) {
+                    __typename
+                    id
+                    ... on Connector @defer(label: "Yrs") {
+                        system
+                        description
+                    }
+                    ...ConnectorDetailsHeaderFragment
+                    ...ConnectorDevicesFragment @defer(label: "testing")
+                }
+            }
+
+            fragment ConnectorDetailsHeaderFragment on Connector {
+                system
+                version
+                vendor
+            }
+
+            fragment ConnectorDevicesFragment on Connector {
+                id
+                devices(first: 10) {
+                    edges {
+                        node {
+                            ... on ConnectorDevice {
+                                id
+                                name
+                                __typename
+                            }
+                        }
+                        cursor
+                    }
+                    totalCount
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = "Q29ubmVjdG9yOjE=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Nested_Composite_On_One_Of_Sibling_Type_Conditions()
+    {
+        // arrange
+        // The SensorWidgetInfo branch (without `file`) is listed first; ImageWidgetInfo is declared first.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Dashboard implements Node {
+                id: ID!
+                name: String!
+                widget: WidgetInfo!
+            }
+
+            interface WidgetInfo {
+                id: ID!
+            }
+
+            type ImageWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type SensorWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type Entity {
+                id: ID!
+                feature: Feature!
+            }
+
+            union Feature = ImageFeature | Sensor
+
+            type ImageFeature {
+                file: File!
+            }
+
+            type Sensor {
+                value: String!
+            }
+
+            type File {
+                url: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query DashboardQuery($id: ID!) {
+                node(id: $id) {
+                    __typename
+                    id
+                    ...DashboardFragment @defer(label: "testing")
+                }
+            }
+
+            fragment DashboardFragment on Dashboard {
+                id
+                widget {
+                    __typename
+                    ... on SensorWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on Sensor { value }
+                            }
+                        }
+                    }
+                    ... on ImageWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on ImageFeature { file { url } }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = "RGFzaGJvYXJkOjE=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Nested_Composite_On_Both_Sibling_Type_Conditions()
+    {
+        // arrange
+        // Both branches select a nested composite `file`, but with a different deeper child
+        // (`meta` vs `clip`) absent in the sibling; VideoWidgetInfo/VideoFeature are declared first.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Dashboard implements Node {
+                id: ID!
+                name: String!
+                widget: WidgetInfo!
+            }
+
+            interface WidgetInfo {
+                id: ID!
+            }
+
+            type VideoWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type ImageWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type Entity {
+                id: ID!
+                feature: Feature!
+            }
+
+            union Feature = VideoFeature | ImageFeature
+
+            type VideoFeature {
+                file: VideoFile!
+            }
+
+            type ImageFeature {
+                file: ImageFile!
+            }
+
+            type VideoFile {
+                clip: VideoClip!
+            }
+
+            type ImageFile {
+                meta: ImageMeta!
+            }
+
+            type VideoClip {
+                duration: String!
+            }
+
+            type ImageMeta {
+                url: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query DashboardQuery($id: ID!) {
+                node(id: $id) {
+                    __typename
+                    id
+                    ...DashboardFragment @defer(label: "testing")
+                }
+            }
+
+            fragment DashboardFragment on Dashboard {
+                id
+                widget {
+                    __typename
+                    ... on ImageWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on ImageFeature { file { meta { url } } }
+                            }
+                        }
+                    }
+                    ... on VideoWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on VideoFeature { file { clip { duration } } }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = "RGFzaGJvYXJkOjE=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 }

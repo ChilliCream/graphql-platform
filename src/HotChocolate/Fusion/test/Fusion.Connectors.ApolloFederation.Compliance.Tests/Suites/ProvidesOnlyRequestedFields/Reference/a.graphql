@@ -1,0 +1,16 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+type Query {
+  _aPlaceholder: Boolean
+}
+
+type Entity @key(fields: "id") {
+  id: ID!
+  name: String! @shareable
+  description: String! @shareable
+  extra: String!
+}

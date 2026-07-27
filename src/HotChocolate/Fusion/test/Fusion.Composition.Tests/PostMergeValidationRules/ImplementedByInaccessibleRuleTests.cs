@@ -180,4 +180,44 @@ public sealed class ImplementedByInaccessibleRuleTests : RuleTestBase
             """
         ]);
     }
+
+    // The entire 'User' type is @inaccessible and thus removed from the public schema, so it is
+    // not a visible implementor of 'Node' and no interface contract is violated.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleObjectTypeInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node @inaccessible {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
+
+    // The entire 'User' interface type is @inaccessible and thus removed from the public schema,
+    // so it is not a visible implementor of 'Node' and no interface contract is violated.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleInterfaceTypeInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            interface User implements Node @inaccessible {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
 }

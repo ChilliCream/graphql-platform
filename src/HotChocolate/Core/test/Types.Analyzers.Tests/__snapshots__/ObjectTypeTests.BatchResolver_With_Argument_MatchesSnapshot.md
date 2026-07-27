@@ -109,10 +109,11 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetGreeting_prefix;
+            private readonly global::HotChocolate.Internal.ArgumentKind _binding_GetGreeting_prefix_kind;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                _binding_GetGreeting_prefix = bindingResolver.GetBinding(CreateParameterDescriptor_GetGreeting_prefix());
+                _binding_GetGreeting_prefix = bindingResolver.GetBinding(CreateParameterDescriptor_GetGreeting_prefix(), out _binding_GetGreeting_prefix_kind);
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetGreeting_prefix()
@@ -128,12 +129,20 @@ namespace TestNamespace
             private global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
-                var args1 = new global::System.Collections.Generic.List<string>(contexts.Length);
+                var args1_arguments = _binding_GetGreeting_prefix_kind is global::HotChocolate.Internal.ArgumentKind.Argument
+                    ? new global::System.Collections.Generic.List<string>(contexts.Length)
+                    : null;
+                var args1 = args1_arguments is null
+                    ? _binding_GetGreeting_prefix.Execute<global::System.Collections.Generic.List<string>>(contexts[0])
+                    : (global::System.Collections.Generic.List<string>)(object)args1_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
                     args0.Add(contexts[i].Parent<global::TestNamespace.User>());
-                    args1.Add(contexts[i].ArgumentValue<string>("prefix"));
+                    if (args1_arguments is not null)
+                    {
+                        args1_arguments.Add(contexts[i].ArgumentValue<string>("prefix"));
+                    }
                 }
 
                 var result = global::TestNamespace.UserExtensions.GetGreeting(args0, args1);

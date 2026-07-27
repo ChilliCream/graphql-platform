@@ -30,7 +30,7 @@ public class PostgresTopicTests
         // assert
         var topic = Assert.Single(topology.Topics, t => t.Name == "addr-topic");
         Assert.NotNull(topic.Address);
-        Assert.Contains("/t/addr-topic", topic.Address!.AbsolutePath);
+        Assert.Contains("/t/addr-topic", topic.Address.AbsolutePath);
     }
 
     [Fact]
@@ -72,6 +72,6 @@ public class PostgresTopicTests
 
         // assert
         var topic = Assert.Single(topology.Topics, t => t.Name == "base-addr");
-        Assert.True(topology.Address.IsBaseOf(topic.Address!));
+        Assert.True(topology.Address.IsBaseOf(topic.Address));
     }
 }

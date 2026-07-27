@@ -126,6 +126,46 @@ public class OutboxIntegrationTests
         Assert.True(signal.SignalCount >= 1, "Signal should have been set at least once");
     }
 
+    [Fact]
+    public async Task Outbox_Should_UseBatchIdAsCausation_When_PublishedFromBatchHandler()
+    {
+        // arrange
+        var outbox = new InMemoryMessageOutbox();
+        var recorder = new BatchOutboxRecorder();
+        await using var provider = await CreateBusWithOutboxAsync(
+            outbox,
+            b =>
+            {
+                b.Services.AddSingleton(recorder);
+                b.AddBatchHandler<OutboxBatchPublishingHandler>(opts =>
+                {
+                    opts.MaxBatchSize = 2;
+                    opts.BatchTimeout = TimeSpan.FromSeconds(5);
+                });
+            },
+            t => t.Endpoint("batch-ep").Handler<OutboxBatchPublishingHandler>().MaxConcurrency(2));
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var inputOptions = new PublishOptions
+        {
+            Headers = new Dictionary<string, object?> { ["x-skip-outbox"] = "true" }
+        };
+
+        // act
+        await bus.PublishAsync(new OutboxBatchInputEvent { Payload = "batch-1" }, inputOptions, CancellationToken.None);
+        await bus.PublishAsync(new OutboxBatchInputEvent { Payload = "batch-2" }, inputOptions, CancellationToken.None);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler did not publish from the batch");
+        await WaitUntilAsync(() => !outbox.Envelopes.IsEmpty, s_timeout);
+
+        var envelope = Assert.Single(outbox.Envelopes);
+        Assert.NotNull(recorder.BatchId);
+        Assert.Equal(2, recorder.BatchCount);
+        Assert.Equal(recorder.BatchId, envelope.CausationId);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     // Helpers
     // ══════════════════════════════════════════════════════════════════════
@@ -142,6 +182,12 @@ public class OutboxIntegrationTests
     private static async Task<ServiceProvider> CreateBusWithOutboxAsync(
         InMemoryMessageOutbox outbox,
         Action<IMessageBusHostBuilder> configure)
+        => await CreateBusWithOutboxAsync(outbox, configure, configureTransport: null);
+
+    private static async Task<ServiceProvider> CreateBusWithOutboxAsync(
+        InMemoryMessageOutbox outbox,
+        Action<IMessageBusHostBuilder> configure,
+        Action<IInMemoryMessagingTransportDescriptor>? configureTransport)
     {
         var services = new ServiceCollection();
         services.AddSingleton<IMessageOutbox>(outbox);
@@ -167,7 +213,14 @@ public class OutboxIntegrationTests
         );
 
         configure(builder);
-        builder.AddInMemory();
+        if (configureTransport is null)
+        {
+            builder.AddInMemory();
+        }
+        else
+        {
+            builder.AddInMemory(configureTransport);
+        }
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -184,12 +237,56 @@ public class OutboxIntegrationTests
         public required string Payload { get; init; }
     }
 
+    public sealed class OutboxBatchInputEvent
+    {
+        public required string Payload { get; init; }
+    }
+
     public sealed class OutboxTestEventHandler(MessageRecorder recorder) : IEventHandler<OutboxTestEvent>
     {
         public ValueTask HandleAsync(OutboxTestEvent message, CancellationToken cancellationToken)
         {
             recorder.Record(message);
             return default;
+        }
+    }
+
+    public sealed class OutboxBatchPublishingHandler(
+        IMessageBus bus,
+        ConsumeContextAccessor accessor,
+        BatchOutboxRecorder recorder)
+        : IBatchEventHandler<OutboxBatchInputEvent>
+    {
+        public async ValueTask HandleAsync(IMessageBatch<OutboxBatchInputEvent> batch, CancellationToken cancellationToken)
+        {
+            if (accessor.Context is not IBatchConsumeContext batchContext)
+            {
+                throw new InvalidOperationException("Expected an ambient batch consume context.");
+            }
+
+            await bus.PublishAsync(new OutboxTestEvent { Payload = "from-batch" }, cancellationToken);
+            recorder.Record(batchContext.BatchId, batch.Count);
+        }
+    }
+
+    public sealed class BatchOutboxRecorder
+    {
+        private readonly SemaphoreSlim _semaphore = new(0);
+
+        public string? BatchId { get; private set; }
+
+        public int BatchCount { get; private set; }
+
+        public void Record(string batchId, int batchCount)
+        {
+            BatchId = batchId;
+            BatchCount = batchCount;
+            _semaphore.Release();
+        }
+
+        public async Task<bool> WaitAsync(TimeSpan timeout)
+        {
+            return await _semaphore.WaitAsync(timeout);
         }
     }
 

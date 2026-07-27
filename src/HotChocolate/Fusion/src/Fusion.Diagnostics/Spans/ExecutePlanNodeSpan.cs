@@ -63,7 +63,17 @@ internal sealed class ExecutePlanNodeSpan(
 
     protected override void OnComplete()
     {
-        if (Activity.Status != ActivityStatusCode.Error)
+        if (Activity.Status == ActivityStatusCode.Error)
+        {
+            enricher.EnrichExecutePlanNode(context, node, schemaName, Activity);
+            return;
+        }
+
+        // A step that was still in flight when the request was cancelled did not
+        // complete successfully, so it is left Unset instead of being forced to
+        // Ok, mirroring the request and subscription event spans. A step that
+        // finished before any cancellation is reported as Ok.
+        if (!context.RequestContext.RequestAborted.IsCancellationRequested)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }

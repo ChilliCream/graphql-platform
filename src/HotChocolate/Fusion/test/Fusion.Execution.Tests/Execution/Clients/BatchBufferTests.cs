@@ -72,6 +72,48 @@ public sealed class BatchBufferTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task ExecuteBatchAsync_Should_IsolateFailure_When_OneRequestFailsMidSequence()
+    {
+        // arrange
+        // Capabilities without request batching force the fallback that sends
+        // each request as its own HTTP round-trip, so a single failure must not
+        // abort the batch.
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new SelectiveFailureHandler()),
+            disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(
+            graphQLClient,
+            new HttpSourceSchemaClientConfiguration(
+                "A",
+                new Uri("http://localhost:5000/graphql"),
+                capabilities: SourceSchemaClientCapabilities.None));
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode),
+            CreateRequest(fixture.RootNode),
+            CreateRequest(fixture.RootNode));
+
+        // act
+        var produced = new List<string>();
+        await foreach (var batchResult in client.ExecuteBatchAsync(
+            context,
+            requests,
+            TestContext.Current.CancellationToken))
+        {
+            produced.Add($"{batchResult.RequestIndex}:{batchResult.Result.Data.GetProperty("field").GetString()}");
+            batchResult.Result.Dispose();
+        }
+
+        // assert
+        // The second request fails in transport; the siblings still produce their
+        // data and exactly one cause is recorded against the failing request index.
+        Assert.Equal(new[] { "0:a", "2:c" }, produced);
+        Assert.True(context.TryGetBatchRequestError(fixture.RootNode, 1, out var recordedError));
+        Assert.IsType<HttpRequestException>(recordedError);
+    }
+
     private static SourceSchemaClientRequest CreateRequest(ExecutionNode node)
     {
         return new SourceSchemaClientRequest
@@ -202,6 +244,35 @@ public sealed class BatchBufferTests : FusionTestBase
             }
 
             await _services.DisposeAsync();
+        }
+    }
+
+    private sealed class SelectiveFailureHandler : HttpMessageHandler
+    {
+        private int _callCount;
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var call = Interlocked.Increment(ref _callCount);
+
+            if (call == 2)
+            {
+                throw new HttpRequestException(
+                    "The connection was reset while sending the second request.");
+            }
+
+            var field = call == 1 ? "a" : "c";
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    "{\"data\":{\"field\":\"" + field + "\"}}",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            return Task.FromResult(response);
         }
     }
 

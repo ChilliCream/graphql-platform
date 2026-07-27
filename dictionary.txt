@@ -26,6 +26,7 @@ basicsaga
 bbox
 BCPROCKS
 Bedok
+Benjie
 bfnrt
 birthdates
 blazor
@@ -54,6 +55,7 @@ contentfiles
 Contoso
 conv
 Cookiebot
+coverable
 CQRS
 creds
 csclient
@@ -95,6 +97,7 @@ GHSA
 Giroux
 grafbase
 GraphiQL
+graphqlconf
 graphqlconfig
 graphqlrc
 graphqls
@@ -124,11 +127,16 @@ kode
 Kydne
 LASTEXITCODE
 Leia
+libgcc
+libstdc
 LICEN*
 Linq
 Liquibase
+longpaths
 lscache
+mapfile
 Marek
+marocchino
 matchesBrics
 maxage
 MCPEXP
@@ -191,6 +199,7 @@ preconfigured
 preparables
 PRIMEM
 PROJCS
+projectable
 protobuf
 publishaot
 pycache
@@ -223,10 +232,13 @@ roundtrips
 rovo
 rovodev
 RRGGBB
+Ruckstuhl
 runbooks
 sandboxed
+SASL
 Satisfiability
 Senn
+servicebus
 shoooe
 SHORTSHA
 Silmarillion
@@ -274,9 +286,11 @@ Trimmable
 Tzdb
 unittests
 unlisten
+unparseable
 unpublish
 unserialized
 Unsubscriber
+unsupplied
 uppercased
 Upsert
 upvote

@@ -779,7 +779,7 @@ public class ObjectTypeExtensionTests
     {
         public string? Description => "hello";
 
-        public string? GetName(string? a) => null!;
+        public string? GetName(string? a) => null;
     }
 
     public class FooExtension

@@ -61,6 +61,12 @@ public sealed class ConsumeInboxMiddleware(ILogger<ConsumeInboxMiddleware> logge
             return;
         }
 
+        if (context is IBatchConsumeContext batchContext)
+        {
+            await InvokeBatchAsync(batchContext, context, next, activity);
+            return;
+        }
+
         var messageId = context.MessageId;
 
         if (messageId is null)
@@ -127,6 +133,95 @@ public sealed class ConsumeInboxMiddleware(ILogger<ConsumeInboxMiddleware> logge
             // The claim failed (e.g. transient DB error). We pass through to the handler
             // rather than dropping the message, preferring at-least-once over at-most-once delivery.
             logger.InboxClaimFailed(messageId, ex);
+        }
+
+        activity?.SetTag("inbox.claimed", true);
+        await next(context);
+    }
+
+    private async ValueTask InvokeBatchAsync(
+        IBatchConsumeContext batchContext,
+        IConsumeContext context,
+        ConsumerDelegate next,
+        Activity? activity)
+    {
+        var consumerType = GetConsumerType(context);
+        var inbox = context.Services.GetRequiredService<IMessageInbox>();
+        var claimed = 0;
+        var skipped = 0;
+        var untracked = 0;
+
+        var batch = batchContext.Message;
+
+        for (var i = 0; i < batch.Count; i++)
+        {
+            var itemContext = batch.GetContext(i);
+            var messageId = itemContext.MessageId;
+
+            if (messageId is null)
+            {
+                untracked++;
+                continue;
+            }
+
+            if (itemContext.Envelope is not { } envelope)
+            {
+                try
+                {
+                    if (await inbox.ExistsAsync(messageId, consumerType, context.CancellationToken))
+                    {
+                        logger.MessageSkippedDueToInboxExists(messageId, consumerType);
+                        skipped++;
+                    }
+                    else
+                    {
+                        untracked++;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    logger.InboxExistsCheckFailed(messageId, ex);
+                    untracked++;
+                }
+
+                continue;
+            }
+
+            try
+            {
+                if (await inbox.TryClaimAsync(envelope, consumerType, context.CancellationToken))
+                {
+                    claimed++;
+                }
+                else
+                {
+                    logger.MessageSkippedDueToInboxExists(messageId, consumerType);
+                    skipped++;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.InboxClaimFailed(messageId, ex);
+                untracked++;
+            }
+        }
+
+        activity?.SetTag("inbox.batch.claimed", claimed);
+        activity?.SetTag("inbox.batch.skipped", skipped);
+        activity?.SetTag("inbox.batch.untracked", untracked);
+
+        if (claimed == 0 && untracked == 0)
+        {
+            activity?.SetTag("inbox.claimed", false);
+            return;
         }
 
         activity?.SetTag("inbox.claimed", true);

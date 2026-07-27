@@ -150,7 +150,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -378,7 +378,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -430,7 +430,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -482,7 +482,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -558,7 +558,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -765,7 +765,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -887,7 +887,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 

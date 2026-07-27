@@ -108,7 +108,7 @@ internal static class EntitiesResolver
         if (entity is not null
             && type.Features.TryGet(out ExternalSetter? externalSetter))
         {
-            externalSetter.Invoke(type, representation, entity);
+            externalSetter.Invoke(context.Schema, type, representation, entity);
         }
 
         return entity;

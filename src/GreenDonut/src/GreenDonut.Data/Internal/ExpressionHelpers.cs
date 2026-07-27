@@ -35,6 +35,12 @@ internal static class ExpressionHelpers
 
     private static Expression CombineExpressions(Expression first, Expression second)
     {
+        // A bare constructor call is treated as a member init without bindings, so New x
+        // MemberInit, MemberInit x New, and New x New all merge through the same
+        // constructor-aware path below.
+        first = NormalizeNewExpression(first);
+        second = NormalizeNewExpression(second);
+
         if (first is UnaryExpression { NodeType: ExpressionType.Convert } firstUnary)
         {
             return CombineWithConvertExpression(firstUnary, second);
@@ -60,26 +66,63 @@ internal static class ExpressionHelpers
             return CombineConditionalAndMemberInit(secondConditional, firstMemberInit);
         }
 
+        // A bare parameter is the identity fallback a selector produces when it cannot express
+        // a projection, so it must never overwrite a real projection on the other side,
+        // regardless of argument order. When both sides are identity they are equivalent, and
+        // the ordinary fallback below already returns the right result.
+        if (first is ParameterExpression && second is not ParameterExpression)
+        {
+            return second;
+        }
+
+        if (second is ParameterExpression && first is not ParameterExpression)
+        {
+            return first;
+        }
+
         // as a fallback we return the second body, assuming it overwrites the first.
         return second;
     }
 
     private static Expression CombineWithConvertExpression(UnaryExpression first, Expression second)
     {
+        var firstOperand = NormalizeNewExpression(first.Operand);
+        second = NormalizeNewExpression(second);
+
+        // Same identity contract as CombineExpressions: a bare parameter never overwrites a
+        // real projection. The surviving side keeps wearing the original Convert wrapper so
+        // the combined expression's type does not change.
+        if (firstOperand is ParameterExpression && second is not ParameterExpression)
+        {
+            return Expression.Convert(second, first.Type);
+        }
+
+        if (second is ParameterExpression && firstOperand is not ParameterExpression)
+        {
+            return Expression.Convert(firstOperand, first.Type);
+        }
+
         if (second is MemberInitExpression otherMemberInit)
         {
-            var combinedInit = CombineMemberInitExpressions((MemberInitExpression)first.Operand, otherMemberInit);
+            var combinedInit = CombineMemberInitExpressions((MemberInitExpression)firstOperand, otherMemberInit);
             return Expression.Convert(combinedInit, first.Type);
         }
 
         if (second is ConditionalExpression otherConditional)
         {
-            var combinedCond = CombineConditionalExpressions((ConditionalExpression)first.Operand, otherConditional);
+            var combinedCond = CombineConditionalExpressions((ConditionalExpression)firstOperand, otherConditional);
             return Expression.Convert(combinedCond, first.Type);
         }
 
         return Expression.Convert(second, first.Type);
     }
+
+    // Treats a bare constructor call as a member init without bindings, so callers do not have
+    // to special-case New alongside MemberInit when merging selectors.
+    private static Expression NormalizeNewExpression(Expression expression)
+        => expression is NewExpression newExpression
+            ? Expression.MemberInit(newExpression)
+            : expression;
 
     private static MemberInitExpression CombineMemberInitExpressions(
         MemberInitExpression first,
@@ -95,6 +138,15 @@ internal static class ExpressionHelpers
         var firstRootExpression = ExtractRootExpressionFromBindings(first.Bindings.Cast<MemberAssignment>());
         var parameterToReplace = ExtractParameterExpression(firstRootExpression);
 
+        // The constructor a selector uses for a given runtime type does not depend on which
+        // members were selected, so whichever side carries more constructor arguments always
+        // carries a superset of the other side's arguments. Adopting it keeps constructor-fed
+        // values (for example read-only properties) instead of losing them to whichever
+        // selector happened to go through a parameterless constructor.
+        var adoptSecondNewExpression =
+            second.NewExpression.Arguments.Count > first.NewExpression.Arguments.Count;
+        var newExpression = adoptSecondNewExpression ? second.NewExpression : first.NewExpression;
+
         if (firstRootExpression != null && parameterToReplace != null)
         {
             var replacer = new RootExpressionReplacerVisitor(parameterToReplace, firstRootExpression);
@@ -103,6 +155,12 @@ internal static class ExpressionHelpers
             {
                 var newBindingExpression = replacer.Visit(binding.Expression);
                 bindings[binding.Member.Name] = Expression.Bind(binding.Member, newBindingExpression);
+            }
+
+            if (adoptSecondNewExpression)
+            {
+                var rebasedArguments = second.NewExpression.Arguments.Select(a => replacer.Visit(a)!);
+                newExpression = second.NewExpression.Update(rebasedArguments);
             }
         }
         else
@@ -113,7 +171,7 @@ internal static class ExpressionHelpers
             }
         }
 
-        return Expression.MemberInit(first.NewExpression, bindings.Values);
+        return Expression.MemberInit(newExpression, bindings.Values);
     }
 
     private static Expression? ExtractRootExpressionFromBindings(

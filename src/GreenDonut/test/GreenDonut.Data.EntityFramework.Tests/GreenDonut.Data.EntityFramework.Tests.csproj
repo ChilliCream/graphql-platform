@@ -20,6 +20,8 @@
     <PackageReference Include="Squadron.PostgreSql" />
     <PackageReference Include="Squadron.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <!-- Dependency of Microsoft.EntityFrameworkCore.Sqlite. Pinned to secure version. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
 </Project>

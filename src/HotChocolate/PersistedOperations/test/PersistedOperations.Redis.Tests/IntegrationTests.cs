@@ -102,7 +102,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // assert
         Assert.Collection(
-            result.ExpectOperationResult().Errors!,
+            result.ExpectOperationResult().Errors,
             error =>
             {
                 Assert.Equal("The specified persisted operation key is invalid.", error.Message);

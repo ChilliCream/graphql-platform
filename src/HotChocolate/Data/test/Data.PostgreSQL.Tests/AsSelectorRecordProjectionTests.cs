@@ -156,7 +156,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
         params string[] projectedMembers)
     {
         Assert.NotNull(selector);
-        var body = UnwrapConvert(selector!.Body);
+        var body = UnwrapConvert(selector.Body);
 
         Assert.IsType<NewExpression>(body);
 

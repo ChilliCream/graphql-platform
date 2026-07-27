@@ -53,6 +53,18 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
     public override void RequestError(RequestContext context, Exception error)
     {
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) surfaces here as an OperationCanceledException. Per the
+        // OpenTelemetry semantic conventions this is not an error, so the span
+        // is left Unset with no error.type and no exception event. Server-side
+        // execution timeouts never reach RequestError as an exception (the
+        // timeout middleware turns them into an HC0045 result), so only genuine
+        // client cancellations are filtered out here.
+        if (error is OperationCanceledException)
+        {
+            return;
+        }
+
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             var activity = span.Activity;
@@ -325,6 +337,26 @@ internal sealed class ActivityExecutionDiagnosticListener(
         ulong subscriptionId,
         Exception exception)
     {
+        // A subscription event can be cancelled for two very different reasons:
+        // the caller intentionally dropped the connection (client abort) or the
+        // event exceeded its server-side execution budget (per-event timeout).
+        // Only the latter is an error.
+        //
+        // Both surface as an OperationCanceledException, but they differ in the
+        // token that fired: a client abort cancels the request itself
+        // (RequestAborted), whereas a per-event timeout cancels an internal,
+        // per-event source while leaving the request abort untouched. Crucially,
+        // the request-level timeout token is released once the subscription
+        // stream is established, so RequestAborted only ever signals a genuine
+        // caller cancellation for a running subscription. We therefore treat a
+        // cancellation as a client abort only when the request was aborted,
+        // leaving the span Unset per the OpenTelemetry semantic conventions.
+        if (exception is OperationCanceledException
+            && context.RequestAborted.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);

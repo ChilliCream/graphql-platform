@@ -43,7 +43,10 @@ public interface IMcpClient
     /// <summary>
     /// Lists MCP feature collections for an API.
     /// </summary>
-    /// <returns>A page of results, or <c>null</c> if the API was not found.</returns>
+    /// <returns>A page of results.</returns>
+    /// <exception cref="NitroClientNotFoundException">
+    /// The API was not found.
+    /// </exception>
     /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
@@ -54,7 +57,7 @@ public interface IMcpClient
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
-    Task<ConnectionPage<IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node>?> ListMcpFeatureCollectionsAsync(
+    Task<ConnectionPage<IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node>> ListMcpFeatureCollectionsAsync(
         string apiId,
         string? after,
         int? first,

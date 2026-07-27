@@ -11,8 +11,8 @@ public class DirectiveValidationRuleTests : TypeValidationTestBase
           type Query { stub: String }
 
           directive @badDirective(
-             badArg: String! @deprecated
-           ) on FIELD
+            badArg: String! @deprecated
+          ) on FIELD
         ");
     }
 
@@ -23,8 +23,8 @@ public class DirectiveValidationRuleTests : TypeValidationTestBase
           type Query { stub: String }
 
           directive @badDirective(
-             optionalArg: String @deprecated
-           ) on FIELD
+            optionalArg: String @deprecated
+          ) on FIELD
         ");
     }
 
@@ -35,8 +35,8 @@ public class DirectiveValidationRuleTests : TypeValidationTestBase
           type Query { stub: String }
 
           directive @badDirective(
-             __badArg: String
-           ) on FIELD
+            __badArg: String
+          ) on FIELD
         ");
     }
 

@@ -12,7 +12,9 @@ namespace HotChocolate.Fusion.PostMergeValidationRules;
 /// public access to each field defined by the interface. If a field on an object type is marked as
 /// <c>@inaccessible</c> but implements an interface field that is visible in the composed schema,
 /// this creates a contradiction: the interface contract requires that field to be accessible, yet
-/// the implementation hides it.
+/// the implementation hides it. A type that is itself marked inaccessible is removed from the
+/// composed public schema entirely, so it is not a visible implementor and this rule does not apply
+/// to it.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Implemented-by-Inaccessible">
 /// Specification
@@ -40,6 +42,11 @@ internal sealed class ImplementedByInaccessibleRule
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
+        if (type.HasFusionInaccessibleDirective())
+        {
+            return;
+        }
+
         var accessibleImplementedInterfaces =
             type.Implements
                 .AsEnumerable()
@@ -61,8 +68,7 @@ internal sealed class ImplementedByInaccessibleRule
                     continue;
                 }
 
-                if (field.HasFusionInaccessibleDirective()
-                    || type.HasFusionInaccessibleDirective())
+                if (field.HasFusionInaccessibleDirective())
                 {
                     context.Log.Write(
                         ImplementedByInaccessible(

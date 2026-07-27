@@ -376,7 +376,6 @@ public class DataLoaderTests
     public async Task NestedDataLoader()
     {
         var snapshot = new Snapshot();
-        using var cts = new CancellationTokenSource(2000);
 
         snapshot.Add(
             await new ServiceCollection()
@@ -385,9 +384,11 @@ public class DataLoaderTests
                 .AddType<FooQueries>()
                 .AddDataLoader<FooDataLoader>()
                 .AddDataLoader<FooNestedDataLoader>()
-                .ExecuteRequestAsync("query Foo { foo { id field } }", cancellationToken: cts.Token));
+                .ExecuteRequestAsync(
+                    "query Foo { foo { id field } }",
+                    cancellationToken: TestContext.Current.CancellationToken));
 
-        await snapshot.MatchMarkdownAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]

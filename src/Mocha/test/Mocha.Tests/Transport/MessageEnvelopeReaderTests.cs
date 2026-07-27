@@ -51,9 +51,9 @@ public class MessageEnvelopeReaderTests
         Assert.NotNull(envelope.DeliverBy);
         Assert.Equal(1, envelope.DeliveryCount);
         Assert.NotNull(envelope.EnclosedMessageTypes);
-        Assert.Equal(2, envelope.EnclosedMessageTypes!.Value.Length);
-        Assert.Equal("urn:message:TestEvent", envelope.EnclosedMessageTypes!.Value[0]);
-        Assert.Equal("urn:message:IEvent", envelope.EnclosedMessageTypes!.Value[1]);
+        Assert.Equal(2, envelope.EnclosedMessageTypes.Value.Length);
+        Assert.Equal("urn:message:TestEvent", envelope.EnclosedMessageTypes.Value[0]);
+        Assert.Equal("urn:message:IEvent", envelope.EnclosedMessageTypes.Value[1]);
         Assert.NotNull(envelope.Headers);
         Assert.False(envelope.Body.IsEmpty);
     }
@@ -104,7 +104,7 @@ public class MessageEnvelopeReaderTests
         var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
 
         Assert.NotNull(envelope.EnclosedMessageTypes);
-        Assert.Empty(envelope.EnclosedMessageTypes!.Value);
+        Assert.Empty(envelope.EnclosedMessageTypes.Value);
     }
 
     [Fact]
@@ -115,8 +115,8 @@ public class MessageEnvelopeReaderTests
         var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
 
         Assert.NotNull(envelope.EnclosedMessageTypes);
-        Assert.Single(envelope.EnclosedMessageTypes!.Value);
-        Assert.Equal("urn:message:Foo", envelope.EnclosedMessageTypes!.Value[0]);
+        Assert.Single(envelope.EnclosedMessageTypes.Value);
+        Assert.Equal("urn:message:Foo", envelope.EnclosedMessageTypes.Value[0]);
     }
 
     [Fact]
@@ -150,9 +150,9 @@ public class MessageEnvelopeReaderTests
         var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
 
         Assert.NotNull(envelope.SentAt);
-        Assert.Equal(2026, envelope.SentAt!.Value.Year);
-        Assert.Equal(1, envelope.SentAt!.Value.Month);
-        Assert.Equal(15, envelope.SentAt!.Value.Day);
+        Assert.Equal(2026, envelope.SentAt.Value.Year);
+        Assert.Equal(1, envelope.SentAt.Value.Month);
+        Assert.Equal(15, envelope.SentAt.Value.Day);
     }
 
     [Fact]
@@ -163,9 +163,9 @@ public class MessageEnvelopeReaderTests
         var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
 
         Assert.NotNull(envelope.DeliverBy);
-        Assert.Equal(2026, envelope.DeliverBy!.Value.Year);
-        Assert.Equal(6, envelope.DeliverBy!.Value.Month);
-        Assert.Equal(1, envelope.DeliverBy!.Value.Day);
+        Assert.Equal(2026, envelope.DeliverBy.Value.Year);
+        Assert.Equal(6, envelope.DeliverBy.Value.Month);
+        Assert.Equal(1, envelope.DeliverBy.Value.Day);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class MessageEnvelopeReaderTests
         var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
 
         Assert.NotNull(envelope.Headers);
-        Assert.True(envelope.Headers!.TryGetValue("custom-key", out var value));
+        Assert.True(envelope.Headers.TryGetValue("custom-key", out var value));
         Assert.Equal("custom-value", value);
     }
 
@@ -234,9 +234,9 @@ public class MessageEnvelopeReaderTests
         var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
 
         Assert.NotNull(envelope.ScheduledTime);
-        Assert.Equal(2026, envelope.ScheduledTime!.Value.Year);
-        Assert.Equal(6, envelope.ScheduledTime!.Value.Month);
-        Assert.Equal(1, envelope.ScheduledTime!.Value.Day);
+        Assert.Equal(2026, envelope.ScheduledTime.Value.Year);
+        Assert.Equal(6, envelope.ScheduledTime.Value.Month);
+        Assert.Equal(1, envelope.ScheduledTime.Value.Day);
     }
 
     [Fact]

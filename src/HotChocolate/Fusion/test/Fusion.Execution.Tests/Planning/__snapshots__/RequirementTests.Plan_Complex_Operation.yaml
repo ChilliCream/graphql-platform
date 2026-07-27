@@ -15,9 +15,9 @@ operation:
                   id @fusion__requirement
                   weight @fusion__requirement
                   dimension @fusion__requirement {
-                    length
-                    width
-                    height
+                    length @fusion__requirement
+                    width @fusion__requirement
+                    height @fusion__requirement
                   }
                 }
               }

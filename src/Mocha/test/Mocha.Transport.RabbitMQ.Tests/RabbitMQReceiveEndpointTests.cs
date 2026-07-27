@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests;
@@ -10,10 +11,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q").AutoProvision();
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").AutoProvision().Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -25,41 +23,37 @@ public class RabbitMQReceiveEndpointTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetFaultEndpoint_When_FaultEndpointConfigured()
+    public void ReceiveEndpoint_Should_SetFaultEndpointDestinationName_When_FaultEndpointConfigured()
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision();
-            t.DeclareQueue("q_error").AutoProvision();
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint("rabbitmq:///q/q_error");
-        });
+            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error")));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.ErrorEndpoint);
+        Assert.Equal(
+            "q_error",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetSkippedEndpoint_When_SkippedEndpointConfigured()
+    public void ReceiveEndpoint_Should_SetSkippedEndpointDestinationName_When_SkippedEndpointConfigured()
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision();
-            t.DeclareQueue("q_skipped").AutoProvision();
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint("rabbitmq:///q/q_skipped");
-        });
+            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().SkippedEndpoint(new Uri("queue:q_skipped")));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.SkippedEndpoint);
+        Assert.Equal(
+            "q_skipped",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveSkippedEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 
     [Fact]
@@ -67,10 +61,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("err-q").AutoProvision();
-            t.Endpoint("err-ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
-        });
+            t.Queue("err-q").AutoProvision().Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -85,10 +76,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q").AutoProvision();
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").AutoProvision().Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -104,10 +92,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q").AutoProvision();
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").AutoProvision().Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act

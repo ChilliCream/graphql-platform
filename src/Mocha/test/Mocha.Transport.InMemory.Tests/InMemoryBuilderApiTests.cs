@@ -19,10 +19,9 @@ public class InMemoryBuilderApiTests
             .AddRequestHandler<MessageRecordConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("manual-endpoint").Handler<MessageRecordConsumer>().Queue("manual-queue");
+                t.Queue("manual-queue").Handler<MessageRecordConsumer>();
 
                 t.DeclareTopic("manual-topic");
-                t.DeclareQueue("manual-queue");
                 t.DeclareBinding("manual-topic", "manual-queue");
             })
             .BuildServiceProvider();
@@ -58,16 +57,13 @@ public class InMemoryBuilderApiTests
             .AddInMemory(t =>
             {
                 t.DeclareTopic("fan-topic");
-                t.DeclareQueue("fan-q1");
-                t.DeclareQueue("fan-q2");
-                t.DeclareQueue("fan-q3");
                 t.DeclareBinding("fan-topic", "fan-q1").ToQueue("fan-q1");
                 t.DeclareBinding("fan-topic", "fan-q2").ToQueue("fan-q2");
                 t.DeclareBinding("fan-topic", "fan-q3").ToQueue("fan-q3");
 
-                t.Endpoint("fan-ep1").Handler<FanOutHandler1>().Queue("fan-q1");
-                t.Endpoint("fan-ep2").Handler<FanOutHandler2>().Queue("fan-q2");
-                t.Endpoint("fan-ep3").Handler<FanOutHandler3>().Queue("fan-q3");
+                t.Queue("fan-q1").Handler<FanOutHandler1>();
+                t.Queue("fan-q2").Handler<FanOutHandler2>();
+                t.Queue("fan-q3").Handler<FanOutHandler3>();
 
                 t.DispatchEndpoint("fan-dispatch").ToTopic("fan-topic").Publish<OrderCreated>();
             })
@@ -109,7 +105,7 @@ public class InMemoryBuilderApiTests
                 t.DeclareBinding("chain-source", "chain-mid").ToTopic("chain-mid");
                 t.DeclareBinding("chain-mid", "chain-dest").ToQueue("chain-dest");
 
-                t.Endpoint("chain-ep").Handler<OrderCreatedHandler>().Queue("chain-dest");
+                t.Queue("chain-dest").Handler<OrderCreatedHandler>();
 
                 t.DispatchEndpoint("chain-dispatch").ToTopic("chain-source").Publish<OrderCreated>();
             })
@@ -212,16 +208,16 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task Endpoint_Should_ReceiveMessages_When_ConfiguredWithQueueAndHandler()
     {
-        // arrange - builder.Endpoint("ep").Queue("q").Handler<T>()
+        // arrange - builder.Queue("q").Handler<T>()
         // Register handler at the host level so routes are discovered, and bind it
-        // to a specific queue via the transport endpoint configuration.
+        // to a specific queue via the transport queue builder configuration.
         var recorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
             .AddInMemory(t =>
-                t.Endpoint("process-payment").Queue("process-payment").Handler<ProcessPaymentHandler>())
+                t.Queue("process-payment").Handler<ProcessPaymentHandler>())
             .BuildServiceProvider();
 
         using var scope = provider.CreateScope();

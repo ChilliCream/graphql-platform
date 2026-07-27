@@ -4,6 +4,7 @@ namespace Mocha.Sagas;
 /// Represents a state within a saga state machine, including its transitions, lifecycle actions, and whether it is an initial or final state.
 /// </summary>
 public sealed class SagaState(
+    string urn,
     string state,
     bool isInitial,
     bool isFinal,
@@ -11,6 +12,11 @@ public sealed class SagaState(
     SagaResponse? response,
     IEnumerable<SagaTransition> transitions)
 {
+    /// <summary>
+    /// Gets the stable URN identity of this state.
+    /// </summary>
+    public string Urn => urn;
+
     /// <summary>
     /// Gets the name of this state.
     /// </summary>

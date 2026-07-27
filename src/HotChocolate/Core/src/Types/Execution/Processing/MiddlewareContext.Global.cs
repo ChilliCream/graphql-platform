@@ -10,9 +10,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
 {
     private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private OperationContext _operationContext = null!;
     private IServiceProvider _services = null!;
     private InputParser _parser = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     private object? _resolverResult;
     private bool _hasResolverResult;
 
@@ -88,6 +90,18 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public void ReportError(IError error)
     {
         ArgumentNullException.ThrowIfNull(error);
+
+        // Internal selections are added by the execution engine (for example by the
+        // projection optimizers) and are never part of the client-facing result. Their
+        // data is already excluded from the response, so their errors must not be
+        // surfaced either.
+        // NOTE: we could also reconsider and track them as internal errors in the future,
+        // and allow error propagate, but make sure that an internal propagation terminates,
+        // in the mist parent internal field.
+        if (_selection.IsInternal)
+        {
+            return;
+        }
 
         if (error is AggregateError aggregateError)
         {

@@ -18,7 +18,7 @@ public class RabbitMQRoutingKeyTests
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-123" };
         Assert.Equal("ORD-123", extractor.Extract(order));
@@ -35,7 +35,7 @@ public class RabbitMQRoutingKeyTests
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-456" };
         Assert.Equal("ORD-456.priority", extractor.Extract(order));
@@ -52,7 +52,7 @@ public class RabbitMQRoutingKeyTests
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-789" };
         Assert.Null(extractor.Extract(order));
@@ -69,7 +69,7 @@ public class RabbitMQRoutingKeyTests
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.False(messageType!.Features.TryGet<RabbitMQRoutingKeyExtractor>(out _));
+        Assert.False(messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out _));
     }
 
     [Fact]

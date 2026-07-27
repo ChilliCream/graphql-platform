@@ -118,14 +118,43 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             "--api-id", ApiId, "--stage", Stage, "--tag", Tag);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'dev' of API 'api-1'
             └── ✕ Failed to request a deployment slot.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupRequestDeploymentSlotMutation(errors: CreateRequestDeploymentSlotApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "begin", "--api-id", ApiId, "--stage", Stage, "--tag", Tag);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupRequestDeploymentSlotMutation(errors: CreateRequestDeploymentSlotStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "begin", "--api-id", ApiId, "--stage", Stage, "--tag", Tag);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -354,8 +383,6 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         string> GetRequestDeploymentSlotErrors() => new()
     {
         { CreateRequestDeploymentSlotUnauthorizedError(), "Unauthorized." },
-        { CreateRequestDeploymentSlotApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreateRequestDeploymentSlotStageNotFoundError(), $"Stage '{Stage}' was not found." },
         { CreateRequestDeploymentSlotSubgraphInvalidError(), "Subgraph is invalid." },
         { CreateRequestDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." },
         { CreateRequestDeploymentSlotInvalidSourceMetadataError(), "Invalid source metadata input." }

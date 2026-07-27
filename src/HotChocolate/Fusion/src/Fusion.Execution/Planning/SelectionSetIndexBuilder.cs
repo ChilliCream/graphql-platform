@@ -8,21 +8,30 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
 {
     private List<SelectionSetNode>? _temp;
     private ImmutableDictionary<SelectionSetNode, uint> _selectionSets;
+    private readonly ImmutableDictionary<uint, SelectionSetNode>.Builder _selectionSetById;
     private ImmutableDictionary<uint, uint> _clonedToOriginalMap;
+    private ImmutableDictionary<uint, ConcreteBranchScope> _concreteBranchScopes;
     private uint _nextId;
 
     internal SelectionSetIndexBuilder(
         ImmutableDictionary<SelectionSetNode, uint> selectionSets,
+        ImmutableDictionary<uint, SelectionSetNode> selectionSetById,
         ImmutableDictionary<uint, uint> clonedToOriginalMap,
+        ImmutableDictionary<uint, ConcreteBranchScope> concreteBranchScopes,
         uint nextId)
     {
         _selectionSets = selectionSets;
+        _selectionSetById = selectionSetById.ToBuilder();
         _clonedToOriginalMap = clonedToOriginalMap;
+        _concreteBranchScopes = concreteBranchScopes;
         _nextId = nextId;
     }
 
     public uint GetId(SelectionSetNode selectionSet)
         => _selectionSets[selectionSet];
+
+    public bool TryGetSelectionSet(uint id, out SelectionSetNode selectionSet)
+        => _selectionSetById.TryGetValue(id, out selectionSet!);
 
     public bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId)
         => _clonedToOriginalMap.TryGetValue(clonedId, out originalId);
@@ -31,19 +40,30 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
         => _selectionSets.ContainsKey(selectionSet);
 
     public void Register(uint id, SelectionSetNode branch)
-        => _selectionSets = _selectionSets.SetItem(branch, id);
+    {
+        _selectionSets = _selectionSets.SetItem(branch, id);
+        _selectionSetById.TryAdd(id, branch);
+    }
 
     public void Register(SelectionSet original, SelectionSetNode branch)
-        => _selectionSets = _selectionSets.SetItem(branch, original.Id);
+    {
+        _selectionSets = _selectionSets.SetItem(branch, original.Id);
+        _selectionSetById.TryAdd(original.Id, original.Node);
+    }
 
     public void Register(SelectionSetNode original, SelectionSetNode branch)
     {
         var id = _selectionSets[original];
         _selectionSets = _selectionSets.SetItem(branch, id);
+        _selectionSetById.TryAdd(id, original);
     }
 
     public void Register(SelectionSetNode original)
-        => _selectionSets = _selectionSets.SetItem(original, _nextId++);
+    {
+        var id = _nextId++;
+        _selectionSets = _selectionSets.SetItem(original, id);
+        _selectionSetById.TryAdd(id, original);
+    }
 
     public void RegisterCloned(SelectionSetNode original, SelectionSetNode cloned)
     {
@@ -52,7 +72,45 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
         var clonedId = _selectionSets[cloned];
         var originalId = _selectionSets[original];
 
+        while (_clonedToOriginalMap.TryGetValue(originalId, out var parentOriginalId))
+        {
+            originalId = parentOriginalId;
+        }
+
         _clonedToOriginalMap = _clonedToOriginalMap.SetItem(clonedId, originalId);
+    }
+
+    internal void RegisterConcreteBranch(
+        uint parentSelectionSetId,
+        string typeCondition,
+        SelectionSetNode branch)
+    {
+        while (_clonedToOriginalMap.TryGetValue(
+            parentSelectionSetId,
+            out var originalSelectionSetId))
+        {
+            parentSelectionSetId = originalSelectionSetId;
+        }
+
+        Register(branch);
+
+        _concreteBranchScopes = _concreteBranchScopes.SetItem(
+            GetId(branch),
+            new ConcreteBranchScope(parentSelectionSetId, typeCondition));
+    }
+
+    internal bool TryTakeConcreteBranchScope(
+        uint branchSelectionSetId,
+        out ConcreteBranchScope scope)
+    {
+        if (_concreteBranchScopes.TryGetValue(branchSelectionSetId, out scope))
+        {
+            _concreteBranchScopes =
+                _concreteBranchScopes.Remove(branchSelectionSetId);
+            return true;
+        }
+
+        return false;
     }
 
     public void OnMerge(FieldNode field1, FieldNode field2)
@@ -84,15 +142,18 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
                 id = _nextId++;
                 _selectionSets = _selectionSets.SetItem(field1.SelectionSet, id);
                 _selectionSets = _selectionSets.SetItem(field2.SelectionSet, id);
+                _selectionSetById.TryAdd(id, field1.SelectionSet);
             }
             else
             {
                 _selectionSets = _selectionSets.SetItem(field1.SelectionSet, id);
+                _selectionSetById.TryAdd(id, field2.SelectionSet);
             }
         }
         else
         {
             _selectionSets = _selectionSets.SetItem(field2.SelectionSet, id);
+            _selectionSetById.TryAdd(id, field1.SelectionSet);
         }
     }
 
@@ -117,12 +178,14 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             temp.Add(field.SelectionSet);
         }
 
-        key ??= _nextId;
+        key ??= _nextId++;
 
         foreach (var selectionSet in temp)
         {
             _selectionSets = _selectionSets.SetItem(selectionSet, key.Value);
         }
+
+        _selectionSetById.TryAdd(key.Value, temp[0]);
 
         ReturnSelectionSetList(temp);
     }
@@ -139,15 +202,18 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
                 id = _nextId++;
                 _selectionSets = _selectionSets.SetItem(s1, id);
                 _selectionSets = _selectionSets.SetItem(s2, id);
+                _selectionSetById.TryAdd(id, s1);
             }
             else
             {
                 _selectionSets = _selectionSets.SetItem(s1, id);
+                _selectionSetById.TryAdd(id, s2);
             }
         }
         else
         {
             _selectionSets = _selectionSets.SetItem(s2, id);
+            _selectionSetById.TryAdd(id, s1);
         }
     }
 
@@ -160,15 +226,18 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
                 id = _nextId++;
                 _selectionSets = _selectionSets.SetItem(selectionSet1, id);
                 _selectionSets = _selectionSets.SetItem(selectionSet2, id);
+                _selectionSetById.TryAdd(id, selectionSet1);
             }
             else
             {
                 _selectionSets = _selectionSets.SetItem(selectionSet1, id);
+                _selectionSetById.TryAdd(id, selectionSet2);
             }
         }
         else
         {
             _selectionSets = _selectionSets.SetItem(selectionSet2, id);
+            _selectionSetById.TryAdd(id, selectionSet1);
         }
     }
 
@@ -187,12 +256,14 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             temp.Add(s);
         }
 
-        key ??= _nextId;
+        key ??= _nextId++;
 
         foreach (var s in temp)
         {
             _selectionSets = _selectionSets.SetItem(s, key.Value);
         }
+
+        _selectionSetById.TryAdd(key.Value, temp[0]);
 
         ReturnSelectionSetList(temp);
     }
@@ -212,7 +283,12 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
     }
 
     public ISelectionSetIndex Build()
-        => new SelectionSetIndex(_selectionSets, _clonedToOriginalMap, _nextId);
+        => new SelectionSetIndex(
+            _selectionSets,
+            _selectionSetById.ToImmutable(),
+            _clonedToOriginalMap,
+            _concreteBranchScopes,
+            _nextId);
 
     public SelectionSetIndexBuilder ToBuilder()
         => this;

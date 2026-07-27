@@ -226,18 +226,17 @@ public partial class AnnotationBasedMutations
                 .AddMutationType()
                 .AddTypeExtension<SimpleMutationExtension>()
                 .AddDirectiveType(
-                    new DirectiveType(
-                        d =>
-                        {
-                            d.Name("foo");
-                            d.Location(DirectiveLocation.Field);
-                            d.Use(
-                                (next, _) => async context =>
-                                {
-                                    // this is just a dummy middleware
-                                    await next(context);
-                                });
-                        }))
+                    d =>
+                    {
+                        d.Name("foo");
+                        d.Location(DirectiveLocation.Field);
+                        d.Use(
+                            (next, _) => async context =>
+                            {
+                                // this is just a dummy middleware
+                                await next(context);
+                            });
+                    })
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)

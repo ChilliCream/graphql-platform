@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -59,23 +60,29 @@ internal sealed class DownloadSchemaCommand : Command
             $"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
             "Failed to download the schema."))
         {
-            await using var schemaStream = await client.DownloadLatestSchemaAsync(
-                apiId,
-                stageName,
-                cancellationToken);
-
-            if (schemaStream is null)
+            Stream schemaStream;
+            try
             {
-                throw Exit($"Could not find a published schema on stage '{stageName}'.");
+                schemaStream = await client.DownloadLatestSchemaAsync(
+                    apiId,
+                    stageName,
+                    cancellationToken);
+            }
+            catch (NitroClientNotFoundException ex)
+            {
+                throw Exit(ex.Message);
             }
 
-            if (fileSystem.FileExists(schemaFilePath))
+            await using (schemaStream)
             {
-                fileSystem.DeleteFile(schemaFilePath);
-            }
+                if (fileSystem.FileExists(schemaFilePath))
+                {
+                    fileSystem.DeleteFile(schemaFilePath);
+                }
 
-            await using var fileStream = fileSystem.CreateFile(schemaFilePath);
-            await schemaStream.CopyToAsync(fileStream, cancellationToken);
+                await using var fileStream = fileSystem.CreateFile(schemaFilePath);
+                await schemaStream.CopyToAsync(fileStream, cancellationToken);
+            }
 
             activity.Success($"Downloaded the schema from stage '{stageName.EscapeMarkup()}'.");
 

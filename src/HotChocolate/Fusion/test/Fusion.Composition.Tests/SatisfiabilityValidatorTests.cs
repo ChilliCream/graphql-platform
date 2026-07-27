@@ -1,6 +1,8 @@
 using System.Text;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
@@ -267,6 +269,393 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                bookChanged: Book
+                    @eventStream(topics: ["book.changed"], message: "{ __typename }")
+            }
+
+            type Book {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            type Book {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+                      No other schemas contain the field 'Book.id'.
+
+            Unable to access the field 'Book.title' on path 'A:Subscription.bookChanged<Book>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+                      No other schemas contain the field 'Book.id'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                bookChanged: Book
+                    @eventStream(topics: ["book.changed"], message: "{ id }")
+            }
+
+            type Book {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            type Book {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_CursorFieldProvidedByEventCursor()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                bookChanged: BookChangedEvent
+                    @eventStream(topics: ["book.changed"], message: "{ id title }")
+            }
+
+            type BookChangedEvent {
+                id: ID!
+                title: String!
+                cursor: String @eventCursor
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsNestedLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                reviewChanged: Review
+                    @eventStream(
+                        topics: ["review.changed"]
+                        message: "{ product { __typename } }"
+                    )
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Products
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Product.id' on path 'A:Subscription.reviewChanged<Review> -> A:Review.product<Product>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'productById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Product.id' on path 'A:Review.product<Product>'.
+                      No other schemas contain the field 'Product.id'.
+
+            Unable to access the field 'Product.title' on path 'A:Subscription.reviewChanged<Review> -> A:Review.product<Product>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'productById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Product.id' on path 'A:Review.product<Product>'.
+                      No other schemas contain the field 'Product.id'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesNestedLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                reviewChanged: Review
+                    @eventStream(
+                        topics: ["review.changed"]
+                        message: "{ product { id } }"
+                    )
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Products
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesInterfaceLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                nodeChanged: Node
+                    @eventStream(topics: ["node.changed"], message: "{ id }")
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageNarrowsAbstractBranch()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                nodeChanged: Node
+                    @eventStream(
+                        topics: ["node.changed"]
+                        message: "{ __typename ... on Book { id } }"
+                    )
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Catalog
+            type Query {
+                bookById(id: ID!): Book @lookup
+                authorById(id: ID!): Author @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+                title: String!
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+                name: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageNarrowedBranchOmitsLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                nodeChanged: Node
+                    @eventStream(
+                        topics: ["node.changed"]
+                        message: "{ __typename ... on Book { __typename } }"
+                    )
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Catalog
+            type Query {
+                bookById(id: ID!): Book @lookup
+                authorById(id: ID!): Author @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+                title: String!
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+                name: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Book.id' on path 'A:Subscription.nodeChanged<Node>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.nodeChanged<Node>'.
+                      No other schemas contain the field 'Book.id'.
+
+            Unable to access the field 'Book.title' on path 'A:Subscription.nodeChanged<Node>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.nodeChanged<Node>'.
+                      No other schemas contain the field 'Book.id'.
+            """);
     }
 
     [Fact]
@@ -2486,6 +2875,148 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void SourceSchemaNodeResolution_Should_WarnForUncoveredCompositePossibleType()
+    {
+        var schema = CreateDistributedNodeSchema();
+        var log = new CompositionLog();
+        var validator = new SatisfiabilityValidator(
+            schema,
+            log,
+            nodeResolution: NodeResolution.SourceSchema);
+
+        var result = validator.Validate();
+
+        Assert.True(result.IsSuccess);
+        var warning = Assert.Single(log);
+        Assert.Equal(LogSeverity.Warning, warning.Severity);
+        Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, warning.Code);
+        Assert.Equal(
+            "Type 'Oven' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.",
+            warning.Message);
+    }
+
+    [Fact]
+    public void GatewayNodeResolution_Should_ErrorForUncoveredCompositePossibleType()
+    {
+        var schema = CreateDistributedNodeSchema();
+        var log = new CompositionLog();
+        var validator = new SatisfiabilityValidator(schema, log);
+
+        var result = validator.Validate();
+
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(log);
+        Assert.Equal(LogSeverity.Error, error.Severity);
+        Assert.Equal(
+            "Type 'Oven' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.",
+            error.Message);
+    }
+
+    [Theory]
+    [InlineData("@internal")]
+    [InlineData("")]
+    public void SourceSchemaNodeResolution_Should_ErrorWithoutPublicRootDispatcher(
+        string internalDirective)
+    {
+        var sourceSchema = string.IsNullOrEmpty(internalDirective)
+            ? """
+              type Query {
+                  lookups: Lookups
+              }
+
+              type Lookups {
+                  node(id: ID!): Node @lookup
+              }
+
+              interface Node {
+                  id: ID!
+              }
+
+              type Cat implements Node {
+                  id: ID!
+              }
+              """
+            : $$"""
+              type Query {
+                  node(id: ID!): Node @lookup {{internalDirective}}
+              }
+
+              interface Node {
+                  id: ID!
+              }
+
+              type Cat implements Node {
+                  id: ID!
+              }
+              """;
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions([sourceSchema]),
+            new SourceSchemaMergerOptions
+            {
+                AddFusionDefinitions = false,
+                EnableGlobalObjectIdentification = true
+            });
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var validator = new SatisfiabilityValidator(
+            schema,
+            log,
+            nodeResolution: NodeResolution.SourceSchema);
+
+        var result = validator.Validate();
+
+        Assert.True(result.IsFailure);
+        Assert.All(log, entry => Assert.Equal(LogSeverity.Error, entry.Severity));
+        Assert.Contains(log, entry => entry.Message.Contains("Type 'Cat' implements the 'Node' interface"));
+    }
+
+    private static MutableSchemaDefinition CreateDistributedNodeSchema()
+    {
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    node(id: ID!): Node @lookup
+                    toasters: [Toaster]
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Toaster implements Node {
+                    id: ID!
+                    warranty: Int
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    ovens: [Oven]
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Oven implements Node {
+                    id: ID!
+                    warranty: Int
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions
+            {
+                AddFusionDefinitions = false,
+                EnableGlobalObjectIdentification = true
+            });
+
+        return merger.Merge().Value;
+    }
+
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/union-intersection
     public void UnionIntersection()
     {
@@ -3832,6 +4363,20 @@ public sealed class SatisfiabilityValidatorTests
         {
             string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(logs!);
         }
+    }
+
+    private static (CompositionResult Result, CompositionLog Log) ValidateSatisfiability(string[] sdl)
+    {
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(sdl),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        return (satisfiabilityValidator.Validate(), log);
     }
 
     public static TheoryData<string[], bool, string?> GlobalObjectIdentificationExamplesData()

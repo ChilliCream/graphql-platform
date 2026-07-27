@@ -147,6 +147,18 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string FetchResultStore_InvalidRepresentationResultKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidRepresentationResultKind", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_RepresentationResultCountMismatch {
+            get {
+                return ResourceManager.GetString("FetchResultStore_RepresentationResultCountMismatch", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_DuplicateNodeSubmission {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_DuplicateNodeSubmission", resourceCulture);
@@ -189,9 +201,27 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string PlanQueue_NodeLookupNotFound {
+            get {
+                return ResourceManager.GetString("PlanQueue_NodeLookupNotFound", resourceCulture);
+            }
+        }
+
         internal static string JsonOperationPlanParser_SingleOperationRequired {
             get {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
+            }
+        }
+
+        internal static string NodeFieldExecutionNode_InvalidNodeIdFormat {
+            get {
+                return ResourceManager.GetString("NodeFieldExecutionNode_InvalidNodeIdFormat", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_InvalidTargetValueKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
             }
         }
     }

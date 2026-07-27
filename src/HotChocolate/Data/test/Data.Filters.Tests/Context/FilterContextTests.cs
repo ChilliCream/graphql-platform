@@ -42,7 +42,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        var field = Assert.Single(context!.GetFields());
+        var field = Assert.Single(context.GetFields());
         Assert.Empty(context.GetOperations());
         var operation = Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
@@ -85,7 +85,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.False(context!.IsDefined);
+        Assert.False(context.IsDefined);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.True(context!.IsDefined);
+        Assert.True(context.IsDefined);
     }
 
     [Fact]
@@ -210,8 +210,8 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        var operation = Assert.Single(context!.GetOperations());
-        Assert.Empty(context!.GetFields());
+        var operation = Assert.Single(context.GetOperations());
+        Assert.Empty(context.GetFields());
         var valueCollection = Assert.IsType<FilterValueCollection>(operation.Value);
         var field0 = Assert.Single(Assert.IsType<FilterInfo>(valueCollection[0]).GetFields());
         Assert.Equal("title", field0.Field.Name);
@@ -259,7 +259,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        var author = Assert.Single(context!.GetFields());
+        var author = Assert.Single(context.GetFields());
         Assert.Empty(context.GetOperations());
         var name = Assert.Single(Assert.IsType<FilterInfo>(author.Value).GetFields());
         Assert.Empty(Assert.IsType<FilterInfo>(author.Value).GetOperations());
@@ -326,7 +326,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToDictionary().MatchSnapshot();
+        context.ToDictionary().MatchSnapshot();
     }
 
     [Fact]
@@ -375,7 +375,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.False(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
+        Assert.False(localContextData.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.True(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
+        Assert.True(localContextData.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
     }
 
     [Fact]
@@ -496,7 +496,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToDictionary().MatchSnapshot();
+        context.ToDictionary().MatchSnapshot();
     }
 
     public class Book

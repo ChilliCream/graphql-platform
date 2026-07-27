@@ -109,12 +109,12 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("ap-topic").AutoProvision(true);
                 t.DeclareQueue("ap-q").AutoProvision(true);
                 t.DeclareSubscription("ap-topic", "ap-q").AutoProvision(true);
 
-                t.Endpoint("ap-ep").Consumer<OrderSpyConsumer>().Queue("ap-q");
+                t.Queue("ap-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("ap-dispatch").ToTopic("ap-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -172,12 +172,12 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("pre-topic");
                 t.DeclareQueue("pre-q");
                 t.DeclareSubscription("pre-topic", "pre-q");
 
-                t.Endpoint("pre-ep").Consumer<OrderSpyConsumer>().Queue("pre-q");
+                t.Queue("pre-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("pre-dispatch").ToTopic("pre-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -228,12 +228,12 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.AutoProvision(true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("mixed-topic").AutoProvision(false); // already exists
                 t.DeclareQueue("mixed-q"); // will be auto-provisioned (inherits true)
                 t.DeclareSubscription("mixed-topic", "mixed-q"); // will be auto-provisioned
 
-                t.Endpoint("mixed-ep").Consumer<OrderSpyConsumer>().Queue("mixed-q");
+                t.Queue("mixed-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("mixed-dispatch").ToTopic("mixed-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

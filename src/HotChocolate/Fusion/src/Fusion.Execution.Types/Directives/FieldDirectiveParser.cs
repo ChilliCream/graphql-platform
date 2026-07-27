@@ -16,6 +16,7 @@ internal static class FieldDirectiveParser
         ITypeNode? sourceType = null;
         SelectionSetNode? provides = null;
         var isExternal = false;
+        var isSourceExternal = false;
 
         foreach (var argument in directive.Arguments)
         {
@@ -35,7 +36,7 @@ internal static class FieldDirectiveParser
 
                 case "provides":
                     var providesValue = ((StringValueNode)argument.Value).Value;
-                    provides = ParseProvidesSelectionSet(providesValue);
+                    provides = ParseSelectionSet(providesValue);
                     break;
 
                 case "external":
@@ -45,6 +46,10 @@ internal static class FieldDirectiveParser
                 case "partial":
                     // `partial` is the composition-time encoding for external source fields.
                     isExternal = ((BooleanValueNode)argument.Value).Value;
+                    break;
+
+                case "sourceExternal":
+                    isSourceExternal = ((BooleanValueNode)argument.Value).Value;
                     break;
 
                 default:
@@ -59,10 +64,16 @@ internal static class FieldDirectiveParser
                 "The `schema` argument is required on the @field directive.");
         }
 
-        return new FieldDirective(new SchemaKey(schemaKey), sourceName, sourceType, provides, isExternal);
+        return new FieldDirective(
+            new SchemaKey(schemaKey),
+            sourceName,
+            sourceType,
+            provides,
+            isExternal,
+            isSourceExternal);
     }
 
-    private static SelectionSetNode ParseProvidesSelectionSet(string value)
+    public static SelectionSetNode ParseSelectionSet(string value)
     {
         try
         {

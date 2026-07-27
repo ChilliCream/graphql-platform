@@ -41,7 +41,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        var field = Assert.Single(Assert.Single(context!.GetFields()));
+        var field = Assert.Single(Assert.Single(context.GetFields()));
         var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
@@ -81,7 +81,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.False(context!.IsDefined);
+        Assert.False(context.IsDefined);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.True(context!.IsDefined);
+        Assert.True(context.IsDefined);
     }
 
     [Fact]
@@ -154,8 +154,8 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.Equal(2, context!.GetFields().Count);
-        var field = Assert.Single(context!.GetFields()[0]);
+        Assert.Equal(2, context.GetFields().Count);
+        var field = Assert.Single(context.GetFields()[0]);
         var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
@@ -194,7 +194,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        var field = Assert.Single(Assert.Single(context!.GetFields()));
+        var field = Assert.Single(Assert.Single(context.GetFields()));
         var name =
             Assert.Single(Assert.IsType<SortingInfo>(field.Value).GetFields());
         var operation = Assert.IsType<SortingValue>(name.Value).Value;
@@ -238,7 +238,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.False(localContextData!.ContainsKey(QueryableSortProvider.SkipSortingKey));
+        Assert.False(localContextData.ContainsKey(QueryableSortProvider.SkipSortingKey));
     }
 
     [Fact]
@@ -276,7 +276,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.True(localContextData!.ContainsKey(QueryableSortProvider.SkipSortingKey));
+        Assert.True(localContextData.ContainsKey(QueryableSortProvider.SkipSortingKey));
     }
 
     [Fact]
@@ -347,7 +347,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToList().MatchSnapshot();
+        context.ToList().MatchSnapshot();
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToList().MatchSnapshot();
+        context.ToList().MatchSnapshot();
     }
 
     [Fact]
@@ -419,7 +419,7 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToList().MatchSnapshot();
+        context.ToList().MatchSnapshot();
     }
 
     public class TestSortType : SortInputType<Book>

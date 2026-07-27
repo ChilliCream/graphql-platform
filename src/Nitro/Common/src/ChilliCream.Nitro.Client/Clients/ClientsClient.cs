@@ -51,7 +51,7 @@ internal sealed class ClientsClient(
         return OperationResultHelper.EnsureData(result).Node;
     }
 
-    public async Task<ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?> ListClientsAsync(
+    public async Task<ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>> ListClientsAsync(
         string apiId,
         string? after,
         int? first,
@@ -67,7 +67,7 @@ internal sealed class ClientsClient(
         var connection = (data.Node as IListClientCommandQuery_Node_Api)?.Clients;
         if (connection is null)
         {
-            return null;
+            throw new NitroClientNotFoundException("The API was not found.");
         }
 
         var items = connection.Edges?.Select(static edge => edge.Node).ToArray() ?? [];
@@ -208,7 +208,7 @@ internal sealed class ClientsClient(
         return OperationResultHelper.EnsureData(result).UnpublishClient;
     }
 
-    public async Task<Stream?> DownloadPersistedQueriesAsync(
+    public async Task<Stream> DownloadPersistedQueriesAsync(
         string apiId,
         string stageName,
         CancellationToken cancellationToken)
@@ -224,7 +224,8 @@ internal sealed class ClientsClient(
 
         if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NitroClientNotFoundException(
+                $"Could not find a published client on stage '{stageName}'.");
         }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -244,7 +245,7 @@ internal sealed class ClientsClient(
         return memoryStream;
     }
 
-    public async Task<ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?> ListClientVersionsAsync(
+    public async Task<ConnectionPage<IClientDetailPrompt_ClientVersionEdge>> ListClientVersionsAsync(
         string clientId,
         string? after,
         int? first,
@@ -257,7 +258,7 @@ internal sealed class ClientsClient(
             var data = OperationResultHelper.EnsureData(result);
             if (data.Node is not IShowClientCommandQuery_Node_Client client)
             {
-                return null;
+                throw new NitroClientNotFoundException("The client was not found.");
             }
 
             return MapVersionPage(
@@ -274,7 +275,7 @@ internal sealed class ClientsClient(
         var pageData = OperationResultHelper.EnsureData(pageResult);
         if (pageData.Node is not IPageClientVersionDetailQuery_Node_Client pageClient)
         {
-            return null;
+            throw new NitroClientNotFoundException("The client was not found.");
         }
 
         return MapVersionPage(
@@ -283,7 +284,7 @@ internal sealed class ClientsClient(
             pageClient.Versions?.PageInfo.HasNextPage ?? false);
     }
 
-    public async Task<ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>?> ListClientPublishedVersionsAsync(
+    public async Task<ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>> ListClientPublishedVersionsAsync(
         string clientId,
         string stage,
         string? after,
@@ -300,7 +301,7 @@ internal sealed class ClientsClient(
         var data = OperationResultHelper.EnsureData(result);
         if (data.Node is not IListClientPublishedVersionsCommandQuery_Node_Client client)
         {
-            return null;
+            throw new NitroClientNotFoundException("The client was not found.");
         }
 
         var connection = client.PublishedVersions;

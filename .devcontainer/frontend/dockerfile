@@ -1,11 +1,23 @@
 FROM mcr.microsoft.com/devcontainers/javascript-node:22-bookworm
 
+# Suppress Corepack's "about to download" prompt during yarn activation
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+# Enable Corepack so the Yarn version from package.json's packageManager field is used
+RUN corepack enable
+
 # Install bubblewrap (sandbox dependency for Codex CLI)
 RUN apt-get update && apt-get install -y bubblewrap \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Update npm and install Codex CLI
-RUN npm install -g npm@11.12.0 @openai/codex @github/copilot
+# Install Playwright's OS dependencies for Chromium (version-independent apt packages).
+# The browser binary itself is downloaded in postCreateCommand so it matches the
+# Playwright version resolved from yarn.lock.
+RUN apt-get update && npx -y playwright install-deps chromium \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install GitHub Copilot CLI and Codex CLI
+RUN npm install -g @github/copilot @openai/codex
 
 # Install Claude Code (as node user so it installs to their home directory)
 RUN su - node -c "curl -fsSL https://claude.ai/install.sh | bash"

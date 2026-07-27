@@ -9,26 +9,26 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
 
     public List<string> CancelledTokens { get; } = [];
 
-    public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken)
+    public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken) where T : notnull
     {
-        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message!, null));
+        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, null));
         return ValueTask.CompletedTask;
     }
 
     public ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
+        where T : notnull
     {
-        outbox.Messages.Add(
-            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message!, options));
+        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, options));
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask SendAsync(object message, CancellationToken cancellationToken)
+    public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken) where T : notnull
     {
         outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, null));
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask SendAsync(object message, SendOptions options, CancellationToken cancellationToken)
+    public ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken) where T : notnull
     {
         outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, options));
         return ValueTask.CompletedTask;
@@ -104,10 +104,11 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
             });
     }
 
-    public ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         CancellationToken cancellationToken)
+        where T : notnull
     {
         var token = $"test:{Interlocked.Increment(ref _scheduleCounter)}";
         outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, null));
@@ -120,11 +121,12 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
             });
     }
 
-    public ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         SendOptions options,
         CancellationToken cancellationToken)
+        where T : notnull
     {
         var token = $"test:{Interlocked.Increment(ref _scheduleCounter)}";
         outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, options));

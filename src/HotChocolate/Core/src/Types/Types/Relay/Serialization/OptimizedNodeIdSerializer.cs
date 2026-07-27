@@ -550,7 +550,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             for (; insertAt < bucketSize; insertAt++)
             {
                 var entry = bucket[insertAt];
-                if (entry.Key == null!)
+                if (entry.Key == null)
                 {
                     foundSpot = true;
                     break;
@@ -597,7 +597,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
             while (Unsafe.IsAddressLessThan(ref entry, ref end))
             {
-                if (entry.Key == null!)
+                if (entry.Key == null)
                 {
                     // we have reached end of entries in this bucket
                     break;

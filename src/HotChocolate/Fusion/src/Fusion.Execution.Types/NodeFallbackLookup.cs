@@ -14,12 +14,29 @@ namespace HotChocolate.Fusion.Types;
 internal sealed class NodeFallbackLookup : INeedsCompletion
 {
     private FrozenDictionary<string, string> _schemaByType = FrozenDictionary<string, string>.Empty;
+    private string[] _sourceSchemaNodeLookupSchemas = [];
 
     /// <summary>
     /// Tries to determine a possible schema to do a node lookup for the provided <paramref name="typeName"/>.
     /// </summary>
     public bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
         => _schemaByType.TryGetValue(typeName, out schemaName);
+
+    /// <summary>
+    /// Tries to determine any source schema that owns a node lookup, used when the gateway
+    /// forwards the node field without interpreting the identifier.
+    /// </summary>
+    public bool TryGetAnyNodeLookupSchema([NotNullWhen(true)] out string? schemaName)
+    {
+        foreach (var value in _sourceSchemaNodeLookupSchemas)
+        {
+            schemaName = value;
+            return true;
+        }
+
+        schemaName = null;
+        return false;
+    }
 
     void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
     {
@@ -48,5 +65,26 @@ internal sealed class NodeFallbackLookup : INeedsCompletion
         }
 
         _schemaByType = lookup.ToFrozenDictionary();
+
+        var sourceSchemaNodeLookupSchemas = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var possibleType in schema.GetPossibleTypes(nodeType))
+        {
+            foreach (var nodeLookup in schema.GetPossibleLookups(possibleType))
+            {
+                if (nodeLookup.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]
+                    && nodeLookup is { FieldName: "node", IsInternal: false }
+                    && nodeLookup.FieldType == nodeType
+                    && nodeLookup.Path.IsDefaultOrEmpty
+                    && possibleType.Sources.TryGetMember(
+                        nodeLookup.SchemaName,
+                        out var sourceType)
+                    && sourceType.Implements.Contains(nodeType.Name))
+                {
+                    sourceSchemaNodeLookupSchemas.Add(nodeLookup.SchemaName);
+                }
+            }
+        }
+
+        _sourceSchemaNodeLookupSchemas = [.. sourceSchemaNodeLookupSchemas];
     }
 }

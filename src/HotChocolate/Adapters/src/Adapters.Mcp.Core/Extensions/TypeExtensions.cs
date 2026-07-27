@@ -273,7 +273,7 @@ internal static class TypeExtensions
         }
 
         // Other scalars.
-        minimum = scalarType.SpecifiedBy?.OriginalString switch
+        minimum = scalarType.SpecifiedBy switch
         {
             "https://scalars.graphql.org/chillicream/byte.html" => sbyte.MinValue,
             "https://scalars.graphql.org/chillicream/long.html" => long.MinValue,
@@ -313,7 +313,7 @@ internal static class TypeExtensions
         }
 
         // Other scalars.
-        maximum = scalarType.SpecifiedBy?.OriginalString switch
+        maximum = scalarType.SpecifiedBy switch
         {
             "https://scalars.graphql.org/chillicream/byte.html" => sbyte.MaxValue,
             "https://scalars.graphql.org/chillicream/long.html" => long.MaxValue,
@@ -338,7 +338,7 @@ internal static class TypeExtensions
             return false;
         }
 
-        format = scalarType.SpecifiedBy?.OriginalString switch
+        format = scalarType.SpecifiedBy switch
         {
             "https://scalars.graphql.org/chillicream/date.html" => Formats.Date,
             "https://scalars.graphql.org/chillicream/date-time.html" => Formats.DateTime,
@@ -363,7 +363,7 @@ internal static class TypeExtensions
             return false;
         }
 
-        pattern = scalarType.SpecifiedBy?.OriginalString switch
+        pattern = scalarType.SpecifiedBy switch
         {
             "https://scalars.graphql.org/chillicream/base64-string.html"
                 => @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$",

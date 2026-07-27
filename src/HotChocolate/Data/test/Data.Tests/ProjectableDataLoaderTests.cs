@@ -491,6 +491,40 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_With_Named_Field()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<BrandWithRequirementTypeNamedField>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        computedName
+                    }
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        Snapshot
+            .Create(Postfix([NET8_0, NET9_0]))
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Brand_Details_Requires_Brand_Name_With_Proper_Type_With_Explicit_Generic()
     {
         // Arrange
@@ -897,7 +931,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             await Task.Run(() => new InvalidOperationException(), cancellationToken);
-            return null!;
+            return null;
         }
     }
 
@@ -995,6 +1029,18 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             descriptor
                 .Field(t => t.Details)
                 .ParentRequires<Brand>(t => new { t.Name })
+                .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
+        }
+    }
+
+    public class BrandWithRequirementTypeNamedField : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor
+                .Field("computedName")
+                .Type<StringType>()
+                .ParentRequires(nameof(Brand.Name))
                 .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
         }
     }

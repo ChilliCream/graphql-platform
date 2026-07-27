@@ -114,6 +114,7 @@ public sealed partial class OperationCompiler
                 rootType,
                 compilationContext,
                 _optimizers.SelectionSetOptimizers,
+                parentIsInternal: false,
                 ref lastId);
 
             compilationContext.Register(selectionSet, selectionSet.Id);
@@ -199,7 +200,14 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            var selectionSet = BuildSelectionSet(selection.FieldSelectionPath, fields, objectType, compilationContext, optimizers, ref lastId);
+            var selectionSet = BuildSelectionSet(
+                selection.FieldSelectionPath,
+                fields,
+                objectType,
+                compilationContext,
+                optimizers,
+                selection.IsInternal,
+                ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
             selectionSet.Complete(operation);
@@ -282,6 +290,7 @@ public sealed partial class OperationCompiler
         ObjectType typeContext,
         CompilationContext compilationContext,
         ImmutableArray<ISelectionSetOptimizer> optimizers,
+        bool parentIsInternal,
         ref int lastId)
     {
         var i = 0;
@@ -298,7 +307,10 @@ public sealed partial class OperationCompiler
 
             var alwaysIncluded = false;
             var first = nodes[0];
-            var isInternal = IsInternal(first.Node);
+            // A selection nested inside an internal selection is itself internal: the
+            // whole subtree exists only for engine-internal purposes (for example the
+            // projection optimizers) and is never part of the client-facing result.
+            var isInternal = parentIsInternal || IsInternal(first.Node);
             var hasNonDeferredNode = first.DeferUsage is null;
 
             if (first.PathIncludeFlags == 0)
@@ -351,7 +363,7 @@ public sealed partial class OperationCompiler
 
                     if (isInternal)
                     {
-                        isInternal = IsInternal(next.Node);
+                        isInternal = parentIsInternal || IsInternal(next.Node);
                     }
                 }
             }

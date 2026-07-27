@@ -129,7 +129,7 @@ public abstract class FieldConfiguration
 
     public void SetFieldRequirements(string? requirements, Type? entityType)
     {
-        if (string.IsNullOrEmpty(requirements) || entityType is null)
+        if (string.IsNullOrEmpty(requirements))
         {
             Flags &= ~CoreFieldFlags.WithRequirements;
             Features.Set<FieldRequirementFeature>(null);

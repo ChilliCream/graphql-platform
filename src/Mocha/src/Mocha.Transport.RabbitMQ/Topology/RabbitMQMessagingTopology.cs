@@ -1,3 +1,8 @@
+using System.Buffers.Binary;
+using System.Globalization;
+using System.IO.Hashing;
+using System.Text;
+
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
@@ -19,6 +24,7 @@ public sealed class RabbitMQMessagingTopology(
     private readonly List<RabbitMQExchange> _exchanges = [];
     private readonly List<RabbitMQQueue> _queues = [];
     private readonly List<RabbitMQBinding> _bindings = [];
+    private readonly Dictionary<BindingKey, RabbitMQBinding> _bindingsByKey = [];
 
     /// <summary>
     /// Gets a value indicating whether topology resources should be auto-provisioned by default.
@@ -47,11 +53,30 @@ public sealed class RabbitMQMessagingTopology(
     public RabbitMQBusDefaults Defaults => defaults;
 
     /// <summary>
-    /// Adds a new exchange to the topology, initializing it from the given configuration.
+    /// Gets the exchange with the same name, or creates it from the provided configuration.
+    /// Existing exchanges are returned unchanged.
     /// </summary>
-    /// <param name="configuration">The exchange configuration specifying name, type, durability, and arguments.</param>
-    /// <returns>The created and initialized exchange resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if an exchange with the same name already exists.</exception>
+    public RabbitMQExchange GetOrAddExchange(
+        string name,
+        Func<string, RabbitMQExchangeConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var exchange = _exchanges.FirstOrDefault(e => e.Name == name);
+            if (exchange is not null)
+            {
+                return exchange;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateExchange(configuration);
+        }
+    }
+
+    /// <summary>
+    /// Adds an exchange to the topology, or returns the existing exchange with the same name.
+    /// </summary>
     public RabbitMQExchange AddExchange(RabbitMQExchangeConfiguration configuration)
     {
         lock (_lock)
@@ -59,120 +84,275 @@ public sealed class RabbitMQMessagingTopology(
             var exchange = _exchanges.FirstOrDefault(e => e.Name == configuration.Name);
             if (exchange is not null)
             {
-                throw new InvalidOperationException($"Exchange '{configuration.Name}' already exists");
+                return exchange;
             }
 
-            exchange = new RabbitMQExchange();
+            return CreateExchange(configuration);
+        }
+    }
 
-            configuration.Topology = this;
-            defaults.Exchange.ApplyTo(configuration);
-            exchange.Initialize(configuration);
+    private RabbitMQExchange CreateExchange(RabbitMQExchangeConfiguration configuration)
+    {
+        var exchange = new RabbitMQExchange();
 
-            _exchanges.Add(exchange);
+        configuration.Topology = this;
+        defaults.Exchange.ApplyTo(configuration);
+        exchange.Initialize(configuration);
 
-            exchange.Complete();
+        _exchanges.Add(exchange);
 
-            return exchange;
+        exchange.Complete();
+
+        return exchange;
+    }
+
+    /// <summary>
+    /// Gets the queue with the same name, or creates it from the provided configuration.
+    /// Existing queues are returned unchanged.
+    /// </summary>
+    public RabbitMQQueue GetOrAddQueue(
+        string name,
+        Func<string, RabbitMQQueueConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var queue = _queues.FirstOrDefault(q => q.Name == name);
+            if (queue is not null)
+            {
+                return queue;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateQueue(configuration);
         }
     }
 
     /// <summary>
-    /// Adds a new queue to the topology, initializing it from the given configuration.
+    /// Adds a queue to the topology, or returns the existing queue with the same name.
     /// </summary>
-    /// <param name="configuration">The queue configuration specifying name, durability, exclusivity, and arguments.</param>
-    /// <returns>The created and initialized queue resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if a queue with the same name already exists.</exception>
     public RabbitMQQueue AddQueue(RabbitMQQueueConfiguration configuration)
     {
         lock (_lock)
         {
-            configuration.Topology ??= this;
-
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                return queue;
             }
 
-            configuration.Topology = this;
+            return CreateQueue(configuration);
+        }
+    }
 
-            defaults.Queue.ApplyTo(configuration);
+    private RabbitMQQueue CreateQueue(RabbitMQQueueConfiguration configuration)
+    {
+        configuration.Topology = this;
 
-            queue = new RabbitMQQueue();
-            queue.Initialize(configuration);
+        defaults.Queue.ApplyTo(configuration);
 
-            _queues.Add(queue);
+        var queue = new RabbitMQQueue();
+        queue.Initialize(configuration);
 
-            queue.Complete();
+        _queues.Add(queue);
 
-            return queue;
+        queue.Complete();
+
+        return queue;
+    }
+
+    /// <summary>
+    /// Ensures that a binding with the same identity exists in the topology.
+    /// </summary>
+    public void EnsureBinding(
+        string source,
+        string destination,
+        RabbitMQDestinationKind destinationKind,
+        Func<string, string, RabbitMQDestinationKind, RabbitMQBindingConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var configuration = factory(source, destination, destinationKind);
+            configuration.Source = source;
+            configuration.Destination = destination;
+            configuration.DestinationKind = destinationKind;
+
+            var key = BindingKey.Create(configuration);
+            if (_bindingsByKey.TryGetValue(key, out _))
+            {
+                return;
+            }
+
+            CreateBinding(configuration);
         }
     }
 
     /// <summary>
-    /// Adds a new binding to the topology, connecting a source exchange to a destination queue or exchange.
+    /// Adds a binding to the topology if one with the same identity does not already exist.
     /// </summary>
-    /// <param name="configuration">The binding configuration specifying source, destination, routing key, and arguments.</param>
-    /// <returns>The created and initialized binding resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the source exchange or destination resource is not found in the topology.</exception>
-    public RabbitMQBinding AddBinding(RabbitMQBindingConfiguration configuration)
+    public void AddBinding(RabbitMQBindingConfiguration configuration)
     {
         lock (_lock)
         {
-            var source = _exchanges.FirstOrDefault(e => e.Name == configuration.Source);
-            if (source is null)
+            var key = BindingKey.Create(configuration);
+            if (_bindingsByKey.TryGetValue(key, out _))
             {
-                throw new InvalidOperationException($"Source exchange '{configuration.Source}' not found");
+                return;
             }
 
-            RabbitMQBinding binding;
+            CreateBinding(configuration);
+        }
+    }
 
-            if (configuration.DestinationKind == RabbitMQDestinationKind.Queue)
+    private void CreateBinding(RabbitMQBindingConfiguration configuration)
+    {
+        var source = _exchanges.FirstOrDefault(e => e.Name == configuration.Source);
+        if (source is null)
+        {
+            throw new InvalidOperationException($"Source exchange '{configuration.Source}' not found");
+        }
+
+        RabbitMQBinding binding;
+
+        if (configuration.DestinationKind == RabbitMQDestinationKind.Queue)
+        {
+            var destination = _queues.FirstOrDefault(q => q.Name == configuration.Destination);
+            if (destination is null)
             {
-                var destination = _queues.FirstOrDefault(q => q.Name == configuration.Destination);
-                if (destination is null)
-                {
-                    throw new InvalidOperationException($"Destination queue '{configuration.Destination}' not found");
-                }
-
-                var queueBinding = new RabbitMQQueueBinding();
-                configuration.Topology = this;
-                queueBinding.Initialize(configuration);
-                queueBinding.SetDestination(destination);
-                destination.AddBinding(queueBinding);
-
-                binding = queueBinding;
+                throw new InvalidOperationException($"Destination queue '{configuration.Destination}' not found");
             }
-            else if (configuration.DestinationKind == RabbitMQDestinationKind.Exchange)
+
+            var queueBinding = new RabbitMQQueueBinding();
+            configuration.Topology = this;
+            queueBinding.Initialize(configuration);
+            queueBinding.SetDestination(destination);
+            destination.AddBinding(queueBinding);
+
+            binding = queueBinding;
+        }
+        else if (configuration.DestinationKind == RabbitMQDestinationKind.Exchange)
+        {
+            var destination = _exchanges.FirstOrDefault(e => e.Name == configuration.Destination);
+            if (destination is null)
             {
-                var destination = _exchanges.FirstOrDefault(e => e.Name == configuration.Destination);
-                if (destination is null)
-                {
-                    throw new InvalidOperationException(
-                        $"Destination exchange '{configuration.Destination}' not found");
-                }
+                throw new InvalidOperationException(
+                    $"Destination exchange '{configuration.Destination}' not found");
+            }
 
-                var exchangeBinding = new RabbitMQExchangeBinding();
-                configuration.Topology = this;
-                exchangeBinding.Initialize(configuration);
-                exchangeBinding.SetDestination(destination);
-                destination.AddBinding(exchangeBinding);
+            var exchangeBinding = new RabbitMQExchangeBinding();
+            configuration.Topology = this;
+            exchangeBinding.Initialize(configuration);
+            exchangeBinding.SetDestination(destination);
+            destination.AddBinding(exchangeBinding);
 
-                binding = exchangeBinding;
+            binding = exchangeBinding;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown destination kind: {configuration.DestinationKind}");
+        }
+
+        binding.SetSource(source);
+        source.AddBinding(binding);
+
+        _bindings.Add(binding);
+
+        _bindingsByKey.Add(BindingKey.Create(configuration), binding);
+
+        binding.Complete();
+    }
+
+    private readonly record struct BindingKey(
+        string Source,
+        string Destination,
+        RabbitMQDestinationKind DestinationKind,
+        string RoutingKey,
+        ulong ArgumentsHash)
+    {
+        public static BindingKey Create(RabbitMQBindingConfiguration configuration)
+        {
+            var arguments = configuration.Arguments;
+
+            return new(
+                configuration.Source,
+                configuration.Destination,
+                configuration.DestinationKind,
+                configuration.RoutingKey ?? string.Empty,
+                HashArguments(arguments));
+        }
+
+        private static ulong HashArguments(IDictionary<string, object>? arguments)
+        {
+            if (arguments is not { Count: > 0 })
+            {
+                return 0;
+            }
+
+            var hash = new XxHash64();
+            AppendInt32(ref hash, arguments.Count);
+
+            foreach (var (key, value) in arguments.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+            {
+                AppendString(ref hash, key);
+                AppendValue(ref hash, value);
+            }
+
+            return hash.GetCurrentHashAsUInt64();
+        }
+
+        private static void AppendValue(ref XxHash64 hash, object? value)
+        {
+            if (value is null)
+            {
+                AppendByte(ref hash, 0);
+                return;
+            }
+
+            if (value is byte[] bytes)
+            {
+                AppendByte(ref hash, 1);
+                AppendBytes(ref hash, bytes);
+                return;
+            }
+
+            AppendByte(ref hash, 2);
+            AppendString(ref hash, value.GetType().FullName ?? value.GetType().Name);
+            AppendString(ref hash, Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+        }
+
+        private static void AppendString(ref XxHash64 hash, string value)
+        {
+            var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+
+            if (maxByteCount <= 256)
+            {
+                Span<byte> buffer = stackalloc byte[maxByteCount];
+                var bytesWritten = Encoding.UTF8.GetBytes(value, buffer);
+                AppendBytes(ref hash, buffer[..bytesWritten]);
             }
             else
             {
-                throw new InvalidOperationException($"Unknown destination kind: {configuration.DestinationKind}");
+                AppendBytes(ref hash, Encoding.UTF8.GetBytes(value));
             }
+        }
 
-            binding.SetSource(source);
-            source.AddBinding(binding);
+        private static void AppendBytes(ref XxHash64 hash, ReadOnlySpan<byte> bytes)
+        {
+            AppendInt32(ref hash, bytes.Length);
+            hash.Append(bytes);
+        }
 
-            _bindings.Add(binding);
+        private static void AppendInt32(ref XxHash64 hash, int value)
+        {
+            Span<byte> buffer = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
+            hash.Append(buffer);
+        }
 
-            binding.Complete();
-
-            return binding;
+        private static void AppendByte(ref XxHash64 hash, byte value)
+        {
+            Span<byte> buffer = [value];
+            hash.Append(buffer);
         }
     }
 }

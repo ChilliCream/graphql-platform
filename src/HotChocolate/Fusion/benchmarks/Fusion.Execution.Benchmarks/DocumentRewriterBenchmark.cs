@@ -1,21 +1,21 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [ShortRunJob(RuntimeMoniker.Net10_0)]
 [MarkdownExporter]
 public class DocumentRewriterBenchmark : FusionBenchmarkBase
 {
-    private DocumentRewriter _documentRewriter = null!;
+    private DocumentRewriter _documentRewriter;
 
-    private DocumentNode _simpleQueryWithRequirements = null!;
-    private DocumentNode _complexQuery = null!;
-    private DocumentNode _conditionalRedundancyQuery = null!;
+    private DocumentNode _simpleQueryWithRequirements;
+    private DocumentNode _complexQuery;
+    private DocumentNode _conditionalRedundancyQuery;
 
     [GlobalSetup]
     public void GlobalSetup()

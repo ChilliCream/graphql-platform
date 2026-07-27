@@ -21,7 +21,9 @@ public partial class Schema
     /// <summary>
     /// Gets the GraphQL object type that represents the query root.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public ObjectType QueryType { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IObjectTypeDefinition ISchemaDefinition.QueryType => QueryType;
 
@@ -42,14 +44,18 @@ public partial class Schema
     /// <summary>
     /// Gets all the schema types.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public TypeDefinitionCollection Types { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
 
     /// <summary>
     /// Gets all the directives that are supported by this schema.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public DirectiveTypeCollection DirectiveTypes { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveTypes.AsReadOnlyDirectiveCollection();
@@ -57,7 +63,9 @@ public partial class Schema
     /// <summary>
     /// Gets the schema directives.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public DirectiveCollection Directives { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives.AsReadOnlyDirectiveCollection();
@@ -65,7 +73,9 @@ public partial class Schema
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IServiceProvider Services { get; internal set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Specifies the time the schema was created.

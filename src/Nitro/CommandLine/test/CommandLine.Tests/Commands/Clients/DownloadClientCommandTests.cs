@@ -147,7 +147,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task NoPublishedClient_ReturnsError()
     {
         // arrange
-        SetupDownloadPersistedQueries(null);
+        SetupMissingDownloadPersistedQueries();
 
         // act
         var result = await ExecuteCommandAsync(

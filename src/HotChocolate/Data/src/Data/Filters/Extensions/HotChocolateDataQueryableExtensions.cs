@@ -36,6 +36,34 @@ public static class HotChocolateDataQueryableExtensions
     }
 
     /// <summary>
+    /// Applies a selection to the queryable and applies runtime include/skip directive flags.
+    /// </summary>
+    /// <param name="queryable">
+    /// The queryable that shall be projected.
+    /// </param>
+    /// <param name="selection">
+    /// The selection that shall be applied to the queryable.
+    /// </param>
+    /// <param name="includeFlags">
+    /// The runtime include/skip directive flags, available as
+    /// <see cref="HotChocolate.Resolvers.IResolverContext.IncludeFlags"/>.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the queryable.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a queryable that has the selection applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="selection"/> is <c>null</c>.
+    /// </exception>
+    public static IQueryable<T> Select<T>(this IQueryable<T> queryable, Selection selection, ulong includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        return queryable.Select(selection.AsSelector<T>(includeFlags));
+    }
+
+    /// <summary>
     /// Applies a filter context to the queryable.
     /// </summary>
     /// <param name="queryable">

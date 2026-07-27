@@ -134,7 +134,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                     key: Paging));
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
-                    (_, d) => d.Features.Set(options), definition));
+                    (c, d) => d.Features.Set(c.GetPagingOptions(options)), definition));
             definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),

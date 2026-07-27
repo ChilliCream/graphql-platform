@@ -38,7 +38,7 @@ internal sealed class McpClient(IApiClient apiClient) : IMcpClient
         return OperationResultHelper.EnsureData(result).DeleteMcpFeatureCollectionById;
     }
 
-    public async Task<ConnectionPage<IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node>?> ListMcpFeatureCollectionsAsync(
+    public async Task<ConnectionPage<IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node>> ListMcpFeatureCollectionsAsync(
         string apiId,
         string? after,
         int? first,
@@ -54,7 +54,7 @@ internal sealed class McpClient(IApiClient apiClient) : IMcpClient
         var connection = (data.Node as IListMcpFeatureCollectionCommandQuery_Node_Api)?.McpFeatureCollections;
         if (connection is null)
         {
-            return null;
+            throw new NitroClientNotFoundException("The API was not found.");
         }
 
         var items = connection.Edges?.Select(static edge => edge.Node).ToArray() ?? [];

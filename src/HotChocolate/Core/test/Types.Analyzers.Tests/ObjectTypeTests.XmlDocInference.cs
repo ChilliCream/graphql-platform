@@ -111,13 +111,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -156,13 +156,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -199,13 +199,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -242,13 +242,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -285,13 +285,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -333,13 +333,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -381,13 +381,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 
@@ -429,13 +429,13 @@ public partial class ObjectTypeXmlDocInferenceTests
 
                 public class ConcreteClass
                 {
-                   /// <summary>
-                   /// Method doc.
-                   /// </summary>
-                   /// <param name="x">Parameter doc.</param>
-                   /// <returns>Returns doc.</returns>
-                   /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
-                   /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
+                    /// <summary>
+                    /// Method doc.
+                    /// </summary>
+                    /// <param name="x">Parameter doc.</param>
+                    /// <returns>Returns doc.</returns>
+                    /// <exception cref="Exception" code="FOO_ERROR">Foo Error</exception>
+                    /// <exception cref="InvalidOperationException" code="BAR_ERROR">Bar Error</exception>
                     public int Bar(int x) => 0;
                 }
 

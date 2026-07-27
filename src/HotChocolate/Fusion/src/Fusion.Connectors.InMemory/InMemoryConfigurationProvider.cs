@@ -25,6 +25,7 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
 #endif
     private readonly string[] _schemaNames;
     private readonly RequestExecutorProxy[] _proxies;
+    private readonly SchemaComposerOptions _schemaComposerOptions;
     private readonly IDisposable? _eventSubscription;
     private readonly CancellationTokenSource _cts = new();
 
@@ -50,12 +51,30 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
         string[] schemaNames,
         IRequestExecutorProvider executorProvider,
         IRequestExecutorEvents executorEvents)
+        : this(schemaNames, executorProvider, executorEvents, new SchemaComposerOptions())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="InMemoryConfigurationProvider"/>.
+    /// </summary>
+    /// <param name="schemaNames">The names of the source schemas to compose.</param>
+    /// <param name="executorProvider">The request executor provider.</param>
+    /// <param name="executorEvents">The request executor events.</param>
+    /// <param name="schemaComposerOptions">The options used to compose the source schemas.</param>
+    public InMemoryConfigurationProvider(
+        string[] schemaNames,
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
+        SchemaComposerOptions schemaComposerOptions)
     {
         ArgumentNullException.ThrowIfNull(schemaNames);
         ArgumentNullException.ThrowIfNull(executorProvider);
         ArgumentNullException.ThrowIfNull(executorEvents);
+        ArgumentNullException.ThrowIfNull(schemaComposerOptions);
 
         _schemaNames = schemaNames;
+        _schemaComposerOptions = schemaComposerOptions;
 
         _proxies = new RequestExecutorProxy[schemaNames.Length];
         for (var i = 0; i < schemaNames.Length; i++)
@@ -141,7 +160,7 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
                 var compositionLog = new CompositionLog();
                 var result = new SchemaComposer(
                     sourceSchemas,
-                    new SchemaComposerOptions(),
+                    _schemaComposerOptions,
                     compositionLog).Compose();
 
                 if (result.IsFailure)

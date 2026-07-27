@@ -7,7 +7,7 @@ operation:
           }
           id @fusion__requirement
           comments @fusion__requirement {
-            somethingElse
+            somethingElse @fusion__requirement
             id @fusion__requirement
           }
         }
@@ -35,7 +35,7 @@ nodes:
     operation: |
       query Op_123456789101112_4 {
         feed {
-          comments @fusion__requirement {
+          comments {
             id
           }
         }
@@ -47,7 +47,7 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
-          $__fusion_2_somethingElse: [String]
+        $__fusion_2_somethingElse: [String]
       ) {
         postById(id: $__fusion_1_id) {
           author(somethingElse: $__fusion_2_somethingElse) {

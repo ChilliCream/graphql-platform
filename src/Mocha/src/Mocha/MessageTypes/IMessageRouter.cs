@@ -175,29 +175,24 @@ public sealed class MessageRouter : IMessageRouter
                 route.Initialize(context, configuration);
             }
 
-            // TODO not sure about this. What is the "default" transport?
-            foreach (var transport in context.Transports)
+            var selectedTransport = ResolveTransport(context.Transports, route);
+            var endpoint = selectedTransport.ConnectRoute(context, route);
+
+            if (!endpoint.IsCompleted)
             {
-                var endpoint = transport.ConnectRoute(context, route);
-
-                if (!endpoint.IsCompleted)
-                {
-                    endpoint.DiscoverTopology(context);
-                    endpoint.Complete(context);
-                    // Connect after completion so a route without an explicit destination gets
-                    // the final endpoint address, while explicit destinations remain unchanged.
-                    route.ConnectEndpoint(context, endpoint);
-                }
-
-                if (!route.IsCompleted)
-                {
-                    route.Complete(context);
-                }
-
-                return endpoint;
+                endpoint.DiscoverTopology(context);
+                endpoint.Complete(context);
+                // Connect after completion so a route without an explicit destination gets
+                // the final endpoint address, while explicit destinations remain unchanged.
+                route.ConnectEndpoint(context, endpoint);
             }
 
-            throw ThrowHelper.NoTransportForMessageType(messageType);
+            if (!route.IsCompleted)
+            {
+                route.Complete(context);
+            }
+
+            return endpoint;
         }
     }
 
@@ -352,5 +347,36 @@ public sealed class MessageRouter : IMessageRouter
     private class OutboundTrackedState
     {
         public required MessageType MessageType { get; set; }
+    }
+
+    private static MessagingTransport ResolveTransport(
+        ImmutableArray<MessagingTransport> transports,
+        OutboundRoute route)
+    {
+        if (transports.IsDefaultOrEmpty)
+        {
+            throw ThrowHelper.NoTransportForMessageType(route.MessageType);
+        }
+
+        if (route.Destination is { Scheme: var scheme })
+        {
+            foreach (var transport in transports)
+            {
+                if (transport.Schema == scheme)
+                {
+                    return transport;
+                }
+            }
+        }
+
+        foreach (var transport in transports)
+        {
+            if (transport.IsDefaultTransport)
+            {
+                return transport;
+            }
+        }
+
+        return transports[0];
     }
 }

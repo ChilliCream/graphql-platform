@@ -578,4 +578,13 @@ internal static class ErrorHelper
             .SetField(field)
             .SetArgument(argument)
             .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredDirectiveArgument(
+        IDirectiveDefinition directive,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetDirective(directive)
+            .SetArgument(argument)
+            .Build();
 }

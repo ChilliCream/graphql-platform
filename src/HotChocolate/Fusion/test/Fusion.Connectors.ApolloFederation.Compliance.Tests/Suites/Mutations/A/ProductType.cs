@@ -24,7 +24,6 @@ public sealed class ProductType : ObjectType<Product>
 
     private static Product? ResolveById(string id, [Service] MutationsState state)
     {
-        state.InitProducts();
         var product = state.GetProducts().FirstOrDefault(
             p => string.Equals(p.Id, id, StringComparison.Ordinal));
 

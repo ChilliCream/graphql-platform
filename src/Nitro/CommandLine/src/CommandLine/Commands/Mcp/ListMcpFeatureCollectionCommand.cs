@@ -59,8 +59,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>
-                await client.ListMcpFeatureCollectionsAsync(apiId, after ?? cursor, first, token)
-                    ?? throw new ExitException("The API was not found."))
+                await client.ListMcpFeatureCollectionsAsync(apiId, after ?? cursor, first, token))
             .PageSize(10);
 
         var api = await PagedTable
@@ -87,8 +86,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
     {
         var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
-        var data = await client.ListMcpFeatureCollectionsAsync(apiId, cursor, 10, ct)
-            ?? throw new ExitException("The API was not found.");
+        var data = await client.ListMcpFeatureCollectionsAsync(apiId, cursor, 10, ct);
         var items = data.Items
             .Select(McpFeatureCollectionDetailPrompt.From)
             .Select(x => x.ToObject())

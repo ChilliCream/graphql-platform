@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -71,6 +73,9 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// can be executed.
     /// </summary>
     public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
+
+    internal ImmutableArray<OperationRequirement> GetRequirementsArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_requirements);
 
     /// <summary>
     /// Gets the names of the variables that are forwarded from the original

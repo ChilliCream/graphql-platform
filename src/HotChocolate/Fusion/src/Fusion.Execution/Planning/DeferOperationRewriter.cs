@@ -373,7 +373,7 @@ internal sealed class DeferOperationRewriter
         // syntactically valid query against the root schema.
         foreach (var (segment, childNode) in node.Children)
         {
-            var wrappingField = ResolveWrappingField(originalSelectionSet, segment)
+            var wrappingField = ResolveWrappingField(originalSelectionSet, segment, activeTypeCondition: null)
                 ?? throw new InvalidOperationException(
                     $"Unable to resolve wrapping field for '{segment.ResponseName}' at path '{FormatPath(parentPath)}'.");
 
@@ -384,13 +384,29 @@ internal sealed class DeferOperationRewriter
             var childParentPath = parentPath.Add(segment);
             var nestedSelectionSet = BuildSelectionSetFromPathNode(childNode, childSelectionSet, childParentPath);
 
-            selections.Add(new FieldNode(
+            var childField = new FieldNode(
                 null,
                 wrappingField.Name,
                 wrappingField.Alias,
                 wrappingField.Directives,
                 wrappingField.Arguments,
-                nestedSelectionSet));
+                nestedSelectionSet);
+
+            // A composite field selected under a type condition is re-wrapped in
+            // an `... on Type` inline fragment so the reconstructed operation stays
+            // valid when its enclosing field returns an abstract type.
+            if (segment.TypeCondition is { } typeConditionName)
+            {
+                selections.Add(new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(typeConditionName),
+                    [],
+                    new SelectionSetNode([childField])));
+            }
+            else
+            {
+                selections.Add(childField);
+            }
         }
 
         if (selections.Count == 0)
@@ -403,8 +419,15 @@ internal sealed class DeferOperationRewriter
 
     private static FieldNode? ResolveWrappingField(
         SelectionSetNode selectionSet,
-        FieldPathSegment segment)
+        FieldPathSegment segment,
+        string? activeTypeCondition)
     {
+        // The segment records the type condition that was active when the field
+        // was collected. Sibling type-condition branches can reuse the same
+        // response name for divergent composite selections, so the wrapping
+        // field is only a match when the type condition it sits under matches
+        // the one recorded on the segment. Matching by response name alone would
+        // resolve against the wrong branch and drop its nested selections.
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
             var selection = selectionSet.Selections[i];
@@ -413,7 +436,8 @@ internal sealed class DeferOperationRewriter
             {
                 var responseName = field.Alias?.Value ?? field.Name.Value;
 
-                if (responseName.Equals(segment.ResponseName, StringComparison.Ordinal))
+                if (responseName.Equals(segment.ResponseName, StringComparison.Ordinal)
+                    && string.Equals(activeTypeCondition, segment.TypeCondition, StringComparison.Ordinal))
                 {
                     return field;
                 }
@@ -421,7 +445,8 @@ internal sealed class DeferOperationRewriter
 
             if (selection is InlineFragmentNode inline)
             {
-                var nested = ResolveWrappingField(inline.SelectionSet, segment);
+                var nestedTypeCondition = inline.TypeCondition?.Name.Value ?? activeTypeCondition;
+                var nested = ResolveWrappingField(inline.SelectionSet, segment, nestedTypeCondition);
 
                 if (nested is not null)
                 {

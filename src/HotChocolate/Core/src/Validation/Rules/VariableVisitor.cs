@@ -67,8 +67,8 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     }
 
     protected override ISyntaxVisitorAction Leave(
-       OperationDefinitionNode node,
-       DocumentValidatorContext context)
+        OperationDefinitionNode node,
+        DocumentValidatorContext context)
     {
         var feature = context.Features.GetRequired<VariableVisitorFeature>();
         feature.Unused.ExceptWith(feature.Used);

@@ -1,7 +1,7 @@
 using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning.Partitioners;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -673,7 +673,9 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-    private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
+    private static SelectionSetByTypePartitionerResult Partition(
+        FusionSchemaDefinition schema,
+        DocumentNode document)
     {
         var rewriter = new DocumentRewriter(schema);
         var operation = rewriter.RewriteDocument(document).Definitions

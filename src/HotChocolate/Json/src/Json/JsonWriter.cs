@@ -522,6 +522,13 @@ public sealed partial class JsonWriter
     /// </summary>
     internal void WriteRawValueEnd() => SetFlagToAddListSeparatorBeforeNextItem();
 
+    internal void WriteRawValueEnd(JsonTokenType tokenType)
+    {
+        Debug.Assert(tokenType is JsonTokenType.String or JsonTokenType.Number);
+        WriteRawValueEnd();
+        _tokenType = tokenType;
+    }
+
     /// <summary>
     /// Internal buffer used for deferred property name writes.
     /// </summary>

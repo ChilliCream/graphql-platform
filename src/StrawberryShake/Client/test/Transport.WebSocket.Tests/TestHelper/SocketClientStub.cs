@@ -51,7 +51,7 @@ public sealed class SocketClientStub : ISocketClient
         ReadOnlyMemory<byte> message,
         CancellationToken cancellationToken = default)
     {
-        Increment(x => x.SendAsync(default!, CancellationToken.None));
+        Increment(x => x.SendAsync(default, CancellationToken.None));
 
         SentMessages.Enqueue(Encoding.UTF8.GetString(message.Span));
         LatestCancellationToken = cancellationToken;

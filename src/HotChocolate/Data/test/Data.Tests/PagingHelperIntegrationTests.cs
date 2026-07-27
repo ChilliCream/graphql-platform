@@ -889,7 +889,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Assert
         Assert.True(results.TryGetValue(brandId, out var page));
 
-        var connection = await new ValueTask<Page<Product>>(page!).ToConnectionAsync();
+        var connection = await new ValueTask<Page<Product>>(page).ToConnectionAsync();
         Assert.Equal(2, connection.Edges.Count);
         Assert.All(connection.Edges, edge => Assert.False(string.IsNullOrEmpty(edge.Cursor)));
     }
@@ -920,10 +920,10 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Assert
         Assert.True(results.TryGetValue(brandId, out var page));
 
-        var connection = await new ValueTask<Page<Product>>(page!).ToConnectionAsync();
+        var connection = await new ValueTask<Page<Product>>(page).ToConnectionAsync();
         Assert.Equal(2, connection.Edges.Count);
         Assert.All(connection.Edges, edge => Assert.False(string.IsNullOrEmpty(edge.Cursor)));
-        Assert.True(page!.HasPreviousPage);
+        Assert.True(page.HasPreviousPage);
         Assert.False(page.HasNextPage);
         Assert.Equal("Product 0-2", connection.Edges[0].Node.Name);
         Assert.Equal("Product 0-3", connection.Edges[1].Node.Name);

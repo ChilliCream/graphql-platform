@@ -270,7 +270,7 @@ public class RabbitMQMessageEnvelopeParserTests
 
         // assert
         Assert.NotNull(envelope.EnclosedMessageTypes);
-        Assert.Equal(2, envelope.EnclosedMessageTypes!.Value.Length);
+        Assert.Equal(2, envelope.EnclosedMessageTypes.Value.Length);
         Assert.Equal("OrderCreated", envelope.EnclosedMessageTypes.Value[0]);
         Assert.Equal("IEvent", envelope.EnclosedMessageTypes.Value[1]);
     }

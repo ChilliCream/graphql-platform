@@ -135,6 +135,17 @@ public class DirectiveTypeDescriptor
         return descriptor;
     }
 
+    public IDirectiveTypeDescriptor Argument(
+        string name,
+        Action<IDirectiveArgumentDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var descriptor = Argument(name);
+        configure(descriptor);
+        return this;
+    }
+
     public IDirectiveTypeDescriptor Location(DirectiveLocation value)
     {
         Configuration.Locations |= value;

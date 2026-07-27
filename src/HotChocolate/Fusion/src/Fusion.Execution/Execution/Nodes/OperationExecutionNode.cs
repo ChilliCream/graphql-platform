@@ -470,6 +470,18 @@ public sealed class OperationExecutionNode : ExecutionNode
                     ((IDisposable)_eventArenaSource.Arena).Dispose();
                 }
 
+                // A cancellation signalled on the subscription token while the transport read
+                // was in flight (client abort or shutdown) is the same graceful teardown as
+                // observing the token before the read, not a subscription event error.
+                if (exception is OperationCanceledException
+                    && _cancellationToken.IsCancellationRequested)
+                {
+                    scope?.Dispose();
+                    _completed = true;
+                    Current = null!;
+                    return false;
+                }
+
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,
@@ -508,12 +520,5 @@ public sealed class OperationExecutionNode : ExecutionNode
             _subscriptionScope.Dispose();
             await _clientScope.DisposeAsync();
         }
-    }
-
-    private static class SubscriptionId
-    {
-        private static ulong s_subscriptionId;
-
-        public static ulong Next() => Interlocked.Increment(ref s_subscriptionId);
     }
 }

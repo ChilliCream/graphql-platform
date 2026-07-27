@@ -152,6 +152,57 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupSchemaFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "validate", "--stage", Stage, "--api-id", ApiId, "--schema-file", SchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupSchemaFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "validate", "--stage", Stage, "--api-id", ApiId, "--schema-file", SchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_ReturnsError()
+    {
+        SetupSchemaFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "validate", "--stage", Stage, "--api-id", ApiId, "--schema-file", SchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task MutationReturnsNullRequestId_ReturnsError()
     {
         // arrange
@@ -322,10 +373,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         IValidateSchemaVersion_ValidateSchema_Errors,
         string> GetValidateSchemaVersionErrors() => new()
     {
-        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." },
-        { CreateValidateSchemaVersionApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreateValidateSchemaVersionStageNotFoundError(), $"Stage '{Stage}' was not found." },
-        { CreateValidateSchemaVersionSchemaNotFoundError(), "Schema not found." }
+        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." }
     };
 
     #endregion

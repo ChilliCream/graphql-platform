@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.Postgres;
 
 internal sealed class PostgresReceiveEndpointDescriptor
@@ -7,7 +9,12 @@ internal sealed class PostgresReceiveEndpointDescriptor
     internal PostgresReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
-        Configuration = new PostgresReceiveEndpointConfiguration { Name = name, QueueName = name };
+        Configuration = new PostgresReceiveEndpointConfiguration
+        {
+            Name = name,
+            QueueName = name,
+            BindMode = MessagingBindMode.Implicit
+        };
     }
 
     /// <inheritdoc />
@@ -59,6 +66,22 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor BindImplicitly()
+    {
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IPostgresReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);
@@ -75,9 +98,53 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor Queue(string name)
+    public IPostgresReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
-        Configuration.QueueName = name;
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresReceiveEndpointDescriptor DisableFaultEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresReceiveEndpointDescriptor SkippedEndpoint(Uri address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresReceiveEndpointDescriptor DisableSkippedEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }
@@ -86,22 +153,6 @@ internal sealed class PostgresReceiveEndpointDescriptor
     public IPostgresReceiveEndpointDescriptor MaxBatchSize(int size)
     {
         Configuration.MaxBatchSize = size;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor FaultEndpoint(string name)
-    {
-        base.FaultEndpoint(name);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name)
-    {
-        base.SkippedEndpoint(name);
 
         return this;
     }

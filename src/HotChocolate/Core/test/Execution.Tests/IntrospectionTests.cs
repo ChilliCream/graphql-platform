@@ -336,12 +336,12 @@ public class IntrospectionTests
                     """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
-                .AddDirectiveType(new DirectiveType(d =>
+                .AddDirectiveType(d =>
                 {
                     d.Name("foo");
                     d.Location(DirectiveLocation.FieldDefinition);
                     d.Internal();
-                }))
+                })
                 .ExecuteRequestAsync(
                     @"{
                         __schema {
@@ -391,12 +391,12 @@ public class IntrospectionTests
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
                 .ModifyOptions(o => o.DisableInternalDirectives = true)
-                .AddDirectiveType(new DirectiveType(d =>
+                .AddDirectiveType(d =>
                 {
                     d.Name("foo");
                     d.Location(DirectiveLocation.FieldDefinition);
                     d.Internal();
-                }))
+                })
                 .ExecuteRequestAsync(
                     @"{
                         __schema {
@@ -537,6 +537,52 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AppliedDirectivesOnDirectiveDefinitionAreExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        appliedDirectives {
+                            name
+                            args {
+                                name
+                                value
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    field: String
+                }
+
+                directive @meta(name: String!) on DIRECTIVE_DEFINITION
+
+                directive @annotated @meta(name: "example") on FIELD
+                """)
+            .UseField(next => next)
+            .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        // @annotated carries the applied @meta directive.
         result.MatchSnapshot();
     }
 

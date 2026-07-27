@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
-using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;

@@ -9,7 +9,7 @@ public class SchemaCache
     : ProjectionVisitorTestBase
     , IDisposable
 {
-    private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache = new();
+    private readonly ConcurrentDictionary<(Type, object, bool), IRequestExecutor> _cache = new();
 
     public IRequestExecutor CreateSchema<T>(
         T[] entities,
@@ -18,10 +18,11 @@ public class SchemaCache
         bool useOffsetPaging = false,
         ITypeDefinition? objectType = null,
         Action<ISchemaBuilder>? configure = null,
-        Type? schemaType = null)
+        Type? schemaType = null,
+        bool asNoTracking = false)
         where T : class
     {
-        (Type, T[] entites) key = (typeof(T), entities);
+        (Type, T[] entites, bool asNoTracking) key = (typeof(T), entities, asNoTracking);
 
         return _cache.GetOrAdd(
             key,
@@ -32,7 +33,8 @@ public class SchemaCache
                 useOffsetPaging: useOffsetPaging,
                 objectType: objectType,
                 configure: configure,
-                schemaType: schemaType));
+                schemaType: schemaType,
+                asNoTracking: asNoTracking));
     }
 
     public void Dispose()

@@ -170,13 +170,13 @@ public class SchemaFirstTests
                     }
 
                     type Query {
-                       dummy: String!
+                      dummy: String!
                     }
 
                     type Mutation {
-                        changeChannelParameters(
-                            input: ChangeChannelParameterInput!)
-                            : ChangeChannelParameterPayload!
+                      changeChannelParameters(
+                        input: ChangeChannelParameterInput!)
+                        : ChangeChannelParameterPayload!
                     }
 
                     input ChangeChannelParameterInput {

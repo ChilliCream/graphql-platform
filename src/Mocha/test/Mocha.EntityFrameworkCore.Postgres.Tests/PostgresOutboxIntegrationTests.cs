@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -103,8 +102,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
@@ -135,7 +133,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            var messages = await db.Set<OutboxMessage>()!.ToListAsync(TestContext.Current.CancellationToken);
+            var messages = await db.Set<OutboxMessage>().ToListAsync(TestContext.Current.CancellationToken);
             Assert.Equal(count, messages.Count);
         }
 
@@ -180,8 +178,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
@@ -336,8 +333,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
 
         // Register the resilient signal BEFORE UsePostgresOutbox() so that
         // TryAddSingleton<IOutboxSignal> in AddOutboxCore() is a no-op.

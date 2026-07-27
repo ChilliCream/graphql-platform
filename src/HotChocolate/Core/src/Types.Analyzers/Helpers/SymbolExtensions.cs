@@ -214,7 +214,7 @@ public static class SymbolExtensions
                     !string.IsNullOrEmpty(x.Value)
                     && !string.IsNullOrEmpty(x.Attribute("code")?.Value))
                 .Select((e, i) => (Element: e, Index: i + 1))
-                .Select(x => $"{x.Index}. {x.Element.Attribute("code")!.Value}: {x.Element.Value}")
+                .Select(x => $"{x.Index}. {x.Element.Attribute("code").Value}: {x.Element.Value}")
                 .ToArray();
 
             return exceptions.Length == 0

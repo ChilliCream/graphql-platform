@@ -10,13 +10,15 @@ namespace Mocha.Analyzers.FileBuilders;
 /// </summary>
 public abstract class FileBuilderBase : IFileBuilder
 {
+    private readonly string _assemblyName;
     private StringBuilder _sb;
     private CodeWriter _writer;
     private bool _disposed;
 
-    protected FileBuilderBase(string moduleName)
+    protected FileBuilderBase(string moduleName, string assemblyName)
     {
         ModuleName = moduleName;
+        _assemblyName = assemblyName;
         _sb = PooledObjects.GetStringBuilder();
         _writer = new CodeWriter(_sb);
     }
@@ -30,6 +32,11 @@ public abstract class FileBuilderBase : IFileBuilder
     /// Gets the module name used to prefix generated type names.
     /// </summary>
     protected string ModuleName { get; }
+
+    /// <summary>
+    /// Gets the simple name of the assembly being compiled.
+    /// </summary>
+    protected string AssemblyName => _assemblyName;
 
     /// <summary>
     /// Gets the namespace to use in the generated source file.
@@ -74,6 +81,14 @@ public abstract class FileBuilderBase : IFileBuilder
         return _sb.ToString();
     }
 
+    public string CreateGeneratedMethodName(string runtimeTypeName, string suffix)
+    {
+        var runtimeName = GetRuntimeName(runtimeTypeName);
+        var salt = HashHelper.ComputeIdentifierSalt($"{_assemblyName}::{runtimeTypeName}::{suffix}");
+
+        return $"__Initialize_{runtimeName}_{suffix}_{salt}";
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -87,5 +102,29 @@ public abstract class FileBuilderBase : IFileBuilder
         _sb = null!;
         _writer = null!;
         _disposed = true;
+    }
+
+    private static string GetRuntimeName(string runtimeTypeName)
+    {
+        var text = RemoveGlobalPrefix(runtimeTypeName);
+        var separator = text.LastIndexOf('.');
+        var name = separator < 0 ? text : text.Substring(separator + 1);
+        var builder = new StringBuilder(name.Length);
+
+        foreach (var character in name)
+        {
+            builder.Append(char.IsLetterOrDigit(character) ? character : '_');
+        }
+
+        return builder.ToString();
+    }
+
+    protected static string RemoveGlobalPrefix(string typeName)
+    {
+        const string Prefix = "global::";
+
+        return typeName.StartsWith(Prefix, StringComparison.Ordinal)
+            ? typeName.Substring(Prefix.Length)
+            : typeName;
     }
 }

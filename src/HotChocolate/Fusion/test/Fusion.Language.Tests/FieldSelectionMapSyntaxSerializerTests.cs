@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Language;
 
 public sealed class FieldSelectionMapSyntaxSerializerTests
@@ -308,5 +310,204 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
 
         // assert
         Assert.Equal(result, _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_PathSegmentWithArgument_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new PathSegmentNode(
+            location: null,
+            fieldName: new NameNode("width"),
+            arguments: [new ArgumentNode(new NameNode("unit"), new EnumValueNode("IMPERIAL"))],
+            typeName: null,
+            pathSegment: null);
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("width(unit: IMPERIAL)", _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_PathSegmentWithMultipleArguments_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new PathSegmentNode(
+            location: null,
+            fieldName: new NameNode("box"),
+            arguments:
+            [
+                new ArgumentNode(new NameNode("width"), new IntValueNode("1")),
+                new ArgumentNode(new NameNode("height"), new IntValueNode("2"))
+            ],
+            typeName: null,
+            pathSegment: null);
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("box(width: 1, height: 2)", _writer.ToString());
+    }
+
+    [Theory]
+    [InlineData(
+        """
+        {
+            width: width(unit: IMPERIAL)
+        }
+        """,
+        true)]
+    [InlineData("{ width: width(unit: IMPERIAL) }", false)]
+    public void Serialize_ObjectFieldSelectionWithArgument_ReturnsExpectedString(
+        string result,
+        bool indent)
+    {
+        // arrange
+        var node = new ObjectValueSelectionNode(
+        [
+            new ObjectFieldSelectionNode(
+                new NameNode("width"),
+                new PathNode(
+                    new PathSegmentNode(
+                        location: null,
+                        fieldName: new NameNode("width"),
+                        arguments:
+                        [
+                            new ArgumentNode(new NameNode("unit"), new EnumValueNode("IMPERIAL"))
+                        ],
+                        typeName: null,
+                        pathSegment: null)))
+        ]);
+
+        // act
+        var serializer = indent ? _serializer : _serializerNoIndent;
+        serializer.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal(result, _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_ArgumentWithListValue_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new ArgumentNode(
+            new NameNode("l"),
+            new ListValueNode(
+                ImmutableArray.Create<IValueNode>(
+                    new IntValueNode("1"),
+                    new IntValueNode("2"))));
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("l: [1, 2]", _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_ArgumentWithObjectValue_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new ArgumentNode(
+            new NameNode("o"),
+            new ObjectValueNode(
+                ImmutableArray.Create(
+                    new ObjectFieldNode(new NameNode("a"), new IntValueNode("1")),
+                    new ObjectFieldNode(
+                        new NameNode("b"),
+                        new ListValueNode(
+                            ImmutableArray.Create<IValueNode>(new IntValueNode("2")))))));
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("o: { a: 1, b: [2] }", _writer.ToString());
+    }
+
+    [Theory]
+    [InlineData(true, "true")]
+    [InlineData(false, "false")]
+    public void Serialize_BooleanValue_ReturnsExpectedString(bool value, string result)
+    {
+        // arrange
+        var node = new BooleanValueNode(value);
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal(result, _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_NullValue_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new NullValueNode();
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("null", _writer.ToString());
+    }
+
+    [Theory]
+    [InlineData("1.0")]
+    [InlineData("6.0221413e23")]
+    public void Serialize_FloatValue_ReturnsExpectedString(string value)
+    {
+        // arrange
+        var node = new FloatValueNode(value);
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal(value, _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_StringValue_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new StringValueNode("hello");
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("\"hello\"", _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_StringValueWithSpecialCharacters_ReturnsEscapedString()
+    {
+        // arrange
+        var node = new StringValueNode("a\"b\\c\nd\te");
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("\"a\\\"b\\\\c\\nd\\te\"", _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_BlockStringValue_ReturnsTripleQuotedString()
+    {
+        // arrange
+        var node = new StringValueNode(value: "line1\nline2", block: true);
+
+        // act
+        _serializerNoIndent.Serialize(node, _writer);
+
+        // assert
+        Assert.Equal("\"\"\"\nline1\nline2\n\"\"\"", _writer.ToString());
     }
 }

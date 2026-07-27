@@ -41,9 +41,16 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
                 ..selections
             ]);
 
-            indexBuilder.Register(input.SelectionSet.Id, selectionSetNode);
+            // Concrete branches are independently planned aggregates and must not
+            // share the abstract input selection set's logical identity.
+            indexBuilder.RegisterConcreteBranch(
+                input.SelectionSet.Id,
+                type,
+                selectionSetNode);
 
-            selectionSetByType.Add(new SelectionSetByType((FusionObjectTypeDefinition)schema.Types[type], selectionSetNode));
+            selectionSetByType.Add(new SelectionSetByType(
+                (FusionObjectTypeDefinition)schema.Types.GetType(type, allowInaccessibleFields: true),
+                selectionSetNode));
         }
 
         return new SelectionSetByTypePartitionerResult(sharedSelectionSet, selectionSetByType.ToImmutable(), indexBuilder);
@@ -70,7 +77,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
                     if (inlineFragmentNode.TypeCondition is { Name.Value: { } name })
                     {
-                        typeCondition = schema.Types[name].AsTypeDefinition();
+                        typeCondition = schema.Types.GetType(name, allowInaccessibleFields: true).AsTypeDefinition();
                     }
 
                     var hasDirectives = inlineFragmentNode.Directives.Any();
@@ -118,7 +125,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             }
             else
             {
-                foreach (var possibleType in schema.GetPossibleTypes(type))
+                foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
                 {
                     AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
                 }
@@ -155,11 +162,6 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         }
     }
 
-    // Walks the selection top-down, cloning every nested SelectionSetNode so that
-    // each clone can be registered against its original in the index. We can't use
-    // the bottom-up SyntaxRewriter for this, because by the time it reaches an outer
-    // SelectionSetNode its children have already been replaced, leaving the rewriter
-    // with a freshly allocated node that isn't tracked in the index.
     private static ISelectionNode CloneSelection(
         ISelectionNode selection,
         SelectionSetIndexBuilder indexBuilder)
@@ -167,27 +169,11 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         return selection switch
         {
             FieldNode field when field.SelectionSet is not null
-                => field.WithSelectionSet(CloneSelectionSet(field.SelectionSet, indexBuilder)),
+                => field.WithSelectionSet(SelectionSetCloner.Clone(field.SelectionSet, indexBuilder)),
             InlineFragmentNode fragment
-                => fragment.WithSelectionSet(CloneSelectionSet(fragment.SelectionSet, indexBuilder)),
+                => fragment.WithSelectionSet(SelectionSetCloner.Clone(fragment.SelectionSet, indexBuilder)),
             _ => selection
         };
-    }
-
-    private static SelectionSetNode CloneSelectionSet(
-        SelectionSetNode original,
-        SelectionSetIndexBuilder indexBuilder)
-    {
-        var clonedSelections = new ISelectionNode[original.Selections.Count];
-
-        for (var i = 0; i < original.Selections.Count; i++)
-        {
-            clonedSelections[i] = CloneSelection(original.Selections[i], indexBuilder);
-        }
-
-        var cloned = new SelectionSetNode(clonedSelections);
-        indexBuilder.RegisterCloned(original, cloned);
-        return cloned;
     }
 
     private static List<ISelectionNode> GetSelectionsWithPath(
@@ -201,10 +187,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         {
             var newSelectionSet = new SelectionSetNode(start);
 
-            if (!indexBuilder.IsRegistered(newSelectionSet))
-            {
-                indexBuilder.Register(newSelectionSet);
-            }
+            indexBuilder.RegisterCloned(fragment.SelectionSet, newSelectionSet);
 
             start = [fragment.WithSelectionSet(newSelectionSet)];
         }

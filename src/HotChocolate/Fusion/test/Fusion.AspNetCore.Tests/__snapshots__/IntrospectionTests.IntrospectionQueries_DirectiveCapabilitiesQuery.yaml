@@ -30,6 +30,12 @@ response:
             },
             {
               "name": "args"
+            },
+            {
+              "name": "isDeprecated"
+            },
+            {
+              "name": "deprecationReason"
             }
           ]
         }

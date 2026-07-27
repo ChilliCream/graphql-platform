@@ -36,7 +36,7 @@ internal static class SourceMetadataParser
                         $"'{TypePropertyName}' must be a string. Expected '{GitHubType}' or '{AzureDevOpsType}'.");
                 }
 
-                type = typeElement.GetString()!;
+                type = typeElement.GetString();
             }
 
             return type switch

@@ -59,14 +59,21 @@ internal static partial class TopologySnapshotHelper
 
         var entities = (topology?.Entities ?? [])
             .Where(e => !IsReplyAddress(e.Address))
-            .Select(e => new EntitySnapshot(e.Kind, e.Name, e.Flow))
+            .Select(e => new EntitySnapshot(
+                e.Kind,
+                e.Name,
+                e.Flow,
+                e.Properties is not null && e.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
             .OrderBy(e => e.Kind, StringComparer.Ordinal)
             .ThenBy(e => e.Name, StringComparer.Ordinal)
             .ToList();
 
         var links = (topology?.Links ?? [])
             .Where(l => !IsReplyAddress(l.Source) && !IsReplyAddress(l.Target))
-            .Select(l => new LinkSnapshot(l.Kind, l.Direction))
+            .Select(l => new LinkSnapshot(
+                l.Kind,
+                l.Direction,
+                l.Properties is not null && l.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
             .OrderBy(l => l.Kind, StringComparer.Ordinal)
             .ThenBy(l => l.Direction, StringComparer.Ordinal)
             .ToList();
@@ -128,9 +135,9 @@ internal static partial class TopologySnapshotHelper
         List<EndpointSnapshot> ReceiveEndpoints,
         List<EndpointSnapshot> DispatchEndpoints);
 
-    private sealed record EntitySnapshot(string Kind, string? Name, string? Flow);
+    private sealed record EntitySnapshot(string Kind, string? Name, string? Flow, string? Origin);
 
-    private sealed record LinkSnapshot(string Kind, string? Direction);
+    private sealed record LinkSnapshot(string Kind, string? Direction, string? Origin);
 
     private sealed record EndpointSnapshot(string Name, string Kind);
 }

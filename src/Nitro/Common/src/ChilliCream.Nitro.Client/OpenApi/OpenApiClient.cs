@@ -39,7 +39,7 @@ internal sealed class OpenApiClient(IApiClient apiClient) : IOpenApiClient
         return OperationResultHelper.EnsureData(result).DeleteOpenApiCollectionById;
     }
 
-    public async Task<ConnectionPage<IListOpenApiCollectionCommandQuery_Node_OpenApiCollections_Edges_Node>?> ListOpenApiCollectionsAsync(
+    public async Task<ConnectionPage<IListOpenApiCollectionCommandQuery_Node_OpenApiCollections_Edges_Node>> ListOpenApiCollectionsAsync(
         string apiId,
         string? after,
         int? first,
@@ -55,7 +55,7 @@ internal sealed class OpenApiClient(IApiClient apiClient) : IOpenApiClient
         var connection = (data.Node as IListOpenApiCollectionCommandQuery_Node_Api)?.OpenApiCollections;
         if (connection is null)
         {
-            return null;
+            throw new NitroClientNotFoundException("The API was not found.");
         }
 
         var items = connection.Edges?.Select(static edge => edge.Node).ToArray() ?? [];

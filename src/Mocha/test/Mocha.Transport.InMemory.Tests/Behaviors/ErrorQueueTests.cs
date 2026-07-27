@@ -20,14 +20,12 @@ public class ErrorQueueTests
             .AddConsumer<ErrorSpyConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("handler-ep")
+                t.Queue("handler-q")
                     .Handler<ThrowingOrderHandler>()
-                    .Queue("handler-q")
-                    .FaultEndpoint("memory:///q/handler-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/handler-q_error"));
 
-                t.Endpoint("error-ep")
+                t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()
-                    .Queue("handler-q_error")
                     .Kind(ReceiveEndpointKind.Error);
             })
             .BuildServiceProvider();
@@ -61,14 +59,12 @@ public class ErrorQueueTests
             .AddConsumer<ErrorSpySendConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("payment-ep")
+                t.Queue("payment-q")
                     .Handler<ThrowingPaymentHandler>()
-                    .Queue("payment-q")
-                    .FaultEndpoint("memory:///q/payment-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/payment-q_error"));
 
-                t.Endpoint("error-ep")
+                t.Queue("payment-q_error")
                     .Consumer<ErrorSpySendConsumer>()
-                    .Queue("payment-q_error")
                     .Kind(ReceiveEndpointKind.Error);
 
                 t.DispatchEndpoint("payment-dispatch").ToQueue("payment-q").Send<ProcessPayment>();
@@ -100,14 +96,12 @@ public class ErrorQueueTests
             .AddConsumer<ErrorSpyConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("handler-ep")
+                t.Queue("handler-q")
                     .Handler<ThrowingOrderHandler>()
-                    .Queue("handler-q")
-                    .FaultEndpoint("memory:///q/handler-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/handler-q_error"));
 
-                t.Endpoint("error-ep")
+                t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()
-                    .Queue("handler-q_error")
                     .Kind(ReceiveEndpointKind.Error);
             })
             .BuildServiceProvider();

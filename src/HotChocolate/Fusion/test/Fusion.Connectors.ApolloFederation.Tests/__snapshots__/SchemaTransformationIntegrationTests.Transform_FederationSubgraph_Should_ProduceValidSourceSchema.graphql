@@ -1,12 +1,12 @@
-schema @fusion__connector(kind: "Apollo") {
+schema {
   query: Query
 }
 
 type Query {
+  fusion__lookup_productById(id: Int!): Product @internal @lookup
+  fusion__lookup_userByEmail(email: String!): User @internal @lookup
   product(id: Int!): Product
-  productById(id: Int!): Product @internal @lookup
   topProducts: [Product!]!
-  userByEmail(email: String!): User @internal @lookup
 }
 
 type Product @key(fields: "id") {
@@ -19,9 +19,3 @@ type User @key(fields: "email") {
   email: String!
   name: String!
 }
-
-"The @fusion__connector directive declares which connector kind handles this source schema."
-directive @fusion__connector(
-  "The kind of connector that backs this source schema."
-  kind: String!
-) on SCHEMA

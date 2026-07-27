@@ -353,7 +353,7 @@ internal static class InputObjectCompiler
         var from =
             typeof(Optional<>)
                 .MakeGenericType(runtimeType)
-                .GetMethod("From", BindingFlags.Public | BindingFlags.Static)!;
+                .GetMethod("From", BindingFlags.Public | BindingFlags.Static);
         Debug.Assert(from is not null, "From helper on Optional<T> is missing.");
         fieldValue = Expression.Convert(fieldValue, typeof(IOptional));
         return Expression.Call(from, fieldValue);

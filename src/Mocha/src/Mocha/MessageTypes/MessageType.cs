@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 
 namespace Mocha;
@@ -6,22 +8,31 @@ namespace Mocha;
 /// <summary>
 /// Represents a registered message type in the messaging system, holding identity, serialization, and type hierarchy metadata.
 /// </summary>
-public sealed class MessageType
+public class MessageType
 {
     /// <summary>
     /// Gets a value indicating whether the message type has been fully initialized with its type hierarchy and enclosed types.
     /// </summary>
     public bool IsCompleted { get; private set; }
 
+    private ImmutableArray<Type> _enclosedTypes;
+
     private IMessageSerializerRegistry _serializerRegistry = null!;
 
-    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer
-        = ImmutableDictionary<MessageContentType, IMessageSerializer>.Empty;
+    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer = ImmutableDictionary<
+        MessageContentType,
+        IMessageSerializer
+    >.Empty;
 
     /// <summary>
     /// Gets the URN-based identity string that uniquely identifies this message type on the wire.
     /// </summary>
     public string Identity { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the stable URN identity of this message type.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
 
     /// <summary>
     /// Gets the CLR type represented by this message type.
@@ -59,23 +70,45 @@ public sealed class MessageType
     public bool IsInternal { get; private set; }
 
     /// <summary>
-    /// Initializes this message type from configuration, applying conventions and registering outbound routes.
+    /// Source metadata captured from the message declaration.
     /// </summary>
-    /// <param name="context">The messaging configuration context.</param>
-    /// <param name="configuration">The configuration to initialize from.</param>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the configuration is missing a required identity, runtime type, or serializer registry.
-    /// </exception>
-    public void Initialize(IMessagingConfigurationContext context, MessageTypeConfiguration configuration)
+    public SourceMetadata? Source { get; private set; }
+
+    public MessageType()
     {
+    }
+
+    internal MessageType(Type runtimeType)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+
+        RuntimeType = runtimeType;
+    }
+
+    internal void Initialize(IMessagingConfigurationContext context)
+    {
+        if (RuntimeType is null)
+        {
+            throw new InvalidOperationException(
+                "Message type requires a runtime type to create configuration from a descriptor.");
+        }
+
+        var descriptor = new MessageTypeDescriptor(context, RuntimeType);
+
+        context.ApplyConfigurations<IMessageTypeDescriptor>(RuntimeType, descriptor);
+
+        var configuration = descriptor.CreateConfiguration();
+
         context.Conventions.Configure(context, configuration);
 
-        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires and identity");
-        RuntimeType =
-            configuration.RuntimeType ?? throw new InvalidOperationException("Message requires a runtime type");
+        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires an identity");
+        Urn = MochaUrn.MessageType(Identity);
+        RuntimeType = configuration.RuntimeType ?? RuntimeType
+            ?? throw new InvalidOperationException("Message requires a runtime type");
         IsInterface = RuntimeType.IsInterface;
         IsInternal = configuration.IsInternal;
         DefaultContentType = configuration.DefaultContentType;
+        Source = configuration.Source;
 
         Features = configuration.GetFeatures().ToReadOnly();
 
@@ -83,6 +116,8 @@ public sealed class MessageType
             context.Messages.Serializers ?? throw new InvalidOperationException("Serializer registry is required");
 
         _serializer = configuration.MessageSerializer.ToImmutableDictionary(k => k.Key, v => v.Value);
+
+        _enclosedTypes = configuration.EnclosedTypes;
 
         foreach (var routeConfiguration in configuration.Routes)
         {
@@ -118,7 +153,49 @@ public sealed class MessageType
     /// Completes initialization by resolving the full type hierarchy and registering enclosed message types.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback is guarded by IsAotCompatible. AOT uses source-generated enclosed types.")]
     public void Complete(IMessagingConfigurationContext context)
+    {
+        var enclosedMessageTypes = ImmutableArray.CreateBuilder<MessageType>();
+        var enclosedMessageIdentities = ImmutableArray.CreateBuilder<string>();
+
+        if (!_enclosedTypes.IsDefaultOrEmpty)
+        {
+            foreach (var type in _enclosedTypes)
+            {
+                DispatchEnclosedType(context, type, enclosedMessageTypes, enclosedMessageIdentities);
+            }
+        }
+        else
+        {
+            var options = context.Services.GetRequiredService<IReadOnlyMessagingOptions>();
+
+            if (options.IsAotCompatible)
+            {
+                throw new InvalidOperationException(
+                    $"No enclosed types provided for message type '{Identity}'. "
+                    + "Register enclosed types via the source generator. "
+                    + "Set IsAotCompatible = false to allow reflection-based type discovery.");
+            }
+
+            CompleteViaReflection(context, enclosedMessageTypes, enclosedMessageIdentities);
+        }
+
+        EnclosedMessageTypes = enclosedMessageTypes.ToImmutableArray();
+        EnclosedMessageIdentities = enclosedMessageIdentities.ToImmutableArray();
+
+        IsCompleted = true;
+    }
+
+    [RequiresUnreferencedCode(
+        "Walks GetInterfaces / BaseType and registers discovered types. Use the source generator for AOT.")]
+    private void CompleteViaReflection(
+        IMessagingConfigurationContext context,
+        ImmutableArray<MessageType>.Builder enclosedMessageTypes,
+        ImmutableArray<string>.Builder enclosedMessageIdentities)
     {
         var allTypes = GetAllTypesInHierarchy(RuntimeType, context);
 
@@ -127,39 +204,20 @@ public sealed class MessageType
             .OrderByDescending(t => allTypes.Count(other => t != other && t.IsAssignableTo(other)))
             .ToList();
 
-        var enclosedMessageTypes = ImmutableArray.CreateBuilder<MessageType>();
-        var enclosedMessageIdentities = ImmutableArray.CreateBuilder<string>();
-
         foreach (var type in sortedTypes)
         {
-            if (IsFrameworkBaseType(type))
-            {
-                // Don't register framework base types as standalone message types.
-                // Only include their identity string for wire-level message matching.
-                enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
-            }
-            else
-            {
-                var mt = context.Messages.GetOrAdd(context, type);
-                enclosedMessageTypes.Add(mt);
-                enclosedMessageIdentities.Add(mt.Identity);
-            }
+            DispatchEnclosedType(context, type, enclosedMessageTypes, enclosedMessageIdentities);
         }
 
-        EnclosedMessageTypes = enclosedMessageTypes.ToImmutableArray();
-        EnclosedMessageIdentities = enclosedMessageIdentities.ToImmutableArray();
-
-        var interfaces = RuntimeType.GetInterfaces();
-        foreach (var interfaceType in interfaces)
+        foreach (var interfaceType in RuntimeType.GetInterfaces())
         {
-            if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
+            if (interfaceType.IsGenericType
+                && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
             {
                 var responseType = interfaceType.GetGenericArguments()[0];
                 context.Messages.GetOrAdd(context, responseType);
             }
         }
-
-        IsCompleted = true;
     }
 
     /// <summary>
@@ -169,15 +227,18 @@ public sealed class MessageType
     public MessageTypeDescription Describe()
     {
         return new MessageTypeDescription(
+            Urn,
             Identity,
             DescriptionHelpers.GetTypeName(RuntimeType),
             RuntimeType.FullName,
             IsInterface,
             IsInternal,
             DefaultContentType?.Value,
-            EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities);
+            EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities,
+            Source);
     }
 
+    [RequiresUnreferencedCode("Uses GetInterfaces and BaseType traversal which may reference trimmed types.")]
     private static List<Type> GetAllTypesInHierarchy(Type type, IMessagingConfigurationContext context)
     {
         var interfaces = type.GetInterfaces();
@@ -216,5 +277,23 @@ public sealed class MessageType
     {
         return type == typeof(IEventRequest)
             || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEventRequest<>));
+    }
+
+    private static void DispatchEnclosedType(
+        IMessagingConfigurationContext context,
+        Type type,
+        ImmutableArray<MessageType>.Builder enclosedMessageTypes,
+        ImmutableArray<string>.Builder enclosedMessageIdentities)
+    {
+        if (IsFrameworkBaseType(type))
+        {
+            enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
+        }
+        else
+        {
+            var mt = context.Messages.GetOrAdd(context, type);
+            enclosedMessageTypes.Add(mt);
+            enclosedMessageIdentities.Add(mt.Identity);
+        }
     }
 }

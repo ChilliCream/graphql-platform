@@ -329,16 +329,23 @@ internal sealed class FusionRequestExecutorManager
     private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors(
         FusionOptions options)
     {
+        var enableOptIn = options.EnableOptInFeatures;
+
         var interceptors = new Dictionary<string, ITypeResolverInterceptor>
         {
             { nameof(Query), new Query(options.EnableSemanticIntrospection) },
-            { nameof(__Directive), new __Directive() },
-            { nameof(__EnumValue), new __EnumValue() },
-            { nameof(__Field), new __Field() },
-            { nameof(__InputValue), new __InputValue() },
-            { nameof(__Schema), new __Schema() },
-            { nameof(__Type), new __Type() }
+            { nameof(__Directive), new __Directive(enableOptIn) },
+            { nameof(__EnumValue), new __EnumValue(enableOptIn) },
+            { nameof(__Field), new __Field(enableOptIn) },
+            { nameof(__InputValue), new __InputValue(enableOptIn) },
+            { nameof(__Schema), new __Schema(enableOptIn) },
+            { nameof(__Type), new __Type(enableOptIn) }
         };
+
+        if (enableOptIn)
+        {
+            interceptors.Add(nameof(__OptInFeatureStability), new __OptInFeatureStability());
+        }
 
         if (options.EnableSemanticIntrospection)
         {

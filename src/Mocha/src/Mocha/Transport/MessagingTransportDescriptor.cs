@@ -27,16 +27,19 @@ public interface IMessagingTransportDescriptor
     IMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure);
 
     /// <summary>
-    /// Configures the transport to automatically bind consumers to endpoints based on message type conventions.
+    /// Sets the transport bind mode to <see cref="MessagingBindMode.Implicit"/>, enabling
+    /// convention-based consumer discovery and automatic convention binds for consumed message types.
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor BindHandlersImplicitly();
+    IMessagingTransportDescriptor BindImplicitly();
 
     /// <summary>
-    /// Configures the transport to require explicit consumer-to-endpoint bindings rather than convention-based discovery.
+    /// Sets the transport bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention-based consumer discovery and automatic convention binds.
+    /// Consumers must be placed on endpoints explicitly, and bindings must be declared via DeclareBinding.
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor BindHandlersExplicitly();
+    IMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Sets the schema prefix used for address resolution on this transport.
@@ -64,6 +67,13 @@ public interface IMessagingTransportDescriptor
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
     IMessagingTransportDescriptor IsDefaultTransport();
+
+    /// <summary>
+    /// Sets the routing strategy factory used to create the transport's route and topology layout strategy.
+    /// </summary>
+    /// <param name="factory">The factory that creates a fresh routing strategy instance.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
 
     /// <summary>
     /// Adds a dispatch middleware to the transport-scoped outbound pipeline. Optionally positions it
@@ -110,16 +120,16 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor BindHandlersImplicitly()
+    public IMessagingTransportDescriptor BindImplicitly()
     {
-        Configuration.ConsumerBindingMode = ConsumerBindingMode.Implicit;
+        Configuration.BindMode = MessagingBindMode.Implicit;
         return this;
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor BindHandlersExplicitly()
+    public IMessagingTransportDescriptor BindExplicitly()
     {
-        Configuration.ConsumerBindingMode = ConsumerBindingMode.Explicit;
+        Configuration.BindMode = MessagingBindMode.Explicit;
         return this;
     }
 
@@ -141,6 +151,15 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     public IMessagingTransportDescriptor IsDefaultTransport()
     {
         Configuration.IsDefaultTransport = true;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        Configuration.RoutingStrategyFactory = factory;
         return this;
     }
 

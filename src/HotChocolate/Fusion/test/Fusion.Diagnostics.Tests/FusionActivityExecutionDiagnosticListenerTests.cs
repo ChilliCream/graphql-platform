@@ -682,13 +682,17 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
+            var coordination = new DeepErrorCoordination();
+
             using var server1 = CreateSourceSchema(
                 "a",
-                b => b.AddQueryType<QueryA>());
+                b => b.AddQueryType<QueryAWithSignal>(),
+                configureServices: s => s.AddSingleton(coordination));
 
             using var server2 = CreateSourceSchema(
                 "b",
-                b => b.AddQueryType<QueryBWithDeepError>());
+                b => b.AddQueryType<QueryBWithDeepError>(),
+                configureServices: s => s.AddSingleton(coordination));
 
             using var gateway = await CreateCompositeSchemaAsync(
             [
@@ -941,6 +945,16 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [GraphQLName("Query")]
+    public class QueryAWithSignal
+    {
+        public string SayHello([Service] DeepErrorCoordination coordination)
+        {
+            coordination.SignalSourceACompleted();
+            return "hello";
+        }
+    }
+
+    [GraphQLName("Query")]
     public class QueryB
     {
         public string SayGoodbye() => "goodbye";
@@ -961,13 +975,31 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
     public class DeeperB
     {
-        public string CauseFatalError(IResolverContext context)
-            => throw new GraphQLException(
+        public async Task<string> CauseFatalError(
+            IResolverContext context,
+            [Service] DeepErrorCoordination coordination)
+        {
+            await coordination.WaitForSourceACompletedAsync();
+
+            throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("deep fail")
                     .SetCode("CUSTOM_ERROR_CODE")
                     .SetPath(context.Path)
                     .Build());
+        }
+    }
+
+    public sealed class DeepErrorCoordination
+    {
+        private readonly TaskCompletionSource _sourceACompleted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void SignalSourceACompleted()
+            => _sourceACompleted.TrySetResult();
+
+        public Task WaitForSourceACompletedAsync()
+            => _sourceACompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
     public class Deep

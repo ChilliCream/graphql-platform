@@ -12,19 +12,19 @@ public partial class TypeConverterTests
     }
 
     public static readonly TheoryData<TestCase> TestCases =
-     [
-          new TestCase("""{ fieldWithScalarInput(arg: "foo") }""", "ScalarInput"),
-          new TestCase("""{ fieldWithNonNullScalarInput(arg: "foo") }""", "NonNullScalarInput"),
-          new TestCase("""{ fieldWithObjectInput(arg: { id: "foo" }) }""", "ObjectInput"),
-          new TestCase("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) }""", "NestedObjectInput"),
-          new TestCase("""{ fieldWithListOfScalarsInput(arg: ["foo"]) }""", "ListOfScalarsInput"),
-          new TestCase("""{ fieldWithListOfScalarsInput(arg: ["ok", "foo"]) }""", "ListOfScalarsInputWithOkValue"),
-          new TestCase("""{ fieldWithObjectWithListOfScalarsInput(arg: { ids: ["foo"] }) }""", "ObjectWithListOfScalarsInput"),
-          new TestCase("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) }""", "ListOfObjectsInput"),
-          new TestCase("""query($v: String!) { fieldWithScalarInput(arg: $v) }""", "VariableInput"),
-          new TestCase("""query($v: String!) { fieldWithNestedObjectInput(arg: { inner: { id: $v } }) }""", "NestedVariableInput"),
-          new TestCase("""{ echo(arg: "foo") @boom(arg: "foo") }""", "DirectiveInput"),
-          new TestCase("""{ nestedObjectOutput { inner { id @boom(arg: "foo") } } }""", "NestedDirectiveInput")
+    [
+        new TestCase("""{ fieldWithScalarInput(arg: "foo") }""", "ScalarInput"),
+        new TestCase("""{ fieldWithNonNullScalarInput(arg: "foo") }""", "NonNullScalarInput"),
+        new TestCase("""{ fieldWithObjectInput(arg: { id: "foo" }) }""", "ObjectInput"),
+        new TestCase("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) }""", "NestedObjectInput"),
+        new TestCase("""{ fieldWithListOfScalarsInput(arg: ["foo"]) }""", "ListOfScalarsInput"),
+        new TestCase("""{ fieldWithListOfScalarsInput(arg: ["ok", "foo"]) }""", "ListOfScalarsInputWithOkValue"),
+        new TestCase("""{ fieldWithObjectWithListOfScalarsInput(arg: { ids: ["foo"] }) }""", "ObjectWithListOfScalarsInput"),
+        new TestCase("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) }""", "ListOfObjectsInput"),
+        new TestCase("""query($v: String!) { fieldWithScalarInput(arg: $v) }""", "VariableInput"),
+        new TestCase("""query($v: String!) { fieldWithNestedObjectInput(arg: { inner: { id: $v } }) }""", "NestedVariableInput"),
+        new TestCase("""{ echo(arg: "foo") @boom(arg: "foo") }""", "DirectiveInput"),
+        new TestCase("""{ nestedObjectOutput { inner { id @boom(arg: "foo") } } }""", "NestedDirectiveInput")
     ];
 
     public static readonly TheoryData<TestCase> TestCasesForMutationConventions =
@@ -45,7 +45,7 @@ public partial class TypeConverterTests
         new TestCase("""mutation($v: String!) { fieldWithNestedObjectInput(input: { arg: { inner: { id: $v } } })  { string } }""", "NestedVariableInput"),
         new TestCase("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput"),
         new TestCase("""mutation { nestedObjectOutput { nestedObject { inner { id @boom(arg: "foo") } } } }""",
-           "NestedDirectiveInput")
+            "NestedDirectiveInput")
     ];
 
     public static readonly TheoryData<TestCase> TestCasesForQueryConventions =

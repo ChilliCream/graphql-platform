@@ -28,12 +28,12 @@ public class ExplicitTopologyTests
             .AddPostgres(t =>
             {
                 t.ConnectionString(db.ConnectionString);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");
 
-                t.Endpoint("custom-ep").Consumer<OrderSpyConsumer>().Queue("custom-q");
+                t.Queue("custom-q").Consumer<OrderSpyConsumer>();
 
                 t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();
             })
@@ -65,12 +65,12 @@ public class ExplicitTopologyTests
             .AddPostgres(t =>
             {
                 t.ConnectionString(db.ConnectionString);
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");
 
-                t.Endpoint("custom-ep").Consumer<OrderSpyConsumer>().Queue("custom-q");
+                t.Queue("custom-q").Consumer<OrderSpyConsumer>();
 
                 t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();
             })
@@ -102,12 +102,12 @@ public class ExplicitTopologyTests
             .AddPostgres(t =>
             {
                 t.ConnectionString(db.ConnectionString);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");
 
-                t.Endpoint("custom-ep").Queue("custom-q")
+                t.Queue("custom-q")
                     .Receives<OrderCreated>();
 
                 t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();

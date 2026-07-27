@@ -227,6 +227,12 @@ response:
                 },
                 {
                   "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
                 }
               ],
               "enumValues": null,
@@ -236,6 +242,9 @@ response:
               "__typename": "__Type",
               "fields": null,
               "enumValues": [
+                {
+                  "__typename": "__EnumValue"
+                },
                 {
                   "__typename": "__EnumValue"
                 },

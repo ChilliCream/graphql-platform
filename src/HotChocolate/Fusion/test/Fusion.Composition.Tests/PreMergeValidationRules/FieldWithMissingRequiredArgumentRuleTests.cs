@@ -131,4 +131,60 @@ public sealed class FieldWithMissingRequiredArgumentRuleTests : RuleTestBase
                 """
             ]);
     }
+
+    // The same rule applies when the contributing schemas are @interfaceObject stand-ins for the
+    // same interface. Schema B supplies "minRating" from the executor via @require, while schema C
+    // declares it as a client-supplied non-null argument. The two are not mergeable.
+    [Fact]
+    public void Validate_InterfaceObjectStandInWithRequiredArgument_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                interface Media {
+                    id: ID!
+                    title: String!
+                    rating: Int!
+                }
+                """,
+                """
+                # Schema B
+                type Media @interfaceObject @key(fields: "id") {
+                    id: ID!
+                    recommended(minRating: Int! @require(field: "rating")): [Review!]! @shareable
+                }
+
+                type Review {
+                    id: ID! @shareable
+                    rating: Int! @shareable
+                }
+                """,
+                """
+                # Schema C
+                type Media @interfaceObject @key(fields: "id") {
+                    id: ID!
+                    recommended(minRating: Int!): [Review!]! @shareable
+                }
+
+                type Review {
+                    id: ID! @shareable
+                    rating: Int! @shareable
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The argument 'Media.recommended(minRating:)' must be defined as required in schema 'B'. Arguments marked with @require are treated as non-required.",
+                    "code": "FIELD_WITH_MISSING_REQUIRED_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Media.recommended(minRating:)",
+                    "member": "recommended",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
 }

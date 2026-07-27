@@ -9,23 +9,47 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
+        [global::Mocha.Mediator.MediatorModuleInfo(
+            MessageTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.SomethingHappened),
+            },
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.SomethingHappenedHandler),
+            }
+        )]
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTests(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.SomethingHappenedHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.SomethingHappenedHandler),
-                    MessageType = typeof(global::TestApp.SomethingHappened),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.SomethingHappenedHandler, global::TestApp.SomethingHappened>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.SomethingHappenedHandler),
+                    typeof(global::TestApp.SomethingHappenedHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.SomethingHappenedHandler>(__Initialize_SomethingHappenedHandler_Handler_b11vZBgKIidQLz4b0bujEg));
 
             return builder;
+        }
+
+        private static void __Initialize_SomethingHappenedHandler_Handler_b11vZBgKIidQLz4b0bujEg(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.SomethingHappened);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.SomethingHappenedHandler, global::TestApp.SomethingHappened>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
         }
     }
 }

@@ -183,4 +183,21 @@ public static class FeatureCollectionExtensions
             target[type] = feature;
         }
     }
+
+    /// <summary>
+    /// Removes the specified feature from the collection.
+    /// </summary>
+    /// <typeparam name="TFeature">The feature key.</typeparam>
+    /// <param name="featureCollection">The feature collection.</param>
+    /// <returns>
+    /// <c>true</c> if the feature was present and removed; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool Remove<TFeature>(this IFeatureCollection featureCollection)
+    {
+        ArgumentNullException.ThrowIfNull(featureCollection);
+
+        var existed = featureCollection[typeof(TFeature)] is not null;
+        featureCollection[typeof(TFeature)] = null;
+        return existed;
+    }
 }

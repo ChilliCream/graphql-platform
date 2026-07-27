@@ -31,11 +31,11 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                         .Resolve(_ => 1);
                     o.Field("idCode")
                         .Type<StringType>()
-                        .Resolve(_ => default!)
+                        .Resolve(_ => default)
                         .External();
                     o.Field("address")
                         .Type("Address")
-                        .Resolve(_ => default!)
+                        .Resolve(_ => default)
                         .External();
                 })
             .AddObjectType(
@@ -45,10 +45,10 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                     o.External();
                     o.Field("street")
                         .Type<StringType>()
-                        .Resolve(_ => default!);
+                        .Resolve(_ => default);
                     o.Field("city")
                         .Type<StringType>()
-                        .Resolve(_ => default!);
+                        .Resolve(_ => default);
                 })
             .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 

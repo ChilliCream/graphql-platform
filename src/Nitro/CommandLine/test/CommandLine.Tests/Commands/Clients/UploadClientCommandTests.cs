@@ -156,6 +156,26 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     }
 
     [Fact]
+    public async Task ClientNotFound_ReturnsError()
+    {
+        SetupOperationsFile();
+        SetupUploadClientMutation(new UploadClient_UploadClient_Errors_ClientNotFoundError(
+            "Client not found.",
+            ClientId));
+
+        var result = await ExecuteCommandAsync(
+            "client", "upload", "--tag", Tag, "--operations-file", OperationsFile, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UploadClientReturnsNullClientVersion_ReturnsError()
     {
         // arrange
@@ -221,12 +241,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
                 "UnauthorizedOperation",
                 "Not authorized to upload."),
             "Not authorized to upload."
-        },
-        {
-            new UploadClient_UploadClient_Errors_ClientNotFoundError(
-                "Client not found.",
-                "client-1"),
-            "Client not found."
         },
         {
             new UploadClient_UploadClient_Errors_DuplicatedTagError(

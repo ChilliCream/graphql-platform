@@ -10,4 +10,11 @@ public interface IMediatorRuntime
     /// Gets the read-only feature collection for this mediator runtime.
     /// </summary>
     IFeatureCollection Features { get; }
+
+    /// <summary>
+    /// Gets a description of the mediator and its registered handlers for diagnostic and
+    /// visualization purposes.
+    /// </summary>
+    /// <returns>A <see cref="MediatorDescription"/> describing the mediator.</returns>
+    MediatorDescription Describe();
 }

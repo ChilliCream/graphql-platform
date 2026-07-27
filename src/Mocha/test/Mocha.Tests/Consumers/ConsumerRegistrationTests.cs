@@ -399,6 +399,31 @@ public sealed class ConsumerRegistrationTests
         Assert.Equal(typeof(OrderCreated), route.MessageType!.RuntimeType);
     }
 
+    [Fact]
+    public void AddConsumer_Should_CreateFreshConsumer_When_ProviderBuiltTwiceFromSameServiceCollection()
+    {
+        // arrange
+        // a fresh transport is registered per build because InMemoryMessagingTransport.Initialize is
+        // one-shot; this keeps the gate focused on the consumer factory rather than the transport.
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        MessageBusHostBuilderExtensions.AddConsumer(
+            builder,
+            static () => ConsumerFactory.Subscribe<OrderCreatedHandler, OrderCreated>());
+        builder.ConfigureMessageBus(static b => b.AddTransport(new InMemoryMessagingTransport(static _ => { })));
+
+        // act
+        var runtime1 = (MessagingRuntime)services.BuildServiceProvider().GetRequiredService<IMessagingRuntime>();
+        var runtime2 = (MessagingRuntime)services.BuildServiceProvider().GetRequiredService<IMessagingRuntime>();
+
+        // assert
+        var consumer1 = runtime1.Consumers.FirstOrDefault(c => c.Identity == typeof(OrderCreatedHandler));
+        var consumer2 = runtime2.Consumers.FirstOrDefault(c => c.Identity == typeof(OrderCreatedHandler));
+        Assert.NotNull(consumer1);
+        Assert.NotNull(consumer2);
+        Assert.NotSame(consumer1, consumer2);
+    }
+
     public sealed class OrderCreated
     {
         public string OrderId { get; init; } = "";

@@ -196,6 +196,60 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupCreateApiKeyMutation(
+            "tenant-key",
+            "workspace-from-session",
+            apiId: "api-404",
+            errors: new CreateApiKeyCommandMutation_CreateApiKey_Errors_ApiNotFoundError(
+                "ApiNotFoundError",
+                "The API with ID 'api-404' was not found.",
+                "api-404"));
+
+        // act
+        var result = await ExecuteCommandAsync("api-key", "create", "--api-id", "api-404", "--name", "tenant-key");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The API with ID 'api-404' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RoleNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupCreateApiKeyMutation(
+            "tenant-key",
+            "workspace-from-session",
+            apiId: "api-404",
+            errors: new CreateApiKeyCommandMutation_CreateApiKey_Errors_RoleNotFoundError(
+                "RoleNotFoundError",
+                "The role with ID 'role-404' was not found.",
+                "role-404"));
+
+        // act
+        var result = await ExecuteCommandAsync("api-key", "create", "--api-id", "api-404", "--name", "tenant-key");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The role with ID 'role-404' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task CreateApiKeyReturnsNullResult_ReturnsError()
     {
         // arrange
@@ -517,13 +571,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         return new()
         {
             {
-                new CreateApiKeyCommandMutation_CreateApiKey_Errors_ApiNotFoundError(
-                    "ApiNotFoundError",
-                    "The API with ID 'api-404' was not found.",
-                    "api-404"),
-                "The API with ID 'api-404' was not found."
-            },
-            {
                 new CreateApiKeyCommandMutation_CreateApiKey_Errors_WorkspaceNotFound(
                     "WorkspaceNotFound",
                     "The workspace with ID 'ws-404' was not found.",
@@ -535,13 +582,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
                     "PersonalWorkspaceNotSupportedError",
                     "Personal workspaces are not supported for this operation."),
                 "Personal workspaces are not supported for this operation."
-            },
-            {
-                new CreateApiKeyCommandMutation_CreateApiKey_Errors_RoleNotFoundError(
-                    "RoleNotFoundError",
-                    "The role with ID 'role-404' was not found.",
-                    "role-404"),
-                "The role with ID 'role-404' was not found."
             },
             {
                 new CreateApiKeyCommandMutation_CreateApiKey_Errors_ValidationError(

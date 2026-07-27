@@ -340,7 +340,7 @@ public class SemanticIntrospectionTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         using var firstResponse = await firstResult.ReadAsResultAsync(TestContext.Current.CancellationToken);
-        var firstJson = firstResponse.Data.ToString()!;
+        var firstJson = firstResponse.Data.ToString();
         var cursorStart = firstJson.IndexOf("\"cursor\":\"", StringComparison.Ordinal) + 10;
         var cursorEnd = firstJson.IndexOf("\"", cursorStart, StringComparison.Ordinal);
         var cursor = firstJson[cursorStart..cursorEnd];

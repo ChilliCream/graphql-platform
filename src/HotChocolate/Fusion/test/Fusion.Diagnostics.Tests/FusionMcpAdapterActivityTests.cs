@@ -122,8 +122,11 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // The MCP client keeps a streamable-HTTP session open and processes
         // notifications fire-and-forget, so the top-level AspNetCore request spans
         // for the MCP transport endpoint complete on a non-deterministic schedule
-        // relative to the capture window. They carry no MCP/GraphQL information, so
-        // drop them; the meaningful subgraph HTTP spans are nested and unaffected.
+        // relative to the capture window, and their terminal status and tags vary
+        // with whether the connection has been torn down. They carry no MCP or
+        // GraphQL information, so drop them; only these top-level transport spans are
+        // removed and every other captured span is unaffected.
+        // Keep in sync with HotChocolate.Diagnostics.McpAdapterActivityTests.
         if (capture["activities"] is JArray roots)
         {
             foreach (var root in roots

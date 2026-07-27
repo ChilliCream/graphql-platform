@@ -34,6 +34,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
+    private readonly bool _isLegacyTransport;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
 
     /// <summary>
@@ -122,7 +123,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ContentType.JsonLines,
             ResponseContentType.JsonLines,
             jsonLinesResultFormatter);
-        _defaultFormat = options.HttpTransportVersion is HttpTransportVersion.Legacy
+        _isLegacyTransport = options.HttpTransportVersion is HttpTransportVersion.Legacy;
+        _defaultFormat = _isLegacyTransport
             ? _legacyFormat
             : _graphqlResponseFormat;
 
@@ -400,11 +402,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        // the current spec proposal strongly recommends to always return OK
-        // when using the legacy application/json response content-type.
         if (format.Kind is ResponseContentType.Json)
         {
-            return HttpStatusCode.OK;
+            // the legacy transport preserves the pre-spec behavior of always returning
+            // 200 for the application/json response content-type.
+            if (_isLegacyTransport)
+            {
+                return HttpStatusCode.OK;
+            }
+
+            // per graphql-over-http §6.4.1, the application/json response content-type
+            // should return 200 for every well-formed request regardless of errors
+            // raised. the only 4xx is 400 for requests the server cannot interpret
+            // (§6.4.1.1.1 JSON parse, §6.4.1.1.2 invalid parameters). honor a proposed
+            // 400; everything else, including an unexpected 500, stays 200.
+            return proposedStatusCode is HttpStatusCode.BadRequest
+                ? HttpStatusCode.BadRequest
+                : HttpStatusCode.OK;
         }
 
         // if we are sending a single result with the multipart/mixed header or

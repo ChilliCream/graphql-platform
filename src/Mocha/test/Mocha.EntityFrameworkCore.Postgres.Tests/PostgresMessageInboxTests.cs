@@ -276,7 +276,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
     {
         var connectionString = await _fixture.CreateDatabaseAsync();
         var options = new DbContextOptionsBuilder<TestDbContext>()
-            .UseNpgsql(connectionString)
+            .UseTestNpgsql(connectionString)
             .Options;
         var context = new TestDbContext(options);
         await context.Database.EnsureCreatedAsync();

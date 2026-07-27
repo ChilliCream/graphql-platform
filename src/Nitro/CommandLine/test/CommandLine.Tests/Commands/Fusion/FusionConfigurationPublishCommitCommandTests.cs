@@ -152,14 +152,33 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             "--request-id", RequestId, "--archive", ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
             └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestNotFound_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupFusionConfigurationUploadMutation(CreateUploadRequestNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "commit",
+            "--request-id", RequestId, "--archive", ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -353,7 +372,6 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         string> GetUploadErrors() => new()
     {
         { CreateUploadUnauthorizedError(), "Unauthorized." },
-        { CreateUploadRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateUploadInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 

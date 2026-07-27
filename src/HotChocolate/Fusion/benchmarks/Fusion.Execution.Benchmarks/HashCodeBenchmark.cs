@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using BenchmarkDotNet.Attributes;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [InProcess]
 public class HashCodeBenchmark
 {
-    private byte[] _data = null!;
+    private byte[] _data;
 
     [Params(8, 16, 24, 32, 48, 64, 96, 128, 256, 512)]
     public int Size { get; set; }
