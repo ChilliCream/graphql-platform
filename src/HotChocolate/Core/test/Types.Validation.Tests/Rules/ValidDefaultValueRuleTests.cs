@@ -409,6 +409,21 @@ public sealed class ValidDefaultValueRuleTests : RuleTestBase<ValidDefaultValueR
     }
 
     [Fact]
+    public void Validate_UndefinedEnumName_NotReportedByCompatRule()
+    {
+        // arg: FooEnum = MISSING is a well-formed enum literal, so the compat rule accepts it;
+        // the undefined-name error is EnumValueIsDefinedRule's responsibility (covered there).
+        AssertValid(
+            """
+            type Query {
+                field(arg: FooEnum = MISSING): Int
+            }
+
+            enum FooEnum { VALUE }
+            """);
+    }
+
+    [Fact]
     public void Validate_DirectiveArgumentIncompatibleDefault_Fails()
     {
         AssertInvalid(
