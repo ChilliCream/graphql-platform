@@ -1,81 +1,126 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Adapters.OpenApi;
 
 internal static class OpenApiEndpointDefinitionExtensions
 {
+    private static readonly ResponseBodySelectionFinder s_responseBodySelectionFinder = new();
+
     public static OpenApiResponseBodySelection GetResponseBodySelection(
         this OpenApiEndpointDefinition endpoint,
         ISchemaDefinition schema)
     {
         var operation = endpoint.OperationDefinition;
         var rootType = schema.GetOperationType(operation.Operation);
-        var rootField = operation.SelectionSet.Selections.FirstOrDefault() as FieldNode
+
+        return FindResponseBody(operation.SelectionSet, rootType)
+            ?? CreateDefaultResponseBody(operation.SelectionSet, rootType);
+    }
+
+    private static OpenApiResponseBodySelection CreateDefaultResponseBody(
+        SelectionSetNode selectionSet,
+        IOutputType? rootType)
+    {
+        var rootField = selectionSet.Selections.FirstOrDefault() as FieldNode
             ?? throw new InvalidOperationException("Expected to have a response field.");
-        var defaultResponseBody = new OpenApiResponseBodySelection(
+
+        return new OpenApiResponseBodySelection(
             [rootField.Alias?.Value ?? rootField.Name.Value],
             rootField.SelectionSet,
             ResolveFieldType(rootField, rootType));
-        var responseNamePath = new List<string>();
+    }
 
-        return FindResponseBody(operation.SelectionSet, rootType) ?? defaultResponseBody;
+    private static OpenApiResponseBodySelection? FindResponseBody(
+        SelectionSetNode selectionSet,
+        IOutputType? rootType)
+    {
+        var context = new ResponseBodySelectionFinderContext(rootType);
+        s_responseBodySelectionFinder.Visit(selectionSet, context);
+        return context.ResponseBodySelection;
+    }
 
-        OpenApiResponseBodySelection? FindResponseBody(
-            SelectionSetNode selectionSet,
-            IOutputType? declaringType)
+    private static IOutputType? ResolveFieldType(FieldNode field, IOutputType? declaringType)
+    {
+        if (declaringType?.NamedType() is IComplexTypeDefinition complexType
+            && complexType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
         {
-            foreach (var selection in selectionSet.Selections)
-            {
-                switch (selection)
-                {
-                    case FieldNode field:
-                        var fieldType = ResolveFieldType(field, declaringType);
-                        responseNamePath.Add(field.Alias?.Value ?? field.Name.Value);
-
-                        if (field.Directives.Any(
-                                d => d.Name.Value == WellKnownDirectiveNames.ResponseBody))
-                        {
-                            return new OpenApiResponseBodySelection(
-                                responseNamePath.ToImmutableArray(),
-                                field.SelectionSet,
-                                fieldType);
-                        }
-
-                        if (field.SelectionSet is not null
-                            && FindResponseBody(field.SelectionSet, fieldType) is { } nestedResponseBody)
-                        {
-                            return nestedResponseBody;
-                        }
-
-                        responseNamePath.RemoveAt(responseNamePath.Count - 1);
-                        break;
-
-                    case InlineFragmentNode { TypeCondition: null } inlineFragment:
-                        if (FindResponseBody(inlineFragment.SelectionSet, declaringType)
-                            is { } inlineResponseBody)
-                        {
-                            return inlineResponseBody;
-                        }
-                        break;
-                }
-            }
-
-            return null;
+            return fieldDefinition.Type;
         }
 
-        IOutputType? ResolveFieldType(FieldNode field, IOutputType? declaringType)
+        return null;
+    }
+
+    private sealed class ResponseBodySelectionFinder
+        : SyntaxWalker<ResponseBodySelectionFinderContext>
+    {
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            ResponseBodySelectionFinderContext context)
         {
-            if (declaringType?.NamedType() is IComplexTypeDefinition complexType
-                && complexType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
+            var declaringType = context.Path.Count == 0
+                ? context.RootType
+                : context.Path[^1].FieldType;
+            var fieldType = ResolveFieldType(node, declaringType);
+            context.Path.Add(
+                new ResponseBodyPathSegment(
+                    node.Alias?.Value ?? node.Name.Value,
+                    fieldType));
+
+            if (node.Directives.Any(
+                    d => d.Name.Value == WellKnownDirectiveNames.ResponseBody))
             {
-                return fieldDefinition.Type;
+                context.ResponseBodySelection = new OpenApiResponseBodySelection(
+                    CreateResponseNamePath(context.Path),
+                    node.SelectionSet,
+                    fieldType);
+                return Break;
             }
 
-            return null;
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode node,
+            ResponseBodySelectionFinderContext context)
+        {
+            context.Path.RemoveAt(context.Path.Count - 1);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            ResponseBodySelectionFinderContext context)
+            => node.TypeCondition is null ? Continue : Skip;
+
+        private static ImmutableArray<string> CreateResponseNamePath(
+            List<ResponseBodyPathSegment> path)
+        {
+            var responseNamePath = new string[path.Count];
+            for (var i = 0; i < path.Count; i++)
+            {
+                responseNamePath[i] = path[i].ResponseName;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(responseNamePath);
         }
     }
+
+    private sealed class ResponseBodySelectionFinderContext(IOutputType? rootType)
+    {
+        public IOutputType? RootType { get; } = rootType;
+
+        public List<ResponseBodyPathSegment> Path { get; } = [];
+
+        public OpenApiResponseBodySelection? ResponseBodySelection { get; set; }
+    }
+
+    private readonly record struct ResponseBodyPathSegment(
+        string ResponseName,
+        IOutputType? FieldType);
 }
 
 internal sealed record OpenApiResponseBodySelection(
