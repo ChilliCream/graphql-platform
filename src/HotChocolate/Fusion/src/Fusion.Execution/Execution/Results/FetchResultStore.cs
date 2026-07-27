@@ -25,15 +25,20 @@ using ListValueNode = HotChocolate.Language.ListValueNode;
 using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
 using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
 using IValueNode = HotChocolate.Language.IValueNode;
+using System.Text;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore : IDisposable
 {
     private const int MaxRetainedDataElementStagingLength = 1024;
+    private const int MaxStackAllocPathSegments = 32;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
+    private static readonly ArrayPool<byte> s_bytePool = ArrayPool<byte>.Shared;
+    private static readonly ArrayPool<int> s_intPool = ArrayPool<int>.Shared;
+    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
@@ -123,6 +128,27 @@ internal sealed partial class FetchResultStore : IDisposable
         var errorTriesSpan = errorTries.AsSpan(0, results.Length);
         List<IError>? rootErrors = null;
 
+        byte[]? rentedUtf8FieldNames = null;
+        int[]? rentedUtf8FieldNameEnds = null;
+        var asciiByteCount = ComputeAsciiFieldNameBytes(sourcePath);
+
+        var utf8FieldNames = asciiByteCount == 0
+            ? default
+            : asciiByteCount <= JsonConstants.StackallocByteThreshold
+                ? stackalloc byte[JsonConstants.StackallocByteThreshold]
+                : (rentedUtf8FieldNames = s_bytePool.Rent(asciiByteCount));
+
+        var utf8FieldNameEnds = sourcePath.Length == 0
+            ? default
+            : sourcePath.Length <= MaxStackAllocPathSegments
+                ? stackalloc int[MaxStackAllocPathSegments]
+                : (rentedUtf8FieldNameEnds = s_intPool.Rent(sourcePath.Length));
+
+        if (sourcePath.Length > 0)
+        {
+            TranscodeFieldSegments(sourcePath, utf8FieldNames, utf8FieldNameEnds);
+        }
+
         try
         {
             for (var i = 0; i < results.Length; i++)
@@ -136,7 +162,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     rootErrors.AddRange(rootErrorsFromResult);
                 }
 
-                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+                dataElementsSpan[i] = GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, result.Data);
                 errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
             }
 
@@ -190,6 +216,16 @@ internal sealed partial class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+
+            if (rentedUtf8FieldNames is not null)
+            {
+                s_bytePool.Return(rentedUtf8FieldNames);
+            }
+
+            if (rentedUtf8FieldNameEnds is not null)
+            {
+                s_intPool.Return(rentedUtf8FieldNameEnds);
+            }
         }
 
         static void RegisterRemainingResults(
@@ -235,11 +271,32 @@ internal sealed partial class FetchResultStore : IDisposable
 
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
 
+        byte[]? rentedUtf8FieldNames = null;
+        int[]? rentedUtf8FieldNameEnds = null;
+        var asciiByteCount = ComputeAsciiFieldNameBytes(sourcePath);
+
+        var utf8FieldNames = asciiByteCount == 0
+            ? default
+            : asciiByteCount <= JsonConstants.StackallocByteThreshold
+                ? stackalloc byte[JsonConstants.StackallocByteThreshold]
+                : (rentedUtf8FieldNames = s_bytePool.Rent(asciiByteCount));
+
+        var utf8FieldNameEnds = sourcePath.Length == 0
+            ? default
+            : sourcePath.Length <= MaxStackAllocPathSegments
+                ? stackalloc int[MaxStackAllocPathSegments]
+                : (rentedUtf8FieldNameEnds = s_intPool.Rent(sourcePath.Length));
+
+        if (sourcePath.Length > 0)
+        {
+            TranscodeFieldSegments(sourcePath, utf8FieldNames, utf8FieldNameEnds);
+        }
+
         try
         {
             for (var i = 0; i < results.Length; i++)
             {
-                dataElementsSpan[i] = GetDataElement(sourcePath, results[i].Data);
+                dataElementsSpan[i] = GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, results[i].Data);
             }
 
             lock (_lock)
@@ -288,6 +345,16 @@ internal sealed partial class FetchResultStore : IDisposable
             if (returnDataElements)
             {
                 ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+            }
+
+            if (rentedUtf8FieldNames is not null)
+            {
+                s_bytePool.Return(rentedUtf8FieldNames);
+            }
+
+            if (rentedUtf8FieldNameEnds is not null)
+            {
+                s_intPool.Return(rentedUtf8FieldNameEnds);
             }
         }
 
@@ -1999,16 +2066,7 @@ AddErrors_Next:
                     break;
 
                 case SelectionPathSegmentKind.InlineFragment:
-                    if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String)
-                    {
-                        return default;
-                    }
-
-                    // Fast path: exact __typename match. On a miss the type condition may name an
-                    // abstract type, so accept the element when its runtime type is a subtype.
-                    if (!typeNameProperty.TextEqualsHelper(segment.Name, isPropertyName: false)
-                        && !IsRuntimeTypeAssignableTo(segment.Name, typeNameProperty.GetString()))
+                    if (!TryMatchInlineFragmentType(current, segment.Name))
                     {
                         return default;
                     }
@@ -2021,6 +2079,126 @@ AddErrors_Next:
         }
 
         return current;
+    }
+
+    /// <summary>
+    /// Same as <see cref="GetDataElement(SelectionPath, SourceResultElement)"/>, but uses
+    /// pre-encoded segment names so a batch merge encodes the path once and every result
+    /// reuses it.
+    /// </summary>
+    private SourceResultElement GetDataElement(
+        SelectionPath sourcePath,
+        ReadOnlySpan<byte> utf8FieldNames,
+        ReadOnlySpan<int> utf8FieldNameEnds,
+        SourceResultElement data)
+    {
+        if (sourcePath.IsRoot)
+        {
+            return data;
+        }
+
+        var current = data;
+        var start = 0;
+
+        for (var i = 0; i < sourcePath.Length; i++)
+        {
+            if (current.ValueKind != JsonValueKind.Object)
+            {
+                return current.ValueKind is JsonValueKind.Null ? current : default;
+            }
+
+            var segment = sourcePath[i];
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
+                    var end = utf8FieldNameEnds[i];
+
+                    if (!current.TryGetProperty(utf8FieldNames[start..end], out current))
+                    {
+                        return default;
+                    }
+
+                    start = end;
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    if (!TryMatchInlineFragmentType(current, segment.Name))
+                    {
+                        return default;
+                    }
+
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Segment kind {segment.Kind} is not supported.");
+            }
+        }
+
+        return current;
+    }
+
+    private bool TryMatchInlineFragmentType(SourceResultElement current, string typeCondition)
+    {
+        if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
+            || typeNameProperty.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        // Fast path: exact __typename match. On a miss the type condition may name an
+        // abstract type, so accept the element when its runtime type is a subtype.
+        return typeNameProperty.TextEqualsHelper(typeCondition, isPropertyName: false)
+            || IsRuntimeTypeAssignableTo(typeCondition, typeNameProperty.GetString());
+    }
+
+    /// <summary>
+    /// Returns the total byte length of all root and field segment names in the path.
+    /// GraphQL names are ASCII, so one character is one byte. Inline fragment segments
+    /// are skipped.
+    /// </summary>
+    private static int ComputeAsciiFieldNameBytes(SelectionPath sourcePath)
+    {
+        var byteCount = 0;
+
+        for (var i = 0; i < sourcePath.Length; i++)
+        {
+            var segment = sourcePath[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            {
+                byteCount += segment.Name.Length;
+            }
+        }
+
+        return byteCount;
+    }
+
+    /// <summary>
+    /// Encodes all root and field segment names into <paramref name="utf8FieldNames"/>.
+    /// <paramref name="utf8FieldNameEnds"/> holds each segment's exclusive end offset.
+    /// Inline fragment segments write no bytes and repeat the previous offset.
+    /// </summary>
+    private static void TranscodeFieldSegments(
+        SelectionPath sourcePath,
+        Span<byte> utf8FieldNames,
+        Span<int> utf8FieldNameEnds)
+    {
+        var offset = 0;
+
+        for (var i = 0; i < sourcePath.Length; i++)
+        {
+            var segment = sourcePath[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            {
+                var status = Ascii.FromUtf16(segment.Name, utf8FieldNames[offset..], out var written);
+                Debug.Assert(status is OperationStatus.Done, "GraphQL names are ASCII.");
+                offset += written;
+            }
+
+            utf8FieldNameEnds[i] = offset;
+        }
     }
 
     private bool IsRuntimeTypeAssignableTo(string typeCondition, string? runtimeTypeName)
