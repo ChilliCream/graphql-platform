@@ -1286,11 +1286,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
               },
               "satisfiability": {
                 "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
               }
             }
             """);
@@ -1334,11 +1339,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
               },
               "satisfiability": {
                 "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
               }
             }
             """);
@@ -1367,11 +1377,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
               },
               "satisfiability": {
                 "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
               }
             }
             """);
@@ -1415,11 +1430,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"
               },
               "satisfiability": {
                 "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
               }
             }
             """);
@@ -2173,8 +2193,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
     {
         // arrange
-        SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2194,8 +2214,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Stage,
             "--tag",
             Tag,
-            "--source-schema",
-            SourceSchema);
+            "--source-schema-file",
+            SourceSchemaFile);
 
         // assert
         result.AssertSuccess(
@@ -5897,6 +5917,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         if (input is not PublishInput.Archive)
         {
             SetupFusionConfigurationDownload();
+            SetupStageCompositionSettings();
         }
         SetupFusionConfigurationValidationMutation(CreateValidationRequestNotFoundError());
         SetupReleaseDeploymentSlotMutation();
@@ -5914,6 +5935,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         if (input is not PublishInput.Archive)
         {
             SetupFusionConfigurationDownload();
+            SetupStageCompositionSettings();
         }
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();

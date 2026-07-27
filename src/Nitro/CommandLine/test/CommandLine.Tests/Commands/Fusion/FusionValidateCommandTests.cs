@@ -843,6 +843,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task ApiNotFound_WithSourceSchema_ReturnsError()
     {
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
         var result = await ExecuteCommandAsync(
@@ -862,6 +863,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task StageNotFound_WithSourceSchema_ReturnsError()
     {
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
         var result = await ExecuteCommandAsync(
@@ -881,6 +883,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task SchemaNotFound_WithSourceSchema_ReturnsError()
     {
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
         var result = await ExecuteCommandAsync(
@@ -1052,7 +1055,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadWithArchiveSettingsPreserved(capturedStream);
+        AssertSchemaUploadAfterCompose(capturedStream);
     }
 
     [Fact]
@@ -1111,7 +1114,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadWithArchiveSettingsPreserved(capturedStream);
+        AssertSchemaUploadAfterCompose(capturedStream);
     }
 
     [Fact]
