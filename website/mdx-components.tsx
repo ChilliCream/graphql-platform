@@ -93,10 +93,14 @@ const components: MDXComponents = {
   InputChoiceTabs,
   PipelineChoiceTabs,
   ExampleTabs,
-  Implementation,
-  Code,
-  ExampleCode,
-  Schema,
+  // Component identity is not stable across the RSC/client boundary. Give the
+  // marker elements a serializable discriminator for ExampleTabs to inspect.
+  Implementation: (props) => (
+    <Implementation {...props} exampleTab="implementation" />
+  ),
+  Code: (props) => <Code {...props} exampleTab="code" />,
+  ExampleCode: (props) => <ExampleCode {...props} exampleTab="code" />,
+  Schema: (props) => <Schema {...props} exampleTab="schema" />,
   PackageInstallation,
 };
 

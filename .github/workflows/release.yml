@@ -528,7 +528,7 @@ jobs:
               echo "Skipping ${name}@${version} (already published)"
               return 0
             fi
-            npm publish "$tarball" \
+            npm publish "./$tarball" \
               --access public \
               --registry="$REGISTRY" \
               --tag "$PRIMARY_BAND"
