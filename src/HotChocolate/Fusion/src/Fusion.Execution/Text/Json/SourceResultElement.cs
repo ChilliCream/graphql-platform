@@ -297,7 +297,7 @@ public readonly partial struct SourceResultElement
     {
         if (ValueKind is not JsonValueKind.String)
         {
-            throw new InvalidOperationException("The element value is null.");
+            throw new InvalidOperationException("The element value is not a string.");
         }
 
         return ValueSpan;
