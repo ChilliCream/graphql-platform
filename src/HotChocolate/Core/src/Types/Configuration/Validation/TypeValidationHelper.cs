@@ -125,14 +125,12 @@ internal static class TypeValidationHelper
             return;
         }
 
-        switch (type.Kind)
-        {
-            case TypeKind.NonNull:
-                ValidateDefaultValueNode(root, value, ((NonNullType)type).NullableType, path, errors);
-                break;
+        var unwrapped = type.NullableType();
 
+        switch (unwrapped.Kind)
+        {
             case TypeKind.List:
-                var elementType = ((ListType)type).ElementType;
+                var elementType = ((ListType)unwrapped).ElementType;
 
                 if (value is ListValueNode list)
                 {
@@ -157,11 +155,16 @@ internal static class TypeValidationHelper
                     break;
                 }
 
-                ValidateInputObjectDefault(root, (InputObjectType)type.NamedType(), inputObjectValue, path, errors);
+                ValidateInputObjectDefault(
+                    root,
+                    (InputObjectType)unwrapped.NamedType(),
+                    inputObjectValue,
+                    path,
+                    errors);
                 break;
 
             case TypeKind.Enum:
-                var enumType = (EnumType)type.NamedType();
+                var enumType = (EnumType)unwrapped.NamedType();
 
                 if (value is not EnumValueNode enumValue)
                 {
@@ -175,7 +178,7 @@ internal static class TypeValidationHelper
                 break;
 
             case TypeKind.Scalar:
-                if (!((ILeafType)type.NamedType()).IsValueCompatible(value))
+                if (!((ILeafType)unwrapped.NamedType()).IsValueCompatible(value))
                 {
                     errors.Add(IncompatibleDefaultValueType(root, path, type.Print()));
                 }

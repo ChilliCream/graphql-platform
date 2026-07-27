@@ -217,6 +217,18 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
+    public void RejectArgumentWithNonNullIncompatibleScalarDefaultValue()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: Int! = "abc"): String
+          }
+        """);
+    }
+
+    [Fact]
     public void RejectArgumentWithNullDefaultValueForNonNull()
     {
         ExpectError(@"
