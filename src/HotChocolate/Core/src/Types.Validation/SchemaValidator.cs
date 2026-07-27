@@ -133,6 +133,8 @@ public sealed class SchemaValidator
                     {
                         PublishEvent(new EnumValueEvent(value), context);
                         PublishEvent(new NamedMemberEvent(value), context);
+
+                        PublishDirectiveEvents(value, context);
                     }
 
                     break;
@@ -170,6 +172,8 @@ public sealed class SchemaValidator
                 PublishEvent(new ArgumentEvent(argument), context);
                 PublishEvent(new InputValueEvent(argument), context);
                 PublishEvent(new NamedMemberEvent(argument), context);
+
+                PublishDirectiveEvents(argument, context);
             }
         }
     }
