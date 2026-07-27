@@ -1291,8 +1291,8 @@ TryCompleteList_MoveNext:
         var typeNameElement = data.GetProperty(IntrospectionFieldNames.TypeNameSpan);
 
         // Small implementer sets resolve the type by comparing the raw UTF-8 __typename
-        // bytes, which is allocation free. Beyond 4 candidates the linear scan loses to
-        // the dictionary lookup, so larger sets use the memo below.
+        // bytes directly. Beyond 4 candidates the linear scan loses to the dictionary
+        // lookup, so larger sets use the memo below.
         if (TryResolveType(typeNameElement, namedType, out var resolvedType))
         {
             return resolvedType;
