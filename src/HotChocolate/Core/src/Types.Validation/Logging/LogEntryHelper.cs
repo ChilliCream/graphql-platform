@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using static HotChocolate.Properties.ValidationResources;
@@ -64,6 +65,32 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
+    }
+
+    public static LogEntry DuplicateFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            isInputField
+                ? LogEntryCodes.IncompatibleInputFieldDefaultValue
+                : LogEntryCodes.IncompatibleArgumentDefaultValue,
+            formattedPath is null
+                ? isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueDuplicateField
+                    : LogEntryHelper_ArgumentDefaultValueDuplicateField
+                : isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueDuplicateFieldAtPath
+                    : LogEntryHelper_ArgumentDefaultValueDuplicateFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
     }
 
     public static LogEntry EmptyEnumType(IEnumTypeDefinition enumType)
@@ -136,6 +163,32 @@ internal static class LogEntryHelper
             .SetImplementedField(implementedField)
             .SetSpecifiedBy(type.Kind)
             .Build();
+    }
+
+    public static LogEntry IncompatibleDefaultValueType(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string typeName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            isInputField
+                ? LogEntryCodes.IncompatibleInputFieldDefaultValue
+                : LogEntryCodes.IncompatibleArgumentDefaultValue,
+            formattedPath is null
+                ? isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueIncompatibleType
+                    : LogEntryHelper_ArgumentDefaultValueIncompatibleType
+                : isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueIncompatibleTypeAtPath
+                    : LogEntryHelper_ArgumentDefaultValueIncompatibleTypeAtPath,
+            root.Coordinate.ToString(),
+            typeName,
+            formattedPath);
     }
 
     public static LogEntry InputObjectCycle(
@@ -301,6 +354,32 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry MissingRequiredFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            isInputField
+                ? LogEntryCodes.IncompatibleInputFieldDefaultValue
+                : LogEntryCodes.IncompatibleArgumentDefaultValue,
+            formattedPath is null
+                ? isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueMissingField
+                    : LogEntryHelper_ArgumentDefaultValueMissingField
+                : isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueMissingFieldAtPath
+                    : LogEntryHelper_ArgumentDefaultValueMissingFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
     public static LogEntry NotTransitivelyImplemented(
         IComplexTypeDefinition complexType,
         IComplexTypeDefinition implementedType)
@@ -313,6 +392,32 @@ internal static class LogEntryHelper
             .SetImplementedType(implementedType)
             .SetSpecifiedBy(complexType.Kind)
             .Build();
+    }
+
+    public static LogEntry OneOfDefaultValueMustHaveExactlyOneField(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string inputObjectName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            isInputField
+                ? LogEntryCodes.IncompatibleInputFieldDefaultValue
+                : LogEntryCodes.IncompatibleArgumentDefaultValue,
+            formattedPath is null
+                ? isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueOneOf
+                    : LogEntryHelper_ArgumentDefaultValueOneOf
+                : isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueOneOfAtPath
+                    : LogEntryHelper_ArgumentDefaultValueOneOfAtPath,
+            root.Coordinate.ToString(),
+            inputObjectName,
+            formattedPath);
     }
 
     public static LogEntry SelfImplementation(IInterfaceTypeDefinition interfaceType)
@@ -417,6 +522,86 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(inputField)
             .Build();
+    }
+
+    public static LogEntry UnknownFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            isInputField
+                ? LogEntryCodes.IncompatibleInputFieldDefaultValue
+                : LogEntryCodes.IncompatibleArgumentDefaultValue,
+            formattedPath is null
+                ? isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueUnknownField
+                    : LogEntryHelper_ArgumentDefaultValueUnknownField
+                : isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueUnknownFieldAtPath
+                    : LogEntryHelper_ArgumentDefaultValueUnknownFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
+    private static LogEntry DefaultValueError(
+        IInputValueDefinition root,
+        string? formattedPath,
+        string code,
+        string format,
+        params object?[] args)
+    {
+        var specifiedByTypeKind = root.DeclaringMember switch
+        {
+            IOutputFieldDefinition f => f.DeclaringType.Kind,
+            IInputObjectTypeDefinition t => t.Kind,
+            IDirectiveDefinition => TypeKind.Directive,
+            _ => throw new InvalidOperationException()
+        };
+
+        var builder = LogEntryBuilder.New()
+            .SetMessage(format, args!)
+            .SetCode(code)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(root)
+            .SetSpecifiedBy(specifiedByTypeKind);
+
+        if (formattedPath is not null)
+        {
+            builder.SetExtension("path", formattedPath);
+        }
+
+        return builder.Build();
+    }
+
+    private static string FormatPath(IReadOnlyList<object> path)
+    {
+        var builder = new StringBuilder();
+
+        for (var i = 0; i < path.Count; i++)
+        {
+            if (path[i] is int index)
+            {
+                builder.Append('[').Append(index).Append(']');
+            }
+            else
+            {
+                if (builder.Length > 0)
+                {
+                    builder.Append('.');
+                }
+
+                builder.Append(path[i]);
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static TypeKind GetTypeSystemMemberKind(ITypeSystemMember member)

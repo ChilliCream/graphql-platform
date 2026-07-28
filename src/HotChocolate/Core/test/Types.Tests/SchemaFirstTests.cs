@@ -506,6 +506,38 @@ public class SchemaFirstTests
     }
 
     [Fact]
+    public async Task Ensure_Nested_Default_Values_Are_Applied_When_Argument_Default_Is_Used()
+    {
+        // arrange & act
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    example(input: ExampleInput! = {}): Int!
+                }
+
+                input ExampleInput {
+                    number: Int! = 3
+                }
+                """)
+            .AddResolver<QueryWithExampleInput>("Query")
+            .ExecuteRequestAsync(
+                "{ example }",
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "example": 3
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
     {
         await new ServiceCollection()
@@ -914,4 +946,14 @@ public class QueryWithFooInput
 public class Foo(string bar)
 {
     public string Bar { get; } = bar;
+}
+
+public class QueryWithExampleInput
+{
+    public int GetExample(ExampleInput input) => input.Number;
+}
+
+public class ExampleInput(int number)
+{
+    public int Number { get; } = number;
 }

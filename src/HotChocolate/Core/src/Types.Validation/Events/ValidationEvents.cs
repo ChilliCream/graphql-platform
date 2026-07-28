@@ -1,4 +1,5 @@
 using HotChocolate.Events.Contracts;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Events;
@@ -12,6 +13,20 @@ public sealed record ArgumentEvent(IInputValueDefinition Argument) : IValidation
 /// Represents an event that is triggered when a complex type is encountered during schema validation.
 /// </summary>
 public sealed record ComplexTypeEvent(IComplexTypeDefinition ComplexType) : IValidationEvent;
+
+/// <summary>
+/// Represents an event that is triggered for each node of a default value literal
+/// encountered during schema validation.
+/// </summary>
+/// <param name="Value">The default value literal node at the current position.</param>
+/// <param name="Type">The type expected at the current position.</param>
+/// <param name="Path">The path from the default value root to the current node (input field names and list indices).</param>
+/// <param name="Root">The argument or input field that declares the default value.</param>
+public sealed record DefaultValueNodeEvent(
+    IValueNode Value,
+    IType Type,
+    IReadOnlyList<object> Path,
+    IInputValueDefinition Root) : IValidationEvent;
 
 /// <summary>
 /// Represents an event that is triggered when a directive argument assignment is encountered during schema validation.

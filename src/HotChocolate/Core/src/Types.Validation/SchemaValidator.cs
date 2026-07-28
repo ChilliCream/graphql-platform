@@ -1,5 +1,6 @@
 using HotChocolate.Events;
 using HotChocolate.Events.Contracts;
+using HotChocolate.Language;
 using HotChocolate.Logging.Contracts;
 using HotChocolate.Rules;
 using HotChocolate.Types;
@@ -50,6 +51,7 @@ public sealed class SchemaValidator
         _rules.Add(new NonEmptyUnionTypeRule());
         _rules.Add(new NoSelfImplementationRule());
         _rules.Add(new TypeIsDefinedRule());
+        _rules.Add(new ValidDefaultValueRule());
         _rules.Add(new ValidDeprecationRule());
         _rules.Add(new ValidImplementationsRule());
         _rules.Add(new ValidNameRule());
@@ -118,6 +120,7 @@ public sealed class SchemaValidator
                             PublishEvent(new InputValueEvent(argument), context);
                             PublishEvent(new NamedMemberEvent(argument), context);
 
+                            PublishDefaultValueNodeEvents(argument, context);
                             PublishDirectiveEvents(argument, context);
                         }
 
@@ -149,6 +152,7 @@ public sealed class SchemaValidator
                         PublishEvent(new InputValueEvent(field), context);
                         PublishEvent(new NamedMemberEvent(field), context);
 
+                        PublishDefaultValueNodeEvents(field, context);
                         PublishDirectiveEvents(field, context);
                     }
 
@@ -173,6 +177,7 @@ public sealed class SchemaValidator
                 PublishEvent(new InputValueEvent(argument), context);
                 PublishEvent(new NamedMemberEvent(argument), context);
 
+                PublishDefaultValueNodeEvents(argument, context);
                 PublishDirectiveEvents(argument, context);
             }
         }
@@ -203,6 +208,68 @@ public sealed class SchemaValidator
                         member),
                     context);
             }
+        }
+    }
+
+    private void PublishDefaultValueNodeEvents(IInputValueDefinition inputValue, ValidationContext context)
+    {
+        if (inputValue.DefaultValue is { } defaultValue)
+        {
+            PublishDefaultValueNodeEvent(defaultValue, inputValue.Type, [], inputValue, context);
+        }
+    }
+
+    private void PublishDefaultValueNodeEvent(
+        IValueNode value,
+        IType type,
+        List<object> path,
+        IInputValueDefinition root,
+        ValidationContext context)
+    {
+        PublishEvent(new DefaultValueNodeEvent(value, type, path.ToArray(), root), context);
+
+        var unwrapped = type.NullableType();
+
+        switch (unwrapped.Kind)
+        {
+            case TypeKind.List:
+                var elementType = unwrapped.ElementType();
+
+                if (value is ListValueNode list)
+                {
+                    for (var i = 0; i < list.Items.Count; i++)
+                    {
+                        path.Add(i);
+                        PublishDefaultValueNodeEvent(list.Items[i], elementType, path, root, context);
+                        path.RemoveAt(path.Count - 1);
+                    }
+                }
+                else if (value.Kind is not (SyntaxKind.NullValue or SyntaxKind.Variable))
+                {
+                    // Spec list-input coercion: a non-list literal is treated as a singleton list at index 0.
+                    path.Add(0);
+                    PublishDefaultValueNodeEvent(value, elementType, path, root, context);
+                    path.RemoveAt(path.Count - 1);
+                }
+
+                break;
+
+            case TypeKind.InputObject when value is ObjectValueNode inputObjectValue:
+                var inputObject = (IInputObjectTypeDefinition)unwrapped.NamedType();
+
+                foreach (var fieldValue in inputObjectValue.Fields)
+                {
+                    if (inputObject.Fields.TryGetField(fieldValue.Name.Value, out var inputField))
+                    {
+                        path.Add(fieldValue.Name.Value);
+                        PublishDefaultValueNodeEvent(fieldValue.Value, inputField.Type, path, root, context);
+                        path.RemoveAt(path.Count - 1);
+                    }
+
+                    // Unknown fields are not recursed; ValidDefaultValueRule flags them at the object node.
+                }
+
+                break;
         }
     }
 

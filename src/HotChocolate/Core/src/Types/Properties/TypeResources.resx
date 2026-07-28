@@ -1095,4 +1095,70 @@ Type: `{0}`</value>
   <data name="ThrowHelper_KeyValuePairType_InvalidRuntimeType" xml:space="preserve">
     <value>{0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type.</value>
   </data>
+  <data name="ErrorHelper_ArgumentDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueIncompatibleType" xml:space="preserve">
+    <value>The default value of argument '{0}' is not compatible with the type '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueIncompatibleTypeAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' is not compatible with the type '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueMissingField" xml:space="preserve">
+    <value>The default value of argument '{0}' is missing the required input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueMissingFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' is missing the required input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueOneOf" xml:space="preserve">
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueOneOfAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueUnknownField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the unknown input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueUnknownFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueIncompatibleType" xml:space="preserve">
+    <value>The default value of input field '{0}' is not compatible with the type '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueIncompatibleTypeAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' is not compatible with the type '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueMissingField" xml:space="preserve">
+    <value>The default value of input field '{0}' is missing the required input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueMissingFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' is missing the required input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueOneOf" xml:space="preserve">
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueOneOfAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueUnknownField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the unknown input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueUnknownFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_UndefinedArgumentDefaultEnumValue" xml:space="preserve">
+    <value>The default value '{0}' of argument '{1}' is not defined in the enum '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_UndefinedInputFieldDefaultEnumValue" xml:space="preserve">
+    <value>The default value '{0}' of field '{1}' is not defined in the enum '{2}'.</value>
+  </data>
 </root>

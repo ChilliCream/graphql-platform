@@ -1473,6 +1473,14 @@ For a query against a nullable `Bar` column:
 - Previously: only rows where `Bar = false` were returned.
 - Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
 
+## Default values are validated against their type
+
+Argument and input field default values are now validated for compatibility with their type when the schema is built. Previously an incompatible default (for example an argument typed `Int` with a default of `"abc"`, or an enum default naming a value the enum does not define) built successfully and failed only when the default was actually used, or produced silently wrong behavior.
+
+Such schemas now fail at build with a schema error. This applies to defaults on object and interface field arguments, input object fields, and directive definition arguments, at any nesting depth (inside lists and input objects).
+
+If your schema fails to build after upgrading, correct the default value to a literal compatible with its type. `[ID]`-typed defaults given as strings remain valid; only genuinely incompatible literals are rejected.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
