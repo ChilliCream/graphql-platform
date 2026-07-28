@@ -19,6 +19,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
         _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 It.IsAny<string>(),
+                It.IsAny<Action<string, bool>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateLoginSession());
     }
@@ -28,8 +29,23 @@ public abstract class SessionCommandTestBase : CommandTestBase
         _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 url,
+                It.IsAny<Action<string, bool>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateLoginSession());
+    }
+
+    protected void SetupLoginWithBrowserCallback(string startUrl, bool browserOpened)
+    {
+        _sessionServiceMock
+            .Setup(x => x.LoginAsync(
+                It.IsAny<string>(),
+                It.IsAny<Action<string, bool>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns((string? _, Action<string, bool> callback, CancellationToken _) =>
+            {
+                callback(startUrl, browserOpened);
+                return Task.FromResult(CreateLoginSession());
+            });
     }
 
     protected void SetupLoginReturnsNull()
@@ -37,6 +53,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
         _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 It.IsAny<string>(),
+                It.IsAny<Action<string, bool>>(),
                 It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<UserSession>(null!));
     }
@@ -46,6 +63,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
         _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 It.IsAny<string>(),
+                It.IsAny<Action<string, bool>>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ExitException(message));
     }

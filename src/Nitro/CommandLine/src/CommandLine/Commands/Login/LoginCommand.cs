@@ -46,9 +46,16 @@ internal sealed class LoginCommand : Command
 
         await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
         {
-            activity.Update($"Browser opened at {url.EscapeMarkup()}. Continue login there.");
+            activity.Update($"Opening browser at {url.EscapeMarkup()}. Continue login there.");
 
-            var session = await sessionService.LoginAsync(url, cancellationToken);
+            var session = await sessionService.LoginAsync(
+                url,
+                (startUrl, browserOpened) => activity.Update(
+                    browserOpened
+                        ? $"If your browser does not open automatically, use this URL to log in: {startUrl.EscapeMarkup()}"
+                        : $"Could not open a browser. Use this URL to log in: {startUrl.EscapeMarkup()}",
+                    browserOpened ? ActivityUpdateKind.Regular : ActivityUpdateKind.Warning),
+                cancellationToken);
             if (session is null)
             {
                 throw new ExitException("There was a failure and Nitro could not log you in.");
