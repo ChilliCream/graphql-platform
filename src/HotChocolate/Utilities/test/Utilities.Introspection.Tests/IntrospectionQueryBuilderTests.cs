@@ -36,6 +36,23 @@ public class IntrospectionQueryBuilderTests
     }
 
     [Fact]
+    public void Create_Query_With_DirectiveDeprecation()
+    {
+        // arrange
+        var options = new IntrospectionOptions();
+        var features = new ServerCapabilities
+        {
+            HasDirectiveDeprecation = true
+        };
+
+        // act
+        var document = IntrospectionQueryBuilder.Build(features, options);
+
+        //assert
+        document.Print().MatchSnapshot();
+    }
+
+    [Fact]
     public void Create_Query_With_DirectiveLocations()
     {
         // arrange
