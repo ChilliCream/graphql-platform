@@ -27,7 +27,7 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 /// and a string-keyed dictionary lookup via <c>schema.Types.GetType&lt;IObjectTypeDefinition&gt;</c>.
 /// The candidate keeps a single-entry memo of the last resolved
 /// <see cref="FusionObjectTypeDefinition"/> and hits it with
-/// <c>TryGetRawStringValue</c> + <c>Ascii.Equals</c>, which is allocation free.
+/// <c>AssertUtf8String</c> + <c>Ascii.Equals</c>, which is allocation free.
 /// Lists are typically homogeneous, so the memo hits after the first element; the mixed
 /// payload alternates two type names every element, which is the worst case for the memo
 /// (100 percent misses) and shows the miss-path parity.
@@ -54,10 +54,10 @@ public class AbstractTypeResolutionMemoBenchmark
 
     private const int ElementCount = 1000;
 
-    // Field types mirror ValueCompletion: _schema is ISchemaDefinition
-    // (ValueCompletion.cs line 21), so Types/GetType go through the same
-    // interface dispatch the product pays.
-    private ISchemaDefinition _schema = null!;
+    // Field type mirrors ValueCompletion: _schema is FusionSchemaDefinition, whose
+    // Types collection exposes the span-keyed GetType overload the memoized
+    // variants below resolve a miss through.
+    private FusionSchemaDefinition _schema = null!;
     private ITypeDefinition _abstractType = null!;
     private MemoryArena _arena = null!;
     private SourceResultDocument _homogeneousDoc = null!;
@@ -246,9 +246,9 @@ public class AbstractTypeResolutionMemoBenchmark
     /// Candidate variant: identical to <see cref="ResolveTypeBaseline"/> except a
     /// single-entry memo fronts the global-name fallback. A memo hit compares the
     /// raw UTF-8 __typename bytes against the memoized type's name, skipping the
-    /// string allocation and the dictionary lookup. When TryGetRawStringValue
-    /// declines (escaped or chunk-spanning value) the existing fallback runs
-    /// unchanged, preserving semantics exactly.
+    /// string allocation and the string-keyed dictionary lookup entirely; a miss
+    /// resolves the type through the span-keyed overload, still without allocating
+    /// a string for the lookup.
     /// </summary>
     private IObjectTypeDefinition ResolveTypeMemoized(SourceResultElement data)
     {
@@ -259,15 +259,14 @@ public class AbstractTypeResolutionMemoBenchmark
             return resolvedType;
         }
 
-        if (_lastResolvedObjectType is { } last
-            && typeNameElement.TryGetRawStringValue(out var rawTypeName)
-            && Ascii.Equals(rawTypeName, last.Name))
+        var rawTypeName = typeNameElement.AssertUtf8String();
+
+        if (_lastResolvedObjectType is { } last && Ascii.Equals(rawTypeName, last.Name))
         {
             return last;
         }
 
-        var typeName = typeNameElement.AssertString();
-        var objectType = _schema.Types.GetType<IObjectTypeDefinition>(typeName);
+        var objectType = _schema.Types.GetType<IObjectTypeDefinition>(rawTypeName);
 
         if (objectType is FusionObjectTypeDefinition fusionObjectType)
         {
@@ -278,14 +277,13 @@ public class AbstractTypeResolutionMemoBenchmark
     }
 
     /// <summary>
-    /// Two-entry MRU variant: the raw UTF-8 __typename is read once per element
-    /// and compared against both memo slots, most recent first. A slot B hit
-    /// swaps the slots so the just-seen type is checked first on the next
+    /// Two-entry MRU variant, matching the shape of the applied product code in
+    /// <c>ValueCompletion.GetType</c>: the raw UTF-8 __typename is read once per
+    /// element and compared against both memo slots, most recent first. A slot B
+    /// hit swaps the slots so the just-seen type is checked first on the next
     /// element, which keeps an alternating two-type list entirely on the hit
-    /// path. A miss runs the unchanged fallback and installs the result as
-    /// slot A, demoting the old A to B. When TryGetRawStringValue declines
-    /// (escaped or chunk-spanning value) the fallback runs unchanged,
-    /// preserving semantics exactly.
+    /// path. A miss resolves the type through the span-keyed overload and installs
+    /// the result as slot A, demoting the old A to B.
     /// </summary>
     private IObjectTypeDefinition ResolveTypeMemoized2(SourceResultElement data)
     {
@@ -296,23 +294,21 @@ public class AbstractTypeResolutionMemoBenchmark
             return resolvedType;
         }
 
-        if (typeNameElement.TryGetRawStringValue(out var rawTypeName))
-        {
-            if (_memoTypeA is { } typeA && Ascii.Equals(rawTypeName, typeA.Name))
-            {
-                return typeA;
-            }
+        var rawTypeName = typeNameElement.AssertUtf8String();
 
-            if (_memoTypeB is { } typeB && Ascii.Equals(rawTypeName, typeB.Name))
-            {
-                _memoTypeB = _memoTypeA;
-                _memoTypeA = typeB;
-                return typeB;
-            }
+        if (_memoTypeA is { } typeA && Ascii.Equals(rawTypeName, typeA.Name))
+        {
+            return typeA;
         }
 
-        var typeName = typeNameElement.AssertString();
-        var objectType = _schema.Types.GetType<IObjectTypeDefinition>(typeName);
+        if (_memoTypeB is { } typeB && Ascii.Equals(rawTypeName, typeB.Name))
+        {
+            _memoTypeB = _memoTypeA;
+            _memoTypeA = typeB;
+            return typeB;
+        }
+
+        var objectType = _schema.Types.GetType<IObjectTypeDefinition>(rawTypeName);
 
         if (objectType is FusionObjectTypeDefinition fusionObjectType)
         {

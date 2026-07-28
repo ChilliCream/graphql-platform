@@ -248,6 +248,28 @@ internal readonly ref struct SourceResultElementSnapshot
     public string AssertString()
         => GetString() ?? throw new InvalidOperationException("The element value is null.");
 
+    /// <summary>
+    /// Gets the value as the raw UTF-8 bytes of a JSON string, throwing if the value is not a string.
+    /// </summary>
+    /// <returns>
+    /// The raw UTF-8 bytes of the string value. JSON escape sequences are not decoded.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// The value kind is not <see cref="JsonValueKind.String"/>.
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">
+    /// The parent <see cref="SourceResultDocument"/> has been disposed.
+    /// </exception>
+    public ReadOnlySpan<byte> AssertUtf8String()
+    {
+        if (ValueKind is not JsonValueKind.String)
+        {
+            throw new InvalidOperationException("The element value is not a string.");
+        }
+
+        return ValueSpan;
+    }
+
     /// <summary>Tries to get the current JSON number as an <see cref="sbyte"/> without throwing.</summary>
     /// <param name="value">Receives the parsed value if successful.</param>
     /// <returns><see langword="true"/> if the value was read; otherwise <see langword="false"/>.</returns>
@@ -388,17 +410,6 @@ internal readonly ref struct SourceResultElementSnapshot
     /// a <see cref="SourceResultElement"/> or an existing snapshot.
     /// </summary>
     internal SourceResultElementSnapshot CreateSnapshot() => this;
-
-    /// <summary>
-    /// Tries to get the raw UTF-8 bytes of a JSON string value that contains no escape sequences.
-    /// </summary>
-    /// <param name="utf8Value">Receives the raw UTF-8 span when successful.</param>
-    /// <returns>
-    /// <see langword="false"/> when the value is not a string, contains escape sequences,
-    /// or is not backed by contiguous memory.
-    /// </returns>
-    internal bool TryGetRawStringValue(out ReadOnlySpan<byte> utf8Value)
-        => _parent.TryGetRawStringValue(_row, out utf8Value);
 
     /// <summary>
     /// Compares the string value of this element to <paramref name="text"/> without allocation.
