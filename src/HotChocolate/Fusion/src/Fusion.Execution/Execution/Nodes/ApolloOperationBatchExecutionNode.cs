@@ -85,6 +85,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
             lookups[i] = new ApolloEntityLookup(
                 rewritten.Operation,
+                Utf8GraphQLOperationParser.Parse(rewritten.Operation.SourceText),
                 rewritten.Operation.SourceText.ComputeHash(),
                 rewritten.EntityTypeName,
 
@@ -344,9 +345,11 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 SchemaName = schemaName,
                 OperationType = lookup.Operation.Type,
                 OperationSourceText = lookup.Operation.SourceText,
+                OperationDocument = lookup.OperationDocument,
+                OperationHash = lookup.OperationHash,
+                LookupTypeName = lookup.EntityTypeName,
                 Variables = requestVariables,
-                RequiresFileUpload = false,
-                OperationHash = lookup.OperationHash
+                RequiresFileUpload = false
             });
 
             operationByIndex[operationCount] = operation;

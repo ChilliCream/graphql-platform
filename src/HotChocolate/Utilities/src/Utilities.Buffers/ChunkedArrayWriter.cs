@@ -211,6 +211,29 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
+    /// Reads as much data as possible from the chunk at the given location, mirroring
+    /// <see cref="Read"/> for callers that hand the data to an API that takes memory.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
+    {
+        var chunkIndex = start >> BufferShift;
+        var offsetInChunk = start & BufferMask;
+        var available = BufferSize - offsetInChunk;
+
+        if (available >= length)
+        {
+            var memory = _chunks[chunkIndex].AsMemory(offsetInChunk, length);
+            length = 0;
+            return memory;
+        }
+
+        start = (chunkIndex + 1) << BufferShift;
+        length -= available;
+        return _chunks[chunkIndex].AsMemory(offsetInChunk, available);
+    }
+
+    /// <summary>
     /// Compares an external span against a written segment at the specified location.
     /// Handles segments that span chunk boundaries.
     /// </summary>

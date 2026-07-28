@@ -1,63 +1,35 @@
 using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Buffers;
 
 /// <summary>
-/// A memory owner for a byte array.
+/// A memory owner over memory whose lifetime is managed elsewhere.
 /// </summary>
 public sealed class ArrayMemoryOwner : IMemoryOwner<byte>
 {
-    private readonly byte[] _buffer;
-    private readonly int _start;
-    private readonly int _length;
+    private readonly ReadOnlyMemory<byte> _memory;
 
-    public ArrayMemoryOwner(byte[] buffer)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArrayMemoryOwner"/>.
+    /// </summary>
+    /// <param name="memory">
+    /// The memory that is exposed by this owner.
+    /// </param>
+    public ArrayMemoryOwner(ReadOnlyMemory<byte> memory)
     {
-#if NET8_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(buffer);
-#else
-        if (buffer is null)
-        {
-            throw new ArgumentNullException(nameof(buffer));
-        }
-#endif
-
-        _buffer = buffer;
-        _start = 0;
-        _length = buffer.Length;
+        _memory = memory;
     }
 
-    public ArrayMemoryOwner(byte[] buffer, int start, int length)
-    {
-#if NET8_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(buffer);
-        ArgumentOutOfRangeException.ThrowIfLessThan(start, 0);
-        ArgumentOutOfRangeException.ThrowIfLessThan(length, 0);
-#else
-        if (buffer is null)
-        {
-            throw new ArgumentNullException(nameof(buffer));
-        }
-        if (start < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(start));
-        }
+    /// <summary>
+    /// Gets the memory that is exposed by this owner.
+    /// </summary>
+    public Memory<byte> Memory => MemoryMarshal.AsMemory(_memory);
 
-        if (length < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(length));
-        }
-#endif
-
-        _buffer = buffer;
-        _start = start;
-        _length = length;
-    }
-
-    public Memory<byte> Memory => _buffer.AsMemory().Slice(_start, _length);
-
+    /// <summary>
+    /// Does nothing as the memory is not owned by this instance.
+    /// </summary>
     public void Dispose()
     {
-        // do nothing
     }
 }

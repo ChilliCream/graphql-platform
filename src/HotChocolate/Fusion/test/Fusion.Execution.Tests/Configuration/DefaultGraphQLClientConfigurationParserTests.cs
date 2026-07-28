@@ -123,8 +123,8 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
     public void DefaultGraphQLClientConfigurationParser_Should_Honor_Declared_VariableBatching_When_Schema_Is_ApolloFederation()
     {
         // arrange
-        // the source schema is composed as an Apollo Federation connector, yet the
-        // kind-blind parser honors the batching capability declared in its settings.
+        // the source schema is composed as an Apollo Federation connector, so it defaults to
+        // alias batching; the declared variable batching is added on top of that default.
         var schema = ComposeApolloFederationSchema("products");
         Assert.Equal("ApolloFederation", schema.GetSourceSchemaConnectorKind("products"));
         var sourceSchema = GetSourceSchemaProperty(
@@ -155,7 +155,118 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         // assert
         Assert.True(claimed);
         var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
-        Assert.Equal(SourceSchemaClientCapabilities.All, http.Capabilities);
+        Assert.Equal(
+            SourceSchemaClientCapabilities.VariableBatching
+            | SourceSchemaClientCapabilities.AliasBatching,
+            http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Default_To_AliasBatching_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        // a federation subgraph is only assumed to speak plain GraphQL, so the settings that
+        // declare no batching capabilities at all leave alias batching as the only default.
+        var schema = ComposeApolloFederationSchema("products");
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql"
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(SourceSchemaClientCapabilities.AliasBatching, http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Add_RequestBatching_To_The_AliasBatching_Default_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        var schema = ComposeApolloFederationSchema("products");
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "requestBatching": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(
+            SourceSchemaClientCapabilities.RequestBatching
+            | SourceSchemaClientCapabilities.AliasBatching,
+            http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Disable_The_AliasBatching_Default_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        var schema = ComposeApolloFederationSchema("products");
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "aliasBatching": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(SourceSchemaClientCapabilities.None, http.Capabilities);
     }
 
     [Fact]

@@ -10,8 +10,7 @@ namespace HotChocolate.Fusion.Execution.Clients.AliasBatching;
 
 /// <summary>
 /// Represents the body of a batched request. The items of the batch are merged into one
-/// spec-conformant GraphQL operation whose root selections are aliased per item, and the merged
-/// operation is written straight into the request buffer when the transport serializes the body.
+/// spec-conformant GraphQL operation whose root selections are aliased per item.
 /// </summary>
 internal sealed class AliasBatchedRequestBody : IRequestBody
 {
@@ -30,8 +29,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     /// <param name="items">The items that are merged into one operation.</param>
     /// <param name="itemCount">The number of items in <paramref name="items"/>.</param>
     /// <param name="sharedVariables">
-    /// The variable definitions that the items share. A shared variable keeps its name and is
-    /// declared once for the whole operation.
+    /// The variable definitions that the items share. They keep their name and are declared once.
     /// </param>
     /// <param name="operationHash">The hash the generated operation name is derived from.</param>
     /// <param name="onError">The requested error handling mode.</param>
@@ -74,9 +72,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     }
 
     /// <summary>
-    /// Writes the merged operation as a JSON string value. The builder escapes while it walks, so
-    /// the complete string literal is placed into the writer's output without an intermediate
-    /// buffer.
+    /// Writes the merged operation as a JSON string value.
     /// </summary>
     private void WriteQuery(JsonWriter writer, ReadOnlySpan<AliasBatchItem> items)
     {

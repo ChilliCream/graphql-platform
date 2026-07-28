@@ -20,6 +20,7 @@
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +42,8 @@
     <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Utf8.SyntaxTree\HotChocolate.Language.Utf8.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />

@@ -6,8 +6,7 @@ namespace HotChocolate.Fusion.Execution.Clients.AliasBatching;
 
 /// <summary>
 /// Splits the single response of a batched request into one result per item. Fields and error
-/// paths are dispatched by their alias, never by their position, because a source schema is free
-/// to order the fields of its response.
+/// paths are dispatched by their alias, not by their position.
 /// </summary>
 internal static class AliasBatchResponseSplitter
 {
@@ -68,17 +67,19 @@ internal static class AliasBatchResponseSplitter
         for (var i = 0; i < items.Length; i++)
         {
             var variables = items[i].Variables;
+            var root = roots[i];
             var itemErrors = routedErrors?[i];
 
             results[i] = new SourceSchemaResult(
                 variables.Path,
                 document,
-                documentOwner,
-                roots[i],
-                itemErrors is null
+                documentOwner: documentOwner,
+                // An item whose field the response does not carry has no lookup data.
+                lookupData: root.ValueKind is JsonValueKind.Undefined ? null : root,
+                errors: itemErrors is null
                     ? null
                     : SourceSchemaErrors.Create(CollectionsMarshal.AsSpan(itemErrors)),
-                variables.AdditionalPaths);
+                additionalPaths: variables.AdditionalPaths);
         }
 
         return AliasBatchSplitStatus.Split;

@@ -455,7 +455,12 @@ public class LookupEntityQueryRewriterTests
     // GraphQL), so the multi-candidate tie-break cannot be constructed realistically here.
 
     private static OperationSourceText CreateOperation(string sourceText)
-        => new("Op", OperationType.Query, Encoding.UTF8.GetBytes(sourceText), "hash");
+        => OperationSourceText.Create(
+            "Op",
+            OperationType.Query,
+            Encoding.UTF8.GetBytes(sourceText),
+            "hash",
+            lookupTypeName: null);
 
     private static OperationRequirement CreateRequirement(
         FusionSchemaDefinition schema,

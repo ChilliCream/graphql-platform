@@ -1,13 +1,15 @@
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.AliasBatching.AliasBatchTestData;
 
 namespace HotChocolate.Fusion.Execution.Clients.AliasBatching;
 
-public sealed class AliasBatchResponseReaderTests
+public sealed class AliasBatchResponseSplitterTests : FusionTestBase
 {
     private const string Lookup = "query($__fusion_1_id: ID!){productById(id: $__fusion_1_id){name}}";
 
@@ -21,7 +23,7 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        var status = AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         Assert.Equal(AliasBatchSplitStatus.Split, status);
@@ -39,11 +41,11 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        var status = AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         Assert.Equal(AliasBatchSplitStatus.Split, status);
-        Assert.Equal(JsonValueKind.Undefined, fixture.Results[0].AliasedRoot.ValueKind);
+        Assert.Equal(JsonValueKind.Undefined, ReadItem(fixture.Results[0]).ValueKind);
         Assert.Equal("B", ReadName(fixture.Results[1]));
     }
 
@@ -57,7 +59,7 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        var status = AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         Assert.Equal(AliasBatchSplitStatus.Invalid, status);
@@ -73,7 +75,7 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        var status = AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         Assert.Equal(AliasBatchSplitStatus.Invalid, status);
@@ -89,7 +91,7 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        var status = AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         Assert.Equal(AliasBatchSplitStatus.Broadcast, status);
@@ -108,7 +110,7 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        var status = AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         Assert.Equal(AliasBatchSplitStatus.Split, status);
@@ -129,15 +131,15 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         // The items share one response document, so an item that no error was routed to must not
         // report the errors of its siblings.
         Assert.False(fixture.Results[0].HasErrors);
-        Assert.Equal(JsonValueKind.Undefined, fixture.Results[0].RawErrors.ValueKind);
+        Assert.Null(fixture.Results[0].Errors);
         Assert.True(fixture.Results[1].HasErrors);
-        Assert.Equal(JsonValueKind.Array, fixture.Results[1].RawErrors.ValueKind);
+        Assert.Equal("productById.name", ReadRoutedErrorPath(fixture.Results[1]));
     }
 
     [Fact]
@@ -153,7 +155,7 @@ public sealed class AliasBatchResponseReaderTests
             itemCount: 2);
 
         // act
-        AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // assert
         var first = fixture.Results[0].Extensions;
@@ -173,7 +175,7 @@ public sealed class AliasBatchResponseReaderTests
              "_2_productById":{"name":"C"}}}
             """,
             itemCount: 3);
-        AliasBatchResponseReader.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+        AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
 
         // act
         // The results of a batched response are disposed in whatever order the plan consumes
@@ -182,13 +184,17 @@ public sealed class AliasBatchResponseReaderTests
         fixture.Results[2].Dispose();
 
         // assert
-        Assert.Equal("B", ReadName(fixture.Results[1]));
+        var item = ReadItem(fixture.Results[1]);
+        Assert.Equal("B", item.GetProperty("name").GetString());
         fixture.Results[1].Dispose();
-        Assert.Throws<ObjectDisposedException>(() => ReadName(fixture.Results[1]));
+        Assert.Throws<ObjectDisposedException>(() => item.GetProperty("name").GetString());
     }
 
+    private static SourceResultElement ReadItem(SourceSchemaResult result)
+        => result.LookupData ?? default;
+
     private static string? ReadName(SourceSchemaResult result)
-        => result.AliasedRoot.GetProperty("name").GetString();
+        => ReadItem(result).GetProperty("name").GetString();
 
     private static string? ReadRoutedErrorPath(SourceSchemaResult result)
     {

@@ -9,7 +9,7 @@ public class ReadOnlyMemorySegmentTests
         var buffer = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
         // act
-        var segment = new ReadOnlyMemorySegment(buffer, 3, 4);
+        var segment = new ReadOnlyMemorySegment(buffer.AsMemory(3, 4));
 
         // assert
         Assert.Equal(4, segment.Length);
@@ -24,7 +24,7 @@ public class ReadOnlyMemorySegmentTests
         var buffer = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
         // act
-        var segment = new ReadOnlyMemorySegment(buffer, 5, 3);
+        var segment = new ReadOnlyMemorySegment(buffer.AsMemory(5, 3));
 
         // assert
         Assert.Equal(3, segment.Length);
@@ -33,7 +33,7 @@ public class ReadOnlyMemorySegmentTests
     }
 
     [Fact]
-    public void Span_Should_ReturnSameBytesAsBufferCtor_When_ConstructedFromMemoryOwner()
+    public void Span_Should_ReturnSameBytesAsMemoryCtor_When_ConstructedFromMemoryOwner()
     {
         // arrange
         var buffer = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -41,12 +41,12 @@ public class ReadOnlyMemorySegmentTests
 
         // act
         var fromOwner = new ReadOnlyMemorySegment(owner, 3, 4);
-        var fromBuffer = new ReadOnlyMemorySegment(buffer, 3, 4);
+        var fromMemory = new ReadOnlyMemorySegment(buffer.AsMemory(3, 4));
 
         // assert
-        Assert.Equal(fromBuffer.Length, fromOwner.Length);
-        Assert.Equal(fromBuffer.Span.ToArray(), fromOwner.Span.ToArray());
-        Assert.Equal(fromBuffer.Memory.ToArray(), fromOwner.Memory.ToArray());
+        Assert.Equal(fromMemory.Length, fromOwner.Length);
+        Assert.Equal(fromMemory.Span.ToArray(), fromOwner.Span.ToArray());
+        Assert.Equal(fromMemory.Memory.ToArray(), fromOwner.Memory.ToArray());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class ReadOnlyMemorySegmentTests
         var buffer = new byte[] { 1, 2, 3, 4 };
 
         // act
-        var segment = new ReadOnlyMemorySegment(buffer, 2, 0);
+        var segment = new ReadOnlyMemorySegment(buffer.AsMemory(2, 0));
 
         // assert
         Assert.False(segment.IsEmpty);

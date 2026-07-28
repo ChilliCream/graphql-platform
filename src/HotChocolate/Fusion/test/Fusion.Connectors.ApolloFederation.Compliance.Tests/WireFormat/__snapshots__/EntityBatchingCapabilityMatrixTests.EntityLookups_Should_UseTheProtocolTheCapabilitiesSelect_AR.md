@@ -1,4 +1,4 @@
-# ApolloEntityBatch_Should_SendOneOperationBatch_When_CapabilitiesUndeclared
+# EntityLookups_Should_UseTheProtocolTheCapabilitiesSelect
 
 ## HTTP Request 1 to 'left'
 

@@ -83,6 +83,9 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
+    internal ImmutableArray<string> GetForwardedVariablesArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_forwardedVariables);
+
     /// <summary>
     /// Gets the result selection set that describes which fields this operation
     /// populates in the composite result.

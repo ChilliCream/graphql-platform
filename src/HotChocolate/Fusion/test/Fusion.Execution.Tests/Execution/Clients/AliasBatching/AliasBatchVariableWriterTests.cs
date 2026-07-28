@@ -109,6 +109,27 @@ public sealed class AliasBatchVariableWriterTests
     }
 
     [Fact]
+    public void Write_Should_PrefixTheName_When_ANameExceedingTheScratchBufferCrossesAChunkBoundary()
+    {
+        // arrange
+        // 257 bytes, one more than the stack buffer a name is gathered into, so the gathered name
+        // is held by pooled memory while the prefixed name is composed from it.
+        var name = "__fusion_1_" + new string('x', 246);
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup($"query(${name}: ID!){{productById(id: ${name}){{name}}}}");
+        // The values start six bytes before the boundary, so the name of the variable is stored in
+        // two chunks.
+        PadToBoundary(memory, bytesBeforeBoundary: 6);
+        var items = new[] { CreateItem(memory, document, $$"""{"{{name}}":"1"}""") };
+
+        // act
+        var json = Write(items, []);
+
+        // assert
+        Assert.Equal($$"""{"_0_{{name}}":"1"}""", json);
+    }
+
+    [Fact]
     public void Write_Should_WriteSharedValueOnce_When_ASharedNameCrossesAChunkBoundary()
     {
         // arrange

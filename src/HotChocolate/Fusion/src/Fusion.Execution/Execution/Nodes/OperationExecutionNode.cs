@@ -93,6 +93,9 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
+    internal ImmutableArray<string> GetForwardedVariablesArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_forwardedVariables);
+
     /// <summary>
     /// Gets whether this operation contains one or more variables
     /// that contain the Upload scalar.
@@ -122,7 +125,10 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationSourceText = _operation.SourceText,
             Variables = variables,
             RequiresFileUpload = _requiresFileUpload,
-            OperationHash = _operationHash
+            OperationHash = _operationHash,
+            OperationDocument = _operation.Document,
+            LookupTypeName = _operation.LookupTypeName,
+            ForwardedVariables = GetForwardedVariablesArray()
         };
 
         var index = 0;
@@ -303,7 +309,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
-            OperationHash = _operationHash
+            OperationHash = _operationHash,
+            OperationDocument = _operation.Document
         };
 
         var subscriptionId = SubscriptionId.Next();

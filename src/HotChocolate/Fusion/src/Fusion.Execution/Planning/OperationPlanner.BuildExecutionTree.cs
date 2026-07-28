@@ -598,7 +598,8 @@ public sealed partial class OperationPlanner
                 operationStep.SchemaName,
                 schema);
         var operation = RemoveInternalDirectives(sourceRewrite.Operation);
-        var operationSource = operation.ToSourceText();
+        var operationSource = operation.ToSourceText(
+            OperationSourceText.ResolveLookupTypeName(operationStep.Source, operationStep.Type));
 
         var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
         var sourceAliasSelectionSets = CreateSourceAliasSelectionSetLookup(
@@ -2672,7 +2673,9 @@ file static class Extensions
         return selections.ToArray();
     }
 
-    public static OperationSourceText ToSourceText(this OperationDefinitionNode operation)
+    public static OperationSourceText ToSourceText(
+        this OperationDefinitionNode operation,
+        string? lookupTypeName)
     {
         var sourceText = operation.ToString(indented: true);
         var sourceTextUtf8 = s_encoding.GetBytes(sourceText);
@@ -2681,10 +2684,11 @@ file static class Extensions
 #else
         var operationHash = Convert.ToHexString(SHA256.HashData(sourceTextUtf8)).ToLowerInvariant();
 #endif
-        return new OperationSourceText(
+        return OperationSourceText.Create(
             operation.Name!.Value,
             operation.Operation,
             sourceTextUtf8,
-            operationHash);
+            operationHash,
+            lookupTypeName);
     }
 }

@@ -151,7 +151,7 @@ public class AliasBatchingTests : FusionTestBase
             """;
 
         // act
-        var variableBatched = await ExecuteAsync(query, SourceSchemaClientCapabilities.All);
+        var variableBatched = await ExecuteAsync(query, SourceSchemaClientCapabilities.Default);
         var aliasBatched = await ExecuteAsync(query, SourceSchemaClientCapabilities.AliasBatching);
 
         // assert

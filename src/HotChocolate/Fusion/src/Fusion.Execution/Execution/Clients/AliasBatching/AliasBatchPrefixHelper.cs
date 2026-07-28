@@ -91,8 +91,7 @@ internal static class AliasBatchPrefixHelper
                 break;
             }
 
-            // A response that claims an item index beyond the batch is rejected by the caller, so
-            // the accumulator only has to stay within range while it is being read.
+            // An index that does not fit into an int names no item of the batch.
             if (value > (int.MaxValue - digit) / 10)
             {
                 return false;

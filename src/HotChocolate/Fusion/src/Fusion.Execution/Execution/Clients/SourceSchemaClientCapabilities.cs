@@ -36,5 +36,5 @@ public enum SourceSchemaClientCapabilities
     /// because it supersedes those modes and is selected through an explicit opt-in rather than
     /// advertised as a default capability.
     /// </summary>
-    All = VariableBatching | RequestBatching
+    Default = VariableBatching | RequestBatching
 }

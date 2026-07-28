@@ -80,7 +80,10 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             OperationSourceText = operation.Operation.SourceText,
             Variables = variables,
             RequiresFileUpload = operation.RequiresFileUpload,
-            OperationHash = operation.OperationHash
+            OperationHash = operation.OperationHash,
+            OperationDocument = operation.OperationDocument,
+            LookupTypeName = operation.LookupTypeName,
+            ForwardedVariables = operation.GetForwardedVariablesArray()
         };
 
         var hasSomeErrors = false;
@@ -359,7 +362,10 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 OperationSourceText = operation.Operation.SourceText,
                 Variables = variables,
                 RequiresFileUpload = _requiresFileUpload,
-                OperationHash = operation.OperationHash
+                OperationHash = operation.OperationHash,
+                OperationDocument = operation.OperationDocument,
+                LookupTypeName = operation.LookupTypeName,
+                ForwardedVariables = operation.GetForwardedVariablesArray()
             });
 
             operationByIndex[operationCount] = operation;

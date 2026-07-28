@@ -116,13 +116,16 @@ public sealed class BatchBufferTests : FusionTestBase
 
     private static SourceSchemaClientRequest CreateRequest(ExecutionNode node)
     {
+        var sourceText = "query { field }"u8.ToArray();
+
         return new SourceSchemaClientRequest
         {
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = "query { field }"u8.ToArray(),
+            OperationSourceText = sourceText,
             OperationHash = 1,
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
             Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
         };
     }

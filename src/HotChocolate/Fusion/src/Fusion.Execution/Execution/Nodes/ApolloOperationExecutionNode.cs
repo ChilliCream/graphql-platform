@@ -188,7 +188,9 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             OperationSourceText = _operation.SourceText,
             Variables = requestVariables,
             RequiresFileUpload = false,
-            OperationHash = _operationHash
+            OperationHash = _operationHash,
+            OperationDocument = _operation.Document,
+            LookupTypeName = _operation.LookupTypeName
         };
 
         SourceSchemaResult? result = null;

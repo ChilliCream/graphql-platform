@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -14,6 +15,8 @@ namespace HotChocolate.Fusion.Diagnostics;
 [Collection("Instrumentation")]
 public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 {
+    private const string BatchOperationCountTag = "graphql.source_schema.batch.operation_count";
+
     [Fact]
     public async Task Track_Events_Of_A_Simple_Query_Default()
     {
@@ -221,6 +224,49 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task StepSpan_Should_ReportTheOperationCount_When_TheStepBatchesOperations()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<BatchSourceSchemaA.Query>());
+
+            using var server2 = CreateSourceSchema(
+                "b",
+                b => b.AddQueryType<BatchSourceSchemaB.Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .ModifyPlannerOptions(o => o.EnableRequestGrouping = true));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Both root selections read from the same source schema, so their two operations are
+            // sent by one step.
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ first { rating } second { deliveryEstimate } }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            var batchStep = Assert.Single(
+                activities.Exported,
+                a => a.GetTagItem(BatchOperationCountTag) is not null);
+            Assert.Equal("2", batchStep.GetTagItem(BatchOperationCountTag));
         }
     }
 
@@ -901,6 +947,37 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
             // assert
             activities.MatchSnapshot();
+        }
+    }
+
+    public static class BatchSourceSchemaA
+    {
+        [EntityKey("id")]
+        public record Product(int Id);
+
+        public sealed class Query
+        {
+            public Product GetFirst() => new(1);
+
+            public Product GetSecond() => new(2);
+        }
+    }
+
+    public static class BatchSourceSchemaB
+    {
+        [EntityKey("id")]
+        public record Product(int Id)
+        {
+            public int Rating => Id + 4;
+
+            public int DeliveryEstimate => Id + 1;
+        }
+
+        public sealed class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product GetProductById(int id) => new(id);
         }
     }
 

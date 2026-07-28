@@ -249,13 +249,16 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             GraphQLHttpClient.Create(new HttpClient()),
             new HttpSourceSchemaClientConfiguration("a", new Uri("http://localhost:5000/graphql")));
 
+        var sourceText = "subscription { field }"u8.ToArray();
+
         var request = new SourceSchemaClientRequest
         {
             Node = fixture.GetRootNode(),
             SchemaName = "a",
             OperationType = OperationType.Subscription,
-            OperationSourceText = "subscription { field }"u8.ToArray(),
-            OperationHash = 0
+            OperationSourceText = sourceText,
+            OperationHash = 0,
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText)
         };
 
         // act

@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Execution.ApolloFederation;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -9,6 +10,9 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <param name="Operation">
 /// The rewritten single-lookup <c>_entities</c> operation that is sent for
 /// this lookup.
+/// </param>
+/// <param name="OperationDocument">
+/// The parsed syntax tree of the rewritten operation source text.
 /// </param>
 /// <param name="OperationHash">
 /// The xxhash64 of the rewritten operation source text.
@@ -23,6 +27,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </param>
 internal readonly record struct ApolloEntityLookup(
     OperationSourceText Operation,
+    Utf8OperationDocument OperationDocument,
     ulong OperationHash,
     string EntityTypeName,
     List<RepresentationShapeNode> RepresentationShape);

@@ -18,7 +18,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// to a downstream service over HTTP. Supports single requests, Apollo-style request batching,
 /// and variable batching depending on the configured <see cref="HttpSourceSchemaClientConfiguration.Capabilities"/>.
 /// </summary>
-public sealed class HttpSourceSchemaClient : ISourceSchemaClient
+public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 {
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
@@ -27,6 +27,8 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     private readonly HttpSourceSchemaClientConfiguration _configuration;
     private readonly ErrorHandlingMode? _onError;
     private readonly bool _supportsVariableBatching;
+    private readonly bool _useAliasBatchingForVariableSets;
+    private readonly bool _useAliasBatchingForOperationBatches;
     private readonly bool _annotateOperationKind;
     private bool _disposed;
 
@@ -59,6 +61,17 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         Capabilities = capabilities;
 
         _supportsVariableBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching);
+
+        var supportsAliasBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.AliasBatching);
+        var supportsRequestBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching);
+
+        // The many variable sets of one operation are merged into one aliased operation only when
+        // the source schema does not support variable batching.
+        _useAliasBatchingForVariableSets = supportsAliasBatching && !_supportsVariableBatching;
+
+        // The distinct operations of one batch are merged into one aliased operation only when the
+        // source schema does not support request batching.
+        _useAliasBatchingForOperationBatches = supportsAliasBatching && !supportsRequestBatching;
     }
 
     /// <inheritdoc />
@@ -79,6 +92,13 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         }
 
         Debug.WriteLine(request.SchemaName);
+
+        if (_useAliasBatchingForVariableSets
+            && request.Variables.Length > 1
+            && CanAliasBatch(request, out _, out _))
+        {
+            return ExecuteAliasBatchAsync(context, request, cancellationToken);
+        }
 
         return CreateStreamAsync(context, request, cancellationToken);
 
@@ -146,6 +166,23 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 FusionExecutionResources.HttpSourceSchemaClient_SubscriptionBatchNotSupported);
         }
 
+        if (_useAliasBatchingForOperationBatches)
+        {
+            return ExecuteAliasBatchAsync(context, requests, cancellationToken);
+        }
+
+        return ExecuteBatchWithNativeProtocolAsync(context, requests, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a batch through the protocol extensions that the source schema supports, which is
+    /// either an operation batch or one request per operation.
+    /// </summary>
+    private IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchWithNativeProtocolAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        CancellationToken cancellationToken)
+    {
         // A source schema that does not support request batching still accepts
         // each operation on its own, so we fall back to individual requests and
         // stream the results back in request order.
@@ -232,41 +269,58 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         // leaving results already produced by sibling requests untouched.
         for (var i = 0; i < requests.Length; i++)
         {
-            var request = requests[i];
-            var enumerator = ExecuteAsync(context, request, cancellationToken)
-                .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
-
-            try
+            await foreach (var result in ExecuteIsolatedAsync(context, requests[i], i, cancellationToken)
+                .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
-                while (true)
+                yield return result;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes a single request of a batch as its own round-trip. A transport failure of one
+    /// request must not abort the batch, so its cause is recorded against the request's index and
+    /// the results already produced by sibling requests stay untouched.
+    /// </summary>
+    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteIsolatedAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        int requestIndex,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var enumerator = ExecuteAsync(context, request, cancellationToken)
+            .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
+
+        try
+        {
+            while (true)
+            {
+                try
                 {
-                    try
+                    if (!await enumerator.MoveNextAsync())
                     {
-                        if (!await enumerator.MoveNextAsync())
-                        {
-                            break;
-                        }
-                    }
-                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                    {
-                        // Caller-driven cancellation aborts the whole batch.
-                        throw;
-                    }
-                    catch (Exception exception)
-                    {
-                        // The consuming node attaches the recorded cause to the
-                        // request that produced no result.
-                        context.TrackBatchRequestError(request.Node, i, exception);
                         break;
                     }
-
-                    yield return new SourceSchemaBatchResult(i, enumerator.Current);
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Caller-driven cancellation aborts the whole batch.
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    // The consuming node attaches the recorded cause to the
+                    // request that produced no result.
+                    context.TrackBatchRequestError(request.Node, requestIndex, exception);
+                    break;
+                }
+
+                yield return new SourceSchemaBatchResult(requestIndex, enumerator.Current);
             }
-            finally
-            {
-                await enumerator.DisposeAsync();
-            }
+        }
+        finally
+        {
+            await enumerator.DisposeAsync();
         }
     }
 

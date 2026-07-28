@@ -49,7 +49,10 @@ public sealed class OperationSourceTextTests : FusionTestBase
         var plan = PlanOperation(schema, "{ books { rating } }");
 
         // assert
-        Assert.NotNull(GetLookupNode(plan).Operation.Document);
+        // The root node and the lookup node both carry the syntax tree of their operation.
+        Assert.All(
+            plan.AllNodes.OfType<OperationExecutionNode>(),
+            node => Assert.NotNull(node.Operation.Document));
     }
 
     [Fact]
@@ -67,8 +70,8 @@ public sealed class OperationSourceTextTests : FusionTestBase
         // assert
         var request = Assert.Single(client.Requests, r => r.LookupTypeName is not null);
         var node = Assert.IsType<OperationExecutionNode>(request.Node);
-        Assert.NotNull(request.Document);
-        Assert.Same(node.Operation.Document, request.Document);
+        Assert.NotNull(request.OperationDocument);
+        Assert.Same(node.Operation.Document, request.OperationDocument);
     }
 
     [Fact]
@@ -99,11 +102,10 @@ public sealed class OperationSourceTextTests : FusionTestBase
     }
 
     [Fact]
-    public void Create_Should_CarryNoDocument_When_OperationIsNoLookup()
+    public void Create_Should_CarryTheDocument_When_OperationIsNoLookup()
     {
         // arrange
-        // Source text that does not parse, so a parse attempt would fail the operation.
-        var sourceText = "query { books "u8.ToArray();
+        var sourceText = "query { books { title } }"u8.ToArray();
 
         // act
         var operation = OperationSourceText.Create(
@@ -114,14 +116,16 @@ public sealed class OperationSourceTextTests : FusionTestBase
             lookupTypeName: null);
 
         // assert
-        Assert.Null(operation.Document);
+        Assert.True(OperationSourceText.TryGetSingleRootField(operation.Document, out _, out var rootField));
+        Assert.Equal("books", Encoding.UTF8.GetString(rootField.Utf8Name));
+        Assert.Null(operation.LookupTypeName);
     }
 
     [Fact]
-    public void Create_Should_CarryNoLookupState_When_SourceTextDoesNotParse()
+    public void Create_Should_CarryNoLookupTypeName_When_OperationSelectsTwoRootFields()
     {
         // arrange
-        var sourceText = "query { books "u8.ToArray();
+        var sourceText = "query { bookById(id: 1) { title } authorById(id: 1) { name } }"u8.ToArray();
 
         // act
         var operation = OperationSourceText.Create(
@@ -132,8 +136,25 @@ public sealed class OperationSourceTextTests : FusionTestBase
             lookupTypeName: "Book");
 
         // assert
-        Assert.Null(operation.Document);
         Assert.Null(operation.LookupTypeName);
+    }
+
+    [Fact]
+    public void Create_Should_Throw_When_SourceTextDoesNotParse()
+    {
+        // arrange
+        var sourceText = "query { books "u8.ToArray();
+
+        // act
+        void Act() => OperationSourceText.Create(
+            "Op_1",
+            OperationType.Query,
+            sourceText,
+            "hash",
+            lookupTypeName: null);
+
+        // assert
+        Assert.Throws<SyntaxException>(Act);
     }
 
     private static OperationExecutionNode GetLookupNode(OperationPlan plan)

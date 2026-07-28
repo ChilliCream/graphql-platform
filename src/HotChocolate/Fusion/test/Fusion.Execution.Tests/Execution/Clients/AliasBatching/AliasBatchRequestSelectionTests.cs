@@ -25,16 +25,18 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
 
     [Theory]
     [InlineData(SourceSchemaClientCapabilities.AliasBatching, true)]
+    // Variable batching is the native protocol for the many variable sets of one operation, so it
+    // is preferred over alias batching whenever the source schema declares it.
     [InlineData(
         SourceSchemaClientCapabilities.AliasBatching | SourceSchemaClientCapabilities.VariableBatching,
-        true)]
+        false)]
     [InlineData(
         SourceSchemaClientCapabilities.AliasBatching | SourceSchemaClientCapabilities.RequestBatching,
         true)]
     [InlineData(
-        SourceSchemaClientCapabilities.AliasBatching | SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities.AliasBatching | SourceSchemaClientCapabilities.Default,
         false)]
-    [InlineData(SourceSchemaClientCapabilities.All, false)]
+    [InlineData(SourceSchemaClientCapabilities.Default, false)]
     [InlineData(SourceSchemaClientCapabilities.None, false)]
     public async Task ExecuteAsync_Should_SelectTheBatchedBody_When_CapabilitiesAllowIt(
         SourceSchemaClientCapabilities capabilities,
@@ -100,7 +102,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
         // The plan resolved a lookup type for this operation, but its document reads from two root
         // selections, so it cannot be rewritten into an aliased copy of itself.
-        var request = fixture.CreateLookupRequest() with { Document = fixture.TwoRootFieldDocument };
+        var request = fixture.CreateLookupRequest() with { OperationDocument = fixture.TwoRootFieldDocument };
 
         // act
         var body = await fixture.SendAsync(request);
@@ -117,7 +119,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         var batched = fixture.CreateLookupRequest();
         var isolated = fixture.CreateLookupRequest() with
         {
-            Document = fixture.TwoRootFieldDocument,
+            OperationDocument = fixture.TwoRootFieldDocument,
             Variables = [fixture.CreateVariableValues("3")]
         };
 
@@ -181,7 +183,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         // The caller stops after the first item, so the items it never received are freed with the
         // enumeration while the item it received keeps the response document alive.
         var first = await fixture.ReadFirstAsync(fixture.CreateLookupRequest());
-        var root = first.AliasedRoot;
+        var root = first.LookupData!.Value;
         var readWhileHeld = root.GetProperty("field").GetString();
         first.Dispose();
 
@@ -269,7 +271,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
                 OperationSourceText = Encoding.UTF8.GetBytes(Lookup),
                 OperationHash = 1,
                 Variables = [CreateVariableValues("1"), CreateVariableValues("2")],
-                Document = _document,
+                OperationDocument = _document,
                 LookupTypeName = "Foo"
             };
 
