@@ -25,19 +25,14 @@ public readonly record struct SourceSchemaClientRequest()
     public required OperationType OperationType { get; init; }
 
     /// <summary>
-    /// Gets the UTF-8 encoded GraphQL operation source text to send.
+    /// Gets the GraphQL operation source text to send.
     /// </summary>
-    public required ReadOnlyMemory<byte> OperationSourceText { get; init; }
+    public required OperationSourceText OperationSourceText { get; init; }
 
     /// <summary>
     /// Gets the parsed syntax tree of <see cref="OperationSourceText"/>.
     /// </summary>
     public required Utf8OperationDocument OperationDocument { get; init; }
-
-    /// <summary>
-    /// Gets the xxhash64 of the operation source text.
-    /// </summary>
-    public required ulong OperationHash { get; init; }
 
     /// <summary>
     /// Gets the variable value sets for this operation. Multiple entries indicate

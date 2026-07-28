@@ -107,7 +107,10 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Batch_54a8b37e8522415a($_0___fusion_1_id: ID!, $_1___fusion_1_id: ID!) {
+            query Op_628dc6ef_Batch_dda46b4e68aa25aa(
+              $_0___fusion_1_id: ID!
+              $_1___fusion_1_id: ID!
+            ) {
               _0_bookById: bookById(id: $_0___fusion_1_id) {
                 ..._fusion_body_1
               }

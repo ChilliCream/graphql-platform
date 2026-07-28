@@ -1,5 +1,5 @@
 using System.Buffers;
-using System.Buffers.Text;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Serialization;
@@ -14,13 +14,19 @@ namespace HotChocolate.Fusion.Execution.Clients.AliasBatching;
 /// </summary>
 internal sealed class AliasBatchedRequestBody : IRequestBody
 {
-    // 'Batch_' plus the 16 hexadecimal digits of the operation hash.
-    private const int OperationNameLength = 22;
+    private const byte NameSeparator = (byte)'_';
+    private const int CompositionHashLength = 16;
+    private const int StackBufferLength = 256;
+
+    private static ReadOnlySpan<byte> AnonymousOperationName => "Op"u8;
+    private static ReadOnlySpan<byte> Batch => "_Batch_"u8;
 
     private readonly AliasBatchItem[] _items;
     private readonly int _itemCount;
     private readonly List<Utf8VariableDefinitionNode> _sharedVariables;
-    private readonly ulong _operationHash;
+    private readonly string? _operationName;
+    private readonly string _operationShortHash;
+    private readonly ulong _compositionHash;
     private readonly ErrorHandlingMode? _onError;
 
     /// <summary>
@@ -31,19 +37,31 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     /// <param name="sharedVariables">
     /// The variable definitions that the items share. They keep their name and are declared once.
     /// </param>
-    /// <param name="operationHash">The hash the generated operation name is derived from.</param>
+    /// <param name="operationName">
+    /// The name of the client operation, or <see langword="null"/> when it is anonymous.
+    /// </param>
+    /// <param name="operationShortHash">
+    /// The short hash of the client operation.
+    /// </param>
+    /// <param name="compositionHash">
+    /// The hash of the batch composition.
+    /// </param>
     /// <param name="onError">The requested error handling mode.</param>
     public AliasBatchedRequestBody(
         AliasBatchItem[] items,
         int itemCount,
         List<Utf8VariableDefinitionNode> sharedVariables,
-        ulong operationHash,
+        string? operationName,
+        string operationShortHash,
+        ulong compositionHash,
         ErrorHandlingMode? onError)
     {
         _items = items;
         _itemCount = itemCount;
         _sharedVariables = sharedVariables;
-        _operationHash = operationHash;
+        _operationName = operationName;
+        _operationShortHash = operationShortHash;
+        _compositionHash = compositionHash;
         _onError = onError;
     }
 
@@ -78,31 +96,90 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     {
         writer.WriteRawValueStart([]);
 
-        Span<byte> operationName = stackalloc byte[OperationNameLength];
-        var builder = Utf8OperationDocumentBuilder
-            .New(writer.InnerWriter, formatAsJsonStringValue: true)
-            .SetName(ComposeOperationName(operationName, _operationHash));
+        var nameLength = GetOperationNameLength();
+        byte[]? rented = null;
+        Span<byte> stackBuffer = stackalloc byte[StackBufferLength];
+        var nameBuffer = nameLength <= StackBufferLength
+            ? stackBuffer[..nameLength]
+            : (rented = ArrayPool<byte>.Shared.Rent(nameLength)).AsSpan(0, nameLength);
 
-        foreach (var sharedVariable in _sharedVariables)
+        try
         {
-            builder = builder.AddSharedVariable(sharedVariable);
-        }
+            var builder = Utf8OperationDocumentBuilder
+                .New(writer.InnerWriter, formatAsJsonStringValue: true)
+                .SetName(ComposeOperationName(nameBuffer));
 
-        foreach (var item in items)
+            foreach (var sharedVariable in _sharedVariables)
+            {
+                builder = builder.AddSharedVariable(sharedVariable);
+            }
+
+            foreach (var item in items)
+            {
+                builder = builder.AddRootSelection(item.RootField, item.LookupTypeName);
+            }
+
+            builder.Complete();
+        }
+        finally
         {
-            builder = builder.AddRootSelection(item.RootField, item.LookupTypeName);
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
-
-        builder.Complete();
 
         writer.WriteRawValueEnd(JsonTokenType.String);
     }
 
-    private static ReadOnlySpan<byte> ComposeOperationName(Span<byte> buffer, ulong operationHash)
+    /// <summary>
+    /// Gets the number of bytes the name of the merged operation takes.
+    /// </summary>
+    private int GetOperationNameLength()
+        => (_operationName?.Length ?? AnonymousOperationName.Length)
+            + 1
+            + _operationShortHash.Length
+            + Batch.Length
+            + CompositionHashLength;
+
+    /// <summary>
+    /// Writes the name of the merged operation into <paramref name="buffer"/>. The name is derived
+    /// from the client operation and the composition of the batch.
+    /// </summary>
+    private ReadOnlySpan<byte> ComposeOperationName(Span<byte> buffer)
     {
-        "Batch_"u8.CopyTo(buffer);
-        Utf8Formatter.TryFormat(operationHash, buffer[6..], out var written, new StandardFormat('x', 16));
-        return buffer[..(6 + written)];
+        int written;
+
+        if (_operationName is null)
+        {
+            AnonymousOperationName.CopyTo(buffer);
+            written = AnonymousOperationName.Length;
+        }
+        else
+        {
+            written = Encoding.ASCII.GetBytes(_operationName, buffer);
+        }
+
+        buffer[written++] = NameSeparator;
+        written += Encoding.ASCII.GetBytes(_operationShortHash, buffer[written..]);
+        Batch.CopyTo(buffer[written..]);
+        written += Batch.Length;
+        WriteHexLower(buffer[written..], _compositionHash);
+
+        return buffer[..(written + CompositionHashLength)];
+    }
+
+    /// <summary>
+    /// Writes <paramref name="value"/> as 16 lowercase hex digits.
+    /// </summary>
+    private static void WriteHexLower(Span<byte> buffer, ulong value)
+    {
+        for (var i = CompositionHashLength - 1; i >= 0; i--)
+        {
+            var digit = (int)(value & 0xF);
+            buffer[i] = (byte)(digit < 10 ? '0' + digit : 'a' + digit - 10);
+            value >>= 4;
+        }
     }
 
     private static string GetErrorHandlingMode(ErrorHandlingMode mode)

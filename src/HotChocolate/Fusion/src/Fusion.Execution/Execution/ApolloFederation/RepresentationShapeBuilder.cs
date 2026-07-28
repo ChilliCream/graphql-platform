@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -33,10 +34,7 @@ internal static class RepresentationShapeBuilder
     /// root type from which the declared requirement-path types are resolved.
     /// </param>
     /// <returns>
-    /// The root level of the representation shape. The result is a plan-time
-    /// constant that callers may cache and reuse across concurrent executions.
-    /// It must be treated as read-only once this method returns; consumers read
-    /// the shape without modifying it.
+    /// The root level of the representation shape.
     /// </returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown when a requirement is not bound by exactly one argument of the
@@ -46,31 +44,98 @@ internal static class RepresentationShapeBuilder
     /// Thrown when a requirement map uses a value selection construct that
     /// cannot be represented in a representation object.
     /// </exception>
-    public static List<RepresentationShapeNode> Build(
+    public static ImmutableArray<RepresentationShapeNode> Build(
         FieldNode lookupField,
         ReadOnlySpan<OperationRequirement> requiredData,
         FusionSchemaDefinition schema,
         string entityTypeName)
+        => Build(BindRepresentationPaths(lookupField, requiredData), schema, entityTypeName);
+
+    /// <summary>
+    /// Binds the representation path of every operation requirement of a lookup field.
+    /// </summary>
+    /// <param name="lookupField">The original, un-stripped root lookup field.</param>
+    /// <param name="requiredData">The operation requirements of the lookup.</param>
+    /// <returns>
+    /// The requirements in their original order, each carrying the path of the
+    /// selection set that binds it.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when a requirement is not bound by exactly one argument of the
+    /// lookup selection.
+    /// </exception>
+    public static OperationRequirement[] BindRepresentationPaths(
+        FieldNode lookupField,
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         ArgumentNullException.ThrowIfNull(lookupField);
 
-        var root = new List<RepresentationShapeNode>();
-        var matched = requiredData.Length <= 64
-            ? stackalloc bool[requiredData.Length]
-            : new bool[requiredData.Length];
-        matched.Clear();
+        var bound = new OperationRequirement[requiredData.Length];
+        var path = new List<RepresentationPathSegment>();
 
-        AddRequirementArguments(lookupField, root, requiredData, matched);
-        WalkSelections(lookupField.SelectionSet, root, requiredData, matched);
+        BindArguments(lookupField, path, bound, requiredData);
+        WalkSelections(lookupField.SelectionSet, path, bound, requiredData);
 
-        for (var i = 0; i < requiredData.Length; i++)
+        for (var i = 0; i < bound.Length; i++)
         {
-            if (!matched[i])
+            if (bound[i] is null)
             {
                 throw new InvalidOperationException(
                     $"The lookup selection does not bind the requirement '{requiredData[i].Key}' "
                     + "to an argument.");
             }
+        }
+
+        return bound;
+    }
+
+    /// <summary>
+    /// Builds the representation shape from the bound operation requirements of a lookup.
+    /// </summary>
+    /// <param name="requiredData">The operation requirements of the lookup.</param>
+    /// <param name="schema">
+    /// The composite schema used to resolve the declared types along the
+    /// requirement paths, which detects abstract composite positions that must
+    /// carry a runtime <c>__typename</c> in the representation.
+    /// </param>
+    /// <param name="entityTypeName">
+    /// The name of the entity type the representation is built for. It is the
+    /// root type from which the declared requirement-path types are resolved.
+    /// </param>
+    /// <returns>
+    /// The root level of the representation shape.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when requirement maps produce conflicting nodes.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// Thrown when a requirement map uses a value selection construct that
+    /// cannot be represented in a representation object.
+    /// </exception>
+    public static ImmutableArray<RepresentationShapeNode> Build(
+        ReadOnlySpan<OperationRequirement> requiredData,
+        FusionSchemaDefinition schema,
+        string entityTypeName)
+    {
+        var root = new List<RepresentationShapeNode>();
+
+        for (var i = 0; i < requiredData.Length; i++)
+        {
+            var requirement = requiredData[i];
+            var level = root;
+
+            foreach (var segment in requirement.RepresentationPath)
+            {
+                level = GetOrCreateStructuralNode(level, segment);
+            }
+
+            AddValueSelection(
+                level,
+                requirement.Map,
+                i,
+                [],
+                requirement.Type,
+                requirement.InternalAlias);
         }
 
         // Bake the abstract-composite decision now, at plan build, so the
@@ -84,7 +149,7 @@ internal static class RepresentationShapeBuilder
             AnnotateAbstractComposites(root, entityType, schema);
         }
 
-        return root;
+        return [.. root];
     }
 
     // Walks the built shape against the declared types, flagging every
@@ -156,9 +221,9 @@ internal static class RepresentationShapeBuilder
 
     private static void WalkSelections(
         SelectionSetNode? selectionSet,
-        List<RepresentationShapeNode> level,
-        ReadOnlySpan<OperationRequirement> requiredData,
-        Span<bool> matched)
+        List<RepresentationPathSegment> path,
+        OperationRequirement[] bound,
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         if (selectionSet is null)
         {
@@ -170,12 +235,15 @@ internal static class RepresentationShapeBuilder
             switch (selectionSet.Selections[i])
             {
                 case FieldNode field:
-                    AddRequirementArguments(field, level, requiredData, matched);
+                    BindArguments(field, path, bound, requiredData);
 
                     if (HasRequirementArguments(field.SelectionSet, requiredData))
                     {
-                        var node = GetOrCreateStructuralNode(level, field);
-                        WalkSelections(field.SelectionSet, node.Children!, requiredData, matched);
+                        path.Add(new RepresentationPathSegment(
+                            field.Name.Value,
+                            field.Alias?.Value ?? field.Name.Value));
+                        WalkSelections(field.SelectionSet, path, bound, requiredData);
+                        path.RemoveAt(path.Count - 1);
                     }
 
                     break;
@@ -183,17 +251,17 @@ internal static class RepresentationShapeBuilder
                 case InlineFragmentNode inlineFragment:
                     // An inline fragment adds no level to the result data, so its
                     // selections contribute to the current level.
-                    WalkSelections(inlineFragment.SelectionSet, level, requiredData, matched);
+                    WalkSelections(inlineFragment.SelectionSet, path, bound, requiredData);
                     break;
             }
         }
     }
 
-    private static void AddRequirementArguments(
+    private static void BindArguments(
         FieldNode field,
-        List<RepresentationShapeNode> level,
-        ReadOnlySpan<OperationRequirement> requiredData,
-        Span<bool> matched)
+        List<RepresentationPathSegment> path,
+        OperationRequirement[] bound,
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         for (var i = 0; i < field.Arguments.Count; i++)
         {
@@ -209,21 +277,14 @@ internal static class RepresentationShapeBuilder
                 continue;
             }
 
-            if (matched[index])
+            if (bound[index] is not null)
             {
                 throw new InvalidOperationException(
                     $"The lookup selection binds the requirement '{requiredData[index].Key}' "
                     + "to more than one argument.");
             }
 
-            matched[index] = true;
-            AddValueSelection(
-                level,
-                requiredData[index].Map,
-                index,
-                [],
-                requiredData[index].Type,
-                requiredData[index].InternalAlias);
+            bound[index] = requiredData[index] with { RepresentationPath = [.. path] };
         }
     }
 
@@ -517,12 +578,12 @@ internal static class RepresentationShapeBuilder
     // not representable here, but the planner re-roots nested requirements at
     // depth 1, so list-shaped structural parents do not occur; the builder is
     // type-blind and cannot guard against them.
-    private static RepresentationShapeNode GetOrCreateStructuralNode(
+    private static List<RepresentationShapeNode> GetOrCreateStructuralNode(
         List<RepresentationShapeNode> level,
-        FieldNode field)
+        RepresentationPathSegment segment)
     {
-        var name = field.Name.Value;
-        var responseName = field.Alias?.Value ?? name;
+        var name = segment.Name;
+        var responseName = segment.ResponseName;
         var existing = FindNode(level, name);
 
         if (existing is not null)
@@ -543,14 +604,14 @@ internal static class RepresentationShapeBuilder
             // Requirements lifted from below a structural field are unresolvable
             // when the field is null, so skip-on-null wins for merged nodes.
             existing.SkipOnNull = true;
-            return existing;
+            return existing.Children;
         }
 
         var node = CreateNode(name, responseName);
         node.Children = [];
         node.SkipOnNull = true;
         level.Add(node);
-        return node;
+        return node.Children;
     }
 
     private static List<RepresentationShapeNode> GetOrCreateCompositeNode(

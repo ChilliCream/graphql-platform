@@ -1,4 +1,7 @@
+using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Immutable;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Fusion.Text.Json;
@@ -92,18 +95,22 @@ public sealed partial class HttpSourceSchemaClient
         List<Utf8VariableDefinitionNode> sharedVariables,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var node = requests[0].Node;
+        var request = requests[0];
+        var node = request.Node;
+        var operation = context.OperationPlan.Operation;
         var body = new AliasBatchedRequestBody(
             items,
             itemCount,
             sharedVariables,
-            requests[0].OperationHash,
+            operation.Name,
+            operation.ShortHash,
+            ComputeCompositionHash(requests, items, itemCount),
             _onError);
 
         var httpRequest = new GraphQLHttpRequest(body, _configuration.BaseAddress)
         {
             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-            OperationKind = GetOperationKindHint(requests[0].OperationType)
+            OperationKind = GetOperationKindHint(request.OperationType)
         };
 
         SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, node, _configuration);
@@ -122,7 +129,7 @@ public sealed partial class HttpSourceSchemaClient
 
             try
             {
-                results = SplitResponse(document, items.AsSpan(0, itemCount), requests[0].SchemaName);
+                results = SplitResponse(document, items.AsSpan(0, itemCount), request.SchemaName);
             }
             catch
             {
@@ -160,6 +167,40 @@ public sealed partial class HttpSourceSchemaClient
             for (var i = pending; i < itemCount; i++)
             {
                 results[i].Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Computes the hash of the batch composition from the hash of the operation each item is
+    /// built from, in item order.
+    /// </summary>
+    private static ulong ComputeCompositionHash(
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        AliasBatchItem[] items,
+        int itemCount)
+    {
+        var byteCount = itemCount * sizeof(ulong);
+        byte[]? rented = null;
+        var buffer = byteCount <= 2048
+            ? stackalloc byte[byteCount]
+            : rented = ArrayPool<byte>.Shared.Rent(byteCount);
+
+        try
+        {
+            for (var i = 0; i < itemCount; i++)
+            {
+                var hash = requests[items[i].RequestIndex].OperationSourceText.Hash.Xxx;
+                BinaryPrimitives.WriteUInt64LittleEndian(buffer[(i * sizeof(ulong))..], hash);
+            }
+
+            return XxHash64.HashToUInt64(buffer[..byteCount]);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
             }
         }
     }

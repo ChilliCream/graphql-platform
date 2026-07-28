@@ -107,7 +107,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Batch_21d743c9caa4fea1(
+            query Op_2fede843_Batch_af64ebbf6213e7bd(
               $postFix: String
               $_0___fusion_1_id: ID!
               $_1___fusion_1_id: ID!

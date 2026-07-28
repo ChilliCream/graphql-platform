@@ -12,7 +12,7 @@
 
 ```json
 {
-  "query": "query Batch_86274262454d197e($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Child{b:value(suffix:\"!\")}} _1__entities:_entities(representations:$_1_representations){...on Child{a:value}}}",
+  "query": "query Op_88f73202_Batch_d9cfb37825dbe30d($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Child{b:value(suffix:\"!\")}} _1__entities:_entities(representations:$_1_representations){...on Child{a:value}}}",
   "variables": {
     "_0_representations": [
       {

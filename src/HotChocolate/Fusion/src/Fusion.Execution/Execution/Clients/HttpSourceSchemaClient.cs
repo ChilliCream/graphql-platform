@@ -485,7 +485,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         var defaultAcceptHeader = originalRequest.OperationType is OperationType.Subscription
             ? _configuration.SubscriptionAcceptHeaderValue
             : _configuration.DefaultAcceptHeaderValue;
-        var operationSourceText = originalRequest.OperationSourceText;
+        var operationSourceText = originalRequest.OperationSourceText.Value;
 
         GraphQLHttpRequest httpRequest;
 
@@ -646,14 +646,14 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                         if (_supportsVariableBatching)
                         {
                             batchRequests.Add(CreateVariableBatchRequest(
-                                sourceRequest.OperationSourceText, sourceRequest, _onError));
+                                sourceRequest.OperationSourceText.Value, sourceRequest, _onError));
                         }
                         else
                         {
                             for (var j = 0; j < sourceRequest.Variables.Length; j++)
                             {
                                 batchRequests.Add(new OperationRequest(
-                                    sourceRequest.OperationSourceText,
+                                    sourceRequest.OperationSourceText.Value,
                                     id: null,
                                     operationName: null,
                                     onError: _onError,
@@ -695,7 +695,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             var (cleanedJson, fileMap) = FileEntryBuilder.Build(writer, variables.Values, fileLookup);
 
             return new OperationRequest(
-                originalRequest.OperationSourceText,
+                originalRequest.OperationSourceText.Value,
                 id: null,
                 operationName: null,
                 onError: onError,
@@ -705,7 +705,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         }
 
         return new OperationRequest(
-            originalRequest.OperationSourceText,
+            originalRequest.OperationSourceText.Value,
             id: null,
             operationName: null,
             onError: onError,
@@ -725,7 +725,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         var cleanedJson = FileEntryBuilder.Build(writer, variables.Values, fileLookup, fileEntries, pathPrefix);
 
         return new OperationRequest(
-            originalRequest.OperationSourceText,
+            originalRequest.OperationSourceText.Value,
             id: null,
             operationName: null,
             onError: onError,
@@ -769,7 +769,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             for (var i = 0; i < requests.Length; i++)
             {
                 requests[i] = new OperationRequest(
-                    originalRequest.OperationSourceText,
+                    originalRequest.OperationSourceText.Value,
                     id: null,
                     operationName: null,
                     onError: onError,
