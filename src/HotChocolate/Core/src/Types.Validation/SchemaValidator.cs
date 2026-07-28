@@ -244,7 +244,7 @@ public sealed class SchemaValidator
                         path.RemoveAt(path.Count - 1);
                     }
                 }
-                else if (value.Kind is not SyntaxKind.NullValue)
+                else if (value.Kind is not (SyntaxKind.NullValue or SyntaxKind.Variable))
                 {
                     // Spec list-input coercion: a non-list literal is treated as a singleton list at index 0.
                     path.Add(0);

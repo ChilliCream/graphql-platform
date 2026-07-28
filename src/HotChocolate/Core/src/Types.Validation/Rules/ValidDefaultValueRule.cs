@@ -117,18 +117,9 @@ public sealed class ValidDefaultValueRule : IValidationEventHandler<DefaultValue
 
         foreach (var field in inputObject.Fields)
         {
-            var isProvided = false;
-
-            foreach (var fieldValue in value.Fields)
-            {
-                if (fieldValue.Name.Value == field.Name)
-                {
-                    isProvided = true;
-                    break;
-                }
-            }
-
-            if (!isProvided && field.Type.IsNonNullType() && field.DefaultValue is null)
+            if (field.Type.IsNonNullType()
+                && field.DefaultValue is null
+                && !seen.Contains(field.Name))
             {
                 context.Log.Write(MissingRequiredFieldInDefaultValue(root, path, field.Name));
             }

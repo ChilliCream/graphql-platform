@@ -222,7 +222,7 @@ internal static class TypeValidationHelper
         {
             if (field.Type.IsNonNullType()
                 && field.DefaultValue is null
-                && !ContainsField(value, field.Name))
+                && !seen.Contains(field.Name))
             {
                 errors.Add(MissingRequiredFieldInDefaultValue(root, path, field.Name));
             }
@@ -232,19 +232,6 @@ internal static class TypeValidationHelper
             && (value.Fields.Count != 1 || value.Fields[0].Value.Kind is SyntaxKind.NullValue))
         {
             errors.Add(OneOfDefaultValueMustHaveExactlyOneField(root, path, inputObject.Name));
-        }
-
-        static bool ContainsField(ObjectValueNode value, string name)
-        {
-            foreach (var fieldValue in value.Fields)
-            {
-                if (fieldValue.Name.Value == name)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 
