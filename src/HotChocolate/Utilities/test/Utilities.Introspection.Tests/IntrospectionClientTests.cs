@@ -146,7 +146,7 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal("Something went wrong", exception.Message);
     }
 
-    public class ObsoleteDirectiveType : DirectiveType
+    private sealed class ObsoleteDirectiveType : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
