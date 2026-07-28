@@ -100,8 +100,15 @@ public sealed class ValidDefaultValueRule : IValidationEventHandler<DefaultValue
         IInputObjectTypeDefinition inputObject,
         ObjectValueNode value)
     {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var fieldValue in value.Fields)
         {
+            if (!seen.Add(fieldValue.Name.Value))
+            {
+                context.Log.Write(DuplicateFieldInDefaultValue(root, path, fieldValue.Name.Value));
+            }
+
             if (!inputObject.Fields.ContainsName(fieldValue.Name.Value))
             {
                 context.Log.Write(UnknownFieldInDefaultValue(root, path, fieldValue.Name.Value));

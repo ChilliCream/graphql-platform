@@ -270,6 +270,29 @@ internal static class ErrorHelper
             formattedPath);
     }
 
+    public static ISchemaError DuplicateFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            formattedPath is null
+                ? isInputField
+                    ? ErrorHelper_InputFieldDefaultValueDuplicateField
+                    : ErrorHelper_ArgumentDefaultValueDuplicateField
+                : isInputField
+                    ? ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath
+                    : ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
     public static ISchemaError UnknownFieldInDefaultValue(
         IInputValueDefinition root,
         IReadOnlyList<object> path,

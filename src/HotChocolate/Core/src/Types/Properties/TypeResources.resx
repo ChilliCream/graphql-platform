@@ -1095,6 +1095,12 @@ Type: `{0}`</value>
   <data name="ThrowHelper_KeyValuePairType_InvalidRuntimeType" xml:space="preserve">
     <value>{0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type.</value>
   </data>
+  <data name="ErrorHelper_ArgumentDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
   <data name="ErrorHelper_ArgumentDefaultValueIncompatibleType" xml:space="preserve">
     <value>The default value of argument '{0}' is not compatible with the type '{1}'.</value>
   </data>
@@ -1118,6 +1124,12 @@ Type: `{0}`</value>
   </data>
   <data name="ErrorHelper_ArgumentDefaultValueUnknownFieldAtPath" xml:space="preserve">
     <value>The default value of argument '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
   </data>
   <data name="ErrorHelper_InputFieldDefaultValueIncompatibleType" xml:space="preserve">
     <value>The default value of input field '{0}' is not compatible with the type '{1}'.</value>

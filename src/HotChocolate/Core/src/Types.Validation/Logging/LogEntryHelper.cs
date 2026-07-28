@@ -67,6 +67,32 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DuplicateFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            isInputField
+                ? LogEntryCodes.IncompatibleInputFieldDefaultValue
+                : LogEntryCodes.IncompatibleArgumentDefaultValue,
+            formattedPath is null
+                ? isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueDuplicateField
+                    : LogEntryHelper_ArgumentDefaultValueDuplicateField
+                : isInputField
+                    ? LogEntryHelper_InputFieldDefaultValueDuplicateFieldAtPath
+                    : LogEntryHelper_ArgumentDefaultValueDuplicateFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
     public static LogEntry EmptyEnumType(IEnumTypeDefinition enumType)
     {
         return LogEntryBuilder.New()

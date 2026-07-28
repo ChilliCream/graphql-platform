@@ -197,8 +197,15 @@ internal static class TypeValidationHelper
         List<object> path,
         ICollection<ISchemaError> errors)
     {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var fieldValue in value.Fields)
         {
+            if (!seen.Add(fieldValue.Name.Value))
+            {
+                errors.Add(DuplicateFieldInDefaultValue(root, path, fieldValue.Name.Value));
+            }
+
             if (inputObject.Fields.TryGetField(fieldValue.Name.Value, out var inputField))
             {
                 path.Add(fieldValue.Name.Value);

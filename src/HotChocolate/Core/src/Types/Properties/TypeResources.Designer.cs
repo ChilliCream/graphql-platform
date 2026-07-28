@@ -863,6 +863,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueDuplicateField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueDuplicateField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is not compatible with the type &apos;{1}&apos;..
         /// </summary>
         internal static string ErrorHelper_ArgumentDefaultValueIncompatibleType {
@@ -1021,6 +1039,24 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_FieldNotImplemented {
             get {
                 return ResourceManager.GetString("ErrorHelper_FieldNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueDuplicateField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueDuplicateField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath", resourceCulture);
             }
         }
         

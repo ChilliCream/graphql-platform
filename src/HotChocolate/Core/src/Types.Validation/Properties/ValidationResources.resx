@@ -21,6 +21,12 @@
   <data name="LogEntryHelper_AdditionalArgumentNotNullable" xml:space="preserve">
     <value>The field '{0}' must only declare additional arguments to an implemented field that are nullable.</value>
   </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_ArgumentDefaultValueIncompatibleType" xml:space="preserve">
     <value>The default value of argument '{0}' is not compatible with the type '{1}'.</value>
   </data>
@@ -71,6 +77,12 @@
   </data>
   <data name="LogEntryHelper_FieldNotImplemented" xml:space="preserve">
     <value>The interface field '{0}' must be implemented by type '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
   </data>
   <data name="LogEntryHelper_InputFieldDefaultValueIncompatibleType" xml:space="preserve">
     <value>The default value of input field '{0}' is not compatible with the type '{1}'.</value>

@@ -89,6 +89,33 @@ public sealed class ValidDefaultValueRuleTests : RuleTestBase<ValidDefaultValueR
     }
 
     [Fact]
+    public void Validate_DuplicateInputFieldInDefault_Fails()
+    {
+        AssertInvalid(
+            """
+            type Query {
+                field(arg: FooInput = { a: 1, a: 2 }): Int
+            }
+
+            input FooInput {
+                a: Int
+            }
+            """,
+            """
+            {
+                "message": "The default value of argument 'Query.field(arg:)' specifies the input field 'a' more than once.",
+                "code": "HCV0028",
+                "severity": "Error",
+                "coordinate": "Query.field(arg:)",
+                "member": "arg",
+                "extensions": {
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public void Validate_NestedListElementMismatch_Fails()
     {
         AssertInvalid(

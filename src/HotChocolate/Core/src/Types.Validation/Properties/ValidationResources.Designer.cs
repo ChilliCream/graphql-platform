@@ -69,6 +69,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueDuplicateField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueDuplicateField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ArgumentDefaultValueDuplicateFieldAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ArgumentDefaultValueDuplicateFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is not compatible with the type &apos;{1}&apos;..
         /// </summary>
         internal static string LogEntryHelper_ArgumentDefaultValueIncompatibleType {
@@ -218,6 +236,24 @@ namespace HotChocolate.Properties {
         internal static string LogEntryHelper_FieldNotImplemented {
             get {
                 return ResourceManager.GetString("LogEntryHelper_FieldNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueDuplicateField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueDuplicateField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultValueDuplicateFieldAtPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultValueDuplicateFieldAtPath", resourceCulture);
             }
         }
         

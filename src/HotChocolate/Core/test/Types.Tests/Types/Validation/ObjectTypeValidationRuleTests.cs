@@ -267,6 +267,20 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
+    public void RejectArgumentWithDuplicateInputFieldDefault()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: FooInput = { a: 1, a: 2 }): String
+          }
+
+          input FooInput { a: Int }
+        ");
+    }
+
+    [Fact]
     public void RejectArgumentWithMissingRequiredInputFieldDefault()
     {
         ExpectError(@"
