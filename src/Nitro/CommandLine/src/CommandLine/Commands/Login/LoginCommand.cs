@@ -56,10 +56,6 @@ internal sealed class LoginCommand : Command
                         : $"Could not open a browser. Use this URL to log in: {startUrl.EscapeMarkup()}",
                     browserOpened ? ActivityUpdateKind.Regular : ActivityUpdateKind.Warning),
                 cancellationToken);
-            if (session is null)
-            {
-                throw new ExitException("There was a failure and Nitro could not log you in.");
-            }
 
             clientContext.Configure(
                 session.ApiUrl,

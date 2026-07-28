@@ -48,24 +48,6 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
     }
 
     [Fact]
-    public async Task LoginReturnsNull_ReturnsError()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupLoginReturnsNull();
-
-        // act
-        var result = await ExecuteCommandAsync("login");
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            There was a failure and Nitro could not log you in.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
     public async Task LoginThrows_ReturnsError()
     {
         // arrange

@@ -48,16 +48,6 @@ public abstract class SessionCommandTestBase : CommandTestBase
             });
     }
 
-    protected void SetupLoginReturnsNull()
-    {
-        _sessionServiceMock
-            .Setup(x => x.LoginAsync(
-                It.IsAny<string>(),
-                It.IsAny<Action<string, bool>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<UserSession>(null!));
-    }
-
     protected void SetupLoginThrows(string message)
     {
         _sessionServiceMock

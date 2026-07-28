@@ -62,35 +62,44 @@ internal class SystemBrowser(
     {
         try
         {
-            Process.Start(url);
-            return true;
+            using var process = Process.Start(url);
+            return process is not null;
         }
         catch
         {
             // hack because of this: https://github.com/dotnet/corefx/issues/10361
             try
             {
+                ProcessStartInfo? startInfo = null;
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     url = url.Replace("&", "^&");
-                    Process.Start(
-                        new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
-                    return true;
+                    startInfo = new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true };
                 }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    Process.Start("xdg-open", url);
-                    return true;
+                    startInfo = new ProcessStartInfo("xdg-open", url);
                 }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    Process.Start("open", url);
-                    return true;
+                    startInfo = new ProcessStartInfo("open", url);
                 }
 
-                return false;
+                if (startInfo is null)
+                {
+                    return false;
+                }
+
+                using var process = Process.Start(startInfo);
+
+                if (process is null)
+                {
+                    return false;
+                }
+
+                // A fast non-zero exit means the opener could not hand the URL to a browser.
+                return !process.WaitForExit(2000) || process.ExitCode == 0;
             }
             catch
             {
