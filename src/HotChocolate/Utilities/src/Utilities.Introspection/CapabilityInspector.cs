@@ -118,6 +118,9 @@ internal sealed class CapabilityInspector
                         },
                         {
                             "name": "isRepeatable"      # <--- and we are looking for this!
+                        },
+                        {
+                            "name": "isDeprecated"      # <--- and for this!
                         }
                     ]
                 }
@@ -145,6 +148,7 @@ internal sealed class CapabilityInspector
         {
             var locations = false;
             var isRepeatable = false;
+            var isDeprecated = false;
 
             foreach (var field in fields.EnumerateArray())
             {
@@ -168,7 +172,13 @@ internal sealed class CapabilityInspector
                     _features.HasRepeatableDirectives = true;
                 }
 
-                if (locations && isRepeatable)
+                if (fieldNameString.EqualsOrdinal("isDeprecated"))
+                {
+                    isDeprecated = true;
+                    _features.HasDirectiveDeprecation = true;
+                }
+
+                if (locations && isRepeatable && isDeprecated)
                 {
                     return;
                 }

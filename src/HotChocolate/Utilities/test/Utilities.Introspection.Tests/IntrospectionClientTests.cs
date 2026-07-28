@@ -1,5 +1,9 @@
 using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
+using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -19,13 +23,19 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         var features = await IntrospectionClient.InspectServerAsync(client, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(features.HasArgumentDeprecation);
-        Assert.True(features.HasDirectiveLocations);
-        Assert.True(features.HasSubscriptionSupport);
-        Assert.True(features.HasSchemaDescription);
-        Assert.True(features.HasRepeatableDirectives);
-        Assert.True(features.HasDeferSupport);
-        Assert.True(features.HasStreamSupport);
+        features.MatchInlineSnapshot(
+            """
+            {
+              "HasDirectiveLocations": true,
+              "HasRepeatableDirectives": true,
+              "HasSubscriptionSupport": true,
+              "HasDeferSupport": true,
+              "HasStreamSupport": true,
+              "HasArgumentDeprecation": true,
+              "HasDirectiveDeprecation": true,
+              "HasSchemaDescription": true
+            }
+            """);
     }
 
     [Fact]
@@ -52,6 +62,32 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
 
         // assert
         schema.ToString(true).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task IntrospectServer_With_DeprecatedDirective()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQL()
+                .AddDirectiveType<ObsoleteDirectiveType>());
+        var client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        // act
+        var schema = await IntrospectionClient.IntrospectServerAsync(client, TestContext.Current.CancellationToken);
+
+        // assert
+        var directive = Assert.Single(
+            schema.Definitions.OfType<DirectiveDefinitionNode>(),
+            t => t.Name.Value.Equals("obsolete", StringComparison.Ordinal));
+        directive.Print(indented: true).MatchInlineSnapshot(
+            """
+            directive @obsolete(
+              obsoleteArg: String @deprecated(reason: "Argument no longer supported.")
+            ) @deprecated(reason: "Directive no longer supported.") on FIELD
+            """);
     }
 
     [Fact]
@@ -108,6 +144,22 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         // assert
         var exception = await Assert.ThrowsAsync<Exception>(Error);
         Assert.Equal("Something went wrong", exception.Message);
+    }
+
+    public class ObsoleteDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("obsolete")
+                .Location(Types.DirectiveLocation.Field)
+                .Deprecated("Directive no longer supported.");
+
+            descriptor
+                .Argument("obsoleteArg")
+                .Type<StringType>()
+                .Deprecated("Argument no longer supported.");
+        }
     }
 
     private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler
