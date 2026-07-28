@@ -14,7 +14,8 @@ public sealed class SchemaValidator
 {
     private static int s_eventTypeCount;
 
-    private readonly HashSet<object> _rules;
+    // Handlers are dispatched in the order the rules were added, so this must preserve order.
+    private readonly List<object> _rules;
     private object?[] _handlers = [];
 
     /// <summary>
@@ -33,7 +34,7 @@ public sealed class SchemaValidator
     /// <param name="rules">The rules to use for validation.</param>
     public SchemaValidator(IEnumerable<object> rules)
     {
-        _rules = rules.ToHashSet();
+        _rules = [.. rules.Distinct()];
     }
 
     /// <summary>
