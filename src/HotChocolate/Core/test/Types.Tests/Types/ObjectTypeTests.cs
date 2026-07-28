@@ -1327,8 +1327,7 @@ public class ObjectTypeTests : TypeTestBase
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithIntArg>(
                 t => t
-                    .Field(f => f.GetBar(1))
-                    .Argument("foo", a => a.DefaultValue(null)))
+                    .Field(f => f.GetBar(1)))
             .Create();
 
         // assert
@@ -2416,7 +2415,7 @@ public class ObjectTypeTests : TypeTestBase
             string b = "abc") => null;
 
         public string? Field2(
-            [DefaultValue(null)] string a,
+            [DefaultValue(null)] string? a,
             [DefaultValue("abc")] string b) => null;
     }
 
