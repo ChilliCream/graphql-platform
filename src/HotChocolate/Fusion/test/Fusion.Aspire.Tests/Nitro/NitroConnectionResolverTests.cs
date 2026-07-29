@@ -231,7 +231,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
         Assert.Equal(
             NitroCredentialUnavailableReason.SessionExpired,
             connection.Credential.UnavailableReason);
-        Assert.Equal("https://api.chillicream.com/", connection.ApiUrl.AbsoluteUri);
+        Assert.Equal("https://nitro.example.com/", connection.ApiUrl.AbsoluteUri);
     }
 
     [Fact]

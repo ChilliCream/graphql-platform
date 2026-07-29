@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -593,14 +594,23 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     private void WriteExpiredSession()
-        => _directory.WriteFile(
+    {
+        var header = Base64UrlEncode("""{"alg":"RS256","typ":"JWT"}""");
+        var payload = Base64UrlEncode(
+            JsonSerializer.Serialize(
+                new Dictionary<string, string>
+                {
+                    ["api_url"] = _server.BaseAddress.AbsoluteUri
+                }));
+        var accessToken = $"{header}.{payload}.signature";
+
+        _directory.WriteFile(
             "session.json",
             $$"""
             {
-              "apiUrl": "{{_server.BaseAddress.AbsoluteUri}}",
               "email": "dev@example.com",
               "tokens": {
-                "accessToken": "expired-token",
+                "accessToken": "{{accessToken}}",
                 "expiresAt": "2026-07-29T11:00:00+00:00"
               },
               "workspace": {
@@ -609,6 +619,13 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
               }
             }
             """);
+    }
+
+    private static string Base64UrlEncode(string value)
+        => Convert.ToBase64String(Encoding.UTF8.GetBytes(value))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
 
     private static string CreateSettings(string name, string url)
         => $$"""

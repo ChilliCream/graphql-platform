@@ -90,7 +90,7 @@ internal sealed class NitroConnectionResolver
 
         var session = await _sessionReader.ReadAsync(cancellationToken);
         var credential = ResolveCredential(session);
-        var apiUrl = ResolveApiUrl(credential, logger);
+        var apiUrl = ResolveApiUrl(session, credential, logger);
 
         logger.LogInformation(
             "Using the Nitro API at {ApiUrl} with the credential source {CredentialSource}.",
@@ -105,7 +105,10 @@ internal sealed class NitroConnectionResolver
         return new NitroConnection(apiUrl, NitroApiUrl.CreateGraphQLEndpoint(apiUrl), credential);
     }
 
-    private Uri ResolveApiUrl(NitroCredential credential, ILogger logger)
+    private Uri ResolveApiUrl(
+        NitroSessionReadResult session,
+        NitroCredential credential,
+        ILogger logger)
     {
         var configuredUrl = _environment.GetVariable(NitroEnvironmentVariables.CloudUrl);
 
@@ -122,7 +125,11 @@ internal sealed class NitroConnectionResolver
                 configuredUrl);
         }
 
-        if (credential is { Kind: NitroCredentialKind.AccessToken, Value: { } accessToken }
+        var accessToken = credential.Kind is NitroCredentialKind.ApiKey
+            ? null
+            : session.Session?.Tokens?.AccessToken;
+
+        if (accessToken is not null
             && NitroAccessToken.TryGetApiUrl(accessToken, out var tokenApiUrl)
             && NitroApiUrl.TryNormalize(tokenApiUrl, out var fromAccessToken))
         {

@@ -196,11 +196,11 @@ A local source schema whose name does not match the one in Nitro is added next t
 
 A rebuild or restart of a local subgraph recomposes the gateway schema exactly as it does without Nitro, and the recomposition reuses the fusion configuration that was downloaded when the gateway started. A run therefore downloads once per gateway, and your inner loop stays as fast as a local-only composition. Restart the AppHost to pick up what was published to the stage in the meantime.
 
-When a gateway never acquired a configuration because it failed to start, its recompositions are skipped with a log entry instead of composing against a stale base.
+When a gateway never acquired a configuration because it failed to start, later composition attempts are skipped with a log entry instead of composing against a stale base.
 
 ## Working Offline
 
-Every downloaded fusion configuration is cached per Nitro API URL, API id, and stage, next to the Nitro CLI configuration (`~/.config/nitro/cache/fusion` on macOS and Linux, `%APPDATA%\nitro\cache\fusion` on Windows). The cache lives outside your repository, so it survives a clean and is shared across worktrees.
+Every downloaded fusion configuration is cached per Nitro API URL, API id, and stage, next to the Nitro CLI configuration (`~/.config/nitro/cache/fusion` on macOS and Linux, `%APPDATA%\nitro\cache\fusion` on Windows). The cache lives outside your repository, so it survives a clean and is shared across working trees.
 
 When the download fails for any reason, including no network, a rejected or expired sign-in, and a stage without a fusion configuration, the gateway composes against the cached copy. Its console gets a warning that the configuration could not be refreshed, names the timestamp of the cached copy, and tells you to run `nitro login` when the sign-in expired. Only when there is no cached copy at all does the gateway fail to start with that reason as its error.
 
