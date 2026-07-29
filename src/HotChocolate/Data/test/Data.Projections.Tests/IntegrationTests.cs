@@ -114,6 +114,89 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Projection_Should_NotProjectBackingProperty_When_PagedExtensionResolverShadowsProperty()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<PagingCollisionQuery>()
+            .AddTypeExtension<PagingCollisionItemExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              items(first: 1) {
+                nodes {
+                  details {
+                    code
+                  }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": {
+                  "nodes": [
+                    {
+                      "details": {
+                        "code": "computed"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_ProjectNestedRequiredProperty_When_ResolverFieldNameCollides()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<NestedParentRequiresQuery>()
+            .AddTypeExtension<NestedParentRequiresItemExtensions>()
+            .AddTypeExtension<NestedParentRequiresDetailsExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              items {
+                label
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "label": "stored"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
     {
         // arrange
@@ -1003,6 +1086,82 @@ public sealed class ParentRequiresCollisionQuery
             {
                 Id = 1,
                 Code = "ABC"
+            }
+        }.AsQueryable();
+}
+
+public sealed class PagingCollisionItem
+{
+    public int Id { get; set; }
+
+    public PagingCollisionDetails Details
+    {
+        get => throw new InvalidOperationException("The backing property must not be projected.");
+        set { }
+    }
+}
+
+public sealed class PagingCollisionDetails
+{
+    public string Code { get; set; } = string.Empty;
+}
+
+[ExtendObjectType<PagingCollisionItem>]
+public sealed class PagingCollisionItemExtensions
+{
+    public PagingCollisionDetails GetDetails([Parent] PagingCollisionItem item)
+        => new() { Code = "computed" };
+}
+
+public sealed class PagingCollisionQuery
+{
+    [UsePaging]
+    [UseProjection]
+    public IQueryable<PagingCollisionItem> GetItems()
+        => new[]
+        {
+            new PagingCollisionItem { Id = 1 }
+        }.AsQueryable();
+}
+
+public sealed class NestedParentRequiresItem
+{
+    public int Id { get; set; }
+
+    public NestedParentRequiresDetails Details { get; set; } = new();
+}
+
+public sealed class NestedParentRequiresDetails
+{
+    public string Code { get; set; } = string.Empty;
+}
+
+[ExtendObjectType<NestedParentRequiresItem>]
+public sealed class NestedParentRequiresItemExtensions
+{
+    public string GetLabel(
+        [Parent(requires: "Details { Code }")]
+        NestedParentRequiresItem item)
+        => item.Details.Code;
+}
+
+[ExtendObjectType<NestedParentRequiresDetails>]
+public sealed class NestedParentRequiresDetailsExtensions
+{
+    public string GetCode([Parent] NestedParentRequiresDetails details)
+        => "computed";
+}
+
+public sealed class NestedParentRequiresQuery
+{
+    [UseProjection]
+    public IQueryable<NestedParentRequiresItem> GetItems()
+        => new[]
+        {
+            new NestedParentRequiresItem
+            {
+                Id = 1,
+                Details = new NestedParentRequiresDetails { Code = "stored" }
             }
         }.AsQueryable();
 }

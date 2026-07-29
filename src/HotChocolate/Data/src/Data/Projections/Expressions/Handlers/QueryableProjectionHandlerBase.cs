@@ -15,7 +15,7 @@ public abstract class QueryableProjectionHandlerBase
             return false;
         }
 
-        if (selection.IsInternal)
+        if (selection.IsProjectionRequirement)
         {
             return true;
         }
