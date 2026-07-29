@@ -28,7 +28,7 @@ public sealed class ValidNameRule : IValidationEventHandler<NamedMemberEvent>
                 is ITypeDefinition { IsIntrospectionType: true }
                 or IFieldDefinition { IsIntrospectionField: true };
 
-        if (!isIntrospectionMember && namedMember.Name.StartsWith("__"))
+        if (!isIntrospectionMember && namedMember.Name.StartsWith("__", StringComparison.Ordinal))
         {
             context.Log.Write(InvalidMemberName(namedMember));
         }

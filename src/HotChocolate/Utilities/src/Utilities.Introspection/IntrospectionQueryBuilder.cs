@@ -57,10 +57,7 @@ internal static class IntrospectionQueryBuilder
 
         selections.Add(CreateTypesField());
 
-        selections.Add(
-            CreateDirectivesField(
-                features.HasDirectiveLocations,
-                features.HasRepeatableDirectives));
+        selections.Add(CreateDirectivesField(features));
 
         return new DocumentNode(
             new IDefinitionNode[]
@@ -103,28 +100,16 @@ internal static class IntrospectionQueryBuilder
                         Array.Empty<DirectiveNode>())
                 }));
 
-    private static FieldNode CreateDirectivesField(bool hasLocationsField, bool hasRepeatableDirective)
+    private static FieldNode CreateDirectivesField(ServerCapabilities features)
     {
         var selections = new List<ISelectionNode>
         {
             new FieldNode("name"),
             new FieldNode("description"),
-            new FieldNode(
-                new NameNode("args"),
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                new SelectionSetNode(
-                    new ISelectionNode[]
-                    {
-                        new FragmentSpreadNode(
-                            null,
-                            new NameNode("InputValue"),
-                            Array.Empty<DirectiveNode>())
-                    }))
+            CreateArgsField(features.HasArgumentDeprecation)
         };
 
-        if (hasLocationsField)
+        if (features.HasDirectiveLocations)
         {
             selections.Add(new FieldNode("locations"));
         }
@@ -135,16 +120,24 @@ internal static class IntrospectionQueryBuilder
             selections.Add(new FieldNode("onField"));
         }
 
-        if (hasRepeatableDirective)
+        if (features.HasRepeatableDirectives)
         {
             selections.Add(new FieldNode("isRepeatable"));
+        }
+
+        if (features.HasDirectiveDeprecation)
+        {
+            selections.Add(new FieldNode("isDeprecated"));
+            selections.Add(new FieldNode("deprecationReason"));
         }
 
         return new FieldNode(
             new NameNode("directives"),
             null,
             Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            features.HasDirectiveDeprecation
+                ? [new ArgumentNode("includeDeprecated", true)]
+                : Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
     }
 

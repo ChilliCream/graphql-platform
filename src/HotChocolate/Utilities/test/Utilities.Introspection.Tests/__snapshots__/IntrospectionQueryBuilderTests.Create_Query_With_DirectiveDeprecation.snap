@@ -9,17 +9,17 @@ query IntrospectionQuery {
     types {
       ...FullType
     }
-    directives {
+    directives(includeDeprecated: true) {
       name
       description
-      args(includeDeprecated: true) {
+      args {
         ...InputValue
-        isDeprecated
-        deprecationReason
       }
       onOperation
       onFragment
       onField
+      isDeprecated
+      deprecationReason
     }
   }
 }
@@ -31,10 +31,8 @@ fragment FullType on __Type {
   fields(includeDeprecated: true) {
     name
     description
-    args(includeDeprecated: true) {
+    args {
       ...InputValue
-      isDeprecated
-      deprecationReason
     }
     type {
       ...TypeRef
@@ -42,10 +40,8 @@ fragment FullType on __Type {
     isDeprecated
     deprecationReason
   }
-  inputFields(includeDeprecated: true) {
+  inputFields {
     ...InputValue
-    isDeprecated
-    deprecationReason
   }
   interfaces {
     ...TypeRef

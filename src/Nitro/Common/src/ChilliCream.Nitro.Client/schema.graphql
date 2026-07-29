@@ -8,7 +8,7 @@ type Query {
   apiById(id: ID!): Api
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
   mcpFeatureCollectionById(id: ID!): McpFeatureCollection
-  me: Viewer
+  me: Viewer @deprecated(reason: "Use `viewer` instead.")
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
   "Lookup nodes by a list of IDs."
@@ -16,6 +16,8 @@ type Query {
   openApiCollectionById(id: ID!): OpenApiCollection
   organizationById(id: ID!): Organization
   stageById(id: ID!): Stage
+  version: String
+  viewer: Viewer
   workspaceById(workspaceId: ID!): Workspace
 }
 
@@ -108,6 +110,9 @@ type Mutation {
   ): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
+  updateStageCompositionSettings(
+    input: UpdateStageCompositionSettingsInput!
+  ): UpdateStageCompositionSettingsPayload!
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
   updateThemeSettings(
     input: UpdateThemeSettingsInput!
@@ -183,6 +188,7 @@ type AfterStageCondition {
 }
 
 type Api implements Node {
+  actions: ApiActions!
   clients(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -270,9 +276,28 @@ type Api implements Node {
     last: Int
   ): SchemaVersionsConnection
   settings: ApiSettings!
+  stage(name: String!): Stage
   stages: [Stage!]!
   version: Version!
   workspace: Workspace
+}
+
+type ApiActions {
+  canCreateClient: Boolean!
+  canCreateDocument: Boolean!
+  canCreateMcpFeatureCollection: Boolean!
+  canCreateOpenApiCollection: Boolean!
+  canDelete: Boolean!
+  canDuplicate: Boolean!
+  canEditSchemaRegistrySettings: Boolean!
+  canManageStages: Boolean!
+  canRename: Boolean!
+  canViewClients: Boolean!
+  canViewMcpFeatureCollections: Boolean!
+  canViewOpenApiCollections: Boolean!
+  canViewOperations: Boolean!
+  canViewSchema: Boolean!
+  canViewStages: Boolean!
 }
 
 type ApiChanged implements ApiChangeLog & WorkspaceChangeLog {
@@ -337,6 +362,7 @@ type ApiDeletionFailedError implements Error {
 }
 
 type ApiDocument implements Node {
+  actions: ApiDocumentActions!
   api: Api
   body: String!
   createdAt: DateTime!
@@ -348,6 +374,11 @@ type ApiDocument implements Node {
   path: [String!]!
   variables: String
   version: Version!
+}
+
+type ApiDocumentActions {
+  canDelete: Boolean!
+  canEdit: Boolean!
 }
 
 type ApiDocumentChanged implements ApiDocumentChangeLog & WorkspaceChangeLog {
@@ -453,6 +484,7 @@ type ApiHttpConnection {
 
 "API Key Details"
 type ApiKey implements Node {
+  actions: ApiKeyActions!
   createdBy: UserInfo!
   id: ID!
   name: String!
@@ -468,6 +500,10 @@ type ApiKey implements Node {
   ): ApiKeyRoleAssignmentsConnection
   scopes: [ApiKeyScope!]!
   workspace: Workspace
+}
+
+type ApiKeyActions {
+  canDelete: Boolean!
 }
 
 type ApiKeyNotFoundError implements Error {
@@ -756,6 +792,7 @@ type ChangeValidationFailed implements Error {
 }
 
 type Client implements Node {
+  actions: ClientActions!
   api: Api
   createdAt: DateTime!
   createdBy: UserInfo!
@@ -803,6 +840,10 @@ type Client implements Node {
   ): ClientVersionConnection
 }
 
+type ClientActions {
+  canDelete: Boolean!
+}
+
 type ClientChangeLog implements StageChangeLog & Node {
   changedAt: DateTime!
   id: ID!
@@ -816,6 +857,7 @@ type ClientDeletedStageChangeEvent implements StageChangedEvent {
 }
 
 type ClientDeployment implements Node & Deployment {
+  actions: ClientDeploymentActions!
   approval: DeploymentApproval
   client: Client
   createdAt: DateTime!
@@ -825,6 +867,11 @@ type ClientDeployment implements Node & Deployment {
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
+}
+
+type ClientDeploymentActions implements DeploymentActions {
+  canApprove: Boolean!
+  canCancel: Boolean!
 }
 
 type ClientInsight {
@@ -1445,6 +1492,7 @@ type EnumValueRemoved implements SchemaChange {
 }
 
 type Environment implements Node {
+  actions: EnvironmentActions!
   createdAt: DateTime!
   createdBy: UserInfo!
   id: ID!
@@ -1454,6 +1502,10 @@ type Environment implements Node {
   variables: [EnvironmentVariable!]!
   version: Version!
   workspace: Workspace
+}
+
+type EnvironmentActions {
+  canDelete: Boolean!
 }
 
 type EnvironmentChanged implements EnvironmentChangeLog & WorkspaceChangeLog {
@@ -1615,6 +1667,7 @@ type FusionConfigurationChangeLog implements StageChangeLog & Node {
 }
 
 type FusionConfigurationDeployment implements Node & Deployment {
+  actions: FusionConfigurationDeploymentActions!
   approval: DeploymentApproval
   createdAt: DateTime!
   errors: [FusionConfigurationDeploymentError!]!
@@ -1635,6 +1688,11 @@ type FusionConfigurationDeployment implements Node & Deployment {
     last: Int
   ): DeploymentSubgraphsConnection
   tag: String!
+}
+
+type FusionConfigurationDeploymentActions implements DeploymentActions {
+  canApprove: Boolean!
+  canCancel: Boolean!
 }
 
 type FusionConfigurationDeploymentSchemaChanges {
@@ -2052,6 +2110,7 @@ type InvalidSourceMetadataInputError implements Error {
 }
 
 type McpFeatureCollection implements Node {
+  actions: McpFeatureCollectionActions!
   api: Api
   createdAt: DateTime!
   createdBy: UserInfo!
@@ -2080,6 +2139,10 @@ type McpFeatureCollection implements Node {
   ): McpFeatureCollectionVersionsConnection
 }
 
+type McpFeatureCollectionActions {
+  canDelete: Boolean!
+}
+
 type McpFeatureCollectionChangeLog implements StageChangeLog & Node {
   changedAt: DateTime!
   id: ID!
@@ -2093,6 +2156,7 @@ type McpFeatureCollectionDeletedStageChangeEvent implements StageChangedEvent {
 }
 
 type McpFeatureCollectionDeployment implements Node & Deployment {
+  actions: McpFeatureCollectionDeploymentActions!
   approval: DeploymentApproval
   createdAt: DateTime!
   errors: [McpFeatureCollectionDeploymentError!]!
@@ -2102,6 +2166,11 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
+}
+
+type McpFeatureCollectionDeploymentActions implements DeploymentActions {
+  canApprove: Boolean!
+  canCancel: Boolean!
 }
 
 "A connection to a list of items."
@@ -2403,6 +2472,7 @@ type ObjectModifiedChange implements SchemaChange {
 }
 
 type OpenApiCollection implements Node {
+  actions: OpenApiCollectionActions!
   api: Api
   createdAt: DateTime!
   createdBy: UserInfo!
@@ -2438,6 +2508,10 @@ type OpenApiCollection implements Node {
   ): OpenApiCollectionVersionsConnection
 }
 
+type OpenApiCollectionActions {
+  canDelete: Boolean!
+}
+
 type OpenApiCollectionChangeLog implements StageChangeLog & Node {
   changedAt: DateTime!
   id: ID!
@@ -2451,6 +2525,7 @@ type OpenApiCollectionDeletedStageChangeEvent implements StageChangedEvent {
 }
 
 type OpenApiCollectionDeployment implements Node & Deployment {
+  actions: OpenApiCollectionDeploymentActions!
   approval: DeploymentApproval
   createdAt: DateTime!
   errors: [OpenApiCollectionDeploymentError!]!
@@ -2460,6 +2535,11 @@ type OpenApiCollectionDeployment implements Node & Deployment {
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
+}
+
+type OpenApiCollectionDeploymentActions implements DeploymentActions {
+  canApprove: Boolean!
+  canCancel: Boolean!
 }
 
 "A connection to a list of items."
@@ -3277,6 +3357,7 @@ type OperationTraceSample {
 }
 
 type Organization implements Node {
+  actions: OrganizationActions!
   """
   Returns the add-on packs purchased by the given organization,
   along with the resulting included-usage entitlements and total monthly cost.
@@ -3360,6 +3441,17 @@ type Organization implements Node {
   specified date range, defaulting to the current calendar month when bounds are omitted.
   """
   usage(from: DateTime, to: DateTime): OrganizationUsage
+}
+
+type OrganizationActions {
+  canCreateWorkspace: Boolean!
+  canManageMembers: Boolean!
+  canViewAuthorizationEventLog: Boolean!
+  canViewBilling: Boolean!
+  canViewGroups: Boolean!
+  canViewMembers: Boolean!
+  canViewRoles: Boolean!
+  canViewUsage: Boolean!
 }
 
 """
@@ -4593,6 +4685,7 @@ type SchemaCoordinateMetrics implements CoordinateMetrics {
 }
 
 type SchemaDeployment implements Node & Deployment {
+  actions: SchemaDeploymentActions!
   approval: DeploymentApproval
   createdAt: DateTime!
   errors: [SchemaDeploymentError!]!
@@ -4602,6 +4695,11 @@ type SchemaDeployment implements Node & Deployment {
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
+}
+
+type SchemaDeploymentActions implements DeploymentActions {
+  canApprove: Boolean!
+  canCancel: Boolean!
 }
 
 type SchemaDeploymentSchemaChanges {
@@ -4707,6 +4805,7 @@ type SetActiveWorkspacePayload {
 }
 
 type Stage implements Node {
+  actions: StageActions!
   api: Api
   changeLog(
     "Returns the elements in the list that come after the specified cursor."
@@ -4725,6 +4824,7 @@ type Stage implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): StageClientDeploymentsConnection
+  compositionSettings: StageCompositionSettings
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -4842,6 +4942,14 @@ type Stage implements Node {
   ): OpenTelemetryTrace
 }
 
+type StageActions {
+  canDelete: Boolean!
+  canEditApiCompositionSettings: Boolean!
+  canViewDeployments: Boolean!
+  canViewLogs: Boolean!
+  canViewTraces: Boolean!
+}
+
 "A connection to a list of items."
 type StageChangeLogConnection {
   "A list of edges."
@@ -4890,6 +4998,14 @@ type StageClientsMetrics {
     orderBy: [ClientInsightsOrderByInput!]
     to: DateTime!
   ): ClientInsightsConnection
+}
+
+type StageCompositionSettings {
+  cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
+  enableGlobalObjectIdentification: Boolean
+  excludeByTag: [String!]
+  removeUnreferencedDefinitions: Boolean
+  tagMergeBehavior: CompositionDirectiveMergeBehavior
 }
 
 type StageErrorsMetrics {
@@ -5404,6 +5520,11 @@ type UpdatePreferencesPayload {
   preferences: Any
 }
 
+type UpdateStageCompositionSettingsPayload {
+  errors: [UpdateStageCompositionSettingsError!]
+  stage: Stage
+}
+
 type UpdateStagesPayload {
   api: Api
   errors: [UpdateStagesError!]
@@ -5530,6 +5651,7 @@ type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublis
 }
 
 type Workspace implements Node {
+  actions: WorkspaceActions!
   apiDocuments(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -5586,6 +5708,13 @@ type Workspace implements Node {
   version: Version!
 }
 
+type WorkspaceActions {
+  canCreateApiKey: Boolean!
+  canDelete: Boolean!
+  canRename: Boolean!
+  canViewApiKeys: Boolean!
+}
+
 type WorkspaceChangePayload {
   error: WorkspaceChangeError
   referenceId: String!
@@ -5593,6 +5722,7 @@ type WorkspaceChangePayload {
 }
 
 type WorkspaceDocument implements Node {
+  actions: WorkspaceDocumentActions!
   activeConnectionKind: String!
   body: String!
   createdAt: DateTime!
@@ -5606,6 +5736,10 @@ type WorkspaceDocument implements Node {
   variables: String
   version: Version!
   workspace: Workspace
+}
+
+type WorkspaceDocumentActions {
+  canDelete: Boolean!
 }
 
 type WorkspaceDocumentAuthentication {
@@ -5743,6 +5877,7 @@ interface CoordinateMetrics {
 }
 
 interface Deployment {
+  actions: DeploymentActions!
   approval: DeploymentApproval
   createdAt: DateTime!
   id: ID!
@@ -5750,6 +5885,11 @@ interface Deployment {
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
+}
+
+interface DeploymentActions {
+  canApprove: Boolean!
+  canCancel: Boolean!
 }
 
 interface DeploymentLog {
@@ -6092,6 +6232,7 @@ union DirectiveChange =
   | ArgumentAdded
   | ArgumentChanged
   | ArgumentRemoved
+  | DeprecatedChange
   | DescriptionChanged
   | DirectiveLocationAdded
   | DirectiveLocationRemoved
@@ -6255,6 +6396,7 @@ union SchemaMemberChange =
   | ArgumentAdded
   | ArgumentChanged
   | ArgumentRemoved
+  | DeprecatedChange
   | DescriptionChanged
   | DirectiveLocationAdded
   | DirectiveLocationRemoved
@@ -6301,6 +6443,10 @@ union UpdateMockSchemaError =
   | ValidationError
 
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
+
+union UpdateStageCompositionSettingsError =
+  | StageNotFoundError
+  | UnauthorizedOperation
 
 union UpdateStagesError =
   | ApiNotFoundError
@@ -6782,6 +6928,14 @@ input PartialSchemaRegistrySettingsInput {
   treatDangerousAsBreaking: Boolean! = false
 }
 
+input PartialStageCompositionSettingsInput {
+  cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
+  enableGlobalObjectIdentification: Boolean
+  excludeByTag: [String!]
+  removeUnreferencedDefinitions: Boolean
+  tagMergeBehavior: CompositionDirectiveMergeBehavior
+}
+
 input PollClientVersionPublishRequestInput {
   id: ID!
 }
@@ -6965,6 +7119,12 @@ input UpdateMockSchemaInput {
 
 input UpdatePreferencesInput {
   preferences: Any!
+}
+
+input UpdateStageCompositionSettingsInput {
+  apiId: ID!
+  settings: PartialStageCompositionSettingsInput!
+  stageName: String!
 }
 
 input UpdateStagesInput {
@@ -7162,6 +7322,12 @@ enum AuthorizationEventType {
   TENANT_ACCESS_BYPASSED
 }
 
+enum CompositionDirectiveMergeBehavior {
+  IGNORE
+  INCLUDE
+  INCLUDE_PRIVATE
+}
+
 enum CoordinateKind {
   DIRECTIVE
   DIRECTIVE_ARGUMENT
@@ -7200,6 +7366,8 @@ where a directive can be applied.
 enum DirectiveLocation {
   "Location adjacent to an argument definition"
   ARGUMENT_DEFINITION
+  "Location adjacent to a directive definition."
+  DIRECTIVE_DEFINITION
   "Location adjacent to an enum definition."
   ENUM
   "Location adjacent to an enum value definition."

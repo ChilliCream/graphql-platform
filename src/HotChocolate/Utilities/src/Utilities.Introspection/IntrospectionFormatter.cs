@@ -267,7 +267,9 @@ internal static class IntrospectionFormatter
             CreateDescription(directive.Description),
             directive.IsRepeatable ?? false,
             CreateInputValues(directive.Args),
-            [],
+            CreateDeprecatedDirective(
+                directive.IsDeprecated,
+                directive.DeprecationReason),
             locations
         );
     }

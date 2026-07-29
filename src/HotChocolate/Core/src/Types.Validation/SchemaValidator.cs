@@ -12,7 +12,11 @@ namespace HotChocolate;
 /// </summary>
 public sealed class SchemaValidator
 {
-    private readonly HashSet<object> _rules;
+    private static int s_eventTypeCount;
+
+    // Handlers are dispatched in the order the rules were added, so this must preserve order.
+    private readonly List<object> _rules;
+    private object?[] _handlers = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SchemaValidator"/> class with the default
@@ -30,7 +34,7 @@ public sealed class SchemaValidator
     /// <param name="rules">The rules to use for validation.</param>
     public SchemaValidator(IEnumerable<object> rules)
     {
-        _rules = rules.ToHashSet();
+        _rules = [.. rules.Distinct()];
     }
 
     /// <summary>
@@ -38,6 +42,8 @@ public sealed class SchemaValidator
     /// </summary>
     public void AddDefaultRules()
     {
+        _handlers = [];
+
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
@@ -276,12 +282,42 @@ public sealed class SchemaValidator
     private void PublishEvent<TEvent>(TEvent @event, ValidationContext context)
         where TEvent : IValidationEvent
     {
-        foreach (var rule in _rules)
+        foreach (var handler in GetHandlers<TEvent>())
         {
-            if (rule is IValidationEventHandler<TEvent> handler)
-            {
-                handler.Handle(@event, context);
-            }
+            handler.Handle(@event, context);
         }
+    }
+
+    /// <summary>
+    /// Gets the handlers that are subscribed to <typeparamref name="TEvent"/>. The handlers are
+    /// resolved once per event type and per validator, in the order in which the rules were added.
+    /// </summary>
+    private IValidationEventHandler<TEvent>[] GetHandlers<TEvent>()
+        where TEvent : IValidationEvent
+    {
+        var slot = EventSlot<TEvent>.Index;
+        var slots = _handlers;
+
+        if (slot >= slots.Length)
+        {
+            Array.Resize(ref slots, Math.Max(slot + 1, s_eventTypeCount));
+            _handlers = slots;
+        }
+
+        if (slots[slot] is IValidationEventHandler<TEvent>[] handlers)
+        {
+            return handlers;
+        }
+
+        handlers = _rules.OfType<IValidationEventHandler<TEvent>>().ToArray();
+        slots[slot] = handlers;
+
+        return handlers;
+    }
+
+    private static class EventSlot<TEvent>
+        where TEvent : IValidationEvent
+    {
+        public static readonly int Index = Interlocked.Increment(ref s_eventTypeCount) - 1;
     }
 }
