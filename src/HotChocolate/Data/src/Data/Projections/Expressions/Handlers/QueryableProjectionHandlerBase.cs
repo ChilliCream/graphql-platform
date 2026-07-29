@@ -15,6 +15,11 @@ public abstract class QueryableProjectionHandlerBase
             return false;
         }
 
+        if (selection.IsProjectionRequirement)
+        {
+            return true;
+        }
+
         // Explicit opt-in should always project regardless of resolver source.
         if (selection.Field.IsAlwaysProjected())
         {
