@@ -12,7 +12,7 @@ internal static class AspireCompositionHelper
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> newSourceSchemas,
         GraphQLCompositionSettings settings,
-        ILogger<SchemaComposition> logger,
+        ILogger logger,
         CancellationToken cancellationToken)
     {
         using var archive = File.Exists(fusionArchivePath)
@@ -39,24 +39,17 @@ internal static class AspireCompositionHelper
 
         foreach (var entry in compositionLog)
         {
-            if (entry.Severity is LogSeverity.Error)
-            {
-                output.AppendLine($"‼️ {FormatMultilineMessage(entry.Message)}");
-            }
-            else
-            {
-                output.AppendLine(entry.Message);
-            }
+            output.AppendLine(entry.Message);
         }
 
         if (result.IsFailure)
         {
-            output.Append("❌ Composition failed:");
+            output.Append("Composition failed:");
             logger.LogError("{Message}", output.ToString());
             return false;
         }
 
-        output.Append("✅ Composition completed successfully.");
+        output.Append("Composition completed successfully.");
         logger.LogInformation("{Message}", output.ToString());
 
         return true;
@@ -82,21 +75,5 @@ internal static class AspireCompositionHelper
             },
             Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };
-    }
-
-    /// <summary>
-    /// Since we're prefixing the message with an emoji and space before printing,
-    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
-    /// </summary>
-    private static string FormatMultilineMessage(string message)
-    {
-        var lines = message.Split(Environment.NewLine);
-
-        if (lines.Length <= 1)
-        {
-            return message;
-        }
-
-        return string.Join(Environment.NewLine + "   ", lines);
     }
 }

@@ -5,7 +5,6 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Eventing;
 using Aspire.Hosting.Lifecycle;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using IOPath = System.IO.Path;
@@ -13,12 +12,13 @@ using IOPath = System.IO.Path;
 namespace HotChocolate.Fusion.Aspire;
 
 internal sealed class SchemaComposition(
+    ResourceNotificationService resourceNotificationService,
+    ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
-    private const int StartupFetchMaxRetries = 60;
-    private const int RecompositionFetchMaxRetries = 15;
+    private const int FetchMaxRetries = 15;
     private const int ArchiveCopyMaxAttempts = 5;
     private static readonly TimeSpan s_fetchRetryDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_recompositionDebounceDelay = TimeSpan.FromSeconds(1);
@@ -29,93 +29,181 @@ internal sealed class SchemaComposition(
         DistributedApplicationExecutionContext executionContext,
         CancellationToken cancellationToken)
     {
-        List<GatewayRecompositionWorker>? recompositionWorkers = null;
-
-        if (executionContext.IsRunMode)
+        if (!executionContext.IsRunMode)
         {
-            // The restart subscriptions must exist before any resource starts. A fast resource
-            // can publish its initial ResourceReadyEvent before AfterResourcesCreatedEvent is
-            // published, and events are not replayed to late subscribers, so subscribing any
-            // later would misclassify the first restart of such a resource as its initial start.
-            eventing.Subscribe<BeforeStartEvent>((@event, _) =>
-            {
-                var compositionResources = @event.Model.GetGraphQLCompositionResources().ToList();
-
-                if (compositionResources.Count > 0)
-                {
-                    recompositionWorkers = SubscribeToSourceSchemaRestarts(
-                        eventing,
-                        @event.Model,
-                        compositionResources);
-                }
-
-                return Task.CompletedTask;
-            });
+            return Task.CompletedTask;
         }
 
-        eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, ct) =>
+        // All subscriptions must exist before any resource starts. A fast resource can publish
+        // its initial ResourceReadyEvent early, and events are not replayed to late subscribers,
+        // so subscribing any later would misclassify the first restart of such a resource as its
+        // initial start.
+        eventing.Subscribe<BeforeStartEvent>((@event, _) =>
         {
-            var model = @event.Services.GetRequiredService<DistributedApplicationModel>();
-            var compositionFailed = false;
+            var compositionResources = @event.Model.GetGraphQLCompositionResources().ToList();
 
-            try
+            if (compositionResources.Count == 0)
             {
-                // Find all resources that need schema composition
-                var compositionResources = model.GetGraphQLCompositionResources().ToList();
-
-                if (compositionResources.Count == 0)
-                {
-                    logger.LogDebug("No resources found that need GraphQL schema composition");
-                    return;
-                }
-
-                logger.LogInformation("Starting GraphQL schema composition...");
-
-                // Process each composition resource
-                foreach (var compositionResource in compositionResources)
-                {
-                    if (!await ComposeSchemaAsync(compositionResource, model, isRecomposition: false, ct))
-                    {
-                        compositionFailed = true;
-                    }
-                }
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch
-            {
-                compositionFailed = true;
+                logger.LogDebug("No resources found that need GraphQL schema composition");
+                return Task.CompletedTask;
             }
 
-            if (compositionFailed)
+            // One gate per gateway serializes the startup composition with recompositions
+            // triggered by source schema restarts. Different gateways stay independent and
+            // may compose concurrently.
+            var compositionGates = compositionResources.ToDictionary(
+                gateway => gateway,
+                _ => new SemaphoreSlim(1, 1));
+
+            var recompositionWorkers = SubscribeToSourceSchemaRestarts(
+                eventing,
+                @event.Model,
+                compositionResources,
+                compositionGates);
+
+            foreach (var compositionResource in compositionResources)
             {
-                logger.LogCritical("GraphQL schema composition failed - stopping application");
-                lifetime.StopApplication();
-                throw new InvalidOperationException("GraphQL schema composition failed");
+                var gateway = compositionResource;
+                var compositionGate = compositionGates[gateway];
+
+                // The orchestrator awaits this handler before it starts the gateway process,
+                // so the gateway only starts once its fusion archive is on disk. The handler
+                // runs again on every restart of the gateway, which composes a fresh schema.
+                eventing.Subscribe<BeforeResourceStartedEvent>(
+                    gateway,
+                    (_, startCancellationToken) => ComposeOnGatewayStartAsync(
+                        gateway,
+                        @event.Model,
+                        compositionGate,
+                        startCancellationToken));
             }
 
-            // Restarts that happened while the initial composition was running were buffered
-            // by the workers and are processed as soon as the workers start.
-            if (recompositionWorkers is { Count: > 0 })
-            {
-                foreach (var worker in recompositionWorkers)
-                {
-                    _ = worker.RunAsync(lifetime.ApplicationStopping);
-                }
+            // Restart triggers only arrive after the initial ResourceReadyEvent of a source,
+            // so the workers can start right away. The composition gates guarantee that a
+            // recomposition never overlaps the startup composition of the same gateway.
+            StartRecompositionWorkers(recompositionWorkers);
 
-                logger.LogInformation("Watching source schema resources for restarts.");
-            }
+            logger.LogInformation("Watching source schema resources for restarts.");
+            return Task.CompletedTask;
         });
 
         return Task.CompletedTask;
     }
 
+    private void StartRecompositionWorkers(List<GatewayRecompositionWorker> recompositionWorkers)
+    {
+        foreach (var worker in recompositionWorkers)
+        {
+            _ = worker.RunAsync(lifetime.ApplicationStopping);
+        }
+    }
+
+    /// <summary>
+    /// Composes the schema for a gateway before the orchestrator starts the gateway process.
+    /// A failed composition marks the gateway as failed to start without stopping the rest
+    /// of the application.
+    /// </summary>
+    internal async Task ComposeOnGatewayStartAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        SemaphoreSlim compositionGate,
+        CancellationToken cancellationToken)
+    {
+        await compositionGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            logger.LogInformation(
+                "Composing the GraphQL schema for {ResourceName} before it starts.",
+                compositionResource.Name);
+
+            Exception? failure = null;
+
+            try
+            {
+                await WaitForSourceSchemaResourcesReadyAsync(
+                    compositionResource,
+                    appModel,
+                    cancellationToken);
+
+                if (await ComposeSchemaAsync(compositionResource, appModel, cancellationToken))
+                {
+                    return;
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+
+            var message = failure is null
+                ? $"The GraphQL schema composition for '{compositionResource.Name}' failed."
+                : $"The GraphQL schema composition for '{compositionResource.Name}' failed: {failure.Message}";
+
+            logger.LogError(failure, "{Message}", message);
+            resourceLoggerService.GetLogger(compositionResource).LogError(failure, "{Message}", message);
+
+            throw failure is null
+                ? new DistributedApplicationException(message)
+                : new DistributedApplicationException(message, failure);
+        }
+        finally
+        {
+            compositionGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Waits until every endpoint-based source schema resource of the gateway is healthy.
+    /// File-based source schemas need no wait. A source that becomes unavailable fails the
+    /// wait with an error that names the source.
+    /// </summary>
+    internal async Task WaitForSourceSchemaResourcesReadyAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        CancellationToken cancellationToken)
+    {
+        foreach (var referencedResource in GetReferencedResources(compositionResource, appModel))
+        {
+            var annotation = referencedResource.Annotations
+                .OfType<GraphQLSourceSchemaAnnotation>()
+                .FirstOrDefault();
+
+            if (annotation is not { Location: SourceSchemaLocationType.SchemaEndpoint })
+            {
+                continue;
+            }
+
+            logger.LogDebug(
+                "Waiting for source schema resource {ResourceName} to become healthy",
+                referencedResource.Name);
+
+            try
+            {
+                await resourceNotificationService.WaitForResourceHealthyAsync(
+                    referencedResource.Name,
+                    WaitBehavior.StopOnResourceUnavailable,
+                    cancellationToken);
+            }
+            catch (DistributedApplicationException exception)
+            {
+                throw new DistributedApplicationException(
+                    $"The source schema resource '{referencedResource.Name}' required by "
+                    + $"'{compositionResource.Name}' did not become healthy.",
+                    exception);
+            }
+        }
+    }
+
     private List<GatewayRecompositionWorker> SubscribeToSourceSchemaRestarts(
         IDistributedApplicationEventing eventing,
         DistributedApplicationModel appModel,
-        List<IResourceWithEndpoints> compositionResources)
+        List<IResourceWithEndpoints> compositionResources,
+        Dictionary<IResourceWithEndpoints, SemaphoreSlim> compositionGates)
     {
         var sourceToGateways = BuildSourceToGatewayMap(compositionResources, appModel);
         var restartTracker = new SourceSchemaRestartTracker();
@@ -129,9 +217,15 @@ internal sealed class SchemaComposition(
             {
                 if (!workerByGateway.TryGetValue(gateway, out var worker))
                 {
+                    var gatewayResource = gateway;
+                    var compositionGate = compositionGates[gateway];
                     worker = new GatewayRecompositionWorker(
                         gateway.Name,
-                        composeCt => RecomposeSchemaAsync(gateway, appModel, composeCt),
+                        composeCt => RunGuardedRecompositionAsync(
+                            gatewayResource,
+                            appModel,
+                            compositionGate,
+                            composeCt),
                         s_recompositionDebounceDelay,
                         TimeProvider.System,
                         logger);
@@ -162,6 +256,28 @@ internal sealed class SchemaComposition(
         }
 
         return [.. workerByGateway.Values];
+    }
+
+    /// <summary>
+    /// Runs a schema recomposition while holding the composition gate of the gateway so that
+    /// it never overlaps a startup composition for the same gateway.
+    /// </summary>
+    internal async Task RunGuardedRecompositionAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        SemaphoreSlim compositionGate,
+        CancellationToken cancellationToken)
+    {
+        await compositionGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            await RecomposeSchemaAsync(compositionResource, appModel, cancellationToken);
+        }
+        finally
+        {
+            compositionGate.Release();
+        }
     }
 
     /// <summary>
@@ -207,7 +323,7 @@ internal sealed class SchemaComposition(
             "Recomposing GraphQL schema for {ResourceName}...",
             compositionResource.Name);
 
-        if (await ComposeSchemaAsync(compositionResource, appModel, isRecomposition: true, cancellationToken))
+        if (await ComposeSchemaAsync(compositionResource, appModel, cancellationToken))
         {
             logger.LogInformation(
                 "Schema recomposition for {ResourceName} completed.",
@@ -224,7 +340,6 @@ internal sealed class SchemaComposition(
     private async Task<bool> ComposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
-        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         var settings = compositionResource.GetCompositionSettings();
@@ -233,6 +348,12 @@ internal sealed class SchemaComposition(
         {
             return true;
         }
+
+        // Composition problems are reported to the application host log and to the console
+        // log of the gateway resource so that failures are visible on the resource itself.
+        var compositionLogger = new CompositeLogger(
+            logger,
+            resourceLoggerService.GetLogger(compositionResource));
 
         logger.LogInformation(
             "Preparing schema composition for {ResourceName}.",
@@ -243,25 +364,32 @@ internal sealed class SchemaComposition(
             var sourceSchemas = await DiscoverReferencedSourceSchemasAsync(
                 compositionResource,
                 appModel,
-                isRecomposition,
                 cancellationToken);
 
             if (sourceSchemas.Count == 0)
             {
-                logger.LogWarning(
+                compositionLogger.LogWarning(
                     "{ResourceName} has no source schemas.",
                     compositionResource.Name);
 
-                // A recomposition without any source schemas would report success while the
-                // gateway keeps serving the previous archive, so it is treated as a failure.
-                return !isRecomposition;
+                // A source schema that cannot be loaded fails the discovery with an
+                // exception, so reaching this point means the gateway genuinely
+                // references no resources with a source schema annotation. There is
+                // nothing to compose, so no archive is written and the composition
+                // succeeds with the warning above.
+                return true;
             }
 
             try
             {
                 var gatewayDirectory = GetProjectPath(compositionResource)!;
                 var archivePath = IOPath.Combine(IOPath.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
-                return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
+                return await ComposeSchemaAsync(
+                    archivePath,
+                    sourceSchemas,
+                    settings,
+                    compositionLogger,
+                    cancellationToken);
             }
             finally
             {
@@ -277,9 +405,9 @@ internal sealed class SchemaComposition(
         }
         catch (Exception ex)
         {
-            logger.LogError(
+            compositionLogger.LogError(
                 ex,
-                "❌ Schema composition failed for {ResourceName}: {Error}",
+                "Schema composition failed for {ResourceName}: {Error}",
                 compositionResource.Name,
                 ex.Message);
         }
@@ -290,7 +418,6 @@ internal sealed class SchemaComposition(
     internal async Task<List<SourceSchemaInfo>> DiscoverReferencedSourceSchemasAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
-        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         var sourceSchemas = new List<SourceSchemaInfo>();
@@ -314,22 +441,16 @@ internal sealed class SchemaComposition(
                     continue;
                 }
 
-                var schemaInfo = await GetSourceSchemaInfoAsync(
-                    referencedResource,
-                    isRecomposition,
-                    cancellationToken);
+                var schemaInfo = await GetSourceSchemaInfoAsync(referencedResource, cancellationToken);
                 if (schemaInfo is null)
                 {
-                    if (isRecomposition)
-                    {
-                        // Composing without this source would silently carry its previous
-                        // schema forward from the existing archive, so the recomposition
-                        // must fail instead so the gateway keeps the previous schema.
-                        throw new InvalidOperationException(
-                            $"The source schema for resource '{referencedResource.Name}' could not be loaded.");
-                    }
-
-                    continue;
+                    // Composing without this source would either drop it from the composed
+                    // schema or silently carry its previous schema forward from the existing
+                    // archive, so the composition must fail instead. On startup this marks
+                    // the gateway as failed to start, on a recomposition the gateway keeps
+                    // the previous schema.
+                    throw new InvalidOperationException(
+                        $"The source schema for resource '{referencedResource.Name}' could not be loaded.");
                 }
 
                 sourceSchemas.Add(schemaInfo);
@@ -390,7 +511,6 @@ internal sealed class SchemaComposition(
 
     private async Task<SourceSchemaInfo?> GetSourceSchemaInfoAsync(
         IResourceWithEndpoints resource,
-        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         var sourceSchemaSettings = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
@@ -402,11 +522,7 @@ internal sealed class SchemaComposition(
         switch (sourceSchemaSettings.Location)
         {
             case SourceSchemaLocationType.SchemaEndpoint:
-                return await GetSourceSchemaFromEndpointAsync(
-                    resource,
-                    sourceSchemaSettings,
-                    isRecomposition,
-                    cancellationToken);
+                return await GetSourceSchemaFromEndpointAsync(resource, sourceSchemaSettings, cancellationToken);
 
             case SourceSchemaLocationType.ProjectDirectory:
                 return await GetSourceSchemaFromFileAsync(resource, sourceSchemaSettings, cancellationToken);
@@ -423,7 +539,6 @@ internal sealed class SchemaComposition(
     private async Task<SourceSchemaInfo?> GetSourceSchemaFromEndpointAsync(
         IResourceWithEndpoints resource,
         GraphQLSourceSchemaAnnotation annotation,
-        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         // For endpoint schemas, look for "schema-settings.json" in the project directory.
@@ -457,7 +572,6 @@ internal sealed class SchemaComposition(
                 endpointConfiguration.SourceSchemaName,
                 schemaUrl,
                 endpointConfiguration.Protocol,
-                isRecomposition,
                 cancellationToken);
             if (schemaText == null)
             {
@@ -624,13 +738,8 @@ internal sealed class SchemaComposition(
         string sourceSchemaName,
         string schemaUrl,
         SchemaEndpointProtocol protocol,
-        bool isRecomposition,
         CancellationToken cancellationToken)
     {
-        // After a restart the DCP proxy keeps the endpoint open, so a recomposition fetch can
-        // observe transient server errors instead of connection failures. The recomposition
-        // path therefore retries those as well, with a smaller retry budget than at startup.
-        var maxRetries = isRecomposition ? RecompositionFetchMaxRetries : StartupFetchMaxRetries;
         var endpoint = new Uri(schemaUrl);
 
         using var httpClient = new HttpClient
@@ -643,9 +752,8 @@ internal sealed class SchemaComposition(
             endpoint,
             protocol,
             httpClient,
-            maxRetries,
+            FetchMaxRetries,
             s_fetchRetryDelay,
-            retryTransientFailures: isRecomposition,
             cancellationToken);
     }
 
@@ -656,7 +764,6 @@ internal sealed class SchemaComposition(
         HttpClient httpClient,
         int maxRetries,
         TimeSpan retryDelay,
-        bool retryTransientFailures,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
@@ -710,9 +817,12 @@ internal sealed class SchemaComposition(
                     i + 1,
                     maxRetries);
             }
+            // The DCP proxy keeps an endpoint open while the source process starts or
+            // restarts, so a fetch can observe transient server errors instead of
+            // connection failures. Server errors are retried, everything below 500
+            // fails immediately.
             catch (HttpRequestException exception) when (
-                retryTransientFailures
-                && exception.StatusCode >= HttpStatusCode.InternalServerError)
+                exception.StatusCode >= HttpStatusCode.InternalServerError)
             {
                 logger.LogDebug(
                     "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
@@ -721,8 +831,7 @@ internal sealed class SchemaComposition(
                     maxRetries);
             }
             catch (SchemaFetchRequestException exception) when (
-                retryTransientFailures
-                && exception.StatusCode >= HttpStatusCode.InternalServerError)
+                exception.StatusCode >= HttpStatusCode.InternalServerError)
             {
                 logger.LogDebug(
                     "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
@@ -837,6 +946,7 @@ internal sealed class SchemaComposition(
         string archivePath,
         List<SourceSchemaInfo> sourceSchemas,
         GraphQLSchemaCompositionAnnotation settings,
+        ILogger compositionLogger,
         CancellationToken cancellationToken)
     {
         var tempArchivePath = IOPath.Combine(IOPath.GetTempPath(), IOPath.GetRandomFileName());
@@ -852,7 +962,7 @@ internal sealed class SchemaComposition(
                 tempArchivePath,
                 [.. sourceSchemas],
                 settings.Settings,
-                logger,
+                compositionLogger,
                 cancellationToken))
             {
                 // The gateway keeps read handles on the archive while it is running, which can

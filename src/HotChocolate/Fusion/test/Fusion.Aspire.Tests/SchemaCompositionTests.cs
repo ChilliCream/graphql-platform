@@ -4,6 +4,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -16,10 +17,7 @@ public sealed class SchemaCompositionTests
         const string secretUrl =
             "https://user:secret@products.example.com/graphql?token=secret";
         var attempts = 0;
-        var logger = new RecordingLogger<SchemaComposition>();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            logger);
+        var harness = CreateHarness();
         using var client = new HttpClient(
             new StubHttpMessageHandler(_ =>
             {
@@ -37,20 +35,19 @@ public sealed class SchemaCompositionTests
             }));
 
         // act
-        var schema = await composition.FetchSchemaFromEndpointAsync(
+        var schema = await harness.Composition.FetchSchemaFromEndpointAsync(
             "Products",
             new Uri(secretUrl),
             SchemaEndpointProtocol.GraphQL,
             client,
             maxRetries: 2,
             retryDelay: TimeSpan.Zero,
-            retryTransientFailures: false,
             TestContext.Current.CancellationToken);
 
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            logger.Entries
+            harness.Logger.Entries
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry =>
                     $"{entry.Message} | Exception: {entry.Exception?.Message ?? "<none>"}"));
@@ -76,10 +73,7 @@ public sealed class SchemaCompositionTests
         // arrange
         var attempts = 0;
         using var cancellation = new CancellationTokenSource();
-        var logger = new RecordingLogger<SchemaComposition>();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            logger);
+        var harness = CreateHarness();
         using var client = new HttpClient(
             new StubHttpMessageHandler(_ =>
             {
@@ -90,20 +84,19 @@ public sealed class SchemaCompositionTests
 
         // act
         var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => composition.FetchSchemaFromEndpointAsync(
+            () => harness.Composition.FetchSchemaFromEndpointAsync(
                 "Products",
                 new Uri("https://products.example.com/graphql"),
                 SchemaEndpointProtocol.GraphQL,
                 client,
                 maxRetries: 2,
                 retryDelay: TimeSpan.Zero,
-                retryTransientFailures: false,
                 cancellation.Token));
 
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            logger.Entries
+            harness.Logger.Entries
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -122,14 +115,11 @@ public sealed class SchemaCompositionTests
     }
 
     [Fact]
-    public async Task FetchSchemaFromEndpointAsync_Should_RetryServerErrorResponse_When_TransientRetryIsEnabled()
+    public async Task FetchSchemaFromEndpointAsync_Should_RetryServerErrorResponse_When_EndpointReturnsServerError()
     {
         // arrange
         var attempts = 0;
-        var logger = new RecordingLogger<SchemaComposition>();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            logger);
+        var harness = CreateHarness();
         using var client = new HttpClient(
             new StubHttpMessageHandler(_ =>
             {
@@ -144,20 +134,19 @@ public sealed class SchemaCompositionTests
             }));
 
         // act
-        var schema = await composition.FetchSchemaFromEndpointAsync(
+        var schema = await harness.Composition.FetchSchemaFromEndpointAsync(
             "Products",
             new Uri("https://products.example.com/graphql"),
             SchemaEndpointProtocol.GraphQL,
             client,
             maxRetries: 3,
             retryDelay: TimeSpan.Zero,
-            retryTransientFailures: true,
             TestContext.Current.CancellationToken);
 
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            logger.Entries
+            harness.Logger.Entries
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -178,14 +167,11 @@ public sealed class SchemaCompositionTests
     }
 
     [Fact]
-    public async Task FetchSchemaFromEndpointAsync_Should_RetryServerErrorException_When_TransientRetryIsEnabled()
+    public async Task FetchSchemaFromEndpointAsync_Should_RetryServerErrorException_When_ProxyThrowsServerError()
     {
         // arrange
         var attempts = 0;
-        var logger = new RecordingLogger<SchemaComposition>();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            logger);
+        var harness = CreateHarness();
         using var client = new HttpClient(
             new StubHttpMessageHandler(_ =>
             {
@@ -206,20 +192,19 @@ public sealed class SchemaCompositionTests
             }));
 
         // act
-        var schema = await composition.FetchSchemaFromEndpointAsync(
+        var schema = await harness.Composition.FetchSchemaFromEndpointAsync(
             "Products",
             new Uri("https://products.example.com/graphql"),
             SchemaEndpointProtocol.GraphQL,
             client,
             maxRetries: 2,
             retryDelay: TimeSpan.Zero,
-            retryTransientFailures: true,
             TestContext.Current.CancellationToken);
 
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            logger.Entries
+            harness.Logger.Entries
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -239,14 +224,11 @@ public sealed class SchemaCompositionTests
     }
 
     [Fact]
-    public async Task FetchSchemaFromEndpointAsync_Should_FailImmediately_When_TransientRetryIsDisabled()
+    public async Task FetchSchemaFromEndpointAsync_Should_ReturnNull_When_RetryBudgetIsExhausted()
     {
         // arrange
         var attempts = 0;
-        var logger = new RecordingLogger<SchemaComposition>();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            logger);
+        var harness = CreateHarness();
         using var client = new HttpClient(
             new StubHttpMessageHandler(_ =>
             {
@@ -255,22 +237,34 @@ public sealed class SchemaCompositionTests
             }));
 
         // act
-        var exception = await Assert.ThrowsAsync<SchemaFetchRequestException>(
-            () => composition.FetchSchemaFromEndpointAsync(
-                "Products",
-                new Uri("https://products.example.com/graphql"),
-                SchemaEndpointProtocol.GraphQL,
-                client,
-                maxRetries: 3,
-                retryDelay: TimeSpan.Zero,
-                retryTransientFailures: false,
-                TestContext.Current.CancellationToken));
+        var schema = await harness.Composition.FetchSchemaFromEndpointAsync(
+            "Products",
+            new Uri("https://products.example.com/graphql"),
+            SchemaEndpointProtocol.GraphQL,
+            client,
+            maxRetries: 2,
+            retryDelay: TimeSpan.Zero,
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, attempts);
-        Assert.Equal(
-            "Source schema 'Products' returned HTTP 503 (Service Unavailable) while downloading its schema.",
-            exception.Message);
+        var warningLog = string.Join(
+            Environment.NewLine,
+            harness.Logger.Entries
+                .Where(entry => entry.Level is LogLevel.Warning)
+                .Select(entry => entry.Message));
+
+        $$"""
+        Schema: {{schema ?? "<null>"}}
+        Attempts: {{attempts}}
+        Warnings:
+        {{warningLog}}
+        """.MatchInlineSnapshot(
+            """
+            Schema: <null>
+            Attempts: 2
+            Warnings:
+            Schema service Products failed to become ready after 2 attempts
+            """);
     }
 
     [Fact]
@@ -278,10 +272,7 @@ public sealed class SchemaCompositionTests
     {
         // arrange
         var attempts = 0;
-        var logger = new RecordingLogger<SchemaComposition>();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            logger);
+        var harness = CreateHarness();
         using var client = new HttpClient(
             new StubHttpMessageHandler(_ =>
             {
@@ -291,26 +282,318 @@ public sealed class SchemaCompositionTests
 
         // act
         var exception = await Assert.ThrowsAsync<SchemaFetchRequestException>(
-            () => composition.FetchSchemaFromEndpointAsync(
+            () => harness.Composition.FetchSchemaFromEndpointAsync(
                 "Products",
                 new Uri("https://products.example.com/graphql"),
                 SchemaEndpointProtocol.GraphQL,
                 client,
                 maxRetries: 3,
                 retryDelay: TimeSpan.Zero,
-                retryTransientFailures: true,
                 TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(1, attempts);
         Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        Assert.Equal(
+            "Source schema 'Products' returned HTTP 404 (Not Found) while downloading its schema.",
+            exception.Message);
     }
 
     [Fact]
-    public async Task DiscoverReferencedSourceSchemasAsync_Should_Throw_When_RecompositionSourceIsUnavailable()
+    public async Task ComposeOnGatewayStartAsync_Should_ThrowWithoutStoppingApplication_When_SourceFailsToStart()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaEndpoint();
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = model.GetGraphQLCompositionResources().Single();
+        var productsResource = model.Resources.Single(r => r.Name == "products");
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await harness.Notifications.PublishUpdateAsync(
+            productsResource,
+            snapshot => snapshot with { State = KnownResourceStates.FailedToStart });
+
+        // act
+        var exception = await Assert.ThrowsAsync<DistributedApplicationException>(
+            () => harness.Composition.ComposeOnGatewayStartAsync(
+                gateway,
+                model,
+                compositionGate,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "The GraphQL schema composition for 'gateway' failed: The source schema resource "
+            + "'products' required by 'gateway' did not become healthy.",
+            exception.Message);
+        Assert.Equal(0, harness.Lifetime.StopApplicationCalls);
+        Assert.Equal(1, compositionGate.CurrentCount);
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_ThrowWithoutStoppingApplication_When_CompositionFails()
+    {
+        // arrange
+        // the source schema file contains invalid GraphQL, so the composition itself fails.
+        var tempRoot = Directory.CreateTempSubdirectory("fusion-aspire-composition-");
+
+        try
+        {
+            var sourceDirectory = Directory.CreateDirectory(IOPath.Combine(tempRoot.FullName, "products"));
+            var gatewayDirectory = Directory.CreateDirectory(IOPath.Combine(tempRoot.FullName, "gateway"));
+            var sourceProjectFile = IOPath.Combine(sourceDirectory.FullName, "products.csproj");
+            var gatewayProjectFile = IOPath.Combine(gatewayDirectory.FullName, "gateway.csproj");
+            await File.WriteAllTextAsync(
+                sourceProjectFile, "<Project />", TestContext.Current.CancellationToken);
+            await File.WriteAllTextAsync(
+                gatewayProjectFile, "<Project />", TestContext.Current.CancellationToken);
+            await File.WriteAllTextAsync(
+                IOPath.Combine(sourceDirectory.FullName, "schema.graphqls"),
+                "type Query {",
+                TestContext.Current.CancellationToken);
+            await File.WriteAllTextAsync(
+                IOPath.Combine(sourceDirectory.FullName, "schema-settings.json"),
+                """{ "name": "products" }""",
+                TestContext.Current.CancellationToken);
+
+            var harness = CreateHarness();
+            var builder = DistributedApplication.CreateBuilder();
+            var products = builder
+                .AddProject("products", sourceProjectFile)
+                .WithGraphQLSchemaFile();
+            builder
+                .AddProject("gateway", gatewayProjectFile)
+                .WithGraphQLSchemaComposition()
+                .WithReference(products);
+            var model = new DistributedApplicationModel(builder.Resources);
+            var gateway = model.GetGraphQLCompositionResources().Single();
+            using var compositionGate = new SemaphoreSlim(1, 1);
+
+            // act
+            var exception = await Assert.ThrowsAsync<DistributedApplicationException>(
+                () => harness.Composition.ComposeOnGatewayStartAsync(
+                    gateway,
+                    model,
+                    compositionGate,
+                    TestContext.Current.CancellationToken));
+
+            // assert
+            Assert.Equal("The GraphQL schema composition for 'gateway' failed.", exception.Message);
+            Assert.Equal(0, harness.Lifetime.StopApplicationCalls);
+            Assert.Equal(1, compositionGate.CurrentCount);
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_ThrowWithoutStoppingApplication_When_StartupSourceSchemaCannotBeLoaded()
+    {
+        // arrange
+        // the products project declares a schema file that does not exist, so its source
+        // schema cannot be loaded and the gateway must not start with a partial schema.
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaFile();
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = model.GetGraphQLCompositionResources().Single();
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        var exception = await Assert.ThrowsAsync<DistributedApplicationException>(
+            () => harness.Composition.ComposeOnGatewayStartAsync(
+                gateway,
+                model,
+                compositionGate,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        var errorLog = string.Join(
+            Environment.NewLine,
+            harness.Logger.Entries
+                .Where(entry => entry.Level is LogLevel.Error)
+                .Select(entry => entry.Message));
+
+        $$"""
+        Exception: {{exception.Message}}
+        StopApplication calls: {{harness.Lifetime.StopApplicationCalls}}
+        Gate count: {{compositionGate.CurrentCount}}
+        Errors:
+        {{errorLog}}
+        """.MatchInlineSnapshot(
+            """
+            Exception: The GraphQL schema composition for 'gateway' failed.
+            StopApplication calls: 0
+            Gate count: 1
+            Errors:
+            Schema composition failed for gateway: The source schema for resource 'products' could not be loaded.
+            The GraphQL schema composition for 'gateway' failed.
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_WaitForRunningRecomposition_When_CompositionGateIsHeld()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddProject("gateway", GetTestProjectFile());
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = model.Resources.OfType<IResourceWithEndpoints>().Single(r => r.Name == "gateway");
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await compositionGate.WaitAsync(TestContext.Current.CancellationToken);
+
+        // act
+        // the held gate simulates a recomposition that is still running for the gateway
+        var startupComposition = harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        var completedWhileGateHeld = startupComposition.IsCompleted;
+        compositionGate.Release();
+        await startupComposition;
+
+        // assert
+        Assert.False(completedWhileGateHeld);
+        Assert.Equal(1, compositionGate.CurrentCount);
+    }
+
+    [Fact]
+    public async Task RunGuardedRecompositionAsync_Should_WaitForStartupComposition_When_CompositionGateIsHeld()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddProject("gateway", GetTestProjectFile());
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = model.Resources.OfType<IResourceWithEndpoints>().Single(r => r.Name == "gateway");
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await compositionGate.WaitAsync(TestContext.Current.CancellationToken);
+
+        // act
+        // the held gate simulates a startup composition that is still running for the gateway
+        var recomposition = harness.Composition.RunGuardedRecompositionAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        var logCountWhileGateHeld = harness.Logger.Entries.Count;
+        compositionGate.Release();
+        await recomposition;
+
+        // assert
+        var infoLog = string.Join(
+            Environment.NewLine,
+            harness.Logger.Entries
+                .Where(entry => entry.Level is LogLevel.Information)
+                .Select(entry => entry.Message));
+
+        $$"""
+        Log entries while the gate was held: {{logCountWhileGateHeld}}
+        Gate count after the recomposition: {{compositionGate.CurrentCount}}
+        Information:
+        {{infoLog}}
+        """.MatchInlineSnapshot(
+            """
+            Log entries while the gate was held: 0
+            Gate count after the recomposition: 1
+            Information:
+            Recomposing GraphQL schema for gateway...
+            Schema recomposition for gateway completed.
+            """);
+    }
+
+    [Fact]
+    public async Task WaitForSourceSchemaResourcesReadyAsync_Should_Throw_When_EndpointSourceIsUnavailable()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaEndpoint();
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = model.GetGraphQLCompositionResources().Single();
+        var productsResource = model.Resources.Single(r => r.Name == "products");
+        await harness.Notifications.PublishUpdateAsync(
+            productsResource,
+            snapshot => snapshot with { State = KnownResourceStates.FailedToStart });
+
+        // act
+        var exception = await Assert.ThrowsAsync<DistributedApplicationException>(
+            () => harness.Composition.WaitForSourceSchemaResourcesReadyAsync(
+                gateway,
+                model,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "The source schema resource 'products' required by 'gateway' did not become healthy.",
+            exception.Message);
+        Assert.IsType<DistributedApplicationException>(exception.InnerException);
+    }
+
+    [Fact]
+    public async Task WaitForSourceSchemaResourcesReadyAsync_Should_NotWait_When_SourceIsFileBased()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var orders = builder
+            .AddProject("orders", GetTestProjectFile())
+            .WithGraphQLSchemaFile();
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(orders);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = model.GetGraphQLCompositionResources().Single();
+        // the notification service knows no resource states, so a regression that waits
+        // would never finish. The timeout turns such a hang into a fast test failure.
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        // act
+        await harness.Composition.WaitForSourceSchemaResourcesReadyAsync(
+            gateway,
+            model,
+            timeout.Token);
+
+        // assert
+        var debugLog = string.Join(
+            Environment.NewLine,
+            harness.Logger.Entries
+                .Where(entry => entry.Level is LogLevel.Debug)
+                .Select(entry => entry.Message));
+
+        Assert.Equal(string.Empty, debugLog);
+    }
+
+    [Fact]
+    public async Task DiscoverReferencedSourceSchemasAsync_Should_Throw_When_SourceSchemaCannotBeLoaded()
     {
         // arrange
         // the products project has no schema-settings.json, so its source schema cannot be loaded.
+        var harness = CreateHarness();
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", GetTestProjectFile())
@@ -321,16 +604,12 @@ public sealed class SchemaCompositionTests
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gatewayResource = model.GetGraphQLCompositionResources().Single();
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            new RecordingLogger<SchemaComposition>());
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => composition.DiscoverReferencedSourceSchemasAsync(
+            () => harness.Composition.DiscoverReferencedSourceSchemasAsync(
                 gatewayResource,
                 model,
-                isRecomposition: true,
                 TestContext.Current.CancellationToken));
 
         // assert
@@ -344,12 +623,10 @@ public sealed class SchemaCompositionTests
     {
         // arrange
         var attempts = 0;
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            new RecordingLogger<SchemaComposition>());
+        var harness = CreateHarness();
 
         // act
-        await composition.CopyArchiveWithRetryAsync(
+        await harness.Composition.CopyArchiveWithRetryAsync(
             () =>
             {
                 attempts++;
@@ -373,13 +650,11 @@ public sealed class SchemaCompositionTests
     {
         // arrange
         var attempts = 0;
-        var composition = new SchemaComposition(
-            new TestHostApplicationLifetime(),
-            new RecordingLogger<SchemaComposition>());
+        var harness = CreateHarness();
 
         // act
         var exception = await Assert.ThrowsAsync<IOException>(
-            () => composition.CopyArchiveWithRetryAsync(
+            () => harness.Composition.CopyArchiveWithRetryAsync(
                 () =>
                 {
                     attempts++;
@@ -439,10 +714,42 @@ public sealed class SchemaCompositionTests
             """);
     }
 
+    private static CompositionHarness CreateHarness()
+    {
+        var logger = new RecordingLogger<SchemaComposition>();
+        var lifetime = new TestHostApplicationLifetime();
+        var resourceLoggerService = new ResourceLoggerService();
+        var notifications = new ResourceNotificationService(
+            new RecordingLogger<ResourceNotificationService>(),
+            lifetime,
+            EmptyServiceProvider.Instance,
+            resourceLoggerService);
+        var composition = new SchemaComposition(
+            notifications,
+            resourceLoggerService,
+            lifetime,
+            logger);
+
+        return new CompositionHarness(composition, notifications, logger, lifetime);
+    }
+
     private static string GetTestProjectFile([CallerFilePath] string sourceFile = "")
-        => System.IO.Path.Combine(
-            System.IO.Path.GetDirectoryName(sourceFile)!,
+        => IOPath.Combine(
+            IOPath.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
+
+    private sealed record CompositionHarness(
+        SchemaComposition Composition,
+        ResourceNotificationService Notifications,
+        RecordingLogger<SchemaComposition> Logger,
+        TestHostApplicationLifetime Lifetime);
+
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public static EmptyServiceProvider Instance { get; } = new();
+
+        public object? GetService(Type serviceType) => null;
+    }
 
     private sealed class StubHttpMessageHandler(
         Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
@@ -495,12 +802,12 @@ public sealed class SchemaCompositionTests
 
     private sealed class TestHostApplicationLifetime : IHostApplicationLifetime
     {
+        public int StopApplicationCalls { get; private set; }
+
         public CancellationToken ApplicationStarted => CancellationToken.None;
         public CancellationToken ApplicationStopping => CancellationToken.None;
         public CancellationToken ApplicationStopped => CancellationToken.None;
 
-        public void StopApplication()
-        {
-        }
+        public void StopApplication() => StopApplicationCalls++;
     }
 }
