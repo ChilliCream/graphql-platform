@@ -27,6 +27,7 @@ public sealed class CompositionHelperTests
                 products,
                 archive,
                 "Development",
+                SettingsComposerOptions.Default,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -55,6 +56,7 @@ public sealed class CompositionHelperTests
                 reviews,
                 archive,
                 "Development",
+                SettingsComposerOptions.Default,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -124,6 +126,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
+                SettingsComposerOptions.Default,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -206,6 +209,7 @@ public sealed class CompositionHelperTests
             sourceSchemas,
             archive,
             "Development",
+            SettingsComposerOptions.Default,
             compositionSettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
@@ -279,6 +283,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
+                SettingsComposerOptions.Default,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -345,6 +350,106 @@ public sealed class CompositionHelperTests
                       },
                       "vendor": {
                         "mode": "test"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeAsync_Should_ComposeLocalUrl_When_OptionsCarryLocalUrlOverride()
+    {
+        // arrange
+        using var sourceSettings = JsonDocument.Parse(
+            """
+            {
+              "name": "Products",
+              "transports": {
+                "http": {
+                  "url": "https://products.internal.example.com/graphql",
+                  "devUrl": "https://products.dev.example.com/graphql"
+                }
+              }
+            }
+            """);
+        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        {
+            ["Products"] =
+            (
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                sourceSettings)
+        };
+        var settingsComposerOptions = new SettingsComposerOptions
+        {
+            LocalUrlOverrides = new Dictionary<string, string>
+            {
+                ["Products"] = "http://localhost:5001/graphql"
+            },
+            PreferDevUrls = true
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            var result = await CompositionHelper.ComposeAsync(
+                log,
+                sourceSchemas,
+                archive,
+                "Development",
+                settingsComposerOptions,
+                compositionSettings: null,
+                legacyArchive: null,
+                TestContext.Current.CancellationToken);
+
+            Assert.True(
+                result.IsSuccess,
+                string.Join(Environment.NewLine, log.Select(entry => entry.Message)));
+        }
+
+        stream.Position = 0;
+
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        using var sourceConfiguration = Assert.IsType<SourceSchemaConfiguration>(
+            await readArchive.TryGetSourceSchemaConfigurationAsync(
+                "Products",
+                TestContext.Current.CancellationToken));
+        using var gatewayConfiguration = Assert.IsType<GatewayConfiguration>(
+            await readArchive.TryGetGatewayConfigurationAsync(
+                WellKnownVersions.LatestGatewayFormatVersion,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        var snapshot = new
+        {
+            ArchivedSourceSettings = sourceConfiguration.Settings.RootElement,
+            RuntimeGatewaySettings = gatewayConfiguration.Settings.RootElement
+        };
+
+        JsonSerializer.Serialize(
+            snapshot,
+            new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
+            """
+            {
+              "ArchivedSourceSettings": {
+                "name": "Products",
+                "transports": {
+                  "http": {
+                    "url": "https://products.internal.example.com/graphql",
+                    "devUrl": "https://products.dev.example.com/graphql"
+                  }
+                }
+              },
+              "RuntimeGatewaySettings": {
+                "sourceSchemas": {
+                  "Products": {
+                    "transports": {
+                      "http": {
+                        "url": "http://localhost:5001/graphql"
                       }
                     }
                   }

@@ -7,6 +7,10 @@
     <IsAotCompatible>false</IsAotCompatible>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>$(DefineConstants);NITRO_PERSISTED_OPERATIONS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire.Tests" />
   </ItemGroup>
@@ -20,8 +24,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' != 'Release'">
+    <None Remove="Nitro\Operations\ResolveNitroApiName.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <None Remove="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
   </ItemGroup>
 
   <ItemGroup>

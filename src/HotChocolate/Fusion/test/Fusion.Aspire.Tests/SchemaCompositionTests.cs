@@ -2,7 +2,6 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using IOPath = System.IO.Path;
 
@@ -714,42 +713,12 @@ public sealed class SchemaCompositionTests
             """);
     }
 
-    private static CompositionHarness CreateHarness()
-    {
-        var logger = new RecordingLogger<SchemaComposition>();
-        var lifetime = new TestHostApplicationLifetime();
-        var resourceLoggerService = new ResourceLoggerService();
-        var notifications = new ResourceNotificationService(
-            new RecordingLogger<ResourceNotificationService>(),
-            lifetime,
-            EmptyServiceProvider.Instance,
-            resourceLoggerService);
-        var composition = new SchemaComposition(
-            notifications,
-            resourceLoggerService,
-            lifetime,
-            logger);
-
-        return new CompositionHarness(composition, notifications, logger, lifetime);
-    }
+    private static CompositionHarness CreateHarness() => CompositionHarness.Create(coordinator: null);
 
     private static string GetTestProjectFile([CallerFilePath] string sourceFile = "")
         => IOPath.Combine(
             IOPath.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
-
-    private sealed record CompositionHarness(
-        SchemaComposition Composition,
-        ResourceNotificationService Notifications,
-        RecordingLogger<SchemaComposition> Logger,
-        TestHostApplicationLifetime Lifetime);
-
-    private sealed class EmptyServiceProvider : IServiceProvider
-    {
-        public static EmptyServiceProvider Instance { get; } = new();
-
-        public object? GetService(Type serviceType) => null;
-    }
 
     private sealed class StubHttpMessageHandler(
         Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
@@ -798,16 +767,5 @@ public sealed class SchemaCompositionTests
 
         public override void Write(byte[] buffer, int offset, int count)
             => throw new NotSupportedException();
-    }
-
-    private sealed class TestHostApplicationLifetime : IHostApplicationLifetime
-    {
-        public int StopApplicationCalls { get; private set; }
-
-        public CancellationToken ApplicationStarted => CancellationToken.None;
-        public CancellationToken ApplicationStopping => CancellationToken.None;
-        public CancellationToken ApplicationStopped => CancellationToken.None;
-
-        public void StopApplication() => StopApplicationCalls++;
     }
 }

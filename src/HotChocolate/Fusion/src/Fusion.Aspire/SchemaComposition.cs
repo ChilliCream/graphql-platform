@@ -5,6 +5,8 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Eventing;
 using Aspire.Hosting.Lifecycle;
+using HotChocolate.Fusion.Aspire.Nitro;
+using HotChocolate.Fusion.Packaging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using IOPath = System.IO.Path;
@@ -15,6 +17,7 @@ internal sealed class SchemaComposition(
     ResourceNotificationService resourceNotificationService,
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
+    NitroCompositionOptions nitroOptions,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
@@ -34,6 +37,11 @@ internal sealed class SchemaComposition(
             return Task.CompletedTask;
         }
 
+        if (nitroOptions.Coordinator is { } seedCoordinator)
+        {
+            lifetime.ApplicationStopping.Register(seedCoordinator.DeleteRunSeeds);
+        }
+
         // All subscriptions must exist before any resource starts. A fast resource can publish
         // its initial ResourceReadyEvent early, and events are not replayed to late subscribers,
         // so subscribing any later would misclassify the first restart of such a resource as its
@@ -41,6 +49,8 @@ internal sealed class SchemaComposition(
         eventing.Subscribe<BeforeStartEvent>((@event, _) =>
         {
             var compositionResources = @event.Model.GetGraphQLCompositionResources().ToList();
+
+            ReportNitroConfigurationDiagnostics(@event.Model, compositionResources);
 
             if (compositionResources.Count == 0)
             {
@@ -90,6 +100,48 @@ internal sealed class SchemaComposition(
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Reports the configurations that cannot take effect: an api id without Nitro, and Nitro
+    /// without a gateway that selects a fusion configuration.
+    /// </summary>
+    internal void ReportNitroConfigurationDiagnostics(
+        DistributedApplicationModel appModel,
+        IReadOnlyList<IResourceWithEndpoints> compositionResources)
+    {
+        var coordinator = nitroOptions.Coordinator;
+
+        if (coordinator is null)
+        {
+            foreach (var resource in appModel.Resources)
+            {
+                if (resource.GetNitroApiId() is not { } apiId)
+                {
+                    continue;
+                }
+
+                CreateGatewayLogger(resource).LogWarning(
+                    "The resource {ResourceName} selects the Nitro api {ApiId}, but the "
+                    + "distributed application does not add Nitro. Call AddNitro on the "
+                    + "distributed application builder so the api id takes effect.",
+                    resource.Name,
+                    apiId);
+            }
+
+            return;
+        }
+
+        if (compositionResources.Any(gateway => gateway.GetNitroApiId() is not null))
+        {
+            return;
+        }
+
+        logger.LogWarning(
+            "Nitro is added for the stage {Stage}, but no composed schema selects a Nitro api. "
+            + "Call WithNitroApiId on the gateway that composes against the fusion configuration "
+            + "of Nitro.",
+            coordinator.Stage);
+    }
+
     private void StartRecompositionWorkers(List<GatewayRecompositionWorker> recompositionWorkers)
     {
         foreach (var worker in recompositionWorkers)
@@ -121,12 +173,16 @@ internal sealed class SchemaComposition(
 
             try
             {
-                await WaitForSourceSchemaResourcesReadyAsync(
+                var seed = await PrepareCompositionAsync(
                     compositionResource,
                     appModel,
                     cancellationToken);
 
-                if (await ComposeSchemaAsync(compositionResource, appModel, cancellationToken))
+                if (await ComposeSchemaAsync(
+                    compositionResource,
+                    appModel,
+                    seed,
+                    cancellationToken))
                 {
                     return;
                 }
@@ -154,6 +210,106 @@ internal sealed class SchemaComposition(
         finally
         {
             compositionGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Waits until the source schema resources of the gateway are ready and, for a gateway that
+    /// selects a Nitro api, acquires the fusion configuration it composes against. The wait and
+    /// the download run at the same time, so their delays do not add up.
+    /// </summary>
+    /// <returns>
+    /// The fusion configuration the gateway composes against, or <c>null</c> when the gateway
+    /// composes the source schemas of the distributed application alone.
+    /// </returns>
+    private async Task<NitroGatewaySeed?> PrepareCompositionAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        CancellationToken cancellationToken)
+    {
+        var coordinator = nitroOptions.Coordinator;
+        var apiId = compositionResource.GetNitroApiId();
+
+        if (coordinator is null || apiId is null)
+        {
+            await WaitForSourceSchemaResourcesReadyAsync(
+                compositionResource,
+                appModel,
+                cancellationToken);
+
+            return null;
+        }
+
+        using var seedCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var seedTask = AcquireSeedAsync(
+            coordinator,
+            compositionResource,
+            apiId,
+            seedCancellation.Token);
+
+        try
+        {
+            await WaitForSourceSchemaResourcesReadyAsync(
+                compositionResource,
+                appModel,
+                cancellationToken);
+        }
+        catch
+        {
+            // The gateway will not start, so its fusion configuration is not needed anymore.
+            // The acquisition reports every failure as a result, so awaiting it here cannot
+            // replace the failure of the wait.
+            await seedCancellation.CancelAsync();
+            await seedTask;
+
+            throw;
+        }
+
+        var acquisition = await seedTask;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (acquisition.FailureMessage is { } failureMessage)
+        {
+            throw new DistributedApplicationException(failureMessage);
+        }
+
+        return acquisition.Seed;
+    }
+
+    /// <summary>
+    /// Acquires the fusion configuration of a gateway. Every failure, including one that the file
+    /// system raises, is reported as a result so that it fails this gateway alone.
+    /// </summary>
+    private async Task<NitroSeedAcquisition> AcquireSeedAsync(
+        NitroSeedCoordinator coordinator,
+        IResourceWithEndpoints compositionResource,
+        string apiId,
+        CancellationToken cancellationToken)
+    {
+        var gatewayLogger = CreateGatewayLogger(compositionResource);
+
+        try
+        {
+            return await coordinator.AcquireSeedAsync(
+                compositionResource.Name,
+                apiId,
+                gatewayLogger,
+                cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogDebug(
+                exception,
+                "The fusion configuration of the Nitro api {ApiId} could not be acquired for "
+                + "{ResourceName}.",
+                apiId,
+                compositionResource.Name);
+
+            return NitroSeedAcquisition.Failed(
+                $"The fusion configuration of the Nitro api '{apiId}' for the stage "
+                + $"'{coordinator.Stage}' could not be acquired: {exception.Message}");
         }
     }
 
@@ -319,11 +475,31 @@ internal sealed class SchemaComposition(
         DistributedApplicationModel appModel,
         CancellationToken cancellationToken)
     {
+        var coordinator = nitroOptions.Coordinator;
+        var apiId = compositionResource.GetNitroApiId();
+        NitroGatewaySeed? seed = null;
+
+        if (coordinator is not null && apiId is not null)
+        {
+            // The fusion configuration of a run is fetched once, while the gateway starts, and
+            // every recomposition of the run builds on that same configuration.
+            seed = coordinator.GetSeed(compositionResource.Name);
+
+            if (seed is null)
+            {
+                logger.LogInformation(
+                    "Skipping the schema recomposition for {ResourceName} because no fusion "
+                    + "configuration was acquired for it in this run.",
+                    compositionResource.Name);
+                return;
+            }
+        }
+
         logger.LogInformation(
             "Recomposing GraphQL schema for {ResourceName}...",
             compositionResource.Name);
 
-        if (await ComposeSchemaAsync(compositionResource, appModel, cancellationToken))
+        if (await ComposeSchemaAsync(compositionResource, appModel, seed, cancellationToken))
         {
             logger.LogInformation(
                 "Schema recomposition for {ResourceName} completed.",
@@ -340,6 +516,7 @@ internal sealed class SchemaComposition(
     private async Task<bool> ComposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
+        NitroGatewaySeed? seed,
         CancellationToken cancellationToken)
     {
         var settings = compositionResource.GetCompositionSettings();
@@ -351,9 +528,7 @@ internal sealed class SchemaComposition(
 
         // Composition problems are reported to the application host log and to the console
         // log of the gateway resource so that failures are visible on the resource itself.
-        var compositionLogger = new CompositeLogger(
-            logger,
-            resourceLoggerService.GetLogger(compositionResource));
+        var compositionLogger = CreateGatewayLogger(compositionResource);
 
         logger.LogInformation(
             "Preparing schema composition for {ResourceName}.",
@@ -385,7 +560,9 @@ internal sealed class SchemaComposition(
                 var gatewayDirectory = GetProjectPath(compositionResource)!;
                 var archivePath = IOPath.Combine(IOPath.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
                 return await ComposeSchemaAsync(
+                    compositionResource.Name,
                     archivePath,
+                    seed,
                     sourceSchemas,
                     settings,
                     compositionLogger,
@@ -583,6 +760,7 @@ internal sealed class SchemaComposition(
                 Name = endpointConfiguration.SourceSchemaName,
                 ResourceName = resource.Name,
                 HttpEndpointUrl = new Uri(schemaUrl),
+                AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
                 Schema = new SourceSchemaText(endpointConfiguration.SourceSchemaName, schemaText),
                 SchemaSettings = schemaSettings
             };
@@ -687,7 +865,8 @@ internal sealed class SchemaComposition(
         {
             Name = sourceSchemaName,
             ResourceName = resource.Name,
-            HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
+            HttpEndpointUrl = null, // No schema download endpoint for file-based schemas
+            AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
             Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
             SchemaSettings = schemaSettings
         };
@@ -943,7 +1122,9 @@ internal sealed class SchemaComposition(
     }
 
     private async Task<bool> ComposeSchemaAsync(
+        string gatewayName,
         string archivePath,
+        NitroGatewaySeed? seed,
         List<SourceSchemaInfo> sourceSchemas,
         GraphQLSchemaCompositionAnnotation settings,
         ILogger compositionLogger,
@@ -953,18 +1134,34 @@ internal sealed class SchemaComposition(
 
         try
         {
-            if (File.Exists(archivePath))
+            // A gateway that composes against a fusion configuration from Nitro builds on that
+            // configuration alone. What the previous composition wrote is never an input, so a
+            // source schema that disappeared upstream also disappears from this composition.
+            if (seed is null && File.Exists(archivePath))
             {
                 File.Copy(archivePath, tempArchivePath);
             }
 
             if (await AspireCompositionHelper.TryComposeAsync(
                 tempArchivePath,
+                seed?.FilePath,
                 [.. sourceSchemas],
                 settings.Settings,
+                seed?.Stage,
                 compositionLogger,
                 cancellationToken))
             {
+                if (seed is not null)
+                {
+                    await LogSeedVintageAsync(
+                        gatewayName,
+                        tempArchivePath,
+                        seed,
+                        sourceSchemas,
+                        compositionLogger,
+                        cancellationToken);
+                }
+
                 // The gateway keeps read handles on the archive while it is running, which can
                 // surface as a transient IOException when the archive is replaced.
                 await CopyArchiveWithRetryAsync(
@@ -986,6 +1183,104 @@ internal sealed class SchemaComposition(
 
         return false;
     }
+
+    /// <summary>
+    /// Reports which fusion configuration a gateway composed against, how old it is and which
+    /// source schemas it contributed, on the console of the gateway. A configuration that could
+    /// not be refreshed is reported as a warning.
+    /// </summary>
+    private static async Task LogSeedVintageAsync(
+        string gatewayName,
+        string archivePath,
+        NitroGatewaySeed seed,
+        List<SourceSchemaInfo> localSourceSchemas,
+        ILogger compositionLogger,
+        CancellationToken cancellationToken)
+    {
+        var externalSourceSchemas = await DescribeExternalSourceSchemasAsync(
+            archivePath,
+            [.. localSourceSchemas.Select(sourceSchema => sourceSchema.Name)],
+            cancellationToken);
+        var downloadedAt = seed.DownloadedAt.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss") + "Z";
+
+        if (seed.IsFresh)
+        {
+            compositionLogger.LogInformation(
+                "{ResourceName} composed against the fusion configuration of the Nitro api "
+                + "{ApiId} for the stage {Stage} that was downloaded at {DownloadedAt}. Source "
+                + "schemas from Nitro: {ExternalSourceSchemas}.",
+                gatewayName,
+                seed.ApiId,
+                seed.Stage,
+                downloadedAt,
+                externalSourceSchemas);
+            return;
+        }
+
+        compositionLogger.LogWarning(
+            "{ResourceName} composed against a fusion configuration that could NOT be refreshed. "
+            + "The configuration of the Nitro api {ApiId} for the stage {Stage} was downloaded at "
+            + "{DownloadedAt} and may be out of date, run 'nitro login' when the sign-in expired. "
+            + "Source schemas from Nitro: {ExternalSourceSchemas}.",
+            gatewayName,
+            seed.ApiId,
+            seed.Stage,
+            downloadedAt,
+            externalSourceSchemas);
+    }
+
+    /// <summary>
+    /// Describes the source schemas of a composed archive that the distributed application does
+    /// not run itself, together with the URL the gateway reaches them at.
+    /// </summary>
+    private static async Task<string> DescribeExternalSourceSchemasAsync(
+        string archivePath,
+        HashSet<string> localSourceSchemas,
+        CancellationToken cancellationToken)
+    {
+        using var archive = FusionArchive.Open(archivePath);
+        using var configuration = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            cancellationToken);
+
+        if (configuration is null
+            || !configuration.Settings.RootElement.TryGetProperty(
+                "sourceSchemas",
+                out var sourceSchemas)
+            || sourceSchemas.ValueKind is not JsonValueKind.Object)
+        {
+            return "none";
+        }
+
+        var descriptions = new List<string>();
+
+        foreach (var sourceSchema in sourceSchemas.EnumerateObject())
+        {
+            if (localSourceSchemas.Contains(sourceSchema.Name))
+            {
+                continue;
+            }
+
+            descriptions.Add($"{sourceSchema.Name} ({ReadHttpUrl(sourceSchema.Value)})");
+        }
+
+        return descriptions.Count == 0 ? "none" : string.Join(", ", descriptions);
+    }
+
+    private static string ReadHttpUrl(JsonElement sourceSchemaSettings)
+        => sourceSchemaSettings.TryGetProperty("transports", out var transports)
+            && transports.TryGetProperty("http", out var http)
+            && http.TryGetProperty("url", out var url)
+            && url.ValueKind is JsonValueKind.String
+                ? url.GetString()!
+                : "no HTTP transport URL";
+
+    /// <summary>
+    /// Creates the logger that reports to the application host log and to the console log of a
+    /// resource at the same time, so that its messages are visible on the resource itself.
+    /// </summary>
+    private CompositeLogger CreateGatewayLogger(IResource resource)
+        => new(logger, resourceLoggerService.GetLogger(resource));
 
     internal async Task CopyArchiveWithRetryAsync(
         Action copyArchive,
