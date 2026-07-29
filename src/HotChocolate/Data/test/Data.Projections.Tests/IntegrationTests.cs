@@ -75,6 +75,45 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ParentRequires_Should_ProjectRequiredProperty_When_ResolverFieldNameCollides()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<ParentRequiresCollisionQuery>()
+            .AddTypeExtension<ParentRequiresCollisionItemExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              items {
+                code
+                label
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "code": "computed",
+                    "label": "ABC"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
     {
         // arrange
@@ -933,6 +972,39 @@ public class RequiresFoo
 public class RequiresBar
 {
     public string? Baz { get; set; }
+}
+
+public sealed class ParentRequiresCollisionItem
+{
+    public int Id { get; set; }
+
+    public string Code { get; set; } = string.Empty;
+}
+
+[ExtendObjectType<ParentRequiresCollisionItem>]
+public sealed class ParentRequiresCollisionItemExtensions
+{
+    public string GetCode([Parent] ParentRequiresCollisionItem item)
+        => "computed";
+
+    public string GetLabel(
+        [Parent(requires: nameof(ParentRequiresCollisionItem.Code))]
+        ParentRequiresCollisionItem item)
+        => item.Code;
+}
+
+public sealed class ParentRequiresCollisionQuery
+{
+    [UseProjection]
+    public IQueryable<ParentRequiresCollisionItem> GetItems()
+        => new[]
+        {
+            new ParentRequiresCollisionItem
+            {
+                Id = 1,
+                Code = "ABC"
+            }
+        }.AsQueryable();
 }
 
 public class Baz
