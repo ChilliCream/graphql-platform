@@ -10,14 +10,14 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class NitroExtensionsTests
 {
     [Fact]
-    public void AddNitro_Should_RegisterOneComposition_When_TheOrchestratorIsAddedAsWell()
+    public void AddNitro_Should_RegisterOneComposition_When_ItIsCalledTwice()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro("production");
-        builder.AddGraphQLOrchestrator();
+        builder.AddNitro();
+        builder.AddNitro();
 
         // assert
         DescribeCompositionRegistrations(builder).MatchInlineSnapshot(
@@ -25,45 +25,62 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void AddGraphQLOrchestrator_Should_RegisterOneComposition_When_ItIsCalledTwice()
+    public void AddNitro_Should_LeaveTheCoordinatorOut_When_TheStageIsNotProvided()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddGraphQLOrchestrator();
-        builder.AddGraphQLOrchestrator();
-
-        // assert
-        DescribeCompositionRegistrations(builder).MatchInlineSnapshot(
-            "IDistributedApplicationEventingSubscriber -> SchemaComposition (Singleton)");
-    }
-
-    [Fact]
-    public void AddGraphQLOrchestrator_Should_LeaveNitroOut_When_AddNitroIsNotCalled()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        builder.AddGraphQLOrchestrator();
+        builder.AddNitro();
 
         // assert
         Assert.Null(GetNitroCompositionOptions(builder).Coordinator);
     }
 
     [Fact]
-    public void AddNitro_Should_ConnectTheComposition_When_TheOrchestratorWasAddedFirst()
+    public void AddNitro_Should_ConnectTheComposition_When_LocalCompositionWasAddedFirst()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddGraphQLOrchestrator();
+        builder.AddNitro();
         builder.AddNitro("production");
 
         // assert
         Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
+    }
+
+    [Fact]
+    public void AddNitro_Should_KeepTheCoordinator_When_LocalCompositionIsAddedAfterTheStage()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        builder.AddNitro("production");
+        builder.AddNitro();
+
+        // assert
+        Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
+    }
+
+    [Fact]
+    public void AddGraphQLOrchestrator_Should_DelegateToAddNitro()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+#pragma warning disable CS0618 // Verify the compatibility shim.
+        var result = builder.AddGraphQLOrchestrator();
+#pragma warning restore CS0618
+
+        // assert
+        Assert.Same(builder, result);
+        Assert.Null(GetNitroCompositionOptions(builder).Coordinator);
+        DescribeCompositionRegistrations(builder).MatchInlineSnapshot(
+            "IDistributedApplicationEventingSubscriber -> SchemaComposition (Singleton)");
     }
 
     [Fact]

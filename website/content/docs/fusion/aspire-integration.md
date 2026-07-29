@@ -35,7 +35,7 @@ The AppHost wires together your subgraphs and gateway. Three extension methods c
 ```csharp filename="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddGraphQLOrchestrator();
+builder.AddNitro();
 
 var productsApi = builder
     .AddProject<Projects.Products>("products-api")
@@ -56,7 +56,7 @@ builder.Build().Run();
 
 Four things to notice:
 
-- **`AddGraphQLOrchestrator()`** registers the composition orchestrator with the Aspire eventing system. Call this once on the application builder.
+- **`AddNitro()`** registers the composition orchestrator with the Aspire eventing system. Call this once on the application builder.
 - **`WithGraphQLSchemaEndpoint()`** marks a subgraph as having a live schema endpoint. The orchestrator waits for the subgraph to start, then fetches the source schema over HTTP.
 - **`WithGraphQLSchemaComposition()`** marks the gateway as needing composition. The orchestrator discovers all referenced subgraphs, extracts their schemas, composes them, and writes a `gateway.far` file to the gateway project directory.
 - **`WithReference()`** is standard Aspire. It tells the orchestrator which subgraphs to include in composition for this gateway.
@@ -89,7 +89,7 @@ You do not need to run every subgraph locally. When your system has many subgrap
 ```csharp filename="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddGraphQLOrchestrator();
+builder.AddNitro();
 
 // Subgraphs you are actively developing: live extraction
 var productsApi = builder
@@ -164,7 +164,7 @@ builder
 builder.Build().Run();
 ```
 
-- **`AddNitro(stage)`** registers the same orchestrator as `AddGraphQLOrchestrator()` and binds the distributed application to one stage in Nitro. Calling both methods is safe and registers the orchestrator once. Calling `AddNitro` twice with different stage names throws while the AppHost builds, because a run composes against a single stage. Keep `AddGraphQLOrchestrator()` when you compose only the subgraphs you run locally: it never contacts Nitro.
+- **`AddNitro()`** registers the orchestrator for composing only the subgraphs that run locally. **`AddNitro(stage)`** additionally binds the distributed application to one stage in Nitro. Calling both overloads is safe and registers the orchestrator once. Calling `AddNitro(stage)` twice with different stage names throws while the AppHost builds, because a run composes against a single stage.
 - **`WithNitroApiId(apiId)`** selects the Nitro API whose fusion configuration a gateway composes against. The API id is the id that the Nitro dashboard and the Nitro CLI report for the API, the same value that `--api-id` takes. Calling the method again replaces the previously configured id. On a resource that is not composed, the API id is accepted as identity metadata for your own tooling and the pull and compose flow ignores it. If you set an API id without calling `AddNitro`, the resource console tells you that it cannot take effect.
 
 ## What Happens When a Gateway Starts
