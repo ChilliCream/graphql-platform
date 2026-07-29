@@ -1,4 +1,7 @@
 using System.Net;
+using System.Runtime.CompilerServices;
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -41,6 +44,7 @@ public sealed class SchemaCompositionTests
             client,
             maxRetries: 2,
             retryDelay: TimeSpan.Zero,
+            retryTransientFailures: false,
             TestContext.Current.CancellationToken);
 
         // assert
@@ -93,6 +97,7 @@ public sealed class SchemaCompositionTests
                 client,
                 maxRetries: 2,
                 retryDelay: TimeSpan.Zero,
+                retryTransientFailures: false,
                 cancellation.Token));
 
         // assert
@@ -115,6 +120,329 @@ public sealed class SchemaCompositionTests
             Waiting for schema service Products
             """);
     }
+
+    [Fact]
+    public async Task FetchSchemaFromEndpointAsync_Should_RetryServerErrorResponse_When_TransientRetryIsEnabled()
+    {
+        // arrange
+        var attempts = 0;
+        var logger = new RecordingLogger<SchemaComposition>();
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            logger);
+        using var client = new HttpClient(
+            new StubHttpMessageHandler(_ =>
+            {
+                attempts++;
+
+                return attempts < 3
+                    ? new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+                    : new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("type Query { hello: String }")
+                    };
+            }));
+
+        // act
+        var schema = await composition.FetchSchemaFromEndpointAsync(
+            "Products",
+            new Uri("https://products.example.com/graphql"),
+            SchemaEndpointProtocol.GraphQL,
+            client,
+            maxRetries: 3,
+            retryDelay: TimeSpan.Zero,
+            retryTransientFailures: true,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var debugLog = string.Join(
+            Environment.NewLine,
+            logger.Entries
+                .Where(entry => entry.Level is LogLevel.Debug)
+                .Select(entry => entry.Message));
+
+        $$"""
+        Schema: {{schema}}
+        Attempts: {{attempts}}
+        Debug:
+        {{debugLog}}
+        """.MatchInlineSnapshot(
+            """
+            Schema: type Query { hello: String }
+            Attempts: 3
+            Debug:
+            Waiting for schema service Products
+            Schema service Products returned a transient server error (attempt 1/3)
+            Schema service Products returned a transient server error (attempt 2/3)
+            """);
+    }
+
+    [Fact]
+    public async Task FetchSchemaFromEndpointAsync_Should_RetryServerErrorException_When_TransientRetryIsEnabled()
+    {
+        // arrange
+        var attempts = 0;
+        var logger = new RecordingLogger<SchemaComposition>();
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            logger);
+        using var client = new HttpClient(
+            new StubHttpMessageHandler(_ =>
+            {
+                attempts++;
+
+                if (attempts == 1)
+                {
+                    throw new HttpRequestException(
+                        "The proxy rejected the request.",
+                        inner: null,
+                        HttpStatusCode.BadGateway);
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("type Query { hello: String }")
+                };
+            }));
+
+        // act
+        var schema = await composition.FetchSchemaFromEndpointAsync(
+            "Products",
+            new Uri("https://products.example.com/graphql"),
+            SchemaEndpointProtocol.GraphQL,
+            client,
+            maxRetries: 2,
+            retryDelay: TimeSpan.Zero,
+            retryTransientFailures: true,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var debugLog = string.Join(
+            Environment.NewLine,
+            logger.Entries
+                .Where(entry => entry.Level is LogLevel.Debug)
+                .Select(entry => entry.Message));
+
+        $$"""
+        Schema: {{schema}}
+        Attempts: {{attempts}}
+        Debug:
+        {{debugLog}}
+        """.MatchInlineSnapshot(
+            """
+            Schema: type Query { hello: String }
+            Attempts: 2
+            Debug:
+            Waiting for schema service Products
+            Schema service Products returned a transient server error (attempt 1/2)
+            """);
+    }
+
+    [Fact]
+    public async Task FetchSchemaFromEndpointAsync_Should_FailImmediately_When_TransientRetryIsDisabled()
+    {
+        // arrange
+        var attempts = 0;
+        var logger = new RecordingLogger<SchemaComposition>();
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            logger);
+        using var client = new HttpClient(
+            new StubHttpMessageHandler(_ =>
+            {
+                attempts++;
+                return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+            }));
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaFetchRequestException>(
+            () => composition.FetchSchemaFromEndpointAsync(
+                "Products",
+                new Uri("https://products.example.com/graphql"),
+                SchemaEndpointProtocol.GraphQL,
+                client,
+                maxRetries: 3,
+                retryDelay: TimeSpan.Zero,
+                retryTransientFailures: false,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(1, attempts);
+        Assert.Equal(
+            "Source schema 'Products' returned HTTP 503 (Service Unavailable) while downloading its schema.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task FetchSchemaFromEndpointAsync_Should_FailImmediately_When_ErrorIsNotTransient()
+    {
+        // arrange
+        var attempts = 0;
+        var logger = new RecordingLogger<SchemaComposition>();
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            logger);
+        using var client = new HttpClient(
+            new StubHttpMessageHandler(_ =>
+            {
+                attempts++;
+                return new HttpResponseMessage(HttpStatusCode.NotFound);
+            }));
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaFetchRequestException>(
+            () => composition.FetchSchemaFromEndpointAsync(
+                "Products",
+                new Uri("https://products.example.com/graphql"),
+                SchemaEndpointProtocol.GraphQL,
+                client,
+                maxRetries: 3,
+                retryDelay: TimeSpan.Zero,
+                retryTransientFailures: true,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(1, attempts);
+        Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+    }
+
+    [Fact]
+    public async Task DiscoverReferencedSourceSchemasAsync_Should_Throw_When_RecompositionSourceIsUnavailable()
+    {
+        // arrange
+        // the products project has no schema-settings.json, so its source schema cannot be loaded.
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaEndpoint();
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gatewayResource = model.GetGraphQLCompositionResources().Single();
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            new RecordingLogger<SchemaComposition>());
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => composition.DiscoverReferencedSourceSchemasAsync(
+                gatewayResource,
+                model,
+                isRecomposition: true,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "The source schema for resource 'products' could not be loaded.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task CopyArchiveWithRetryAsync_Should_ReplaceArchive_When_CopyFailsTransiently()
+    {
+        // arrange
+        var attempts = 0;
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            new RecordingLogger<SchemaComposition>());
+
+        // act
+        await composition.CopyArchiveWithRetryAsync(
+            () =>
+            {
+                attempts++;
+
+                if (attempts < 3)
+                {
+                    throw new IOException("The file is in use.");
+                }
+            },
+            "gateway.far",
+            maxAttempts: 5,
+            retryDelay: TimeSpan.Zero,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(3, attempts);
+    }
+
+    [Fact]
+    public async Task CopyArchiveWithRetryAsync_Should_Throw_When_CopyKeepsFailing()
+    {
+        // arrange
+        var attempts = 0;
+        var composition = new SchemaComposition(
+            new TestHostApplicationLifetime(),
+            new RecordingLogger<SchemaComposition>());
+
+        // act
+        var exception = await Assert.ThrowsAsync<IOException>(
+            () => composition.CopyArchiveWithRetryAsync(
+                () =>
+                {
+                    attempts++;
+                    throw new IOException("The file is in use.");
+                },
+                "gateway.far",
+                maxAttempts: 3,
+                retryDelay: TimeSpan.Zero,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(3, attempts);
+        Assert.Equal("The file is in use.", exception.Message);
+    }
+
+    [Fact]
+    public void BuildSourceToGatewayMap_Should_MapSourceResourcesToGateways_When_GatewaysShareSources()
+    {
+        // arrange
+        // telemetry is referenced but has no source schema annotation and must not appear.
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaEndpoint();
+        var orders = builder
+            .AddProject("orders", GetTestProjectFile())
+            .WithGraphQLSchemaFile();
+        var telemetry = builder.AddProject("telemetry", GetTestProjectFile());
+        builder
+            .AddProject("gateway1", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products)
+            .WithReference(orders)
+            .WithReference(telemetry);
+        builder
+            .AddProject("gateway2", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(orders);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateways = model.GetGraphQLCompositionResources().ToList();
+
+        // act
+        var map = SchemaComposition.BuildSourceToGatewayMap(gateways, model);
+
+        // assert
+        var description = string.Join(
+            Environment.NewLine,
+            map
+                .OrderBy(entry => entry.Key.Name, StringComparer.Ordinal)
+                .Select(entry =>
+                    $"{entry.Key.Name} -> {string.Join(", ", entry.Value.Select(gateway => gateway.Name))}"));
+
+        description.MatchInlineSnapshot(
+            """
+            orders -> gateway1, gateway2
+            products -> gateway1
+            """);
+    }
+
+    private static string GetTestProjectFile([CallerFilePath] string sourceFile = "")
+        => System.IO.Path.Combine(
+            System.IO.Path.GetDirectoryName(sourceFile)!,
+            "HotChocolate.Fusion.Aspire.Tests.csproj");
 
     private sealed class StubHttpMessageHandler(
         Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
@@ -163,39 +491,6 @@ public sealed class SchemaCompositionTests
 
         public override void Write(byte[] buffer, int offset, int count)
             => throw new NotSupportedException();
-    }
-
-    private sealed class RecordingLogger<T> : ILogger<T>
-    {
-        public List<LogEntry> Entries { get; } = [];
-
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull
-            => NoopDisposable.Instance;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-            => Entries.Add(new(logLevel, formatter(state, exception), exception));
-    }
-
-    private sealed record LogEntry(
-        LogLevel Level,
-        string Message,
-        Exception? Exception);
-
-    private sealed class NoopDisposable : IDisposable
-    {
-        public static NoopDisposable Instance { get; } = new();
-
-        public void Dispose()
-        {
-        }
     }
 
     private sealed class TestHostApplicationLifetime : IHostApplicationLifetime

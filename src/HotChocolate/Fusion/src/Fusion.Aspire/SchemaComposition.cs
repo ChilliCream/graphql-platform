@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -16,11 +17,42 @@ internal sealed class SchemaComposition(
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
+    private const int StartupFetchMaxRetries = 60;
+    private const int RecompositionFetchMaxRetries = 15;
+    private const int ArchiveCopyMaxAttempts = 5;
+    private static readonly TimeSpan s_fetchRetryDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan s_recompositionDebounceDelay = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan s_archiveCopyRetryDelay = TimeSpan.FromMilliseconds(250);
+
     public Task SubscribeAsync(
         IDistributedApplicationEventing eventing,
         DistributedApplicationExecutionContext executionContext,
         CancellationToken cancellationToken)
     {
+        List<GatewayRecompositionWorker>? recompositionWorkers = null;
+
+        if (executionContext.IsRunMode)
+        {
+            // The restart subscriptions must exist before any resource starts. A fast resource
+            // can publish its initial ResourceReadyEvent before AfterResourcesCreatedEvent is
+            // published, and events are not replayed to late subscribers, so subscribing any
+            // later would misclassify the first restart of such a resource as its initial start.
+            eventing.Subscribe<BeforeStartEvent>((@event, _) =>
+            {
+                var compositionResources = @event.Model.GetGraphQLCompositionResources().ToList();
+
+                if (compositionResources.Count > 0)
+                {
+                    recompositionWorkers = SubscribeToSourceSchemaRestarts(
+                        eventing,
+                        @event.Model,
+                        compositionResources);
+                }
+
+                return Task.CompletedTask;
+            });
+        }
+
         eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, ct) =>
         {
             var model = @event.Services.GetRequiredService<DistributedApplicationModel>();
@@ -42,7 +74,7 @@ internal sealed class SchemaComposition(
                 // Process each composition resource
                 foreach (var compositionResource in compositionResources)
                 {
-                    if (!await ComposeSchemaAsync(compositionResource, model, ct))
+                    if (!await ComposeSchemaAsync(compositionResource, model, isRecomposition: false, ct))
                     {
                         compositionFailed = true;
                     }
@@ -63,14 +95,136 @@ internal sealed class SchemaComposition(
                 lifetime.StopApplication();
                 throw new InvalidOperationException("GraphQL schema composition failed");
             }
+
+            // Restarts that happened while the initial composition was running were buffered
+            // by the workers and are processed as soon as the workers start.
+            if (recompositionWorkers is { Count: > 0 })
+            {
+                foreach (var worker in recompositionWorkers)
+                {
+                    _ = worker.RunAsync(lifetime.ApplicationStopping);
+                }
+
+                logger.LogInformation("Watching source schema resources for restarts.");
+            }
         });
 
         return Task.CompletedTask;
     }
 
+    private List<GatewayRecompositionWorker> SubscribeToSourceSchemaRestarts(
+        IDistributedApplicationEventing eventing,
+        DistributedApplicationModel appModel,
+        List<IResourceWithEndpoints> compositionResources)
+    {
+        var sourceToGateways = BuildSourceToGatewayMap(compositionResources, appModel);
+        var restartTracker = new SourceSchemaRestartTracker();
+        var workerByGateway = new Dictionary<IResourceWithEndpoints, GatewayRecompositionWorker>();
+
+        foreach (var (sourceResource, gateways) in sourceToGateways)
+        {
+            var affectedWorkers = new List<GatewayRecompositionWorker>();
+
+            foreach (var gateway in gateways)
+            {
+                if (!workerByGateway.TryGetValue(gateway, out var worker))
+                {
+                    worker = new GatewayRecompositionWorker(
+                        gateway.Name,
+                        composeCt => RecomposeSchemaAsync(gateway, appModel, composeCt),
+                        s_recompositionDebounceDelay,
+                        TimeProvider.System,
+                        logger);
+                    workerByGateway.Add(gateway, worker);
+                }
+
+                affectedWorkers.Add(worker);
+            }
+
+            eventing.Subscribe<ResourceReadyEvent>(
+                sourceResource,
+                (resourceReady, _) =>
+                {
+                    if (restartTracker.IsRestart(resourceReady.Resource.Name))
+                    {
+                        logger.LogInformation(
+                            "Source schema resource {ResourceName} restarted. Scheduling schema recomposition.",
+                            resourceReady.Resource.Name);
+
+                        foreach (var worker in affectedWorkers)
+                        {
+                            worker.TriggerRecomposition();
+                        }
+                    }
+
+                    return Task.CompletedTask;
+                });
+        }
+
+        return [.. workerByGateway.Values];
+    }
+
+    /// <summary>
+    /// Maps every source schema resource to the gateways whose composed schema depends on it.
+    /// </summary>
+    internal static Dictionary<IResourceWithEndpoints, List<IResourceWithEndpoints>> BuildSourceToGatewayMap(
+        IReadOnlyList<IResourceWithEndpoints> compositionResources,
+        DistributedApplicationModel appModel)
+    {
+        var map = new Dictionary<IResourceWithEndpoints, List<IResourceWithEndpoints>>();
+
+        foreach (var gateway in compositionResources)
+        {
+            foreach (var referencedResource in GetReferencedResources(gateway, appModel))
+            {
+                if (!referencedResource.HasGraphQLSchema())
+                {
+                    continue;
+                }
+
+                if (!map.TryGetValue(referencedResource, out var gateways))
+                {
+                    gateways = [];
+                    map.Add(referencedResource, gateways);
+                }
+
+                if (!gateways.Contains(gateway))
+                {
+                    gateways.Add(gateway);
+                }
+            }
+        }
+
+        return map;
+    }
+
+    private async Task RecomposeSchemaAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation(
+            "Recomposing GraphQL schema for {ResourceName}...",
+            compositionResource.Name);
+
+        if (await ComposeSchemaAsync(compositionResource, appModel, isRecomposition: true, cancellationToken))
+        {
+            logger.LogInformation(
+                "Schema recomposition for {ResourceName} completed.",
+                compositionResource.Name);
+        }
+        else
+        {
+            logger.LogError(
+                "Schema recomposition for {ResourceName} failed. The gateway keeps the previous schema.",
+                compositionResource.Name);
+        }
+    }
+
     private async Task<bool> ComposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
+        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         var settings = compositionResource.GetCompositionSettings();
@@ -86,14 +240,21 @@ internal sealed class SchemaComposition(
 
         try
         {
-            var sourceSchemas = await DiscoverReferencedSourceSchemasAsync(compositionResource, appModel, cancellationToken);
+            var sourceSchemas = await DiscoverReferencedSourceSchemasAsync(
+                compositionResource,
+                appModel,
+                isRecomposition,
+                cancellationToken);
 
             if (sourceSchemas.Count == 0)
             {
                 logger.LogWarning(
                     "{ResourceName} has no source schemas.",
                     compositionResource.Name);
-                return true;
+
+                // A recomposition without any source schemas would report success while the
+                // gateway keeps serving the previous archive, so it is treated as a failure.
+                return !isRecomposition;
             }
 
             try
@@ -126,9 +287,10 @@ internal sealed class SchemaComposition(
         return false;
     }
 
-    private async Task<List<SourceSchemaInfo>> DiscoverReferencedSourceSchemasAsync(
+    internal async Task<List<SourceSchemaInfo>> DiscoverReferencedSourceSchemasAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
+        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         var sourceSchemas = new List<SourceSchemaInfo>();
@@ -152,9 +314,21 @@ internal sealed class SchemaComposition(
                     continue;
                 }
 
-                var schemaInfo = await GetSourceSchemaInfoAsync(referencedResource, cancellationToken);
+                var schemaInfo = await GetSourceSchemaInfoAsync(
+                    referencedResource,
+                    isRecomposition,
+                    cancellationToken);
                 if (schemaInfo is null)
                 {
+                    if (isRecomposition)
+                    {
+                        // Composing without this source would silently carry its previous
+                        // schema forward from the existing archive, so the recomposition
+                        // must fail instead so the gateway keeps the previous schema.
+                        throw new InvalidOperationException(
+                            $"The source schema for resource '{referencedResource.Name}' could not be loaded.");
+                    }
+
                     continue;
                 }
 
@@ -184,7 +358,7 @@ internal sealed class SchemaComposition(
         "IL2075:\'this\' argument does not satisfy \'DynamicallyAccessedMembersAttribute\' "
         + "in call to target method. The return value of the source method does not have matching annotations.")]
     [SuppressMessage("ReSharper", "UnusedVariable")]
-    private List<IResourceWithEndpoints> GetReferencedResources(
+    private static List<IResourceWithEndpoints> GetReferencedResources(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel)
     {
@@ -216,6 +390,7 @@ internal sealed class SchemaComposition(
 
     private async Task<SourceSchemaInfo?> GetSourceSchemaInfoAsync(
         IResourceWithEndpoints resource,
+        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         var sourceSchemaSettings = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
@@ -230,6 +405,7 @@ internal sealed class SchemaComposition(
                 return await GetSourceSchemaFromEndpointAsync(
                     resource,
                     sourceSchemaSettings,
+                    isRecomposition,
                     cancellationToken);
 
             case SourceSchemaLocationType.ProjectDirectory:
@@ -247,6 +423,7 @@ internal sealed class SchemaComposition(
     private async Task<SourceSchemaInfo?> GetSourceSchemaFromEndpointAsync(
         IResourceWithEndpoints resource,
         GraphQLSourceSchemaAnnotation annotation,
+        bool isRecomposition,
         CancellationToken cancellationToken)
     {
         // For endpoint schemas, look for "schema-settings.json" in the project directory.
@@ -280,6 +457,7 @@ internal sealed class SchemaComposition(
                 endpointConfiguration.SourceSchemaName,
                 schemaUrl,
                 endpointConfiguration.Protocol,
+                isRecomposition,
                 cancellationToken);
             if (schemaText == null)
             {
@@ -446,9 +624,13 @@ internal sealed class SchemaComposition(
         string sourceSchemaName,
         string schemaUrl,
         SchemaEndpointProtocol protocol,
+        bool isRecomposition,
         CancellationToken cancellationToken)
     {
-        const int maxRetries = 60;
+        // After a restart the DCP proxy keeps the endpoint open, so a recomposition fetch can
+        // observe transient server errors instead of connection failures. The recomposition
+        // path therefore retries those as well, with a smaller retry budget than at startup.
+        var maxRetries = isRecomposition ? RecompositionFetchMaxRetries : StartupFetchMaxRetries;
         var endpoint = new Uri(schemaUrl);
 
         using var httpClient = new HttpClient
@@ -462,7 +644,8 @@ internal sealed class SchemaComposition(
             protocol,
             httpClient,
             maxRetries,
-            TimeSpan.FromSeconds(2),
+            s_fetchRetryDelay,
+            retryTransientFailures: isRecomposition,
             cancellationToken);
     }
 
@@ -473,6 +656,7 @@ internal sealed class SchemaComposition(
         HttpClient httpClient,
         int maxRetries,
         TimeSpan retryDelay,
+        bool retryTransientFailures,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
@@ -522,6 +706,26 @@ internal sealed class SchemaComposition(
             {
                 logger.LogDebug(
                     "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
+                    sourceSchemaName,
+                    i + 1,
+                    maxRetries);
+            }
+            catch (HttpRequestException exception) when (
+                retryTransientFailures
+                && exception.StatusCode >= HttpStatusCode.InternalServerError)
+            {
+                logger.LogDebug(
+                    "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
+                    sourceSchemaName,
+                    i + 1,
+                    maxRetries);
+            }
+            catch (SchemaFetchRequestException exception) when (
+                retryTransientFailures
+                && exception.StatusCode >= HttpStatusCode.InternalServerError)
+            {
+                logger.LogDebug(
+                    "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
                     sourceSchemaName,
                     i + 1,
                     maxRetries);
@@ -651,7 +855,14 @@ internal sealed class SchemaComposition(
                 logger,
                 cancellationToken))
             {
-                File.Copy(tempArchivePath, archivePath, true);
+                // The gateway keeps read handles on the archive while it is running, which can
+                // surface as a transient IOException when the archive is replaced.
+                await CopyArchiveWithRetryAsync(
+                    () => File.Copy(tempArchivePath, archivePath, true),
+                    archivePath,
+                    ArchiveCopyMaxAttempts,
+                    s_archiveCopyRetryDelay,
+                    cancellationToken);
                 return true;
             }
         }
@@ -664,6 +875,37 @@ internal sealed class SchemaComposition(
         }
 
         return false;
+    }
+
+    internal async Task CopyArchiveWithRetryAsync(
+        Action copyArchive,
+        string archivePath,
+        int maxAttempts,
+        TimeSpan retryDelay,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(copyArchive);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAttempts, 1);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                copyArchive();
+                return;
+            }
+            catch (IOException exception) when (attempt < maxAttempts)
+            {
+                logger.LogDebug(
+                    exception,
+                    "Could not replace the fusion archive {ArchivePath} (attempt {Attempt}/{MaxAttempts})",
+                    archivePath,
+                    attempt,
+                    maxAttempts);
+            }
+
+            await Task.Delay(retryDelay, cancellationToken);
+        }
     }
 
     private static bool IsExtensionsSchemaPath(string filePath)
