@@ -199,6 +199,71 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         Assert.Equal(typeof(int), field.ResultType);
     }
 
+    [Fact]
+    public void Deprecated_OptionDisabled_Throws()
+    {
+        // arrange
+        var descriptor = new ObjectTypeDescriptor<Foo>(Context);
+
+        // act
+        void Action() => descriptor.Deprecated("Use Bar.");
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal(
+            "The object type `Foo` cannot be deprecated because "
+            + "`SchemaOptions.EnableObjectDeprecation` is not enabled.",
+            error.Message);
+    }
+
+    [Fact]
+    public void Deprecated_OptionEnabled_SetsReason()
+    {
+        // arrange
+        var context = DescriptorContext.Create(
+            new SchemaOptions { EnableObjectDeprecation = true });
+        var descriptor = new ObjectTypeDescriptor<Foo>(context);
+
+        // act
+        descriptor.Deprecated("Use Bar.");
+
+        // assert
+        Assert.Equal("Use Bar.", descriptor.CreateConfiguration().DeprecationReason);
+    }
+
+    [Fact]
+    public void Deprecated_NoReason_SetsDefaultReason()
+    {
+        // arrange
+        var context = DescriptorContext.Create(
+            new SchemaOptions { EnableObjectDeprecation = true });
+        var descriptor = new ObjectTypeDescriptor<Foo>(context);
+
+        // act
+        descriptor.Deprecated();
+
+        // assert
+        Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Deprecated_EmptyReason_SetsDefaultReason(string? reason)
+    {
+        // arrange
+        var context = DescriptorContext.Create(
+            new SchemaOptions { EnableObjectDeprecation = true });
+        var descriptor = new ObjectTypeDescriptor<Foo>(context);
+
+        // act
+        descriptor.Deprecated(reason);
+
+        // assert
+        Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
+    }
+
     public class Foo : FooBase
     {
         public required string A { get; set; }

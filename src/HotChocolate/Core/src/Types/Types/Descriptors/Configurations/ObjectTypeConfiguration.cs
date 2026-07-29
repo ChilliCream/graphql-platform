@@ -35,6 +35,11 @@ public class ObjectTypeConfiguration
     }
 
     /// <summary>
+    /// Gets or sets the deprecation reason of this object type.
+    /// </summary>
+    public string? DeprecationReason { get; set; }
+
+    /// <summary>
     /// Gets or sets the .net type representation of this type.
     /// </summary>
     public override Type RuntimeType
@@ -279,6 +284,7 @@ public class ObjectTypeConfiguration
             }
         }
 
+        target.DeprecationReason ??= DeprecationReason;
         target.IsOfType ??= IsOfType;
     }
 

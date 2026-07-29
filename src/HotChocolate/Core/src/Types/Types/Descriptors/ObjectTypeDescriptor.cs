@@ -7,6 +7,7 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.FieldBindingFlags;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -250,6 +251,23 @@ public class ObjectTypeDescriptor
         Configuration.Description = value;
         return this;
     }
+
+    public IObjectTypeDescriptor Deprecated(string? reason)
+    {
+        if (!Context.Options.EnableObjectDeprecation)
+        {
+            throw ThrowHelper.ObjectDeprecationNotEnabled(Configuration.Name);
+        }
+
+        Configuration.DeprecationReason = string.IsNullOrEmpty(reason)
+            ? DirectiveNames.Deprecated.Arguments.DefaultReason
+            : reason;
+
+        return this;
+    }
+
+    public IObjectTypeDescriptor Deprecated()
+        => Deprecated(DirectiveNames.Deprecated.Arguments.DefaultReason);
 
     public IObjectTypeDescriptor Implements<T>()
         where T : InterfaceType
