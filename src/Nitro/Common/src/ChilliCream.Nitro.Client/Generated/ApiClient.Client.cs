@@ -24667,15 +24667,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange>, IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange
     {
-        public OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -24694,7 +24698,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -24723,6 +24727,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -29585,7 +29595,14 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes
+    public partial interface IDeprecatedChange : ISchemaChange
+    {
+        public global::System.String? DeprecationReason { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -30014,13 +30031,6 @@ namespace ChilliCream.Nitro.Client
     public partial interface IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_Changes
     {
         public global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IDeprecatedChange : ISchemaChange
-    {
-        public global::System.String? DeprecationReason { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -52506,15 +52516,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange
     {
-        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange? other)
         {
@@ -52533,7 +52547,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -52562,6 +52576,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -56567,15 +56587,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange
     {
-        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -56594,7 +56618,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -56623,6 +56647,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -61850,15 +61880,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange
     {
-        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -61877,7 +61911,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -61906,6 +61940,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -64721,7 +64761,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -65168,7 +65208,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -65733,7 +65773,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -92363,15 +92403,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange>, IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange
     {
-        public PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -92390,7 +92434,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -92419,6 +92463,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -96808,7 +96858,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes
+    public partial interface IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -108481,15 +108531,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange>, IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange
     {
-        public PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -108508,7 +108562,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -108537,6 +108591,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -112926,7 +112986,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes
+    public partial interface IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -125952,15 +126012,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange>, IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange
     {
-        public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -125979,7 +126043,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -126008,6 +126072,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -131004,15 +131074,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange>, IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange
     {
-        public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -131031,7 +131105,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -131060,6 +131134,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -134183,7 +134263,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes
+    public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -134723,7 +134803,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes
+    public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -139302,15 +139382,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange>, IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange
     {
-        public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange? other)
         {
@@ -139329,7 +139413,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -139358,6 +139442,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -142306,15 +142396,19 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange : global::System.IEquatable<OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange>, IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange
     {
-        public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename)
+        public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? deprecationReason)
         {
             this.__typename = __typename;
+            Severity = severity;
+            DeprecationReason = deprecationReason;
         }
 
         /// <summary>
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
+        public global::ChilliCream.Nitro.Client.SchemaChangeSeverity Severity { get; }
+        public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange? other)
         {
@@ -142333,7 +142427,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (__typename.Equals(other.__typename));
+            return (__typename.Equals(other.__typename)) && Severity.Equals(other.Severity) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -142362,6 +142456,12 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Severity.GetHashCode();
+                if (DeprecationReason != null)
+                {
+                    hash ^= 397 * DeprecationReason.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -146712,7 +146812,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes
+    public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -147039,7 +147139,7 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes
+    public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes, IDeprecatedChange
     {
     }
 
@@ -159910,6 +160010,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -160205,7 +160306,7 @@ namespace ChilliCream.Nitro.Client
         public static OnClientVersionPublishUpdatedSubscriptionDocument Instance { get; } = new OnClientVersionPublishUpdatedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "37d55f2306a46b1da2eb2c84fab4f061");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "a284f6ba5a0b261ea7015fa89c91b914");
 
         public override global::System.String ToString()
         {
@@ -160527,6 +160628,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -161169,6 +161271,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -165512,6 +165615,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -165894,7 +165998,7 @@ namespace ChilliCream.Nitro.Client
         public static OnFusionConfigurationPublishingTaskChangedSubscriptionDocument Instance { get; } = new OnFusionConfigurationPublishingTaskChangedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "69dc84f28a5e8c23004a138d5e8fe5d6");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "cb309866a6287dcd9f61510316e5e62c");
 
         public override global::System.String ToString()
         {
@@ -166149,6 +166253,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -166811,6 +166916,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -173195,6 +173301,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -173464,7 +173571,7 @@ namespace ChilliCream.Nitro.Client
         public static PublishMcpFeatureCollectionCommandSubscriptionSubscriptionDocument Instance { get; } = new PublishMcpFeatureCollectionCommandSubscriptionSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "8822eea5656a4952edfa28ce20ff5d16");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "dd9ea4f171da638eeeb024f9cfcd5420");
 
         public override global::System.String ToString()
         {
@@ -173812,6 +173919,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -174454,6 +174562,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -177065,6 +177174,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -177333,7 +177443,7 @@ namespace ChilliCream.Nitro.Client
         public static PublishOpenApiCollectionCommandSubscriptionSubscriptionDocument Instance { get; } = new PublishOpenApiCollectionCommandSubscriptionSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "3512e0a50b4aa97928f2d6ae20efde7a");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "3e6ee8fb58221beb938bcb3677a266fe");
 
         public override global::System.String ToString()
         {
@@ -177682,6 +177792,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -178324,6 +178435,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -181305,6 +181417,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -181678,7 +181791,7 @@ namespace ChilliCream.Nitro.Client
         public static OnSchemaVersionPublishUpdatedSubscriptionDocument Instance { get; } = new OnSchemaVersionPublishUpdatedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "2d9b6713c872d9c0917d0f85f53eeb24");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "fd9b92db3ca6619f29d3eeb970b36bfa");
 
         public override global::System.String ToString()
         {
@@ -181938,6 +182051,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -182596,6 +182710,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -183850,6 +183965,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -184111,7 +184227,7 @@ namespace ChilliCream.Nitro.Client
         public static OnSchemaVersionValidationUpdatedSubscriptionDocument Instance { get; } = new OnSchemaVersionValidationUpdatedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "6ecc0a13d76ca1bba6f293cfcf0a108a");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "3f9003289f59747bb8b6d4067e14c9e4");
 
         public override global::System.String ToString()
         {
@@ -184397,6 +184513,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -184969,6 +185086,7 @@ namespace ChilliCream.Nitro.Client
     ///     __typename
     ///     ...DirectiveLocationAdded
     ///     ...DirectiveLocationRemoved
+    ///     ...DeprecatedChange
     ///     ...DescriptionChanged
     ///     ...ArgumentRemoved
     ///     ...ArgumentChanged
@@ -189619,7 +189737,12 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+                if (!deprecatedChange.Severity.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException(), deprecatedChange.Severity!.Value, deprecatedChange.DeprecationReason);
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
@@ -194057,7 +194180,12 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+                if (!deprecatedChange.Severity.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException(), deprecatedChange.Severity!.Value, deprecatedChange.DeprecationReason);
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
@@ -199732,7 +199860,12 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+                if (!deprecatedChange.Severity.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException(), deprecatedChange.Severity!.Value, deprecatedChange.DeprecationReason);
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
@@ -202545,7 +202678,12 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+                if (!deprecatedChange.Severity.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException(), deprecatedChange.Severity!.Value, deprecatedChange.DeprecationReason);
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
@@ -205636,7 +205774,12 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+                if (!deprecatedChange.Severity.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException(), deprecatedChange.Severity!.Value, deprecatedChange.DeprecationReason);
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
@@ -207697,7 +207840,12 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+                if (!deprecatedChange.Severity.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException(), deprecatedChange.Severity!.Value, deprecatedChange.DeprecationReason);
             }
             else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
@@ -214406,7 +214554,7 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), deprecationReason: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "deprecationReason")));
             }
 
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
@@ -219849,7 +219997,7 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), deprecationReason: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "deprecationReason")));
             }
 
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
@@ -226236,7 +226384,7 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), deprecationReason: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "deprecationReason")));
             }
 
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
@@ -229543,7 +229691,7 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), deprecationReason: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "deprecationReason")));
             }
 
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
@@ -233138,7 +233286,7 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), deprecationReason: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "deprecationReason")));
             }
 
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
@@ -235300,7 +235448,7 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), deprecationReason: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "deprecationReason")));
             }
 
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
