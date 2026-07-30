@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ChilliCream.Nitro.Aspire</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.Aspire</RootNamespace>
+    <TargetFrameworks>net11.0;net10.0;net9.0</TargetFrameworks>
+    <IsAotCompatible>false</IsAotCompatible>
+    <Description>Integrates deterministic Hot Chocolate Fusion publication workflows with .NET Aspire deployment pipelines.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChilliCream.Nitro.Aspire.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChilliCream.Nitro.Fusion\ChilliCream.Nitro.Fusion.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Aspire\HotChocolate.Fusion.Aspire.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

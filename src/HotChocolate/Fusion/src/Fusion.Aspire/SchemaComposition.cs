@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -133,8 +132,8 @@ internal sealed class SchemaComposition(
     {
         var sourceSchemas = new List<SourceSchemaInfo>();
 
-        // Get all resources referenced by the composition resource
-        var referencedResources = GetReferencedResources(compositionResource, appModel);
+        var referencedResources =
+            GraphQLResourceModel.GetReferencedSourceSchemas(compositionResource, appModel);
 
         logger.LogInformation(
             "Found {Count} referenced resources for {ResourceName}",
@@ -142,17 +141,12 @@ internal sealed class SchemaComposition(
 
         try
         {
-            foreach (var referencedResource in referencedResources)
+            foreach (var referencedSource in referencedResources)
             {
-                if (!referencedResource.HasGraphQLSchema())
-                {
-                    logger.LogDebug(
-                        "Resource {ResourceName} does not have a GraphQL schema, skipping",
-                        referencedResource.Name);
-                    continue;
-                }
-
-                var schemaInfo = await GetSourceSchemaInfoAsync(referencedResource, cancellationToken);
+                var schemaInfo = await GetSourceSchemaInfoAsync(
+                    referencedSource.Resource,
+                    referencedSource.Declaration,
+                    cancellationToken);
                 if (schemaInfo is null)
                 {
                     continue;
@@ -179,51 +173,11 @@ internal sealed class SchemaComposition(
         return sourceSchemas;
     }
 
-    [SuppressMessage(
-        "Trimming",
-        "IL2075:\'this\' argument does not satisfy \'DynamicallyAccessedMembersAttribute\' "
-        + "in call to target method. The return value of the source method does not have matching annotations.")]
-    [SuppressMessage("ReSharper", "UnusedVariable")]
-    private List<IResourceWithEndpoints> GetReferencedResources(
-        IResourceWithEndpoints compositionResource,
-        DistributedApplicationModel appModel)
-    {
-        var referencedResourceNames = new HashSet<string>();
-
-        foreach (var annotation in compositionResource.Annotations)
-        {
-            switch (annotation)
-            {
-                case ResourceRelationshipAnnotation rel:
-                    referencedResourceNames.Add(rel.Resource.Name);
-                    break;
-
-                case var endpointRef when annotation.GetType().Name == "EndpointReferenceAnnotation":
-                    var targetResourceProp = annotation.GetType().GetProperty("Resource");
-                    if (targetResourceProp?.GetValue(annotation) is IResource targetResource)
-                    {
-                        referencedResourceNames.Add(targetResource.Name);
-                    }
-                    break;
-            }
-        }
-
-        return appModel.Resources
-            .OfType<IResourceWithEndpoints>()
-            .Where(r => referencedResourceNames.Contains(r.Name))
-            .ToList();
-    }
-
     private async Task<SourceSchemaInfo?> GetSourceSchemaInfoAsync(
         IResourceWithEndpoints resource,
+        GraphQLSourceSchemaAnnotation sourceSchemaSettings,
         CancellationToken cancellationToken)
     {
-        var sourceSchemaSettings = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
-        if (sourceSchemaSettings is null)
-        {
-            return null;
-        }
-
         switch (sourceSchemaSettings.Location)
         {
             case SourceSchemaLocationType.SchemaEndpoint:
@@ -235,12 +189,98 @@ internal sealed class SchemaComposition(
             case SourceSchemaLocationType.ProjectDirectory:
                 return await GetSourceSchemaFromFileAsync(resource, sourceSchemaSettings, cancellationToken);
 
+            case SourceSchemaLocationType.CommandLineExport:
+                return await GetSourceSchemaFromCommandLineAsync(
+                    resource,
+                    sourceSchemaSettings,
+                    cancellationToken);
+
             default:
                 logger.LogWarning(
                     "Unknown schema location type {LocationType} for {ResourceName}",
                     sourceSchemaSettings.Location,
                     resource.Name);
                 return null;
+        }
+    }
+
+    private async Task<SourceSchemaInfo> GetSourceSchemaFromCommandLineAsync(
+        IResourceWithEndpoints resource,
+        GraphQLSourceSchemaAnnotation annotation,
+        CancellationToken cancellationToken)
+    {
+        var outputDirectory = IOPath.Combine(
+            IOPath.GetTempPath(),
+            "hotchocolate-fusion-aspire",
+            Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            var result = await CommandLineSchemaExporter.ExportAsync(
+                resource,
+                annotation,
+                outputDirectory,
+                cancellationToken);
+            var schemaText = await File.ReadAllTextAsync(
+                result.SchemaPath,
+                cancellationToken);
+            var settings = JsonDocument.Parse(
+                await File.ReadAllTextAsync(result.SettingsPath, cancellationToken));
+            var ownershipTransferred = false;
+
+            try
+            {
+                var configuration = ReadEndpointConfiguration(
+                    resource.Name,
+                    annotation.SourceSchemaName,
+                    settings);
+                GraphQLSourceSchemaValidator.Validate(
+                    resource.Name,
+                    configuration,
+                    schemaText);
+
+                var sourceSchema = new SourceSchemaInfo
+                {
+                    Name = configuration.SourceSchemaName,
+                    ResourceName = resource.Name,
+                    Schema = new SourceSchemaText(configuration.SourceSchemaName, schemaText),
+                    SchemaSettings = settings
+                };
+
+                ownershipTransferred = true;
+                return sourceSchema;
+            }
+            finally
+            {
+                if (!ownershipTransferred)
+                {
+                    settings.Dispose();
+                }
+            }
+        }
+        finally
+        {
+            try
+            {
+                if (Directory.Exists(outputDirectory))
+                {
+                    Directory.Delete(outputDirectory, recursive: true);
+                }
+            }
+            catch (IOException exception)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Could not remove schema export directory for {ResourceName}.",
+                    resource.Name);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Could not remove schema export directory for {ResourceName}.",
+                    resource.Name);
+            }
         }
     }
 
@@ -285,6 +325,11 @@ internal sealed class SchemaComposition(
             {
                 return null;
             }
+
+            GraphQLSourceSchemaValidator.Validate(
+                resource.Name,
+                endpointConfiguration,
+                schemaText);
 
             var sourceSchema = new SourceSchemaInfo
             {
@@ -363,9 +408,12 @@ internal sealed class SchemaComposition(
         GraphQLSourceSchemaAnnotation annotation,
         CancellationToken cancellationToken)
     {
-        var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
+        var sourceSchemaName = annotation.SourceSchemaName ?? resource.Name;
 
-        var schemaPath = annotation.SchemaPath ?? "schema.graphql";
+        var schemaPaths = GraphQLResourceModel.GetProjectSchemaPaths(
+            resource,
+            annotation);
+        var schemaPath = schemaPaths.SchemaPath;
 
         if (IsExtensionsSchemaPath(schemaPath))
         {
@@ -375,30 +423,60 @@ internal sealed class SchemaComposition(
             return null;
         }
 
-        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, schemaPath, cancellationToken);
+        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(
+            resource,
+            schemaPath,
+            cancellationToken);
         if (schemaFromFile is not { } schemaFiles)
         {
             return null;
         }
 
-        // For file schemas, settings file is named after the schema file
-        // e.g., "foo.graphql" -> "foo-settings.json"
-        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaPath)}-settings.json";
-
-        var schemaSettings = await GetSourceSchemaSettingsAsync(resource, settingsFileName, cancellationToken);
+        var schemaSettings = await GetSourceSchemaSettingsAsync(
+            resource,
+            schemaPaths.SettingsPath,
+            cancellationToken);
         if (schemaSettings == null)
         {
             return null;
         }
 
-        return new SourceSchemaInfo
+        var ownershipTransferred = false;
+
+        try
         {
-            Name = sourceSchemaName,
-            ResourceName = resource.Name,
-            HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
-            Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
-            SchemaSettings = schemaSettings
-        };
+            var configuration = ReadEndpointConfiguration(
+                resource.Name,
+                sourceSchemaName,
+                schemaSettings);
+            GraphQLSourceSchemaValidator.Validate(
+                resource.Name,
+                configuration,
+                schemaFiles.Schema,
+                schemaFiles.Extensions);
+
+            var sourceSchema = new SourceSchemaInfo
+            {
+                Name = configuration.SourceSchemaName,
+                ResourceName = resource.Name,
+                HttpEndpointUrl = null,
+                Schema = new SourceSchemaText(
+                    configuration.SourceSchemaName,
+                    schemaFiles.Schema,
+                    schemaFiles.Extensions),
+                SchemaSettings = schemaSettings
+            };
+
+            ownershipTransferred = true;
+            return sourceSchema;
+        }
+        finally
+        {
+            if (!ownershipTransferred)
+            {
+                schemaSettings.Dispose();
+            }
+        }
     }
 
     private async Task<JsonDocument?> GetSourceSchemaSettingsAsync(
@@ -416,7 +494,9 @@ internal sealed class SchemaComposition(
             }
 
             var projectDirectory = IOPath.GetDirectoryName(projectPath);
-            var settingsFile = IOPath.Combine(projectDirectory!, settingsFileName);
+            var settingsFile = IOPath.IsPathRooted(settingsFileName)
+                ? settingsFileName
+                : IOPath.Combine(projectDirectory!, settingsFileName);
 
             if (!File.Exists(settingsFile))
             {
@@ -556,7 +636,10 @@ internal sealed class SchemaComposition(
             }
 
             var projectDirectory = IOPath.GetDirectoryName(projectPath);
-            var schemaFile = IOPath.Combine(projectDirectory!, fileName ?? "schema.graphql");
+            var schemaPath = fileName ?? "schema.graphqls";
+            var schemaFile = IOPath.IsPathRooted(schemaPath)
+                ? schemaPath
+                : IOPath.Combine(projectDirectory!, schemaPath);
 
             if (!File.Exists(schemaFile))
             {
@@ -591,42 +674,19 @@ internal sealed class SchemaComposition(
         }
     }
 
-    [SuppressMessage(
-        "Trimming",
-        "IL2075:\'this\' argument does not satisfy \'DynamicallyAccessedMembersAttribute\' "
-        + "in call to target method. The return value of the source method does not have matching annotations.")]
     private string? GetProjectPath(IResourceWithEndpoints resource)
     {
-        // Check if this is a ProjectResource
-        if (resource is not ProjectResource projectResource)
+        try
         {
+            return GraphQLResourceModel.GetProjectPath(resource);
+        }
+        catch (InvalidOperationException)
+        {
+            logger.LogWarning(
+                "Could not find project metadata for resource {ResourceName}",
+                resource.Name);
             return null;
         }
-
-        // Get the project metadata from the ProjectResource
-        // The metadata is typically stored as an annotation or property
-        var metadataAnnotation = projectResource.Annotations
-            .FirstOrDefault(a => a.GetType().GetInterfaces().Contains(typeof(IProjectMetadata)));
-
-        if (metadataAnnotation is IProjectMetadata projectMetadata)
-        {
-            return projectMetadata.ProjectPath;
-        }
-
-        // Alternative approach: look for the metadata in the resource's type or properties
-        // Sometimes the metadata might be accessible through reflection on the resource itself
-        var metadataProperty = projectResource.GetType()
-            .GetProperties()
-            .FirstOrDefault(p => p.PropertyType.GetInterfaces().Contains(typeof(IProjectMetadata)));
-
-        if (metadataProperty != null)
-        {
-            var metadata = metadataProperty.GetValue(projectResource) as IProjectMetadata;
-            return metadata?.ProjectPath;
-        }
-
-        logger.LogWarning("Could not find project metadata for resource {ResourceName}", resource.Name);
-        return null;
     }
 
     private async Task<bool> ComposeSchemaAsync(

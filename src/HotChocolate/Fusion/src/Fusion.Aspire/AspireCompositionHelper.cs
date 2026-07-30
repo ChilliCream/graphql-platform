@@ -2,12 +2,68 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Fusion.Aspire;
 
 internal static class AspireCompositionHelper
 {
+    public static async Task<bool> TryComposeArchivesAsync(
+        string fusionArchivePath,
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        GraphQLCompositionSettings settings,
+        ILogger<SchemaComposition> logger,
+        CancellationToken cancellationToken)
+    {
+        var sourceSchemas = new List<SourceSchemaInfo>(archives.Count);
+
+        try
+        {
+            foreach (var archiveInfo in archives)
+            {
+                using var archive = FusionSourceSchemaArchive.Open(
+                    archiveInfo.ArchivePath);
+                var schema = await archive.TryGetSchemaAsync(cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        $"Fusion source archive '{archiveInfo.Name}' has no schema.");
+                var sourceSettings =
+                    await archive.TryGetSettingsAsync(cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        $"Fusion source archive '{archiveInfo.Name}' has no settings.");
+                var extensions =
+                    await archive.TryGetSchemaExtensionsAsync(cancellationToken);
+
+                sourceSchemas.Add(
+                    new SourceSchemaInfo
+                    {
+                        Name = archiveInfo.Name,
+                        Schema = new SourceSchemaText(
+                            archiveInfo.Name,
+                            Encoding.UTF8.GetString(schema.Span),
+                            extensions is null
+                                ? null
+                                : Encoding.UTF8.GetString(extensions.Value.Span)),
+                        SchemaSettings = sourceSettings
+                    });
+            }
+
+            return await TryComposeAsync(
+                fusionArchivePath,
+                [.. sourceSchemas],
+                settings,
+                logger,
+                cancellationToken);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
     public static async Task<bool> TryComposeAsync(
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> newSourceSchemas,
@@ -100,3 +156,7 @@ internal static class AspireCompositionHelper
         return string.Join(Environment.NewLine + "   ", lines);
     }
 }
+
+internal readonly record struct SourceSchemaArchiveInfo(
+    string Name,
+    string ArchivePath);

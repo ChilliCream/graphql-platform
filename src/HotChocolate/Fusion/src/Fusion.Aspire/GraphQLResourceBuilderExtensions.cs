@@ -73,6 +73,53 @@ public static class GraphQLResourceBuilderExtensions
     }
 
     /// <summary>
+    /// Marks a project resource as exporting a GraphQL schema through the Hot Chocolate
+    /// command-line schema exporter during publishing.
+    /// </summary>
+    /// <param name="builder">The project resource builder.</param>
+    /// <param name="schemaName">The exact registered schema name to export.</param>
+    /// <param name="configuration">The build configuration used by <c>dotnet run</c>.</param>
+    /// <param name="targetFramework">The exact target framework used by <c>dotnet run</c>.</param>
+    /// <param name="runtimeIdentifier">
+    /// The runtime identifier used by <c>dotnet run</c>, or <see langword="null"/> for an
+    /// explicitly portable export.
+    /// </param>
+    /// <param name="timeout">The maximum time allowed for the child process.</param>
+    /// <returns>The resource builder for chaining.</returns>
+    public static IResourceBuilder<ProjectResource> WithGraphQLSchemaExport(
+        this IResourceBuilder<ProjectResource> builder,
+        string schemaName,
+        string configuration,
+        string targetFramework,
+        string? runtimeIdentifier,
+        TimeSpan timeout)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(schemaName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetFramework);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
+
+        if (runtimeIdentifier is not null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(runtimeIdentifier);
+        }
+
+        builder.WithAnnotation(
+            new GraphQLSourceSchemaAnnotation
+            {
+                SourceSchemaName = schemaName,
+                ExportSchemaName = schemaName,
+                ExportConfiguration = configuration,
+                ExportTargetFramework = targetFramework,
+                ExportRuntimeIdentifier = runtimeIdentifier,
+                ExportTimeout = timeout,
+                Location = SourceSchemaLocationType.CommandLineExport
+            });
+
+        return builder;
+    }
+
+    /// <summary>
     /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
     /// </summary>
     /// <param name="builder">The resource builder</param>

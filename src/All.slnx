@@ -410,13 +410,17 @@
     <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.Mcp/ChilliCream.Nitro.Adapters.Mcp.csproj" />
     <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.OpenApi.Packaging/ChilliCream.Nitro.Adapters.OpenApi.Packaging.csproj" />
     <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.OpenApi/ChilliCream.Nitro.Adapters.OpenApi.csproj" />
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Aspire/ChilliCream.Nitro.Aspire.csproj" />
     <Project Path="Nitro/Common/src/ChilliCream.Nitro.Client/ChilliCream.Nitro.Client.csproj" />
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Fusion/ChilliCream.Nitro.Fusion.csproj" />
   </Folder>
   <Folder Name="/Nitro/Common/test/">
     <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.Mcp.Packaging.Tests/ChilliCream.Nitro.Adapters.Mcp.Packaging.Tests.csproj" />
     <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.Mcp.Tests/ChilliCream.Nitro.Adapters.Mcp.Tests.csproj" />
     <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.OpenApi.Packaging.Tests/ChilliCream.Nitro.Adapters.OpenApi.Packaging.Tests.csproj" />
     <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.OpenApi.Tests/ChilliCream.Nitro.Adapters.OpenApi.Tests.csproj" />
+    <Project Path="Nitro/Common/test/ChilliCream.Nitro.Aspire.Tests/ChilliCream.Nitro.Aspire.Tests.csproj" />
+    <Project Path="Nitro/Common/test/ChilliCream.Nitro.Fusion.Tests/ChilliCream.Nitro.Fusion.Tests.csproj" />
   </Folder>
   <Folder Name="/StrawberryShake/" />
   <Folder Name="/StrawberryShake/Client/" />

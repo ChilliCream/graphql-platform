@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>ChilliCream.Nitro.Aspire.Tests</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.Aspire</RootNamespace>
+    <TargetFrameworks>net11.0;net10.0;net9.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ChilliCream.Nitro.Aspire\ChilliCream.Nitro.Aspire.csproj" />
+  </ItemGroup>
+
+</Project>

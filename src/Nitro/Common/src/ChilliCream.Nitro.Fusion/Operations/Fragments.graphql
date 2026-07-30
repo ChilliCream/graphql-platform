@@ -1,0 +1,3 @@
+fragment FusionError on Error {
+  message
+}

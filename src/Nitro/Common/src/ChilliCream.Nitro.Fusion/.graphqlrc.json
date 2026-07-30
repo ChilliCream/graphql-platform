@@ -1,0 +1,25 @@
+{
+  "name": "ChilliCream.Nitro.Fusion",
+  "schema": "../ChilliCream.Nitro.Client/schema.graphql",
+  "documents": "Operations/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "FusionApiClient",
+      "namespace": "ChilliCream.Nitro.Fusion.Transport",
+      "accessModifier": "internal",
+      "emitGeneratedCode": true,
+      "noStore": true,
+      "records": {
+        "inputs": true,
+        "entities": true
+      },
+      "transportProfiles": [
+        {
+          "name": "Default",
+          "default": "HTTP",
+          "subscription": "HTTP"
+        }
+      ]
+    }
+  }
+}

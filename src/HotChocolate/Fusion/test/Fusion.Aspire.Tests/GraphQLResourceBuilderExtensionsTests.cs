@@ -50,6 +50,62 @@ public sealed class GraphQLResourceBuilderExtensionsTests
             exception.Message);
     }
 
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_PreserveExplicitBuildInputs()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaExport(
+                "Products",
+                "Release",
+                "net9.0",
+                "linux-x64",
+                TimeSpan.FromMinutes(2));
+
+        var annotation = Assert.Single(
+            resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+
+        $$"""
+        Source schema name: {{annotation.SourceSchemaName}}
+        Export schema name: {{annotation.ExportSchemaName}}
+        Configuration: {{annotation.ExportConfiguration}}
+        Target framework: {{annotation.ExportTargetFramework}}
+        Runtime identifier: {{annotation.ExportRuntimeIdentifier}}
+        Timeout: {{annotation.ExportTimeout}}
+        Location: {{annotation.Location}}
+        """.MatchInlineSnapshot(
+            """
+            Source schema name: Products
+            Export schema name: Products
+            Configuration: Release
+            Target framework: net9.0
+            Runtime identifier: linux-x64
+            Timeout: 00:02:00
+            Location: CommandLineExport
+            """);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_RejectWhitespaceRuntimeIdentifier()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder.AddProject("products", GetTestProjectFile());
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => resource.WithGraphQLSchemaExport(
+                "Products",
+                "Release",
+                "net9.0",
+                " ",
+                TimeSpan.FromMinutes(2)));
+
+        Assert.Equal(
+            "The value cannot be an empty string or composed entirely of whitespace. "
+            + "(Parameter 'runtimeIdentifier')",
+            exception.Message);
+    }
+
     [Theory]
     [InlineData(
         null,
