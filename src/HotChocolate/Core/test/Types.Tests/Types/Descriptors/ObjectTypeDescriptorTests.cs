@@ -264,6 +264,60 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
     }
 
+    [Fact]
+    public void Deprecated_ClassHasGraphQLDeprecatedAttribute_SetsReason()
+    {
+        // arrange
+        var context = DescriptorContext.Create(
+            new SchemaOptions { EnableObjectDeprecation = true });
+
+        // act
+        var descriptor = new ObjectTypeDescriptor<Foo3>(context);
+
+        // assert
+        Assert.Equal("Use Bar.", descriptor.CreateConfiguration().DeprecationReason);
+    }
+
+    [Fact]
+    public void Deprecated_ClassHasObsoleteAttribute_DoesNotSetReason()
+    {
+        // arrange
+        var context = DescriptorContext.Create(
+            new SchemaOptions { EnableObjectDeprecation = true });
+
+        // act
+#pragma warning disable CS0618 // Type is obsolete; obsolescence is the scenario under test.
+        var descriptor = new ObjectTypeDescriptor<Foo4>(context);
+#pragma warning restore CS0618
+
+        // assert
+        Assert.Null(descriptor.CreateConfiguration().DeprecationReason);
+    }
+
+    [Fact]
+    public void Deprecated_ClassHasGraphQLDeprecatedAttribute_OptionDisabled_DoesNotSetReason()
+    {
+        // arrange & act
+        var descriptor = new ObjectTypeDescriptor<Foo3>(Context);
+
+        // assert
+        Assert.Null(descriptor.CreateConfiguration().DeprecationReason);
+    }
+
+    [Fact]
+    public void Deprecated_SchemaTypeHasGraphQLDeprecatedAttribute_SetsReason()
+    {
+        // arrange
+        var context = DescriptorContext.Create(
+            new SchemaOptions { EnableObjectDeprecation = true });
+
+        // act
+        var descriptor = ObjectTypeDescriptor.FromSchemaType(context, typeof(FooType));
+
+        // assert
+        Assert.Equal("Use Bar.", descriptor.CreateConfiguration().DeprecationReason);
+    }
+
     public class Foo : FooBase
     {
         public required string A { get; set; }
@@ -277,6 +331,21 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     [GraphQLName("FooAttr")]
     public class Foo2 : FooBase;
+
+    [GraphQLDeprecated("Use Bar.")]
+    public class Foo3
+    {
+        public string? Name => null;
+    }
+
+    [Obsolete("Use Bar.")]
+    public class Foo4
+    {
+        public string? Name => null;
+    }
+
+    [GraphQLDeprecated("Use Bar.")]
+    public class FooType : ObjectType<Foo>;
 
     public class FooBase
     {

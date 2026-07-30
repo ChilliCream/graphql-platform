@@ -25,6 +25,12 @@ public class ObjectTypeDescriptor
         Configuration.RuntimeType = runtimeType;
         Configuration.Name = context.Naming.GetTypeName(runtimeType, TypeKind.Object);
         Configuration.Description = context.Naming.GetTypeDescription(runtimeType, TypeKind.Object);
+
+        if (context.Options.EnableObjectDeprecation
+            && runtimeType.GetCustomAttribute<GraphQLDeprecatedAttribute>() is { } deprecated)
+        {
+            Configuration.DeprecationReason = deprecated.DeprecationReason;
+        }
     }
 
     protected ObjectTypeDescriptor(IDescriptorContext context)
