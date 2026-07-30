@@ -123,6 +123,20 @@ public static class GraphQLResourceBuilderExtensions
         return baseUrl + resource.GetGraphQLSchemaPath(defaultPath);
     }
 
+    internal static string? GetAllocatedHttpEndpointUrl(this IResourceWithEndpoints resource)
+    {
+        var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
+        var endpointName = annotation?.EndpointName ?? "http";
+        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == endpointName);
+
+        if (endpoint is not { IsAllocated: true })
+        {
+            return null;
+        }
+
+        return endpoint.Url;
+    }
+
     internal static string? GetGraphQLSchemaPath(
         this IResource resource,
         string? defaultPath = null)

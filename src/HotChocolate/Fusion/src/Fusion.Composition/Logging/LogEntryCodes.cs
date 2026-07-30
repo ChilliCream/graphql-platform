@@ -91,6 +91,8 @@ public static class LogEntryCodes
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
+    public const string SourceSchemaDevUrlMissing = "SOURCE_SCHEMA_DEV_URL_MISSING";
+    public const string SourceSchemaUrlVariableUnresolved = "SOURCE_SCHEMA_URL_VARIABLE_UNRESOLVED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
     public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
     public const string EventStreamMessageAbstractTypeRequiresTypeName =
