@@ -417,7 +417,7 @@ jobs:
           client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
           operations-file: ${{ runner.temp }}/nitro-aspire-operations.json
           stage: Dev
-          api-key: ${{ secrets.NITRO_ASPIRE_API_KEY }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
           comment-mode: "review"
 
   validate-nitro-client:
