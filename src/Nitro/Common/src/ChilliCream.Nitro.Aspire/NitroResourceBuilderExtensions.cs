@@ -129,6 +129,47 @@ public static class NitroResourceBuilderExtensions
     }
 
     /// <summary>
+    /// Selects the exact <c>schema-settings.json</c> environment used for composition.
+    /// </summary>
+    /// <remarks>
+    /// When this is not configured, an environment selected by the GraphQL composition is used,
+    /// followed by the Nitro stage name.
+    /// </remarks>
+    public static IResourceBuilder<FusionDeploymentResource> WithCompositionEnvironment(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        string environmentName)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        builder.Resource.CompositionEnvironmentName = environmentName;
+        return builder;
+    }
+
+    /// <summary>
+    /// Uses a promoted Fusion release manifest for this deployment.
+    /// </summary>
+    /// <remarks>
+    /// The parameter must resolve to the absolute path of <c>fusion-release.json</c>.
+    /// </remarks>
+    public static IResourceBuilder<FusionDeploymentResource> WithFusionReleaseManifest(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        IResourceBuilder<ParameterResource> manifestPath)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(manifestPath);
+
+        if (builder.Resource.UseGitCommitAsSourceVersion)
+        {
+            throw new InvalidOperationException(
+                "A promoted Fusion release cannot rediscover source versions from Git.");
+        }
+
+        builder.Resource.FusionReleaseManifestParameter = manifestPath.Resource;
+        return builder;
+    }
+
+    /// <summary>
     /// Sets the immutable release tag.
     /// </summary>
     public static IResourceBuilder<FusionDeploymentResource> WithConfigurationTag(
@@ -166,6 +207,13 @@ public static class NitroResourceBuilderExtensions
             this IResourceBuilder<FusionDeploymentResource> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if (builder.Resource.FusionReleaseManifestParameter is not null)
+        {
+            throw new InvalidOperationException(
+                "A promoted Fusion release cannot rediscover source versions from Git.");
+        }
+
         builder.Resource.UseGitCommitAsSourceVersion = true;
         return builder;
     }
@@ -226,13 +274,18 @@ public static class NitroResourceBuilderExtensions
     private static string NormalizeCloudUrl(string cloudUrl)
     {
         if (!Uri.TryCreate(cloudUrl, UriKind.Absolute, out var uri)
-            || uri.Scheme is not "https")
+            || uri.Scheme is not "https"
+            || !string.IsNullOrEmpty(uri.UserInfo)
+            || uri.AbsolutePath is not "/"
+            || !string.IsNullOrEmpty(uri.Query)
+            || !string.IsNullOrEmpty(uri.Fragment))
         {
             throw new ArgumentException(
-                "The Nitro cloud URL must be an absolute HTTPS URL.",
+                "The Nitro cloud URL must be an absolute HTTPS origin without "
+                + "a path, query, fragment, or user information.",
                 nameof(cloudUrl));
         }
 
-        return uri.AbsoluteUri.TrimEnd('/');
+        return uri.GetLeftPart(UriPartial.Authority);
     }
 }

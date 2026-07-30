@@ -12,3 +12,8 @@ var workflow = services.BuildServiceProvider()
 
 The public API uses deployment DTOs only. Nitro's generated GraphQL management types remain
 internal to this package.
+
+`FusionSourceSchemaContent.ComputeSha256Async` computes the normalized content identity recorded
+in a release manifest. `IFusionDeploymentWorkflow.DownloadSourceSchemaAsync` downloads an exact
+name and version, validates the archive settings, and verifies that identity before returning the
+archive bytes.

@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.SourceSchema.Packaging;
@@ -9,13 +11,30 @@ namespace HotChocolate.Fusion.Aspire;
 
 internal static class AspireCompositionHelper
 {
-    public static async Task<bool> TryComposeArchivesAsync(
+    public static Task<bool> TryComposeArchivesAsync(
         string fusionArchivePath,
         IReadOnlyList<SourceSchemaArchiveInfo> archives,
         GraphQLCompositionSettings settings,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
+        => TryComposeArchivesAsync(
+            fusionArchivePath,
+            archives,
+            settings.EnvironmentName ?? "Aspire",
+            settings,
+            logger,
+            cancellationToken);
+
+    public static async Task<bool> TryComposeArchivesAsync(
+        string fusionArchivePath,
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        string environmentName,
+        GraphQLCompositionSettings settings,
+        ILogger<SchemaComposition> logger,
+        CancellationToken cancellationToken)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
         var sourceSchemas = new List<SourceSchemaInfo>(archives.Count);
 
         try
@@ -51,6 +70,7 @@ internal static class AspireCompositionHelper
             return await TryComposeAsync(
                 fusionArchivePath,
                 [.. sourceSchemas],
+                environmentName,
                 settings,
                 logger,
                 cancellationToken);
@@ -64,19 +84,35 @@ internal static class AspireCompositionHelper
         }
     }
 
-    public static async Task<bool> TryComposeAsync(
+    public static Task<bool> TryComposeAsync(
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> newSourceSchemas,
         GraphQLCompositionSettings settings,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
+        => TryComposeAsync(
+            fusionArchivePath,
+            newSourceSchemas,
+            settings.EnvironmentName ?? "Aspire",
+            settings,
+            logger,
+            cancellationToken);
+
+    public static async Task<bool> TryComposeAsync(
+        string fusionArchivePath,
+        ImmutableArray<SourceSchemaInfo> newSourceSchemas,
+        string environmentName,
+        GraphQLCompositionSettings settings,
+        ILogger<SchemaComposition> logger,
+        CancellationToken cancellationToken)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
         using var archive = File.Exists(fusionArchivePath)
             ? FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update)
             : FusionArchive.Create(fusionArchivePath);
 
         var compositionLog = new CompositionLog();
-        var environment = settings.EnvironmentName ?? "Aspire";
         var compositionSettings = CreateCompositionSettings(settings);
         var sourceSchemas = newSourceSchemas.ToDictionary(
             s => s.Name,
@@ -86,7 +122,7 @@ internal static class AspireCompositionHelper
             compositionLog,
             sourceSchemas,
             archive,
-            environment,
+            environmentName,
             compositionSettings,
             legacyArchive: null,
             cancellationToken);
@@ -116,6 +152,29 @@ internal static class AspireCompositionHelper
         logger.LogInformation("{Message}", output.ToString());
 
         return true;
+    }
+
+    internal static JsonDocument ResolveSourceSchemaSettings(
+        JsonDocument sourceSchemaSettings,
+        string environmentName)
+    {
+        ArgumentNullException.ThrowIfNull(sourceSchemaSettings);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        using var buffer = new PooledArrayWriter();
+        new SettingsComposer().Compose(
+            buffer,
+            [sourceSchemaSettings.RootElement],
+            environmentName);
+        using var gatewaySettings = JsonDocument.Parse(buffer.WrittenMemory);
+        var sourceSchemas = gatewaySettings.RootElement
+            .GetProperty("sourceSchemas");
+        var resolvedSettings = sourceSchemas
+            .EnumerateObject()
+            .Single()
+            .Value;
+
+        return JsonSerializer.SerializeToDocument(resolvedSettings);
     }
 
     internal static CompositionSettings CreateCompositionSettings(

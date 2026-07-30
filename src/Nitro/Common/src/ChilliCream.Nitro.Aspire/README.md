@@ -2,9 +2,13 @@
 
 Publishes Hot Chocolate Fusion configurations through the .NET Aspire deployment pipeline.
 
+See [Publishing Fusion with Aspire](FUSION_PUBLISHING.md) for the command contract, artifact
+layout, failure behavior, and CI/CD examples.
+
 ```csharp
 var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
 var releaseId = builder.AddParameter("releaseId");
+var releaseManifest = builder.AddParameter("fusionReleaseManifest");
 
 var nitro = builder.AddNitro("nitro")
     .WithCloudUrl("https://api.chillicream.com")
@@ -14,8 +18,9 @@ var nitro = builder.AddNitro("nitro")
 nitro.AddFusionDeployment("production")
     .ForEnvironment("Production")
     .ToStage("production")
+    .WithCompositionEnvironment("production")
     .WithConfigurationTag(releaseId)
-    .WithDefaultSourceVersionFromGitCommit()
+    .WithFusionReleaseManifest(releaseManifest)
     .WithApproval(waitForApproval: true)
     .WithForce(false)
     .WithTimeouts(
@@ -23,7 +28,11 @@ nitro.AddFusionDeployment("production")
         approval: TimeSpan.FromHours(2));
 ```
 
-`aspire publish` creates portable Fusion artifacts and has no Nitro side effects. Use
-`aspire do fusion-upload` to reconcile source versions and `aspire do fusion-publish` to run the
-full readiness, composition, and publication graph. A matching `aspire deploy` also requires
-`fusion-publish` to finish successfully.
+The Fusion `aspire publish` step creates environment-neutral source archives without resolving a
+Nitro credential or calling Nitro. Use `aspire do fusion-upload` in the build job to upload the
+immutable source versions and finalize a portable release manifest. Deployment jobs pass that exact
+manifest through `Parameters__fusionReleaseManifest` and run `aspire do fusion-publish`. Only the
+final `fusion-release.json` needs to cross runners; apply downloads exact verified sources from
+Nitro and rejects a different Fusion composition-tool version. A matching `aspire deploy` reaches
+the same download, verification, environment-specific composition, readiness, and publication
+graph.

@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -26,12 +27,252 @@ public sealed class FusionDeploymentWorkflowTests
                 ChilliCream.Nitro.Fusion.FusionIdentityCollisionException
                 ChilliCream.Nitro.Fusion.FusionIndeterminateStateException
                 ChilliCream.Nitro.Fusion.FusionPublicationRequest
+                ChilliCream.Nitro.Fusion.FusionSourceSchemaContent
+                ChilliCream.Nitro.Fusion.FusionSourceSchemaDownload
                 ChilliCream.Nitro.Fusion.FusionSourceSchemaUpload
                 ChilliCream.Nitro.Fusion.FusionSourceSchemaVersion
                 ChilliCream.Nitro.Fusion.FusionTarget
                 ChilliCream.Nitro.Fusion.IFusionDeploymentWorkflow
                 ChilliCream.Nitro.Fusion.NitroFusionServiceCollectionExtensions
                 """);
+    }
+
+    [Fact]
+    public async Task ComputeSha256Async_Should_ReturnSameDigest_When_ContentIsNormalized()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var firstPath = Path.Combine(directory, "first.fss");
+            var secondPath = Path.Combine(directory, "second.fss");
+            await CreateArchiveAsync(
+                firstPath,
+                "products",
+                "type Query { product: String }",
+                """{"name":"products","transports":{"http":{"url":"https://example.com"}}}""");
+            await CreateArchiveAsync(
+                secondPath,
+                "products",
+                """
+                type Query {
+                  product: String
+                }
+                """,
+                """{"transports":{"http":{"url":"https://example.com"}},"name":"products"}""");
+
+            var first = await FusionSourceSchemaContent.ComputeSha256Async(
+                firstPath,
+                "products",
+                TestContext.Current.CancellationToken);
+            var second = await FusionSourceSchemaContent.ComputeSha256Async(
+                secondPath,
+                "products",
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(first, second);
+            first.MatchInlineSnapshot(
+                """
+                3B7C4FBDBEC6ECB8C072794A67BD1CB8B4DCFB5153B6D284E662A0D3CB49EC08
+                """);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task DownloadSourceSchemaAsync_Should_ReturnExactArchive_When_ContentMatches()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var expectedPath = Path.Combine(directory, "expected.fss");
+            var remotePath = Path.Combine(directory, "remote.fss");
+            await CreateArchiveAsync(
+                expectedPath,
+                "products",
+                "type Query { product: String }",
+                """{"name":"products","transports":{"http":{"url":"https://example.com"}}}""");
+            await CreateArchiveAsync(
+                remotePath,
+                "products",
+                """
+                type Query {
+                  product: String
+                }
+                """,
+                """{"transports":{"http":{"url":"https://example.com"}},"name":"products"}""");
+            var remoteArchive = await File.ReadAllBytesAsync(
+                remotePath,
+                TestContext.Current.CancellationToken);
+            var expectedContentSha256 =
+                await FusionSourceSchemaContent.ComputeSha256Async(
+                    expectedPath,
+                    "products",
+                    TestContext.Current.CancellationToken);
+            var transport = new FakeTransport
+            {
+                RemoteArchive = remoteArchive
+            };
+            var workflow = CreateWorkflow(transport);
+
+            var result = await workflow.DownloadSourceSchemaAsync(
+                CreateTarget(),
+                new FusionSourceSchemaVersion("products", "20260730"),
+                expectedContentSha256,
+                TestContext.Current.CancellationToken);
+
+            Assert.NotNull(result);
+            Assert.Equal("products", result.Name);
+            Assert.Equal("20260730", result.Version);
+            Assert.Equal(expectedContentSha256, result.ContentSha256);
+            Assert.Equal(remoteArchive, result.Archive.ToArray());
+            Assert.Equal("products", transport.LastDownloadName);
+            Assert.Equal("20260730", transport.LastDownloadVersion);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task DownloadSourceSchemaAsync_Should_ReturnNull_When_VersionDoesNotExist()
+    {
+        var transport = new FakeTransport();
+        var workflow = CreateWorkflow(transport);
+
+        var result = await workflow.DownloadSourceSchemaAsync(
+            CreateTarget(),
+            new FusionSourceSchemaVersion("products", "missing"),
+            new string('0', 64),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(result);
+        Assert.Equal(1, transport.DownloadCount);
+        Assert.Equal("products", transport.LastDownloadName);
+        Assert.Equal("missing", transport.LastDownloadVersion);
+    }
+
+    [Fact]
+    public async Task DownloadSourceSchemaAsync_Should_ThrowCollision_When_DigestDiffers()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var remotePath = Path.Combine(directory, "remote.fss");
+            await CreateArchiveAsync(
+                remotePath,
+                "products",
+                "type Query { product: String }",
+                """{"name":"products"}""");
+            var transport = new FakeTransport
+            {
+                RemoteArchive = await File.ReadAllBytesAsync(
+                    remotePath,
+                    TestContext.Current.CancellationToken)
+            };
+            var workflow = CreateWorkflow(transport);
+
+            var exception = await Assert.ThrowsAsync<FusionIdentityCollisionException>(
+                () => workflow.DownloadSourceSchemaAsync(
+                    CreateTarget(),
+                    new FusionSourceSchemaVersion("products", "20260730"),
+                    new string('0', 64),
+                    TestContext.Current.CancellationToken));
+
+            Assert.Equal(
+                "Source schema 'products' version '20260730' was downloaded "
+                + "with a different canonical content SHA-256.",
+                exception.Message);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task DownloadSourceSchemaAsync_Should_RejectArchive_When_NameDiffers()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var expectedPath = Path.Combine(directory, "expected.fss");
+            var remotePath = Path.Combine(directory, "remote.fss");
+            await CreateArchiveAsync(
+                expectedPath,
+                "products",
+                "type Query { product: String }",
+                """{"name":"products"}""");
+            await CreateArchiveAsync(
+                remotePath,
+                "inventory",
+                "type Query { product: String }",
+                """{"name":"inventory"}""");
+            var expectedContentSha256 =
+                await FusionSourceSchemaContent.ComputeSha256Async(
+                    expectedPath,
+                    "products",
+                    TestContext.Current.CancellationToken);
+            var transport = new FakeTransport
+            {
+                RemoteArchive = await File.ReadAllBytesAsync(
+                    remotePath,
+                    TestContext.Current.CancellationToken)
+            };
+            var workflow = CreateWorkflow(transport);
+
+            var exception = await Assert.ThrowsAsync<FusionDeploymentException>(
+                () => workflow.DownloadSourceSchemaAsync(
+                    CreateTarget(),
+                    new FusionSourceSchemaVersion("products", "20260730"),
+                    expectedContentSha256,
+                    TestContext.Current.CancellationToken));
+
+            Assert.Equal(
+                "The source schema settings name must exactly match 'products'.",
+                exception.Message);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task DownloadSourceSchemaAsync_Should_RejectArchive_When_DecompressedEntryIsTooLarge()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var remotePath = Path.Combine(directory, "remote.fss");
+            await CreateOversizedSettingsArchiveAsync(remotePath);
+            var transport = new FakeTransport
+            {
+                RemoteArchive = await File.ReadAllBytesAsync(
+                    remotePath,
+                    TestContext.Current.CancellationToken)
+            };
+            var workflow = CreateWorkflow(transport);
+
+            var exception = await Assert.ThrowsAsync<FusionDeploymentException>(
+                () => workflow.DownloadSourceSchemaAsync(
+                    CreateTarget(),
+                    new FusionSourceSchemaVersion("products", "20260730"),
+                    new string('0', 64),
+                    TestContext.Current.CancellationToken));
+
+            Assert.Equal(
+                "The Fusion source schema archive is invalid.",
+                exception.Message);
+            Assert.IsType<InvalidOperationException>(exception.InnerException);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
     }
 
     [Fact]
@@ -338,6 +579,34 @@ public sealed class FusionDeploymentWorkflowTests
         await archive.CommitAsync(TestContext.Current.CancellationToken);
     }
 
+    private static async Task CreateOversizedSettingsArchiveAsync(string path)
+    {
+        await using var stream = File.Create(path);
+#if NET10_0_OR_GREATER
+        await using var archive = new ZipArchive(
+#else
+        using var archive = new ZipArchive(
+#endif
+            stream,
+            ZipArchiveMode.Create,
+            leaveOpen: true);
+        await using (var schema = archive.CreateEntry("schema.graphqls").Open())
+        {
+            await schema.WriteAsync(
+                Encoding.UTF8.GetBytes("type Query { product: String }"),
+                TestContext.Current.CancellationToken);
+        }
+
+        await using (var settings =
+            archive.CreateEntry("schema-settings.json").Open())
+        {
+            await settings.WriteAsync(
+                Encoding.UTF8.GetBytes(
+                    $$"""{"name":"products","padding":"{{new string('a', 512_000)}}"}"""),
+                TestContext.Current.CancellationToken);
+        }
+    }
+
     private static string CreateTemporaryDirectory()
     {
         var path = Path.Combine(
@@ -371,6 +640,10 @@ public sealed class FusionDeploymentWorkflowTests
 
         public int UploadCount { get; private set; }
 
+        public string? LastDownloadName { get; private set; }
+
+        public string? LastDownloadVersion { get; private set; }
+
         public List<string> Calls { get; } = [];
 
         public Task<byte[]?> DownloadSourceSchemaAsync(
@@ -379,6 +652,8 @@ public sealed class FusionDeploymentWorkflowTests
             CancellationToken cancellationToken)
         {
             DownloadCount++;
+            LastDownloadName = name;
+            LastDownloadVersion = version;
             return Task.FromResult(
                 DownloadCount > 1 && RemoteArchiveAfterUpload is not null
                     ? RemoteArchiveAfterUpload

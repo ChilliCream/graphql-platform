@@ -6,6 +6,15 @@ namespace ChilliCream.Nitro.Fusion;
 public interface IFusionDeploymentWorkflow
 {
     /// <summary>
+    /// Downloads an exact immutable source schema version and verifies its canonical content.
+    /// </summary>
+    Task<FusionSourceSchemaDownload?> DownloadSourceSchemaAsync(
+        FusionTarget target,
+        FusionSourceSchemaVersion source,
+        string expectedContentSha256,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Ensures that an immutable source schema version exists with the expected content.
     /// </summary>
     Task ReconcileSourceSchemaAsync(

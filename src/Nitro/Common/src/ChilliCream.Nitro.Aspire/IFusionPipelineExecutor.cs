@@ -12,6 +12,10 @@ internal interface IFusionPipelineExecutor
 
     Task UploadAsync(PipelineStepContext context);
 
+    Task PrepareReleaseAsync(PipelineStepContext context);
+
+    Task ComposeReleaseAsync(PipelineStepContext context);
+
     Task PublishAsync(PipelineStepContext context);
 }
 

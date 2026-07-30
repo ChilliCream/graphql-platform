@@ -1,3 +1,6 @@
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.SourceSchema.Packaging;
@@ -10,6 +13,9 @@ internal sealed record FusionArchiveContent(
     string? SchemaExtensions,
     string Settings)
 {
+    private static ReadOnlySpan<byte> DigestDomain
+        => "ChilliCream.Nitro.Fusion.SourceSchemaContent.v1"u8;
+
     public static async Task<FusionArchiveContent> ReadAsync(
         string archivePath,
         string expectedName,
@@ -63,6 +69,7 @@ internal sealed record FusionArchiveContent(
         }
         catch (Exception exception) when (
             exception is InvalidDataException
+                or InvalidOperationException
                 or JsonException
                 or SyntaxException)
         {
@@ -70,6 +77,16 @@ internal sealed record FusionArchiveContent(
                 "The Fusion source schema archive is invalid.",
                 exception);
         }
+    }
+
+    public string ComputeSha256(CancellationToken cancellationToken)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        hash.AppendData(DigestDomain);
+        Append(hash, Schema, cancellationToken);
+        Append(hash, SchemaExtensions, cancellationToken);
+        Append(hash, Settings, cancellationToken);
+        return Convert.ToHexString(hash.GetHashAndReset());
     }
 
     private static string NormalizeGraphQL(ReadOnlyMemory<byte> source)
@@ -135,6 +152,50 @@ internal sealed record FusionArchiveContent(
             default:
                 throw new JsonException(
                     $"Unsupported JSON token kind '{value.ValueKind}'.");
+        }
+    }
+
+    private static void Append(
+        IncrementalHash hash,
+        string? value,
+        CancellationToken cancellationToken)
+    {
+        Span<byte> header = stackalloc byte[9];
+        header[0] = value is null ? (byte)0 : (byte)1;
+        BinaryPrimitives.WriteInt64BigEndian(
+            header[1..],
+            value is null ? 0 : Encoding.UTF8.GetByteCount(value));
+        hash.AppendData(header);
+
+        if (value is null)
+        {
+            return;
+        }
+
+        var buffer = ArrayPool<byte>.Shared.Rent(4096);
+        try
+        {
+            var encoder = Encoding.UTF8.GetEncoder();
+            var remaining = value.AsSpan();
+            var completed = false;
+
+            while (!completed)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                encoder.Convert(
+                    remaining,
+                    buffer,
+                    flush: true,
+                    out var charsUsed,
+                    out var bytesUsed,
+                    out completed);
+                hash.AppendData(buffer.AsSpan(0, bytesUsed));
+                remaining = remaining[charsUsed..];
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 }

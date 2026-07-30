@@ -5,7 +5,7 @@
   <PropertyGroup>
     <AssemblyName>ChilliCream.Nitro.Fusion.Tests</AssemblyName>
     <RootNamespace>ChilliCream.Nitro.Fusion</RootNamespace>
-    <TargetFrameworks>net10.0</TargetFrameworks>
+    <TargetFrameworks>net11.0;net10.0;net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

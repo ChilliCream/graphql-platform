@@ -16,9 +16,13 @@ public sealed class FusionDeploymentResource(
 
     internal string? StageName { get; set; }
 
+    internal string? CompositionEnvironmentName { get; set; }
+
     internal string? ConfigurationTag { get; set; }
 
     internal ParameterResource? ConfigurationTagParameter { get; set; }
+
+    internal ParameterResource? FusionReleaseManifestParameter { get; set; }
 
     internal bool UseGitCommitAsSourceVersion { get; set; }
 

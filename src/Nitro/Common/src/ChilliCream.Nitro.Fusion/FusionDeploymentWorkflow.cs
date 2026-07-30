@@ -7,6 +7,53 @@ internal sealed class FusionDeploymentWorkflow(
     IFusionDeploymentTransportFactory transportFactory)
     : IFusionDeploymentWorkflow
 {
+    public async Task<FusionSourceSchemaDownload?> DownloadSourceSchemaAsync(
+        FusionTarget target,
+        FusionSourceSchemaVersion source,
+        string expectedContentSha256,
+        CancellationToken cancellationToken)
+    {
+        ValidateTarget(target);
+        ValidateSourceVersion(source);
+        ValidateContentSha256(expectedContentSha256);
+
+        await using var transport = await transportFactory.OpenAsync(
+            target,
+            cancellationToken);
+        var archive = await transport.DownloadSourceSchemaAsync(
+            source.Name,
+            source.Version,
+            cancellationToken);
+
+        if (archive is null)
+        {
+            return null;
+        }
+
+        await using var stream = new MemoryStream(archive, writable: false);
+        var content = await FusionArchiveContent.ReadAsync(
+            stream,
+            source.Name,
+            cancellationToken);
+        var contentSha256 = content.ComputeSha256(cancellationToken);
+
+        if (!string.Equals(
+            contentSha256,
+            expectedContentSha256,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            throw new FusionIdentityCollisionException(
+                $"Source schema '{source.Name}' version '{source.Version}' "
+                + "was downloaded with a different canonical content SHA-256.");
+        }
+
+        return new FusionSourceSchemaDownload(
+            source.Name,
+            source.Version,
+            archive,
+            contentSha256);
+    }
+
     public async Task ReconcileSourceSchemaAsync(
         FusionTarget target,
         FusionSourceSchemaUpload source,
@@ -19,6 +66,7 @@ internal sealed class FusionDeploymentWorkflow(
             source.ArchivePath,
             source.Name,
             cancellationToken);
+        var localContentSha256 = localContent.ComputeSha256(cancellationToken);
         await VerifySha256Async(source, cancellationToken);
 
         await using var transport = await transportFactory.OpenAsync(
@@ -33,7 +81,7 @@ internal sealed class FusionDeploymentWorkflow(
         {
             await EnsureContentMatchesAsync(
                 source,
-                localContent,
+                localContentSha256,
                 remoteArchive,
                 cancellationToken);
             return;
@@ -57,7 +105,7 @@ internal sealed class FusionDeploymentWorkflow(
             await ReconcileAfterUncertainUploadAsync(
                 transport,
                 source,
-                localContent,
+                localContentSha256,
                 exception,
                 cancellationToken);
             return;
@@ -84,7 +132,7 @@ internal sealed class FusionDeploymentWorkflow(
 
             await EnsureContentMatchesAsync(
                 source,
-                localContent,
+                localContentSha256,
                 racedArchive,
                 cancellationToken);
             return;
@@ -218,7 +266,7 @@ internal sealed class FusionDeploymentWorkflow(
     private static async Task ReconcileAfterUncertainUploadAsync(
         IFusionDeploymentTransport transport,
         FusionSourceSchemaUpload source,
-        FusionArchiveContent localContent,
+        string localContentSha256,
         Exception uploadException,
         CancellationToken cancellationToken)
     {
@@ -250,14 +298,14 @@ internal sealed class FusionDeploymentWorkflow(
 
         await EnsureContentMatchesAsync(
             source,
-            localContent,
+            localContentSha256,
             remoteArchive,
             cancellationToken);
     }
 
     private static async Task EnsureContentMatchesAsync(
         FusionSourceSchemaUpload source,
-        FusionArchiveContent localContent,
+        string localContentSha256,
         byte[] remoteArchive,
         CancellationToken cancellationToken)
     {
@@ -267,7 +315,10 @@ internal sealed class FusionDeploymentWorkflow(
             source.Name,
             cancellationToken);
 
-        if (localContent != remoteContent)
+        if (!string.Equals(
+            localContentSha256,
+            remoteContent.ComputeSha256(cancellationToken),
+            StringComparison.Ordinal))
         {
             throw new FusionIdentityCollisionException(
                 $"Source schema '{source.Name}' version '{source.Version}' "
@@ -280,13 +331,7 @@ internal sealed class FusionDeploymentWorkflow(
         FusionSourceSchemaUpload source,
         CancellationToken cancellationToken)
     {
-        if (source.Sha256.Length is not 64
-            || !source.Sha256.All(Uri.IsHexDigit))
-        {
-            throw new FusionDeploymentException(
-                "The source schema SHA-256 must contain exactly 64 "
-                + "hexadecimal characters.");
-        }
+        ValidateSha256(source.Sha256, "The source schema SHA-256");
 
         await using var stream = File.OpenRead(source.ArchivePath);
         var actual = Convert.ToHexString(
@@ -516,6 +561,32 @@ internal sealed class FusionDeploymentWorkflow(
             throw new FileNotFoundException(
                 "The Fusion source schema archive does not exist.",
                 source.ArchivePath);
+        }
+    }
+
+    private static void ValidateSourceVersion(FusionSourceSchemaVersion source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrWhiteSpace(source.Name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(source.Version);
+    }
+
+    private static void ValidateContentSha256(string contentSha256)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentSha256);
+        ValidateSha256(
+            contentSha256,
+            "The source schema canonical content SHA-256");
+    }
+
+    private static void ValidateSha256(string sha256, string description)
+    {
+        if (sha256.Length is not 64
+            || !sha256.All(Uri.IsHexDigit))
+        {
+            throw new FusionDeploymentException(
+                $"{description} must contain exactly 64 hexadecimal "
+                + "characters.");
         }
     }
 
