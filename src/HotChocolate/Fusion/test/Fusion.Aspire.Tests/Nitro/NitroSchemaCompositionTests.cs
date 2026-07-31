@@ -787,7 +787,6 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             validator
                 ?? new NitroSchemaValidator(
                     GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
-                    _timeProvider,
                     new RecordingLogger<NitroSchemaValidator>()),
             _directory.GetPath("run"));
 

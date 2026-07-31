@@ -11,10 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference
-      Include="../../../../src/Nitro/Common/src/ChilliCream.Nitro.Aspire/ChilliCream.Nitro.Aspire.csproj"
-      IsAspireProjectResource="false"
-    />
-    <ProjectReference
       Include="../../../../src/HotChocolate/Fusion/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj"
       IsAspireProjectResource="false"
     />

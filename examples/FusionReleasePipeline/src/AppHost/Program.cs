@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.Aspire;
 using HotChocolate.Fusion.Aspire;
 
 const string nitroCloudUrl = "https://nitro.example.invalid";
@@ -45,10 +44,10 @@ var tag = builder.AddParameter("tag");
 var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
 
 var nitro = builder
-    .AddNitroTarget("nitro")
-    .WithCloudUrl(nitroCloudUrl)
-    .WithApiId(nitroApiId)
-    .WithApiKey(nitroApiKey);
+    .AddNitroPublishTarget("nitro")
+    .WithNitroCloudUrl(nitroCloudUrl)
+    .WithNitroApiId(nitroApiId)
+    .WithNitroApiKey(nitroApiKey);
 
 nitro
     .AddFusionDeployment("fusion-development")

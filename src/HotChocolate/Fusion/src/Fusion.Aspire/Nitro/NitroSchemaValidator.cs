@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -8,17 +7,11 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 
 internal sealed class NitroSchemaValidator(
     GraphQLHttpClient client,
-    TimeProvider timeProvider,
     ILogger<NitroSchemaValidator> logger)
     : INitroSchemaValidator
 {
-    private const int MaxAttempts = 3;
-    private const int MaxResponseBytes = 2 * 1024 * 1024;
     private const int MaxParsedFindings = 10_000;
-    private static readonly TimeSpan s_requestTimeout = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan s_overallTimeout = TimeSpan.FromMinutes(2);
-    private static readonly TimeSpan s_initialPollDelay = TimeSpan.FromMilliseconds(250);
-    private static readonly TimeSpan s_maxPollDelay = TimeSpan.FromSeconds(2);
 
     public async Task<NitroSchemaValidationReport> ValidateAsync(
         NitroConnection connection,
@@ -66,51 +59,13 @@ internal sealed class NitroSchemaValidator(
                     schemaHash);
             }
 
-            var pollDelay = s_initialPollDelay;
+            var watch = await NitroGraphQL.SubscribeAsync(
+                client,
+                CreateWatchRequest(connection, requestId),
+                result => ReadValidationResult(result, schemaHash, requestId),
+                overall.Token);
 
-            while (true)
-            {
-                await Task.Delay(pollDelay, timeProvider, overall.Token);
-
-                var poll = await SendPollAsync(connection, requestId, overall.Token);
-                if (poll.Failure is not null)
-                {
-                    return Unavailable(poll.Failure, schemaHash, requestId);
-                }
-
-                if (poll.Result.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
-                {
-                    return Unavailable(
-                        "Nitro returned no schema validation result.",
-                        schemaHash,
-                        requestId);
-                }
-
-                var typeName = GetString(poll.Result, "__typename");
-                switch (typeName)
-                {
-                    case "OperationInProgress":
-                    case "ValidationInProgress":
-                        pollDelay = TimeSpan.FromMilliseconds(
-                            Math.Min(pollDelay.TotalMilliseconds * 2, s_maxPollDelay.TotalMilliseconds));
-                        continue;
-
-                    case "SchemaVersionValidationSuccess":
-                        return NitroSchemaValidationReport.Passed(
-                            schemaHash,
-                            requestId,
-                            timeProvider.GetUtcNow());
-
-                    case "SchemaVersionValidationFailed":
-                        return ParseViolations(poll.Result, schemaHash, requestId);
-
-                    default:
-                        return Unavailable(
-                            $"Nitro returned the unknown validation result '{typeName ?? "null"}'.",
-                            schemaHash,
-                            requestId);
-                }
-            }
+            return watch.Value ?? Unavailable(watch.Failure!, schemaHash, requestId);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -153,7 +108,8 @@ internal sealed class NitroSchemaValidator(
             }
         };
 
-        var result = await SendWithRetryAsync(
+        var result = await NitroGraphQL.SendWithRetryAsync(
+            client,
             CreateRequest(
                 connection,
                 NitroOperationDocuments.ValidateSchemaOperationName,
@@ -165,6 +121,7 @@ internal sealed class NitroSchemaValidator(
                 variables,
                 enableFileUploads: true),
             retryTransientFailures: false,
+            NitroGraphQL.DefaultRequestTimeout,
             cancellationToken);
 
         if (result.Failure is not null)
@@ -185,154 +142,57 @@ internal sealed class NitroSchemaValidator(
             : (null, error);
     }
 
-    private async Task<(JsonElement Result, string? Failure)> SendPollAsync(
+    private static GraphQLHttpRequest CreateWatchRequest(
         NitroConnection connection,
-        string requestId,
-        CancellationToken cancellationToken)
-    {
-        var variables = new Dictionary<string, object?>
-        {
-            ["input"] = new Dictionary<string, object?> { ["id"] = requestId }
-        };
-
-        var result = await SendWithRetryAsync(
-            CreateRequest(
-                connection,
-                NitroOperationDocuments.PollSchemaValidationOperationName,
+        string requestId)
+        => CreateRequest(
+            connection,
+            NitroOperationDocuments.WatchSchemaValidationOperationName,
 #if NITRO_PERSISTED_OPERATIONS
-                NitroOperationDocuments.GetPollSchemaValidationOperationId(),
+            NitroOperationDocuments.GetWatchSchemaValidationOperationId(),
 #else
-                NitroOperationDocuments.GetPollSchemaValidationDocument(),
+            NitroOperationDocuments.GetWatchSchemaValidationDocument(),
 #endif
-                variables,
-                enableFileUploads: false),
-            retryTransientFailures: true,
-            cancellationToken);
+            new Dictionary<string, object?> { ["requestId"] = requestId },
+            enableFileUploads: false);
 
-        if (result.Failure is not null)
-        {
-            return (default, result.Failure);
-        }
-
+    private static NitroSchemaValidationReport? ReadValidationResult(
+        OperationResult result,
+        string schemaHash,
+        string requestId)
+    {
         if (result.Data.ValueKind is not JsonValueKind.Object
-            || !result.Data.TryGetProperty("pollSchemaVersionValidationRequest", out var payload)
+            || !result.Data.TryGetProperty("onSchemaVersionValidationUpdate", out var payload)
             || payload.ValueKind is not JsonValueKind.Object)
         {
-            return (default, "Nitro returned a malformed validation polling response.");
+            return Unavailable(
+                "Nitro returned no schema validation result.",
+                schemaHash,
+                requestId);
         }
 
-        var error = ReadFirstError(payload);
-        if (error is not null)
+        var typeName = GetString(payload, "__typename");
+        switch (typeName)
         {
-            return (default, error);
+            case "OperationInProgress":
+            case "ValidationInProgress":
+                return null;
+
+            case "SchemaVersionValidationSuccess":
+                return NitroSchemaValidationReport.Passed(
+                    schemaHash,
+                    requestId,
+                    DateTimeOffset.UtcNow);
+
+            case "SchemaVersionValidationFailed":
+                return ParseViolations(payload, schemaHash, requestId);
+
+            default:
+                return Unavailable(
+                    $"Nitro returned the unknown validation result '{typeName ?? "null"}'.",
+                    schemaHash,
+                    requestId);
         }
-
-        return payload.TryGetProperty("result", out var validationResult)
-            ? (validationResult.Clone(), null)
-            : (default, "Nitro returned no schema validation result.");
-    }
-
-    private async Task<NitroGraphQLResult> SendWithRetryAsync(
-        GraphQLHttpRequest request,
-        bool retryTransientFailures,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 1; ; attempt++)
-        {
-            try
-            {
-                using var requestTimeout =
-                    CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                requestTimeout.CancelAfter(s_requestTimeout);
-
-                using var response = await client.SendAsync(request, requestTimeout.Token);
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (retryTransientFailures
-                        && IsTransient(response.StatusCode)
-                        && attempt < MaxAttempts)
-                    {
-                        await DelayRetryAsync(attempt, cancellationToken);
-                        continue;
-                    }
-
-                    return NitroGraphQLResult.Failed(
-                        $"Nitro returned HTTP {(int)response.StatusCode} ({response.StatusCode}).");
-                }
-
-                if (response.ContentHeaders.ContentLength is > MaxResponseBytes)
-                {
-                    return NitroGraphQLResult.Failed(
-                        "Nitro returned a schema validation response that exceeded the size limit.");
-                }
-
-                using var document = await ReadBoundedJsonAsync(
-                    response.HttpResponseMessage,
-                    requestTimeout.Token);
-                var root = document.RootElement;
-                if (root.TryGetProperty("errors", out var errors)
-                    && errors.ValueKind is JsonValueKind.Array
-                    && errors.GetArrayLength() > 0)
-                {
-                    return NitroGraphQLResult.Failed("Nitro returned GraphQL errors.");
-                }
-
-                if (!root.TryGetProperty("data", out var data))
-                {
-                    return NitroGraphQLResult.Failed("Nitro returned a malformed GraphQL response.");
-                }
-
-                return NitroGraphQLResult.Success(data.Clone());
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (OperationCanceledException) when (
-                retryTransientFailures && attempt < MaxAttempts)
-            {
-                await DelayRetryAsync(attempt, cancellationToken);
-            }
-            catch (HttpRequestException) when (
-                retryTransientFailures && attempt < MaxAttempts)
-            {
-                await DelayRetryAsync(attempt, cancellationToken);
-            }
-            catch (IOException) when (
-                retryTransientFailures && attempt < MaxAttempts)
-            {
-                await DelayRetryAsync(attempt, cancellationToken);
-            }
-        }
-    }
-
-    private static async Task<JsonDocument> ReadBoundedJsonAsync(
-        HttpResponseMessage response,
-        CancellationToken cancellationToken)
-    {
-        await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
-        await using var destination = new MemoryStream();
-        var buffer = new byte[16 * 1024];
-
-        while (true)
-        {
-            var read = await source.ReadAsync(buffer, cancellationToken);
-            if (read == 0)
-            {
-                break;
-            }
-
-            if (destination.Length + read > MaxResponseBytes)
-            {
-                throw new NitroResponseTooLargeException(
-                    "Nitro returned a schema validation response that exceeded the size limit.");
-            }
-
-            destination.Write(buffer, 0, read);
-        }
-
-        destination.Position = 0;
-        return await JsonDocument.ParseAsync(destination, default, cancellationToken);
     }
 
     private static GraphQLHttpRequest CreateRequest(
@@ -361,7 +221,7 @@ internal sealed class NitroSchemaValidator(
         };
     }
 
-    private NitroSchemaValidationReport ParseViolations(
+    private static NitroSchemaValidationReport ParseViolations(
         JsonElement result,
         string schemaHash,
         string requestId)
@@ -378,7 +238,7 @@ internal sealed class NitroSchemaValidator(
             return NitroSchemaValidationReport.Unavailable(
                 schemaHash,
                 "Nitro returned a malformed validation failure.",
-                timeProvider.GetUtcNow(),
+                DateTimeOffset.UtcNow,
                 requestId);
         }
 
@@ -389,7 +249,7 @@ internal sealed class NitroSchemaValidator(
                 return NitroSchemaValidationReport.Unavailable(
                     schemaHash,
                     "Nitro returned too many schema validation findings.",
-                    timeProvider.GetUtcNow(),
+                    DateTimeOffset.UtcNow,
                     requestId);
             }
 
@@ -448,7 +308,7 @@ internal sealed class NitroSchemaValidator(
                 return NitroSchemaValidationReport.Unavailable(
                     schemaHash,
                     "Nitro returned too many schema validation findings.",
-                    timeProvider.GetUtcNow(),
+                    DateTimeOffset.UtcNow,
                     requestId);
             }
         }
@@ -461,7 +321,7 @@ internal sealed class NitroSchemaValidator(
             return NitroSchemaValidationReport.Unavailable(
                 schemaHash,
                 unknownFailure,
-                timeProvider.GetUtcNow(),
+                DateTimeOffset.UtcNow,
                 requestId);
         }
 
@@ -470,7 +330,7 @@ internal sealed class NitroSchemaValidator(
             return NitroSchemaValidationReport.Unavailable(
                 schemaHash,
                 "Nitro returned a validation failure without findings.",
-                timeProvider.GetUtcNow(),
+                DateTimeOffset.UtcNow,
                 requestId);
         }
 
@@ -481,7 +341,7 @@ internal sealed class NitroSchemaValidator(
             clients,
             findings,
             null,
-            timeProvider.GetUtcNow())
+            DateTimeOffset.UtcNow)
         {
             HasMoreClientErrors = hasMoreClientErrors
         };
@@ -808,45 +668,13 @@ internal sealed class NitroSchemaValidator(
                 ? property.GetBoolean()
                 : null;
 
-    private async Task DelayRetryAsync(int attempt, CancellationToken cancellationToken)
-        => await Task.Delay(
-            TimeSpan.FromMilliseconds(250 * (1 << (attempt - 1))),
-            timeProvider,
-            cancellationToken);
-
-    private NitroSchemaValidationReport Unavailable(
+    private static NitroSchemaValidationReport Unavailable(
         string reason,
         string schemaHash,
         string? requestId = null)
         => NitroSchemaValidationReport.Unavailable(
             schemaHash,
             reason,
-            timeProvider.GetUtcNow(),
+            DateTimeOffset.UtcNow,
             requestId);
-
-    private static bool IsTransient(HttpStatusCode statusCode)
-        => statusCode is HttpStatusCode.RequestTimeout
-            or HttpStatusCode.TooManyRequests
-            || statusCode >= HttpStatusCode.InternalServerError;
-
-    private sealed class NitroGraphQLResult
-    {
-        private NitroGraphQLResult(JsonElement data, string? failure)
-        {
-            Data = data;
-            Failure = failure;
-        }
-
-        public JsonElement Data { get; }
-
-        public string? Failure { get; }
-
-        public static NitroGraphQLResult Success(JsonElement data)
-            => new(data, null);
-
-        public static NitroGraphQLResult Failed(string failure)
-            => new(default, failure);
-    }
-
-    private sealed class NitroResponseTooLargeException(string message) : Exception(message);
 }

@@ -1,8 +1,0 @@
-mutation ValidateFusionDeployment($input: ValidateFusionConfigurationCompositionInput!) {
-  validateFusionConfigurationComposition(input: $input) {
-    errors {
-      __typename
-      ...FusionError
-    }
-  }
-}

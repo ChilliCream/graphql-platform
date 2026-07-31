@@ -1,8 +1,0 @@
-mutation ClaimFusionDeployment($input: StartFusionConfigurationCompositionInput!) {
-  startFusionConfigurationComposition(input: $input) {
-    errors {
-      __typename
-      ...FusionError
-    }
-  }
-}

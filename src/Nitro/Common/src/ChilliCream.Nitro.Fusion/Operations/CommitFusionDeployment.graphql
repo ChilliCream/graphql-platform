@@ -1,8 +1,0 @@
-mutation CommitFusionDeployment($input: CommitFusionConfigurationPublishInput!) {
-  commitFusionConfigurationPublish(input: $input) {
-    errors {
-      __typename
-      ...FusionError
-    }
-  }
-}

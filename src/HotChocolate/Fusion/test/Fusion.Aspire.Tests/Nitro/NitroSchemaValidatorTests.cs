@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using HotChocolate.Transport.Http;
-using Microsoft.Extensions.Time.Testing;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
@@ -18,9 +17,10 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(PollResult("""{"__typename":"OperationInProgress","state":"PROCESSING"}""")),
-            Json(PollResult("""{"__typename":"ValidationInProgress","state":"PROCESSING"}""")),
-            Json(PollResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
+            Sse(
+                WatchResult("""{"__typename":"OperationInProgress","state":"PROCESSING"}"""),
+                WatchResult("""{"__typename":"ValidationInProgress","state":"PROCESSING"}"""),
+                WatchResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
 
         // act
         var report = await session.ValidateAsync();
@@ -36,8 +36,8 @@ public sealed class NitroSchemaValidatorTests
             """
             Status: Passed
             Request ID: request-1
-            Calls: 4
-            Operations: ValidateNitroSchema, PollNitroSchemaValidation, PollNitroSchemaValidation, PollNitroSchemaValidation
+            Calls: 2
+            Operations: ValidateNitroSchema, WatchNitroSchemaValidation
             Start wire: multipart=True, apiId=True, stage=True, schema=True, apiKey=nitro-api-key
             """);
     }
@@ -51,7 +51,7 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(PollFailure(error)));
+            Sse(WatchFailure(error)));
 
         // act
         var report = await session.ValidateAsync();
@@ -80,23 +80,83 @@ public sealed class NitroSchemaValidatorTests
     }
 
     [Theory]
-    [InlineData("UnauthorizedOperation", "The credential is invalid.")]
-    [InlineData("SchemaVersionRequestNotFoundError", "The validation request does not exist.")]
-    public async Task ValidateAsync_Should_ReturnUnavailable_When_PollReturnsAnError(
-        string typeName,
+    [InlineData("The credential is invalid.")]
+    [InlineData("The validation request does not exist.")]
+    public async Task ValidateAsync_Should_ReturnUnavailable_When_SubscriptionReturnsAnError(
         string message)
     {
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(PollFailurePayload(typeName, message)));
+            Sse(WatchError(message)));
 
         // act
         var report = await session.ValidateAsync();
 
         // assert
         Assert.Equal(
-            $"Unavailable|request=request-1|reason={typeName}: {message}|calls=2",
+            $"Unavailable|request=request-1|reason=Nitro returned GraphQL errors: {message}"
+                + "|calls=2",
+            DescribeUnavailable(report, session.Handler.Requests.Count));
+    }
+
+    [Fact]
+    public async Task ValidateAsync_Should_ReturnUnavailable_When_SubscriptionEndsWithoutAResult()
+    {
+        // arrange
+        using var session = new ValidatorSession(
+            Json(StartSuccess),
+            Sse(WatchResult("""{"__typename":"ValidationInProgress","state":"PROCESSING"}""")));
+
+        // act
+        var report = await session.ValidateAsync();
+
+        // assert
+        Assert.Equal(
+            "Unavailable|request=request-1|reason=Nitro ended the subscription without a result."
+                + "|calls=2",
+            DescribeUnavailable(report, session.Handler.Requests.Count));
+    }
+
+    [Fact]
+    public async Task ValidateAsync_Should_ReturnUnavailable_When_SubscriptionIsNotAnEventStream()
+    {
+        // arrange
+        // A server that ignores the pinned Accept header answers with a single JSON result.
+        using var session = new ValidatorSession(
+            Json(StartSuccess),
+            Json(WatchResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
+
+        // act
+        var report = await session.ValidateAsync();
+
+        // assert
+        Assert.Equal(
+            "Unavailable|request=request-1|reason=Nitro answered the subscription with the "
+                + "content type 'application/json' instead of text/event-stream.|calls=2",
+            DescribeUnavailable(report, session.Handler.Requests.Count));
+    }
+
+    [Fact]
+    public async Task ValidateAsync_Should_ReturnUnavailable_When_SubscriptionExceedsTheEventLimit()
+    {
+        // arrange
+        var events = Enumerable
+            .Repeat(
+                WatchResult("""{"__typename":"ValidationInProgress","state":"PROCESSING"}"""),
+                1001)
+            .ToArray();
+        using var session = new ValidatorSession(
+            Json(StartSuccess),
+            Sse(events));
+
+        // act
+        var report = await session.ValidateAsync();
+
+        // assert
+        Assert.Equal(
+            "Unavailable|request=request-1|reason=Nitro sent too many subscription events."
+                + "|calls=2",
             DescribeUnavailable(report, session.Handler.Requests.Count));
     }
 
@@ -106,8 +166,8 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(
-                PollFailure(
+            Sse(
+                WatchFailure(
                     """
                     {
                       "__typename": "PersistedQueryValidationError",
@@ -199,7 +259,7 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(response));
+            Sse(response));
 
         // act
         var report = await session.ValidateAsync();
@@ -216,7 +276,7 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json("{"));
+            Sse("{"));
 
         // act
         var report = await session.ValidateAsync();
@@ -234,7 +294,7 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(PollResult("""{"__typename":"FutureValidationResult","state":"SUCCESS"}""")));
+            Sse(WatchResult("""{"__typename":"FutureValidationResult","state":"SUCCESS"}""")));
 
         // act
         var report = await session.ValidateAsync();
@@ -252,8 +312,8 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(
-                PollFailure(
+            Sse(
+                WatchFailure(
                     """
                     {
                       "__typename": "FutureValidationError",
@@ -277,8 +337,8 @@ public sealed class NitroSchemaValidatorTests
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
-            Json(
-                PollFailure(
+            Sse(
+                WatchFailure(
                     """
                     {
                       "__typename": "SchemaVersionSyntaxError",
@@ -312,7 +372,6 @@ public sealed class NitroSchemaValidatorTests
         var oversizedContent = ChunkedContent(new byte[2 * 1024 * 1024 + 1]);
         var contentLength = oversizedContent.Headers.ContentLength;
         using var session = new ValidatorSession(
-            Json(StartSuccess),
             Returns(
                 new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -333,7 +392,7 @@ public sealed class NitroSchemaValidatorTests
             Status: Unavailable
             Reason: Nitro schema validation was unavailable: Nitro returned a schema validation response that exceeded the size limit.
             Content-Length: <none>
-            Calls: 2
+            Calls: 1
             """);
     }
 
@@ -355,14 +414,14 @@ public sealed class NitroSchemaValidatorTests
     }
 
     [Fact]
-    public async Task ValidateAsync_Should_RetryTransientFailures_When_Polling()
+    public async Task ValidateAsync_Should_RetryTransientFailures_When_Subscribing()
     {
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
             Status(HttpStatusCode.ServiceUnavailable),
             Status(HttpStatusCode.TooManyRequests),
-            Json(PollResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
+            Sse(WatchResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
 
         // act
         var report = await session.ValidateAsync();
@@ -370,8 +429,8 @@ public sealed class NitroSchemaValidatorTests
         // assert
         Assert.Equal(
             "Passed|request=request-1|calls=4|operations=ValidateNitroSchema,"
-                + "PollNitroSchemaValidation,PollNitroSchemaValidation,"
-                + "PollNitroSchemaValidation",
+                + "WatchNitroSchemaValidation,WatchNitroSchemaValidation,"
+                + "WatchNitroSchemaValidation",
             $"{report.Status}|request={report.RequestId}|calls={session.Handler.Requests.Count}"
                 + $"|operations={string.Join(',', session.Handler.Requests.Select(r => r.OperationName))}");
     }
@@ -380,14 +439,14 @@ public sealed class NitroSchemaValidatorTests
     [InlineData(HttpStatusCode.BadRequest)]
     [InlineData(HttpStatusCode.Unauthorized)]
     [InlineData(HttpStatusCode.Forbidden)]
-    public async Task ValidateAsync_Should_NotRetry_When_PollReturnsNonTransientStatus(
+    public async Task ValidateAsync_Should_NotRetry_When_SubscribeReturnsNonTransientStatus(
         HttpStatusCode statusCode)
     {
         // arrange
         using var session = new ValidatorSession(
             Json(StartSuccess),
             Status(statusCode),
-            Json(PollResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
+            Sse(WatchResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
 
         // act
         var report = await session.ValidateAsync();
@@ -610,27 +669,18 @@ public sealed class NitroSchemaValidatorTests
         {
             {
                 """{"data":{}}""",
-                "Nitro returned a malformed validation polling response."
-            },
-            {
-                """{"errors":[{"message":"GraphQL failed."}]}""",
-                "Nitro returned GraphQL errors."
-            },
-            {
-                """
-                {
-                  "data": {
-                    "pollSchemaVersionValidationRequest": {
-                      "errors": [],
-                      "result": null
-                    }
-                  }
-                }
-                """,
                 "Nitro returned no schema validation result."
             },
             {
-                PollFailure(""),
+                """{"errors":[{"message":"GraphQL failed."}]}""",
+                "Nitro returned GraphQL errors: GraphQL failed."
+            },
+            {
+                """{"data":{"onSchemaVersionValidationUpdate":null}}""",
+                "Nitro returned no schema validation result."
+            },
+            {
+                WatchFailure(""),
                 "Nitro returned a validation failure without findings."
             }
         };
@@ -699,47 +749,24 @@ public sealed class NitroSchemaValidatorTests
         }
         """;
 
-    private static string PollFailurePayload(string typeName, string message)
-        => $$"""
-        {
-          "data": {
-            "pollSchemaVersionValidationRequest": {
-              "errors": [
-                {
-                  "__typename": "{{typeName}}",
-                  "message": "{{message}}"
-                }
-              ],
-              "result": null
-            }
-          }
-        }
-        """;
+    private static string WatchError(string message)
+        => $$"""{"errors":[{"message":"{{message}}"}]}""";
 
-    private static string PollFailure(params string[] errors)
-        => $$"""
-        {
-          "data": {
-            "pollSchemaVersionValidationRequest": {
-              "errors": [],
-              "result": {
-                "__typename": "SchemaVersionValidationFailed",
-                "state": "FAILED",
-                "errors": [{{string.Join(',', errors)}}]
-              }
+    private static string WatchFailure(params string[] errors)
+        => WatchResult(
+            $$"""
+            {
+              "__typename": "SchemaVersionValidationFailed",
+              "state": "FAILED",
+              "errors": [{{string.Join(',', errors)}}]
             }
-          }
-        }
-        """;
+            """);
 
-    private static string PollResult(string result)
+    private static string WatchResult(string result)
         => $$"""
         {
           "data": {
-            "pollSchemaVersionValidationRequest": {
-              "errors": [],
-              "result": {{result}}
-            }
+            "onSchemaVersionValidationUpdate": {{result}}
           }
         }
         """;
@@ -750,6 +777,37 @@ public sealed class NitroSchemaValidatorTests
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             });
+
+    private static ResponseStep Sse(params string[] payloads)
+        => Returns(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    BuildEventStream(payloads),
+                    Encoding.UTF8,
+                    "text/event-stream")
+            });
+
+    private static string BuildEventStream(IEnumerable<string> payloads)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var payload in payloads)
+        {
+            builder.Append("event: next\n");
+
+            foreach (var line in payload.Split('\n'))
+            {
+                builder.Append("data: ").Append(line.TrimEnd('\r')).Append('\n');
+            }
+
+            builder.Append('\n');
+        }
+
+        builder.Append("event: complete\n\n");
+
+        return builder.ToString();
+    }
 
     private static ResponseStep Status(HttpStatusCode statusCode)
         => Returns(
@@ -779,7 +837,6 @@ public sealed class NitroSchemaValidatorTests
     private sealed class ValidatorSession : IDisposable
     {
         private readonly HttpClient _httpClient;
-        private readonly FakeTimeProvider _timeProvider = new();
         private readonly NitroSchemaValidator _validator;
 
         public ValidatorSession(params ResponseStep[] responses)
@@ -788,16 +845,14 @@ public sealed class NitroSchemaValidatorTests
             _httpClient = new HttpClient(Handler);
             _validator = new NitroSchemaValidator(
                 GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
-                _timeProvider,
                 new RecordingLogger<NitroSchemaValidator>());
         }
 
         public ScriptedHttpMessageHandler Handler { get; }
 
-        public async Task<NitroSchemaValidationReport> ValidateAsync(
+        public Task<NitroSchemaValidationReport> ValidateAsync(
             NitroCredential? credential = null)
-        {
-            var validation = _validator.ValidateAsync(
+            => _validator.ValidateAsync(
                 new NitroConnection(
                     new Uri("https://api.example.test"),
                     new Uri("https://api.example.test/graphql"),
@@ -807,17 +862,6 @@ public sealed class NitroSchemaValidatorTests
                 s_schema,
                 SchemaHash,
                 TestContext.Current.CancellationToken);
-
-            for (var attempt = 0; attempt < 100 && !validation.IsCompleted; attempt++)
-            {
-                await Task.Yield();
-                _timeProvider.Advance(TimeSpan.FromSeconds(5));
-            }
-
-            return await validation.WaitAsync(
-                TimeSpan.FromSeconds(10),
-                TestContext.Current.CancellationToken);
-        }
 
         public void Dispose() => _httpClient.Dispose();
     }
@@ -841,9 +885,9 @@ public sealed class NitroSchemaValidatorTests
                 StringComparison.Ordinal)
                     ? NitroOperationDocuments.ValidateSchemaOperationName
                     : body.Contains(
-                        NitroOperationDocuments.PollSchemaValidationOperationName,
+                        NitroOperationDocuments.WatchSchemaValidationOperationName,
                         StringComparison.Ordinal)
-                        ? NitroOperationDocuments.PollSchemaValidationOperationName
+                        ? NitroOperationDocuments.WatchSchemaValidationOperationName
                         : "unknown";
             var apiKey = request.Headers.TryGetValues(NitroRequestHeaders.ApiKey, out var values)
                 ? values.Single()

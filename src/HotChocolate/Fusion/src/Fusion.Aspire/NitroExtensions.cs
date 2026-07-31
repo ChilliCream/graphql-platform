@@ -1,6 +1,7 @@
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire.Nitro;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -130,11 +131,11 @@ public static class NitroExtensions
     /// The resource builder for chaining.
     /// </returns>
     /// <remarks>
-    /// The api id only takes effect on a resource whose schema is composed and only when the
-    /// distributed application calls
-    /// <see cref="AddNitro(IDistributedApplicationBuilder, string, Uri)"/>.
-    /// On any other resource it is metadata
-    /// without an effect.
+    /// On a gateway the api id selects the fusion configuration that the gateway composes on top
+    /// of, and it only takes effect when the distributed application calls
+    /// <see cref="AddNitro(IDistributedApplicationBuilder, string, Uri)"/>. On a publish target
+    /// added with <see cref="AddNitroPublishTarget"/> the api id selects the api that Fusion
+    /// deployments publish to. On any other resource it is metadata without an effect.
     /// </remarks>
     public static IResourceBuilder<T> WithNitroApiId<T>(
         this IResourceBuilder<T> builder,
@@ -199,6 +200,359 @@ public static class NitroExtensions
             ResourceAnnotationMutationBehavior.Replace);
 
         return builder;
+    }
+
+    /// <summary>
+    /// Adds the Nitro api that the Fusion deployments of the distributed application publish to.
+    /// The cloud URL and the api id default to the <c>Nitro:CloudUrl</c> and <c>Nitro:ApiId</c>
+    /// configuration values, or to the <c>NITRO_CLOUD_URL</c> and <c>NITRO_API_ID</c> environment
+    /// variables.
+    /// </summary>
+    /// <param name="builder">
+    /// The distributed application builder.
+    /// </param>
+    /// <param name="name">
+    /// The name of the publish target resource.
+    /// </param>
+    /// <returns>
+    /// The resource builder of the publish target for chaining.
+    /// </returns>
+    public static IResourceBuilder<NitroPublishTargetResource> AddNitroPublishTarget(
+        this IDistributedApplicationBuilder builder,
+        string name)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        EnsureFusionPipeline(builder);
+        builder.Services.TryAddSingleton(_ => NitroFusionApi.Create());
+        builder.Services.TryAddSingleton<FusionDeploymentWorkflow>();
+
+        var configuredCloudUrl =
+            builder.Configuration["Nitro:CloudUrl"]
+            ?? builder.Configuration["NITRO_CLOUD_URL"];
+        var resource = new NitroPublishTargetResource(name)
+        {
+            CloudUrl = string.IsNullOrWhiteSpace(configuredCloudUrl)
+                ? null
+                : NormalizeCloudUrl(configuredCloudUrl)
+        };
+        var resourceBuilder = builder.AddResource(resource);
+
+        var configuredApiId =
+            builder.Configuration["Nitro:ApiId"]
+            ?? builder.Configuration["NITRO_API_ID"];
+
+        if (!string.IsNullOrWhiteSpace(configuredApiId))
+        {
+            resourceBuilder.WithNitroApiId(configuredApiId);
+        }
+
+        return resourceBuilder;
+    }
+
+    /// <summary>
+    /// Sets the Nitro api URL that Fusion deployments publish to.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Nitro publish target.
+    /// </param>
+    /// <param name="cloudUrl">
+    /// An absolute HTTPS origin without a path, query, fragment, or user information.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<NitroPublishTargetResource> WithNitroCloudUrl(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
+        string cloudUrl)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Resource.CloudUrl = NormalizeCloudUrl(cloudUrl);
+        return builder;
+    }
+
+    /// <summary>
+    /// Sets the secret parameter that supplies the Nitro api key. When this is not configured, the
+    /// credential is resolved from the <c>NITRO_API_KEY</c> environment variable or the Nitro CLI
+    /// session.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Nitro publish target.
+    /// </param>
+    /// <param name="apiKey">
+    /// The parameter that supplies the api key. It has to be declared as a secret.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The parameter is not declared as a secret.
+    /// </exception>
+    public static IResourceBuilder<NitroPublishTargetResource> WithNitroApiKey(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
+        IResourceBuilder<ParameterResource> apiKey)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(apiKey);
+
+        if (!apiKey.Resource.Secret)
+        {
+            throw new ArgumentException(
+                "The Nitro API key parameter must be declared as a secret.",
+                nameof(apiKey));
+        }
+
+        builder.Resource.ApiKey = apiKey.Resource;
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds an environment-specific Fusion deployment that publishes to the Nitro publish target.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Nitro publish target.
+    /// </param>
+    /// <param name="name">
+    /// The name of the deployment resource.
+    /// </param>
+    /// <returns>
+    /// The resource builder of the deployment for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> AddFusionDeployment(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
+        string name)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        var resource = new FusionDeploymentResource(name, builder.Resource);
+        return builder.ApplicationBuilder.AddResource(resource);
+    }
+
+    /// <summary>
+    /// Maps the deployment to an exact Aspire environment.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="environmentName">
+    /// The name of the Aspire environment.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> ForEnvironment(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        string environmentName)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        builder.Resource.EnvironmentName = environmentName;
+        return builder;
+    }
+
+    /// <summary>
+    /// Maps the deployment to an exact Nitro stage.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="stageName">
+    /// The name of the Nitro stage that the deployment publishes to.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> ToStage(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        string stageName)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
+
+        builder.Resource.StageName = stageName;
+        return builder;
+    }
+
+    /// <summary>
+    /// Selects the exact <c>schema-settings.json</c> environment used for composition.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="environmentName">
+    /// The name of the settings environment.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    /// <remarks>
+    /// When this is not configured, an environment selected by the GraphQL composition is used,
+    /// followed by the Nitro stage name.
+    /// </remarks>
+    public static IResourceBuilder<FusionDeploymentResource> WithCompositionEnvironment(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        string environmentName)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        builder.Resource.CompositionEnvironmentName = environmentName;
+        return builder;
+    }
+
+    /// <summary>
+    /// Sets the immutable release tag. The tag is both the source schema version and the fusion
+    /// configuration tag of the deployment.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="configurationTag">
+    /// The parameter that supplies the release tag.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> WithConfigurationTag(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        IResourceBuilder<ParameterResource> configurationTag)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configurationTag);
+
+        builder.Resource.ConfigurationTagParameter = configurationTag.Resource;
+        builder.Resource.ConfigurationTag = null;
+        return builder;
+    }
+
+    /// <summary>
+    /// Sets the immutable release tag. The tag is both the source schema version and the fusion
+    /// configuration tag of the deployment.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="configurationTag">
+    /// The release tag.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> WithConfigurationTag(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        string configurationTag)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(configurationTag);
+
+        builder.Resource.ConfigurationTag = configurationTag;
+        builder.Resource.ConfigurationTagParameter = null;
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures whether Nitro waits for approval before the configuration is committed.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="waitForApproval">
+    /// Specifies whether the publication waits for approval.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> WithApproval(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        bool waitForApproval)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.Resource.WaitForApproval = waitForApproval;
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures whether validation failures may be forced.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="force">
+    /// Specifies whether the publication proceeds despite validation failures.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> WithForce(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        bool force)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.Resource.Force = force;
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures the operation and approval timeouts of the deployment.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="operation">
+    /// The time a single remote operation may take.
+    /// </param>
+    /// <param name="approval">
+    /// The time the publication waits for approval.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> WithTimeouts(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        TimeSpan operation,
+        TimeSpan approval)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(operation, TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(approval, TimeSpan.Zero);
+
+        builder.Resource.OperationTimeout = operation;
+        builder.Resource.ApprovalTimeout = approval;
+        return builder;
+    }
+
+    private static void EnsureFusionPipeline(IDistributedApplicationBuilder builder)
+    {
+        if (builder.Resources.OfType<FusionPipelineResource>().Any())
+        {
+            return;
+        }
+
+        var pipeline = builder.AddResource(
+            new FusionPipelineResource("fusion-nitro-pipeline"));
+        FusionPipeline.Configure(pipeline);
+    }
+
+    private static string NormalizeCloudUrl(string cloudUrl)
+    {
+        if (!Uri.TryCreate(cloudUrl, UriKind.Absolute, out var uri)
+            || uri.Scheme is not "https"
+            || !string.IsNullOrEmpty(uri.UserInfo)
+            || uri.AbsolutePath is not "/"
+            || !string.IsNullOrEmpty(uri.Query)
+            || !string.IsNullOrEmpty(uri.Fragment))
+        {
+            throw new ArgumentException(
+                "The Nitro cloud URL must be an absolute HTTPS origin without "
+                + "a path, query, fragment, or user information.",
+                nameof(cloudUrl));
+        }
+
+        return uri.GetLeftPart(UriPartial.Authority);
     }
 
     internal static string? GetNitroApiId(this IResource resource)

@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire.Tests" />
-    <InternalsVisibleTo Include="ChilliCream.Nitro.Aspire" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,21 +32,13 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' != 'Release'">
-    <None Remove="Nitro\Operations\ResolveNitroApiName.graphql" />
-    <None Remove="Nitro\Operations\ValidateNitroSchema.graphql" />
-    <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql" />
-    <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql" />
-    <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql" />
-    <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql" />
+    <None Remove="Nitro\Operations\*.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\*.graphql" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <None Remove="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
-    <None Remove="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
-    <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
-    <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
-    <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
-    <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
+    <None Remove="Nitro\Operations\*.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\*.graphql.sha256" />
   </ItemGroup>
 
   <ItemGroup>
