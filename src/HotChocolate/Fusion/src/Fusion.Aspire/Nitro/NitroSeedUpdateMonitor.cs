@@ -161,6 +161,7 @@ internal sealed class NitroSeedUpdateMonitor
                 return;
             }
 
+            _coordinator.CompleteAdoption(_gatewayName, adoption);
             _reportAdoption(adoption);
         }
         finally
@@ -430,6 +431,7 @@ internal sealed class NitroSeedUpdateMonitor
             return false;
         }
 
+        _coordinator.CompleteAdoption(_gatewayName, adoption);
         _reportAdoption(adoption);
         return true;
     }

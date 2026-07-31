@@ -73,13 +73,13 @@ public static class NitroExtensions
     /// </summary>
     /// <param name="builder">The distributed application builder.</param>
     /// <param name="stage">The Nitro stage whose Fusion configuration is used.</param>
-    /// <param name="configureSeedUpdates">
-    /// Configures background stage-change subscriptions, current-version queries, Fusion
-    /// configuration downloads, and automatic adoption.
-    /// </param>
     /// <param name="portalUrl">
     /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
     /// URL.
+    /// </param>
+    /// <param name="configureSeedUpdates">
+    /// Configures background stage-change subscriptions, current-version queries, Fusion
+    /// configuration downloads, and automatic adoption.
     /// </param>
     /// <returns>The distributed application builder for chaining.</returns>
     /// <remarks>
@@ -89,8 +89,8 @@ public static class NitroExtensions
     public static IDistributedApplicationBuilder AddNitro(
         this IDistributedApplicationBuilder builder,
         string stage,
-        Action<NitroSeedUpdateOptions> configureSeedUpdates,
-        Uri? portalUrl = null)
+        Uri? portalUrl,
+        Action<NitroSeedUpdateOptions> configureSeedUpdates)
     {
         ArgumentNullException.ThrowIfNull(configureSeedUpdates);
 
@@ -124,7 +124,6 @@ public static class NitroExtensions
         }
 
         var options = SchemaCompositionRegistration.Ensure(builder);
-        configureSeedUpdates?.Invoke(options.SeedUpdates);
 
         if (options.Coordinator is { } coordinator)
         {
@@ -144,11 +143,14 @@ public static class NitroExtensions
                     $"Nitro is already added with the portal URL '{options.PortalUrl}'.");
             }
 
+            configureSeedUpdates?.Invoke(options.SeedUpdates);
+            coordinator.SetInitialAutoUpdate(options.SeedUpdates.AutoUpdate);
             options.PortalUrl ??= portalUrl;
             AddAutoUpdateCommandsToConfiguredGateways(builder);
             return builder;
         }
 
+        configureSeedUpdates?.Invoke(options.SeedUpdates);
         options.Coordinator = NitroSeedCoordinator.CreateProduction(
             stage,
             options.SeedUpdates.AutoUpdate);
@@ -323,7 +325,9 @@ public static class NitroExtensions
                 UpdateState = context =>
                 {
                     var service = context.ServiceProvider.GetService<NitroSeedUpdateService>();
-                    if (service is null || !service.IsEnabled)
+                    if (service is null
+                        || !service.IsEnabled
+                        || !service.IsReady(resourceName))
                     {
                         return ResourceCommandState.Hidden;
                     }

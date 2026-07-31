@@ -348,7 +348,8 @@ public sealed class NitroExtensionsTests
         // act
         builder.AddNitro(
             "production",
-            options =>
+            portalUrl: null,
+            configureSeedUpdates: options =>
             {
                 options.Enabled = false;
                 options.AutoUpdate = false;
@@ -357,6 +358,40 @@ public sealed class NitroExtensionsTests
         // assert
         var options = GetNitroCompositionOptions(builder).SeedUpdates;
         Assert.Equal("False|False", $"{options.Enabled}|{options.AutoUpdate}");
+    }
+
+    [Fact]
+    public void AddNitro_Should_AcceptAnExplicitNullPortalUrl()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        builder.AddNitro("production", null);
+
+        // assert
+        Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
+    }
+
+    [Fact]
+    public void AddNitro_Should_UpdateAutoUpdateDefault_WhenCalledAgain()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+
+        // act
+        builder.AddNitro(
+            "production",
+            portalUrl: null,
+            configureSeedUpdates: options => options.AutoUpdate = false);
+
+        // assert
+        var options = GetNitroCompositionOptions(builder);
+        Assert.Equal(
+            "False|False",
+            $"{options.SeedUpdates.AutoUpdate}|"
+            + $"{options.Coordinator!.IsAutoUpdateEnabled("gateway")}");
     }
 
     [Fact]
@@ -415,7 +450,8 @@ public sealed class NitroExtensionsTests
         var builder = DistributedApplication.CreateBuilder();
         builder.AddNitro(
             "production",
-            options => options.Enabled = false);
+            portalUrl: null,
+            configureSeedUpdates: options => options.Enabled = false);
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -443,7 +479,7 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public async Task AutoUpdateCommands_Should_ShowOnlyDisableCommand_WhenAutoUpdateStartsEnabled()
+    public async Task AutoUpdateCommands_Should_HideUntilMonitorIsReady()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -479,12 +515,19 @@ public sealed class NitroExtensionsTests
         };
 
         // act
-        var states = commands.Select(command => command.UpdateState!(context));
+        var beforeStart = commands.Select(command => command.UpdateState!(context)).ToArray();
+        lifetime.StopApplication();
+        using var gate = new SemaphoreSlim(1, 1);
+        service.Start(
+            gateway.Resource,
+            "QXBpCmdhdGV3YXk",
+            gate,
+            (_, _) => Task.FromResult(true));
+        var afterStart = commands.Select(command => command.UpdateState!(context)).ToArray();
 
         // assert
-        Assert.Equal(
-            [ResourceCommandState.Enabled, ResourceCommandState.Hidden],
-            states);
+        Assert.Equal("Hidden, Hidden", string.Join(", ", beforeStart));
+        Assert.Equal("Enabled, Hidden", string.Join(", ", afterStart));
     }
 
     /// <summary>

@@ -55,6 +55,16 @@ internal sealed class NitroSeedUpdateService
             ?? _options.SeedUpdates.AutoUpdate;
     }
 
+    public bool IsReady(string gatewayName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
+
+        lock (_sync)
+        {
+            return _monitors.ContainsKey(gatewayName);
+        }
+    }
+
     public void Start(
         IResource gateway,
         string apiId,

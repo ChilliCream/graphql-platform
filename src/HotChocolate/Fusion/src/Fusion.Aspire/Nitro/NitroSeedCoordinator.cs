@@ -21,7 +21,7 @@ internal sealed class NitroSeedCoordinator
     private readonly INitroSchemaValidator _schemaValidator;
     private readonly INitroStageUpdateClient _stageUpdateClient;
     private readonly string _runSeedDirectory;
-    private readonly bool _initialAutoUpdate;
+    private bool _initialAutoUpdate;
     private long _nextRunSeedId;
 
     /// <summary>
@@ -225,10 +225,14 @@ internal sealed class NitroSeedCoordinator
             result.Outcome is NitroSeedOutcome.Downloaded,
             await ComputeSchemaHashAsync(filePath, cancellationToken));
 
+        NitroGatewaySeed? replacedSeed = null;
+        NitroSeedCandidate? discardedStaged = null;
         lock (_sync)
         {
             if (_statesByGateway.TryGetValue(gatewayName, out var state))
             {
+                replacedSeed = state.Current;
+                discardedStaged = state.Staged;
                 state.Current = seed;
                 state.Generation++;
                 state.Staged = null;
@@ -240,6 +244,9 @@ internal sealed class NitroSeedCoordinator
                     new GatewaySeedState(seed, _initialAutoUpdate));
             }
         }
+
+        TryDeleteUnlessCurrent(replacedSeed?.FilePath, seed.FilePath);
+        TryDeleteUnlessCurrent(discardedStaged?.Seed.FilePath, seed.FilePath);
 
         return NitroSeedAcquisition.Acquired(seed);
     }
@@ -329,6 +336,19 @@ internal sealed class NitroSeedCoordinator
         }
     }
 
+    public void SetInitialAutoUpdate(bool enabled)
+    {
+        lock (_sync)
+        {
+            _initialAutoUpdate = enabled;
+
+            foreach (var state in _statesByGateway.Values)
+            {
+                state.AutoUpdate = enabled;
+            }
+        }
+    }
+
     public void SetAutoUpdate(string gatewayName, bool enabled)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
@@ -347,13 +367,17 @@ internal sealed class NitroSeedCoordinator
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
         ArgumentNullException.ThrowIfNull(candidate);
 
+        NitroSeedCandidate? replaced = null;
         lock (_sync)
         {
             if (_statesByGateway.TryGetValue(gatewayName, out var state))
             {
+                replaced = state.Staged;
                 state.Staged = candidate;
             }
         }
+
+        TryDeleteUnlessCurrent(replaced?.Seed.FilePath, candidate.Seed.FilePath);
     }
 
     public NitroSeedAdoption? TryAdoptCandidate(
@@ -364,6 +388,8 @@ internal sealed class NitroSeedCoordinator
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
         ArgumentNullException.ThrowIfNull(candidate);
 
+        NitroSeedCandidate? discardedStaged;
+        NitroSeedAdoption adoption;
         lock (_sync)
         {
             if (!_statesByGateway.TryGetValue(gatewayName, out var state))
@@ -371,17 +397,21 @@ internal sealed class NitroSeedCoordinator
                 return null;
             }
 
+            discardedStaged = state.Staged;
             var previous = new NitroSeedSnapshot(state.Current, state.Generation);
             state.Current = candidate.Seed;
             state.Generation++;
             state.Staged = null;
 
-            return new NitroSeedAdoption(
+            adoption = new NitroSeedAdoption(
                 previous,
                 new NitroSeedSnapshot(state.Current, state.Generation),
                 candidate,
                 wasStaged);
         }
+
+        TryDeleteUnlessCurrent(discardedStaged?.Seed.FilePath, candidate.Seed.FilePath);
+        return adoption;
     }
 
     public NitroSeedAdoption? TryAdoptStaged(string gatewayName)
@@ -417,6 +447,7 @@ internal sealed class NitroSeedCoordinator
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
         ArgumentNullException.ThrowIfNull(adoption);
 
+        var deleteCandidate = false;
         lock (_sync)
         {
             if (!_statesByGateway.TryGetValue(gatewayName, out var state)
@@ -428,6 +459,40 @@ internal sealed class NitroSeedCoordinator
             state.Current = adoption.Previous.Seed;
             state.Generation++;
             state.Staged = restoreStaged ? adoption.Candidate : null;
+            deleteCandidate = !restoreStaged;
+        }
+
+        if (deleteCandidate)
+        {
+            TryDeleteUnlessCurrent(
+                adoption.Current.Seed.FilePath,
+                adoption.Previous.Seed.FilePath);
+        }
+    }
+
+    public void CompleteAdoption(
+        string gatewayName,
+        NitroSeedAdoption adoption)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
+        ArgumentNullException.ThrowIfNull(adoption);
+
+        var deletePrevious = false;
+        lock (_sync)
+        {
+            deletePrevious = _statesByGateway.TryGetValue(gatewayName, out var state)
+                && state.Generation == adoption.Current.Generation
+                && string.Equals(
+                    state.Current.FilePath,
+                    adoption.Current.Seed.FilePath,
+                    StringComparison.Ordinal);
+        }
+
+        if (deletePrevious)
+        {
+            TryDeleteUnlessCurrent(
+                adoption.Previous.Seed.FilePath,
+                adoption.Current.Seed.FilePath);
         }
     }
 
@@ -537,6 +602,15 @@ internal sealed class NitroSeedCoordinator
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException)
         {
+        }
+    }
+
+    private static void TryDeleteUnlessCurrent(string? filePath, string currentFilePath)
+    {
+        if (filePath is not null
+            && !string.Equals(filePath, currentFilePath, StringComparison.Ordinal))
+        {
+            TryDelete(filePath);
         }
     }
 

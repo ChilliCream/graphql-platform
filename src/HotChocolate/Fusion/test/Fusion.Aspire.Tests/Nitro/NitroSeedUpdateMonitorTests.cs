@@ -39,6 +39,7 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
                 FusionConfigurationId: "configuration-2"));
         var handler = new ArchiveSequenceHandler(_initialArchive, _updatedArchive);
         var coordinator = await CreateCoordinatorAsync(handler, stageClient, autoUpdate: true);
+        var initialSeedPath = coordinator.GetSeed("gateway")!.FilePath;
         using var gate = new SemaphoreSlim(1, 1);
         using var stopping = new CancellationTokenSource();
         var recompositions = new List<NitroSeedAdoption>();
@@ -70,6 +71,7 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
         Recompositions: {recompositions.Count}
         Adoptions: {adoptions.Count}
         Version: {adoptions[0].Candidate.VersionIdentity == queried.Identity}
+        Retained seeds: {File.Exists(initialSeedPath)}|{File.Exists(coordinator.GetSeed("gateway")!.FilePath)}
         """.MatchInlineSnapshot(
             """
             Operations: subscribe, query, event:FusionConfigurationPublished
@@ -77,6 +79,7 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
             Recompositions: 1
             Adoptions: 1
             Version: True
+            Retained seeds: False|True
             """);
     }
 
@@ -327,6 +330,7 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
         monitor.Start(stopping.Token);
         await WaitUntilAsync(() => attempts == 1);
         var rolledBack = coordinator.GetSeed("gateway")!.SchemaHash == originalHash;
+        var filesAfterRollback = Directory.GetFiles(_directory.GetPath("run"), "*.far").Length;
         timeProvider.Advance(TimeSpan.FromSeconds(13));
         await WaitUntilAsync(() => attempts == 2);
         await stopping.CancelAsync();
@@ -335,7 +339,9 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal("True|3|2|1", $"{rolledBack}|{handler.RequestCount}|{attempts}|{adoptions}");
+        Assert.Equal(
+            "True|1|3|2|1",
+            $"{rolledBack}|{filesAfterRollback}|{handler.RequestCount}|{attempts}|{adoptions}");
     }
 
     private async Task<NitroSeedCoordinator> CreateCoordinatorAsync(

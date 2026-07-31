@@ -694,9 +694,12 @@ internal sealed class SchemaComposition(
         {
             if (outcome.Success)
             {
+                coordinator!.CompleteAdoption(
+                    compositionResource.Name,
+                    adoption);
                 seedUpdateService.ReportAdoption(
                     compositionResource.Name,
-                    coordinator!.Stage,
+                    coordinator.Stage,
                     adoption);
             }
             else
