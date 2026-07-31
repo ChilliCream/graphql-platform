@@ -10,12 +10,10 @@ internal sealed class FusionDeploymentWorkflow(
     public async Task<FusionSourceSchemaDownload?> DownloadSourceSchemaAsync(
         FusionTarget target,
         FusionSourceSchemaVersion source,
-        string expectedContentSha256,
         CancellationToken cancellationToken)
     {
         ValidateTarget(target);
         ValidateSourceVersion(source);
-        ValidateContentSha256(expectedContentSha256);
 
         await using var transport = await transportFactory.OpenAsync(
             target,
@@ -36,16 +34,6 @@ internal sealed class FusionDeploymentWorkflow(
             source.Name,
             cancellationToken);
         var contentSha256 = content.ComputeSha256(cancellationToken);
-
-        if (!string.Equals(
-            contentSha256,
-            expectedContentSha256,
-            StringComparison.OrdinalIgnoreCase))
-        {
-            throw new FusionIdentityCollisionException(
-                $"Source schema '{source.Name}' version '{source.Version}' "
-                + "was downloaded with a different canonical content SHA-256.");
-        }
 
         return new FusionSourceSchemaDownload(
             source.Name,
@@ -569,14 +557,6 @@ internal sealed class FusionDeploymentWorkflow(
         ArgumentNullException.ThrowIfNull(source);
         ArgumentException.ThrowIfNullOrWhiteSpace(source.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(source.Version);
-    }
-
-    private static void ValidateContentSha256(string contentSha256)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(contentSha256);
-        ValidateSha256(
-            contentSha256,
-            "The source schema canonical content SHA-256");
     }
 
     private static void ValidateSha256(string sha256, string description)

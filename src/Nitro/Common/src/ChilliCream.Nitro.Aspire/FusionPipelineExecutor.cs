@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -23,6 +22,11 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
 {
     private static readonly TimeSpan s_readinessRetryDelay =
         TimeSpan.FromSeconds(1);
+    private static readonly JsonSerializerOptions s_jsonOptions = new(
+        JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true
+    };
 
     public static FusionPipelineExecutor Instance { get; } = new();
 
@@ -31,16 +35,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         var environment = context.Services
             .GetRequiredService<IHostEnvironment>()
             .EnvironmentName;
-        if (FusionPipeline.ShouldUseManifestProducer(
-                context.Model,
-                environment))
-        {
-            await CreateReleaseArtifactsAsync(
-                FusionPipeline.GetManifestDeployments(context.Model),
-                context);
-            return;
-        }
-
         var deployments = FusionPipeline.SelectDeployments(
             context.Model,
             environment);
@@ -60,6 +54,8 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             throw new InvalidOperationException(
                 $"Fusion composition resource '{composition.Name}' has no declared source schemas.");
         }
+
+        _ = GetSourceNames(context.Model);
 
         var output = context.Services
             .GetRequiredService<IPipelineOutputService>()
@@ -89,16 +85,10 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             return;
         }
 
-        if (deployments.All(
-                deployment =>
-                    deployment.FusionReleaseManifestParameter is not null))
-        {
-            await VerifyReleaseReadinessAsync(
-                deployments,
-                context);
-            return;
-        }
-
+        var compositionResource = FusionPipeline.GetCompositionResource(
+            context.Model);
+        var composition = GraphQLResourceModel.GetComposition(
+            compositionResource);
         var output = context.Services
             .GetRequiredService<IPipelineOutputService>()
             .GetOutputDirectory();
@@ -106,38 +96,48 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         {
             Timeout = TimeSpan.FromSeconds(10)
         };
-        var compositionResource = FusionPipeline.GetCompositionResource(
-            context.Model);
-        var composition = GraphQLResourceModel.GetComposition(
-            compositionResource);
-
         foreach (var deployment in deployments)
         {
-            var compositionEnvironment = ResolveCompositionEnvironment(
+            var applyDirectory = GetApplyDirectory(output, deployment);
+            var state = await ReadApplyStateAsync(
+                applyDirectory,
+                context.CancellationToken);
+            await ValidateApplyStateAsync(
+                state,
+                deployment,
+                context,
+                context.CancellationToken);
+            ValidateCompositionState(
+                state,
                 deployment,
                 composition.Settings);
-            var deploymentDirectory = GetDeploymentDirectory(output, deployment);
+            var farPath = ResolveApplyPath(
+                applyDirectory,
+                state.FusionArchivePath
+                    ?? throw new InvalidOperationException(
+                        "The downloaded Fusion sources have not been composed."));
+            await VerifyFileDigestAsync(
+                farPath,
+                state.FusionArchiveSha256
+                    ?? throw new InvalidOperationException(
+                        "The composed Fusion archive has no digest."),
+                "composed Fusion archive",
+                context.CancellationToken);
+            using var archive = FusionArchive.Open(farPath);
+            using var configuration =
+                await archive.TryGetGatewayConfigurationAsync(
+                    WellKnownVersions.LatestGatewayFormatVersion,
+                    context.CancellationToken)
+                ?? throw new InvalidDataException(
+                    "The composed Fusion archive contains no gateway configuration.");
 
-            foreach (var sourceDirectory in Directory.EnumerateDirectories(
-                Path.Combine(deploymentDirectory, "sources")))
+            foreach (var (name, endpoint) in GetTransportEndpoints(
+                configuration.Settings))
             {
-                var settingsPath = Path.Combine(
-                    sourceDirectory,
-                    "schema-settings.template.json");
-                using var settings = JsonDocument.Parse(
-                    await File.ReadAllTextAsync(
-                        settingsPath,
-                        context.CancellationToken));
-                using var resolvedSettings =
-                    AspireCompositionHelper.ResolveSourceSchemaSettings(
-                        settings,
-                        compositionEnvironment);
-                var endpoint = GetTransportEndpoint(resolvedSettings);
                 RejectLoopbackEndpoint(endpoint);
-
                 await WaitForReadinessAsync(
                     httpClient,
-                    Path.GetFileName(sourceDirectory),
+                    name,
                     endpoint,
                     deployment.OperationTimeout,
                     s_readinessRetryDelay,
@@ -148,19 +148,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
 
     public async Task UploadAsync(PipelineStepContext context)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        if (FusionPipeline.ShouldUseManifestProducer(
-                context.Model,
-                environment))
-        {
-            await UploadReleaseAsync(
-                FusionPipeline.GetManifestDeployments(context.Model),
-                context);
-            return;
-        }
-
         var artifacts = await MaterializeArchivesAsync(context);
         if (artifacts.Count == 0)
         {
@@ -190,9 +177,14 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         }
     }
 
-    public async Task PrepareReleaseAsync(PipelineStepContext context)
+    public async Task DownloadAsync(PipelineStepContext context)
     {
-        var deployments = GetSelectedManifestDeployments(context);
+        var environment = context.Services
+            .GetRequiredService<IHostEnvironment>()
+            .EnvironmentName;
+        var deployments = FusionPipeline.SelectDeployments(
+            context.Model,
+            environment);
         if (deployments.Count == 0)
         {
             return;
@@ -203,37 +195,13 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         var output = context.Services
             .GetRequiredService<IPipelineOutputService>()
             .GetOutputDirectory();
-        var composition = FusionPipeline.GetCompositionResource(
-            context.Model);
-        var providerSourceNames = GraphQLResourceModel
-            .GetReferencedSourceSchemas(composition, context.Model)
-            .Select(source =>
-                source.Declaration.SourceSchemaName
-                ?? source.Resource.Name)
-            .ToArray();
+        var sourceNames = GetSourceNames(context.Model);
 
         foreach (var deployment in deployments)
         {
-            var manifestPath = await ResolveManifestPathAsync(
+            var tag = await ResolveConfigurationTagAsync(
                 deployment,
                 context.CancellationToken);
-            var manifest = await FusionReleaseStore.ReadFinalAsync(
-                manifestPath,
-                context.CancellationToken);
-            FusionReleaseCompatibility.ValidateCompositionToolVersion(
-                manifest);
-            var manifestSha256 = await ComputeFileDigestAsync(
-                manifestPath,
-                context.CancellationToken);
-            ValidateManifestSourceNames(
-                manifest,
-                providerSourceNames);
-            await ValidateReleaseIdAsync(
-                deployment,
-                manifest,
-                context.CancellationToken);
-            GetReleaseTarget(manifest, deployment);
-
             var target = await ResolveTargetAsync(
                 deployment,
                 context,
@@ -247,26 +215,38 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
 
             try
             {
-                var sources = new List<FusionReleaseApplySource>(
-                    manifest.Sources.Count);
+                var sources = new List<FusionApplySource>(sourceNames.Count);
 
-                foreach (var source in manifest.Sources)
+                foreach (var sourceName in sourceNames)
                 {
                     var download = await workflow.DownloadSourceSchemaAsync(
                         target,
                         new FusionSourceSchemaVersion(
-                            source.Name,
-                            source.Version),
-                        source.ContentSha256,
+                            sourceName,
+                            tag),
                         context.CancellationToken)
                         ?? throw new InvalidOperationException(
-                            $"Promoted Fusion source '{source.Name}' version "
-                            + $"'{source.Version}' does not exist on target "
+                            $"Fusion source '{sourceName}' version "
+                            + $"'{tag}' does not exist on target "
                             + $"'{deployment.Nitro.ApiId}'.");
+                    if (!string.Equals(
+                            download.Name,
+                            sourceName,
+                            StringComparison.Ordinal)
+                        || !string.Equals(
+                            download.Version,
+                            tag,
+                            StringComparison.Ordinal))
+                    {
+                        throw new InvalidDataException(
+                            $"Nitro returned Fusion source '{download.Name}@{download.Version}' "
+                            + $"when '{sourceName}@{tag}' was requested.");
+                    }
+
                     var relativePath = Path.Combine(
                         "sources",
-                        source.Name,
-                        $"{source.Version}.zip");
+                        sourceName,
+                        $"{tag}.zip");
                     var archivePath = Path.Combine(
                         temporaryDirectory,
                         relativePath);
@@ -274,12 +254,27 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                         Path.GetDirectoryName(archivePath)!);
                     await File.WriteAllBytesAsync(
                         archivePath,
-                        download.Archive,
+                        download.Archive.ToArray(),
                         context.CancellationToken);
+                    var contentSha256 =
+                        await FusionSourceSchemaContent.ComputeSha256Async(
+                            archivePath,
+                            sourceName,
+                            context.CancellationToken);
+                    if (!string.Equals(
+                            contentSha256,
+                            download.ContentSha256,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidDataException(
+                            $"Downloaded Fusion source '{sourceName}@{tag}' content "
+                            + "does not match its canonical digest.");
+                    }
+
                     sources.Add(
-                        new FusionReleaseApplySource(
-                            source.Name,
-                            source.Version,
+                        new FusionApplySource(
+                            sourceName,
+                            tag,
                             relativePath.Replace(
                                 Path.DirectorySeparatorChar,
                                 '/'),
@@ -290,10 +285,8 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                     Path.Combine(
                         temporaryDirectory,
                         "fusion-apply.json"),
-                    new FusionReleaseApplyState(
-                        manifestPath,
-                        manifestSha256,
-                        manifest.ReleaseId,
+                    new FusionApplyState(
+                        tag,
                         deployment.Nitro.CloudUrl!,
                         deployment.Nitro.ApiId!,
                         CompositionEnvironment: null,
@@ -313,9 +306,14 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         }
     }
 
-    public async Task ComposeReleaseAsync(PipelineStepContext context)
+    public async Task ComposeAsync(PipelineStepContext context)
     {
-        var deployments = GetSelectedManifestDeployments(context);
+        var environment = context.Services
+            .GetRequiredService<IHostEnvironment>()
+            .EnvironmentName;
+        var deployments = FusionPipeline.SelectDeployments(
+            context.Model,
+            environment);
         if (deployments.Count == 0)
         {
             return;
@@ -335,15 +333,11 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             var state = await ReadApplyStateAsync(
                 applyDirectory,
                 context.CancellationToken);
-            await VerifyFileDigestAsync(
-                state.ManifestPath,
-                state.ManifestSha256,
-                "promoted Fusion release manifest",
+            await ValidateApplyStateAsync(
+                state,
+                deployment,
+                context,
                 context.CancellationToken);
-            var manifest = await FusionReleaseStore.ReadFinalAsync(
-                state.ManifestPath,
-                context.CancellationToken);
-            ValidateApplyState(state, manifest, deployment);
 
             var compositionEnvironment = ResolveCompositionEnvironment(
                 deployment,
@@ -351,8 +345,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             var farPath = Path.Combine(
                 applyDirectory,
                 "fusion-configuration.far");
-            var settings = manifest.Composition.Settings
-                .ToCompositionSettings(compositionEnvironment);
 
             foreach (var source in state.Sources)
             {
@@ -391,7 +383,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                                     source.ArchivePath)))
                         .ToArray(),
                     compositionEnvironment,
-                    settings,
+                    currentComposition.Settings,
                     logger,
                     context.CancellationToken))
             {
@@ -424,332 +416,20 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         var deployments = FusionPipeline.SelectDeployments(
             context.Model,
             environment);
-        if (deployments.Count > 0
-            && deployments.All(
-                deployment =>
-                    deployment.FusionReleaseManifestParameter is not null))
-        {
-            await PublishReleaseAsync(deployments, context);
-            return;
-        }
-
-        var artifacts = await MaterializeArchivesAsync(context);
-        if (artifacts.Count == 0)
+        if (deployments.Count == 0)
         {
             return;
         }
 
-        var workflow = context.Services.GetRequiredService<IFusionDeploymentWorkflow>();
-        var compositionResource = FusionPipeline.GetCompositionResource(context.Model);
-        var composition = GraphQLResourceModel.GetComposition(compositionResource);
-
-        foreach (var group in artifacts.GroupBy(artifact => artifact.Deployment))
-        {
-            var deployment = group.Key;
-            var target = await ResolveTargetAsync(
-                deployment,
-                context,
-                context.CancellationToken);
-            var releaseId = await ResolveConfigurationTagAsync(
-                deployment,
-                context.CancellationToken);
-            var farPath = Path.Combine(
-                Path.GetDirectoryName(group.First().ArchivePath)!,
-                $"{releaseId}.far");
-            var compositionSettings = composition.Settings;
-            compositionSettings.EnvironmentName =
-                ResolveCompositionEnvironment(
-                    deployment,
-                    compositionSettings);
-
-            await ComposeAsync(
-                farPath,
-                group.ToArray(),
-                compositionSettings,
-                context,
-                context.CancellationToken);
-
-            await workflow.PublishAsync(
-                new FusionPublicationRequest(
-                    target,
-                    deployment.StageName!,
-                    releaseId,
-                    group
-                        .Select(artifact =>
-                            new FusionSourceSchemaVersion(
-                                artifact.Name,
-                                artifact.Version))
-                        .ToArray(),
-                    deployment.WaitForApproval,
-                    deployment.Force,
-                    deployment.OperationTimeout,
-                    deployment.ApprovalTimeout),
-                farPath,
-                context.CancellationToken);
-
-            await WriteDeploymentManifestAsync(
-                deployment,
-                releaseId,
-                group.ToArray(),
-                context,
-                context.CancellationToken);
-        }
-    }
-
-    private static async Task CreateReleaseArtifactsAsync(
-        IReadOnlyList<FusionDeploymentResource> deployments,
-        PipelineStepContext context)
-    {
-        var releaseId = await ResolveSharedReleaseIdAsync(
-            deployments,
-            context.CancellationToken);
+        var output = context.Services
+            .GetRequiredService<IPipelineOutputService>()
+            .GetOutputDirectory();
+        var workflow = context.Services
+            .GetRequiredService<IFusionDeploymentWorkflow>();
         var compositionResource = FusionPipeline.GetCompositionResource(
             context.Model);
         var composition = GraphQLResourceModel.GetComposition(
             compositionResource);
-        var sources = GraphQLResourceModel.GetReferencedSourceSchemas(
-            compositionResource,
-            context.Model);
-
-        if (sources.Count == 0)
-        {
-            throw new InvalidOperationException(
-                $"Fusion composition resource '{compositionResource.Name}' "
-                + "has no declared source schemas.");
-        }
-
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
-        var releaseDirectory = GetReleaseDirectory(output, releaseId);
-        var finalManifestPath = Path.Combine(
-            releaseDirectory,
-            "fusion-release.json");
-        if (File.Exists(finalManifestPath))
-        {
-            var existing = await FusionReleaseStore.ReadFinalAsync(
-                Path.GetFullPath(finalManifestPath),
-                context.CancellationToken);
-            if (!string.Equals(
-                    existing.ReleaseId,
-                    releaseId,
-                    StringComparison.Ordinal))
-            {
-                throw new InvalidOperationException(
-                    $"Existing Fusion release '{existing.ReleaseId}' does not "
-                    + $"match requested release '{releaseId}'.");
-            }
-
-            return;
-        }
-
-        var releaseParent = Path.GetDirectoryName(releaseDirectory)!;
-        Directory.CreateDirectory(releaseParent);
-        var temporaryDirectory = Path.Combine(
-            releaseParent,
-            $".{releaseId}.{Guid.NewGuid():N}.tmp");
-
-        try
-        {
-            var inputsDirectory = Path.Combine(
-                temporaryDirectory,
-                ".inputs");
-            Directory.CreateDirectory(inputsDirectory);
-            var releaseSources = new List<FusionReleaseSource>(
-                sources.Count);
-
-            foreach (var source in sources)
-            {
-                var name = await CreateSourceArtifactsAsync(
-                    source,
-                    inputsDirectory,
-                    context.CancellationToken);
-                var sourceDirectory = Path.Combine(
-                    inputsDirectory,
-                    name);
-                var archiveRelativePath = Path.Combine(
-                        "sources",
-                        name,
-                        $"{releaseId}.zip")
-                    .Replace(Path.DirectorySeparatorChar, '/');
-                var archivePath = Path.Combine(
-                    temporaryDirectory,
-                    archiveRelativePath.Replace(
-                        '/',
-                        Path.DirectorySeparatorChar));
-                Directory.CreateDirectory(
-                    Path.GetDirectoryName(archivePath)!);
-                using var settings = JsonDocument.Parse(
-                    await File.ReadAllTextAsync(
-                        Path.Combine(
-                            sourceDirectory,
-                            "schema-settings.template.json"),
-                        context.CancellationToken));
-                ValidateSettingsName(name, settings);
-                await CreateArchiveAsync(
-                    archivePath,
-                    await File.ReadAllBytesAsync(
-                        Path.Combine(sourceDirectory, "schema.graphqls"),
-                        context.CancellationToken),
-                    settings,
-                    GetExtensionsPath(sourceDirectory),
-                    context.CancellationToken);
-
-                releaseSources.Add(
-                    new FusionReleaseSource(
-                        name,
-                        releaseId,
-                        archiveRelativePath,
-                        await ComputeFileDigestAsync(
-                            archivePath,
-                            context.CancellationToken),
-                        await FusionSourceSchemaContent.ComputeSha256Async(
-                            archivePath,
-                            name,
-                            context.CancellationToken)));
-            }
-
-            Directory.Delete(inputsDirectory, recursive: true);
-            releaseSources.Sort(
-                (left, right) => StringComparer.Ordinal.Compare(
-                    left.Name,
-                    right.Name));
-            var compositionSettings =
-                FusionReleaseCompositionSettings.From(
-                    composition.Settings);
-            var manifest = new FusionReleaseManifest(
-                FusionReleaseManifest.CurrentFormatVersion,
-                releaseId,
-                FusionReleaseCompatibility.CompositionToolVersion,
-                FusionReleaseDigests.ComputeSourceSetSha256(
-                    releaseSources),
-                new FusionReleaseComposition(
-                    FusionReleaseDigests.ComputeCompositionSha256(
-                        compositionSettings),
-                    compositionSettings),
-                releaseSources,
-                Targets: []);
-
-            await FusionReleaseStore.WriteDraftAsync(
-                temporaryDirectory,
-                manifest,
-                context.CancellationToken);
-            ReplaceDirectoryAtomically(
-                temporaryDirectory,
-                releaseDirectory);
-        }
-        finally
-        {
-            DeleteDirectoryBestEffort(temporaryDirectory);
-        }
-    }
-
-    private static async Task UploadReleaseAsync(
-        IReadOnlyList<FusionDeploymentResource> deployments,
-        PipelineStepContext context)
-    {
-        var releaseId = await ResolveSharedReleaseIdAsync(
-            deployments,
-            context.CancellationToken);
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
-        var releaseDirectory = GetReleaseDirectory(output, releaseId);
-        var finalManifestPath = Path.Combine(
-            releaseDirectory,
-            "fusion-release.json");
-        var draft = File.Exists(finalManifestPath)
-            ? await FusionReleaseStore.ReadFinalAsync(
-                Path.GetFullPath(finalManifestPath),
-                context.CancellationToken)
-            : await FusionReleaseStore.ReadDraftAsync(
-                releaseDirectory,
-                context.CancellationToken);
-        ValidateReleaseManifestId(draft, releaseId);
-        var workflow = context.Services
-            .GetRequiredService<IFusionDeploymentWorkflow>();
-        var targets = new List<FusionReleaseTarget>();
-        var distinctDeployments = deployments
-            .DistinctBy(
-                deployment => (
-                    deployment.Nitro.CloudUrl!.TrimEnd('/').ToUpperInvariant(),
-                    deployment.Nitro.ApiId),
-                EqualityComparer<(string, string?)>.Default)
-            .OrderBy(
-                deployment => deployment.Nitro.CloudUrl,
-                StringComparer.OrdinalIgnoreCase)
-            .ThenBy(
-                deployment => deployment.Nitro.ApiId,
-                StringComparer.Ordinal)
-            .ToArray();
-
-        if (File.Exists(finalManifestPath)
-            && !TargetsMatch(draft.Targets, distinctDeployments))
-        {
-            throw new InvalidOperationException(
-                $"Existing Fusion release '{releaseId}' target set does not "
-                + "match the declared Nitro targets.");
-        }
-
-        foreach (var deployment in distinctDeployments)
-        {
-            var target = await ResolveTargetAsync(
-                deployment,
-                context,
-                context.CancellationToken);
-
-            foreach (var source in draft.Sources)
-            {
-                var archivePath = FusionReleaseStore.ResolveArchivePath(
-                    Path.Combine(
-                        releaseDirectory,
-                        "fusion-release.draft.json"),
-                    source);
-                await FusionReleaseStore.VerifyArchiveAsync(
-                    archivePath,
-                    source,
-                    context.CancellationToken);
-                await workflow.ReconcileSourceSchemaAsync(
-                    target,
-                    new FusionSourceSchemaUpload(
-                        source.Name,
-                        source.Version,
-                        archivePath,
-                        source.ArchiveSha256),
-                    context.CancellationToken);
-            }
-
-            targets.Add(
-                new FusionReleaseTarget(
-                    deployment.Nitro.CloudUrl!,
-                    deployment.Nitro.ApiId!,
-                    draft.SourceSetSha256,
-                    draft.Sources.Select(
-                            source =>
-                                new FusionReleaseSourceReference(
-                                    source.Name,
-                                    source.Version,
-                                    source.ContentSha256))
-                        .ToArray()));
-        }
-
-        await FusionReleaseStore.WriteFinalAsync(
-            releaseDirectory,
-            draft with { Targets = targets },
-            context.CancellationToken);
-    }
-
-    private static async Task VerifyReleaseReadinessAsync(
-        IReadOnlyList<FusionDeploymentResource> deployments,
-        PipelineStepContext context)
-    {
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
-        using var httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(10)
-        };
 
         foreach (var deployment in deployments)
         {
@@ -757,43 +437,50 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             var state = await ReadApplyStateAsync(
                 applyDirectory,
                 context.CancellationToken);
-            await VerifyFileDigestAsync(
-                state.ManifestPath,
-                state.ManifestSha256,
-                "promoted Fusion release manifest",
+            await ValidateApplyStateAsync(
+                state,
+                deployment,
+                context,
+                context.CancellationToken);
+            var target = await ResolveTargetAsync(
+                deployment,
+                context,
                 context.CancellationToken);
             var farPath = ResolveApplyPath(
                 applyDirectory,
                 state.FusionArchivePath
                     ?? throw new InvalidOperationException(
-                        "The promoted Fusion release has not been composed."));
+                        "The downloaded Fusion sources have not been composed."));
+            ValidateCompositionState(
+                state,
+                deployment,
+                composition.Settings);
+
             await VerifyFileDigestAsync(
                 farPath,
                 state.FusionArchiveSha256
                     ?? throw new InvalidOperationException(
-                        "The promoted Fusion release has no composed archive digest."),
+                        "The composed Fusion archive has no digest."),
                 "composed Fusion archive",
                 context.CancellationToken);
-            using var archive = FusionArchive.Open(farPath);
-            using var configuration =
-                await archive.TryGetGatewayConfigurationAsync(
-                    WellKnownVersions.LatestGatewayFormatVersion,
-                    context.CancellationToken)
-                ?? throw new InvalidDataException(
-                    "The composed Fusion archive contains no gateway configuration.");
 
-            foreach (var (name, endpoint) in GetTransportEndpoints(
-                configuration.Settings))
-            {
-                RejectLoopbackEndpoint(endpoint);
-                await WaitForReadinessAsync(
-                    httpClient,
-                    name,
-                    endpoint,
+            await workflow.PublishAsync(
+                new FusionPublicationRequest(
+                    target,
+                    deployment.StageName!,
+                    state.Tag,
+                    state.Sources
+                        .Select(source =>
+                            new FusionSourceSchemaVersion(
+                                source.Name,
+                                source.Version))
+                        .ToArray(),
+                    deployment.WaitForApproval,
+                    deployment.Force,
                     deployment.OperationTimeout,
-                    s_readinessRetryDelay,
-                    context.CancellationToken);
-            }
+                    deployment.ApprovalTimeout),
+                farPath,
+                context.CancellationToken);
         }
     }
 
@@ -874,85 +561,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             lastFailure);
     }
 
-    private static async Task PublishReleaseAsync(
-        IReadOnlyList<FusionDeploymentResource> deployments,
-        PipelineStepContext context)
-    {
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
-        var workflow = context.Services
-            .GetRequiredService<IFusionDeploymentWorkflow>();
-        var compositionResource = FusionPipeline.GetCompositionResource(
-            context.Model);
-        var currentComposition = GraphQLResourceModel.GetComposition(
-            compositionResource);
-
-        foreach (var deployment in deployments)
-        {
-            var applyDirectory = GetApplyDirectory(output, deployment);
-            var state = await ReadApplyStateAsync(
-                applyDirectory,
-                context.CancellationToken);
-            await VerifyFileDigestAsync(
-                state.ManifestPath,
-                state.ManifestSha256,
-                "promoted Fusion release manifest",
-                context.CancellationToken);
-            var manifest = await FusionReleaseStore.ReadFinalAsync(
-                state.ManifestPath,
-                context.CancellationToken);
-            ValidateApplyState(state, manifest, deployment);
-            var target = await ResolveTargetAsync(
-                deployment,
-                context,
-                context.CancellationToken);
-            var farPath = ResolveApplyPath(
-                applyDirectory,
-                state.FusionArchivePath
-                    ?? throw new InvalidOperationException(
-                        "The promoted Fusion release has not been composed."));
-            var expectedEnvironment = ResolveCompositionEnvironment(
-                deployment,
-                currentComposition.Settings);
-            if (!string.Equals(
-                    state.CompositionEnvironment,
-                    expectedEnvironment,
-                    StringComparison.Ordinal))
-            {
-                throw new InvalidDataException(
-                    "The composed Fusion archive environment does not match "
-                    + $"deployment '{deployment.Name}'.");
-            }
-
-            await VerifyFileDigestAsync(
-                farPath,
-                state.FusionArchiveSha256
-                    ?? throw new InvalidOperationException(
-                        "The promoted Fusion release has no composed archive digest."),
-                "composed Fusion archive",
-                context.CancellationToken);
-
-            await workflow.PublishAsync(
-                new FusionPublicationRequest(
-                    target,
-                    deployment.StageName!,
-                    manifest.ReleaseId,
-                    manifest.Sources.Select(
-                            source =>
-                                new FusionSourceSchemaVersion(
-                                    source.Name,
-                                    source.Version))
-                        .ToArray(),
-                    deployment.WaitForApproval,
-                    deployment.Force,
-                    deployment.OperationTimeout,
-                    deployment.ApprovalTimeout),
-                farPath,
-                context.CancellationToken);
-        }
-    }
-
     internal async Task<IReadOnlyList<FusionSourceArtifact>> MaterializeArchivesAsync(
         PipelineStepContext context)
     {
@@ -982,7 +590,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             var compositionEnvironment = ResolveCompositionEnvironment(
                 deployment,
                 composition.Settings);
-            var releaseId = await ResolveConfigurationTagAsync(
+            var tag = await ResolveConfigurationTagAsync(
                 deployment,
                 context.CancellationToken);
             var deploymentDirectory = GetDeploymentDirectory(output, deployment);
@@ -992,14 +600,11 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             Directory.CreateDirectory(materializedDirectory);
 
             foreach (var sourceDirectory in Directory.EnumerateDirectories(
-                Path.Combine(deploymentDirectory, "sources")))
+                    Path.Combine(deploymentDirectory, "sources"))
+                .OrderBy(Path.GetFileName, StringComparer.Ordinal))
             {
                 var name = Path.GetFileName(sourceDirectory);
-                var sourceVersion = deployment.UseGitCommitAsSourceVersion
-                    ? await ReadGitCommitAsync(
-                        sourceDirectory,
-                        context.CancellationToken)
-                    : releaseId;
+                var sourceVersion = tag;
                 ValidatePathSegment(sourceVersion, "source version");
                 var schema = await File.ReadAllBytesAsync(
                     Path.Combine(sourceDirectory, "schema.graphqls"),
@@ -1084,7 +689,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 ConfigurationTag: deployment.ConfigurationTag
                     ?? $"{{{{{deployment.ConfigurationTagParameter!.Name}}}}}",
                 StageOwnership: "authoritative",
-                Sources: sourceNames.Order().ToArray());
+                Sources: sourceNames.Order(StringComparer.Ordinal).ToArray());
 
             await WriteJsonAtomicallyAsync(
                 Path.Combine(temporaryDirectory, "nitro-deployment-template.json"),
@@ -1337,103 +942,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         }
     }
 
-    private static async Task ComposeAsync(
-        string farPath,
-        IReadOnlyList<FusionSourceArtifact> artifacts,
-        GraphQLCompositionSettings settings,
-        PipelineStepContext context,
-        CancellationToken cancellationToken)
-    {
-        if (File.Exists(farPath))
-        {
-            File.Delete(farPath);
-        }
-
-        var logger = context.Services
-            .GetRequiredService<ILogger<SchemaComposition>>();
-        if (!await AspireCompositionHelper.TryComposeArchivesAsync(
-                farPath,
-                artifacts.Select(
-                        artifact => new SourceSchemaArchiveInfo(
-                            artifact.Name,
-                            artifact.ArchivePath))
-                    .ToArray(),
-                settings,
-                logger,
-                cancellationToken))
-        {
-            throw new InvalidOperationException(
-                "Fusion configuration composition failed.");
-        }
-    }
-
-    private static IReadOnlyList<FusionDeploymentResource>
-        GetSelectedManifestDeployments(PipelineStepContext context)
-    {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
-            context.Model,
-            environment);
-
-        if (deployments.Any(
-                deployment =>
-                    deployment.FusionReleaseManifestParameter is null))
-        {
-            throw new InvalidOperationException(
-                $"Aspire environment '{environment}' does not exclusively use "
-                + "promoted Fusion release manifests.");
-        }
-
-        return deployments;
-    }
-
-    private static async Task<string> ResolveSharedReleaseIdAsync(
-        IReadOnlyList<FusionDeploymentResource> deployments,
-        CancellationToken cancellationToken)
-    {
-        var releaseIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var deployment in deployments)
-        {
-            releaseIds.Add(
-                await ResolveConfigurationTagAsync(
-                    deployment,
-                    cancellationToken));
-        }
-
-        if (releaseIds.Count is not 1)
-        {
-            throw new InvalidOperationException(
-                "All promoted-manifest Fusion deployments must use the same release ID.");
-        }
-
-        return releaseIds.Single();
-    }
-
-    private static async Task<string> ResolveManifestPathAsync(
-        FusionDeploymentResource deployment,
-        CancellationToken cancellationToken)
-    {
-        var parameter = deployment.FusionReleaseManifestParameter
-            ?? throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' has no release manifest parameter.");
-        var value = await parameter.GetValueAsync(cancellationToken);
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' release manifest path resolved to an empty value.");
-        }
-
-        if (!Path.IsPathFullyQualified(value))
-        {
-            throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' release manifest path must be absolute.");
-        }
-
-        return Path.GetFullPath(value);
-    }
-
     internal static string ResolveCompositionEnvironment(
         FusionDeploymentResource deployment,
         GraphQLCompositionSettings settings)
@@ -1443,6 +951,25 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             ?? throw new InvalidOperationException(
                 $"Fusion deployment '{deployment.Name}' has no composition environment.");
 
+    private static void ValidateCompositionState(
+        FusionApplyState state,
+        FusionDeploymentResource deployment,
+        GraphQLCompositionSettings settings)
+    {
+        var expectedEnvironment = ResolveCompositionEnvironment(
+            deployment,
+            settings);
+        if (!string.Equals(
+                state.CompositionEnvironment,
+                expectedEnvironment,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                "The composed Fusion archive environment does not match "
+                + $"deployment '{deployment.Name}'.");
+        }
+    }
+
     internal static JsonDocument ResolveSourceSchemaSettings(
         JsonDocument settings,
         string environmentName)
@@ -1450,119 +977,61 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             settings,
             environmentName);
 
-    internal static void ValidateManifestSourceNames(
-        FusionReleaseManifest manifest,
-        IReadOnlyList<string> providerSourceNames)
+    internal static IReadOnlyList<string> GetSourceNames(
+        DistributedApplicationModel model)
     {
-        var duplicateProvider = providerSourceNames
+        var composition = FusionPipeline.GetCompositionResource(model);
+        var sourceNames = GraphQLResourceModel
+            .GetReferencedSourceSchemas(composition, model)
+            .Select(source =>
+                source.Declaration.SourceSchemaName
+                ?? source.Resource.Name)
+            .ToArray();
+        if (sourceNames.Length == 0)
+        {
+            throw new InvalidOperationException(
+                $"Fusion composition resource '{composition.Name}' has no declared source schemas.");
+        }
+
+        var duplicateProvider = sourceNames
             .GroupBy(name => name, StringComparer.Ordinal)
             .FirstOrDefault(group => group.Count() > 1);
         if (duplicateProvider is not null)
         {
             throw new InvalidOperationException(
-                "Multiple provider resources map to promoted Fusion source "
+                "Multiple provider resources map to Fusion source "
                 + $"'{duplicateProvider.Key}'.");
         }
 
-        var manifestNames = manifest.Sources
-            .Select(source => source.Name)
-            .ToHashSet(StringComparer.Ordinal);
-        var providerNames = providerSourceNames
-            .ToHashSet(StringComparer.Ordinal);
-        if (manifestNames.SetEquals(providerNames))
+        foreach (var sourceName in sourceNames)
         {
-            return;
+            ValidatePathSegment(sourceName, "source schema name");
         }
 
-        var missingProviders = manifestNames
-            .Except(providerNames, StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal);
-        var unexpectedProviders = providerNames
-            .Except(manifestNames, StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal);
-        throw new InvalidOperationException(
-            "The promoted Fusion source set does not match the AppHost provider "
-            + $"resources. Missing providers: [{string.Join(", ", missingProviders)}]. "
-            + $"Unexpected providers: [{string.Join(", ", unexpectedProviders)}].");
+        Array.Sort(sourceNames, StringComparer.Ordinal);
+        return sourceNames;
     }
 
-    internal static void ValidateReleaseManifestId(
-        FusionReleaseManifest manifest,
-        string expectedReleaseId)
+    private static async Task ValidateApplyStateAsync(
+        FusionApplyState state,
+        FusionDeploymentResource deployment,
+        PipelineStepContext context,
+        CancellationToken cancellationToken)
     {
+        var tag = await ResolveConfigurationTagAsync(
+            deployment,
+            cancellationToken);
+        var sourceNames = GetSourceNames(context.Model);
         if (!string.Equals(
-                manifest.ReleaseId,
-                expectedReleaseId,
+                state.Tag,
+                tag,
                 StringComparison.Ordinal))
         {
             throw new InvalidDataException(
-                $"Fusion release manifest ID '{manifest.ReleaseId}' does not "
-                + $"match expected release '{expectedReleaseId}'.");
+                $"Prepared Fusion tag '{state.Tag}' does not match configured tag '{tag}'.");
         }
-    }
 
-    internal static FusionReleaseTarget GetReleaseTarget(
-        FusionReleaseManifest manifest,
-        FusionDeploymentResource deployment)
-        => manifest.Targets.SingleOrDefault(target =>
-                string.Equals(
-                    target.CloudUrl.TrimEnd('/'),
-                    deployment.Nitro.CloudUrl!.TrimEnd('/'),
-                    StringComparison.OrdinalIgnoreCase)
-                && string.Equals(
-                    target.ApiId,
-                    deployment.Nitro.ApiId,
-                    StringComparison.Ordinal))
-            ?? throw new InvalidOperationException(
-                $"Fusion release '{manifest.ReleaseId}' was not uploaded to "
-                + $"Nitro API '{deployment.Nitro.ApiId}' at "
-                + $"'{deployment.Nitro.CloudUrl}'.");
-
-    private static bool TargetsMatch(
-        IReadOnlyList<FusionReleaseTarget> targets,
-        IReadOnlyList<FusionDeploymentResource> deployments)
-        => targets.Count == deployments.Count
-            && deployments.All(deployment =>
-                targets.Any(target =>
-                    string.Equals(
-                        target.CloudUrl.TrimEnd('/'),
-                        deployment.Nitro.CloudUrl!.TrimEnd('/'),
-                        StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(
-                        target.ApiId,
-                        deployment.Nitro.ApiId,
-                        StringComparison.Ordinal)));
-
-    private static async Task ValidateReleaseIdAsync(
-        FusionDeploymentResource deployment,
-        FusionReleaseManifest manifest,
-        CancellationToken cancellationToken)
-    {
-        var configuredReleaseId = await ResolveConfigurationTagAsync(
-            deployment,
-            cancellationToken);
         if (!string.Equals(
-                configuredReleaseId,
-                manifest.ReleaseId,
-                StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' selected release "
-                + $"'{configuredReleaseId}', but the promoted manifest contains "
-                + $"release '{manifest.ReleaseId}'.");
-        }
-    }
-
-    private static void ValidateApplyState(
-        FusionReleaseApplyState state,
-        FusionReleaseManifest manifest,
-        FusionDeploymentResource deployment)
-    {
-        if (!string.Equals(
-                state.ReleaseId,
-                manifest.ReleaseId,
-                StringComparison.Ordinal)
-            || !string.Equals(
                 state.CloudUrl.TrimEnd('/'),
                 deployment.Nitro.CloudUrl!.TrimEnd('/'),
                 StringComparison.OrdinalIgnoreCase)
@@ -1570,38 +1039,50 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 state.ApiId,
                 deployment.Nitro.ApiId,
                 StringComparison.Ordinal)
-            || state.Sources.Count != manifest.Sources.Count)
+            || state.Sources.Count != sourceNames.Count
+            || !state.Sources.Select(source => source.Name)
+                .SequenceEqual(sourceNames, StringComparer.Ordinal))
         {
             throw new InvalidDataException(
-                "Prepared Fusion release state for deployment "
-                + $"'{deployment.Name}' does not match the promoted manifest.");
+                $"Prepared Fusion state does not match deployment '{deployment.Name}'.");
         }
 
-        GetReleaseTarget(manifest, deployment);
-        foreach (var source in manifest.Sources)
+        var applyDirectory = GetApplyDirectory(
+            context.Services
+                .GetRequiredService<IPipelineOutputService>()
+                .GetOutputDirectory(),
+            deployment);
+        foreach (var source in state.Sources)
         {
-            var prepared = state.Sources.SingleOrDefault(candidate =>
-                string.Equals(
-                    candidate.Name,
-                    source.Name,
-                    StringComparison.Ordinal));
-            if (prepared is null
-                || !string.Equals(
-                    prepared.Version,
+            if (!string.Equals(
                     source.Version,
-                    StringComparison.Ordinal)
-                || !string.Equals(
-                    prepared.ContentSha256,
+                    tag,
+                    StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"Prepared Fusion source '{source.Name}' does not use tag '{tag}'.");
+            }
+
+            var archivePath = ResolveApplyPath(
+                applyDirectory,
+                source.ArchivePath);
+            var contentSha256 =
+                await FusionSourceSchemaContent.ComputeSha256Async(
+                    archivePath,
+                    source.Name,
+                    cancellationToken);
+            if (!string.Equals(
+                    contentSha256,
                     source.ContentSha256,
                     StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidDataException(
-                    $"Prepared Fusion source '{source.Name}' does not match the promoted manifest.");
+                    $"Prepared Fusion source '{source.Name}' content changed after download.");
             }
         }
     }
 
-    private static async Task<FusionReleaseApplyState> ReadApplyStateAsync(
+    private static async Task<FusionApplyState> ReadApplyStateAsync(
         string applyDirectory,
         CancellationToken cancellationToken)
     {
@@ -1611,17 +1092,32 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         if (!File.Exists(path))
         {
             throw new FileNotFoundException(
-                "The promoted Fusion release has not been prepared.",
+                "Fusion sources have not been downloaded.",
                 path);
         }
 
         await using var stream = File.OpenRead(path);
-        return await JsonSerializer.DeserializeAsync<FusionReleaseApplyState>(
+        var state = await JsonSerializer.DeserializeAsync<FusionApplyState>(
                 stream,
-                FusionReleaseStore.SerializerOptions,
+                s_jsonOptions,
                 cancellationToken)
             ?? throw new InvalidDataException(
-                "The promoted Fusion apply state is empty.");
+                "The Fusion apply state is empty.");
+        if (string.IsNullOrWhiteSpace(state.Tag)
+            || string.IsNullOrWhiteSpace(state.CloudUrl)
+            || string.IsNullOrWhiteSpace(state.ApiId)
+            || state.Sources is null
+            || state.Sources.Any(source =>
+                string.IsNullOrWhiteSpace(source.Name)
+                || string.IsNullOrWhiteSpace(source.Version)
+                || string.IsNullOrWhiteSpace(source.ArchivePath)
+                || string.IsNullOrWhiteSpace(source.ContentSha256)))
+        {
+            throw new InvalidDataException(
+                "The Fusion apply state is missing required content.");
+        }
+
+        return state;
     }
 
     private static string ResolveApplyPath(
@@ -1631,7 +1127,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         if (Path.IsPathFullyQualified(relativePath))
         {
             throw new InvalidDataException(
-                "A promoted Fusion apply path must be relative.");
+                "A Fusion apply path must be relative.");
         }
 
         var fullApplyDirectory = Path.GetFullPath(applyDirectory);
@@ -1643,7 +1139,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         if (!path.StartsWith(prefix, StringComparison.Ordinal))
         {
             throw new InvalidDataException(
-                "A promoted Fusion apply path escapes the apply output directory.");
+                "A Fusion apply path escapes the apply output directory.");
         }
 
         return path;
@@ -1706,42 +1202,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             new Uri(deployment.Nitro.CloudUrl!, UriKind.Absolute),
             deployment.Nitro.ApiId!,
             apiKey);
-    }
-
-    private static async Task WriteDeploymentManifestAsync(
-        FusionDeploymentResource deployment,
-        string releaseId,
-        IReadOnlyList<FusionSourceArtifact> artifacts,
-        PipelineStepContext context,
-        CancellationToken cancellationToken)
-    {
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
-        var manifest = new FusionDeploymentManifest(
-            FormatVersion: 1,
-            CloudUrl: deployment.Nitro.CloudUrl!,
-            ApiId: deployment.Nitro.ApiId!,
-            Environment: deployment.EnvironmentName!,
-            Stage: deployment.StageName!,
-            ConfigurationTag: releaseId,
-            StageOwnership: "authoritative",
-            Sources: artifacts.Select(
-                    artifact => new FusionDeploymentManifestSource(
-                        artifact.Name,
-                        artifact.Version,
-                        Path.GetRelativePath(
-                            GetDeploymentDirectory(output, deployment),
-                            artifact.ArchivePath),
-                        artifact.Sha256))
-                .ToArray());
-
-        await WriteJsonAtomicallyAsync(
-            Path.Combine(
-                GetDeploymentDirectory(output, deployment),
-                "nitro-deployment.json"),
-            manifest,
-            cancellationToken);
     }
 
     internal static Uri GetTransportEndpoint(JsonDocument settings)
@@ -1816,44 +1276,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         return value;
     }
 
-    private static async Task<string> ReadGitCommitAsync(
-        string sourceDirectory,
-        CancellationToken cancellationToken)
-    {
-        using var provenance = JsonDocument.Parse(
-            await File.ReadAllTextAsync(
-                Path.Combine(sourceDirectory, "provenance.json"),
-                cancellationToken));
-        var workingDirectory = provenance.RootElement
-            .GetProperty("workingDirectory")
-            .GetString()!;
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "git",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        startInfo.ArgumentList.Add("-C");
-        startInfo.ArgumentList.Add(workingDirectory);
-        startInfo.ArgumentList.Add("rev-parse");
-        startInfo.ArgumentList.Add("HEAD");
-
-        using var process = Process.Start(startInfo)
-            ?? throw new InvalidOperationException("Could not start Git.");
-        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
-
-        if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
-        {
-            throw new InvalidOperationException(
-                "Could not resolve the Git commit for a Fusion source version.");
-        }
-
-        return output.Trim();
-    }
-
     internal static void ValidatePathSegment(
         string value,
         string description)
@@ -1911,11 +1333,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 await JsonSerializer.SerializeAsync(
                     stream,
                     value,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        WriteIndented = true
-                    },
+                    s_jsonOptions,
                     cancellationToken);
             }
 
@@ -1934,11 +1352,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         string output,
         FusionDeploymentResource deployment)
         => Path.Combine(output, "fusion", deployment.Name);
-
-    private static string GetReleaseDirectory(
-        string output,
-        string releaseId)
-        => Path.Combine(output, "fusion", "releases", releaseId);
 
     private static string GetApplyDirectory(
         string output,
@@ -2019,34 +1432,16 @@ internal sealed record FusionSourceProvenance(
     bool LaunchProfile,
     string WorkingDirectory);
 
-internal sealed record FusionDeploymentManifest(
-    int FormatVersion,
-    string CloudUrl,
-    string ApiId,
-    string Environment,
-    string Stage,
-    string ConfigurationTag,
-    string StageOwnership,
-    IReadOnlyList<FusionDeploymentManifestSource> Sources);
-
-internal sealed record FusionDeploymentManifestSource(
-    string Name,
-    string SourceVersion,
-    string Archive,
-    string Sha256);
-
-internal sealed record FusionReleaseApplyState(
-    string ManifestPath,
-    string ManifestSha256,
-    string ReleaseId,
+internal sealed record FusionApplyState(
+    string Tag,
     string CloudUrl,
     string ApiId,
     string? CompositionEnvironment,
     string? FusionArchivePath,
     string? FusionArchiveSha256,
-    IReadOnlyList<FusionReleaseApplySource> Sources);
+    IReadOnlyList<FusionApplySource> Sources);
 
-internal sealed record FusionReleaseApplySource(
+internal sealed record FusionApplySource(
     string Name,
     string Version,
     string ArchivePath,

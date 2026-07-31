@@ -147,29 +147,6 @@ public static class NitroResourceBuilderExtensions
     }
 
     /// <summary>
-    /// Uses a promoted Fusion release manifest for this deployment.
-    /// </summary>
-    /// <remarks>
-    /// The parameter must resolve to the absolute path of <c>fusion-release.json</c>.
-    /// </remarks>
-    public static IResourceBuilder<FusionDeploymentResource> WithFusionReleaseManifest(
-        this IResourceBuilder<FusionDeploymentResource> builder,
-        IResourceBuilder<ParameterResource> manifestPath)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(manifestPath);
-
-        if (builder.Resource.UseGitCommitAsSourceVersion)
-        {
-            throw new InvalidOperationException(
-                "A promoted Fusion release cannot rediscover source versions from Git.");
-        }
-
-        builder.Resource.FusionReleaseManifestParameter = manifestPath.Resource;
-        return builder;
-    }
-
-    /// <summary>
     /// Sets the immutable release tag.
     /// </summary>
     public static IResourceBuilder<FusionDeploymentResource> WithConfigurationTag(
@@ -196,25 +173,6 @@ public static class NitroResourceBuilderExtensions
 
         builder.Resource.ConfigurationTag = configurationTag;
         builder.Resource.ConfigurationTagParameter = null;
-        return builder;
-    }
-
-    /// <summary>
-    /// Uses the current Git commit as the default source schema version.
-    /// </summary>
-    public static IResourceBuilder<FusionDeploymentResource>
-        WithDefaultSourceVersionFromGitCommit(
-            this IResourceBuilder<FusionDeploymentResource> builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        if (builder.Resource.FusionReleaseManifestParameter is not null)
-        {
-            throw new InvalidOperationException(
-                "A promoted Fusion release cannot rediscover source versions from Git.");
-        }
-
-        builder.Resource.UseGitCommitAsSourceVersion = true;
         return builder;
     }
 

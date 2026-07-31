@@ -12,8 +12,8 @@ namespace ChilliCream.Nitro.Aspire;
 internal static class FusionPipeline
 {
     internal const string ArtifactsStepName = "fusion-artifacts";
-    internal const string PrepareReleaseStepName = "fusion-release-prepare";
-    internal const string ComposeReleaseStepName = "fusion-compose";
+    internal const string DownloadStepName = "fusion-download";
+    internal const string ComposeStepName = "fusion-compose";
     internal const string ReadinessStepName = "fusion-readiness";
     internal const string UploadStepName = "fusion-upload";
     internal const string PublishStageStepName = "fusion-publish-stage";
@@ -67,45 +67,6 @@ internal static class FusionPipeline
         return deployments;
     }
 
-    internal static IReadOnlyList<FusionDeploymentResource>
-        GetManifestDeployments(DistributedApplicationModel model)
-    {
-        var deployments = model.Resources
-            .OfType<FusionDeploymentResource>()
-            .Where(deployment =>
-                deployment.FusionReleaseManifestParameter is not null)
-            .ToArray();
-
-        foreach (var deployment in deployments)
-        {
-            ValidateDeclaration(deployment);
-        }
-
-        return deployments;
-    }
-
-    internal static bool ShouldUseManifestProducer(
-        DistributedApplicationModel model,
-        string environmentName)
-    {
-        var selected = SelectDeployments(model, environmentName);
-        if (selected.Count > 0)
-        {
-            var manifestCount = selected.Count(deployment =>
-                deployment.FusionReleaseManifestParameter is not null);
-            if (manifestCount > 0 && manifestCount != selected.Count)
-            {
-                throw new InvalidOperationException(
-                    $"Aspire environment '{environmentName}' mixes "
-                    + "promoted-manifest and legacy Fusion deployments.");
-            }
-
-            return manifestCount > 0;
-        }
-
-        return GetManifestDeployments(model).Count > 0;
-    }
-
     internal static IResourceWithEndpoints GetCompositionResource(
         DistributedApplicationModel model)
     {
@@ -131,40 +92,14 @@ internal static class FusionPipeline
             context.PipelineContext.Model,
             environment);
 
-        topology.EnvironmentName = environment;
         topology.HasDeployments = deployments.Count > 0;
-        topology.BuildOnlyManifestProducer = deployments.Count == 0
-            && GetManifestDeployments(
-                context.PipelineContext.Model).Count > 0;
-        topology.UseManifestApply = deployments.Count > 0
-            && deployments.All(
-                deployment =>
-                    deployment.FusionReleaseManifestParameter is not null);
-
-        if (deployments.Any(
-                deployment =>
-                    deployment.FusionReleaseManifestParameter is not null)
-            && !topology.UseManifestApply)
-        {
-            throw new InvalidOperationException(
-                $"Aspire environment '{environment}' mixes promoted-manifest "
-                + "and legacy Fusion deployments.");
-        }
 
         return CreateStepDefinitions(context.Resource, topology);
     }
 
     internal static PipelineStep[] CreateStepDefinitionsForTest(
-        IResource resource,
-        bool useManifestApply = false,
-        bool buildOnlyManifestProducer = false)
-        => CreateStepDefinitions(
-            resource,
-            new FusionPipelineTopology
-            {
-                UseManifestApply = useManifestApply,
-                BuildOnlyManifestProducer = buildOnlyManifestProducer
-            });
+        IResource resource)
+        => CreateStepDefinitions(resource, new FusionPipelineTopology());
 
     private static PipelineStep[] CreateStepDefinitions(
         IResource resource,
@@ -190,102 +125,38 @@ internal static class FusionPipeline
             }
         };
 
-        if (topology.UseManifestApply)
-        {
-            return
-            [
-                .. buildSteps,
-                new PipelineStep
-                {
-                    Name = PrepareReleaseStepName,
-                    Description = "Download and verify a promoted Fusion release.",
-                    Resource = resource,
-                    Action = ExecutePrepareReleaseAsync
-                },
-                new PipelineStep
-                {
-                    Name = ComposeReleaseStepName,
-                    Description = "Compose the promoted Fusion release for this environment.",
-                    Resource = resource,
-                    DependsOnSteps = [PrepareReleaseStepName],
-                    Action = ExecuteComposeReleaseAsync
-                },
-                new PipelineStep
-                {
-                    Name = ReadinessStepName,
-                    Description = "Verify deployed Fusion source services are ready.",
-                    Resource = resource,
-                    DependsOnSteps = [ComposeReleaseStepName],
-                    Action = stepContext => ExecuteReadinessAsync(stepContext, topology)
-                },
-                new PipelineStep
-                {
-                    Name = PublishStageStepName,
-                    Description = "Publish the promoted Fusion configuration to Nitro.",
-                    Resource = resource,
-                    DependsOnSteps = [ReadinessStepName],
-                    Action = ExecutePublishAsync
-                },
-                new PipelineStep
-                {
-                    Name = PublishStepName,
-                    Description = "Complete the promoted Fusion deployment.",
-                    Resource = resource,
-                    DependsOnSteps = [PublishStageStepName],
-                    RequiredBySteps = [WellKnownPipelineSteps.Deploy],
-                    Action = _ => Task.CompletedTask
-                }
-            ];
-        }
-
-        if (topology.BuildOnlyManifestProducer)
-        {
-            return
-            [
-                .. buildSteps,
-                new PipelineStep
-                {
-                    Name = ReadinessStepName,
-                    Description = "Verify deployed Fusion source services are ready.",
-                    Resource = resource,
-                    Action = stepContext => ExecuteReadinessAsync(stepContext, topology)
-                },
-                new PipelineStep
-                {
-                    Name = PublishStageStepName,
-                    Description = "Publish a Fusion configuration to Nitro.",
-                    Resource = resource,
-                    DependsOnSteps = [ReadinessStepName],
-                    Action = ExecutePublishAsync
-                },
-                new PipelineStep
-                {
-                    Name = PublishStepName,
-                    Description = "Complete the Fusion deployment.",
-                    Resource = resource,
-                    DependsOnSteps = [PublishStageStepName],
-                    Action = _ => Task.CompletedTask
-                }
-            ];
-        }
-
         return
         [
             .. buildSteps,
             new PipelineStep
             {
+                Name = DownloadStepName,
+                Description = "Download exact Fusion source schema versions from Nitro.",
+                Resource = resource,
+                Action = ExecuteDownloadAsync
+            },
+            new PipelineStep
+            {
+                Name = ComposeStepName,
+                Description = "Compose the Fusion configuration for this environment.",
+                Resource = resource,
+                DependsOnSteps = [DownloadStepName],
+                Action = ExecuteComposeAsync
+            },
+            new PipelineStep
+            {
                 Name = ReadinessStepName,
                 Description = "Verify deployed Fusion source services are ready.",
                 Resource = resource,
-                DependsOnSteps = [ArtifactsStepName],
+                DependsOnSteps = [ComposeStepName],
                 Action = stepContext => ExecuteReadinessAsync(stepContext, topology)
             },
             new PipelineStep
             {
                 Name = PublishStageStepName,
-                Description = "Compose and publish the Fusion configuration to Nitro.",
+                Description = "Publish the Fusion configuration to Nitro.",
                 Resource = resource,
-                DependsOnSteps = [UploadStepName, ReadinessStepName],
+                DependsOnSteps = [ReadinessStepName],
                 Action = ExecutePublishAsync
             },
             new PipelineStep
@@ -313,6 +184,8 @@ internal static class FusionPipeline
         var sources = GraphQLResourceModel.GetReferencedSourceSchemas(
             composition,
             context.Model);
+        var download = context.Steps.Single(
+            step => step.Name == DownloadStepName);
         var readiness = context.Steps.Single(
             step => step.Name == ReadinessStepName);
         var stagePublication = context.Steps.Single(
@@ -336,6 +209,7 @@ internal static class FusionPipeline
 
             foreach (var computeStep in computeSteps)
             {
+                computeStep.DependsOn(download);
                 readiness.DependsOn(computeStep);
             }
         }
@@ -428,11 +302,11 @@ internal static class FusionPipeline
     private static Task ExecuteUploadAsync(PipelineStepContext context)
         => GetExecutor(context).UploadAsync(context);
 
-    private static Task ExecutePrepareReleaseAsync(PipelineStepContext context)
-        => GetExecutor(context).PrepareReleaseAsync(context);
+    private static Task ExecuteDownloadAsync(PipelineStepContext context)
+        => GetExecutor(context).DownloadAsync(context);
 
-    private static Task ExecuteComposeReleaseAsync(PipelineStepContext context)
-        => GetExecutor(context).ComposeReleaseAsync(context);
+    private static Task ExecuteComposeAsync(PipelineStepContext context)
+        => GetExecutor(context).ComposeAsync(context);
 
     private static Task ExecutePublishAsync(PipelineStepContext context)
         => GetExecutor(context).PublishAsync(context);
@@ -498,13 +372,7 @@ internal static class FusionPipeline
 
     private sealed class FusionPipelineTopology
     {
-        public string? EnvironmentName { get; set; }
-
         public bool HasDeployments { get; set; }
-
-        public bool UseManifestApply { get; set; }
-
-        public bool BuildOnlyManifestProducer { get; set; }
 
         public HashSet<string> ResourcesWithoutCompute { get; } =
             new(StringComparer.Ordinal);

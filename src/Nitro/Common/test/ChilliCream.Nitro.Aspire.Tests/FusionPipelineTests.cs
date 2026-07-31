@@ -40,43 +40,6 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
-    public void WithFusionReleaseManifest_Should_ConfigureExactParameterAndCompositionEnvironment()
-    {
-        var builder = DistributedApplication.CreateBuilder();
-        var manifest = builder.AddParameter("fusionReleaseManifest");
-        var deployment = builder
-            .AddNitroTarget("nitro")
-            .AddFusionDeployment("production")
-            .WithFusionReleaseManifest(manifest)
-            .WithCompositionEnvironment("prod");
-
-        Assert.Same(
-            manifest.Resource,
-            deployment.Resource.FusionReleaseManifestParameter);
-        Assert.Equal(
-            "prod",
-            deployment.Resource.CompositionEnvironmentName);
-    }
-
-    [Fact]
-    public void WithDefaultSourceVersionFromGitCommit_Should_Fail_WhenManifestIsConfigured()
-    {
-        var builder = DistributedApplication.CreateBuilder();
-        var deployment = builder
-            .AddNitroTarget("nitro")
-            .AddFusionDeployment("production")
-            .WithFusionReleaseManifest(
-                builder.AddParameter("fusionReleaseManifest"));
-
-        var exception = Assert.Throws<InvalidOperationException>(
-            deployment.WithDefaultSourceVersionFromGitCommit);
-
-        Assert.Equal(
-            "A promoted Fusion release cannot rediscover source versions from Git.",
-            exception.Message);
-    }
-
-    [Fact]
     public void WithCloudUrl_Should_Fail_WhenUrlContainsCaseSensitivePath()
     {
         var builder = DistributedApplication.CreateBuilder();
@@ -115,38 +78,41 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
-    public void ShouldUseManifestProducer_Should_PreserveLegacyMode_WhenAnotherEnvironmentUsesManifest()
+    public void GetSourceNames_Should_Fail_WhenEffectiveNamesAreDuplicated()
     {
+        using var testDirectory = new TestDirectory();
+        var productsProject = Path.Combine(
+            testDirectory.Path,
+            "Products.csproj");
+        var reviewsProject = Path.Combine(
+            testDirectory.Path,
+            "Reviews.csproj");
+        var gatewayProject = Path.Combine(
+            testDirectory.Path,
+            "Gateway.csproj");
+        File.WriteAllText(productsProject, "<Project />");
+        File.WriteAllText(reviewsProject, "<Project />");
+        File.WriteAllText(gatewayProject, "<Project />");
         var builder = DistributedApplication.CreateBuilder();
-        var nitro = builder
-            .AddNitroTarget("nitro")
-            .WithCloudUrl("https://api.chillicream.com")
-            .WithApiId("products");
-        nitro
-            .AddFusionDeployment("development")
-            .ForEnvironment("Development")
-            .ToStage("development")
-            .WithConfigurationTag("release-1");
-        nitro
-            .AddFusionDeployment("production")
-            .ForEnvironment("Production")
-            .ToStage("production")
-            .WithConfigurationTag("release-1")
-            .WithFusionReleaseManifest(
-                builder.AddParameter("fusionReleaseManifest"));
+        var products = builder
+            .AddProject("products", productsProject)
+            .WithGraphQLSchemaFile(sourceSchemaName: "shared");
+        var reviews = builder
+            .AddProject("reviews", reviewsProject)
+            .WithGraphQLSchemaFile(sourceSchemaName: "shared");
+        builder
+            .AddProject("gateway", gatewayProject)
+            .WithReference(products)
+            .WithReference(reviews)
+            .WithGraphQLSchemaComposition();
         var model = new DistributedApplicationModel(builder.Resources);
 
-        string.Join(
-                Environment.NewLine,
-                $"Development: {FusionPipeline.ShouldUseManifestProducer(model, "Development")}",
-                $"Production: {FusionPipeline.ShouldUseManifestProducer(model, "Production")}",
-                $"Release: {FusionPipeline.ShouldUseManifestProducer(model, "Release")}")
-            .MatchInlineSnapshot(
-                """
-                Development: False
-                Production: True
-                Release: True
-                """);
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionPipelineExecutor.GetSourceNames(model));
+
+        Assert.Equal(
+            "Multiple provider resources map to Fusion source 'shared'.",
+            exception.Message);
     }
 
     [Fact]
@@ -194,32 +160,8 @@ public sealed class FusionPipelineTests
                 """
                 fusion-artifacts: depends=[]; requiredBy=[publish]
                 fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
-                fusion-readiness: depends=[fusion-artifacts]; requiredBy=[]
-                fusion-publish-stage: depends=[fusion-upload, fusion-readiness]; requiredBy=[]
-                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[deploy]
-                """);
-    }
-
-    [Fact]
-    public void CreateStepDefinitions_Should_IsolateManifestApplyFromBuildSteps()
-    {
-        var resource = new FusionPipelineResource("fusion-pipeline");
-
-        var steps = FusionPipeline.CreateStepDefinitionsForTest(
-            resource,
-            useManifestApply: true);
-
-        string.Join(
-                Environment.NewLine,
-                steps.Select(step =>
-                    $"{step.Name}: depends=[{string.Join(", ", step.DependsOnSteps)}]; "
-                    + $"requiredBy=[{string.Join(", ", step.RequiredBySteps)}]"))
-            .MatchInlineSnapshot(
-                """
-                fusion-artifacts: depends=[]; requiredBy=[publish]
-                fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
-                fusion-release-prepare: depends=[]; requiredBy=[]
-                fusion-compose: depends=[fusion-release-prepare]; requiredBy=[]
+                fusion-download: depends=[]; requiredBy=[]
+                fusion-compose: depends=[fusion-download]; requiredBy=[]
                 fusion-readiness: depends=[fusion-compose]; requiredBy=[]
                 fusion-publish-stage: depends=[fusion-readiness]; requiredBy=[]
                 fusion-publish: depends=[fusion-publish-stage]; requiredBy=[deploy]
@@ -227,11 +169,11 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
-    public void CreateStepDefinitions_Should_NotReachExportGitOrUpload_WhenApplyingManifest()
+    public void CreateStepDefinitions_Should_IsolatePublishFromUploadSteps()
     {
-        var steps = FusionPipeline.CreateStepDefinitionsForTest(
-            new FusionPipelineResource("fusion-pipeline"),
-            useManifestApply: true);
+        var resource = new FusionPipelineResource("fusion-pipeline");
+
+        var steps = FusionPipeline.CreateStepDefinitionsForTest(resource);
         var stepsByName = steps.ToDictionary(
             step => step.Name,
             StringComparer.Ordinal);
@@ -245,31 +187,9 @@ public sealed class FusionPipelineTests
             .MatchInlineSnapshot(
                 """
                 fusion-compose
+                fusion-download
                 fusion-publish-stage
                 fusion-readiness
-                fusion-release-prepare
-                """);
-    }
-
-    [Fact]
-    public void CreateStepDefinitions_Should_NotAttachPublishToDeploy_WhenEnvironmentIsBuildOnly()
-    {
-        var steps = FusionPipeline.CreateStepDefinitionsForTest(
-            new FusionPipelineResource("fusion-pipeline"),
-            buildOnlyManifestProducer: true);
-
-        string.Join(
-                Environment.NewLine,
-                steps.Select(step =>
-                    $"{step.Name}: depends=[{string.Join(", ", step.DependsOnSteps)}]; "
-                    + $"requiredBy=[{string.Join(", ", step.RequiredBySteps)}]"))
-            .MatchInlineSnapshot(
-                """
-                fusion-artifacts: depends=[]; requiredBy=[publish]
-                fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
-                fusion-readiness: depends=[]; requiredBy=[]
-                fusion-publish-stage: depends=[fusion-readiness]; requiredBy=[]
-                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[]
                 """);
     }
 
@@ -483,64 +403,6 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
-    public async Task WriteFinalAsync_Should_PreserveExistingManifest_WhenContentChanges()
-    {
-        using var testDirectory = new TestDirectory();
-        var manifest = CreateReleaseManifest();
-        await FusionReleaseStore.WriteFinalAsync(
-            testDirectory.Path,
-            manifest,
-            TestContext.Current.CancellationToken);
-        var manifestPath = Path.Combine(
-            testDirectory.Path,
-            "fusion-release.json");
-        var original = await File.ReadAllBytesAsync(
-            manifestPath,
-            TestContext.Current.CancellationToken);
-
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => FusionReleaseStore.WriteFinalAsync(
-                testDirectory.Path,
-                manifest with { ReleaseId = "release-2" },
-                TestContext.Current.CancellationToken));
-
-        Assert.Equal(
-            $"Fusion release manifest '{manifestPath}' already exists with different content.",
-            exception.Message);
-        Assert.Equal(
-            original,
-            await File.ReadAllBytesAsync(
-                manifestPath,
-                TestContext.Current.CancellationToken));
-    }
-
-    [Fact]
-    public async Task VerifyArchiveAsync_Should_Fail_WhenArtifactIntegrityDoesNotMatch()
-    {
-        using var testDirectory = new TestDirectory();
-        var manifest = CreateReleaseManifest();
-        var source = Assert.Single(manifest.Sources);
-        var archivePath = Path.Combine(
-            testDirectory.Path,
-            source.ArchivePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(archivePath)!);
-        await File.WriteAllTextAsync(
-            archivePath,
-            "tampered",
-            TestContext.Current.CancellationToken);
-
-        var exception = await Assert.ThrowsAsync<InvalidDataException>(
-            () => FusionReleaseStore.VerifyArchiveAsync(
-                archivePath,
-                source,
-                TestContext.Current.CancellationToken));
-
-        Assert.Equal(
-            "Fusion source 'products' archive SHA-256 does not match the release manifest.",
-            exception.Message);
-    }
-
-    [Fact]
     public async Task VerifyFileDigestAsync_Should_Fail_WhenComposedArchiveChanges()
     {
         using var testDirectory = new TestDirectory();
@@ -561,195 +423,6 @@ public sealed class FusionPipelineTests
 
         Assert.Equal(
             "The composed Fusion archive SHA-256 does not match prepared apply state.",
-            exception.Message);
-    }
-
-    [Fact]
-    public async Task ReadFinalAsync_Should_Fail_WhenManifestPathIsRelative()
-    {
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => FusionReleaseStore.ReadFinalAsync(
-                "fusion-release.json",
-                TestContext.Current.CancellationToken));
-
-        Assert.Equal(
-            "The Fusion release manifest parameter must resolve to an absolute path.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void ValidateCompositionToolVersion_Should_Fail_WhenVersionDoesNotMatch()
-    {
-        var manifest = CreateReleaseManifest() with
-        {
-            CompositionToolVersion = "incompatible"
-        };
-
-        var exception = Assert.Throws<InvalidDataException>(
-            () => FusionReleaseCompatibility.ValidateCompositionToolVersion(
-                manifest));
-
-        Assert.Equal(
-            "Fusion release 'release-1' was created with composition tool "
-            + "version 'incompatible', but apply is running version "
-            + $"'{FusionReleaseCompatibility.CompositionToolVersion}'.",
-            exception.Message);
-    }
-
-    [Fact]
-    public async Task ReadFinalAsync_Should_ReturnInvalidData_WhenRequiredJsonIsNull()
-    {
-        using var testDirectory = new TestDirectory();
-        var manifestPath = Path.Combine(
-            testDirectory.Path,
-            "fusion-release.json");
-        await File.WriteAllTextAsync(
-            manifestPath,
-            """
-            {
-              "formatVersion": 1,
-              "releaseId": "release-1",
-              "sourceSetSha256": null,
-              "composition": null,
-              "sources": null,
-              "targets": null
-            }
-            """,
-            TestContext.Current.CancellationToken);
-
-        var exception = await Assert.ThrowsAsync<InvalidDataException>(
-            () => FusionReleaseStore.ReadFinalAsync(
-                manifestPath,
-                TestContext.Current.CancellationToken));
-
-        Assert.Equal(
-            "The Fusion release manifest is missing required content.",
-            exception.Message);
-    }
-
-    [Theory]
-    [InlineData(
-        "\"name\": \"products\"",
-        "\"name\": null",
-        "The Fusion release manifest contains an invalid source.")]
-    [InlineData(
-        "\"cloudUrl\": \"https://api.chillicream.com\"",
-        "\"cloudUrl\": null",
-        "The Fusion release manifest contains an invalid target.")]
-    [InlineData(
-        "\"apiId\": \"products\"",
-        "\"apiId\": null",
-        "The Fusion release manifest contains an invalid target.")]
-    public async Task ReadFinalAsync_Should_ReturnInvalidData_WhenNestedStringIsNull(
-        string oldValue,
-        string newValue,
-        string expectedMessage)
-    {
-        using var testDirectory = new TestDirectory();
-        var manifestPath = Path.Combine(
-            testDirectory.Path,
-            "fusion-release.json");
-        var json = JsonSerializer.Serialize(
-                CreateReleaseManifest(),
-                FusionReleaseStore.SerializerOptions)
-            .Replace(
-                oldValue,
-                newValue,
-                StringComparison.Ordinal);
-        await File.WriteAllTextAsync(
-            manifestPath,
-            json,
-            TestContext.Current.CancellationToken);
-
-        var exception = await Assert.ThrowsAsync<InvalidDataException>(
-            () => FusionReleaseStore.ReadFinalAsync(
-                manifestPath,
-                TestContext.Current.CancellationToken));
-
-        Assert.Equal(expectedMessage, exception.Message);
-    }
-
-    [Fact]
-    public void Validate_Should_Fail_WhenArchivePathEscapesRelease()
-    {
-        var manifest = CreateReleaseManifest();
-        var source = Assert.Single(manifest.Sources);
-        var invalidSource = source with
-        {
-            ArchivePath = "../secret.zip"
-        };
-        var invalidSources = new[] { invalidSource };
-        var sourceSetSha256 =
-            FusionReleaseDigests.ComputeSourceSetSha256(invalidSources);
-
-        var exception = Assert.Throws<InvalidDataException>(
-            () => FusionReleaseStore.Validate(
-                manifest with
-                {
-                    SourceSetSha256 = sourceSetSha256,
-                    Sources = invalidSources,
-                    Targets =
-                    [
-                        manifest.Targets[0] with
-                        {
-                            SourceSetSha256 = sourceSetSha256
-                        }
-                    ]
-                },
-                requireTargets: true));
-
-        Assert.Equal(
-            "Fusion source 'products' archive path must remain inside the release.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void GetReleaseTarget_Should_Fail_WhenManifestWasNotUploadedToSelectedApi()
-    {
-        var deployment = new FusionDeploymentResource(
-            "production",
-            new NitroResource("nitro")
-            {
-                CloudUrl = "https://api.chillicream.com",
-                ApiId = "other-api"
-            });
-
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => FusionPipelineExecutor.GetReleaseTarget(
-                CreateReleaseManifest(),
-                deployment));
-
-        Assert.Equal(
-            "Fusion release 'release-1' was not uploaded to Nitro API "
-            + "'other-api' at 'https://api.chillicream.com'.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void ValidateManifestSourceNames_Should_Fail_WhenProviderGraphDrifts()
-    {
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => FusionPipelineExecutor.ValidateManifestSourceNames(
-                CreateReleaseManifest(),
-                ["reviews"]));
-
-        Assert.Equal(
-            "The promoted Fusion source set does not match the AppHost provider "
-            + "resources. Missing providers: [products]. Unexpected providers: [reviews].",
-            exception.Message);
-    }
-
-    [Fact]
-    public void ValidateReleaseManifestId_Should_Fail_WhenDraftIsInWrongReleaseDirectory()
-    {
-        var exception = Assert.Throws<InvalidDataException>(
-            () => FusionPipelineExecutor.ValidateReleaseManifestId(
-                CreateReleaseManifest(),
-                "release-2"));
-
-        Assert.Equal(
-            "Fusion release manifest ID 'release-1' does not match expected "
-            + "release 'release-2'.",
             exception.Message);
     }
 
@@ -957,45 +630,6 @@ public sealed class FusionPipelineTests
             .GetProperty("http")
             .GetProperty("url")
             .GetString()!;
-
-    private static FusionReleaseManifest CreateReleaseManifest()
-    {
-        var compositionSettings =
-            FusionReleaseCompositionSettings.From(
-                new GraphQLCompositionSettings());
-        var source = new FusionReleaseSource(
-            "products",
-            "release-1",
-            "sources/products/release-1.zip",
-            new string('a', 64),
-            new string('b', 64));
-        var sources = new[] { source };
-        var sourceSetSha256 =
-            FusionReleaseDigests.ComputeSourceSetSha256(sources);
-
-        return new FusionReleaseManifest(
-            FusionReleaseManifest.CurrentFormatVersion,
-            "release-1",
-            FusionReleaseCompatibility.CompositionToolVersion,
-            sourceSetSha256,
-            new FusionReleaseComposition(
-                FusionReleaseDigests.ComputeCompositionSha256(
-                    compositionSettings),
-                compositionSettings),
-            sources,
-            [
-                new FusionReleaseTarget(
-                    "https://api.chillicream.com",
-                    "products",
-                    sourceSetSha256,
-                    [
-                        new FusionReleaseSourceReference(
-                            source.Name,
-                            source.Version,
-                            source.ContentSha256)
-                    ])
-            ]);
-    }
 
     private sealed class TestDirectory : IDisposable
     {

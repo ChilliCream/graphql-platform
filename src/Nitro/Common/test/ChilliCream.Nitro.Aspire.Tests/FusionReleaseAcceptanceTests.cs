@@ -20,7 +20,7 @@ namespace ChilliCream.Nitro.Aspire;
 public sealed class FusionReleaseAcceptanceTests
 {
     [Fact]
-    public async Task Release_Should_BuildOnceAndApplyFromOnlyManifestAcrossRunners()
+    public async Task Release_Should_UploadOnceAndPublishFromNitroAcrossRunners()
     {
         using var testDirectory = new TestDirectory();
         var sourceCheckout = Path.Combine(
@@ -33,93 +33,54 @@ public sealed class FusionReleaseAcceptanceTests
         var runnerC = Path.Combine(testDirectory.Path, "unrelated-runner-c");
         Directory.CreateDirectory(sourceCheckout);
 
-        var sourceProjectPath = Path.Combine(
+        var productsProjectPath = await CreateSourceCheckoutAsync(
             sourceCheckout,
-            "Products.csproj");
+            "Products",
+            "products",
+            "Product");
+        var reviewsProjectPath = await CreateSourceCheckoutAsync(
+            sourceCheckout,
+            "Reviews",
+            "reviews",
+            "Review");
+        var gatewayDirectory = Path.Combine(sourceCheckout, "Gateway");
+        Directory.CreateDirectory(gatewayDirectory);
         var gatewayProjectPath = Path.Combine(
-            sourceCheckout,
+            gatewayDirectory,
             "Gateway.csproj");
-        await File.WriteAllTextAsync(
-            sourceProjectPath,
-            "<Project Sdk=\"Microsoft.NET.Sdk\" />",
-            TestContext.Current.CancellationToken);
         await File.WriteAllTextAsync(
             gatewayProjectPath,
             "<Project Sdk=\"Microsoft.NET.Sdk\" />",
-            TestContext.Current.CancellationToken);
-        await File.WriteAllTextAsync(
-            Path.Combine(sourceCheckout, "schema.graphqls"),
-            """
-            type Query {
-              product: Product
-            }
-
-            type Product {
-              id: ID!
-              name: String!
-            }
-            """,
-            TestContext.Current.CancellationToken);
-        await File.WriteAllTextAsync(
-            Path.Combine(sourceCheckout, "schema-settings.json"),
-            """
-            {
-              "name": "products",
-              "transports": {
-                "http": {
-                  "url": "{{PRODUCTS_URL}}/graphql"
-                }
-              },
-              "environments": {
-                "staging": {
-                  "PRODUCTS_URL": "https://products.staging.example.com"
-                },
-                "production": {
-                  "PRODUCTS_URL": "https://products.example.com"
-                }
-              }
-            }
-            """,
             TestContext.Current.CancellationToken);
 
         var workflow = new RecordingFusionDeploymentWorkflow();
         var executor = FusionPipelineExecutor.Instance;
-        var buildManifestPath = Path.Combine(
-            runnerAOutput,
-            "fusion",
-            "releases",
-            "release-1",
-            "fusion-release.json");
         var buildModel = CreateModel(
-            sourceProjectPath,
-            gatewayProjectPath,
-            buildManifestPath);
+            productsProjectPath,
+            reviewsProjectPath,
+            gatewayProjectPath);
         var buildContext = CreateContext(
             buildModel,
-            "Release",
+            "Development",
             runnerAOutput,
             workflow);
 
         await executor.CreateArtifactsAsync(buildContext);
         await executor.UploadAsync(buildContext);
 
-        var reconcile = Assert.Single(workflow.Reconciliations);
-        Assert.Equal("products", reconcile.Name);
-        Assert.Equal("release-1", reconcile.Version);
-        Assert.True(File.Exists(buildManifestPath));
-        var manifest = await FusionReleaseStore.ReadFinalAsync(
-            buildManifestPath,
-            TestContext.Current.CancellationToken);
-        Assert.Equal(
-            FusionReleaseCompatibility.CompositionToolVersion,
-            manifest.CompositionToolVersion);
+        Assert.Collection(
+            workflow.Reconciliations.OrderBy(source => source.Name),
+            products =>
+            {
+                Assert.Equal("products", products.Name);
+                Assert.Equal("release-1", products.Version);
+            },
+            reviews =>
+            {
+                Assert.Equal("reviews", reviews.Name);
+                Assert.Equal("release-1", reviews.Version);
+            });
 
-        var runnerBManifestPath = CopyOnlyFinalManifest(
-            buildManifestPath,
-            runnerB);
-        var runnerCManifestPath = CopyOnlyFinalManifest(
-            buildManifestPath,
-            runnerC);
         var runnerBProjects = await CreateAppHostProjectStubsAsync(runnerB);
         var runnerCProjects = await CreateAppHostProjectStubsAsync(runnerC);
         Directory.Delete(sourceCheckout, recursive: true);
@@ -127,75 +88,133 @@ public sealed class FusionReleaseAcceptanceTests
 
         var stagingContext = CreateContext(
             CreateModel(
-                runnerBProjects.SourceProjectPath,
-                runnerBProjects.GatewayProjectPath,
-                runnerBManifestPath),
-            "Staging",
+                runnerBProjects.ProductsProjectPath,
+                runnerBProjects.ReviewsProjectPath,
+                runnerBProjects.GatewayProjectPath),
+            "Development",
             Path.Combine(runnerB, "apply-output"),
             workflow);
-        await executor.PrepareReleaseAsync(stagingContext);
-        await executor.ComposeReleaseAsync(stagingContext);
+        await executor.DownloadAsync(stagingContext);
+        await executor.ComposeAsync(stagingContext);
         await executor.PublishAsync(stagingContext);
 
         var productionContext = CreateContext(
             CreateModel(
-                runnerCProjects.SourceProjectPath,
-                runnerCProjects.GatewayProjectPath,
-                runnerCManifestPath),
-            "Production",
+                runnerCProjects.ProductsProjectPath,
+                runnerCProjects.ReviewsProjectPath,
+                runnerCProjects.GatewayProjectPath),
+            "Test",
             Path.Combine(runnerC, "different-apply-output"),
             workflow);
-        await executor.PrepareReleaseAsync(productionContext);
-        await executor.ComposeReleaseAsync(productionContext);
+        await executor.DownloadAsync(productionContext);
+        await executor.ComposeAsync(productionContext);
         await executor.PublishAsync(productionContext);
 
-        Assert.Single(workflow.Reconciliations);
-        Assert.Equal(2, workflow.Downloads.Count);
+        Assert.Equal(2, workflow.Reconciliations.Count);
+        Assert.Equal(
+            [
+                new FusionSourceSchemaVersion("products", "release-1"),
+                new FusionSourceSchemaVersion("products", "release-1"),
+                new FusionSourceSchemaVersion("reviews", "release-1"),
+                new FusionSourceSchemaVersion("reviews", "release-1")
+            ],
+            workflow.Downloads.OrderBy(source => source.Name));
         Assert.Collection(
             workflow.Publications.OrderBy(
                 publication => publication.Stage,
                 StringComparer.Ordinal),
-            production =>
+            development =>
             {
-                Assert.Equal("production", production.Stage);
+                Assert.Equal("development", development.Stage);
                 Assert.Equal(
-                    "https://products.example.com/graphql",
-                    production.SourceUrl);
+                    new Dictionary<string, string>
+                    {
+                        ["products"] = "https://products.development.example.com/graphql",
+                        ["reviews"] = "https://reviews.development.example.com/graphql"
+                    },
+                    development.SourceUrls);
                 Assert.Equal(
-                    [new FusionSourceSchemaVersion("products", "release-1")],
-                    production.Sources);
+                    [
+                        new FusionSourceSchemaVersion("products", "release-1"),
+                        new FusionSourceSchemaVersion("reviews", "release-1")
+                    ],
+                    development.Sources);
             },
-            staging =>
+            test =>
             {
-                Assert.Equal("staging", staging.Stage);
+                Assert.Equal("test", test.Stage);
                 Assert.Equal(
-                    "https://products.staging.example.com/graphql",
-                    staging.SourceUrl);
+                    new Dictionary<string, string>
+                    {
+                        ["products"] = "https://products.test.example.com/graphql",
+                        ["reviews"] = "https://reviews.test.example.com/graphql"
+                    },
+                    test.SourceUrls);
                 Assert.Equal(
-                    [new FusionSourceSchemaVersion("products", "release-1")],
-                    staging.Sources);
+                    [
+                        new FusionSourceSchemaVersion("products", "release-1"),
+                        new FusionSourceSchemaVersion("reviews", "release-1")
+                    ],
+                    test.Sources);
             });
     }
 
+    [Fact]
+    public async Task Download_Should_FailWithoutApplyState_WhenExactSourceIsMissing()
+    {
+        using var testDirectory = new TestDirectory();
+        var projects = await CreateAppHostProjectStubsAsync(
+            testDirectory.Path);
+        var output = Path.Combine(testDirectory.Path, "apply-output");
+        var workflow = new RecordingFusionDeploymentWorkflow();
+        var context = CreateContext(
+            CreateModel(
+                projects.ProductsProjectPath,
+                projects.ReviewsProjectPath,
+                projects.GatewayProjectPath),
+            "Development",
+            output,
+            workflow);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => FusionPipelineExecutor.Instance.DownloadAsync(context));
+
+        Assert.Equal(
+            "Fusion source 'products' version 'release-1' does not exist on target 'products'.",
+            exception.Message);
+        Assert.False(
+            File.Exists(
+                Path.Combine(
+                    output,
+                    "fusion",
+                    "apply",
+                    "development",
+                    "fusion-apply.json")));
+        Assert.Empty(workflow.Reconciliations);
+        Assert.Empty(workflow.Publications);
+    }
+
     private static DistributedApplicationModel CreateModel(
-        string sourceProjectPath,
-        string gatewayProjectPath,
-        string manifestPath)
+        string productsProjectPath,
+        string reviewsProjectPath,
+        string gatewayProjectPath)
     {
         var builder = DistributedApplication.CreateBuilder();
-        var manifest = builder.AddParameter(
-            "fusionReleaseManifest",
-            manifestPath);
+        var tag = builder.AddParameter("tag", "release-1");
         var apiKey = builder.AddParameter(
             "nitroApiKey",
             "test-api-key",
             secret: true);
         var products = builder
-            .AddProject("products", sourceProjectPath)
+            .AddProject("products", productsProjectPath)
+            .WithGraphQLSchemaFile();
+        var reviews = builder
+            .AddProject("reviews", reviewsProjectPath)
             .WithGraphQLSchemaFile();
         builder
             .AddProject("gateway", gatewayProjectPath)
             .WithReference(products)
+            .WithReference(reviews)
             .WithGraphQLSchemaComposition();
         var nitro = builder
             .AddNitroTarget("nitro")
@@ -203,19 +222,17 @@ public sealed class FusionReleaseAcceptanceTests
             .WithApiId("products")
             .WithApiKey(apiKey);
         nitro
-            .AddFusionDeployment("staging")
-            .ForEnvironment("Staging")
-            .ToStage("staging")
-            .WithCompositionEnvironment("staging")
-            .WithConfigurationTag("release-1")
-            .WithFusionReleaseManifest(manifest);
+            .AddFusionDeployment("development")
+            .ForEnvironment("Development")
+            .ToStage("development")
+            .WithCompositionEnvironment("development")
+            .WithConfigurationTag(tag);
         nitro
-            .AddFusionDeployment("production")
-            .ForEnvironment("Production")
-            .ToStage("production")
-            .WithCompositionEnvironment("production")
-            .WithConfigurationTag("release-1")
-            .WithFusionReleaseManifest(manifest);
+            .AddFusionDeployment("test")
+            .ForEnvironment("Test")
+            .ToStage("test")
+            .WithCompositionEnvironment("test")
+            .WithConfigurationTag(tag);
 
         return new DistributedApplicationModel(builder.Resources);
     }
@@ -260,41 +277,90 @@ public sealed class FusionReleaseAcceptanceTests
         };
     }
 
-    private static string CopyOnlyFinalManifest(
-        string sourceManifestPath,
-        string runnerPath)
+    private static async Task<string> CreateSourceCheckoutAsync(
+        string checkout,
+        string projectName,
+        string sourceName,
+        string typeName)
     {
-        var promotedDirectory = Path.Combine(runnerPath, "promoted");
-        Directory.CreateDirectory(promotedDirectory);
-        var destination = Path.Combine(
-            promotedDirectory,
-            "fusion-release.json");
-        File.Copy(sourceManifestPath, destination);
+        var sourceDirectory = Path.Combine(checkout, projectName);
+        Directory.CreateDirectory(sourceDirectory);
+        var projectPath = Path.Combine(
+            sourceDirectory,
+            $"{projectName}.csproj");
+        await File.WriteAllTextAsync(
+            projectPath,
+            "<Project Sdk=\"Microsoft.NET.Sdk\" />",
+            TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            Path.Combine(sourceDirectory, "schema.graphqls"),
+            $$"""
+            type Query {
+              {{sourceName}}: {{typeName}}
+            }
 
-        Assert.Equal(
-            [destination],
-            Directory.GetFiles(
-                promotedDirectory,
-                "*",
-                SearchOption.AllDirectories));
-        return destination;
+            type {{typeName}} {
+              id: ID!
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        var settings = """
+            {
+              "name": "SOURCE_NAME",
+              "transports": {
+                "http": {
+                  "url": "{{SOURCE_URL}}/graphql"
+                }
+              },
+              "environments": {
+                "development": {
+                  "SOURCE_URL": "https://SOURCE_NAME.development.example.com"
+                },
+                "test": {
+                  "SOURCE_URL": "https://SOURCE_NAME.test.example.com"
+                }
+              }
+            }
+            """.Replace(
+                "SOURCE_NAME",
+                sourceName,
+                StringComparison.Ordinal);
+        await File.WriteAllTextAsync(
+            Path.Combine(sourceDirectory, "schema-settings.json"),
+            settings,
+            TestContext.Current.CancellationToken);
+        return projectPath;
     }
 
     private static async Task<(
-        string SourceProjectPath,
+        string ProductsProjectPath,
+        string ReviewsProjectPath,
         string GatewayProjectPath)> CreateAppHostProjectStubsAsync(
             string runnerPath)
     {
         var appHostDirectory = Path.Combine(runnerPath, "apphost-model");
         Directory.CreateDirectory(appHostDirectory);
-        var sourceProjectPath = Path.Combine(
-            appHostDirectory,
+        var productsDirectory = Path.Combine(appHostDirectory, "Products");
+        var reviewsDirectory = Path.Combine(appHostDirectory, "Reviews");
+        var gatewayDirectory = Path.Combine(appHostDirectory, "Gateway");
+        Directory.CreateDirectory(productsDirectory);
+        Directory.CreateDirectory(reviewsDirectory);
+        Directory.CreateDirectory(gatewayDirectory);
+        var productsProjectPath = Path.Combine(
+            productsDirectory,
             "Products.csproj");
+        var reviewsProjectPath = Path.Combine(
+            reviewsDirectory,
+            "Reviews.csproj");
         var gatewayProjectPath = Path.Combine(
-            appHostDirectory,
+            gatewayDirectory,
             "Gateway.csproj");
         await File.WriteAllTextAsync(
-            sourceProjectPath,
+            productsProjectPath,
+            "<Project Sdk=\"Microsoft.NET.Sdk\" />",
+            TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            reviewsProjectPath,
             "<Project Sdk=\"Microsoft.NET.Sdk\" />",
             TestContext.Current.CancellationToken);
         await File.WriteAllTextAsync(
@@ -302,14 +368,30 @@ public sealed class FusionReleaseAcceptanceTests
             "<Project Sdk=\"Microsoft.NET.Sdk\" />",
             TestContext.Current.CancellationToken);
 
-        Assert.False(
-            File.Exists(Path.Combine(appHostDirectory, "schema.graphqls")));
-        Assert.False(
-            File.Exists(
-                Path.Combine(
-                    appHostDirectory,
-                    "schema-settings.json")));
-        return (sourceProjectPath, gatewayProjectPath);
+        Assert.Empty(
+            Directory.GetFiles(
+                runnerPath,
+                "schema.graphqls",
+                SearchOption.AllDirectories));
+        Assert.Empty(
+            Directory.GetFiles(
+                runnerPath,
+                "schema-settings.json",
+                SearchOption.AllDirectories));
+        Assert.Empty(
+            Directory.GetFiles(
+                runnerPath,
+                "*manifest*",
+                SearchOption.AllDirectories));
+        Assert.Empty(
+            Directory.GetDirectories(
+                runnerPath,
+                ".git",
+                SearchOption.AllDirectories));
+        return (
+            productsProjectPath,
+            reviewsProjectPath,
+            gatewayProjectPath);
     }
 
     private sealed class RecordingFusionDeploymentWorkflow
@@ -351,23 +433,12 @@ public sealed class FusionReleaseAcceptanceTests
         public Task<FusionSourceSchemaDownload?> DownloadSourceSchemaAsync(
             FusionTarget target,
             FusionSourceSchemaVersion source,
-            string expectedContentSha256,
             CancellationToken cancellationToken)
         {
             Downloads.Add(source);
             _sources.TryGetValue(
                 CreateKey(target, source.Name, source.Version),
                 out var download);
-            if (download is not null
-                && !string.Equals(
-                    download.ContentSha256,
-                    expectedContentSha256,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidDataException(
-                    "The requested source content digest does not match.");
-            }
-
             return Task.FromResult(download);
         }
 
@@ -383,20 +454,24 @@ public sealed class FusionReleaseAcceptanceTests
                     cancellationToken)
                 ?? throw new InvalidDataException(
                     "The composed Fusion archive has no gateway configuration.");
-            var sourceUrl = configuration.Settings.RootElement
+            var sourceUrls = configuration.Settings.RootElement
                 .GetProperty("sourceSchemas")
-                .GetProperty("products")
-                .GetProperty("transports")
-                .GetProperty("http")
-                .GetProperty("url")
-                .GetString()
-                ?? throw new InvalidDataException(
-                    "The composed source URL is missing.");
+                .EnumerateObject()
+                .ToDictionary(
+                    source => source.Name,
+                    source => source.Value
+                        .GetProperty("transports")
+                        .GetProperty("http")
+                        .GetProperty("url")
+                        .GetString()
+                        ?? throw new InvalidDataException(
+                            "The composed source URL is missing."),
+                    StringComparer.Ordinal);
             Publications.Add(
                 new RecordedPublication(
                     request.Stage,
                     request.SourceSchemas.ToArray(),
-                    sourceUrl));
+                    sourceUrls));
         }
 
         private static (
@@ -417,7 +492,7 @@ public sealed class FusionReleaseAcceptanceTests
     private sealed record RecordedPublication(
         string Stage,
         IReadOnlyList<FusionSourceSchemaVersion> Sources,
-        string SourceUrl);
+        IReadOnlyDictionary<string, string> SourceUrls);
 
     private sealed class TestPipelineOutputService(string outputPath)
         : IPipelineOutputService

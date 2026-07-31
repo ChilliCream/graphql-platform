@@ -22,10 +22,6 @@ public sealed class FusionDeploymentResource(
 
     internal ParameterResource? ConfigurationTagParameter { get; set; }
 
-    internal ParameterResource? FusionReleaseManifestParameter { get; set; }
-
-    internal bool UseGitCommitAsSourceVersion { get; set; }
-
     internal bool WaitForApproval { get; set; }
 
     internal bool Force { get; set; }

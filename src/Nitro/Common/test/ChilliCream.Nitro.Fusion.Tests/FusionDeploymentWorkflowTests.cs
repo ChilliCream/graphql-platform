@@ -82,18 +82,12 @@ public sealed class FusionDeploymentWorkflowTests
     }
 
     [Fact]
-    public async Task DownloadSourceSchemaAsync_Should_ReturnExactArchive_When_ContentMatches()
+    public async Task DownloadSourceSchemaAsync_Should_ReturnArchiveAndDigest_When_VersionExists()
     {
         var directory = CreateTemporaryDirectory();
         try
         {
-            var expectedPath = Path.Combine(directory, "expected.fss");
             var remotePath = Path.Combine(directory, "remote.fss");
-            await CreateArchiveAsync(
-                expectedPath,
-                "products",
-                "type Query { product: String }",
-                """{"name":"products","transports":{"http":{"url":"https://example.com"}}}""");
             await CreateArchiveAsync(
                 remotePath,
                 "products",
@@ -106,11 +100,6 @@ public sealed class FusionDeploymentWorkflowTests
             var remoteArchive = await File.ReadAllBytesAsync(
                 remotePath,
                 TestContext.Current.CancellationToken);
-            var expectedContentSha256 =
-                await FusionSourceSchemaContent.ComputeSha256Async(
-                    expectedPath,
-                    "products",
-                    TestContext.Current.CancellationToken);
             var transport = new FakeTransport
             {
                 RemoteArchive = remoteArchive
@@ -120,13 +109,14 @@ public sealed class FusionDeploymentWorkflowTests
             var result = await workflow.DownloadSourceSchemaAsync(
                 CreateTarget(),
                 new FusionSourceSchemaVersion("products", "20260730"),
-                expectedContentSha256,
                 TestContext.Current.CancellationToken);
 
             Assert.NotNull(result);
             Assert.Equal("products", result.Name);
             Assert.Equal("20260730", result.Version);
-            Assert.Equal(expectedContentSha256, result.ContentSha256);
+            Assert.Equal(
+                "3B7C4FBDBEC6ECB8C072794A67BD1CB8B4DCFB5153B6D284E662A0D3CB49EC08",
+                result.ContentSha256);
             Assert.Equal(remoteArchive, result.Archive.ToArray());
             Assert.Equal("products", transport.LastDownloadName);
             Assert.Equal("20260730", transport.LastDownloadVersion);
@@ -146,7 +136,6 @@ public sealed class FusionDeploymentWorkflowTests
         var result = await workflow.DownloadSourceSchemaAsync(
             CreateTarget(),
             new FusionSourceSchemaVersion("products", "missing"),
-            new string('0', 64),
             TestContext.Current.CancellationToken);
 
         Assert.Null(result);
@@ -156,66 +145,17 @@ public sealed class FusionDeploymentWorkflowTests
     }
 
     [Fact]
-    public async Task DownloadSourceSchemaAsync_Should_ThrowCollision_When_DigestDiffers()
-    {
-        var directory = CreateTemporaryDirectory();
-        try
-        {
-            var remotePath = Path.Combine(directory, "remote.fss");
-            await CreateArchiveAsync(
-                remotePath,
-                "products",
-                "type Query { product: String }",
-                """{"name":"products"}""");
-            var transport = new FakeTransport
-            {
-                RemoteArchive = await File.ReadAllBytesAsync(
-                    remotePath,
-                    TestContext.Current.CancellationToken)
-            };
-            var workflow = CreateWorkflow(transport);
-
-            var exception = await Assert.ThrowsAsync<FusionIdentityCollisionException>(
-                () => workflow.DownloadSourceSchemaAsync(
-                    CreateTarget(),
-                    new FusionSourceSchemaVersion("products", "20260730"),
-                    new string('0', 64),
-                    TestContext.Current.CancellationToken));
-
-            Assert.Equal(
-                "Source schema 'products' version '20260730' was downloaded "
-                + "with a different canonical content SHA-256.",
-                exception.Message);
-        }
-        finally
-        {
-            Directory.Delete(directory, recursive: true);
-        }
-    }
-
-    [Fact]
     public async Task DownloadSourceSchemaAsync_Should_RejectArchive_When_NameDiffers()
     {
         var directory = CreateTemporaryDirectory();
         try
         {
-            var expectedPath = Path.Combine(directory, "expected.fss");
             var remotePath = Path.Combine(directory, "remote.fss");
-            await CreateArchiveAsync(
-                expectedPath,
-                "products",
-                "type Query { product: String }",
-                """{"name":"products"}""");
             await CreateArchiveAsync(
                 remotePath,
                 "inventory",
                 "type Query { product: String }",
                 """{"name":"inventory"}""");
-            var expectedContentSha256 =
-                await FusionSourceSchemaContent.ComputeSha256Async(
-                    expectedPath,
-                    "products",
-                    TestContext.Current.CancellationToken);
             var transport = new FakeTransport
             {
                 RemoteArchive = await File.ReadAllBytesAsync(
@@ -228,7 +168,6 @@ public sealed class FusionDeploymentWorkflowTests
                 () => workflow.DownloadSourceSchemaAsync(
                     CreateTarget(),
                     new FusionSourceSchemaVersion("products", "20260730"),
-                    expectedContentSha256,
                     TestContext.Current.CancellationToken));
 
             Assert.Equal(
@@ -261,7 +200,6 @@ public sealed class FusionDeploymentWorkflowTests
                 () => workflow.DownloadSourceSchemaAsync(
                     CreateTarget(),
                     new FusionSourceSchemaVersion("products", "20260730"),
-                    new string('0', 64),
                     TestContext.Current.CancellationToken));
 
             Assert.Equal(
