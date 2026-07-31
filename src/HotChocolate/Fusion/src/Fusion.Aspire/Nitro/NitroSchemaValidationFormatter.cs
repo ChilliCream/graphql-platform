@@ -16,13 +16,14 @@ internal static class NitroSchemaValidationFormatter
         var shownClients = 0;
         var shownFindings = 0;
 
-        builder.Append("Nitro schema validation found client-contract violations: ")
-            .Append(report.ClientCount)
-            .Append(" clients, ")
-            .Append(report.OperationCount)
-            .Append(" operations, ")
+        builder.Append("Nitro schema validation found ")
             .Append(report.FindingCount)
-            .AppendLine(" findings.");
+            .Append(report.FindingCount == 1 ? " violation; " : " violations; ")
+            .Append(report.ClientCount)
+            .Append(report.ClientCount == 1 ? " client and " : " clients and ")
+            .Append(report.OperationCount)
+            .Append(report.OperationCount == 1 ? " operation are affected." : " operations are affected.")
+            .AppendLine();
 
         for (var clientIndex = 0;
             clientIndex < clientLimit && shownFindings < MaxFindings;
@@ -117,6 +118,11 @@ internal static class NitroSchemaValidationFormatter
         if (finding.Code is not null)
         {
             builder.Append(" [code: ").Append(finding.Code).Append(']');
+        }
+
+        if (finding.Severity is not null)
+        {
+            builder.Append(" [severity: ").Append(finding.Severity).Append(']');
         }
 
         if (finding.Coordinate is not null)

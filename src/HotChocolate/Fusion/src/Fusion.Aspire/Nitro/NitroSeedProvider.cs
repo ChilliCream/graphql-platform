@@ -9,8 +9,10 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// A fresh fusion configuration is downloaded and cached. When it cannot be fetched, for any
 /// reason including a missing or expired sign-in, a cached fusion configuration is used and the
 /// gateway is warned that the configuration is not fresh. Only when no cached fusion
-/// configuration exists does the result become
-/// <see cref="NitroSeedOutcome.Unavailable"/>, which fails the gateway.
+/// configuration exists does a download failure become
+/// <see cref="NitroSeedOutcome.Unavailable"/>, which fails the gateway. A missing configuration
+/// becomes <see cref="NitroSeedOutcome.NotFound"/> so the caller can start with the stage's
+/// composition settings.
 /// </remarks>
 internal sealed class NitroSeedProvider
 {
@@ -143,6 +145,15 @@ internal sealed class NitroSeedProvider
                 download,
                 logger,
                 cancellationToken);
+
+            if (download.Status is NitroDownloadStatus.NotFound && cached is null)
+            {
+                return new NitroSeedResult(
+                    NitroSeedOutcome.NotFound,
+                    FilePath: null,
+                    DownloadedAt: null,
+                    message);
+            }
 
             return FallBack(cached, message, logger);
         }

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
-#pragma warning disable ASPIREINTERACTION001
 public sealed class NitroSchemaValidationNotifierTests
 {
     [Theory]
@@ -50,7 +49,7 @@ public sealed class NitroSchemaValidationNotifierTests
     }
 
     [Fact]
-    public async Task Enqueue_Should_UseCountsGatewayAndStageWithoutDetails_When_ViolationsAreReported()
+    public async Task Enqueue_Should_UseGatewayAndStageWithoutDetails_When_ViolationsAreReported()
     {
         // arrange
         using var stopping = new CancellationTokenSource();
@@ -77,8 +76,8 @@ public sealed class NitroSchemaValidationNotifierTests
                         : $"{notification.Intent}: {notification.Message}")
             .MatchInlineSnapshots(
             [
-                "Error: Client contracts broken: 2 clients, 3 operations affected "
-                    + "(gateway 'orders-gateway', stage 'staging')."
+                "Error: Detected breaking schema changes in 'orders-gateway' against stage "
+                    + "'staging'; check the logs for details."
             ]);
     }
 
@@ -93,16 +92,17 @@ public sealed class NitroSchemaValidationNotifierTests
             NullLogger<NitroSchemaValidationNotifier>.Instance);
 
         // act
-        notifier.NotifyViolations("Client contracts broken.");
+        notifier.NotifyViolations("gateway", "Breaking schema changes were detected.");
         notifier.NotifyRestored("Client contracts restored.");
 
         // assert
         proxy.Prompts
-            .Select(prompt => $"{prompt.Intent} | {prompt.Title} | {prompt.Message}")
+            .Select(prompt => prompt.ToString())
             .MatchInlineSnapshots(
             [
-                "Error | Nitro schema validation | Client contracts broken.",
-                "Success | Nitro schema validation | Client contracts restored."
+                "Error | Nitro: | Breaking schema changes were detected. | View logs | "
+                    + "/consolelogs/resource/gateway",
+                "Success | Nitro: | Client contracts restored. | <none> | <none>"
             ]);
     }
 
@@ -119,7 +119,7 @@ public sealed class NitroSchemaValidationNotifierTests
 
         // act
         var exception = Record.Exception(
-            () => notifier.NotifyViolations("Client contracts broken."));
+            () => notifier.NotifyViolations("gateway", "Breaking schema changes were detected."));
 
         // assert
         $"""
@@ -148,7 +148,7 @@ public sealed class NitroSchemaValidationNotifierTests
 
         // act
         var exception = Record.Exception(
-            () => notifier.NotifyViolations("Client contracts broken."));
+            () => notifier.NotifyViolations("gateway", "Breaking schema changes were detected."));
         var wasPendingAfterNotifyReturned = !prompt.Task.IsCompleted;
         prompt.SetException(new InvalidOperationException("dashboard disconnected"));
         await WaitForAsync(() => logger.Entries.Count == 1);
@@ -167,7 +167,7 @@ public sealed class NitroSchemaValidationNotifierTests
             Pending after return: True
             Prompt calls: 1
             Log level: Debug
-            Log: The Nitro schema validation notification could not be shown.
+            Log: The Nitro notification could not be shown.
             Logged exception: dashboard disconnected
             """);
     }
@@ -347,7 +347,7 @@ public sealed class NitroSchemaValidationNotifierTests
 
         public IReadOnlyList<RecordedNotification> Notifications => [.. _notifications];
 
-        public void NotifyViolations(string message)
+        public void NotifyViolations(string gatewayName, string message)
             => _notifications.Enqueue(new("Error", message));
 
         public void NotifyRestored(string message)
@@ -374,7 +374,9 @@ public sealed class NitroSchemaValidationNotifierTests
                 new RecordedPrompt(
                     title,
                     message,
-                    options?.Intent ?? MessageIntent.None));
+                    options?.Intent ?? MessageIntent.None,
+                    options?.LinkText,
+                    options?.LinkUrl));
 
             return PromptTask ?? Task.FromResult(InteractionResult.Ok(true));
         }
@@ -427,6 +429,11 @@ public sealed class NitroSchemaValidationNotifierTests
     private sealed record RecordedPrompt(
         string Title,
         string Message,
-        MessageIntent Intent);
+        MessageIntent Intent,
+        string? LinkText,
+        string? LinkUrl)
+    {
+        public override string ToString()
+            => $"{Intent} | {Title} | {Message} | {LinkText ?? "<none>"} | {LinkUrl ?? "<none>"}";
+    }
 }
-#pragma warning restore ASPIREINTERACTION001

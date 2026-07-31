@@ -10,6 +10,60 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class SchemaCompositionTests
 {
     [Fact]
+    public void WithGraphQLSchemaComposition_Should_UseValidationAndOutput_WhenArgumentsAreProvided()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition(
+                disableValidation: true,
+                outputFileName: "custom.far");
+
+        // assert
+        var annotation = Assert.Single(
+            gateway.Resource.Annotations.OfType<GraphQLSchemaCompositionAnnotation>());
+        $"""
+        Disable validation: {annotation.Settings.DisableSchemaValidation}
+        Output: {annotation.OutputFileName}
+        """.MatchInlineSnapshot(
+            """
+            Disable validation: True
+            Output: custom.far
+            """);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaComposition_Should_UseDefaultOutput_WhenSettingsAreProvided()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var settings = new GraphQLCompositionSettings
+        {
+            EnableGlobalObjectIdentification = true
+        };
+
+        // act
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition(settings);
+
+        // assert
+        var annotation = Assert.Single(
+            gateway.Resource.Annotations.OfType<GraphQLSchemaCompositionAnnotation>());
+        $"""
+        Global object identification: {annotation.Settings.EnableGlobalObjectIdentification}
+        Output: {annotation.OutputFileName}
+        """.MatchInlineSnapshot(
+            """
+            Global object identification: True
+            Output: gateway.far
+            """);
+    }
+
+    [Fact]
     public async Task ExecuteRecomposeCommandAsync_Should_Coalesce_When_CompositionIsInProgress()
     {
         // arrange

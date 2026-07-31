@@ -371,19 +371,16 @@ internal sealed class GatewaySchemaValidationWorker
 
         if (transition is not NotificationTransition.None)
         {
-            Notify(transition, report);
+            Notify(transition);
         }
     }
 
-    private void Notify(
-        NotificationTransition transition,
-        NitroSchemaValidationReport report)
+    private void Notify(NotificationTransition transition)
     {
         var message = transition is NotificationTransition.Restored
-            ? $"Client contracts restored (gateway '{_gatewayName}', stage '{_stage}')."
-            : $"Client contracts broken: {report.ClientCount} clients, "
-                + $"{report.OperationCount} operations affected (gateway '{_gatewayName}', "
-                + $"stage '{_stage}').";
+            ? $"Schema validation for '{_gatewayName}' against stage '{_stage}' passed again."
+            : $"Detected breaking schema changes in '{_gatewayName}' against stage '{_stage}'; "
+                + "check the logs for details.";
 
         if (transition is NotificationTransition.Restored)
         {
@@ -391,7 +388,7 @@ internal sealed class GatewaySchemaValidationWorker
         }
         else
         {
-            _notifier.NotifyViolations(message);
+            _notifier.NotifyViolations(_gatewayName, message);
         }
     }
 

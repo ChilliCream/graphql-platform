@@ -36,6 +36,19 @@ public sealed class NitroOperationDocumentsTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void GetCompositionSettingsOperationName_Should_MatchTheOperationInTheDocument()
+    {
+        // act
+        var document = NitroOperationDocuments.GetCompositionSettingsDocument();
+
+        // assert
+        Assert.Contains(
+            $"query {NitroOperationDocuments.GetCompositionSettingsOperationName}(",
+            document,
+            StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("ValidateNitroSchema", "mutation ValidateNitroSchema(")]
     [InlineData("PollNitroSchemaValidation", "mutation PollNitroSchemaValidation(")]
@@ -83,13 +96,25 @@ public sealed class NitroOperationDocumentsTests
             operationId);
     }
 
+    [Fact]
+    public void GetCompositionSettingsOperationId_Should_ReturnTheEmbeddedHash()
+    {
+        // act
+        var operationId = NitroOperationDocuments.GetCompositionSettingsOperationId();
+
+        // assert
+        Assert.Equal(
+            "576b1d39b8ed179da29e50247574aaae26d979591a4bbe53fcaf850fe2b02351",
+            operationId);
+    }
+
     [Theory]
     [InlineData(
         "ValidateNitroSchema",
         "89e8800b8720401041061528aef1101683b241d7d24c7f0912928a1a901def02")]
     [InlineData(
         "PollNitroSchemaValidation",
-        "6ebe506f2dda96523ef2a0302b7b4aa0f748c2ace6dd5b89449c081c7dbb135e")]
+        "0fcb0a11b85be6ede7bb6141f0cdcc34a3fc7eaa611747d013d02b9374e48e22")]
     public void GetValidationOperationId_Should_ReturnTheEmbeddedHash(
         string operationName,
         string expectedOperationId)

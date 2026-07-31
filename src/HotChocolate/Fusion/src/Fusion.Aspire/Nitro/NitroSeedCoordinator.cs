@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.Json;
 using HotChocolate.Fusion.Packaging;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ internal sealed class NitroSeedCoordinator
     private readonly NitroSeedProvider _seedProvider;
     private readonly INitroSchemaValidator _schemaValidator;
     private readonly INitroStageUpdateClient _stageUpdateClient;
+    private readonly INitroCompositionSettingsClient _compositionSettingsClient;
     private readonly string _runSeedDirectory;
     private bool _initialAutoUpdate;
     private long _nextRunSeedId;
@@ -42,6 +44,9 @@ internal sealed class NitroSeedCoordinator
     /// <param name="stageUpdateClient">
     /// The client that observes the current version of the Nitro stage.
     /// </param>
+    /// <param name="compositionSettingsClient">
+    /// The client that gets the composition settings of the Nitro stage.
+    /// </param>
     /// <param name="runSeedDirectory">
     /// The directory that holds the private copies of this run.
     /// </param>
@@ -54,6 +59,7 @@ internal sealed class NitroSeedCoordinator
         NitroSeedProvider seedProvider,
         INitroSchemaValidator schemaValidator,
         INitroStageUpdateClient stageUpdateClient,
+        INitroCompositionSettingsClient compositionSettingsClient,
         string runSeedDirectory,
         bool initialAutoUpdate)
     {
@@ -62,6 +68,7 @@ internal sealed class NitroSeedCoordinator
         ArgumentNullException.ThrowIfNull(seedProvider);
         ArgumentNullException.ThrowIfNull(schemaValidator);
         ArgumentNullException.ThrowIfNull(stageUpdateClient);
+        ArgumentNullException.ThrowIfNull(compositionSettingsClient);
         ArgumentException.ThrowIfNullOrWhiteSpace(runSeedDirectory);
 
         Stage = stage;
@@ -69,6 +76,7 @@ internal sealed class NitroSeedCoordinator
         _seedProvider = seedProvider;
         _schemaValidator = schemaValidator;
         _stageUpdateClient = stageUpdateClient;
+        _compositionSettingsClient = compositionSettingsClient;
         _runSeedDirectory = runSeedDirectory;
         _initialAutoUpdate = initialAutoUpdate;
     }
@@ -117,6 +125,8 @@ internal sealed class NitroSeedCoordinator
             NullLogger<NitroSchemaValidator>.Instance);
         var stageUpdateClient = new NitroStageUpdateClient(
             GraphQLHttpClient.Create(httpClient, disposeHttpClient: false));
+        var compositionSettingsClient = new NitroCompositionSettingsClient(
+            GraphQLHttpClient.Create(httpClient, disposeHttpClient: false));
 
         return new NitroSeedCoordinator(
             stage,
@@ -124,6 +134,7 @@ internal sealed class NitroSeedCoordinator
             seedProvider,
             schemaValidator,
             stageUpdateClient,
+            compositionSettingsClient,
             NitroDefaults.CreateRunSeedDirectoryPath(),
             initialAutoUpdate);
     }
@@ -204,6 +215,13 @@ internal sealed class NitroSeedCoordinator
         ArgumentNullException.ThrowIfNull(logger);
 
         var connection = await _connectionResolver.ResolveAsync(logger, cancellationToken);
+        var settingsTask = connection.Credential.Kind is NitroCredentialKind.None
+            ? Task.FromResult<CompositionSettings?>(null)
+            : _compositionSettingsClient.GetAsync(
+                connection,
+                apiId,
+                Stage,
+                cancellationToken);
         var result = await _seedProvider.GetSeedAsync(
             connection,
             apiId,
@@ -211,18 +229,63 @@ internal sealed class NitroSeedCoordinator
             logger,
             cancellationToken);
 
+        CompositionSettings? stageSettings;
+        try
+        {
+            stageSettings = await settingsTask;
+        }
+        catch (Exception exception) when (
+            exception is not OperationCanceledException
+            && result.Outcome is NitroSeedOutcome.ServedFromCache)
+        {
+            stageSettings = null;
+            logger.LogWarning(
+                exception,
+                "The composition settings for the api {ApiId} and the stage {Stage} could not "
+                + "be fetched from Nitro. The settings in the cached fusion configuration will "
+                + "be used.",
+                apiId,
+                Stage);
+        }
+
         if (result.Outcome is NitroSeedOutcome.Unavailable)
         {
             return NitroSeedAcquisition.Failed(result.Message!);
         }
 
-        var filePath = CopyToRunDirectory(gatewayName, result.FilePath!);
+        string filePath;
+        DateTimeOffset downloadedAt;
+        bool isFresh;
+
+        if (result.Outcome is NitroSeedOutcome.NotFound)
+        {
+            filePath = await CreateInitialSeedAsync(
+                gatewayName,
+                stageSettings,
+                cancellationToken);
+            downloadedAt = DateTimeOffset.UtcNow;
+            isFresh = true;
+
+            logger.LogInformation(
+                "The api {ApiId} has no fusion configuration for the stage {Stage} yet. "
+                + "Composing from Nitro's initial composition settings.",
+                apiId,
+                Stage);
+        }
+        else
+        {
+            filePath = CopyToRunDirectory(gatewayName, result.FilePath!);
+            await ApplyCompositionSettingsAsync(filePath, stageSettings, cancellationToken);
+            downloadedAt = result.DownloadedAt!.Value;
+            isFresh = result.Outcome is NitroSeedOutcome.Downloaded;
+        }
+
         var seed = new NitroGatewaySeed(
             apiId,
             Stage,
             filePath,
-            result.DownloadedAt!.Value,
-            result.Outcome is NitroSeedOutcome.Downloaded,
+            downloadedAt,
+            isFresh,
             await ComputeSchemaHashAsync(filePath, cancellationToken));
 
         NitroGatewaySeed? replacedSeed = null;
@@ -298,6 +361,11 @@ internal sealed class NitroSeedCoordinator
 
         var connection = await _connectionResolver.ResolveAsync(logger, cancellationToken);
         var providerLogger = suppressProviderLogs ? NullLogger.Instance : logger;
+        var settingsTask = _compositionSettingsClient.GetAsync(
+            connection,
+            apiId,
+            Stage,
+            cancellationToken);
         var result = await _seedProvider.GetSeedAsync(
             connection,
             apiId,
@@ -307,11 +375,24 @@ internal sealed class NitroSeedCoordinator
 
         if (result.Outcome is not NitroSeedOutcome.Downloaded)
         {
+            try
+            {
+                await settingsTask;
+            }
+            catch (Exception exception) when (
+                exception is not OperationCanceledException
+                && result.Outcome is not NitroSeedOutcome.Downloaded)
+            {
+                // The archive result is already the reason this refresh cannot be used.
+            }
+
             return NitroSeedRefreshResult.Failed(
                 result.Message ?? "Nitro did not return a fresh Fusion configuration.");
         }
 
+        var stageSettings = await settingsTask;
         var filePath = CopyToRunDirectory(gatewayName, result.FilePath!);
+        await ApplyCompositionSettingsAsync(filePath, stageSettings, cancellationToken);
         var seed = new NitroGatewaySeed(
             apiId,
             Stage,
@@ -555,15 +636,89 @@ internal sealed class NitroSeedCoordinator
 
     private string CopyToRunDirectory(string gatewayName, string seedFilePath)
     {
-        Directory.CreateDirectory(_runSeedDirectory);
-
-        var filePath = IOPath.Combine(
-            _runSeedDirectory,
-            $"{gatewayName}.{Interlocked.Increment(ref _nextRunSeedId):D8}.far");
+        var filePath = CreateRunSeedPath(gatewayName);
 
         File.Copy(seedFilePath, filePath, overwrite: true);
 
         return filePath;
+    }
+
+    private async Task<string> CreateInitialSeedAsync(
+        string gatewayName,
+        CompositionSettings? settings,
+        CancellationToken cancellationToken)
+    {
+        var filePath = CreateRunSeedPath(gatewayName);
+
+        using var archive = FusionArchive.Create(filePath);
+        await archive.SetArchiveMetadataAsync(
+            new ArchiveMetadata
+            {
+                SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                SourceSchemas = []
+            },
+            cancellationToken);
+        await SetCompositionSettingsAsync(
+            archive,
+            settings ?? new CompositionSettings(),
+            cancellationToken);
+        using var gatewaySettings = JsonDocument.Parse(
+            """
+            {
+              "sourceSchemas": {}
+            }
+            """);
+        await archive.SetGatewayConfigurationAsync(
+            "type Query { _empty: String }" + Environment.NewLine,
+            gatewaySettings,
+            WellKnownVersions.LatestGatewayFormatVersion,
+            cancellationToken);
+        await archive.CommitAsync(cancellationToken);
+
+        return filePath;
+    }
+
+    private static async Task ApplyCompositionSettingsAsync(
+        string filePath,
+        CompositionSettings? settings,
+        CancellationToken cancellationToken)
+    {
+        if (settings is null)
+        {
+            return;
+        }
+
+        using var archive = FusionArchive.Open(filePath, FusionArchiveMode.Update);
+        using var settingsDocument = await archive.GetCompositionSettingsAsync(cancellationToken);
+        var existing = settingsDocument?.Deserialize(
+            SettingsJsonSerializerContext.Default.CompositionSettings)
+            ?? new CompositionSettings();
+
+        await SetCompositionSettingsAsync(
+            archive,
+            settings.MergeInto(existing),
+            cancellationToken);
+        await archive.CommitAsync(cancellationToken);
+    }
+
+    private static async Task SetCompositionSettingsAsync(
+        FusionArchive archive,
+        CompositionSettings settings,
+        CancellationToken cancellationToken)
+    {
+        using var settingsDocument = JsonSerializer.SerializeToDocument(
+            settings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+        await archive.SetCompositionSettingsAsync(settingsDocument, cancellationToken);
+    }
+
+    private string CreateRunSeedPath(string gatewayName)
+    {
+        Directory.CreateDirectory(_runSeedDirectory);
+
+        return IOPath.Combine(
+            _runSeedDirectory,
+            $"{gatewayName}.{Interlocked.Increment(ref _nextRunSeedId):D8}.far");
     }
 
     private static async Task<string> ComputeSchemaHashAsync(
@@ -583,7 +738,8 @@ internal sealed class NitroSeedCoordinator
                 return Convert.ToHexString(await SHA256.HashDataAsync(schema, cancellationToken));
             }
         }
-        catch (IOException)
+        catch (Exception exception) when (
+            exception is IOException or InvalidDataException or InvalidOperationException)
         {
             // A seed produced by an older Nitro version can contain only source configurations.
             // Hashing the complete immutable archive still gives the refresh path a stable guard.
