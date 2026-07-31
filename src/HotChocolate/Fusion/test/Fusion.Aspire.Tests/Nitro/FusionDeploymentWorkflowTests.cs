@@ -12,19 +12,23 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 public sealed class FusionDeploymentWorkflowTests
 {
     [Fact]
-    public void Assembly_Should_ExposeNoNitroType_When_Inspected()
+    public void Assembly_Should_ExposeOnlySeedUpdateOptions_When_Inspected()
     {
         // act
         var exportedTypes = typeof(FusionDeploymentWorkflow)
             .Assembly
             .GetExportedTypes()
             .Where(type => type.Namespace is "HotChocolate.Fusion.Aspire.Nitro")
-            .Select(type => type.FullName)
+            .Select(type => type.FullName!)
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         // assert
-        Assert.Empty(exportedTypes);
+        // NitroSeedUpdateOptions is the configuration surface of AddNitro, everything else that
+        // drives the deployment workflow stays internal.
+        Assert.Equal(
+            ["HotChocolate.Fusion.Aspire.Nitro.NitroSeedUpdateOptions"],
+            exportedTypes);
     }
 
     [Fact]

@@ -21,6 +21,7 @@
     <!-- Aspire.Hosting 13.4.x requires Microsoft.Extensions.Logging >= 10.0.8, above the net9.0 central pin. -->
     <PackageReference Include="Microsoft.Extensions.Logging" VersionOverride="10.0.8" Condition="'$(TargetFramework)' == 'net9.0'" />
     <PackageReference Include="Microsoft.Extensions.Logging" Condition="'$(TargetFramework)' != 'net9.0'" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
   <ItemGroup>

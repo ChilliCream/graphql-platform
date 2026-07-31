@@ -4,6 +4,7 @@ using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Lifecycle;
 using HotChocolate.Fusion.Aspire.Nitro;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
@@ -338,6 +339,197 @@ public sealed class NitroExtensionsTests
         Assert.Same(portalUrl, GetNitroCompositionOptions(builder).PortalUrl);
     }
 
+    [Fact]
+    public void AddNitro_Should_ConfigureSeedUpdates()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        builder.AddNitro(
+            "production",
+            portalUrl: null,
+            configureSeedUpdates: options =>
+            {
+                options.Enabled = false;
+                options.AutoUpdate = false;
+            });
+
+        // assert
+        var options = GetNitroCompositionOptions(builder).SeedUpdates;
+        Assert.Equal("False|False", $"{options.Enabled}|{options.AutoUpdate}");
+    }
+
+    [Fact]
+    public void AddNitro_Should_AcceptAnExplicitNullPortalUrl()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        builder.AddNitro("production", null);
+
+        // assert
+        Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
+    }
+
+    [Fact]
+    public void AddNitro_Should_UpdateAutoUpdateDefault_WhenCalledAgain()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+
+        // act
+        builder.AddNitro(
+            "production",
+            portalUrl: null,
+            configureSeedUpdates: options => options.AutoUpdate = false);
+
+        // assert
+        var options = GetNitroCompositionOptions(builder);
+        Assert.Equal(
+            "False|False",
+            $"{options.SeedUpdates.AutoUpdate}|"
+            + $"{options.Coordinator!.IsAutoUpdateEnabled("gateway")}");
+    }
+
+    [Fact]
+    public void NitroGateway_Should_RegisterBothAutoUpdateCommands_WhenNitroIsAddedFirst()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+
+        // act
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+
+        // assert
+        string.Join(
+                Environment.NewLine,
+                gateway.Resource.Annotations
+                    .OfType<ResourceCommandAnnotation>()
+                    .Select(command => $"{command.Name}: {command.DisplayName}")
+                    .Order(StringComparer.Ordinal))
+            .MatchInlineSnapshot(
+                """
+                disable-nitro-auto-update: Disable auto-update
+                enable-nitro-auto-update: Enable auto-update
+                recompose: Recompose
+                """);
+    }
+
+    [Fact]
+    public void NitroGateway_Should_RegisterBothAutoUpdateCommands_WhenNitroIsAddedLast()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+
+        // act
+        builder.AddNitro("production");
+
+        // assert
+        Assert.Equal(
+            2,
+            gateway.Resource.Annotations
+                .OfType<ResourceCommandAnnotation>()
+                .Count(command => command.Name.Contains("nitro-auto-update", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void SeedUpdateService_Should_NotStartMonitor_WhenDetectionIsDisabled()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro(
+            "production",
+            portalUrl: null,
+            configureSeedUpdates: options => options.Enabled = false);
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+        var lifetime = new TestHostApplicationLifetime();
+        var resourceLoggerService = new ResourceLoggerService();
+        var service = new NitroSeedUpdateService(
+            GetNitroCompositionOptions(builder),
+            resourceLoggerService,
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
+        using var gate = new SemaphoreSlim(1, 1);
+
+        // act
+        service.Start(
+            gateway.Resource,
+            "QXBpCmdhdGV3YXk",
+            gate,
+            (_, _) => Task.FromResult(true));
+
+        // assert
+        Assert.Equal(0, service.MonitorCount);
+    }
+
+    [Fact]
+    public async Task AutoUpdateCommands_Should_HideUntilMonitorIsReady()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+        var lifetime = new TestHostApplicationLifetime();
+        var service = new NitroSeedUpdateService(
+            GetNitroCompositionOptions(builder),
+            new ResourceLoggerService(),
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
+        await using var services = new ServiceCollection()
+            .AddSingleton(service)
+            .BuildServiceProvider();
+        var commands = gateway.Resource.Annotations
+            .OfType<ResourceCommandAnnotation>()
+            .Where(command => command.Name.Contains("nitro-auto-update", StringComparison.Ordinal))
+            .OrderBy(command => command.Name, StringComparer.Ordinal)
+            .ToArray();
+        var context = new UpdateCommandStateContext
+        {
+            ResourceSnapshot = new CustomResourceSnapshot
+            {
+                ResourceType = "project",
+                Properties = []
+            },
+            ServiceProvider = services
+        };
+
+        // act
+        var beforeStart = commands.Select(command => command.UpdateState!(context)).ToArray();
+        lifetime.StopApplication();
+        using var gate = new SemaphoreSlim(1, 1);
+        service.Start(
+            gateway.Resource,
+            "QXBpCmdhdGV3YXk",
+            gate,
+            (_, _) => Task.FromResult(true));
+        var afterStart = commands.Select(command => command.UpdateState!(context)).ToArray();
+
+        // assert
+        Assert.Equal("Hidden, Hidden", string.Join(", ", beforeStart));
+        Assert.Equal("Enabled, Hidden", string.Join(", ", afterStart));
+    }
+
     /// <summary>
     /// Describes every registration of the schema composition. The distributed application
     /// registers eventing subscribers of its own, so only the registrations of the composition
@@ -363,4 +555,17 @@ public sealed class NitroExtensionsTests
         => IOPath.Combine(
             IOPath.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
+
+    private sealed class NoopSeedUpdateNotifier : INitroSeedUpdateNotifier
+    {
+        public static NoopSeedUpdateNotifier Instance { get; } = new();
+
+        public void NotifyAdopted(string message)
+        {
+        }
+
+        public void NotifyStaged(string message)
+        {
+        }
+    }
 }

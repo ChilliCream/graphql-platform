@@ -141,6 +141,8 @@ public static class GraphQLResourceBuilderExtensions
                 Settings = settings
             });
 
+        NitroExtensions.TryAddAutoUpdateCommands(builder);
+
         if (!builder.Resource.Annotations
             .OfType<ResourceCommandAnnotation>()
             .Any(command => command.Name == "recompose"))

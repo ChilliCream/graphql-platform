@@ -27,6 +27,14 @@ public sealed class NitroOperationDocumentsTests
                 "ad7ee984bdd62c1357d5ee29261adff3f60bb119f5f162ae1ee8a1f9c62632d9"
             },
             {
+                NitroOperationDocuments.GetStageVersionOperationName,
+                "32cc7d1ee75aaa16627d21ee9289b4758f805d8b1eedfa796d832bae05b840f1"
+            },
+            {
+                NitroOperationDocuments.WatchStageOperationName,
+                "6626c4ef1d416a1db6a56bed1f19ab68f8797bb3e9bf79b31d2434b41a0d1d6e"
+            },
+            {
                 NitroOperationDocuments.UploadSourceSchemaOperationName,
                 "f091e081d5fea136c590aa34b6f37d391d69844c23f3a61f5e728ba97fed951f"
             },
@@ -81,6 +89,8 @@ public sealed class NitroOperationDocumentsTests
     [InlineData("ResolveNitroApiName", "query ResolveNitroApiName(")]
     [InlineData("ValidateNitroSchema", "mutation ValidateNitroSchema(")]
     [InlineData("WatchNitroSchemaValidation", "subscription WatchNitroSchemaValidation(")]
+    [InlineData("GetNitroStageVersion", "query GetNitroStageVersion(")]
+    [InlineData("WatchNitroStage", "subscription WatchNitroStage(")]
     [InlineData("UploadFusionSourceSchema", "mutation UploadFusionSourceSchema(")]
     [InlineData("BeginFusionDeployment", "mutation BeginFusionDeployment(")]
     [InlineData("ClaimFusionDeployment", "mutation ClaimFusionDeployment(")]
@@ -125,6 +135,10 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetValidateSchemaDocument(),
             NitroOperationDocuments.WatchSchemaValidationOperationName
                 => NitroOperationDocuments.GetWatchSchemaValidationDocument(),
+            NitroOperationDocuments.GetStageVersionOperationName
+                => NitroOperationDocuments.GetStageVersionDocument(),
+            NitroOperationDocuments.WatchStageOperationName
+                => NitroOperationDocuments.GetWatchStageDocument(),
             NitroOperationDocuments.UploadSourceSchemaOperationName
                 => NitroOperationDocuments.GetUploadSourceSchemaDocument(),
             NitroOperationDocuments.BeginDeploymentOperationName
@@ -166,6 +180,10 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetValidateSchemaOperationId(),
             NitroOperationDocuments.WatchSchemaValidationOperationName
                 => NitroOperationDocuments.GetWatchSchemaValidationOperationId(),
+            NitroOperationDocuments.GetStageVersionOperationName
+                => NitroOperationDocuments.GetStageVersionOperationId(),
+            NitroOperationDocuments.WatchStageOperationName
+                => NitroOperationDocuments.GetWatchStageOperationId(),
             NitroOperationDocuments.UploadSourceSchemaOperationName
                 => NitroOperationDocuments.GetUploadSourceSchemaOperationId(),
             NitroOperationDocuments.BeginDeploymentOperationName
@@ -182,5 +200,7 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetWatchDeploymentOperationId(),
             _ => throw new ArgumentOutOfRangeException(nameof(operationName))
         };
+=======
+>>>>>>> origin/main
 #endif
 }

@@ -19,6 +19,7 @@ internal sealed class SchemaComposition(
     IHostApplicationLifetime lifetime,
     NitroCompositionOptions nitroOptions,
     NitroSchemaValidationCoordinator validationCoordinator,
+    NitroSeedUpdateService seedUpdateService,
     GatewayCompositionCommandCoordinator commandCoordinator,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
@@ -289,6 +290,11 @@ internal sealed class SchemaComposition(
         {
             validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
         }
+
+        StartSeedUpdateMonitor(
+            compositionResource,
+            appModel,
+            compositionGate);
     }
 
     /// <summary>
@@ -510,6 +516,7 @@ internal sealed class SchemaComposition(
             outcome = await RecomposeSchemaAsync(
                 compositionResource,
                 appModel,
+                downloadFreshSeed: false,
                 cancellationToken);
         }
         finally
@@ -550,6 +557,7 @@ internal sealed class SchemaComposition(
             outcome = await RecomposeSchemaAsync(
                 compositionResource,
                 appModel,
+                downloadFreshSeed: true,
                 cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -621,17 +629,30 @@ internal sealed class SchemaComposition(
     private async Task<SchemaCompositionOutcome> RecomposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
+        bool downloadFreshSeed,
         CancellationToken cancellationToken)
     {
         var coordinator = nitroOptions.Coordinator;
         var apiId = compositionResource.GetNitroApiId();
         NitroGatewaySeed? seed = null;
+        NitroSeedAdoption? adoption = null;
 
         if (coordinator is not null && apiId is not null)
         {
-            // The fusion configuration of a run is fetched once, while the gateway starts, and
-            // every recomposition of the run builds on that same configuration.
-            seed = coordinator.GetSeed(compositionResource.Name);
+            if (downloadFreshSeed)
+            {
+                adoption = await TryPrepareManualSeedAdoptionAsync(
+                    coordinator,
+                    compositionResource,
+                    apiId,
+                    cancellationToken);
+            }
+            else
+            {
+                adoption = coordinator.TryAdoptStaged(compositionResource.Name);
+            }
+
+            seed = adoption?.Current.Seed ?? coordinator.GetSeed(compositionResource.Name);
 
             if (seed is null)
             {
@@ -647,11 +668,49 @@ internal sealed class SchemaComposition(
             "Recomposing GraphQL schema for {ResourceName}...",
             compositionResource.Name);
 
-        var outcome = await ComposeSchemaAsync(
-            compositionResource,
-            appModel,
-            seed,
-            cancellationToken);
+        SchemaCompositionOutcome outcome;
+        try
+        {
+            outcome = await ComposeSchemaAsync(
+                compositionResource,
+                appModel,
+                seed,
+                cancellationToken);
+        }
+        catch
+        {
+            if (adoption is not null)
+            {
+                coordinator!.RollBackAdoption(
+                    compositionResource.Name,
+                    adoption,
+                    restoreStaged: adoption.WasStaged);
+            }
+
+            throw;
+        }
+
+        if (adoption is not null)
+        {
+            if (outcome.Success)
+            {
+                coordinator!.CompleteAdoption(
+                    compositionResource.Name,
+                    adoption);
+                seedUpdateService.ReportAdoption(
+                    compositionResource.Name,
+                    coordinator.Stage,
+                    adoption);
+            }
+            else
+            {
+                coordinator!.RollBackAdoption(
+                    compositionResource.Name,
+                    adoption,
+                    restoreStaged: adoption.WasStaged);
+            }
+        }
+
         if (outcome.Success)
         {
             logger.LogInformation(
@@ -666,6 +725,133 @@ internal sealed class SchemaComposition(
         }
 
         return outcome;
+    }
+
+    private async Task<NitroSeedAdoption?> TryPrepareManualSeedAdoptionAsync(
+        NitroSeedCoordinator coordinator,
+        IResourceWithEndpoints compositionResource,
+        string apiId,
+        CancellationToken cancellationToken)
+    {
+        var gatewayLogger = CreateGatewayLogger(compositionResource);
+
+        try
+        {
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(30));
+
+            var refresh = await coordinator.DownloadFreshSeedAsync(
+                compositionResource.Name,
+                apiId,
+                versionIdentity: "manual",
+                gatewayLogger,
+                suppressProviderLogs: false,
+                deadline.Token);
+
+            if (refresh.Candidate is { } downloaded
+                && coordinator.GetSeedSnapshot(compositionResource.Name) is { } current)
+            {
+                var candidate = downloaded with
+                {
+                    VersionIdentity = "schema:" + downloaded.Seed.SchemaHash
+                };
+
+                if (string.Equals(
+                    current.Seed.SchemaHash,
+                    candidate.Seed.SchemaHash,
+                    StringComparison.Ordinal))
+                {
+                    coordinator.DeleteCandidate(candidate);
+                    if (coordinator.DiscardStagedCandidate(compositionResource.Name) is { } staged)
+                    {
+                        coordinator.DeleteCandidate(staged);
+                    }
+
+                    return null;
+                }
+
+                return coordinator.TryAdoptCandidate(compositionResource.Name, candidate);
+            }
+
+            gatewayLogger.LogWarning(
+                "A fresh Fusion configuration could not be downloaded before manually "
+                + "recomposing {ResourceName}. The held configuration will be used.",
+                compositionResource.Name);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            gatewayLogger.LogWarning(
+                exception,
+                "A fresh Fusion configuration could not be downloaded before manually "
+                + "recomposing {ResourceName}. The held configuration will be used.",
+                compositionResource.Name);
+        }
+
+        return coordinator.TryAdoptStaged(compositionResource.Name);
+    }
+
+    private void StartSeedUpdateMonitor(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        SemaphoreSlim compositionGate)
+    {
+        if (compositionResource.GetNitroApiId() is not { } apiId)
+        {
+            return;
+        }
+
+        seedUpdateService.Start(
+            compositionResource,
+            apiId,
+            compositionGate,
+            (adoption, cancellationToken) => RecomposeAdoptedSeedAsync(
+                compositionResource,
+                appModel,
+                adoption,
+                cancellationToken));
+    }
+
+    private async Task<bool> RecomposeAdoptedSeedAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        NitroSeedAdoption adoption,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation(
+            "Recomposing GraphQL schema for {ResourceName} against an updated Nitro "
+            + "configuration...",
+            compositionResource.Name);
+
+        var outcome = await ComposeSchemaAsync(
+            compositionResource,
+            appModel,
+            adoption.Current.Seed,
+            cancellationToken);
+
+        if (!outcome.Success)
+        {
+            logger.LogWarning(
+                "Schema recomposition for {ResourceName} against the updated Nitro "
+                + "configuration failed. The gateway keeps the previous schema.",
+                compositionResource.Name);
+            return false;
+        }
+
+        logger.LogInformation(
+            "Schema recomposition for {ResourceName} against the updated Nitro configuration "
+            + "completed.",
+            compositionResource.Name);
+
+        if (outcome.GatewaySchema is not null)
+        {
+            validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
+        }
+
+        return true;
     }
 
     private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(

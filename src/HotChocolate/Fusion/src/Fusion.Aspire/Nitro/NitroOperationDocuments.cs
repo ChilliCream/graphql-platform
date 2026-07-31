@@ -14,6 +14,8 @@ internal static class NitroOperationDocuments
     private const string ResolveApiNameHashFile = "ResolveNitroApiName.graphql.sha256";
     private const string ValidateSchemaHashFile = "ValidateNitroSchema.graphql.sha256";
     private const string WatchSchemaValidationHashFile = "WatchNitroSchemaValidation.graphql.sha256";
+    private const string GetStageVersionHashFile = "GetNitroStageVersion.graphql.sha256";
+    private const string WatchStageHashFile = "WatchNitroStage.graphql.sha256";
     private const string UploadSourceSchemaHashFile = "UploadFusionSourceSchema.graphql.sha256";
     private const string BeginDeploymentHashFile = "BeginFusionDeployment.graphql.sha256";
     private const string ClaimDeploymentHashFile = "ClaimFusionDeployment.graphql.sha256";
@@ -25,6 +27,8 @@ internal static class NitroOperationDocuments
     private static string? s_resolveApiNameHash;
     private static string? s_validateSchemaHash;
     private static string? s_watchSchemaValidationHash;
+    private static string? s_getStageVersionHash;
+    private static string? s_watchStageHash;
     private static string? s_uploadSourceSchemaHash;
     private static string? s_beginDeploymentHash;
     private static string? s_claimDeploymentHash;
@@ -36,6 +40,8 @@ internal static class NitroOperationDocuments
     private const string ResolveApiNameFile = "ResolveNitroApiName.graphql";
     private const string ValidateSchemaFile = "ValidateNitroSchema.graphql";
     private const string WatchSchemaValidationFile = "WatchNitroSchemaValidation.graphql";
+    private const string GetStageVersionFile = "GetNitroStageVersion.graphql";
+    private const string WatchStageFile = "WatchNitroStage.graphql";
     private const string UploadSourceSchemaFile = "UploadFusionSourceSchema.graphql";
     private const string BeginDeploymentFile = "BeginFusionDeployment.graphql";
     private const string ClaimDeploymentFile = "ClaimFusionDeployment.graphql";
@@ -47,6 +53,8 @@ internal static class NitroOperationDocuments
     private static string? s_resolveApiName;
     private static string? s_validateSchema;
     private static string? s_watchSchemaValidation;
+    private static string? s_getStageVersion;
+    private static string? s_watchStage;
     private static string? s_uploadSourceSchema;
     private static string? s_beginDeployment;
     private static string? s_claimDeployment;
@@ -62,6 +70,8 @@ internal static class NitroOperationDocuments
     public const string ResolveApiNameOperationName = "ResolveNitroApiName";
     public const string ValidateSchemaOperationName = "ValidateNitroSchema";
     public const string WatchSchemaValidationOperationName = "WatchNitroSchemaValidation";
+    public const string GetStageVersionOperationName = "GetNitroStageVersion";
+    public const string WatchStageOperationName = "WatchNitroStage";
 
     /// <summary>
     /// The operation name of the document that uploads an immutable source schema version.
@@ -111,6 +121,12 @@ internal static class NitroOperationDocuments
     public static string GetWatchSchemaValidationOperationId()
         => s_watchSchemaValidationHash ??= ReadDocument(WatchSchemaValidationHashFile).Trim();
 
+    public static string GetStageVersionOperationId()
+        => s_getStageVersionHash ??= ReadDocument(GetStageVersionHashFile).Trim();
+
+    public static string GetWatchStageOperationId()
+        => s_watchStageHash ??= ReadDocument(WatchStageHashFile).Trim();
+
     public static string GetUploadSourceSchemaOperationId()
         => s_uploadSourceSchemaHash ??= ReadDocument(UploadSourceSchemaHashFile).Trim();
 
@@ -143,6 +159,12 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchSchemaValidationDocument()
         => s_watchSchemaValidation ??= ReadDocument(WatchSchemaValidationFile);
+
+    public static string GetStageVersionDocument()
+        => s_getStageVersion ??= ReadDocument(GetStageVersionFile);
+
+    public static string GetWatchStageDocument()
+        => s_watchStage ??= ReadDocument(WatchStageFile);
 
     public static string GetUploadSourceSchemaDocument()
         => s_uploadSourceSchema ??= ReadDocument(UploadSourceSchemaFile);
