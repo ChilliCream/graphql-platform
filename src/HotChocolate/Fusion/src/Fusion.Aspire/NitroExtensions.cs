@@ -197,61 +197,8 @@ public static class NitroExtensions
         return builder;
     }
 
-    /// <summary>
-    /// Validates each successfully composed gateway schema against the configured Nitro API and
-    /// stage. Validation uploads the full composed gateway schema to Nitro in the background and
-    /// reports client-contract transitions through Aspire notifications and resource logs.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro-composed gateway.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Nitro was not added with a stage, the gateway has no Nitro API id, or the resource is not
-    /// configured for schema composition.
-    /// </exception>
-    public static IResourceBuilder<T> WithNitroSchemaValidation<T>(
-        this IResourceBuilder<T> builder)
-        where T : IResource
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        var options = SchemaCompositionRegistration.GetOptions(builder.ApplicationBuilder);
-
-        if (options?.Coordinator is null)
-        {
-            throw new InvalidOperationException(
-                "Nitro schema validation requires AddNitro(stage) to be called before "
-                + "WithNitroSchemaValidation.");
-        }
-
-        if (builder.Resource.GetNitroApiId() is null)
-        {
-            throw new InvalidOperationException(
-                "Nitro schema validation requires WithNitroApiId(apiId) to be configured first.");
-        }
-
-        if (!builder.Resource.NeedsGraphQLSchemaComposition())
-        {
-            throw new InvalidOperationException(
-                "Nitro schema validation can only be enabled on a gateway configured with "
-                + "WithGraphQLSchemaComposition.");
-        }
-
-        builder.WithAnnotation(
-            new NitroSchemaValidationAnnotation(),
-            ResourceAnnotationMutationBehavior.Replace);
-
-        return builder;
-    }
-
     internal static string? GetNitroApiId(this IResource resource)
         => resource.Annotations.OfType<NitroApiIdAnnotation>().SingleOrDefault()?.ApiId;
-
-    internal static bool HasNitroSchemaValidation(this IResource resource)
-        => resource.Annotations.OfType<NitroSchemaValidationAnnotation>().Any();
 
     internal static void TryAddAutoUpdateCommands<T>(IResourceBuilder<T> builder)
         where T : IResource
@@ -311,7 +258,7 @@ public static class NitroExtensions
             context => context.ServiceProvider
                 .GetService<NitroSeedUpdateService>()?
                 .SetAutoUpdateAsync(
-                    context.ResourceName,
+                    resourceName,
                     enabled,
                     context.CancellationToken)
                 ?? Task.FromResult(
