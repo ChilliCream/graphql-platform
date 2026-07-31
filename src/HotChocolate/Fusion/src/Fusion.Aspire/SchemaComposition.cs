@@ -18,11 +18,14 @@ internal sealed class SchemaComposition(
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
     NitroCompositionOptions nitroOptions,
+    NitroSchemaValidationCoordinator validationCoordinator,
+    GatewayCompositionCommandCoordinator commandCoordinator,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
     private const int FetchMaxRetries = 15;
     private const int ArchiveCopyMaxAttempts = 5;
+    private const string NitroPortalDisplayText = "🌐 Nitro";
     private static readonly TimeSpan s_fetchRetryDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_recompositionDebounceDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_archiveCopyRetryDelay = TimeSpan.FromMilliseconds(250);
@@ -46,16 +49,19 @@ internal sealed class SchemaComposition(
         // its initial ResourceReadyEvent early, and events are not replayed to late subscribers,
         // so subscribing any later would misclassify the first restart of such a resource as its
         // initial start.
-        eventing.Subscribe<BeforeStartEvent>((@event, _) =>
+        eventing.Subscribe<BeforeStartEvent>(async (@event, beforeStartCancellationToken) =>
         {
             var compositionResources = @event.Model.GetGraphQLCompositionResources().ToList();
 
             ReportNitroConfigurationDiagnostics(@event.Model, compositionResources);
+            await AddNitroPortalUrlsAsync(
+                compositionResources,
+                beforeStartCancellationToken);
 
             if (compositionResources.Count == 0)
             {
                 logger.LogDebug("No resources found that need GraphQL schema composition");
-                return Task.CompletedTask;
+                return;
             }
 
             // One gate per gateway serializes the startup composition with recompositions
@@ -76,6 +82,14 @@ internal sealed class SchemaComposition(
                 var gateway = compositionResource;
                 var compositionGate = compositionGates[gateway];
 
+                commandCoordinator.Register(
+                    gateway.Name,
+                    commandCancellationToken => ExecuteRecomposeCommandAsync(
+                        gateway,
+                        @event.Model,
+                        compositionGate,
+                        commandCancellationToken));
+
                 // The orchestrator awaits this handler before it starts the gateway process,
                 // so the gateway only starts once its fusion archive is on disk. The handler
                 // runs again on every restart of the gateway, which composes a fresh schema.
@@ -94,10 +108,64 @@ internal sealed class SchemaComposition(
             StartRecompositionWorkers(recompositionWorkers);
 
             logger.LogInformation("Watching source schema resources for restarts.");
-            return Task.CompletedTask;
         });
 
         return Task.CompletedTask;
+    }
+
+    internal async Task AddNitroPortalUrlsAsync(
+        IReadOnlyList<IResourceWithEndpoints> compositionResources,
+        CancellationToken cancellationToken)
+    {
+        var coordinator = nitroOptions.Coordinator;
+        if (coordinator is null
+            || !compositionResources.Any(resource => resource.GetNitroApiId() is not null))
+        {
+            return;
+        }
+
+        string portalUrl;
+        if (nitroOptions.PortalUrl is { } configured)
+        {
+            portalUrl = configured.OriginalString;
+        }
+        else
+        {
+            try
+            {
+                var connection = await coordinator.ResolveConnectionAsync(logger, cancellationToken);
+                portalUrl = NitroDefaults.CreatePortalUrl(connection.ApiUrl).OriginalString;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                logger.LogWarning(
+                    "The Nitro Portal URL could not be resolved. The informational link will "
+                    + "not be added.");
+                return;
+            }
+        }
+
+        foreach (var resource in compositionResources)
+        {
+            if (resource.GetNitroApiId() is null
+                || resource.Annotations.OfType<ResourceUrlAnnotation>()
+                    .Any(url => url.DisplayText == NitroPortalDisplayText))
+            {
+                continue;
+            }
+
+            resource.Annotations.Add(
+                new ResourceUrlAnnotation
+                {
+                    Url = portalUrl,
+                    DisplayText = NitroPortalDisplayText,
+                    DisplayLocation = UrlDisplayLocation.SummaryAndDetails
+                });
+        }
     }
 
     /// <summary>
@@ -161,6 +229,7 @@ internal sealed class SchemaComposition(
         SemaphoreSlim compositionGate,
         CancellationToken cancellationToken)
     {
+        var outcome = SchemaCompositionOutcome.Failed;
         await compositionGate.WaitAsync(cancellationToken);
 
         try
@@ -178,13 +247,14 @@ internal sealed class SchemaComposition(
                     appModel,
                     cancellationToken);
 
-                if (await ComposeSchemaAsync(
+                outcome = await ComposeSchemaAsync(
                     compositionResource,
                     appModel,
                     seed,
-                    cancellationToken))
+                    cancellationToken);
+                if (outcome.Success)
                 {
-                    return;
+                    failure = null;
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -196,20 +266,28 @@ internal sealed class SchemaComposition(
                 failure = exception;
             }
 
-            var message = failure is null
-                ? $"The GraphQL schema composition for '{compositionResource.Name}' failed."
-                : $"The GraphQL schema composition for '{compositionResource.Name}' failed: {failure.Message}";
+            if (!outcome.Success)
+            {
+                var message = failure is null
+                    ? $"The GraphQL schema composition for '{compositionResource.Name}' failed."
+                    : $"The GraphQL schema composition for '{compositionResource.Name}' failed: {failure.Message}";
 
-            logger.LogError(failure, "{Message}", message);
-            resourceLoggerService.GetLogger(compositionResource).LogError(failure, "{Message}", message);
+                logger.LogError(failure, "{Message}", message);
+                resourceLoggerService.GetLogger(compositionResource).LogError(failure, "{Message}", message);
 
-            throw failure is null
-                ? new DistributedApplicationException(message)
-                : new DistributedApplicationException(message, failure);
+                throw failure is null
+                    ? new DistributedApplicationException(message)
+                    : new DistributedApplicationException(message, failure);
+            }
         }
         finally
         {
             compositionGate.Release();
+        }
+
+        if (outcome.GatewaySchema is not null)
+        {
+            validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
         }
     }
 
@@ -424,16 +502,86 @@ internal sealed class SchemaComposition(
         SemaphoreSlim compositionGate,
         CancellationToken cancellationToken)
     {
+        SchemaCompositionOutcome outcome;
         await compositionGate.WaitAsync(cancellationToken);
 
         try
         {
-            await RecomposeSchemaAsync(compositionResource, appModel, cancellationToken);
+            outcome = await RecomposeSchemaAsync(
+                compositionResource,
+                appModel,
+                cancellationToken);
         }
         finally
         {
             compositionGate.Release();
         }
+
+        if (outcome.GatewaySchema is not null)
+        {
+            validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
+        }
+    }
+
+    internal async Task<ExecuteCommandResult> ExecuteRecomposeCommandAsync(
+        IResourceWithEndpoints compositionResource,
+        DistributedApplicationModel appModel,
+        SemaphoreSlim compositionGate,
+        CancellationToken cancellationToken)
+    {
+        bool enteredCompositionGate;
+        try
+        {
+            enteredCompositionGate = await compositionGate.WaitAsync(0, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return CommandResults.Canceled();
+        }
+
+        if (!enteredCompositionGate)
+        {
+            return CommandResults.Success("Composition already in progress");
+        }
+
+        SchemaCompositionOutcome outcome;
+        try
+        {
+            outcome = await RecomposeSchemaAsync(
+                compositionResource,
+                appModel,
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return CommandResults.Canceled();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(
+                exception,
+                "Manual schema composition failed for {ResourceName}.",
+                compositionResource.Name);
+            return CommandResults.Failure(
+                $"Schema composition failed for '{compositionResource.Name}'.");
+        }
+        finally
+        {
+            compositionGate.Release();
+        }
+
+        if (!outcome.Success)
+        {
+            return CommandResults.Failure(
+                $"Schema composition failed for '{compositionResource.Name}'.");
+        }
+
+        if (outcome.GatewaySchema is not null)
+        {
+            validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
+        }
+
+        return CommandResults.Success("Schema composition completed");
     }
 
     /// <summary>
@@ -470,7 +618,7 @@ internal sealed class SchemaComposition(
         return map;
     }
 
-    private async Task RecomposeSchemaAsync(
+    private async Task<SchemaCompositionOutcome> RecomposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
         CancellationToken cancellationToken)
@@ -491,7 +639,7 @@ internal sealed class SchemaComposition(
                     "Skipping the schema recomposition for {ResourceName} because no fusion "
                     + "configuration was acquired for it in this run.",
                     compositionResource.Name);
-                return;
+                return SchemaCompositionOutcome.Failed;
             }
         }
 
@@ -499,7 +647,12 @@ internal sealed class SchemaComposition(
             "Recomposing GraphQL schema for {ResourceName}...",
             compositionResource.Name);
 
-        if (await ComposeSchemaAsync(compositionResource, appModel, seed, cancellationToken))
+        var outcome = await ComposeSchemaAsync(
+            compositionResource,
+            appModel,
+            seed,
+            cancellationToken);
+        if (outcome.Success)
         {
             logger.LogInformation(
                 "Schema recomposition for {ResourceName} completed.",
@@ -511,9 +664,11 @@ internal sealed class SchemaComposition(
                 "Schema recomposition for {ResourceName} failed. The gateway keeps the previous schema.",
                 compositionResource.Name);
         }
+
+        return outcome;
     }
 
-    private async Task<bool> ComposeSchemaAsync(
+    private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
         NitroGatewaySeed? seed,
@@ -523,7 +678,7 @@ internal sealed class SchemaComposition(
 
         if (settings is null)
         {
-            return true;
+            return SchemaCompositionOutcome.SucceededWithoutSchema;
         }
 
         // Composition problems are reported to the application host log and to the console
@@ -552,7 +707,7 @@ internal sealed class SchemaComposition(
                 // references no resources with a source schema annotation. There is
                 // nothing to compose, so no archive is written and the composition
                 // succeeds with the warning above.
-                return true;
+                return SchemaCompositionOutcome.SucceededWithoutSchema;
             }
 
             try
@@ -566,6 +721,7 @@ internal sealed class SchemaComposition(
                     sourceSchemas,
                     settings,
                     compositionLogger,
+                    compositionResource.HasNitroSchemaValidation(),
                     cancellationToken);
             }
             finally
@@ -589,7 +745,7 @@ internal sealed class SchemaComposition(
                 ex.Message);
         }
 
-        return false;
+        return SchemaCompositionOutcome.Failed;
     }
 
     internal async Task<List<SourceSchemaInfo>> DiscoverReferencedSourceSchemasAsync(
@@ -1121,13 +1277,14 @@ internal sealed class SchemaComposition(
         return null;
     }
 
-    private async Task<bool> ComposeSchemaAsync(
+    private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(
         string gatewayName,
         string archivePath,
         NitroGatewaySeed? seed,
         List<SourceSchemaInfo> sourceSchemas,
         GraphQLSchemaCompositionAnnotation settings,
         ILogger compositionLogger,
+        bool captureGatewaySchema,
         CancellationToken cancellationToken)
     {
         var tempArchivePath = IOPath.Combine(IOPath.GetTempPath(), IOPath.GetRandomFileName());
@@ -1170,7 +1327,27 @@ internal sealed class SchemaComposition(
                     ArchiveCopyMaxAttempts,
                     s_archiveCopyRetryDelay,
                     cancellationToken);
-                return true;
+
+                byte[]? gatewaySchema = null;
+                if (captureGatewaySchema)
+                {
+                    try
+                    {
+                        gatewaySchema = await ReadGatewaySchemaAsync(
+                            tempArchivePath,
+                            cancellationToken);
+                    }
+                    catch (Exception exception)
+                    {
+                        compositionLogger.LogWarning(
+                            exception,
+                            "The gateway schema for {ResourceName} could not be captured for "
+                            + "observational Nitro validation. The installed archive is unaffected.",
+                            gatewayName);
+                    }
+                }
+
+                return new SchemaCompositionOutcome(true, gatewaySchema);
             }
         }
         finally
@@ -1181,7 +1358,28 @@ internal sealed class SchemaComposition(
             }
         }
 
-        return false;
+        return SchemaCompositionOutcome.Failed;
+    }
+
+    private static async Task<byte[]> ReadGatewaySchemaAsync(
+        string archivePath,
+        CancellationToken cancellationToken)
+    {
+        using var archive = FusionArchive.Open(archivePath);
+        using var configuration = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            cancellationToken);
+
+        if (configuration is null)
+        {
+            throw new InvalidOperationException(
+                "The composed archive does not contain a supported gateway schema.");
+        }
+
+        await using var schema = await configuration.OpenReadSchemaAsync(cancellationToken);
+        var buffer = GC.AllocateUninitializedArray<byte>(checked((int)schema.Length));
+        await schema.ReadExactlyAsync(buffer, cancellationToken);
+        return buffer;
     }
 
     /// <summary>
@@ -1274,6 +1472,13 @@ internal sealed class SchemaComposition(
             && url.ValueKind is JsonValueKind.String
                 ? url.GetString()!
                 : "no HTTP transport URL";
+
+    private sealed record SchemaCompositionOutcome(bool Success, byte[]? GatewaySchema)
+    {
+        public static SchemaCompositionOutcome Failed { get; } = new(false, null);
+
+        public static SchemaCompositionOutcome SucceededWithoutSchema { get; } = new(true, null);
+    }
 
     /// <summary>
     /// Creates the logger that reports to the application host log and to the console log of a

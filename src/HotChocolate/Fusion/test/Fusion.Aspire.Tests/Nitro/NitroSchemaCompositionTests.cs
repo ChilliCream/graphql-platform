@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
@@ -465,9 +466,264 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         Assert.Equal(string.Empty, DescribeEntries(harness, LogLevel.Warning));
     }
 
+    [Fact]
+    public async Task AddNitroPortalUrlsAsync_Should_AttachDerivedPortal_When_GatewayUsesNitro()
+    {
+        // arrange
+        var harness = CompositionHarness.Create(CreateCoordinator());
+        var (_, gateway) = CreateModel(GatewayApiId);
+
+        // act
+        await harness.Composition.AddNitroPortalUrlsAsync(
+            [gateway],
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var annotation = Assert.Single(
+            gateway.Annotations.OfType<ResourceUrlAnnotation>(),
+            url => url.DisplayText == "🌐 Nitro");
+        $"""
+        Target: {annotation.Url}
+        Display: {annotation.DisplayText}
+        Location: {annotation.DisplayLocation}
+        """
+            .Replace(_server.BaseAddress.OriginalString, "<api>", StringComparison.Ordinal)
+            .MatchInlineSnapshot(
+            """
+            Target: <api>/ui
+            Display: 🌐 Nitro
+            Location: SummaryAndDetails
+            """);
+    }
+
+    [Fact]
+    public async Task AddNitroPortalUrlsAsync_Should_UseOverrideVerbatim_When_PortalIsConfigured()
+    {
+        // arrange
+        var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
+        var harness = CompositionHarness.Create(CreateCoordinator(), portalUrl);
+        var (_, gateway) = CreateModel(GatewayApiId);
+
+        // act
+        await harness.Composition.AddNitroPortalUrlsAsync(
+            [gateway],
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var annotation = Assert.Single(
+            gateway.Annotations.OfType<ResourceUrlAnnotation>(),
+            url => url.DisplayText == "🌐 Nitro");
+        Assert.Equal(portalUrl.OriginalString, annotation.Url);
+    }
+
+    [Fact]
+    public async Task AddNitroPortalUrlsAsync_Should_SkipLink_When_ResolutionFails()
+    {
+        // arrange
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(new ThrowingNitroEnvironment()));
+        var (_, gateway) = CreateModel(GatewayApiId);
+
+        // act
+        await harness.Composition.AddNitroPortalUrlsAsync(
+            [gateway],
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(gateway.Annotations.OfType<ResourceUrlAnnotation>());
+        DescribeEntries(harness, LogLevel.Warning).MatchInlineSnapshot(
+            "The Nitro Portal URL could not be resolved. The informational link will not be added.");
+    }
+
+    [Fact]
+    public async Task AddNitroPortalUrlsAsync_Should_NotAttachPortal_When_GatewayIsLocal()
+    {
+        // arrange
+        var harness = CompositionHarness.Create(CreateCoordinator());
+        var (_, gateway) = CreateModel(gatewayApiId: null);
+
+        // act
+        await harness.Composition.AddNitroPortalUrlsAsync(
+            [gateway],
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(gateway.Annotations.OfType<ResourceUrlAnnotation>());
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_NotWaitOrFail_When_ValidationIsUnavailable()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var validator = new RecordingSchemaValidator(blockUntilReleased: true);
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(validator),
+            notifier: new NoopValidationNotifier());
+        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+                gateway,
+                model,
+                compositionGate,
+                TestContext.Current.CancellationToken)
+            .WaitAsync(
+                TimeSpan.FromSeconds(5),
+                TestContext.Current.CancellationToken);
+        await validator.Started.WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
+        var validationWasStillBlocked = validator.IsBlocked;
+        validator.Release();
+        await WaitForValidationReportAsync(
+            harness.ValidationCoordinator,
+            gateway.Name,
+            report => report.Status is NitroSchemaValidationStatus.Unavailable);
+        harness.Lifetime.StopApplication();
+
+        // assert
+        $"""
+        Archive installed: {File.Exists(_gatewayArchivePath)}
+        Composition gate count: {compositionGate.CurrentCount}
+        Validation calls: {validator.SchemaHashes.Count}
+        Validation blocked after composition: {validationWasStillBlocked}
+        Validation status: {harness.ValidationCoordinator.GetLatestReport(gateway.Name)?.Status}
+        """.MatchInlineSnapshot(
+            """
+            Archive installed: True
+            Composition gate count: 1
+            Validation calls: 1
+            Validation blocked after composition: True
+            Validation status: Unavailable
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_NotResubmitValidation_When_RestartSchemaIsUnchanged()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var validator = new RecordingSchemaValidator(blockUntilReleased: false);
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(validator),
+            notifier: new NoopValidationNotifier());
+        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        await WaitForValidationReportAsync(
+            harness.ValidationCoordinator,
+            gateway.Name,
+            _ => true);
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        harness.Lifetime.StopApplication();
+
+        // assert
+        $"""
+        Archive installed: {File.Exists(_gatewayArchivePath)}
+        Validation calls: {validator.SchemaHashes.Count}
+        Distinct schema hashes: {validator.SchemaHashes.Distinct(StringComparer.Ordinal).Count()}
+        """.MatchInlineSnapshot(
+            """
+            Archive installed: True
+            Validation calls: 1
+            Distinct schema hashes: 1
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_ComposeOnceAndValidateOnlyChangedSchema()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var validator = new RecordingSchemaValidator(blockUntilReleased: false);
+        var coordinator = CreateCoordinator(validator);
+        var harness = CompositionHarness.Create(
+            coordinator,
+            notifier: new NoopValidationNotifier());
+        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+
+        // act
+        var first = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        var firstReport = await WaitForValidationReportAsync(
+            harness.ValidationCoordinator,
+            gateway.Name,
+            _ => true);
+        var compositionsAfterFirst = CountRecompositions(harness);
+
+        var unchanged = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        var validationsAfterUnchanged = validator.SchemaHashes.Count;
+
+        await File.WriteAllTextAsync(
+            IOPath.Combine(
+                IOPath.GetDirectoryName(_productsProjectFile)!,
+                "schema.graphqls"),
+            "type Query { product: String @deprecated }",
+            TestContext.Current.CancellationToken);
+        var changed = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        await WaitForValidationReportAsync(
+            harness.ValidationCoordinator,
+            gateway.Name,
+            report => !string.Equals(
+                report.SchemaHash,
+                firstReport.SchemaHash,
+                StringComparison.Ordinal));
+        harness.Lifetime.StopApplication();
+
+        // assert
+        $"""
+        First: {first.Success} ({first.Message})
+        Unchanged: {unchanged.Success} ({unchanged.Message})
+        Changed: {changed.Success} ({changed.Message})
+        Compositions after first command: {compositionsAfterFirst}
+        Validations after unchanged command: {validationsAfterUnchanged}
+        Validations after changed command: {validator.SchemaHashes.Count}
+        Gate count: {compositionGate.CurrentCount}
+        """.MatchInlineSnapshot(
+            """
+            First: True (Schema composition completed)
+            Unchanged: True (Schema composition completed)
+            Changed: True (Schema composition completed)
+            Compositions after first command: 1
+            Validations after unchanged command: 1
+            Validations after changed command: 2
+            Gate count: 1
+            """);
+    }
+
     private (DistributedApplicationModel Model, IResourceWithEndpoints Gateway) CreateModel(
         string? gatewayApiId,
-        string? productsApiId = null)
+        string? productsApiId = null,
+        bool enableValidation = false)
     {
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
@@ -489,6 +745,11 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             gateway.WithNitroApiId(gatewayApiId);
         }
 
+        if (enableValidation)
+        {
+            gateway.Resource.Annotations.Add(new NitroSchemaValidationAnnotation());
+        }
+
         var model = new DistributedApplicationModel(builder.Resources);
 
         return (model, model.GetGraphQLCompositionResources().Single());
@@ -496,11 +757,14 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
     private NitroSeedCoordinator CreateCoordinator()
         => CreateCoordinator(
-            new TestNitroEnvironment(
-                (NitroEnvironmentVariables.CloudUrl, _server.BaseAddress.AbsoluteUri),
-                (NitroEnvironmentVariables.ApiKey, "nitro-api-key")));
+            CreateDefaultEnvironment());
 
-    private NitroSeedCoordinator CreateCoordinator(INitroEnvironment environment)
+    private NitroSeedCoordinator CreateCoordinator(INitroSchemaValidator validator)
+        => CreateCoordinator(CreateDefaultEnvironment(), validator);
+
+    private NitroSeedCoordinator CreateCoordinator(
+        INitroEnvironment environment,
+        INitroSchemaValidator? validator = null)
         => new(
             Stage,
             new NitroConnectionResolver(
@@ -520,7 +784,42 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                 new NitroSeedCache(_directory.GetPath("cache"), _timeProvider),
                 new NitroApiLookupClient(
                     GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false))),
+            validator
+                ?? new NitroSchemaValidator(
+                    GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
+                    _timeProvider,
+                    new RecordingLogger<NitroSchemaValidator>()),
             _directory.GetPath("run"));
+
+    private TestNitroEnvironment CreateDefaultEnvironment()
+        => new(
+            (NitroEnvironmentVariables.CloudUrl, _server.BaseAddress.AbsoluteUri),
+            (NitroEnvironmentVariables.ApiKey, "nitro-api-key"));
+
+    private static int CountRecompositions(CompositionHarness harness)
+        => harness.Logger.Entries.Count(
+            entry => entry.Level is LogLevel.Information
+                && entry.Message.StartsWith(
+                    "Recomposing GraphQL schema for ",
+                    StringComparison.Ordinal));
+
+    private static async Task<NitroSchemaValidationReport> WaitForValidationReportAsync(
+        NitroSchemaValidationCoordinator coordinator,
+        string resourceName,
+        Func<NitroSchemaValidationReport, bool> predicate)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
+            TestContext.Current.CancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+
+        while (coordinator.GetLatestReport(resourceName) is not { } report
+            || !predicate(report))
+        {
+            await Task.Delay(10, timeout.Token);
+        }
+
+        return coordinator.GetLatestReport(resourceName)!;
+    }
 
     /// <summary>
     /// Serves the fusion configuration of Nitro: an outdated products schema that the local one
@@ -704,4 +1003,65 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         => value
             .Replace(_server.BaseAddress.AbsoluteUri, "https://nitro.test/", StringComparison.Ordinal)
             .Replace(_directory.Path, "<temp>", StringComparison.Ordinal);
+
+    private sealed class RecordingSchemaValidator(bool blockUntilReleased)
+        : INitroSchemaValidator
+    {
+        private readonly TaskCompletionSource _started =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _release =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ConcurrentQueue<string> SchemaHashes { get; } = [];
+
+        public Task Started => _started.Task;
+
+        public bool IsBlocked => blockUntilReleased && !_release.Task.IsCompleted;
+
+        public void Release() => _release.TrySetResult();
+
+        public async Task<NitroSchemaValidationReport> ValidateAsync(
+            NitroConnection connection,
+            string apiId,
+            string stage,
+            byte[] schema,
+            string schemaHash,
+            CancellationToken cancellationToken)
+        {
+            SchemaHashes.Enqueue(schemaHash);
+            _started.TrySetResult();
+
+            if (blockUntilReleased)
+            {
+                await _release.Task.WaitAsync(cancellationToken);
+                return NitroSchemaValidationReport.Unavailable(
+                    schemaHash,
+                    "Nitro is unavailable.",
+                    DateTimeOffset.UtcNow,
+                    "request-unavailable");
+            }
+
+            return NitroSchemaValidationReport.Passed(
+                schemaHash,
+                $"request-{SchemaHashes.Count}",
+                DateTimeOffset.UtcNow);
+        }
+    }
+
+    private sealed class NoopValidationNotifier : INitroSchemaValidationNotifier
+    {
+        public void NotifyViolations(string message)
+        {
+        }
+
+        public void NotifyRestored(string message)
+        {
+        }
+    }
+
+    private sealed class ThrowingNitroEnvironment : INitroEnvironment
+    {
+        public string? GetVariable(string name)
+            => throw new InvalidOperationException("The environment is unavailable.");
+    }
 }
