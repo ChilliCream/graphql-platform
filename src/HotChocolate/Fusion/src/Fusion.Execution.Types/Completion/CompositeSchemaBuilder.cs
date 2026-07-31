@@ -85,14 +85,7 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        var baseIntrospectionDocument = options.EnableOptInFeatures
-            ? IntrospectionSchema.OptInDocument
-            : IntrospectionSchema.Document;
-
-        var introspectionDefinitions = options.EnableSemanticIntrospection
-            ? baseIntrospectionDocument.Definitions
-                .Concat(SemanticIntrospectionSchema.Document.Definitions)
-            : baseIntrospectionDocument.Definitions.AsEnumerable();
+        var introspectionDefinitions = IntrospectionSchema.GetDocument(options).Definitions;
 
         foreach (var definition in introspectionDefinitions.Concat(schemaDocument.Definitions))
         {

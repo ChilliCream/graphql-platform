@@ -1,4 +1,6 @@
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -92,6 +94,33 @@ public static class GraphQLResourceBuilderExtensions
                 Settings = settings
             });
 
+        if (!builder.Resource.Annotations
+            .OfType<ResourceCommandAnnotation>()
+            .Any(command => command.Name == "recompose"))
+        {
+            builder.WithCommand(
+                "recompose",
+                "Recompose",
+                context => context.ServiceProvider
+                    .GetService<GatewayCompositionCommandCoordinator>()?
+                    .ExecuteAsync(context.ResourceName, context.CancellationToken)
+                    ?? Task.FromResult(
+                        CommandResults.Failure("Schema composition is not ready.")),
+                new CommandOptions
+                {
+                    Description = "Recompose and install the gateway schema.",
+                    IconName = "ArrowSync",
+                    UpdateState = context =>
+                    {
+                        var state = context.ResourceSnapshot.State?.Text;
+                        return state == KnownResourceStates.Running
+                            || state == KnownResourceStates.RuntimeUnhealthy
+                                ? ResourceCommandState.Enabled
+                                : ResourceCommandState.Disabled;
+                    }
+                });
+        }
+
         return builder;
     }
 
@@ -121,6 +150,20 @@ public static class GraphQLResourceBuilderExtensions
 
         var baseUrl = endpoint.Url.TrimEnd('/');
         return baseUrl + resource.GetGraphQLSchemaPath(defaultPath);
+    }
+
+    internal static string? GetAllocatedHttpEndpointUrl(this IResourceWithEndpoints resource)
+    {
+        var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
+        var endpointName = annotation?.EndpointName ?? "http";
+        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == endpointName);
+
+        if (endpoint is not { IsAllocated: true })
+        {
+            return null;
+        }
+
+        return endpoint.Url;
     }
 
     internal static string? GetGraphQLSchemaPath(

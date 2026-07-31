@@ -438,7 +438,7 @@ jobs:
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-22.04
-    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops]
+    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -598,6 +598,59 @@ jobs:
           api-key: ${{ secrets.NITRO_API_KEY }}
           force: true
 
+  publish-aspire-nitro-ops:
+    name: 🚀 Publish Fusion Aspire Nitro operations
+    runs-on: ubuntu-22.04
+    needs: [compute-release-context, pack-nuget]
+    permissions:
+      contents: read
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          show-progress: false
+
+      - name: 🛠 Install .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: |
+            10.x
+            11.0.100-preview.6.26359.118
+
+      - name: 🔍 Verify hashes and create operations manifest
+        run: >
+          .github/scripts/nitro-aspire-operations.sh verify
+          --output "${{ runner.temp }}/nitro-aspire-operations.json"
+
+      - name: 📤 Upload Fusion Aspire client operations
+        uses: ChilliCream/nitro-client-upload@a783713782de320181e63a16e46b65fa45eedafe # v16.1.3
+        with:
+          tag: ${{ env.GIT_TAG }}
+          operations-file: ${{ runner.temp }}/nitro-aspire-operations.json
+          client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+
+      - name: 🚀 Publish Fusion Aspire client (Dev)
+        uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
+        with:
+          tag: ${{ env.GIT_TAG }}
+          stage: Dev
+          client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          force: true
+
+      - name: 🚀 Publish Fusion Aspire client (Prod)
+        uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
+        with:
+          tag: ${{ env.GIT_TAG }}
+          stage: Prod
+          client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          force: true
+
   publish-release:
     name: 🚀 Publish Release
     runs-on: ubuntu-22.04
@@ -607,6 +660,7 @@ jobs:
       - publish-nuget
       - publish-npm
       - publish-nitro-ops
+      - publish-aspire-nitro-ops
     permissions:
       contents: write
     env:
