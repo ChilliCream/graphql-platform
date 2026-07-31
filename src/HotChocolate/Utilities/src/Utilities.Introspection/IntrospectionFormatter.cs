@@ -201,7 +201,9 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            [],
+            CreateDeprecatedDirective(
+                type.IsDeprecated ?? false,
+                type.DeprecationReason),
             CreateNamedTypeRefs(type.Interfaces),
             CreateFields(type.Fields)
         );
