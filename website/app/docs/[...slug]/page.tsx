@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocPageMeta } from "@/src/components/DocPageMeta";
 import { EditOnGitHub } from "@/src/components/EditOnGitHub";
+import { HeadingTags } from "@/src/components/HeadingTags";
 import { TableOfContents } from "@/src/components/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
@@ -144,7 +145,12 @@ export default async function DocPage({ params }: PageProps) {
   }
 
   const absolutePath = path.join(CONTENT_ROOT, rel);
-  const { content, frontmatter, toc } = await compileDoc(absolutePath);
+  const {
+    content,
+    frontmatter,
+    toc,
+    tags: pageTags,
+  } = await compileDoc(absolutePath);
   const gitMeta = await getGitMetadata(absolutePath);
 
   const pageHref = `/docs/${slug.join("/")}`;
@@ -198,7 +204,17 @@ export default async function DocPage({ params }: PageProps) {
         />
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (
-            <Typography variant="h1">{frontmatter.title}</Typography>
+            <Typography
+              variant="h1"
+              className={
+                (pageTags.since ?? pageTags.requiresNitro)
+                  ? "flex flex-wrap items-center"
+                  : ""
+              }
+              adornment={<HeadingTags {...pageTags} />}
+            >
+              {frontmatter.title}
+            </Typography>
           ) : null}
 
           {content}
