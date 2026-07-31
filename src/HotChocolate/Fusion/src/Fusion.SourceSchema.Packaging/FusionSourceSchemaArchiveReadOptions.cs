@@ -5,11 +5,12 @@ namespace HotChocolate.Fusion.SourceSchema.Packaging;
 /// </summary>
 internal readonly record struct FusionSourceSchemaArchiveReadOptions(
     int MaxAllowedSchemaSize,
-    int MaxAllowedSettingsSize)
+    int MaxAllowedSettingsSize,
+    int MaxAllowedInMemorySessionSize)
 {
     /// <summary>
     /// Gets the default read options.
     /// </summary>
     public static FusionSourceSchemaArchiveReadOptions Default { get; }
-        = new(50_000_000, 512_000);
+        = new(50_000_000, 512_000, 128_000_000);
 }

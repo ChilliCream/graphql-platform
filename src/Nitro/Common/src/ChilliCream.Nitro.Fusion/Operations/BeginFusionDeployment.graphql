@@ -1,0 +1,9 @@
+mutation BeginFusionDeployment($input: BeginFusionConfigurationPublishInput!) {
+  beginFusionConfigurationPublish(input: $input) {
+    requestId
+    errors {
+      __typename
+      ...FusionError
+    }
+  }
+}

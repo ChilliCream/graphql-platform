@@ -29,4 +29,32 @@ public static class FusionSourceSchemaContent
             cancellationToken);
         return content.ComputeSha256(cancellationToken);
     }
+
+    /// <summary>
+    /// Computes a SHA-256 over the normalized schema, settings, and extensions in memory.
+    /// </summary>
+    public static async Task<string> ComputeSha256Async(
+        byte[] archive,
+        string expectedName,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(archive);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedName);
+
+        if (archive.Length is 0)
+        {
+            throw new ArgumentException(
+                "The Fusion source schema archive is empty.",
+                nameof(archive));
+        }
+
+        await using var stream = new MemoryStream(
+            archive,
+            writable: false);
+        var content = await FusionArchiveContent.ReadAsync(
+            stream,
+            expectedName,
+            cancellationToken);
+        return content.ComputeSha256(cancellationToken);
+    }
 }

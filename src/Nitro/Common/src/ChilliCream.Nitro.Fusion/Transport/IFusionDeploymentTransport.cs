@@ -9,6 +9,7 @@ internal interface IFusionDeploymentTransportFactory
 
 internal interface IFusionDeploymentTransport : IAsyncDisposable
 {
+    // The caller owns a non-null returned buffer and must clear it after use.
     Task<byte[]?> DownloadSourceSchemaAsync(
         string name,
         string version,
@@ -37,12 +38,12 @@ internal interface IFusionDeploymentTransport : IAsyncDisposable
 
     Task<FusionRemoteCommandResult> ValidatePublishAsync(
         string requestId,
-        string archivePath,
+        ReadOnlyMemory<byte> archive,
         CancellationToken cancellationToken);
 
     Task<FusionRemoteCommandResult> CommitPublishAsync(
         string requestId,
-        string archivePath,
+        ReadOnlyMemory<byte> archive,
         CancellationToken cancellationToken);
 }
 

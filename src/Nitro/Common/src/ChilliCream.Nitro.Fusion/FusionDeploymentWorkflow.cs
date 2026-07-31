@@ -28,18 +28,30 @@ internal sealed class FusionDeploymentWorkflow(
             return null;
         }
 
-        await using var stream = new MemoryStream(archive, writable: false);
-        var content = await FusionArchiveContent.ReadAsync(
-            stream,
-            source.Name,
-            cancellationToken);
-        var contentSha256 = content.ComputeSha256(cancellationToken);
-
-        return new FusionSourceSchemaDownload(
-            source.Name,
-            source.Version,
-            archive,
-            contentSha256);
+        var ownershipTransferred = false;
+        try
+        {
+            await using var stream = new MemoryStream(archive, writable: false);
+            var content = await FusionArchiveContent.ReadAsync(
+                stream,
+                source.Name,
+                cancellationToken);
+            var contentSha256 = content.ComputeSha256(cancellationToken);
+            var download = new FusionSourceSchemaDownload(
+                source.Name,
+                source.Version,
+                archive,
+                contentSha256);
+            ownershipTransferred = true;
+            return download;
+        }
+        finally
+        {
+            if (!ownershipTransferred)
+            {
+                Array.Clear(archive);
+            }
+        }
     }
 
     public async Task ReconcileSourceSchemaAsync(
@@ -67,7 +79,7 @@ internal sealed class FusionDeploymentWorkflow(
 
         if (remoteArchive is not null)
         {
-            await EnsureContentMatchesAsync(
+            await EnsureContentMatchesAndClearAsync(
                 source,
                 localContentSha256,
                 remoteArchive,
@@ -118,7 +130,7 @@ internal sealed class FusionDeploymentWorkflow(
                     + "could not be read back.");
             }
 
-            await EnsureContentMatchesAsync(
+            await EnsureContentMatchesAndClearAsync(
                 source,
                 localContentSha256,
                 racedArchive,
@@ -133,10 +145,10 @@ internal sealed class FusionDeploymentWorkflow(
 
     public async Task PublishAsync(
         FusionPublicationRequest request,
-        string fusionArchivePath,
+        ReadOnlyMemory<byte> fusionArchive,
         CancellationToken cancellationToken)
     {
-        ValidatePublication(request, fusionArchivePath);
+        ValidatePublication(request, fusionArchive);
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken);
@@ -205,7 +217,7 @@ internal sealed class FusionDeploymentWorkflow(
                 await EnsureRemoteCommandSucceededAsync(
                     () => transport.ValidatePublishAsync(
                         requestId,
-                        fusionArchivePath,
+                        fusionArchive,
                         operationToken),
                     "validate the Fusion configuration",
                     requestId);
@@ -229,7 +241,7 @@ internal sealed class FusionDeploymentWorkflow(
             await EnsureRemoteCommandSucceededAsync(
                 () => transport.CommitPublishAsync(
                     requestId,
-                    fusionArchivePath,
+                    fusionArchive,
                     operationToken),
                 "commit the Fusion configuration",
                 requestId);
@@ -284,11 +296,31 @@ internal sealed class FusionDeploymentWorkflow(
                 uploadException);
         }
 
-        await EnsureContentMatchesAsync(
+        await EnsureContentMatchesAndClearAsync(
             source,
             localContentSha256,
             remoteArchive,
             cancellationToken);
+    }
+
+    private static async Task EnsureContentMatchesAndClearAsync(
+        FusionSourceSchemaUpload source,
+        string localContentSha256,
+        byte[] remoteArchive,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await EnsureContentMatchesAsync(
+                source,
+                localContentSha256,
+                remoteArchive,
+                cancellationToken);
+        }
+        finally
+        {
+            Array.Clear(remoteArchive);
+        }
     }
 
     private static async Task EnsureContentMatchesAsync(
@@ -572,13 +604,12 @@ internal sealed class FusionDeploymentWorkflow(
 
     private static void ValidatePublication(
         FusionPublicationRequest request,
-        string fusionArchivePath)
+        ReadOnlyMemory<byte> fusionArchive)
     {
         ArgumentNullException.ThrowIfNull(request);
         ValidateTarget(request.Target);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Stage);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.ConfigurationTag);
-        ArgumentException.ThrowIfNullOrWhiteSpace(fusionArchivePath);
         ArgumentNullException.ThrowIfNull(request.SourceSchemas);
 
         if (request.SourceSchemas.Count is 0)
@@ -618,14 +649,7 @@ internal sealed class FusionDeploymentWorkflow(
                 "The approval timeout must be greater than zero.");
         }
 
-        if (!File.Exists(fusionArchivePath))
-        {
-            throw new FileNotFoundException(
-                "The Fusion configuration archive does not exist.",
-                fusionArchivePath);
-        }
-
-        if (new FileInfo(fusionArchivePath).Length is 0)
+        if (fusionArchive.IsEmpty)
         {
             throw new FusionDeploymentException(
                 "The Fusion configuration archive is empty.");

@@ -6,1308 +6,6 @@ namespace ChilliCream.Nitro.Fusion.Transport
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchemaResult : global::System.IEquatable<UploadFusionSourceSchemaResult>, IUploadFusionSourceSchemaResult
-    {
-        public UploadFusionSourceSchemaResult(global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph uploadFusionSubgraph)
-        {
-            UploadFusionSubgraph = uploadFusionSubgraph;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph UploadFusionSubgraph { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchemaResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (UploadFusionSubgraph.Equals(other.UploadFusionSubgraph));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchemaResult)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * UploadFusionSubgraph.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload>, IUploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload(global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion? fusionSubgraphVersion, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_Errors>? errors)
-        {
-            FusionSubgraphVersion = fusionSubgraphVersion;
-            Errors = errors;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion? FusionSubgraphVersion { get; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_Errors>? Errors { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((FusionSubgraphVersion is null && other.FusionSubgraphVersion is null) || FusionSubgraphVersion != null && FusionSubgraphVersion.Equals(other.FusionSubgraphVersion))) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                if (FusionSubgraphVersion != null)
-                {
-                    hash ^= 397 * FusionSubgraphVersion.GetHashCode();
-                }
-
-                if (Errors != null)
-                {
-                    foreach (var Errors_elm in Errors)
-                    {
-                        hash ^= 397 * Errors_elm.GetHashCode();
-                    }
-                }
-
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion>, IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion(global::System.String id)
-        {
-            Id = id;
-        }
-
-        public global::System.String Id { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * Id.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError
-    {
-        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchemaResult
-    {
-        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph UploadFusionSubgraph { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph
-    {
-        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion? FusionSubgraphVersion { get; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_Errors>? Errors { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload : IUploadFusionSourceSchema_UploadFusionSubgraph
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion
-    {
-        public global::System.String Id { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion : IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors
-    {
-        public global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IFusionError
-    {
-        public global::System.String Message { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeploymentResult : global::System.IEquatable<BeginFusionDeploymentResult>, IBeginFusionDeploymentResult
-    {
-        public BeginFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish beginFusionConfigurationPublish)
-        {
-            BeginFusionConfigurationPublish = beginFusionConfigurationPublish;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish BeginFusionConfigurationPublish { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeploymentResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (BeginFusionConfigurationPublish.Equals(other.BeginFusionConfigurationPublish));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeploymentResult)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * BeginFusionConfigurationPublish.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload>, IBeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload(global::System.String? requestId, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors>? errors)
-        {
-            RequestId = requestId;
-            Errors = errors;
-        }
-
-        public global::System.String? RequestId { get; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors>? Errors { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((RequestId is null && other.RequestId is null) || RequestId != null && RequestId.Equals(other.RequestId))) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                if (RequestId != null)
-                {
-                    hash ^= 397 * RequestId.GetHashCode();
-                }
-
-                if (Errors != null)
-                {
-                    foreach (var Errors_elm in Errors)
-                    {
-                        hash ^= 397 * Errors_elm.GetHashCode();
-                    }
-                }
-
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError
-    {
-        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeploymentResult
-    {
-        public global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish BeginFusionConfigurationPublish { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish
-    {
-        public global::System.String? RequestId { get; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors>? Errors { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload : IBeginFusionDeployment_BeginFusionConfigurationPublish
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors
-    {
-        public global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial class ClaimFusionDeploymentResult : global::System.IEquatable<ClaimFusionDeploymentResult>, IClaimFusionDeploymentResult
     {
         public ClaimFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition startFusionConfigurationComposition)
@@ -1670,6 +368,13 @@ namespace ChilliCream.Nitro.Fusion.Transport
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IFusionError
+    {
+        public global::System.String Message { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial interface IClaimFusionDeployment_StartFusionConfigurationComposition_Errors_UnauthorizedOperation : IClaimFusionDeployment_StartFusionConfigurationComposition_Errors, IFusionError
     {
     }
@@ -1683,1146 +388,6 @@ namespace ChilliCream.Nitro.Fusion.Transport
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial interface IClaimFusionDeployment_StartFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : IClaimFusionDeployment_StartFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ReleaseFusionDeploymentResult : global::System.IEquatable<ReleaseFusionDeploymentResult>, IReleaseFusionDeploymentResult
-    {
-        public ReleaseFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition cancelFusionConfigurationComposition)
-        {
-            CancelFusionConfigurationComposition = cancelFusionConfigurationComposition;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition CancelFusionConfigurationComposition { get; }
-
-        public virtual global::System.Boolean Equals(ReleaseFusionDeploymentResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (CancelFusionConfigurationComposition.Equals(other.CancelFusionConfigurationComposition));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ReleaseFusionDeploymentResult)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * CancelFusionConfigurationComposition.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload
-    {
-        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors>? errors)
-        {
-            Errors = errors;
-        }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors>? Errors { get; }
-
-        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                if (Errors != null)
-                {
-                    foreach (var Errors_elm in Errors)
-                    {
-                        hash ^= 397 * Errors_elm.GetHashCode();
-                    }
-                }
-
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation
-    {
-        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError
-    {
-        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError
-    {
-        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeploymentResult
-    {
-        public global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition CancelFusionConfigurationComposition { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition
-    {
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors>? Errors { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload : IReleaseFusionDeployment_CancelFusionConfigurationComposition
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors
-    {
-        public global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation : IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ValidateFusionDeploymentResult : global::System.IEquatable<ValidateFusionDeploymentResult>, IValidateFusionDeploymentResult
-    {
-        public ValidateFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition validateFusionConfigurationComposition)
-        {
-            ValidateFusionConfigurationComposition = validateFusionConfigurationComposition;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition ValidateFusionConfigurationComposition { get; }
-
-        public virtual global::System.Boolean Equals(ValidateFusionDeploymentResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (ValidateFusionConfigurationComposition.Equals(other.ValidateFusionConfigurationComposition));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ValidateFusionDeploymentResult)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * ValidateFusionConfigurationComposition.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload
-    {
-        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors>? errors)
-        {
-            Errors = errors;
-        }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors>? Errors { get; }
-
-        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                if (Errors != null)
-                {
-                    foreach (var Errors_elm in Errors)
-                    {
-                        hash ^= 397 * Errors_elm.GetHashCode();
-                    }
-                }
-
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation
-    {
-        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError
-    {
-        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError
-    {
-        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeploymentResult
-    {
-        public global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition ValidateFusionConfigurationComposition { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition
-    {
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors>? Errors { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload : IValidateFusionDeployment_ValidateFusionConfigurationComposition
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors
-    {
-        public global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation : IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class CommitFusionDeploymentResult : global::System.IEquatable<CommitFusionDeploymentResult>, ICommitFusionDeploymentResult
-    {
-        public CommitFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish commitFusionConfigurationPublish)
-        {
-            CommitFusionConfigurationPublish = commitFusionConfigurationPublish;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish CommitFusionConfigurationPublish { get; }
-
-        public virtual global::System.Boolean Equals(CommitFusionDeploymentResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (CommitFusionConfigurationPublish.Equals(other.CommitFusionConfigurationPublish));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((CommitFusionDeploymentResult)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * CommitFusionConfigurationPublish.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload>, ICommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload
-    {
-        public CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors>? errors)
-        {
-            Errors = errors;
-        }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors>? Errors { get; }
-
-        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                if (Errors != null)
-                {
-                    foreach (var Errors_elm in Errors)
-                    {
-                        hash ^= 397 * Errors_elm.GetHashCode();
-                    }
-                }
-
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation>, ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation
-    {
-        public CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError>, ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError
-    {
-        public CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>, ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError
-    {
-        public CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
-        {
-            this.__typename = __typename;
-            Message = message;
-        }
-
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
-        public global::System.String Message { get; }
-
-        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * __typename.GetHashCode();
-                hash ^= 397 * Message.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeploymentResult
-    {
-        public global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish CommitFusionConfigurationPublish { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish
-    {
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors>? Errors { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload : ICommitFusionDeployment_CommitFusionConfigurationPublish
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors
-    {
-        public global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation : ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError : ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors, IFusionError
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors, IFusionError
     {
     }
 
@@ -4425,6 +1990,2536 @@ namespace ChilliCream.Nitro.Fusion.Transport
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchemaResult : global::System.IEquatable<UploadFusionSourceSchemaResult>, IUploadFusionSourceSchemaResult
+    {
+        public UploadFusionSourceSchemaResult(global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph uploadFusionSubgraph)
+        {
+            UploadFusionSubgraph = uploadFusionSubgraph;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph UploadFusionSubgraph { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchemaResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (UploadFusionSubgraph.Equals(other.UploadFusionSubgraph));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchemaResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * UploadFusionSubgraph.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload>, IUploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload(global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion? fusionSubgraphVersion, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_Errors>? errors)
+        {
+            FusionSubgraphVersion = fusionSubgraphVersion;
+            Errors = errors;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion? FusionSubgraphVersion { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_Errors>? Errors { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((FusionSubgraphVersion is null && other.FusionSubgraphVersion is null) || FusionSubgraphVersion != null && FusionSubgraphVersion.Equals(other.FusionSubgraphVersion))) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (FusionSubgraphVersion != null)
+                {
+                    hash ^= 397 * FusionSubgraphVersion.GetHashCode();
+                }
+
+                if (Errors != null)
+                {
+                    foreach (var Errors_elm in Errors)
+                    {
+                        hash ^= 397 * Errors_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion>, IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion(global::System.String id)
+        {
+            Id = id;
+        }
+
+        public global::System.String Id { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * Id.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError : global::System.IEquatable<UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError>, IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError
+    {
+        public UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchemaResult
+    {
+        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph UploadFusionSubgraph { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph
+    {
+        public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion? FusionSubgraphVersion { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchema_UploadFusionSubgraph_Errors>? Errors { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_UploadFusionSubgraphPayload : IUploadFusionSourceSchema_UploadFusionSubgraph
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion
+    {
+        public global::System.String Id { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion_FusionSubgraphVersion : IUploadFusionSourceSchema_UploadFusionSubgraph_FusionSubgraphVersion
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors
+    {
+        public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ApiNotFoundError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_ConcurrentOperationError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_UnauthorizedOperation : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_DuplicatedTagError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IUploadFusionSourceSchema_UploadFusionSubgraph_Errors_InvalidSourceMetadataInputError : IUploadFusionSourceSchema_UploadFusionSubgraph_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeploymentResult : global::System.IEquatable<BeginFusionDeploymentResult>, IBeginFusionDeploymentResult
+    {
+        public BeginFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish beginFusionConfigurationPublish)
+        {
+            BeginFusionConfigurationPublish = beginFusionConfigurationPublish;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish BeginFusionConfigurationPublish { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeploymentResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (BeginFusionConfigurationPublish.Equals(other.BeginFusionConfigurationPublish));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeploymentResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * BeginFusionConfigurationPublish.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload>, IBeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload(global::System.String? requestId, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors>? errors)
+        {
+            RequestId = requestId;
+            Errors = errors;
+        }
+
+        public global::System.String? RequestId { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors>? Errors { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((RequestId is null && other.RequestId is null) || RequestId != null && RequestId.Equals(other.RequestId))) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (RequestId != null)
+                {
+                    hash ^= 397 * RequestId.GetHashCode();
+                }
+
+                if (Errors != null)
+                {
+                    foreach (var Errors_elm in Errors)
+                    {
+                        hash ^= 397 * Errors_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError : global::System.IEquatable<BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError>, IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError
+    {
+        public BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((BeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeploymentResult
+    {
+        public global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish BeginFusionConfigurationPublish { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish
+    {
+        public global::System.String? RequestId { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors>? Errors { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_BeginFusionConfigurationPublishPayload : IBeginFusionDeployment_BeginFusionConfigurationPublish
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors
+    {
+        public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_ApiNotFoundError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_StageNotFoundError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError : IBeginFusionDeployment_BeginFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ReleaseFusionDeploymentResult : global::System.IEquatable<ReleaseFusionDeploymentResult>, IReleaseFusionDeploymentResult
+    {
+        public ReleaseFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition cancelFusionConfigurationComposition)
+        {
+            CancelFusionConfigurationComposition = cancelFusionConfigurationComposition;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition CancelFusionConfigurationComposition { get; }
+
+        public virtual global::System.Boolean Equals(ReleaseFusionDeploymentResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CancelFusionConfigurationComposition.Equals(other.CancelFusionConfigurationComposition));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReleaseFusionDeploymentResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * CancelFusionConfigurationComposition.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload
+    {
+        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors>? errors)
+        {
+            Errors = errors;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors>? Errors { get; }
+
+        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Errors != null)
+                {
+                    foreach (var Errors_elm in Errors)
+                    {
+                        hash ^= 397 * Errors_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation
+    {
+        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError
+    {
+        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>, IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError
+    {
+        public ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeploymentResult
+    {
+        public global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition CancelFusionConfigurationComposition { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition
+    {
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors>? Errors { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_CancelFusionConfigurationCompositionPayload : IReleaseFusionDeployment_CancelFusionConfigurationComposition
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors
+    {
+        public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation : IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : IReleaseFusionDeployment_CancelFusionConfigurationComposition_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ValidateFusionDeploymentResult : global::System.IEquatable<ValidateFusionDeploymentResult>, IValidateFusionDeploymentResult
+    {
+        public ValidateFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition validateFusionConfigurationComposition)
+        {
+            ValidateFusionConfigurationComposition = validateFusionConfigurationComposition;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition ValidateFusionConfigurationComposition { get; }
+
+        public virtual global::System.Boolean Equals(ValidateFusionDeploymentResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (ValidateFusionConfigurationComposition.Equals(other.ValidateFusionConfigurationComposition));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ValidateFusionDeploymentResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * ValidateFusionConfigurationComposition.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload
+    {
+        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors>? errors)
+        {
+            Errors = errors;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors>? Errors { get; }
+
+        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Errors != null)
+                {
+                    foreach (var Errors_elm in Errors)
+                    {
+                        hash ^= 397 * Errors_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation
+    {
+        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError
+    {
+        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>, IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError
+    {
+        public ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeploymentResult
+    {
+        public global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition ValidateFusionConfigurationComposition { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition
+    {
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors>? Errors { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_ValidateFusionConfigurationCompositionPayload : IValidateFusionDeployment_ValidateFusionConfigurationComposition
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors
+    {
+        public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation : IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError : IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError : IValidateFusionDeployment_ValidateFusionConfigurationComposition_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class CommitFusionDeploymentResult : global::System.IEquatable<CommitFusionDeploymentResult>, ICommitFusionDeploymentResult
+    {
+        public CommitFusionDeploymentResult(global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish commitFusionConfigurationPublish)
+        {
+            CommitFusionConfigurationPublish = commitFusionConfigurationPublish;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish CommitFusionConfigurationPublish { get; }
+
+        public virtual global::System.Boolean Equals(CommitFusionDeploymentResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CommitFusionConfigurationPublish.Equals(other.CommitFusionConfigurationPublish));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CommitFusionDeploymentResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * CommitFusionConfigurationPublish.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload>, ICommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload
+    {
+        public CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors>? errors)
+        {
+            Errors = errors;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors>? Errors { get; }
+
+        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Errors != null)
+                {
+                    foreach (var Errors_elm in Errors)
+                    {
+                        hash ^= 397 * Errors_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation>, ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation
+    {
+        public CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError>, ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError
+    {
+        public CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : global::System.IEquatable<CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>, ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError
+    {
+        public CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError(global::System.String __typename, global::System.String message)
+        {
+            this.__typename = __typename;
+            Message = message;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+
+        public virtual global::System.Boolean Equals(CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeploymentResult
+    {
+        public global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish CommitFusionConfigurationPublish { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish
+    {
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors>? Errors { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_CommitFusionConfigurationPublishPayload : ICommitFusionDeployment_CommitFusionConfigurationPublish
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors
+    {
+        public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation : ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError : ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError : ICommitFusionDeployment_CommitFusionConfigurationPublish_Errors, IFusionError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class StartFusionConfigurationCompositionInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    {
+        private global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter = default !;
+        public global::System.String TypeName => "StartFusionConfigurationCompositionInput";
+
+        public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
+        }
+
+        public global::System.Object? Format(global::System.Object? runtimeValue)
+        {
+            if (runtimeValue is null)
+            {
+                return null;
+            }
+
+            var input = runtimeValue as global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput;
+            var inputInfo = runtimeValue as global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionInputInfo;
+            if (input is null || inputInfo is null)
+            {
+                throw new global::System.ArgumentException(nameof(runtimeValue));
+            }
+
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsRequestIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("requestId", FormatRequestId(input.RequestId)));
+            }
+
+            return fields;
+        }
+
+        private global::System.Object? FormatRequestId(global::System.String input)
+        {
+            if (input is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(input));
+            }
+
+            return _iDFormatter.Format(input);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record StartFusionConfigurationCompositionInput : global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionInputInfo
+    {
+        public virtual global::System.Boolean Equals(StartFusionConfigurationCompositionInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (RequestId.Equals(other.RequestId));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * RequestId.GetHashCode();
+                return hash;
+            }
+        }
+
+        private global::System.String _value_requestId = default !;
+        private global::System.Boolean _set_requestId;
+        public global::System.String RequestId
+        {
+            get => _value_requestId;
+            init
+            {
+                _set_requestId = true;
+                _value_requestId = value;
+            }
+        }
+
+        global::System.Boolean global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionInputInfo.IsRequestIdSet => _set_requestId;
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial class UploadFusionSubgraphInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
@@ -6017,101 +6112,6 @@ namespace ChilliCream.Nitro.Fusion.Transport
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class StartFusionConfigurationCompositionInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
-    {
-        private global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter = default !;
-        public global::System.String TypeName => "StartFusionConfigurationCompositionInput";
-
-        public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
-        {
-            _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
-        }
-
-        public global::System.Object? Format(global::System.Object? runtimeValue)
-        {
-            if (runtimeValue is null)
-            {
-                return null;
-            }
-
-            var input = runtimeValue as global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput;
-            var inputInfo = runtimeValue as global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionInputInfo;
-            if (input is null || inputInfo is null)
-            {
-                throw new global::System.ArgumentException(nameof(runtimeValue));
-            }
-
-            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
-            if (inputInfo.IsRequestIdSet)
-            {
-                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("requestId", FormatRequestId(input.RequestId)));
-            }
-
-            return fields;
-        }
-
-        private global::System.Object? FormatRequestId(global::System.String input)
-        {
-            if (input is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(input));
-            }
-
-            return _iDFormatter.Format(input);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record StartFusionConfigurationCompositionInput : global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionInputInfo
-    {
-        public virtual global::System.Boolean Equals(StartFusionConfigurationCompositionInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (RequestId.Equals(other.RequestId));
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                hash ^= 397 * RequestId.GetHashCode();
-                return hash;
-            }
-        }
-
-        private global::System.String _value_requestId = default !;
-        private global::System.Boolean _set_requestId;
-        public global::System.String RequestId
-        {
-            get => _value_requestId;
-            init
-            {
-                _set_requestId = true;
-                _value_requestId = value;
-            }
-        }
-
-        global::System.Boolean global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionInputInfo.IsRequestIdSet => _set_requestId;
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial class CancelFusionConfigurationCompositionInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter = default !;
@@ -6502,6 +6502,338 @@ namespace ChilliCream.Nitro.Fusion.Transport
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
+    /// Represents the operation service of the ClaimFusionDeployment GraphQL operation
+    /// <code>
+    /// mutation ClaimFusionDeployment(
+    ///   $input: StartFusionConfigurationCompositionInput!
+    /// ) {
+    ///   startFusionConfigurationComposition(input: $input) {
+    ///     __typename
+    ///     errors {
+    ///       __typename
+    ///       ...FusionError
+    ///     }
+    ///   }
+    /// }
+    ///
+    /// fragment FusionError on Error {
+    ///   message
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ClaimFusionDeploymentMutationDocument : global::StrawberryShake.IDocument
+    {
+        private ClaimFusionDeploymentMutationDocument()
+        {
+        }
+
+        public static ClaimFusionDeploymentMutationDocument Instance { get; } = new ClaimFusionDeploymentMutationDocument();
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation ClaimFusionDeployment($input: StartFusionConfigurationCompositionInput!) { startFusionConfigurationComposition(input: $input) { __typename errors { __typename ...FusionError } } } fragment FusionError on Error { message }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "260243f143261b45d8ac102e9c5459bd");
+
+        public override global::System.String ToString()
+        {
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
+#else
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#endif
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+    /// Represents the operation service of the ClaimFusionDeployment GraphQL operation
+    /// <code>
+    /// mutation ClaimFusionDeployment(
+    ///   $input: StartFusionConfigurationCompositionInput!
+    /// ) {
+    ///   startFusionConfigurationComposition(input: $input) {
+    ///     __typename
+    ///     errors {
+    ///       __typename
+    ///       ...FusionError
+    ///     }
+    ///   }
+    /// }
+    ///
+    /// fragment FusionError on Error {
+    ///   message
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ClaimFusionDeploymentMutation : global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IClaimFusionDeploymentResult> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _startFusionConfigurationCompositionInputFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        public ClaimFusionDeploymentMutation(global::StrawberryShake.IOperationExecutor<IClaimFusionDeploymentResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _startFusionConfigurationCompositionInputFormatter = serializerResolver.GetInputValueFormatter("StartFusionConfigurationCompositionInput");
+        }
+
+        private ClaimFusionDeploymentMutation(global::StrawberryShake.IOperationExecutor<IClaimFusionDeploymentResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter startFusionConfigurationCompositionInputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _startFusionConfigurationCompositionInputFormatter = startFusionConfigurationCompositionInputFormatter;
+        }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IClaimFusionDeploymentResult);
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation(_operationExecutor, _configure.Add(configure), _startFusionConfigurationCompositionInputFormatter);
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> ExecuteAsync(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest(input);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
+            return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> Watch(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest(input);
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input)
+        {
+            var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            variables.Add("input", FormatInput(input));
+            return CreateRequest(variables);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return new global::StrawberryShake.OperationRequest(id: ClaimFusionDeploymentMutationDocument.Instance.Hash.Value, name: "ClaimFusionDeployment", document: ClaimFusionDeploymentMutationDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
+        }
+
+        private global::System.Object? FormatInput(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput value)
+        {
+            if (value is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(value));
+            }
+
+            return _startFusionConfigurationCompositionInputFormatter.Format(value);
+        }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest(variables!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+    /// Represents the operation service of the ClaimFusionDeployment GraphQL operation
+    /// <code>
+    /// mutation ClaimFusionDeployment(
+    ///   $input: StartFusionConfigurationCompositionInput!
+    /// ) {
+    ///   startFusionConfigurationComposition(input: $input) {
+    ///     __typename
+    ///     errors {
+    ///       __typename
+    ///       ...FusionError
+    ///     }
+    ///   }
+    /// }
+    ///
+    /// fragment FusionError on Error {
+    ///   message
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IClaimFusionDeploymentMutation : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithRequestUri(global::System.Uri requestUri);
+        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> ExecuteAsync(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> Watch(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+    /// Represents the operation service of the WatchFusionDeployment GraphQL operation
+    /// <code>
+    /// subscription WatchFusionDeployment($requestId: ID!) {
+    ///   onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
+    ///     __typename
+    ///     state
+    ///     ... on ProcessingTaskIsQueued {
+    ///       queuePosition
+    ///     }
+    ///     ... on FusionConfigurationPublishingFailed {
+    ///       errors {
+    ///         __typename
+    ///         message
+    ///       }
+    ///     }
+    ///     ... on FusionConfigurationValidationFailed {
+    ///       errors {
+    ///         __typename
+    ///         message
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class WatchFusionDeploymentSubscriptionDocument : global::StrawberryShake.IDocument
+    {
+        private WatchFusionDeploymentSubscriptionDocument()
+        {
+        }
+
+        public static WatchFusionDeploymentSubscriptionDocument Instance { get; } = new WatchFusionDeploymentSubscriptionDocument();
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "subscription WatchFusionDeployment($requestId: ID!) { onFusionConfigurationPublishingTaskChanged(requestId: $requestId) { __typename state ... on ProcessingTaskIsQueued { queuePosition } ... on FusionConfigurationPublishingFailed { errors { __typename message } } ... on FusionConfigurationValidationFailed { errors { __typename message } } } }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "e2015ba8e5cd3117ae71c8d44bd650d7");
+
+        public override global::System.String ToString()
+        {
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
+#else
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#endif
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+    /// Represents the operation service of the WatchFusionDeployment GraphQL operation
+    /// <code>
+    /// subscription WatchFusionDeployment($requestId: ID!) {
+    ///   onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
+    ///     __typename
+    ///     state
+    ///     ... on ProcessingTaskIsQueued {
+    ///       queuePosition
+    ///     }
+    ///     ... on FusionConfigurationPublishingFailed {
+    ///       errors {
+    ///         __typename
+    ///         message
+    ///       }
+    ///     }
+    ///     ... on FusionConfigurationValidationFailed {
+    ///       errors {
+    ///         __typename
+    ///         message
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class WatchFusionDeploymentSubscription : global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IWatchFusionDeploymentResult> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter;
+        public WatchFusionDeploymentSubscription(global::StrawberryShake.IOperationExecutor<IWatchFusionDeploymentResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
+        }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IWatchFusionDeploymentResult);
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IWatchFusionDeploymentResult>> Watch(global::System.String requestId, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest(requestId);
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.String requestId)
+        {
+            var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            variables.Add("requestId", FormatRequestId(requestId));
+            return CreateRequest(variables);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return new global::StrawberryShake.OperationRequest(id: WatchFusionDeploymentSubscriptionDocument.Instance.Hash.Value, name: "WatchFusionDeployment", document: WatchFusionDeploymentSubscriptionDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
+        }
+
+        private global::System.Object? FormatRequestId(global::System.String value)
+        {
+            if (value is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(value));
+            }
+
+            return _iDFormatter.Format(value);
+        }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest(variables!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+    /// Represents the operation service of the WatchFusionDeployment GraphQL operation
+    /// <code>
+    /// subscription WatchFusionDeployment($requestId: ID!) {
+    ///   onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
+    ///     __typename
+    ///     state
+    ///     ... on ProcessingTaskIsQueued {
+    ///       queuePosition
+    ///     }
+    ///     ... on FusionConfigurationPublishingFailed {
+    ///       errors {
+    ///         __typename
+    ///         message
+    ///       }
+    ///     }
+    ///     ... on FusionConfigurationValidationFailed {
+    ///       errors {
+    ///         __typename
+    ///         message
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial interface IWatchFusionDeploymentSubscription : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IWatchFusionDeploymentResult>> Watch(global::System.String requestId, global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
     /// Represents the operation service of the UploadFusionSourceSchema GraphQL operation
     /// <code>
     /// mutation UploadFusionSourceSchema($input: UploadFusionSubgraphInput!) {
@@ -6870,182 +7202,6 @@ namespace ChilliCream.Nitro.Fusion.Transport
         global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IBeginFusionDeploymentResult>> ExecuteAsync(global::ChilliCream.Nitro.Fusion.Transport.BeginFusionConfigurationPublishInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IBeginFusionDeploymentResult>> Watch(global::ChilliCream.Nitro.Fusion.Transport.BeginFusionConfigurationPublishInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
-    /// <summary>
-    /// Represents the operation service of the ClaimFusionDeployment GraphQL operation
-    /// <code>
-    /// mutation ClaimFusionDeployment(
-    ///   $input: StartFusionConfigurationCompositionInput!
-    /// ) {
-    ///   startFusionConfigurationComposition(input: $input) {
-    ///     __typename
-    ///     errors {
-    ///       __typename
-    ///       ...FusionError
-    ///     }
-    ///   }
-    /// }
-    ///
-    /// fragment FusionError on Error {
-    ///   message
-    /// }
-    /// </code>
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ClaimFusionDeploymentMutationDocument : global::StrawberryShake.IDocument
-    {
-        private ClaimFusionDeploymentMutationDocument()
-        {
-        }
-
-        public static ClaimFusionDeploymentMutationDocument Instance { get; } = new ClaimFusionDeploymentMutationDocument();
-        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation ClaimFusionDeployment($input: StartFusionConfigurationCompositionInput!) { startFusionConfigurationComposition(input: $input) { __typename errors { __typename ...FusionError } } } fragment FusionError on Error { message }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "260243f143261b45d8ac102e9c5459bd");
-
-        public override global::System.String ToString()
-        {
-#if NETCOREAPP3_1_OR_GREATER
-        return global::System.Text.Encoding.UTF8.GetString(Body);
-#else
-            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
-#endif
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
-    /// <summary>
-    /// Represents the operation service of the ClaimFusionDeployment GraphQL operation
-    /// <code>
-    /// mutation ClaimFusionDeployment(
-    ///   $input: StartFusionConfigurationCompositionInput!
-    /// ) {
-    ///   startFusionConfigurationComposition(input: $input) {
-    ///     __typename
-    ///     errors {
-    ///       __typename
-    ///       ...FusionError
-    ///     }
-    ///   }
-    /// }
-    ///
-    /// fragment FusionError on Error {
-    ///   message
-    /// }
-    /// </code>
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ClaimFusionDeploymentMutation : global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation
-    {
-        private readonly global::StrawberryShake.IOperationExecutor<IClaimFusionDeploymentResult> _operationExecutor;
-        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _startFusionConfigurationCompositionInputFormatter;
-        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
-        public ClaimFusionDeploymentMutation(global::StrawberryShake.IOperationExecutor<IClaimFusionDeploymentResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
-        {
-            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _startFusionConfigurationCompositionInputFormatter = serializerResolver.GetInputValueFormatter("StartFusionConfigurationCompositionInput");
-        }
-
-        private ClaimFusionDeploymentMutation(global::StrawberryShake.IOperationExecutor<IClaimFusionDeploymentResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter startFusionConfigurationCompositionInputFormatter)
-        {
-            _operationExecutor = operationExecutor;
-            _configure = configure;
-            _startFusionConfigurationCompositionInputFormatter = startFusionConfigurationCompositionInputFormatter;
-        }
-
-        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IClaimFusionDeploymentResult);
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
-        {
-            return new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation(_operationExecutor, _configure.Add(configure), _startFusionConfigurationCompositionInputFormatter);
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithRequestUri(global::System.Uri requestUri)
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
-        }
-
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> ExecuteAsync(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::System.Threading.CancellationToken cancellationToken = default)
-        {
-            var request = CreateRequest(input);
-            foreach (var configure in _configure)
-            {
-                configure(request);
-            }
-
-            return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
-        }
-
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> Watch(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::StrawberryShake.ExecutionStrategy? strategy = null)
-        {
-            var request = CreateRequest(input);
-            return _operationExecutor.Watch(request, strategy);
-        }
-
-        private global::StrawberryShake.OperationRequest CreateRequest(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input)
-        {
-            var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
-            variables.Add("input", FormatInput(input));
-            return CreateRequest(variables);
-        }
-
-        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
-        {
-            return new global::StrawberryShake.OperationRequest(id: ClaimFusionDeploymentMutationDocument.Instance.Hash.Value, name: "ClaimFusionDeployment", document: ClaimFusionDeploymentMutationDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
-        }
-
-        private global::System.Object? FormatInput(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput value)
-        {
-            if (value is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(value));
-            }
-
-            return _startFusionConfigurationCompositionInputFormatter.Format(value);
-        }
-
-        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
-        {
-            return CreateRequest(variables!);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
-    /// <summary>
-    /// Represents the operation service of the ClaimFusionDeployment GraphQL operation
-    /// <code>
-    /// mutation ClaimFusionDeployment(
-    ///   $input: StartFusionConfigurationCompositionInput!
-    /// ) {
-    ///   startFusionConfigurationComposition(input: $input) {
-    ///     __typename
-    ///     errors {
-    ///       __typename
-    ///       ...FusionError
-    ///     }
-    ///   }
-    /// }
-    ///
-    /// fragment FusionError on Error {
-    ///   message
-    /// }
-    /// </code>
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IClaimFusionDeploymentMutation : global::StrawberryShake.IOperationRequestFactory
-    {
-        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
-        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithRequestUri(global::System.Uri requestUri);
-        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> ExecuteAsync(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::System.Threading.CancellationToken cancellationToken = default);
-        global::System.IObservable<global::StrawberryShake.IOperationResult<IClaimFusionDeploymentResult>> Watch(global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -7604,162 +7760,6 @@ namespace ChilliCream.Nitro.Fusion.Transport
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICommitFusionDeploymentResult>> Watch(global::ChilliCream.Nitro.Fusion.Transport.CommitFusionConfigurationPublishInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
-    /// <summary>
-    /// Represents the operation service of the WatchFusionDeployment GraphQL operation
-    /// <code>
-    /// subscription WatchFusionDeployment($requestId: ID!) {
-    ///   onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
-    ///     __typename
-    ///     state
-    ///     ... on ProcessingTaskIsQueued {
-    ///       queuePosition
-    ///     }
-    ///     ... on FusionConfigurationPublishingFailed {
-    ///       errors {
-    ///         __typename
-    ///         message
-    ///       }
-    ///     }
-    ///     ... on FusionConfigurationValidationFailed {
-    ///       errors {
-    ///         __typename
-    ///         message
-    ///       }
-    ///     }
-    ///   }
-    /// }
-    /// </code>
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class WatchFusionDeploymentSubscriptionDocument : global::StrawberryShake.IDocument
-    {
-        private WatchFusionDeploymentSubscriptionDocument()
-        {
-        }
-
-        public static WatchFusionDeploymentSubscriptionDocument Instance { get; } = new WatchFusionDeploymentSubscriptionDocument();
-        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "subscription WatchFusionDeployment($requestId: ID!) { onFusionConfigurationPublishingTaskChanged(requestId: $requestId) { __typename state ... on ProcessingTaskIsQueued { queuePosition } ... on FusionConfigurationPublishingFailed { errors { __typename message } } ... on FusionConfigurationValidationFailed { errors { __typename message } } } }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "e2015ba8e5cd3117ae71c8d44bd650d7");
-
-        public override global::System.String ToString()
-        {
-#if NETCOREAPP3_1_OR_GREATER
-        return global::System.Text.Encoding.UTF8.GetString(Body);
-#else
-            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
-#endif
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
-    /// <summary>
-    /// Represents the operation service of the WatchFusionDeployment GraphQL operation
-    /// <code>
-    /// subscription WatchFusionDeployment($requestId: ID!) {
-    ///   onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
-    ///     __typename
-    ///     state
-    ///     ... on ProcessingTaskIsQueued {
-    ///       queuePosition
-    ///     }
-    ///     ... on FusionConfigurationPublishingFailed {
-    ///       errors {
-    ///         __typename
-    ///         message
-    ///       }
-    ///     }
-    ///     ... on FusionConfigurationValidationFailed {
-    ///       errors {
-    ///         __typename
-    ///         message
-    ///       }
-    ///     }
-    ///   }
-    /// }
-    /// </code>
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class WatchFusionDeploymentSubscription : global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription
-    {
-        private readonly global::StrawberryShake.IOperationExecutor<IWatchFusionDeploymentResult> _operationExecutor;
-        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter;
-        public WatchFusionDeploymentSubscription(global::StrawberryShake.IOperationExecutor<IWatchFusionDeploymentResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
-        {
-            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
-        }
-
-        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IWatchFusionDeploymentResult);
-
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IWatchFusionDeploymentResult>> Watch(global::System.String requestId, global::StrawberryShake.ExecutionStrategy? strategy = null)
-        {
-            var request = CreateRequest(requestId);
-            return _operationExecutor.Watch(request, strategy);
-        }
-
-        private global::StrawberryShake.OperationRequest CreateRequest(global::System.String requestId)
-        {
-            var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
-            variables.Add("requestId", FormatRequestId(requestId));
-            return CreateRequest(variables);
-        }
-
-        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
-        {
-            return new global::StrawberryShake.OperationRequest(id: WatchFusionDeploymentSubscriptionDocument.Instance.Hash.Value, name: "WatchFusionDeployment", document: WatchFusionDeploymentSubscriptionDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
-        }
-
-        private global::System.Object? FormatRequestId(global::System.String value)
-        {
-            if (value is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(value));
-            }
-
-            return _iDFormatter.Format(value);
-        }
-
-        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
-        {
-            return CreateRequest(variables!);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
-    /// <summary>
-    /// Represents the operation service of the WatchFusionDeployment GraphQL operation
-    /// <code>
-    /// subscription WatchFusionDeployment($requestId: ID!) {
-    ///   onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
-    ///     __typename
-    ///     state
-    ///     ... on ProcessingTaskIsQueued {
-    ///       queuePosition
-    ///     }
-    ///     ... on FusionConfigurationPublishingFailed {
-    ///       errors {
-    ///         __typename
-    ///         message
-    ///       }
-    ///     }
-    ///     ... on FusionConfigurationValidationFailed {
-    ///       errors {
-    ///         __typename
-    ///         message
-    ///       }
-    ///     }
-    ///   }
-    /// }
-    /// </code>
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial interface IWatchFusionDeploymentSubscription : global::StrawberryShake.IOperationRequestFactory
-    {
-        global::System.IObservable<global::StrawberryShake.IOperationResult<IWatchFusionDeploymentResult>> Watch(global::System.String requestId, global::StrawberryShake.ExecutionStrategy? strategy = null);
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FusionApiClient GraphQL client
@@ -7767,32 +7767,32 @@ namespace ChilliCream.Nitro.Fusion.Transport
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial class FusionApiClient : global::ChilliCream.Nitro.Fusion.Transport.IFusionApiClient
     {
+        private readonly global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation _claimFusionDeployment;
+        private readonly global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription _watchFusionDeployment;
         private readonly global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation _uploadFusionSourceSchema;
         private readonly global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation _beginFusionDeployment;
-        private readonly global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation _claimFusionDeployment;
         private readonly global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation _releaseFusionDeployment;
         private readonly global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeploymentMutation _validateFusionDeployment;
         private readonly global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation _commitFusionDeployment;
-        private readonly global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription _watchFusionDeployment;
-        public FusionApiClient(global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation uploadFusionSourceSchema, global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation beginFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation claimFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation releaseFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeploymentMutation validateFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation commitFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription watchFusionDeployment)
+        public FusionApiClient(global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation claimFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription watchFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation uploadFusionSourceSchema, global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation beginFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation releaseFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeploymentMutation validateFusionDeployment, global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation commitFusionDeployment)
         {
+            _claimFusionDeployment = claimFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(claimFusionDeployment));
+            _watchFusionDeployment = watchFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(watchFusionDeployment));
             _uploadFusionSourceSchema = uploadFusionSourceSchema ?? throw new global::System.ArgumentNullException(nameof(uploadFusionSourceSchema));
             _beginFusionDeployment = beginFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(beginFusionDeployment));
-            _claimFusionDeployment = claimFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(claimFusionDeployment));
             _releaseFusionDeployment = releaseFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(releaseFusionDeployment));
             _validateFusionDeployment = validateFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(validateFusionDeployment));
             _commitFusionDeployment = commitFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(commitFusionDeployment));
-            _watchFusionDeployment = watchFusionDeployment ?? throw new global::System.ArgumentNullException(nameof(watchFusionDeployment));
         }
 
         public static global::System.String ClientName => "FusionApiClient";
+        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation ClaimFusionDeployment => _claimFusionDeployment;
+        public global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription WatchFusionDeployment => _watchFusionDeployment;
         public global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation UploadFusionSourceSchema => _uploadFusionSourceSchema;
         public global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation BeginFusionDeployment => _beginFusionDeployment;
-        public global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation ClaimFusionDeployment => _claimFusionDeployment;
         public global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation ReleaseFusionDeployment => _releaseFusionDeployment;
         public global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeploymentMutation ValidateFusionDeployment => _validateFusionDeployment;
         public global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation CommitFusionDeployment => _commitFusionDeployment;
-        public global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription WatchFusionDeployment => _watchFusionDeployment;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
@@ -7802,24 +7802,372 @@ namespace ChilliCream.Nitro.Fusion.Transport
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial interface IFusionApiClient
     {
+        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation ClaimFusionDeployment { get; }
+
+        global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription WatchFusionDeployment { get; }
+
         global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation UploadFusionSourceSchema { get; }
 
         global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation BeginFusionDeployment { get; }
-
-        global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation ClaimFusionDeployment { get; }
 
         global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation ReleaseFusionDeployment { get; }
 
         global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeploymentMutation ValidateFusionDeployment { get; }
 
         global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation CommitFusionDeployment { get; }
-
-        global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription WatchFusionDeployment { get; }
     }
 }
 
 namespace ChilliCream.Nitro.Fusion.Transport.State
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ClaimFusionDeploymentResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentResult>
+    {
+        public ClaimFusionDeploymentResultFactory()
+        {
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult);
+
+        public ClaimFusionDeploymentResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (dataInfo is ClaimFusionDeploymentResultInfo info)
+            {
+                return new ClaimFusionDeploymentResult(MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(info.StartFusionConfigurationComposition));
+            }
+
+            throw new global::System.ArgumentException("ClaimFusionDeploymentResultInfo expected.");
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData data)
+        {
+            IClaimFusionDeployment_StartFusionConfigurationComposition returnValue = default !;
+            if (data.__typename.Equals("StartFusionConfigurationCompositionPayload", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new ClaimFusionDeployment_StartFusionConfigurationComposition_StartFusionConfigurationCompositionPayload(MapIClaimFusionDeployment_StartFusionConfigurationComposition_ErrorsNonNullableArray(data.Errors));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition_Errors>? MapIClaimFusionDeployment_StartFusionConfigurationComposition_ErrorsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? list)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var startFusionConfigurationCompositionErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition_Errors>();
+            foreach (global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData child in list)
+            {
+                startFusionConfigurationCompositionErrors.Add(MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition_Errors(child));
+            }
+
+            return startFusionConfigurationCompositionErrors;
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition_Errors MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition_Errors(global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData data)
+        {
+            IClaimFusionDeployment_StartFusionConfigurationComposition_Errors? returnValue;
+            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.UnauthorizedOperationData unauthorizedOperation)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeployment_StartFusionConfigurationComposition_Errors_UnauthorizedOperation(unauthorizedOperation.__typename ?? throw new global::System.ArgumentNullException(), unauthorizedOperation.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationRequestNotFoundErrorData fusionConfigurationRequestNotFoundError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeployment_StartFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError(fusionConfigurationRequestNotFoundError.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationRequestNotFoundError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.InvalidProcessingStateTransitionErrorData invalidProcessingStateTransitionError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeployment_StartFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError(invalidProcessingStateTransitionError.__typename ?? throw new global::System.ArgumentNullException(), invalidProcessingStateTransitionError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(dataInfo, snapshot);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ClaimFusionDeploymentResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    {
+        public ClaimFusionDeploymentResultInfo(global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData startFusionConfigurationComposition)
+        {
+            StartFusionConfigurationComposition = startFusionConfigurationComposition;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData StartFusionConfigurationComposition { get; }
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
+        public global::System.UInt64 Version => 0;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new ClaimFusionDeploymentResultInfo(StartFusionConfigurationComposition);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class WatchFusionDeploymentResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentResult>
+    {
+        public WatchFusionDeploymentResultFactory()
+        {
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult);
+
+        public WatchFusionDeploymentResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (dataInfo is WatchFusionDeploymentResultInfo info)
+            {
+                return new WatchFusionDeploymentResult(MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged(info.OnFusionConfigurationPublishingTaskChanged));
+            }
+
+            throw new global::System.ArgumentException("WatchFusionDeploymentResultInfo expected.");
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData data)
+        {
+            IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged? returnValue;
+            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingFailedData fusionConfigurationPublishingFailed)
+            {
+                if (!fusionConfigurationPublishingFailed.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingFailed(fusionConfigurationPublishingFailed.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationPublishingFailed.State!.Value, MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ErrorsNonNullableArray(fusionConfigurationPublishingFailed.Errors));
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingSuccessData fusionConfigurationPublishingSuccess)
+            {
+                if (!fusionConfigurationPublishingSuccess.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingSuccess(fusionConfigurationPublishingSuccess.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationPublishingSuccess.State!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationFailedData fusionConfigurationValidationFailed)
+            {
+                if (!fusionConfigurationValidationFailed.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed(fusionConfigurationValidationFailed.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationValidationFailed.State!.Value, MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1NonNullableArray(fusionConfigurationValidationFailed.Errors));
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationSuccessData fusionConfigurationValidationSuccess)
+            {
+                if (!fusionConfigurationValidationSuccess.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationSuccess(fusionConfigurationValidationSuccess.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationValidationSuccess.State!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.OperationInProgressData operationInProgress)
+            {
+                if (!operationInProgress.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_OperationInProgress(operationInProgress.__typename ?? throw new global::System.ArgumentNullException(), operationInProgress.State!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskApprovedData processingTaskApproved)
+            {
+                if (!processingTaskApproved.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskApproved(processingTaskApproved.__typename ?? throw new global::System.ArgumentNullException(), processingTaskApproved.State!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsQueuedData processingTaskIsQueued)
+            {
+                if (!processingTaskIsQueued.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                if (!processingTaskIsQueued.QueuePosition.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsQueued(processingTaskIsQueued.__typename ?? throw new global::System.ArgumentNullException(), processingTaskIsQueued.State!.Value, processingTaskIsQueued.QueuePosition!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsReadyData processingTaskIsReady)
+            {
+                if (!processingTaskIsReady.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady(processingTaskIsReady.__typename ?? throw new global::System.ArgumentNullException(), processingTaskIsReady.State!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ValidationInProgressData validationInProgress)
+            {
+                if (!validationInProgress.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ValidationInProgress(validationInProgress.__typename ?? throw new global::System.ArgumentNullException(), validationInProgress.State!.Value);
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.WaitForApprovalData waitForApproval)
+            {
+                if (!waitForApproval.State.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_WaitForApproval(waitForApproval.__typename ?? throw new global::System.ArgumentNullException(), waitForApproval.State!.Value);
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors> MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ErrorsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData>? list)
+        {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var fusionConfigurationPublishingErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors>();
+            foreach (global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData child in list)
+            {
+                fusionConfigurationPublishingErrors.Add(MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors(child));
+            }
+
+            return fusionConfigurationPublishingErrors;
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData data)
+        {
+            IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors? returnValue;
+            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ConcurrentOperationErrorData concurrentOperationError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_ConcurrentOperationError(concurrentOperationError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData invalidGraphQLSchemaError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_InvalidGraphQLSchemaError(invalidGraphQLSchemaError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTimeoutErrorData processingTimeoutError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError(processingTimeoutError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ReadyTimeoutErrorData readyTimeoutError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError(readyTimeoutError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData unexpectedProcessingError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_UnexpectedProcessingError(unexpectedProcessingError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1> MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1NonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData>? list)
+        {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var fusionConfigurationValidationErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1>();
+            foreach (global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData child in list)
+            {
+                fusionConfigurationValidationErrors.Add(MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1(child));
+            }
+
+            return fusionConfigurationValidationErrors;
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1 MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData data)
+        {
+            IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1? returnValue;
+            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData invalidGraphQLSchemaError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_InvalidGraphQLSchemaError_1(invalidGraphQLSchemaError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.McpFeatureCollectionValidationErrorData mcpFeatureCollectionValidationError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_McpFeatureCollectionValidationError(mcpFeatureCollectionValidationError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.OpenApiCollectionValidationErrorData openApiCollectionValidationError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_OpenApiCollectionValidationError(openApiCollectionValidationError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.PersistedQueryValidationErrorData persistedQueryValidationError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_PersistedQueryValidationError(persistedQueryValidationError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.SchemaVersionChangeViolationErrorData schemaVersionChangeViolationError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_SchemaVersionChangeViolationError(schemaVersionChangeViolationError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData unexpectedProcessingError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_UnexpectedProcessingError_1(unexpectedProcessingError.Message ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(dataInfo, snapshot);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class WatchFusionDeploymentResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    {
+        public WatchFusionDeploymentResultInfo(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData onFusionConfigurationPublishingTaskChanged)
+        {
+            OnFusionConfigurationPublishingTaskChanged = onFusionConfigurationPublishingTaskChanged;
+        }
+
+        public global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData OnFusionConfigurationPublishingTaskChanged { get; }
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
+        public global::System.UInt64 Version => 0;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new WatchFusionDeploymentResultInfo(OnFusionConfigurationPublishingTaskChanged);
+        }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial class UploadFusionSourceSchemaResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.UploadFusionSourceSchemaResult>
@@ -8059,105 +8407,6 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new BeginFusionDeploymentResultInfo(BeginFusionConfigurationPublish);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ClaimFusionDeploymentResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentResult>
-    {
-        public ClaimFusionDeploymentResultFactory()
-        {
-        }
-
-        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult);
-
-        public ClaimFusionDeploymentResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (dataInfo is ClaimFusionDeploymentResultInfo info)
-            {
-                return new ClaimFusionDeploymentResult(MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(info.StartFusionConfigurationComposition));
-            }
-
-            throw new global::System.ArgumentException("ClaimFusionDeploymentResultInfo expected.");
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData data)
-        {
-            IClaimFusionDeployment_StartFusionConfigurationComposition returnValue = default !;
-            if (data.__typename.Equals("StartFusionConfigurationCompositionPayload", global::System.StringComparison.Ordinal))
-            {
-                returnValue = new ClaimFusionDeployment_StartFusionConfigurationComposition_StartFusionConfigurationCompositionPayload(MapIClaimFusionDeployment_StartFusionConfigurationComposition_ErrorsNonNullableArray(data.Errors));
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition_Errors>? MapIClaimFusionDeployment_StartFusionConfigurationComposition_ErrorsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? list)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var startFusionConfigurationCompositionErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition_Errors>();
-            foreach (global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData child in list)
-            {
-                startFusionConfigurationCompositionErrors.Add(MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition_Errors(child));
-            }
-
-            return startFusionConfigurationCompositionErrors;
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeployment_StartFusionConfigurationComposition_Errors MapNonNullableIClaimFusionDeployment_StartFusionConfigurationComposition_Errors(global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData data)
-        {
-            IClaimFusionDeployment_StartFusionConfigurationComposition_Errors? returnValue;
-            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.UnauthorizedOperationData unauthorizedOperation)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeployment_StartFusionConfigurationComposition_Errors_UnauthorizedOperation(unauthorizedOperation.__typename ?? throw new global::System.ArgumentNullException(), unauthorizedOperation.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationRequestNotFoundErrorData fusionConfigurationRequestNotFoundError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeployment_StartFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError(fusionConfigurationRequestNotFoundError.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationRequestNotFoundError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.InvalidProcessingStateTransitionErrorData invalidProcessingStateTransitionError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeployment_StartFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError(invalidProcessingStateTransitionError.__typename ?? throw new global::System.ArgumentNullException(), invalidProcessingStateTransitionError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
-        {
-            return Create(dataInfo, snapshot);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ClaimFusionDeploymentResultInfo : global::StrawberryShake.IOperationResultDataInfo
-    {
-        public ClaimFusionDeploymentResultInfo(global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData startFusionConfigurationComposition)
-        {
-            StartFusionConfigurationComposition = startFusionConfigurationComposition;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData StartFusionConfigurationComposition { get; }
-        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
-        public global::System.UInt64 Version => 0;
-
-        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
-        {
-            return new ClaimFusionDeploymentResultInfo(StartFusionConfigurationComposition);
         }
     }
 
@@ -8458,253 +8707,11 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class WatchFusionDeploymentResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentResult>
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IStartFusionConfigurationCompositionInputInfo
     {
-        public WatchFusionDeploymentResultFactory()
-        {
-        }
-
-        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult);
-
-        public WatchFusionDeploymentResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (dataInfo is WatchFusionDeploymentResultInfo info)
-            {
-                return new WatchFusionDeploymentResult(MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged(info.OnFusionConfigurationPublishingTaskChanged));
-            }
-
-            throw new global::System.ArgumentException("WatchFusionDeploymentResultInfo expected.");
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData data)
-        {
-            IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged? returnValue;
-            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingFailedData fusionConfigurationPublishingFailed)
-            {
-                if (!fusionConfigurationPublishingFailed.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingFailed(fusionConfigurationPublishingFailed.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationPublishingFailed.State!.Value, MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ErrorsNonNullableArray(fusionConfigurationPublishingFailed.Errors));
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingSuccessData fusionConfigurationPublishingSuccess)
-            {
-                if (!fusionConfigurationPublishingSuccess.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingSuccess(fusionConfigurationPublishingSuccess.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationPublishingSuccess.State!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationFailedData fusionConfigurationValidationFailed)
-            {
-                if (!fusionConfigurationValidationFailed.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed(fusionConfigurationValidationFailed.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationValidationFailed.State!.Value, MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1NonNullableArray(fusionConfigurationValidationFailed.Errors));
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationSuccessData fusionConfigurationValidationSuccess)
-            {
-                if (!fusionConfigurationValidationSuccess.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationSuccess(fusionConfigurationValidationSuccess.__typename ?? throw new global::System.ArgumentNullException(), fusionConfigurationValidationSuccess.State!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.OperationInProgressData operationInProgress)
-            {
-                if (!operationInProgress.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_OperationInProgress(operationInProgress.__typename ?? throw new global::System.ArgumentNullException(), operationInProgress.State!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskApprovedData processingTaskApproved)
-            {
-                if (!processingTaskApproved.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskApproved(processingTaskApproved.__typename ?? throw new global::System.ArgumentNullException(), processingTaskApproved.State!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsQueuedData processingTaskIsQueued)
-            {
-                if (!processingTaskIsQueued.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                if (!processingTaskIsQueued.QueuePosition.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsQueued(processingTaskIsQueued.__typename ?? throw new global::System.ArgumentNullException(), processingTaskIsQueued.State!.Value, processingTaskIsQueued.QueuePosition!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsReadyData processingTaskIsReady)
-            {
-                if (!processingTaskIsReady.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady(processingTaskIsReady.__typename ?? throw new global::System.ArgumentNullException(), processingTaskIsReady.State!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ValidationInProgressData validationInProgress)
-            {
-                if (!validationInProgress.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ValidationInProgress(validationInProgress.__typename ?? throw new global::System.ArgumentNullException(), validationInProgress.State!.Value);
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.WaitForApprovalData waitForApproval)
-            {
-                if (!waitForApproval.State.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_WaitForApproval(waitForApproval.__typename ?? throw new global::System.ArgumentNullException(), waitForApproval.State!.Value);
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors> MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_ErrorsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData>? list)
-        {
-            if (list is null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var fusionConfigurationPublishingErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors>();
-            foreach (global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData child in list)
-            {
-                fusionConfigurationPublishingErrors.Add(MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors(child));
-            }
-
-            return fusionConfigurationPublishingErrors;
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData data)
-        {
-            IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors? returnValue;
-            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ConcurrentOperationErrorData concurrentOperationError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_ConcurrentOperationError(concurrentOperationError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData invalidGraphQLSchemaError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_InvalidGraphQLSchemaError(invalidGraphQLSchemaError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTimeoutErrorData processingTimeoutError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError(processingTimeoutError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.ReadyTimeoutErrorData readyTimeoutError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError(readyTimeoutError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData unexpectedProcessingError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_UnexpectedProcessingError(unexpectedProcessingError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1> MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1NonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData>? list)
-        {
-            if (list is null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var fusionConfigurationValidationErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1>();
-            foreach (global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData child in list)
-            {
-                fusionConfigurationValidationErrors.Add(MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1(child));
-            }
-
-            return fusionConfigurationValidationErrors;
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1 MapNonNullableIWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData data)
-        {
-            IWatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_1? returnValue;
-            if (data is global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData invalidGraphQLSchemaError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_InvalidGraphQLSchemaError_1(invalidGraphQLSchemaError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.McpFeatureCollectionValidationErrorData mcpFeatureCollectionValidationError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_McpFeatureCollectionValidationError(mcpFeatureCollectionValidationError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.OpenApiCollectionValidationErrorData openApiCollectionValidationError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_OpenApiCollectionValidationError(openApiCollectionValidationError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.PersistedQueryValidationErrorData persistedQueryValidationError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_PersistedQueryValidationError(persistedQueryValidationError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.SchemaVersionChangeViolationErrorData schemaVersionChangeViolationError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_SchemaVersionChangeViolationError(schemaVersionChangeViolationError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else if (data is global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData unexpectedProcessingError)
-            {
-                returnValue = new global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeployment_OnFusionConfigurationPublishingTaskChanged_Errors_UnexpectedProcessingError_1(unexpectedProcessingError.Message ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
-        {
-            return Create(dataInfo, snapshot);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class WatchFusionDeploymentResultInfo : global::StrawberryShake.IOperationResultDataInfo
-    {
-        public WatchFusionDeploymentResultInfo(global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData onFusionConfigurationPublishingTaskChanged)
-        {
-            OnFusionConfigurationPublishingTaskChanged = onFusionConfigurationPublishingTaskChanged;
-        }
-
-        public global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData OnFusionConfigurationPublishingTaskChanged { get; }
-        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
-        public global::System.UInt64 Version => 0;
-
-        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
-        {
-            return new WatchFusionDeploymentResultInfo(OnFusionConfigurationPublishingTaskChanged);
-        }
+        global::System.Boolean IsRequestIdSet { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
@@ -8812,13 +8819,6 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal interface IStartFusionConfigurationCompositionInputInfo
-    {
-        global::System.Boolean IsRequestIdSet { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface ICancelFusionConfigurationCompositionInputInfo
     {
         global::System.Boolean IsRequestIdSet { get; }
@@ -8840,6 +8840,380 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
         global::System.Boolean IsConfigurationSet { get; }
 
         global::System.Boolean IsRequestIdSet { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class ClaimFusionDeploymentBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>
+    {
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        public ClaimFusionDeploymentBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+        }
+
+        protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult> ResultDataFactory { get; }
+
+        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            return new ClaimFusionDeploymentResultInfo(Deserialize_NonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "startFusionConfigurationComposition")));
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData Deserialize_NonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("StartFusionConfigurationCompositionPayload", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData(typename, errors: Deserialize_IStartFusionConfigurationCompositionErrorDataNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "errors")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? Deserialize_IStartFusionConfigurationCompositionErrorDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            var startFusionConfigurationCompositionErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                startFusionConfigurationCompositionErrors.Add(Deserialize_NonNullableIStartFusionConfigurationCompositionErrorData(child));
+            }
+
+            return startFusionConfigurationCompositionErrors;
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData Deserialize_NonNullableIStartFusionConfigurationCompositionErrorData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("UnauthorizedOperation", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.UnauthorizedOperationData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("FusionConfigurationRequestNotFoundError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationRequestNotFoundErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("InvalidProcessingStateTransitionError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidProcessingStateTransitionErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    internal partial class WatchFusionDeploymentBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>
+    {
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Fusion.Transport.ProcessingState> _processingStateParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
+        public WatchFusionDeploymentBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _processingStateParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Fusion.Transport.ProcessingState>("ProcessingState") ?? throw new global::System.ArgumentException("No serializer for type `ProcessingState` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
+        }
+
+        protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult> ResultDataFactory { get; }
+
+        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            return new WatchFusionDeploymentResultInfo(Deserialize_NonNullableIFusionConfigurationPublishingResultData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "onFusionConfigurationPublishingTaskChanged")));
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData Deserialize_NonNullableIFusionConfigurationPublishingResultData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("FusionConfigurationPublishingFailed", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingFailedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")), errors: Deserialize_NonNullableIFusionConfigurationPublishingErrorDataNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "errors")));
+            }
+
+            if (typename?.Equals("FusionConfigurationPublishingSuccess", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingSuccessData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            if (typename?.Equals("FusionConfigurationValidationFailed", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationFailedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")), errors: Deserialize_NonNullableIFusionConfigurationValidationErrorDataNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "errors")));
+            }
+
+            if (typename?.Equals("FusionConfigurationValidationSuccess", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationSuccessData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            if (typename?.Equals("OperationInProgress", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.OperationInProgressData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            if (typename?.Equals("ProcessingTaskApproved", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskApprovedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            if (typename?.Equals("ProcessingTaskIsQueued", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsQueuedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")), queuePosition: Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "queuePosition")));
+            }
+
+            if (typename?.Equals("ProcessingTaskIsReady", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsReadyData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            if (typename?.Equals("ValidationInProgress", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ValidationInProgressData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            if (typename?.Equals("WaitForApproval", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.WaitForApprovalData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.ProcessingState Deserialize_NonNullableProcessingState(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _processingStateParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData> Deserialize_NonNullableIFusionConfigurationPublishingErrorDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var fusionConfigurationPublishingErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                fusionConfigurationPublishingErrors.Add(Deserialize_NonNullableIFusionConfigurationPublishingErrorData(child));
+            }
+
+            return fusionConfigurationPublishingErrors;
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData Deserialize_NonNullableIFusionConfigurationPublishingErrorData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("ConcurrentOperationError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ConcurrentOperationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("InvalidGraphQLSchemaError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("ProcessingTimeoutError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("ReadyTimeoutError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.ReadyTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("UnexpectedProcessingError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData> Deserialize_NonNullableIFusionConfigurationValidationErrorDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var fusionConfigurationValidationErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                fusionConfigurationValidationErrors.Add(Deserialize_NonNullableIFusionConfigurationValidationErrorData(child));
+            }
+
+            return fusionConfigurationValidationErrors;
+        }
+
+        private global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData Deserialize_NonNullableIFusionConfigurationValidationErrorData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("InvalidGraphQLSchemaError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("McpFeatureCollectionValidationError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.McpFeatureCollectionValidationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("OpenApiCollectionValidationError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.OpenApiCollectionValidationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("PersistedQueryValidationError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.PersistedQueryValidationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("SchemaVersionChangeViolationError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.SchemaVersionChangeViolationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            if (typename?.Equals("UnexpectedProcessingError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _intParser.Parse(obj.Value.GetInt32()!);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
@@ -9113,115 +9487,6 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
             if (typename?.Equals("InvalidSourceMetadataInputError", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidSourceMetadataInputErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            return _stringParser.Parse(obj.Value.GetString()!);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class ClaimFusionDeploymentBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>
-    {
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        public ClaimFusionDeploymentBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
-        {
-            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
-        }
-
-        protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult> ResultDataFactory { get; }
-
-        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
-        {
-            return new ClaimFusionDeploymentResultInfo(Deserialize_NonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "startFusionConfigurationComposition")));
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData Deserialize_NonNullableIClaimFusionDeployment_StartFusionConfigurationComposition(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var typename = obj.Value.GetProperty("__typename").GetString();
-            if (typename?.Equals("StartFusionConfigurationCompositionPayload", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.StartFusionConfigurationCompositionPayloadData(typename, errors: Deserialize_IStartFusionConfigurationCompositionErrorDataNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "errors")));
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? Deserialize_IStartFusionConfigurationCompositionErrorDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                return null;
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                return null;
-            }
-
-            var startFusionConfigurationCompositionErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
-            {
-                startFusionConfigurationCompositionErrors.Add(Deserialize_NonNullableIStartFusionConfigurationCompositionErrorData(child));
-            }
-
-            return startFusionConfigurationCompositionErrors;
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData Deserialize_NonNullableIStartFusionConfigurationCompositionErrorData(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var typename = obj.Value.GetProperty("__typename").GetString();
-            if (typename?.Equals("UnauthorizedOperation", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.UnauthorizedOperationData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("FusionConfigurationRequestNotFoundError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationRequestNotFoundErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("InvalidProcessingStateTransitionError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidProcessingStateTransitionErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
             }
 
             throw new global::System.NotSupportedException();
@@ -9574,332 +9839,58 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    internal partial class WatchFusionDeploymentBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>
-    {
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Fusion.Transport.ProcessingState> _processingStateParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
-        public WatchFusionDeploymentBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
-        {
-            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _processingStateParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Fusion.Transport.ProcessingState>("ProcessingState") ?? throw new global::System.ArgumentException("No serializer for type `ProcessingState` found.");
-            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
-            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
-        }
-
-        protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult> ResultDataFactory { get; }
-
-        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
-        {
-            return new WatchFusionDeploymentResultInfo(Deserialize_NonNullableIFusionConfigurationPublishingResultData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "onFusionConfigurationPublishingTaskChanged")));
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingResultData Deserialize_NonNullableIFusionConfigurationPublishingResultData(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var typename = obj.Value.GetProperty("__typename").GetString();
-            if (typename?.Equals("FusionConfigurationPublishingFailed", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingFailedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")), errors: Deserialize_NonNullableIFusionConfigurationPublishingErrorDataNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "errors")));
-            }
-
-            if (typename?.Equals("FusionConfigurationPublishingSuccess", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationPublishingSuccessData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            if (typename?.Equals("FusionConfigurationValidationFailed", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationFailedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")), errors: Deserialize_NonNullableIFusionConfigurationValidationErrorDataNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "errors")));
-            }
-
-            if (typename?.Equals("FusionConfigurationValidationSuccess", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.FusionConfigurationValidationSuccessData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            if (typename?.Equals("OperationInProgress", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.OperationInProgressData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            if (typename?.Equals("ProcessingTaskApproved", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskApprovedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            if (typename?.Equals("ProcessingTaskIsQueued", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsQueuedData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")), queuePosition: Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "queuePosition")));
-            }
-
-            if (typename?.Equals("ProcessingTaskIsReady", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTaskIsReadyData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            if (typename?.Equals("ValidationInProgress", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ValidationInProgressData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            if (typename?.Equals("WaitForApproval", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.WaitForApprovalData(typename, state: Deserialize_NonNullableProcessingState(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "state")));
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            return _stringParser.Parse(obj.Value.GetString()!);
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.ProcessingState Deserialize_NonNullableProcessingState(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            return _processingStateParser.Parse(obj.Value.GetString()!);
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData> Deserialize_NonNullableIFusionConfigurationPublishingErrorDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var fusionConfigurationPublishingErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
-            {
-                fusionConfigurationPublishingErrors.Add(Deserialize_NonNullableIFusionConfigurationPublishingErrorData(child));
-            }
-
-            return fusionConfigurationPublishingErrors;
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationPublishingErrorData Deserialize_NonNullableIFusionConfigurationPublishingErrorData(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var typename = obj.Value.GetProperty("__typename").GetString();
-            if (typename?.Equals("ConcurrentOperationError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ConcurrentOperationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("InvalidGraphQLSchemaError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("ProcessingTimeoutError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ProcessingTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("ReadyTimeoutError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.ReadyTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("UnexpectedProcessingError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData> Deserialize_NonNullableIFusionConfigurationValidationErrorDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var fusionConfigurationValidationErrors = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
-            {
-                fusionConfigurationValidationErrors.Add(Deserialize_NonNullableIFusionConfigurationValidationErrorData(child));
-            }
-
-            return fusionConfigurationValidationErrors;
-        }
-
-        private global::ChilliCream.Nitro.Fusion.Transport.State.IFusionConfigurationValidationErrorData Deserialize_NonNullableIFusionConfigurationValidationErrorData(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var typename = obj.Value.GetProperty("__typename").GetString();
-            if (typename?.Equals("InvalidGraphQLSchemaError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.InvalidGraphQLSchemaErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("McpFeatureCollectionValidationError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.McpFeatureCollectionValidationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("OpenApiCollectionValidationError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.OpenApiCollectionValidationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("PersistedQueryValidationError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.PersistedQueryValidationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("SchemaVersionChangeViolationError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.SchemaVersionChangeViolationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            if (typename?.Equals("UnexpectedProcessingError", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::ChilliCream.Nitro.Fusion.Transport.State.UnexpectedProcessingErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            return _intParser.Parse(obj.Value.GetInt32()!);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record UploadFusionSubgraphPayloadData
+    internal partial record StartFusionConfigurationCompositionPayloadData
     {
-        public UploadFusionSubgraphPayloadData(global::System.String __typename, global::ChilliCream.Nitro.Fusion.Transport.State.FusionSubgraphVersionData? fusionSubgraphVersion = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IUploadFusionSubgraphErrorData>? errors = default !)
+        public StartFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? errors = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            FusionSubgraphVersion = fusionSubgraphVersion;
             Errors = errors;
         }
 
         public global::System.String __typename { get; init; }
-        public global::ChilliCream.Nitro.Fusion.Transport.State.FusionSubgraphVersionData? FusionSubgraphVersion { get; init; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IUploadFusionSubgraphErrorData>? Errors { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? Errors { get; init; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record FusionSubgraphVersionData
-    {
-        public FusionSubgraphVersionData(global::System.String __typename, global::System.String? id = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Id = id;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Id { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUploadFusionSubgraphErrorData
+    internal partial interface IApproveDeploymentErrorData
     {
         global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record InvalidFusionSourceSchemaArchiveErrorData : IUploadFusionSubgraphErrorData, IErrorData
-    {
-        public InvalidFusionSourceSchemaArchiveErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface IBeginFusionConfigurationPublishErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface ICancelDeploymentErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface ICancelFusionConfigurationCompositionErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface ICommitFusionConfigurationPublishErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface ICreateAccountErrorData
     {
         global::System.String __typename { get; }
     }
@@ -9948,188 +9939,6 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IDeleteApiByIdErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IForceDeleteStageByApiIdErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IPublishSchemaErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUpdateApiSettingsErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUpdateStagesErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUploadSchemaErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IValidateSchemaErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record ApiNotFoundErrorData : IBeginFusionConfigurationPublishErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, IDeleteApiByIdErrorData, IForceDeleteStageByApiIdErrorData, IPublishSchemaErrorData, IUpdateApiSettingsErrorData, IUpdateStagesErrorData, IUploadFusionSubgraphErrorData, IUploadSchemaErrorData, IValidateSchemaErrorData, IErrorData
-    {
-        public ApiNotFoundErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUnpublishClientErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUploadClientErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUploadMcpFeatureCollectionErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IUploadOpenApiCollectionErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface ISchemaVersionPublishErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IClientVersionPublishErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IFusionConfigurationPublishingErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IOpenApiCollectionVersionPublishErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IMcpFeatureCollectionVersionPublishErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IProcessingErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record ConcurrentOperationErrorData : IUnpublishClientErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData, ISchemaVersionPublishErrorData, IClientVersionPublishErrorData, IFusionConfigurationPublishingErrorData, IOpenApiCollectionVersionPublishErrorData, IMcpFeatureCollectionVersionPublishErrorData, IProcessingErrorData
-    {
-        public ConcurrentOperationErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface IApproveDeploymentErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface ICancelDeploymentErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface ICancelFusionConfigurationCompositionErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface ICommitFusionConfigurationPublishErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial interface ICreateAccountErrorData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface ICreatePersonalAccessTokenErrorData
     {
         global::System.String __typename { get; }
@@ -10138,6 +9947,13 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface ICreateWorkspaceErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IDeleteApiByIdErrorData
     {
         global::System.String __typename { get; }
     }
@@ -10180,6 +9996,13 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface IEnsureTunnelSessionErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IForceDeleteStageByApiIdErrorData
     {
         global::System.String __typename { get; }
     }
@@ -10235,6 +10058,13 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IPublishSchemaErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface IPushDocumentChangesErrorData
     {
         global::System.String __typename { get; }
@@ -10284,6 +10114,20 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUnpublishClientErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUpdateApiSettingsErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface IUpdateFeatureFlagsErrorData
     {
         global::System.String __typename { get; }
@@ -10319,6 +10163,41 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUploadClientErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUploadFusionSubgraphErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUploadMcpFeatureCollectionErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUploadOpenApiCollectionErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUploadSchemaErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface IValidateClientErrorData
     {
         global::System.String __typename { get; }
@@ -10347,6 +10226,20 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IValidateSchemaErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial record UnauthorizedOperationData : IApproveDeploymentErrorData, IBeginFusionConfigurationPublishErrorData, ICancelDeploymentErrorData, ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, ICreateAccountErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IDeleteApiByIdErrorData, IDeleteApiKeyErrorData, IDeleteClientByIdErrorData, IDeleteMcpFeatureCollectionByIdErrorData, IDeleteMockSchemaByIdErrorData, IDeleteOpenApiCollectionByIdErrorData, IEnsureTunnelSessionErrorData, IForceDeleteStageByApiIdErrorData, IPollClientVersionPublishRequestErrorData, IPollClientVersionValidationRequestErrorData, IPollSchemaVersionPublishRequestErrorData, IPollSchemaVersionValidationRequestErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IPushDocumentChangesErrorData, IPushWorkspaceChangesErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IRevokePersonalAccessTokenErrorData, ISetActiveWorkspaceErrorData, IStartFusionConfigurationCompositionErrorData, IUnpublishClientErrorData, IUpdateApiSettingsErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateThemeSettingsErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateFusionConfigurationCompositionErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
     {
         public UnauthorizedOperationData(global::System.String __typename, global::System.String? message = default !)
@@ -10361,67 +10254,9 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record DuplicatedTagErrorData : IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData
+    internal partial record FusionConfigurationRequestNotFoundErrorData : ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, IStartFusionConfigurationCompositionErrorData, IValidateFusionConfigurationCompositionErrorData, IErrorData
     {
-        public DuplicatedTagErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record InvalidSourceMetadataInputErrorData : IBeginFusionConfigurationPublishErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
-    {
-        public InvalidSourceMetadataInputErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record BeginFusionConfigurationPublishPayloadData
-    {
-        public BeginFusionConfigurationPublishPayloadData(global::System.String __typename, global::System.String? requestId = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IBeginFusionConfigurationPublishErrorData>? errors = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            RequestId = requestId;
-            Errors = errors;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? RequestId { get; init; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IBeginFusionConfigurationPublishErrorData>? Errors { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record StageNotFoundErrorData : IBeginFusionConfigurationPublishErrorData, IForceDeleteStageByApiIdErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IUnpublishClientErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateStagesErrorData, IValidateClientErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
-    {
-        public StageNotFoundErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record SubgraphInvalidErrorData : IBeginFusionConfigurationPublishErrorData, IErrorData
-    {
-        public SubgraphInvalidErrorData(global::System.String __typename, global::System.String? message = default !)
+        public FusionConfigurationRequestNotFoundErrorData(global::System.String __typename, global::System.String? message = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Message = message;
@@ -10443,76 +10278,6 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
         public global::System.String __typename { get; init; }
         public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record StartFusionConfigurationCompositionPayloadData
-    {
-        public StartFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? errors = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Errors = errors;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IStartFusionConfigurationCompositionErrorData>? Errors { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record FusionConfigurationRequestNotFoundErrorData : ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, IStartFusionConfigurationCompositionErrorData, IValidateFusionConfigurationCompositionErrorData, IErrorData
-    {
-        public FusionConfigurationRequestNotFoundErrorData(global::System.String __typename, global::System.String? message = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Message = message;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.String? Message { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record CancelFusionConfigurationCompositionPayloadData
-    {
-        public CancelFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICancelFusionConfigurationCompositionErrorData>? errors = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Errors = errors;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICancelFusionConfigurationCompositionErrorData>? Errors { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record ValidateFusionConfigurationCompositionPayloadData
-    {
-        public ValidateFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IValidateFusionConfigurationCompositionErrorData>? errors = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Errors = errors;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IValidateFusionConfigurationCompositionErrorData>? Errors { get; init; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    internal partial record CommitFusionConfigurationPublishPayloadData
-    {
-        public CommitFusionConfigurationPublishPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICommitFusionConfigurationPublishErrorData>? errors = default !)
-        {
-            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Errors = errors;
-        }
-
-        public global::System.String __typename { get; init; }
-        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICommitFusionConfigurationPublishErrorData>? Errors { get; init; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
@@ -10726,6 +10491,62 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface ISchemaVersionPublishErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IClientVersionPublishErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IFusionConfigurationPublishingErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IOpenApiCollectionVersionPublishErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IMcpFeatureCollectionVersionPublishErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IProcessingErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record ConcurrentOperationErrorData : IUnpublishClientErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData, ISchemaVersionPublishErrorData, IClientVersionPublishErrorData, IFusionConfigurationPublishingErrorData, IOpenApiCollectionVersionPublishErrorData, IMcpFeatureCollectionVersionPublishErrorData, IProcessingErrorData
+    {
+        public ConcurrentOperationErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal partial interface IFusionConfigurationDeploymentErrorData
     {
         global::System.String __typename { get; }
@@ -10906,6 +10727,185 @@ namespace ChilliCream.Nitro.Fusion.Transport.State
         public global::System.String? Message { get; init; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record UploadFusionSubgraphPayloadData
+    {
+        public UploadFusionSubgraphPayloadData(global::System.String __typename, global::ChilliCream.Nitro.Fusion.Transport.State.FusionSubgraphVersionData? fusionSubgraphVersion = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IUploadFusionSubgraphErrorData>? errors = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            FusionSubgraphVersion = fusionSubgraphVersion;
+            Errors = errors;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::ChilliCream.Nitro.Fusion.Transport.State.FusionSubgraphVersionData? FusionSubgraphVersion { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IUploadFusionSubgraphErrorData>? Errors { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record FusionSubgraphVersionData
+    {
+        public FusionSubgraphVersionData(global::System.String __typename, global::System.String? id = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Id = id;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Id { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record InvalidFusionSourceSchemaArchiveErrorData : IUploadFusionSubgraphErrorData, IErrorData
+    {
+        public InvalidFusionSourceSchemaArchiveErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial interface IUpdateStagesErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record ApiNotFoundErrorData : IBeginFusionConfigurationPublishErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, IDeleteApiByIdErrorData, IForceDeleteStageByApiIdErrorData, IPublishSchemaErrorData, IUpdateApiSettingsErrorData, IUpdateStagesErrorData, IUploadFusionSubgraphErrorData, IUploadSchemaErrorData, IValidateSchemaErrorData, IErrorData
+    {
+        public ApiNotFoundErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record DuplicatedTagErrorData : IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData
+    {
+        public DuplicatedTagErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record InvalidSourceMetadataInputErrorData : IBeginFusionConfigurationPublishErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
+    {
+        public InvalidSourceMetadataInputErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record BeginFusionConfigurationPublishPayloadData
+    {
+        public BeginFusionConfigurationPublishPayloadData(global::System.String __typename, global::System.String? requestId = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IBeginFusionConfigurationPublishErrorData>? errors = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            RequestId = requestId;
+            Errors = errors;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? RequestId { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IBeginFusionConfigurationPublishErrorData>? Errors { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record StageNotFoundErrorData : IBeginFusionConfigurationPublishErrorData, IForceDeleteStageByApiIdErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IUnpublishClientErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateStagesErrorData, IValidateClientErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
+    {
+        public StageNotFoundErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record SubgraphInvalidErrorData : IBeginFusionConfigurationPublishErrorData, IErrorData
+    {
+        public SubgraphInvalidErrorData(global::System.String __typename, global::System.String? message = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record CancelFusionConfigurationCompositionPayloadData
+    {
+        public CancelFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICancelFusionConfigurationCompositionErrorData>? errors = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Errors = errors;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICancelFusionConfigurationCompositionErrorData>? Errors { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record ValidateFusionConfigurationCompositionPayloadData
+    {
+        public ValidateFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IValidateFusionConfigurationCompositionErrorData>? errors = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Errors = errors;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.IValidateFusionConfigurationCompositionErrorData>? Errors { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal partial record CommitFusionConfigurationPublishPayloadData
+    {
+        public CommitFusionConfigurationPublishPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICommitFusionConfigurationPublishErrorData>? errors = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Errors = errors;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Fusion.Transport.State.ICommitFusionConfigurationPublishErrorData>? Errors { get; init; }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.NoStoreAccessorGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     internal partial class FusionApiClientStoreAccessor : global::StrawberryShake.IStoreAccessor
@@ -10941,20 +10941,20 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::ChilliCream.Nitro.Fusion.Transport.State.FusionApiClientStoreAccessor());
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.UploadFusionSourceSchemaMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.BeginFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ReleaseFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ValidateFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.CommitFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IValidateFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.FusionApiClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IFusionApiClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::ChilliCream.Nitro.Fusion.Transport.State.FusionApiClientStoreAccessor>("FusionApiClient", services, serviceCollection);
@@ -10994,6 +10994,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.UploadFusionSubgraphInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.SourceMetadataInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.AzureDevOpsSourceMetadataInputInputValueFormatter>(services);
@@ -11001,11 +11002,26 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.GitHubSourceMetadataInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.BeginFusionConfigurationPublishInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.FusionSubgraphVersionInputInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.StartFusionConfigurationCompositionInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.CancelFusionConfigurationCompositionInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.ValidateFusionConfigurationCompositionInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Fusion.Transport.CommitFusionConfigurationPublishInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.ClaimFusionDeploymentResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.ClaimFusionDeploymentBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>>(services, sp => new global::StrawberryShake.StorelessOperationExecutor<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.WatchFusionDeploymentResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.WatchFusionDeploymentBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>>(services, sp => new global::StrawberryShake.StorelessOperationExecutor<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentSubscription>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaResult>, global::ChilliCream.Nitro.Fusion.Transport.State.UploadFusionSourceSchemaResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IUploadFusionSourceSchemaMutation>(sp));
@@ -11022,14 +11038,6 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.BeginFusionDeploymentMutation>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.IBeginFusionDeploymentMutation>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.BeginFusionDeploymentMutation>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.ClaimFusionDeploymentResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.ClaimFusionDeploymentBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>>(services, sp => new global::StrawberryShake.StorelessOperationExecutor<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.IClaimFusionDeploymentMutation>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.ClaimFusionDeploymentMutation>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.ReleaseFusionDeploymentResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IReleaseFusionDeploymentMutation>(sp));
@@ -11054,14 +11062,6 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.CommitFusionDeploymentMutation>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.ICommitFusionDeploymentMutation>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.CommitFusionDeploymentMutation>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.WatchFusionDeploymentResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>, global::ChilliCream.Nitro.Fusion.Transport.State.WatchFusionDeploymentBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>>(services, sp => new global::StrawberryShake.StorelessOperationExecutor<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentSubscription>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.IWatchFusionDeploymentSubscription>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.WatchFusionDeploymentSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.FusionApiClient>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Fusion.Transport.IFusionApiClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Fusion.Transport.FusionApiClient>(sp));
             return services;

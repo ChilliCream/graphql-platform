@@ -28,6 +28,17 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         WriteIndented = true
     };
 
+    private readonly FusionPipelineMemoryLimits _memoryLimits;
+    private readonly Action<byte[]>? _bufferCleared;
+
+    internal FusionPipelineExecutor(
+        FusionPipelineMemoryLimits? memoryLimits = null,
+        Action<byte[]>? bufferCleared = null)
+    {
+        _memoryLimits = memoryLimits ?? FusionPipelineMemoryLimits.Default;
+        _bufferCleared = bufferCleared;
+    }
+
     public static FusionPipelineExecutor Instance { get; } = new();
 
     public async Task CreateArtifactsAsync(PipelineStepContext context)
@@ -71,7 +82,9 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         }
     }
 
-    public async Task VerifyReadinessAsync(PipelineStepContext context)
+    public async Task VerifyReadinessAsync(
+        PipelineStepContext context,
+        FusionPipelineSession session)
     {
         var environment = context.Services
             .GetRequiredService<IHostEnvironment>()
@@ -89,60 +102,60 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             context.Model);
         var composition = GraphQLResourceModel.GetComposition(
             compositionResource);
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
         using var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(10)
         };
-        foreach (var deployment in deployments)
+        try
         {
-            var applyDirectory = GetApplyDirectory(output, deployment);
-            var state = await ReadApplyStateAsync(
-                applyDirectory,
-                context.CancellationToken);
-            await ValidateApplyStateAsync(
-                state,
-                deployment,
-                context,
-                context.CancellationToken);
-            ValidateCompositionState(
-                state,
-                deployment,
-                composition.Settings);
-            var farPath = ResolveApplyPath(
-                applyDirectory,
-                state.FusionArchivePath
-                    ?? throw new InvalidOperationException(
-                        "The downloaded Fusion sources have not been composed."));
-            await VerifyFileDigestAsync(
-                farPath,
-                state.FusionArchiveSha256
-                    ?? throw new InvalidOperationException(
-                        "The composed Fusion archive has no digest."),
-                "composed Fusion archive",
-                context.CancellationToken);
-            using var archive = FusionArchive.Open(farPath);
-            using var configuration =
-                await archive.TryGetGatewayConfigurationAsync(
-                    WellKnownVersions.LatestGatewayFormatVersion,
-                    context.CancellationToken)
-                ?? throw new InvalidDataException(
-                    "The composed Fusion archive contains no gateway configuration.");
-
-            foreach (var (name, endpoint) in GetTransportEndpoints(
-                configuration.Settings))
+            foreach (var deployment in deployments)
             {
-                RejectLoopbackEndpoint(endpoint);
-                await WaitForReadinessAsync(
-                    httpClient,
-                    name,
-                    endpoint,
-                    deployment.OperationTimeout,
-                    s_readinessRetryDelay,
+                using var lease = session.Acquire(deployment);
+                var state = lease.State;
+                await ValidateSessionStateAsync(
+                    state,
+                    deployment,
+                    context,
                     context.CancellationToken);
+                ValidateCompositionState(
+                    state,
+                    deployment,
+                    composition.Settings);
+                VerifyMemoryDigest(
+                    state.FusionArchive,
+                    state.FusionArchiveSha256
+                        ?? throw new InvalidOperationException(
+                            "The composed Fusion archive has no digest."),
+                    "composed Fusion archive");
+                await using var archiveStream = new MemoryStream(
+                    state.FusionArchive,
+                    writable: false);
+                using var archive = FusionArchive.Open(archiveStream);
+                using var configuration =
+                    await archive.TryGetGatewayConfigurationAsync(
+                        WellKnownVersions.LatestGatewayFormatVersion,
+                        context.CancellationToken)
+                    ?? throw new InvalidDataException(
+                        "The composed Fusion archive contains no gateway configuration.");
+
+                foreach (var (name, endpoint) in GetTransportEndpoints(
+                    configuration.Settings))
+                {
+                    RejectLoopbackEndpoint(endpoint);
+                    await WaitForReadinessAsync(
+                        httpClient,
+                        name,
+                        endpoint,
+                        deployment.OperationTimeout,
+                        s_readinessRetryDelay,
+                        context.CancellationToken);
+                }
             }
+        }
+        catch
+        {
+            session.Clear();
+            throw;
         }
     }
 
@@ -177,7 +190,9 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         }
     }
 
-    public async Task DownloadAsync(PipelineStepContext context)
+    public async Task PreflightAsync(
+        PipelineStepContext context,
+        FusionPipelineSession session)
     {
         var environment = context.Services
             .GetRequiredService<IHostEnvironment>()
@@ -192,121 +207,98 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
 
         var workflow = context.Services
             .GetRequiredService<IFusionDeploymentWorkflow>();
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
         var sourceNames = GetSourceNames(context.Model);
+        var preparedStates = new List<(
+            FusionDeploymentResource Deployment,
+            FusionDeploymentSessionState State)>(deployments.Count);
+        long totalSourceBytes = 0;
+        var transferred = false;
 
-        foreach (var deployment in deployments)
+        try
         {
-            var tag = await ResolveConfigurationTagAsync(
-                deployment,
-                context.CancellationToken);
-            var target = await ResolveTargetAsync(
-                deployment,
-                context,
-                context.CancellationToken);
-            var applyDirectory = GetApplyDirectory(output, deployment);
-            var applyParent = Path.GetDirectoryName(applyDirectory)!;
-            Directory.CreateDirectory(applyParent);
-            var temporaryDirectory = Path.Combine(
-                applyParent,
-                $".{deployment.Name}.{Guid.NewGuid():N}.tmp");
-
-            try
+            foreach (var deployment in deployments)
             {
-                var sources = new List<FusionApplySource>(sourceNames.Count);
+                var tag = await ResolveConfigurationTagAsync(
+                    deployment,
+                    context.CancellationToken);
+                var target = await ResolveTargetAsync(
+                    deployment,
+                    context,
+                    context.CancellationToken);
+                var sources = new List<FusionSessionSourceIdentity>(
+                    sourceNames.Count);
 
                 foreach (var sourceName in sourceNames)
                 {
-                    var download = await workflow.DownloadSourceSchemaAsync(
+                    using var download = await DownloadExactSourceAsync(
+                        workflow,
                         target,
-                        new FusionSourceSchemaVersion(
-                            sourceName,
-                            tag),
-                        context.CancellationToken)
-                        ?? throw new InvalidOperationException(
-                            $"Fusion source '{sourceName}' version "
-                            + $"'{tag}' does not exist on target "
-                            + $"'{deployment.Nitro.ApiId}'.");
-                    if (!string.Equals(
-                            download.Name,
-                            sourceName,
-                            StringComparison.Ordinal)
-                        || !string.Equals(
-                            download.Version,
-                            tag,
-                            StringComparison.Ordinal))
-                    {
-                        throw new InvalidDataException(
-                            $"Nitro returned Fusion source '{download.Name}@{download.Version}' "
-                            + $"when '{sourceName}@{tag}' was requested.");
-                    }
-
-                    var relativePath = Path.Combine(
-                        "sources",
+                        deployment,
                         sourceName,
-                        $"{tag}.zip");
-                    var archivePath = Path.Combine(
-                        temporaryDirectory,
-                        relativePath);
-                    Directory.CreateDirectory(
-                        Path.GetDirectoryName(archivePath)!);
-                    await File.WriteAllBytesAsync(
-                        archivePath,
-                        download.Archive.ToArray(),
+                        tag,
                         context.CancellationToken);
-                    var contentSha256 =
-                        await FusionSourceSchemaContent.ComputeSha256Async(
-                            archivePath,
-                            sourceName,
-                            context.CancellationToken);
-                    if (!string.Equals(
-                            contentSha256,
-                            download.ContentSha256,
-                            StringComparison.OrdinalIgnoreCase))
+                    AddSourceBytes(
+                        download.Archive.Length,
+                        sourceName,
+                        tag,
+                        ref totalSourceBytes);
+                    byte[]? archive = download.Archive.ToArray();
+                    try
                     {
-                        throw new InvalidDataException(
-                            $"Downloaded Fusion source '{sourceName}@{tag}' content "
-                            + "does not match its canonical digest.");
+                        var contentSha256 =
+                            await ValidateCanonicalDigestAsync(
+                                download,
+                                archive,
+                                sourceName,
+                                tag,
+                                context.CancellationToken);
+                        sources.Add(
+                            new FusionSessionSourceIdentity(
+                                sourceName,
+                                tag,
+                                contentSha256));
                     }
-
-                    sources.Add(
-                        new FusionApplySource(
-                            sourceName,
-                            tag,
-                            relativePath.Replace(
-                                Path.DirectorySeparatorChar,
-                                '/'),
-                            download.ContentSha256));
+                    finally
+                    {
+                        if (archive is not null)
+                        {
+                            ClearOwnedBuffer(archive);
+                        }
+                    }
                 }
 
-                await WriteJsonAtomicallyAsync(
-                    Path.Combine(
-                        temporaryDirectory,
-                        "fusion-apply.json"),
-                    new FusionApplyState(
+                preparedStates.Add(
+                    (deployment,
+                    new FusionDeploymentSessionState(
                         tag,
                         deployment.Nitro.CloudUrl!,
                         deployment.Nitro.ApiId!,
-                        CompositionEnvironment: null,
-                        FusionArchivePath: null,
-                        FusionArchiveSha256: null,
-                        sources),
-                    context.CancellationToken);
-
-                ReplaceDirectoryAtomically(
-                    temporaryDirectory,
-                    applyDirectory);
+                        sources)));
             }
-            finally
+
+            session.SetAll(preparedStates);
+            transferred = true;
+        }
+        catch
+        {
+            session.Clear();
+            throw;
+        }
+        finally
+        {
+            if (!transferred)
             {
-                DeleteDirectoryBestEffort(temporaryDirectory);
+                foreach (var (_, state) in preparedStates)
+                {
+                    state.Dispose();
+                }
             }
         }
     }
 
-    public async Task ComposeAsync(PipelineStepContext context)
+    public async Task DownloadAsync(
+        PipelineStepContext context,
+        FusionPipelineSession session)
     {
         var environment = context.Services
             .GetRequiredService<IHostEnvironment>()
@@ -319,96 +311,177 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             return;
         }
 
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
+        var workflow = context.Services
+            .GetRequiredService<IFusionDeploymentWorkflow>();
+        long totalSourceBytes = 0;
+
+        try
+        {
+            foreach (var deployment in deployments)
+            {
+                using var lease = session.Acquire(deployment);
+                var state = lease.State;
+                await ValidatePreflightStateAsync(
+                    state,
+                    deployment,
+                    context,
+                    context.CancellationToken);
+                var target = await ResolveTargetAsync(
+                    deployment,
+                    context,
+                    context.CancellationToken);
+                var sources = new List<FusionSessionSource>(
+                    state.SourceIdentities.Count);
+                var sourceListTransferred = false;
+
+                try
+                {
+                    foreach (var identity in state.SourceIdentities)
+                    {
+                        using var download = await DownloadExactSourceAsync(
+                            workflow,
+                            target,
+                            deployment,
+                            identity.Name,
+                            identity.Version,
+                            context.CancellationToken);
+                        AddSourceBytes(
+                            download.Archive.Length,
+                            identity.Name,
+                            identity.Version,
+                            ref totalSourceBytes);
+                        byte[]? archive = download.Archive.ToArray();
+                        try
+                        {
+                            var contentSha256 =
+                                await ValidateCanonicalDigestAsync(
+                                    download,
+                                    archive,
+                                    identity.Name,
+                                    identity.Version,
+                                    context.CancellationToken);
+                            if (!string.Equals(
+                                    contentSha256,
+                                    identity.ContentSha256,
+                                    StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new InvalidDataException(
+                                    $"Fusion source '{identity.Name}@{identity.Version}' "
+                                    + "changed between preflight and composition.");
+                            }
+
+                            sources.Add(
+                                new FusionSessionSource(
+                                    identity.Name,
+                                    identity.Version,
+                                    archive,
+                                    contentSha256));
+                            archive = null;
+                        }
+                        finally
+                        {
+                            if (archive is not null)
+                            {
+                                ClearOwnedBuffer(archive);
+                            }
+                        }
+                    }
+
+                    context.CancellationToken.ThrowIfCancellationRequested();
+                    state.SetSources(sources);
+                    sourceListTransferred = true;
+                }
+                finally
+                {
+                    if (!sourceListTransferred)
+                    {
+                        foreach (var source in sources)
+                        {
+                            ClearOwnedBuffer(source.Archive);
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            session.Clear();
+            throw;
+        }
+    }
+
+    public async Task ComposeAsync(
+        PipelineStepContext context,
+        FusionPipelineSession session)
+    {
+        var environment = context.Services
+            .GetRequiredService<IHostEnvironment>()
+            .EnvironmentName;
+        var deployments = FusionPipeline.SelectDeployments(
+            context.Model,
+            environment);
+        if (deployments.Count == 0)
+        {
+            return;
+        }
+
         var compositionResource = FusionPipeline.GetCompositionResource(
             context.Model);
         var currentComposition = GraphQLResourceModel.GetComposition(
             compositionResource);
 
-        foreach (var deployment in deployments)
+        try
         {
-            var applyDirectory = GetApplyDirectory(output, deployment);
-            var state = await ReadApplyStateAsync(
-                applyDirectory,
-                context.CancellationToken);
-            await ValidateApplyStateAsync(
-                state,
-                deployment,
-                context,
-                context.CancellationToken);
-
-            var compositionEnvironment = ResolveCompositionEnvironment(
-                deployment,
-                currentComposition.Settings);
-            var farPath = Path.Combine(
-                applyDirectory,
-                "fusion-configuration.far");
-
-            foreach (var source in state.Sources)
+            foreach (var deployment in deployments)
             {
-                var archivePath = ResolveApplyPath(
-                    applyDirectory,
-                    source.ArchivePath);
-                var contentSha256 =
-                    await FusionSourceSchemaContent.ComputeSha256Async(
-                        archivePath,
-                        source.Name,
-                        context.CancellationToken);
-                if (!string.Equals(
-                        contentSha256,
-                        source.ContentSha256,
-                        StringComparison.OrdinalIgnoreCase))
+                using var lease = session.Acquire(deployment);
+                var state = lease.State;
+                await ValidateSessionStateAsync(
+                    state,
+                    deployment,
+                    context,
+                    context.CancellationToken);
+
+                var compositionEnvironment = ResolveCompositionEnvironment(
+                    deployment,
+                    currentComposition.Settings);
+                await using var farStream = new BoundedMemoryStream(
+                    _memoryLimits.FusionArchiveBytes);
+                var logger = context.Services
+                    .GetRequiredService<ILogger<SchemaComposition>>();
+                if (!await AspireCompositionHelper.TryComposeArchivesAsync(
+                        farStream,
+                        state.Sources.Select(
+                                source => new SourceSchemaArchiveInfo(
+                                    source.Name,
+                                    source.Archive))
+                            .ToArray(),
+                        compositionEnvironment,
+                        currentComposition.Settings,
+                        logger,
+                        context.CancellationToken))
                 {
-                    throw new InvalidDataException(
-                        $"Prepared Fusion source '{source.Name}' content changed after download.");
+                    throw new InvalidOperationException(
+                        "Fusion configuration composition failed.");
                 }
-            }
 
-            if (File.Exists(farPath))
-            {
-                File.Delete(farPath);
-            }
-
-            var logger = context.Services
-                .GetRequiredService<ILogger<SchemaComposition>>();
-            if (!await AspireCompositionHelper.TryComposeArchivesAsync(
-                    farPath,
-                    state.Sources.Select(
-                            source => new SourceSchemaArchiveInfo(
-                                source.Name,
-                                ResolveApplyPath(
-                                    applyDirectory,
-                                    source.ArchivePath)))
-                        .ToArray(),
+                TransferComposition(
+                    state,
                     compositionEnvironment,
-                    currentComposition.Settings,
-                    logger,
-                    context.CancellationToken))
-            {
-                throw new InvalidOperationException(
-                    "Fusion configuration composition failed.");
+                    farStream.ToArray(),
+                    context.CancellationToken);
             }
-
-            await WriteJsonAtomicallyAsync(
-                Path.Combine(applyDirectory, "fusion-apply.json"),
-                state with
-                {
-                    CompositionEnvironment = compositionEnvironment,
-                    FusionArchivePath = Path.GetRelativePath(
-                            applyDirectory,
-                            farPath)
-                        .Replace(Path.DirectorySeparatorChar, '/'),
-                    FusionArchiveSha256 = await ComputeFileDigestAsync(
-                        farPath,
-                        context.CancellationToken)
-                },
-                context.CancellationToken);
+        }
+        catch
+        {
+            session.Clear();
+            throw;
         }
     }
 
-    public async Task PublishAsync(PipelineStepContext context)
+    public async Task PublishAsync(
+        PipelineStepContext context,
+        FusionPipelineSession session)
     {
         var environment = context.Services
             .GetRequiredService<IHostEnvironment>()
@@ -421,9 +494,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
             return;
         }
 
-        var output = context.Services
-            .GetRequiredService<IPipelineOutputService>()
-            .GetOutputDirectory();
         var workflow = context.Services
             .GetRequiredService<IFusionDeploymentWorkflow>();
         var compositionResource = FusionPipeline.GetCompositionResource(
@@ -431,56 +501,54 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         var composition = GraphQLResourceModel.GetComposition(
             compositionResource);
 
-        foreach (var deployment in deployments)
+        try
         {
-            var applyDirectory = GetApplyDirectory(output, deployment);
-            var state = await ReadApplyStateAsync(
-                applyDirectory,
-                context.CancellationToken);
-            await ValidateApplyStateAsync(
-                state,
-                deployment,
-                context,
-                context.CancellationToken);
-            var target = await ResolveTargetAsync(
-                deployment,
-                context,
-                context.CancellationToken);
-            var farPath = ResolveApplyPath(
-                applyDirectory,
-                state.FusionArchivePath
-                    ?? throw new InvalidOperationException(
-                        "The downloaded Fusion sources have not been composed."));
-            ValidateCompositionState(
-                state,
-                deployment,
-                composition.Settings);
+            foreach (var deployment in deployments)
+            {
+                using var lease = session.Acquire(deployment);
+                var state = lease.State;
+                await ValidateSessionStateAsync(
+                    state,
+                    deployment,
+                    context,
+                    context.CancellationToken);
+                var target = await ResolveTargetAsync(
+                    deployment,
+                    context,
+                    context.CancellationToken);
+                ValidateCompositionState(
+                    state,
+                    deployment,
+                    composition.Settings);
+                VerifyMemoryDigest(
+                    state.FusionArchive,
+                    state.FusionArchiveSha256
+                        ?? throw new InvalidOperationException(
+                            "The composed Fusion archive has no digest."),
+                    "composed Fusion archive");
 
-            await VerifyFileDigestAsync(
-                farPath,
-                state.FusionArchiveSha256
-                    ?? throw new InvalidOperationException(
-                        "The composed Fusion archive has no digest."),
-                "composed Fusion archive",
-                context.CancellationToken);
-
-            await workflow.PublishAsync(
-                new FusionPublicationRequest(
-                    target,
-                    deployment.StageName!,
-                    state.Tag,
-                    state.Sources
-                        .Select(source =>
-                            new FusionSourceSchemaVersion(
-                                source.Name,
-                                source.Version))
-                        .ToArray(),
-                    deployment.WaitForApproval,
-                    deployment.Force,
-                    deployment.OperationTimeout,
-                    deployment.ApprovalTimeout),
-                farPath,
-                context.CancellationToken);
+                await workflow.PublishAsync(
+                    new FusionPublicationRequest(
+                        target,
+                        deployment.StageName!,
+                        state.Tag,
+                        state.SourceIdentities
+                            .Select(source =>
+                                new FusionSourceSchemaVersion(
+                                    source.Name,
+                                    source.Version))
+                            .ToArray(),
+                        deployment.WaitForApproval,
+                        deployment.Force,
+                        deployment.OperationTimeout,
+                        deployment.ApprovalTimeout),
+                    state.FusionArchive,
+                    context.CancellationToken);
+            }
+        }
+        finally
+        {
+            session.Clear();
         }
     }
 
@@ -952,7 +1020,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 $"Fusion deployment '{deployment.Name}' has no composition environment.");
 
     private static void ValidateCompositionState(
-        FusionApplyState state,
+        FusionDeploymentSessionState state,
         FusionDeploymentResource deployment,
         GraphQLCompositionSettings settings)
     {
@@ -1012,8 +1080,96 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         return sourceNames;
     }
 
-    private static async Task ValidateApplyStateAsync(
-        FusionApplyState state,
+    private static async Task<FusionSourceSchemaDownload>
+        DownloadExactSourceAsync(
+            IFusionDeploymentWorkflow workflow,
+            FusionTarget target,
+            FusionDeploymentResource deployment,
+            string sourceName,
+            string tag,
+            CancellationToken cancellationToken)
+    {
+        var download = await workflow.DownloadSourceSchemaAsync(
+            target,
+            new FusionSourceSchemaVersion(sourceName, tag),
+            cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Fusion source '{sourceName}' version '{tag}' does not exist "
+                + $"on target '{deployment.Nitro.ApiId}'.");
+        if (!string.Equals(
+                download.Name,
+                sourceName,
+                StringComparison.Ordinal)
+            || !string.Equals(
+                download.Version,
+                tag,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"Nitro returned Fusion source '{download.Name}@{download.Version}' "
+                + $"when '{sourceName}@{tag}' was requested.");
+        }
+
+        return download;
+    }
+
+    private void ClearOwnedBuffer(byte[] buffer)
+    {
+        Array.Clear(buffer);
+        _bufferCleared?.Invoke(buffer);
+    }
+
+    private void AddSourceBytes(
+        int sourceBytes,
+        string sourceName,
+        string tag,
+        ref long totalSourceBytes)
+    {
+        if (sourceBytes > _memoryLimits.SourceArchiveBytes)
+        {
+            throw new InvalidDataException(
+                $"Downloaded Fusion source '{sourceName}@{tag}' exceeds "
+                + $"the {_memoryLimits.SourceArchiveBytes:N0}-byte "
+                + "per-source in-memory size limit.");
+        }
+
+        totalSourceBytes = checked(totalSourceBytes + sourceBytes);
+        if (totalSourceBytes > _memoryLimits.TotalSourceArchiveBytes)
+        {
+            throw new InvalidDataException(
+                "The downloaded Fusion sources exceed the "
+                + $"{_memoryLimits.TotalSourceArchiveBytes:N0}-byte "
+                + "aggregate in-memory size limit.");
+        }
+    }
+
+    private static async Task<string> ValidateCanonicalDigestAsync(
+        FusionSourceSchemaDownload download,
+        byte[] archive,
+        string sourceName,
+        string tag,
+        CancellationToken cancellationToken)
+    {
+        var contentSha256 =
+            await FusionSourceSchemaContent.ComputeSha256Async(
+                archive,
+                sourceName,
+                cancellationToken);
+        if (!string.Equals(
+                contentSha256,
+                download.ContentSha256,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                $"Downloaded Fusion source '{sourceName}@{tag}' content "
+                + "does not match its canonical digest.");
+        }
+
+        return contentSha256;
+    }
+
+    private static async Task ValidatePreflightStateAsync(
+        FusionDeploymentSessionState state,
         FusionDeploymentResource deployment,
         PipelineStepContext context,
         CancellationToken cancellationToken)
@@ -1039,20 +1195,15 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 state.ApiId,
                 deployment.Nitro.ApiId,
                 StringComparison.Ordinal)
-            || state.Sources.Count != sourceNames.Count
-            || !state.Sources.Select(source => source.Name)
+            || state.SourceIdentities.Count != sourceNames.Count
+            || !state.SourceIdentities.Select(source => source.Name)
                 .SequenceEqual(sourceNames, StringComparer.Ordinal))
         {
             throw new InvalidDataException(
                 $"Prepared Fusion state does not match deployment '{deployment.Name}'.");
         }
 
-        var applyDirectory = GetApplyDirectory(
-            context.Services
-                .GetRequiredService<IPipelineOutputService>()
-                .GetOutputDirectory(),
-            deployment);
-        foreach (var source in state.Sources)
+        foreach (var source in state.SourceIdentities)
         {
             if (!string.Equals(
                     source.Version,
@@ -1062,13 +1213,51 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 throw new InvalidDataException(
                     $"Prepared Fusion source '{source.Name}' does not use tag '{tag}'.");
             }
+        }
+    }
 
-            var archivePath = ResolveApplyPath(
-                applyDirectory,
-                source.ArchivePath);
+    private static async Task ValidateSessionStateAsync(
+        FusionDeploymentSessionState state,
+        FusionDeploymentResource deployment,
+        PipelineStepContext context,
+        CancellationToken cancellationToken)
+    {
+        await ValidatePreflightStateAsync(
+            state,
+            deployment,
+            context,
+            cancellationToken);
+        var sources = state.Sources;
+        if (sources.Count != state.SourceIdentities.Count
+            || !sources.Select(source => source.Name)
+                .SequenceEqual(
+                    state.SourceIdentities.Select(source => source.Name),
+                    StringComparer.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"Materialized Fusion sources do not match deployment '{deployment.Name}'.");
+        }
+
+        for (var i = 0; i < sources.Count; i++)
+        {
+            var source = sources[i];
+            var identity = state.SourceIdentities[i];
+            if (!string.Equals(
+                    source.Version,
+                    identity.Version,
+                    StringComparison.Ordinal)
+                || !string.Equals(
+                    source.ContentSha256,
+                    identity.ContentSha256,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException(
+                    $"Materialized Fusion source '{source.Name}' does not match preflight.");
+            }
+
             var contentSha256 =
                 await FusionSourceSchemaContent.ComputeSha256Async(
-                    archivePath,
+                    source.Archive,
                     source.Name,
                     cancellationToken);
             if (!string.Equals(
@@ -1080,69 +1269,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                     $"Prepared Fusion source '{source.Name}' content changed after download.");
             }
         }
-    }
-
-    private static async Task<FusionApplyState> ReadApplyStateAsync(
-        string applyDirectory,
-        CancellationToken cancellationToken)
-    {
-        var path = Path.Combine(
-            applyDirectory,
-            "fusion-apply.json");
-        if (!File.Exists(path))
-        {
-            throw new FileNotFoundException(
-                "Fusion sources have not been downloaded.",
-                path);
-        }
-
-        await using var stream = File.OpenRead(path);
-        var state = await JsonSerializer.DeserializeAsync<FusionApplyState>(
-                stream,
-                s_jsonOptions,
-                cancellationToken)
-            ?? throw new InvalidDataException(
-                "The Fusion apply state is empty.");
-        if (string.IsNullOrWhiteSpace(state.Tag)
-            || string.IsNullOrWhiteSpace(state.CloudUrl)
-            || string.IsNullOrWhiteSpace(state.ApiId)
-            || state.Sources is null
-            || state.Sources.Any(source =>
-                string.IsNullOrWhiteSpace(source.Name)
-                || string.IsNullOrWhiteSpace(source.Version)
-                || string.IsNullOrWhiteSpace(source.ArchivePath)
-                || string.IsNullOrWhiteSpace(source.ContentSha256)))
-        {
-            throw new InvalidDataException(
-                "The Fusion apply state is missing required content.");
-        }
-
-        return state;
-    }
-
-    private static string ResolveApplyPath(
-        string applyDirectory,
-        string relativePath)
-    {
-        if (Path.IsPathFullyQualified(relativePath))
-        {
-            throw new InvalidDataException(
-                "A Fusion apply path must be relative.");
-        }
-
-        var fullApplyDirectory = Path.GetFullPath(applyDirectory);
-        var path = Path.GetFullPath(relativePath, fullApplyDirectory);
-        var prefix = fullApplyDirectory.EndsWith(
-            Path.DirectorySeparatorChar)
-            ? fullApplyDirectory
-            : fullApplyDirectory + Path.DirectorySeparatorChar;
-        if (!path.StartsWith(prefix, StringComparison.Ordinal))
-        {
-            throw new InvalidDataException(
-                "A Fusion apply path escapes the apply output directory.");
-        }
-
-        return path;
     }
 
     internal static IReadOnlyList<(string Name, Uri Endpoint)>
@@ -1299,6 +1425,50 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         return Convert.ToHexStringLower(digest);
     }
 
+    private static string ComputeMemoryDigest(byte[] content)
+        => Convert.ToHexStringLower(SHA256.HashData(content));
+
+    internal void TransferComposition(
+        FusionDeploymentSessionState state,
+        string compositionEnvironment,
+        byte[] fusionArchive,
+        CancellationToken cancellationToken)
+    {
+        var transferred = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            state.SetComposition(
+                compositionEnvironment,
+                fusionArchive,
+                ComputeMemoryDigest(fusionArchive));
+            transferred = true;
+        }
+        finally
+        {
+            if (!transferred)
+            {
+                ClearOwnedBuffer(fusionArchive);
+            }
+        }
+    }
+
+    private static void VerifyMemoryDigest(
+        byte[] content,
+        string expectedSha256,
+        string description)
+    {
+        var actualSha256 = ComputeMemoryDigest(content);
+        if (!string.Equals(
+                actualSha256,
+                expectedSha256,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                $"The {description} SHA-256 does not match the in-memory session state.");
+        }
+    }
+
     internal static async Task VerifyFileDigestAsync(
         string path,
         string expectedSha256,
@@ -1314,7 +1484,7 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException(
-                $"The {description} SHA-256 does not match prepared apply state.");
+                $"The {description} SHA-256 does not match prepared state.");
         }
     }
 
@@ -1352,11 +1522,6 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
         string output,
         FusionDeploymentResource deployment)
         => Path.Combine(output, "fusion", deployment.Name);
-
-    private static string GetApplyDirectory(
-        string output,
-        FusionDeploymentResource deployment)
-        => Path.Combine(output, "fusion", "apply", deployment.Name);
 
     private static void DeleteDirectoryBestEffort(string path)
     {
@@ -1431,21 +1596,6 @@ internal sealed record FusionSourceProvenance(
     string? RuntimeIdentifier,
     bool LaunchProfile,
     string WorkingDirectory);
-
-internal sealed record FusionApplyState(
-    string Tag,
-    string CloudUrl,
-    string ApiId,
-    string? CompositionEnvironment,
-    string? FusionArchivePath,
-    string? FusionArchiveSha256,
-    IReadOnlyList<FusionApplySource> Sources);
-
-internal sealed record FusionApplySource(
-    string Name,
-    string Version,
-    string ArchivePath,
-    string ContentSha256);
 
 #pragma warning restore ASPIREPIPELINES004
 #pragma warning restore ASPIREPIPELINES001

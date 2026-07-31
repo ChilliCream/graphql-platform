@@ -7,7 +7,7 @@ public interface IFusionDeploymentWorkflow
 {
     /// <summary>
     /// Downloads an exact immutable source schema version and computes its canonical content
-    /// identity.
+    /// identity. The caller owns a non-null result and must dispose it after use.
     /// </summary>
     Task<FusionSourceSchemaDownload?> DownloadSourceSchemaAsync(
         FusionTarget target,
@@ -27,6 +27,6 @@ public interface IFusionDeploymentWorkflow
     /// </summary>
     Task PublishAsync(
         FusionPublicationRequest request,
-        string fusionArchivePath,
+        ReadOnlyMemory<byte> fusionArchive,
         CancellationToken cancellationToken);
 }

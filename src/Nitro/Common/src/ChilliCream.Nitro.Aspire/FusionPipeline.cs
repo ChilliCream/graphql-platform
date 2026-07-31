@@ -94,16 +94,25 @@ internal static class FusionPipeline
 
         topology.HasDeployments = deployments.Count > 0;
 
-        return CreateStepDefinitions(context.Resource, topology);
+        var session = new FusionPipelineSession(
+            context.PipelineContext.CancellationToken);
+        return CreateStepDefinitions(
+            context.Resource,
+            topology,
+            session);
     }
 
     internal static PipelineStep[] CreateStepDefinitionsForTest(
         IResource resource)
-        => CreateStepDefinitions(resource, new FusionPipelineTopology());
+        => CreateStepDefinitions(
+            resource,
+            new FusionPipelineTopology(),
+            new FusionPipelineSession());
 
     private static PipelineStep[] CreateStepDefinitions(
         IResource resource,
-        FusionPipelineTopology topology)
+        FusionPipelineTopology topology,
+        FusionPipelineSession session)
     {
         var buildSteps = new[]
         {
@@ -133,7 +142,11 @@ internal static class FusionPipeline
                 Name = DownloadStepName,
                 Description = "Download exact Fusion source schema versions from Nitro.",
                 Resource = resource,
-                Action = ExecuteDownloadAsync
+                Action = context => ExecuteSessionStepAsync(
+                    context,
+                    session,
+                    static (executor, stepContext, pipelineSession) =>
+                        executor.PreflightAsync(stepContext, pipelineSession))
             },
             new PipelineStep
             {
@@ -141,7 +154,18 @@ internal static class FusionPipeline
                 Description = "Compose the Fusion configuration for this environment.",
                 Resource = resource,
                 DependsOnSteps = [DownloadStepName],
-                Action = ExecuteComposeAsync
+                Action = context => ExecuteSessionStepAsync(
+                    context,
+                    session,
+                    static async (executor, stepContext, pipelineSession) =>
+                    {
+                        await executor.DownloadAsync(
+                            stepContext,
+                            pipelineSession);
+                        await executor.ComposeAsync(
+                            stepContext,
+                            pipelineSession);
+                    })
             },
             new PipelineStep
             {
@@ -149,7 +173,17 @@ internal static class FusionPipeline
                 Description = "Verify deployed Fusion source services are ready.",
                 Resource = resource,
                 DependsOnSteps = [ComposeStepName],
-                Action = stepContext => ExecuteReadinessAsync(stepContext, topology)
+                Action = context => ExecuteSessionStepAsync(
+                    context,
+                    session,
+                    (executor, stepContext, pipelineSession) =>
+                    {
+                        EnsureResourceDeploymentOrdering(
+                            topology.ResourcesWithoutCompute);
+                        return executor.VerifyReadinessAsync(
+                            stepContext,
+                            pipelineSession);
+                    })
             },
             new PipelineStep
             {
@@ -157,7 +191,11 @@ internal static class FusionPipeline
                 Description = "Publish the Fusion configuration to Nitro.",
                 Resource = resource,
                 DependsOnSteps = [ReadinessStepName],
-                Action = ExecutePublishAsync
+                Action = context => ExecuteSessionStepAsync(
+                    context,
+                    session,
+                    static (executor, stepContext, pipelineSession) =>
+                        executor.PublishAsync(stepContext, pipelineSession))
             },
             new PipelineStep
             {
@@ -166,7 +204,11 @@ internal static class FusionPipeline
                 Resource = resource,
                 DependsOnSteps = [PublishStageStepName],
                 RequiredBySteps = [WellKnownPipelineSteps.Deploy],
-                Action = _ => Task.CompletedTask
+                Action = _ =>
+                {
+                    session.Dispose();
+                    return Task.CompletedTask;
+                }
             }
         ];
     }
@@ -188,6 +230,8 @@ internal static class FusionPipeline
             step => step.Name == DownloadStepName);
         var readiness = context.Steps.Single(
             step => step.Name == ReadinessStepName);
+        var compose = context.Steps.Single(
+            step => step.Name == ComposeStepName);
         var stagePublication = context.Steps.Single(
             step => step.Name == PublishStageStepName);
         var publication = context.Steps.Single(
@@ -210,6 +254,7 @@ internal static class FusionPipeline
             foreach (var computeStep in computeSteps)
             {
                 computeStep.DependsOn(download);
+                compose.DependsOn(computeStep);
                 readiness.DependsOn(computeStep);
             }
         }
@@ -279,13 +324,24 @@ internal static class FusionPipeline
     private static Task ExecuteArtifactsAsync(PipelineStepContext context)
         => GetExecutor(context).CreateArtifactsAsync(context);
 
-    private static Task ExecuteReadinessAsync(
+    private static async Task ExecuteSessionStepAsync(
         PipelineStepContext context,
-        FusionPipelineTopology topology)
+        FusionPipelineSession session,
+        Func<
+            IFusionPipelineExecutor,
+            PipelineStepContext,
+            FusionPipelineSession,
+            Task> execute)
     {
-        EnsureResourceDeploymentOrdering(topology.ResourcesWithoutCompute);
-
-        return GetExecutor(context).VerifyReadinessAsync(context);
+        try
+        {
+            await execute(GetExecutor(context), context, session);
+        }
+        catch
+        {
+            session.Dispose();
+            throw;
+        }
     }
 
     internal static void EnsureResourceDeploymentOrdering(
@@ -301,15 +357,6 @@ internal static class FusionPipeline
 
     private static Task ExecuteUploadAsync(PipelineStepContext context)
         => GetExecutor(context).UploadAsync(context);
-
-    private static Task ExecuteDownloadAsync(PipelineStepContext context)
-        => GetExecutor(context).DownloadAsync(context);
-
-    private static Task ExecuteComposeAsync(PipelineStepContext context)
-        => GetExecutor(context).ComposeAsync(context);
-
-    private static Task ExecutePublishAsync(PipelineStepContext context)
-        => GetExecutor(context).PublishAsync(context);
 
     private static IFusionPipelineExecutor GetExecutor(
         PipelineStepContext context)

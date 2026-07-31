@@ -46,14 +46,84 @@ internal static class AspireCompositionHelper
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
 
+        var sourceSchemas = await ReadSourceSchemasAsync(
+            archives,
+            cancellationToken);
+
+        try
+        {
+            // the archives are composed for a deployment, so the configured URLs are composed as
+            // they are, without local overrides and without a preference for development URLs.
+            return await ComposeAsync(
+                fusionArchivePath,
+                seedArchivePath: null,
+                [.. sourceSchemas],
+                environmentName,
+                settings,
+                SettingsComposerOptions.Default,
+                logger,
+                cancellationToken);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
+    internal static async Task<bool> TryComposeArchivesAsync(
+        Stream fusionArchive,
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        string environmentName,
+        GraphQLCompositionSettings settings,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(fusionArchive);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        var sourceSchemas = await ReadSourceSchemasAsync(
+            archives,
+            cancellationToken);
+
+        try
+        {
+            using var archive = FusionArchive.Create(
+                fusionArchive,
+                leaveOpen: true);
+            return await ComposeAsync(
+                archive,
+                [.. sourceSchemas],
+                environmentName,
+                settings,
+                SettingsComposerOptions.Default,
+                logger,
+                cancellationToken);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
+    private static async Task<List<SourceSchemaInfo>> ReadSourceSchemasAsync(
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        CancellationToken cancellationToken)
+    {
         var sourceSchemas = new List<SourceSchemaInfo>(archives.Count);
 
         try
         {
             foreach (var archiveInfo in archives)
             {
+                await using var archiveStream = archiveInfo.OpenRead();
                 using var archive = FusionSourceSchemaArchive.Open(
-                    archiveInfo.ArchivePath);
+                    archiveStream);
                 var schema = await archive.TryGetSchemaAsync(cancellationToken)
                     ?? throw new InvalidOperationException(
                         $"Fusion source archive '{archiveInfo.Name}' has no schema.");
@@ -78,24 +148,16 @@ internal static class AspireCompositionHelper
                     });
             }
 
-            // the archives are composed for a deployment, so the configured URLs are composed as
-            // they are, without local overrides and without a preference for development URLs.
-            return await ComposeAsync(
-                fusionArchivePath,
-                seedArchivePath: null,
-                [.. sourceSchemas],
-                environmentName,
-                settings,
-                SettingsComposerOptions.Default,
-                logger,
-                cancellationToken);
+            return sourceSchemas;
         }
-        finally
+        catch
         {
             foreach (var sourceSchema in sourceSchemas)
             {
                 sourceSchema.SchemaSettings.Dispose();
             }
+
+            throw;
         }
     }
 
@@ -172,6 +234,27 @@ internal static class AspireCompositionHelper
         ArgumentException.ThrowIfNullOrWhiteSpace(environment);
 
         using var archive = OpenArchive(fusionArchivePath, seedArchivePath);
+
+        return await ComposeAsync(
+            archive,
+            newSourceSchemas,
+            environment,
+            settings,
+            settingsComposerOptions,
+            logger,
+            cancellationToken);
+    }
+
+    private static async Task<bool> ComposeAsync(
+        FusionArchive archive,
+        ImmutableArray<SourceSchemaInfo> newSourceSchemas,
+        string environment,
+        GraphQLCompositionSettings settings,
+        SettingsComposerOptions settingsComposerOptions,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(environment);
 
         var compositionLog = new CompositionLog();
         var compositionSettings = CreateCompositionSettings(settings);
@@ -357,6 +440,29 @@ internal static class AspireCompositionHelper
     }
 }
 
-internal readonly record struct SourceSchemaArchiveInfo(
-    string Name,
-    string ArchivePath);
+internal readonly record struct SourceSchemaArchiveInfo
+{
+    private readonly string? _archivePath;
+    private readonly byte[]? _archive;
+
+    public SourceSchemaArchiveInfo(string name, string archivePath)
+    {
+        Name = name;
+        _archivePath = archivePath;
+    }
+
+    public SourceSchemaArchiveInfo(
+        string name,
+        byte[] archive)
+    {
+        Name = name;
+        _archive = archive;
+    }
+
+    public string Name { get; }
+
+    public Stream OpenRead()
+        => _archivePath is null
+            ? new MemoryStream(_archive!, writable: false)
+            : File.OpenRead(_archivePath);
+}

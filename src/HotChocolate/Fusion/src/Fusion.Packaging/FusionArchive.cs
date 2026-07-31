@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Packaging.Serializers;
+using HotChocolate.Fusion.Packaging.Storage;
 
 namespace HotChocolate.Fusion.Packaging;
 
@@ -30,13 +31,14 @@ public sealed class FusionArchive : IDisposable
         Stream stream,
         FusionArchiveMode mode,
         bool leaveOpen,
-        FusionArchiveReadOptions options)
+        FusionArchiveReadOptions options,
+        ArchiveEntryStorageKind storageKind)
     {
         _stream = stream;
         _mode = mode;
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
-        _session = new ArchiveSession(_archive, mode, options);
+        _session = new ArchiveSession(_archive, mode, options, storageKind);
     }
 
     /// <summary>
@@ -48,7 +50,12 @@ public sealed class FusionArchive : IDisposable
     public static FusionArchive Create(string filename)
     {
         ArgumentNullException.ThrowIfNull(filename);
-        return Create(File.Create(filename));
+        return new FusionArchive(
+            File.Create(filename),
+            FusionArchiveMode.Create,
+            leaveOpen: false,
+            FusionArchiveReadOptions.Default,
+            ArchiveEntryStorageKind.TempFile);
     }
 
     /// <summary>
@@ -61,7 +68,29 @@ public sealed class FusionArchive : IDisposable
     public static FusionArchive Create(Stream stream, bool leaveOpen = false)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionArchive(stream, FusionArchiveMode.Create, leaveOpen, FusionArchiveReadOptions.Default);
+        return new FusionArchive(
+            stream,
+            FusionArchiveMode.Create,
+            leaveOpen,
+            FusionArchiveReadOptions.Default,
+            ArchiveEntryStorageKind.Memory);
+    }
+
+    /// <summary>
+    /// Creates a new Fusion Archive using the provided stream and options.
+    /// </summary>
+    public static FusionArchive Create(
+        Stream stream,
+        FusionArchiveOptions options,
+        bool leaveOpen = false)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        return new FusionArchive(
+            stream,
+            FusionArchiveMode.Create,
+            leaveOpen,
+            CreateReadOptions(options),
+            ArchiveEntryStorageKind.Memory);
     }
 
     /// <summary>
@@ -80,9 +109,19 @@ public sealed class FusionArchive : IDisposable
 
         return mode switch
         {
-            FusionArchiveMode.Read => Open(File.OpenRead(filename), mode),
-            FusionArchiveMode.Create => Create(File.Create(filename)),
-            FusionArchiveMode.Update => Open(File.Open(filename, FileMode.Open, FileAccess.ReadWrite), mode),
+            FusionArchiveMode.Read => new FusionArchive(
+                File.OpenRead(filename),
+                mode,
+                leaveOpen: false,
+                FusionArchiveReadOptions.Default,
+                ArchiveEntryStorageKind.TempFile),
+            FusionArchiveMode.Create => Create(filename),
+            FusionArchiveMode.Update => new FusionArchive(
+                File.Open(filename, FileMode.Open, FileAccess.ReadWrite),
+                mode,
+                leaveOpen: false,
+                FusionArchiveReadOptions.Default,
+                ArchiveEntryStorageKind.TempFile),
             _ => throw new ArgumentException("Invalid mode.", nameof(mode))
         };
     }
@@ -103,12 +142,21 @@ public sealed class FusionArchive : IDisposable
         FusionArchiveOptions options = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        var readOptions = new FusionArchiveReadOptions(
+        return new FusionArchive(
+            stream,
+            mode,
+            leaveOpen,
+            CreateReadOptions(options),
+            ArchiveEntryStorageKind.Memory);
+    }
+
+    private static FusionArchiveReadOptions CreateReadOptions(FusionArchiveOptions options)
+        => new(
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
             options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
-            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize);
-        return new FusionArchive(stream, mode, leaveOpen, readOptions);
-    }
+            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize,
+            options.MaxAllowedInMemorySessionSize
+                ?? FusionArchiveReadOptions.Default.MaxAllowedInMemorySessionSize);
 
     /// <summary>
     /// Sets the archive metadata containing format version and schema information.

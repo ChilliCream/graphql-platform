@@ -85,19 +85,24 @@ export Parameters__nitroApiKey="$NITRO_API_KEY"
 aspire do fusion-publish \
   --apphost ./src/AppHost/AppHost.csproj \
   --environment Development \
-  --output-path "$RUNNER_TEMP/aspire-apply/Development" \
   --non-interactive
 ```
 
 Publish infers the complete, sorted source-name set from the current AppHost. Before source compute
 is changed it downloads every exact `name@tag` from the selected Nitro API. A missing source fails
-the deployment. Download records an atomic apply state binding the tag, Nitro target, complete
-source set, archive paths, and canonical content digests.
+the deployment. This preflight records only identities and canonical content digests, then clears
+the archive buffers before provider deployment begins.
 
-Composition revalidates every downloaded archive and resolves its settings with the current
-AppHost composition options and selected composition environment. Readiness and publication
-revalidate the apply state and composed FAR digest. Publish never exports a schema, reads a source
-checkout, invokes Git, or calls the source-upload API.
+After every source provider deploys, composition downloads the exact versions again, rejects any
+canonical digest change from preflight, and resolves their settings with the current AppHost
+composition options and selected composition environment. Readiness and publication
+revalidate the session state and composed FAR digest. Publish never exports a schema, reads a
+source checkout, invokes Git, or calls the source-upload API. The Fusion-specific download,
+composition, readiness, and publication steps create no Fusion apply-state files and do not resolve
+Aspire's output-path service. Provider-contributed deployment dependencies may still write target
+artifacts or Aspire deployment state. Source archives are limited to 128,000,000 bytes each and
+512,000,000 bytes in aggregate; the FAR is limited to 256,000,000 bytes. Owned buffers are cleared
+after success, failure, or cancellation.
 
 ## Ordering
 
@@ -110,8 +115,7 @@ fusion-artifacts -> fusion-upload
 The deployment graph is:
 
 ```text
-fusion-download -> source DeployCompute -> fusion-readiness
-               \-> fusion-compose ------/
+fusion-download -> source DeployCompute -> fusion-compose -> fusion-readiness
 
 fusion-readiness
   -> fusion-publish-stage
@@ -119,7 +123,8 @@ fusion-readiness
   -> fusion-publish
 ```
 
-`fusion-download` is a fail-before-compute preflight. `fusion-publish-stage` is internal. The public
+`fusion-download` is a fail-before-compute, metadata-only preflight. `fusion-compose` performs the
+second exact download after source compute. `fusion-publish-stage` is internal. The public
 `fusion-publish` step is terminal and completes only after gateway deployment. The broader
 `aspire deploy` root requires the same terminal step.
 
@@ -170,7 +175,7 @@ and per Nitro stage for publish. Queue writers instead of cancelling them.
 - An existing `name@tag` with different content is an immutable-version collision and fails.
 - A missing exact source during publish fails before source compute deployment.
 - A changed AppHost source set, tag, target, downloaded archive, composition environment, or FAR
-  fails apply-state validation.
+  fails in-memory session validation.
 - A transient source endpoint is polled until the configured operation timeout.
 - Approval rejection, timeout, failed commit, or unverified terminal Nitro state fails publication.
 

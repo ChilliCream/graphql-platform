@@ -1,9 +1,11 @@
+using System.Buffers;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake;
 
@@ -11,6 +13,8 @@ namespace ChilliCream.Nitro.Fusion.Transport;
 
 internal sealed class FusionApiTransportFactory : IFusionDeploymentTransportFactory
 {
+    internal const int MaxSourceSchemaArchiveSize = 128_000_000;
+
     public ValueTask<IFusionDeploymentTransport> OpenAsync(
         FusionTarget target,
         CancellationToken cancellationToken)
@@ -81,7 +85,10 @@ internal sealed class FusionApiTransportFactory : IFusionDeploymentTransportFact
                 Uri.EscapeDataString(name),
                 Uri.EscapeDataString(version));
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            using var response = await httpClient.SendAsync(request, cancellationToken);
+            using var response = await httpClient.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
 
             if (response.StatusCode is HttpStatusCode.NotFound)
             {
@@ -89,7 +96,10 @@ internal sealed class FusionApiTransportFactory : IFusionDeploymentTransportFact
             }
 
             EnsureSuccess(response);
-            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            return await ReadSourceSchemaArchiveAsync(
+                response.Content,
+                MaxSourceSchemaArchiveSize,
+                cancellationToken);
         }
 
         public async Task<FusionRemoteCommandResult> UploadSourceSchemaAsync(
@@ -197,15 +207,15 @@ internal sealed class FusionApiTransportFactory : IFusionDeploymentTransportFact
 
         public async Task<FusionRemoteCommandResult> ValidatePublishAsync(
             string requestId,
-            string archivePath,
+            ReadOnlyMemory<byte> archive,
             CancellationToken cancellationToken)
         {
-            await using var archive = File.OpenRead(archivePath);
+            await using var archiveStream = OpenRead(archive);
             var result = await apiClient.ValidateFusionDeployment.ExecuteAsync(
                 new ValidateFusionConfigurationCompositionInput
                 {
                     RequestId = requestId,
-                    Configuration = new Upload(archive, "gateway.far")
+                    Configuration = new Upload(archiveStream, "gateway.far")
                 },
                 cancellationToken);
             var data = EnsureData(result).ValidateFusionConfigurationComposition;
@@ -214,19 +224,36 @@ internal sealed class FusionApiTransportFactory : IFusionDeploymentTransportFact
 
         public async Task<FusionRemoteCommandResult> CommitPublishAsync(
             string requestId,
-            string archivePath,
+            ReadOnlyMemory<byte> archive,
             CancellationToken cancellationToken)
         {
-            await using var archive = File.OpenRead(archivePath);
+            await using var archiveStream = OpenRead(archive);
             var result = await apiClient.CommitFusionDeployment.ExecuteAsync(
                 new CommitFusionConfigurationPublishInput
                 {
                     RequestId = requestId,
-                    Configuration = new Upload(archive, "gateway.far")
+                    Configuration = new Upload(archiveStream, "gateway.far")
                 },
                 cancellationToken);
             var data = EnsureData(result).CommitFusionConfigurationPublish;
             return ToCommandResult(data.Errors);
+        }
+
+        private static Stream OpenRead(ReadOnlyMemory<byte> content)
+        {
+            if (MemoryMarshal.TryGetArray(
+                    content,
+                    out ArraySegment<byte> segment))
+            {
+                return new MemoryStream(
+                    segment.Array!,
+                    segment.Offset,
+                    segment.Count,
+                    writable: false,
+                    publiclyVisible: true);
+            }
+
+            return new MemoryStream(content.ToArray(), writable: false);
         }
 
         public async ValueTask DisposeAsync()
@@ -320,4 +347,115 @@ internal sealed class FusionApiTransportFactory : IFusionDeploymentTransportFact
             }
         }
     }
+
+    internal static Task<byte[]> ReadSourceSchemaArchiveAsync(
+        HttpContent content,
+        int maxArchiveSize,
+        CancellationToken cancellationToken)
+        => ReadSourceSchemaArchiveAsync(
+            content,
+            maxArchiveSize,
+            ArrayPool<byte>.Shared,
+            81920,
+            cancellationToken);
+
+    internal static async Task<byte[]> ReadSourceSchemaArchiveAsync(
+        HttpContent content,
+        int maxArchiveSize,
+        ArrayPool<byte> bufferPool,
+        int bufferSize,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(bufferPool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxArchiveSize);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(bufferSize);
+
+        if (content.Headers.ContentLength is > 0 and var contentLength
+            && contentLength > maxArchiveSize)
+        {
+            throw ArchiveResponseTooLarge(maxArchiveSize);
+        }
+
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken);
+        var chunks = new List<(byte[] Buffer, int Length)>();
+        var length = 0;
+
+        try
+        {
+            var endOfStream = false;
+            while (!endOfStream)
+            {
+                var remaining = maxArchiveSize - length;
+                var readSize = remaining >= bufferSize
+                    ? bufferSize
+                    : remaining + 1;
+                var buffer = bufferPool.Rent(readSize);
+                var bufferLength = 0;
+                var retained = false;
+
+                try
+                {
+                    while (bufferLength < readSize)
+                    {
+                        var bytesRead = await stream.ReadAsync(
+                            buffer.AsMemory(bufferLength, readSize - bufferLength),
+                            cancellationToken);
+
+                        if (bytesRead is 0)
+                        {
+                            endOfStream = true;
+                            break;
+                        }
+
+                        bufferLength += bytesRead;
+                    }
+
+                    if (bufferLength is 0)
+                    {
+                        continue;
+                    }
+
+                    if (bufferLength > maxArchiveSize - length)
+                    {
+                        throw ArchiveResponseTooLarge(maxArchiveSize);
+                    }
+
+                    length += bufferLength;
+                    chunks.Add((buffer, bufferLength));
+                    retained = true;
+                }
+                finally
+                {
+                    if (!retained)
+                    {
+                        bufferPool.Return(buffer, clearArray: true);
+                    }
+                }
+            }
+
+            var archive = GC.AllocateUninitializedArray<byte>(length);
+            var offset = 0;
+            foreach (var chunk in chunks)
+            {
+                chunk.Buffer.AsSpan(0, chunk.Length).CopyTo(archive.AsSpan(offset));
+                offset += chunk.Length;
+            }
+
+            return archive;
+        }
+        finally
+        {
+            foreach (var chunk in chunks)
+            {
+                bufferPool.Return(chunk.Buffer, clearArray: true);
+            }
+        }
+    }
+
+    private static FusionDeploymentException ArchiveResponseTooLarge(
+        int maxArchiveSize)
+        => new(
+            "The compressed Fusion source schema archive exceeds the maximum "
+            + $"allowed size of {maxArchiveSize} bytes.");
 }

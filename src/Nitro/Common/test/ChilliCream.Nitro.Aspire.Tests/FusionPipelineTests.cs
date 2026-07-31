@@ -422,8 +422,62 @@ public sealed class FusionPipelineTests
                 TestContext.Current.CancellationToken));
 
         Assert.Equal(
-            "The composed Fusion archive SHA-256 does not match prepared apply state.",
+            "The composed Fusion archive SHA-256 does not match prepared state.",
             exception.Message);
+    }
+
+    [Fact]
+    public void BoundedMemoryStream_Should_RejectWritesBeyondConfiguredLimit()
+    {
+        using var stream = new BoundedMemoryStream(3);
+
+        stream.Write(new byte[] { 1, 2, 3 });
+        var exception = Assert.Throws<InvalidDataException>(
+            () => stream.WriteByte(4));
+
+        Assert.Equal(
+            "The composed Fusion archive exceeds the 3-byte in-memory size limit.",
+            exception.Message);
+        Assert.Equal(3, stream.Length);
+    }
+
+    [Fact]
+    public void BoundedMemoryStream_Should_ClearBackingBuffer_WhenDisposed()
+    {
+        var stream = new BoundedMemoryStream(3);
+        stream.Write(new byte[] { 1, 2, 3 });
+        var buffer = stream.GetBuffer();
+
+        stream.Dispose();
+
+        Assert.Equal(new byte[buffer.Length], buffer);
+    }
+
+    [Fact]
+    public void TransferComposition_Should_ClearArchive_When_CanceledBeforeTransfer()
+    {
+        using var state = new FusionDeploymentSessionState(
+            "release-1",
+            "https://api.chillicream.com",
+            "products",
+            []);
+        byte[] fusionArchive = [1, 2, 3];
+        var clearedBuffers = new List<byte[]>();
+        var executor = new FusionPipelineExecutor(
+            bufferCleared: clearedBuffers.Add);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Assert.Throws<OperationCanceledException>(
+            () => executor.TransferComposition(
+                state,
+                "development",
+                fusionArchive,
+                cancellation.Token));
+
+        Assert.Same(fusionArchive, Assert.Single(clearedBuffers));
+        Assert.Equal(new byte[3], fusionArchive);
+        Assert.Throws<InvalidOperationException>(() => state.FusionArchive);
     }
 
     [Fact]

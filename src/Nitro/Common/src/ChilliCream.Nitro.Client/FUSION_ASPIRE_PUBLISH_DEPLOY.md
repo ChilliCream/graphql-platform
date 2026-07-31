@@ -160,20 +160,24 @@ The command performs these release-critical phases:
 
 1. select the current environment declaration and resolve `tag`;
 2. infer and sort the complete effective source-name set;
-3. download each exact `name@tag` from the selected Nitro API;
-4. atomically record apply state that binds tag, target, complete source set, archive paths, and
-   canonical content digests;
-5. compose a FAR from only those downloaded archives using current AppHost composition settings
+3. preflight-download each exact `name@tag`, record its canonical digest, and clear the archive
+   buffers before source compute starts;
+4. deploy source compute;
+5. download the exact versions again and require their canonical digests to match preflight;
+6. compose a FAR from only those second-download archives using current AppHost composition settings
    and the selected composition environment;
-6. revalidate source digests, composition environment, and FAR digest;
-7. deploy source compute and poll the composed production endpoints until ready;
+7. revalidate source digests, composition environment, and FAR digest, then poll the composed
+   production endpoints until ready;
 8. publish the FAR and exact source references to the selected Nitro stage;
 9. wait for approval when configured and verify the terminal Nitro result;
 10. deploy gateway compute; and
 11. complete the public terminal step.
 
 A missing exact source fails during download before source compute changes. Publish never calls the
-source reconciliation API, runs schema export, reads a source checkout, or invokes Git.
+source reconciliation API, runs schema export, reads a source checkout, or invokes Git. The
+Fusion-specific download, composition, readiness, and publication steps create no Fusion
+apply-state directory and do not resolve Aspire's output-path service. Provider-contributed
+deployment dependencies may still write target artifacts or Aspire deployment state.
 
 ## Pipeline graph and first release
 
@@ -186,8 +190,7 @@ fusion-artifacts -> fusion-upload
 Deployment uses this graph:
 
 ```text
-fusion-download -> source DeployCompute -> fusion-readiness
-               \-> fusion-compose ------/
+fusion-download -> source DeployCompute -> fusion-compose -> fusion-readiness
 
 fusion-readiness
   -> fusion-publish-stage
@@ -196,21 +199,27 @@ fusion-readiness
 ```
 
 Every source deploy-compute step depends on `fusion-download`, so the exact Nitro source set is a
-fail-before-compute preflight. Readiness depends on both composition and all source deploy-compute
-steps. The internal `fusion-publish-stage` step runs only after readiness. Gateway deployment
-depends on stage publication, which is required for a first release because no gateway can start
-from Nitro before the first FAR exists. The public `fusion-publish` terminal depends on gateway
-deployment and is required by the broader Deploy root.
+fail-before-compute preflight. The preflight retains only identities and canonical digests, not
+archive bytes. Composition runs only after every source deploy-compute step, re-downloads the exact
+versions, and rejects any digest change from preflight. The internal `fusion-publish-stage` step
+runs only after readiness. Gateway deployment depends on stage publication, which is required for a
+first release because no gateway can start from Nitro before the first FAR exists. The public
+`fusion-publish` terminal depends on gateway deployment and is required by the broader Deploy root.
 
-The ordering is intentionally source deploy, readiness, internal Nitro publication, gateway
-deploy, terminal public publication. Upload is never in the transitive dependency set of the
-public publish command.
+The ordering is intentionally preflight, source deploy, exact re-download and composition,
+readiness, internal Nitro publication, gateway deploy, terminal public publication. Upload is never
+in the transitive dependency set of the public publish command.
 
-## Apply-state integrity
+## Invocation-memory integrity
 
-Download writes into a temporary sibling directory and atomically replaces the deployment apply
-directory only after all exact sources succeed. State paths must be relative and remain beneath the
-apply directory.
+Each `fusion-publish` invocation owns a private in-memory session shared only by its pipeline step
+closures. Preflight retains only small source identities and canonical digests while provider steps
+run. Exact archive bytes are downloaded again after source compute, compared with preflight, and
+leased while composition, readiness, or publication reads them. Cancellation requests cleanup but
+does not zero an actively leased buffer until its reader unwinds. The session retains no credentials
+and writes no source archive, state file, apply directory, or composed FAR to disk.
+Source archives are limited to 128,000,000 bytes each and 512,000,000 bytes in aggregate. The
+composed FAR is limited to 256,000,000 bytes.
 
 Compose, readiness, and publish validate:
 
@@ -218,12 +227,12 @@ Compose, readiness, and publish validate:
 - normalized cloud URL and API ID equal the selected target;
 - recorded source names exactly equal the current sorted AppHost set;
 - every source version equals the tag;
-- every archive still has its recorded canonical content digest;
+- every in-memory archive still has its recorded canonical content digest;
 - the composition environment still matches the current declaration; and
 - the FAR still has its recorded raw digest.
 
-This state is local execution integrity, not a promotion artifact. A new deployment runner
-recreates it by downloading exact source versions from Nitro.
+All owned source and FAR buffers are cleared after success, failure, or cancellation. A retry starts
+a new isolated session and downloads the exact source versions from Nitro again.
 
 ## Readiness, approval, and retries
 
@@ -308,6 +317,10 @@ The implementation is complete only when focused tests and a real materialized A
 | Environment selection | Only the matching declaration is used; ambiguous mappings fail. |
 | Complete source set | Duplicate effective names and missing exact downloads fail. |
 | Cross-runner publish | Publish succeeds with AppHost metadata and Nitro downloads but no schema files, Git metadata, or upload artifact. |
+| Fusion-only disk behavior | Fusion download, composition, readiness, and publication succeed without resolving `IPipelineOutputService` or writing source archives, apply state, or a FAR. Provider dependencies own their target output and deployment state. |
+| Invocation isolation | Interleaved environments and repeated deployments use separate sessions with no retained state. |
+| Cleanup | Success, failure, and cancellation clear all owned source and FAR buffers. |
+| Memory bounds | Oversized individual sources, aggregate sources, and FAR output fail with explicit diagnostics. |
 | Environment composition | The same `name@tag` archives compose different Development/Test endpoints. |
 | Integrity | Tag, target, source-set, archive, environment, and FAR drift fail. |
 | Provider ordering | Source deploy waits for download; readiness waits for source compute; gateway waits for Nitro publication. |

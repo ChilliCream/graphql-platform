@@ -38,6 +38,40 @@ public sealed class FusionDeploymentWorkflowTests
     }
 
     [Fact]
+    public void PublishAsync_Should_AcceptFusionArchiveFromMemory_When_Inspected()
+    {
+        typeof(IFusionDeploymentWorkflow)
+            .GetMethod(nameof(IFusionDeploymentWorkflow.PublishAsync))!
+            .ToString()
+            .MatchInlineSnapshot(
+                """
+                System.Threading.Tasks.Task PublishAsync(ChilliCream.Nitro.Fusion.FusionPublicationRequest, System.ReadOnlyMemory`1[System.Byte], System.Threading.CancellationToken)
+                """);
+    }
+
+    [Fact]
+    public void Dispose_Should_ClearOwnedArchiveAndRejectAccess_When_Called()
+    {
+        byte[] archive = [1, 2, 3];
+        var download = new FusionSourceSchemaDownload(
+            "products",
+            "20260730",
+            archive,
+            new string('A', 64));
+
+        Assert.Equal(new byte[] { 1, 2, 3 }, download.Archive.ToArray());
+
+        download.Dispose();
+
+        Assert.Equal(new byte[3], archive);
+        Assert.Throws<ObjectDisposedException>(() => download.Archive);
+
+        archive[0] = 9;
+        download.Dispose();
+        Assert.Equal(new byte[] { 9, 0, 0 }, archive);
+    }
+
+    [Fact]
     public async Task ComputeSha256Async_Should_ReturnSameDigest_When_ContentIsNormalized()
     {
         var directory = CreateTemporaryDirectory();
@@ -106,7 +140,7 @@ public sealed class FusionDeploymentWorkflowTests
             };
             var workflow = CreateWorkflow(transport);
 
-            var result = await workflow.DownloadSourceSchemaAsync(
+            using var result = await workflow.DownloadSourceSchemaAsync(
                 CreateTarget(),
                 new FusionSourceSchemaVersion("products", "20260730"),
                 TestContext.Current.CancellationToken);
@@ -120,6 +154,11 @@ public sealed class FusionDeploymentWorkflowTests
             Assert.Equal(remoteArchive, result.Archive.ToArray());
             Assert.Equal("products", transport.LastDownloadName);
             Assert.Equal("20260730", transport.LastDownloadVersion);
+
+            var ownedArchive = Assert.Single(transport.ReturnedArchives);
+            result.Dispose();
+            Assert.Equal(new byte[ownedArchive.Length], ownedArchive);
+            Assert.Throws<ObjectDisposedException>(() => result.Archive);
         }
         finally
         {
@@ -173,6 +212,8 @@ public sealed class FusionDeploymentWorkflowTests
             Assert.Equal(
                 "The source schema settings name must exactly match 'products'.",
                 exception.Message);
+            var returnedArchive = Assert.Single(transport.ReturnedArchives);
+            Assert.Equal(new byte[returnedArchive.Length], returnedArchive);
         }
         finally
         {
@@ -206,6 +247,8 @@ public sealed class FusionDeploymentWorkflowTests
                 "The Fusion source schema archive is invalid.",
                 exception.Message);
             Assert.IsType<InvalidOperationException>(exception.InnerException);
+            var returnedArchive = Assert.Single(transport.ReturnedArchives);
+            Assert.Equal(new byte[returnedArchive.Length], returnedArchive);
         }
         finally
         {
@@ -250,6 +293,8 @@ public sealed class FusionDeploymentWorkflowTests
 
             Assert.Equal(0, transport.UploadCount);
             Assert.Equal(1, transport.DownloadCount);
+            var returnedArchive = Assert.Single(transport.ReturnedArchives);
+            Assert.Equal(new byte[returnedArchive.Length], returnedArchive);
         }
         finally
         {
@@ -295,6 +340,8 @@ public sealed class FusionDeploymentWorkflowTests
                 + "with different normalized schema, settings, or extensions.",
                 exception.Message);
             Assert.Equal(0, transport.UploadCount);
+            var returnedArchive = Assert.Single(transport.ReturnedArchives);
+            Assert.Equal(new byte[returnedArchive.Length], returnedArchive);
         }
         finally
         {
@@ -341,124 +388,90 @@ public sealed class FusionDeploymentWorkflowTests
     [Fact]
     public async Task PublishAsync_Should_Commit_When_ValidationSucceeds()
     {
-        var directory = CreateTemporaryDirectory();
-        try
+        var fusionArchive = Encoding.UTF8.GetBytes("fusion archive");
+        var transport = new FakeTransport
         {
-            var fusionArchivePath = Path.Combine(directory, "gateway.far");
-            await File.WriteAllTextAsync(
-                fusionArchivePath,
-                "fusion archive",
-                TestContext.Current.CancellationToken);
-            var transport = new FakeTransport
-            {
-                Events =
-                [
-                    new(FusionRemoteEventKind.Ready, []),
-                    new(FusionRemoteEventKind.ValidationSucceeded, []),
-                    new(FusionRemoteEventKind.PublishingSucceeded, [])
-                ]
-            };
-            var workflow = CreateWorkflow(transport);
+            Events =
+            [
+                new(FusionRemoteEventKind.Ready, []),
+                new(FusionRemoteEventKind.ValidationSucceeded, []),
+                new(FusionRemoteEventKind.PublishingSucceeded, [])
+            ]
+        };
+        var workflow = CreateWorkflow(transport);
 
-            await workflow.PublishAsync(
-                CreatePublicationRequest(force: false),
-                fusionArchivePath,
-                TestContext.Current.CancellationToken);
+        await workflow.PublishAsync(
+            CreatePublicationRequest(force: false),
+            fusionArchive,
+            TestContext.Current.CancellationToken);
 
-            Assert.Equal(
-                ["begin", "watch", "claim", "validate", "commit"],
-                transport.Calls);
-        }
-        finally
-        {
-            Directory.Delete(directory, recursive: true);
-        }
+        Assert.Equal(
+            ["begin", "watch", "claim", "validate", "commit"],
+            transport.Calls);
+        Assert.Equal(fusionArchive, transport.ValidatedArchive);
+        Assert.Equal(fusionArchive, transport.CommittedArchive);
     }
 
     [Fact]
     public async Task PublishAsync_Should_ReleaseAndFail_When_ValidationFailsWithoutForce()
     {
-        var directory = CreateTemporaryDirectory();
-        try
+        var fusionArchive = Encoding.UTF8.GetBytes("fusion archive");
+        var transport = new FakeTransport
         {
-            var fusionArchivePath = Path.Combine(directory, "gateway.far");
-            await File.WriteAllTextAsync(
-                fusionArchivePath,
-                "fusion archive",
-                TestContext.Current.CancellationToken);
-            var transport = new FakeTransport
-            {
-                Events =
-                [
-                    new(FusionRemoteEventKind.Ready, []),
-                    new(
-                        FusionRemoteEventKind.ValidationFailed,
-                        ["Breaking schema change."])
-                ]
-            };
-            var workflow = CreateWorkflow(transport);
+            Events =
+            [
+                new(FusionRemoteEventKind.Ready, []),
+                new(
+                    FusionRemoteEventKind.ValidationFailed,
+                    ["Breaking schema change."])
+            ]
+        };
+        var workflow = CreateWorkflow(transport);
 
-            var exception = await Assert.ThrowsAsync<FusionDeploymentException>(
-                () => workflow.PublishAsync(
-                    CreatePublicationRequest(force: false),
-                    fusionArchivePath,
-                    TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<FusionDeploymentException>(
+            () => workflow.PublishAsync(
+                CreatePublicationRequest(force: false),
+                fusionArchive,
+                TestContext.Current.CancellationToken));
 
-            Assert.Equal(
-                "Nitro rejected the Fusion configuration validation. "
-                + "Breaking schema change.",
-                exception.Message);
-            Assert.Equal(
-                ["begin", "watch", "claim", "validate", "release"],
-                transport.Calls);
-        }
-        finally
-        {
-            Directory.Delete(directory, recursive: true);
-        }
+        Assert.Equal(
+            "Nitro rejected the Fusion configuration validation. "
+            + "Breaking schema change.",
+            exception.Message);
+        Assert.Equal(
+            ["begin", "watch", "claim", "validate", "release"],
+            transport.Calls);
     }
 
     [Fact]
     public async Task PublishAsync_Should_Commit_When_ValidationFailsWithForce()
     {
-        var directory = CreateTemporaryDirectory();
-        try
+        var fusionArchive = Encoding.UTF8.GetBytes("fusion archive");
+        var transport = new FakeTransport
         {
-            var fusionArchivePath = Path.Combine(directory, "gateway.far");
-            await File.WriteAllTextAsync(
-                fusionArchivePath,
-                "fusion archive",
-                TestContext.Current.CancellationToken);
-            var transport = new FakeTransport
-            {
-                Events =
-                [
-                    new(
-                        FusionRemoteEventKind.Ready,
-                        []),
-                    new(
-                        FusionRemoteEventKind.ValidationFailed,
-                        ["Breaking schema change."]),
-                    new(
-                        FusionRemoteEventKind.PublishingSucceeded,
-                        [])
-                ]
-            };
-            var workflow = CreateWorkflow(transport);
+            Events =
+            [
+                new(
+                    FusionRemoteEventKind.Ready,
+                    []),
+                new(
+                    FusionRemoteEventKind.ValidationFailed,
+                    ["Breaking schema change."]),
+                new(
+                    FusionRemoteEventKind.PublishingSucceeded,
+                    [])
+            ]
+        };
+        var workflow = CreateWorkflow(transport);
 
-            await workflow.PublishAsync(
-                CreatePublicationRequest(force: true),
-                fusionArchivePath,
-                TestContext.Current.CancellationToken);
+        await workflow.PublishAsync(
+            CreatePublicationRequest(force: true),
+            fusionArchive,
+            TestContext.Current.CancellationToken);
 
-            Assert.Equal(
-                ["begin", "watch", "claim", "validate", "commit"],
-                transport.Calls);
-        }
-        finally
-        {
-            Directory.Delete(directory, recursive: true);
-        }
+        Assert.Equal(
+            ["begin", "watch", "claim", "validate", "commit"],
+            transport.Calls);
     }
 
     private static FusionDeploymentWorkflow CreateWorkflow(
@@ -582,7 +595,13 @@ public sealed class FusionDeploymentWorkflowTests
 
         public string? LastDownloadVersion { get; private set; }
 
+        public List<byte[]> ReturnedArchives { get; } = [];
+
         public List<string> Calls { get; } = [];
+
+        public byte[]? ValidatedArchive { get; private set; }
+
+        public byte[]? CommittedArchive { get; private set; }
 
         public Task<byte[]?> DownloadSourceSchemaAsync(
             string name,
@@ -592,10 +611,17 @@ public sealed class FusionDeploymentWorkflowTests
             DownloadCount++;
             LastDownloadName = name;
             LastDownloadVersion = version;
-            return Task.FromResult(
-                DownloadCount > 1 && RemoteArchiveAfterUpload is not null
-                    ? RemoteArchiveAfterUpload
-                    : RemoteArchive);
+            var archive = DownloadCount > 1 && RemoteArchiveAfterUpload is not null
+                ? RemoteArchiveAfterUpload
+                : RemoteArchive;
+            if (archive is null)
+            {
+                return Task.FromResult<byte[]?>(null);
+            }
+
+            var ownedArchive = archive.ToArray();
+            ReturnedArchives.Add(ownedArchive);
+            return Task.FromResult<byte[]?>(ownedArchive);
         }
 
         public Task<FusionRemoteCommandResult> UploadSourceSchemaAsync(
@@ -646,15 +672,21 @@ public sealed class FusionDeploymentWorkflowTests
 
         public Task<FusionRemoteCommandResult> ValidatePublishAsync(
             string requestId,
-            string archivePath,
+            ReadOnlyMemory<byte> archive,
             CancellationToken cancellationToken)
-            => Success("validate");
+        {
+            ValidatedArchive = archive.ToArray();
+            return Success("validate");
+        }
 
         public Task<FusionRemoteCommandResult> CommitPublishAsync(
             string requestId,
-            string archivePath,
+            ReadOnlyMemory<byte> archive,
             CancellationToken cancellationToken)
-            => Success("commit");
+        {
+            CommittedArchive = archive.ToArray();
+            return Success("commit");
+        }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
