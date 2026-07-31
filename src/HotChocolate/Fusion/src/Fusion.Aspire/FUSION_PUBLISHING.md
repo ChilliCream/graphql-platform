@@ -4,8 +4,8 @@ Fusion releases use Nitro itself as the handoff between the build job and deploy
 public commands are:
 
 ```shell
-aspire do fusion-upload --environment <name>
-aspire do fusion-publish --environment <name>
+aspire do fusion-upload
+aspire do fusion-publish
 ```
 
 There is no release manifest parameter and no artifact upload or download between these commands.
@@ -13,45 +13,22 @@ Both invocations must evaluate the same AppHost composition and use the same `ta
 
 ## AppHost declaration
 
-One declaration serves every stage when the stage is a parameter:
+Each api declares the stages it publishes to. An invocation names one of them:
 
 ```csharp
 var stage = builder.AddParameter("stage");
 var tag = builder.AddParameter("tag");
 var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
 
-builder.AddNitroPublishTarget("nitro")
-    .WithNitroCloudUrl("https://api.chillicream.com")
-    .WithNitroApiId("products-fusion")
-    .WithNitroApiKey(nitroApiKey)
-    .AddFusionDeployment("fusion")
-    .ToStage(stage)
-    .WithConfigurationTag(tag);
-```
-
-Each invocation then supplies the stage the same way it supplies the tag, for example as
-`Parameters__stage`.
-
-Declare one deployment per environment instead when the stages differ in more than their name, for
-example when only production waits for approval:
-
-```csharp
 var nitro = builder.AddNitroPublishTarget("nitro")
     .WithNitroCloudUrl("https://api.chillicream.com")
     .WithNitroApiId("products-fusion")
-    .WithNitroApiKey(nitroApiKey);
-
-nitro.AddFusionDeployment("development")
-    .ForEnvironment("Development")
-    .ToStage("development")
-    .WithCompositionEnvironment("development")
+    .WithNitroApiKey(nitroApiKey)
+    .WithStageParameter(stage)
     .WithConfigurationTag(tag);
 
-nitro.AddFusionDeployment("production")
-    .ForEnvironment("Production")
-    .ToStage("production")
-    .WithCompositionEnvironment("production")
-    .WithConfigurationTag(tag)
+nitro.AddStage("development");
+nitro.AddStage("production")
     .WithApproval(waitForApproval: true)
     .WithForce(false)
     .WithTimeouts(
@@ -59,13 +36,27 @@ nitro.AddFusionDeployment("production")
         approval: TimeSpan.FromHours(2));
 ```
 
-`ForEnvironment` restricts a declaration to one Aspire invocation. A declaration without it
-publishes in every environment. `ToStage` selects the Nitro stage, either as a literal or from a
-parameter that each invocation supplies. `WithCompositionEnvironment` selects the environment block
-in each source's `schema-settings.json`, and defaults to the composition environment of the AppHost
-followed by the resolved stage name. `WithConfigurationTag` supplies both the source version and
-Fusion configuration tag. `WithApproval`, `WithForce`, and `WithTimeouts` configure the publication
-itself.
+`AddStage` declares a stage of the api. `WithStageParameter` sets the parameter that names the
+stage an invocation publishes to, and the publication fails when that parameter names a stage the
+api does not declare. `WithConfigurationTag` supplies both the source version and the Fusion
+configuration tag, and belongs to the api because one release carries the same tag to every stage.
+`WithCompositionEnvironment` selects the environment block in each source's `schema-settings.json`
+and defaults to the composition environment of the AppHost followed by the stage name. `WithApproval`,
+`WithForce`, and `WithTimeouts` configure the publication of a single stage.
+
+Each command needs only the parameters it uses, so `fusion-upload` needs a tag and `fusion-publish`
+needs a tag and a stage. Values reach the AppHost through configuration, either as environment
+variables or as arguments forwarded after `--`:
+
+```shell
+Parameters__tag=v1 aspire do fusion-upload
+Parameters__stage=production Parameters__tag=v1 aspire do fusion-publish
+
+aspire do fusion-publish -- --Parameters:stage=production --Parameters:tag=v1
+```
+
+Prefer the environment for secrets such as the Nitro API key, because a command line is visible in
+the process list.
 
 `WithNitroCloudUrl` and `WithNitroApiId` default to the `Nitro:CloudUrl` and `Nitro:ApiId`
 configuration values, or to the `NITRO_CLOUD_URL` and `NITRO_API_ID` environment variables. When
@@ -77,7 +68,7 @@ resource name. Effective names must be unique and portable path segments.
 
 ## Upload
 
-The build job checks out the source and runs one selected, real deployment environment:
+The build job checks out the source and uploads once per Nitro api:
 
 ```shell
 export Parameters__tag="$RELEASE_TAG"
@@ -85,21 +76,20 @@ export Parameters__nitroApiKey="$NITRO_API_KEY"
 
 aspire do fusion-upload \
   --apphost ./src/AppHost/AppHost.csproj \
-  --environment Development \
   --non-interactive
 ```
 
-`fusion-upload` depends on `fusion-artifacts`. For every source in the selected environment's
-current AppHost composition it:
+`fusion-upload` depends on `fusion-artifacts`. For every source in the current AppHost composition
+it:
 
 1. acquires and validates the schema and settings;
 2. creates the portable source archive;
 3. assigns the exact version `name@tag`;
-4. rejects loopback endpoints for the selected composition environment; and
-5. reconciles that immutable version on the selected Nitro API.
+4. rejects loopback endpoints for the composition environment of every declared stage; and
+5. reconciles that immutable version on the Nitro API.
 
-If several deployment environments use the same Nitro cloud URL, API ID, source set, and tag, one
-upload serves all of them. Run `fusion-upload` once per distinct Nitro API target otherwise.
+An immutable source version serves every stage of its api, so upload takes no stage. Each declared
+api is uploaded once.
 
 `aspire publish` remains an artifact-only root. It can create local Fusion source artifacts but it
 does not resolve a Nitro credential or mutate Nitro. Automation normally invokes `fusion-upload`
@@ -111,17 +101,18 @@ Deployment jobs check out the same AppHost revision and use the same tag, but th
 source schema files or a build-job artifact:
 
 ```shell
+export Parameters__stage=development
 export Parameters__tag="$RELEASE_TAG"
 export Parameters__nitroApiKey="$NITRO_API_KEY"
 
 aspire do fusion-publish \
   --apphost ./src/AppHost/AppHost.csproj \
-  --environment Development \
   --non-interactive
 ```
 
-Publish infers the complete, sorted source-name set from the current AppHost. Before source compute
-is changed it downloads every exact `name@tag` from the selected Nitro API. A missing source fails
+Publish resolves the stage that the stage parameter names, and fails when the api does not declare
+it. It infers the complete, sorted source-name set from the current AppHost. Before source compute
+is changed it downloads every exact `name@tag` from the Nitro API. A missing source fails
 the deployment. This preflight records only identities and canonical content digests, then clears
 the archive buffers before provider deployment begins.
 
@@ -133,8 +124,7 @@ source checkout, invokes Git, or calls the source-upload API. The Fusion-specifi
 composition, readiness, and publication steps create no Fusion apply-state files and do not resolve
 Aspire's output-path service. Provider-contributed deployment dependencies may still write target
 artifacts or Aspire deployment state. Source archives are limited to 128,000,000 bytes each and
-512,000,000 bytes in aggregate; the FAR is limited to 256,000,000 bytes. Owned buffers are cleared
-after success, failure, or cancellation.
+512,000,000 bytes in aggregate. Owned buffers are cleared after success, failure, or cancellation.
 
 ## Ordering
 
@@ -181,12 +171,12 @@ jobs:
       - run: >-
           aspire do fusion-upload
           --apphost ./src/AppHost/AppHost.csproj
-          --environment Development
           --non-interactive
 
   deploy-development:
     needs: fusion-upload
     env:
+      Parameters__stage: development
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.NITRO_API_KEY }}
     steps:
@@ -194,7 +184,6 @@ jobs:
       - run: >-
           aspire do fusion-publish
           --apphost ./src/AppHost/AppHost.csproj
-          --environment Development
           --non-interactive
 ```
 

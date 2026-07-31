@@ -39,14 +39,9 @@ internal sealed class FusionPipelineExecutor
 
     public async Task CreateArtifactsAsync(PipelineStepContext context)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
-            context.Model,
-            environment);
+        var targets = FusionPipeline.SelectTargets(context.Model);
 
-        if (deployments.Count == 0)
+        if (targets.Count == 0)
         {
             return;
         }
@@ -68,13 +63,13 @@ internal sealed class FusionPipelineExecutor
             .GetRequiredService<IPipelineOutputService>()
             .GetOutputDirectory();
 
-        foreach (var deployment in deployments)
+        foreach (var target in targets)
         {
             await CreateDeploymentArtifactsAsync(
-                deployment,
+                target,
+                FusionPipeline.GetStages(context.Model, target),
                 sources,
                 output,
-                environment,
                 context.CancellationToken);
         }
     }
@@ -83,12 +78,9 @@ internal sealed class FusionPipelineExecutor
         PipelineStepContext context,
         FusionPipelineSession session)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
+        var deployments = await FusionPipeline.SelectStagesAsync(
             context.Model,
-            environment);
+            context.CancellationToken);
 
         if (deployments.Count == 0)
         {
@@ -113,11 +105,10 @@ internal sealed class FusionPipelineExecutor
                     deployment,
                     context,
                     context.CancellationToken);
-                await ValidateCompositionStateAsync(
+                ValidateCompositionState(
                     state,
                     deployment,
-                    composition.Settings,
-                    context.CancellationToken);
+                    composition.Settings);
                 VerifyMemoryDigest(
                     state.FusionArchive,
                     state.FusionArchiveSha256
@@ -166,7 +157,7 @@ internal sealed class FusionPipelineExecutor
 
         var workflow = context.Services.GetRequiredService<FusionDeploymentWorkflow>();
 
-        foreach (var group in artifacts.GroupBy(artifact => artifact.Deployment))
+        foreach (var group in artifacts.GroupBy(artifact => artifact.Target))
         {
             var target = await ResolveTargetAsync(
                 group.Key,
@@ -191,12 +182,9 @@ internal sealed class FusionPipelineExecutor
         PipelineStepContext context,
         FusionPipelineSession session)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
+        var deployments = await FusionPipeline.SelectStagesAsync(
             context.Model,
-            environment);
+            context.CancellationToken);
         if (deployments.Count == 0)
         {
             return;
@@ -206,7 +194,7 @@ internal sealed class FusionPipelineExecutor
             .GetRequiredService<FusionDeploymentWorkflow>();
         var sourceNames = GetSourceNames(context.Model);
         var preparedStates = new List<(
-            FusionDeploymentResource Deployment,
+            FusionStageResource Deployment,
             FusionDeploymentSessionState State)>(deployments.Count);
         long totalSourceBytes = 0;
         var transferred = false;
@@ -216,7 +204,7 @@ internal sealed class FusionPipelineExecutor
             foreach (var deployment in deployments)
             {
                 var tag = await ResolveConfigurationTagAsync(
-                    deployment,
+                    deployment.Nitro,
                     context.CancellationToken);
                 var target = await ResolveTargetAsync(
                     deployment,
@@ -297,12 +285,9 @@ internal sealed class FusionPipelineExecutor
         PipelineStepContext context,
         FusionPipelineSession session)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
+        var deployments = await FusionPipeline.SelectStagesAsync(
             context.Model,
-            environment);
+            context.CancellationToken);
         if (deployments.Count == 0)
         {
             return;
@@ -410,12 +395,9 @@ internal sealed class FusionPipelineExecutor
         PipelineStepContext context,
         FusionPipelineSession session)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
+        var deployments = await FusionPipeline.SelectStagesAsync(
             context.Model,
-            environment);
+            context.CancellationToken);
         if (deployments.Count == 0)
         {
             return;
@@ -437,10 +419,9 @@ internal sealed class FusionPipelineExecutor
                     context,
                     context.CancellationToken);
 
-                var compositionEnvironment = await ResolveCompositionEnvironmentAsync(
+                var compositionEnvironment = ResolveCompositionEnvironment(
                     deployment,
-                    currentComposition.Settings,
-                    context.CancellationToken);
+                    currentComposition.Settings);
                 await using var farStream = new MemoryStream();
                 var logger = context.Services
                     .GetRequiredService<ILogger<SchemaComposition>>();
@@ -478,12 +459,9 @@ internal sealed class FusionPipelineExecutor
         PipelineStepContext context,
         FusionPipelineSession session)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
+        var deployments = await FusionPipeline.SelectStagesAsync(
             context.Model,
-            environment);
+            context.CancellationToken);
         if (deployments.Count == 0)
         {
             return;
@@ -510,11 +488,10 @@ internal sealed class FusionPipelineExecutor
                     deployment,
                     context,
                     context.CancellationToken);
-                await ValidateCompositionStateAsync(
+                ValidateCompositionState(
                     state,
                     deployment,
-                    composition.Settings,
-                    context.CancellationToken);
+                    composition.Settings);
                 VerifyMemoryDigest(
                     state.FusionArchive,
                     state.FusionArchiveSha256
@@ -522,14 +499,10 @@ internal sealed class FusionPipelineExecutor
                             "The composed Fusion archive has no digest."),
                     "composed Fusion archive");
 
-                var stage = await ResolveStageAsync(
-                    deployment,
-                    context.CancellationToken);
-
                 await workflow.PublishAsync(
                     new FusionPublicationRequest(
                         target,
-                        stage,
+                        deployment.StageName,
                         state.Tag,
                         state.SourceIdentities
                             .Select(source =>
@@ -631,14 +604,9 @@ internal sealed class FusionPipelineExecutor
     internal async Task<IReadOnlyList<FusionSourceArtifact>> MaterializeArchivesAsync(
         PipelineStepContext context)
     {
-        var environment = context.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = FusionPipeline.SelectDeployments(
-            context.Model,
-            environment);
+        var targets = FusionPipeline.SelectTargets(context.Model);
 
-        if (deployments.Count == 0)
+        if (targets.Count == 0)
         {
             return [];
         }
@@ -652,16 +620,13 @@ internal sealed class FusionPipelineExecutor
         var composition = GraphQLResourceModel.GetComposition(
             compositionResource);
 
-        foreach (var deployment in deployments)
+        foreach (var target in targets)
         {
-            var compositionEnvironment = await ResolveCompositionEnvironmentAsync(
-                deployment,
-                composition.Settings,
-                context.CancellationToken);
+            var stages = FusionPipeline.GetStages(context.Model, target);
             var tag = await ResolveConfigurationTagAsync(
-                deployment,
+                target,
                 context.CancellationToken);
-            var deploymentDirectory = GetDeploymentDirectory(output, deployment);
+            var deploymentDirectory = GetTargetDirectory(output, target);
             var materializedDirectory = IOPath.Combine(
                 deploymentDirectory,
                 "materialized");
@@ -687,12 +652,16 @@ internal sealed class FusionPipelineExecutor
 
                 ValidateSettingsName(name, settings);
 
-                using var resolvedSettings =
-                    AspireCompositionHelper.ResolveSourceSchemaSettings(
-                        settings,
-                        compositionEnvironment);
-                var endpoint = GetTransportEndpoint(resolvedSettings);
-                RejectLoopbackEndpoint(endpoint);
+                // an immutable source version serves every stage of the api, so the endpoint of
+                // every declared stage has to be publicly reachable.
+                foreach (var stage in stages)
+                {
+                    using var resolvedSettings =
+                        AspireCompositionHelper.ResolveSourceSchemaSettings(
+                            settings,
+                            ResolveCompositionEnvironment(stage, composition.Settings));
+                    RejectLoopbackEndpoint(GetTransportEndpoint(resolvedSettings));
+                }
 
                 var archivePath = IOPath.Combine(
                     materializedDirectory,
@@ -709,7 +678,7 @@ internal sealed class FusionPipelineExecutor
 
                 artifacts.Add(
                     new(
-                        deployment,
+                        target,
                         name,
                         sourceVersion,
                         archivePath,
@@ -721,18 +690,18 @@ internal sealed class FusionPipelineExecutor
     }
 
     private static async Task CreateDeploymentArtifactsAsync(
-        FusionDeploymentResource deployment,
+        NitroPublishTargetResource target,
+        IReadOnlyList<FusionStageResource> stages,
         IReadOnlyList<GraphQLSourceSchemaResource> sources,
         string output,
-        string environment,
         CancellationToken cancellationToken)
     {
-        var deploymentDirectory = GetDeploymentDirectory(output, deployment);
+        var deploymentDirectory = GetTargetDirectory(output, target);
         var fusionDirectory = IOPath.GetDirectoryName(deploymentDirectory)!;
         Directory.CreateDirectory(fusionDirectory);
         var temporaryDirectory = IOPath.Combine(
             fusionDirectory,
-            $".{deployment.Name}.{Guid.NewGuid():N}.tmp");
+            $".{target.Name}.{Guid.NewGuid():N}.tmp");
 
         try
         {
@@ -759,13 +728,14 @@ internal sealed class FusionPipelineExecutor
 
             var template = new FusionDeploymentTemplate(
                 FormatVersion: 1,
-                CloudUrl: deployment.Nitro.CloudUrl!,
-                ApiId: deployment.Nitro.ApiId!,
-                Environment: environment,
-                Stage: deployment.StageName
-                    ?? $"{{{{{deployment.StageParameter!.Name}}}}}",
-                ConfigurationTag: deployment.ConfigurationTag
-                    ?? $"{{{{{deployment.ConfigurationTagParameter!.Name}}}}}",
+                CloudUrl: target.CloudUrl!,
+                ApiId: target.ApiId!,
+                Stages: stages
+                    .Select(stage => stage.StageName)
+                    .Order(StringComparer.Ordinal)
+                    .ToArray(),
+                ConfigurationTag: target.ConfigurationTag
+                    ?? $"{{{{{target.ConfigurationTagParameter!.Name}}}}}",
                 StageOwnership: "authoritative",
                 Sources: sourceNames.Order(StringComparer.Ordinal).ToArray());
 
@@ -1018,24 +988,21 @@ internal sealed class FusionPipelineExecutor
         }
     }
 
-    internal static async Task<string> ResolveCompositionEnvironmentAsync(
-        FusionDeploymentResource deployment,
-        GraphQLCompositionSettings settings,
-        CancellationToken cancellationToken)
+    internal static string ResolveCompositionEnvironment(
+        FusionStageResource deployment,
+        GraphQLCompositionSettings settings)
         => deployment.CompositionEnvironmentName
             ?? settings.EnvironmentName
-            ?? await ResolveStageAsync(deployment, cancellationToken);
+            ?? deployment.StageName;
 
-    private static async Task ValidateCompositionStateAsync(
+    private static void ValidateCompositionState(
         FusionDeploymentSessionState state,
-        FusionDeploymentResource deployment,
-        GraphQLCompositionSettings settings,
-        CancellationToken cancellationToken)
+        FusionStageResource deployment,
+        GraphQLCompositionSettings settings)
     {
-        var expectedEnvironment = await ResolveCompositionEnvironmentAsync(
+        var expectedEnvironment = ResolveCompositionEnvironment(
             deployment,
-            settings,
-            cancellationToken);
+            settings);
         if (!string.Equals(
                 state.CompositionEnvironment,
                 expectedEnvironment,
@@ -1093,7 +1060,7 @@ internal sealed class FusionPipelineExecutor
         DownloadExactSourceAsync(
             FusionDeploymentWorkflow workflow,
             FusionTarget target,
-            FusionDeploymentResource deployment,
+            FusionStageResource deployment,
             string sourceName,
             string tag,
             CancellationToken cancellationToken)
@@ -1173,12 +1140,12 @@ internal sealed class FusionPipelineExecutor
 
     private static async Task ValidatePreflightStateAsync(
         FusionDeploymentSessionState state,
-        FusionDeploymentResource deployment,
+        FusionStageResource deployment,
         PipelineStepContext context,
         CancellationToken cancellationToken)
     {
         var tag = await ResolveConfigurationTagAsync(
-            deployment,
+            deployment.Nitro,
             cancellationToken);
         var sourceNames = GetSourceNames(context.Model);
         if (!string.Equals(
@@ -1221,7 +1188,7 @@ internal sealed class FusionPipelineExecutor
 
     private static async Task ValidateSessionStateAsync(
         FusionDeploymentSessionState state,
-        FusionDeploymentResource deployment,
+        FusionStageResource deployment,
         PipelineStepContext context,
         CancellationToken cancellationToken)
     {
@@ -1311,25 +1278,31 @@ internal sealed class FusionPipelineExecutor
         return endpoints;
     }
 
+    private static Task<FusionTarget> ResolveTargetAsync(
+        FusionStageResource deployment,
+        PipelineStepContext context,
+        CancellationToken cancellationToken)
+        => ResolveTargetAsync(deployment.Nitro, context, cancellationToken);
+
     private static async Task<FusionTarget> ResolveTargetAsync(
-        FusionDeploymentResource deployment,
+        NitroPublishTargetResource target,
         PipelineStepContext context,
         CancellationToken cancellationToken)
     {
-        var apiKey = deployment.Nitro.ApiKey is null
+        var apiKey = target.ApiKey is null
             ? context.Services.GetRequiredService<IConfiguration>()["Nitro:ApiKey"]
                 ?? context.Services.GetRequiredService<IConfiguration>()["NITRO_API_KEY"]
-            : await deployment.Nitro.ApiKey.GetValueAsync(cancellationToken);
+            : await target.ApiKey.GetValueAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{deployment.Nitro.Name}' requires an API key.");
+                $"Nitro target '{target.Name}' requires an API key.");
         }
 
         return new(
-            new Uri(deployment.Nitro.CloudUrl!, UriKind.Absolute),
-            deployment.Nitro.ApiId!,
+            new Uri(target.CloudUrl!, UriKind.Absolute),
+            target.ApiId!,
             apiKey);
     }
 
@@ -1384,41 +1357,21 @@ internal sealed class FusionPipelineExecutor
         return File.Exists(path) ? path : null;
     }
 
-    private static async Task<string> ResolveStageAsync(
-        FusionDeploymentResource deployment,
-        CancellationToken cancellationToken)
-    {
-        var value = deployment.StageName;
-        if (deployment.StageParameter is not null)
-        {
-            value = await deployment.StageParameter.GetValueAsync(
-                cancellationToken);
-        }
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' stage resolved to an empty value.");
-        }
-
-        return value;
-    }
-
     private static async Task<string> ResolveConfigurationTagAsync(
-        FusionDeploymentResource deployment,
+        NitroPublishTargetResource target,
         CancellationToken cancellationToken)
     {
-        var value = deployment.ConfigurationTag;
-        if (deployment.ConfigurationTagParameter is not null)
+        var value = target.ConfigurationTag;
+        if (target.ConfigurationTagParameter is not null)
         {
-            value = await deployment.ConfigurationTagParameter.GetValueAsync(
+            value = await target.ConfigurationTagParameter.GetValueAsync(
                 cancellationToken);
         }
 
         if (string.IsNullOrWhiteSpace(value))
         {
             throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' configuration tag resolved to an empty value.");
+                $"Nitro target '{target.Name}' configuration tag resolved to an empty value.");
         }
 
         ValidatePathSegment(value, "configuration tag");
@@ -1541,10 +1494,10 @@ internal sealed class FusionPipelineExecutor
         }
     }
 
-    private static string GetDeploymentDirectory(
+    private static string GetTargetDirectory(
         string output,
-        FusionDeploymentResource deployment)
-        => IOPath.Combine(output, "fusion", deployment.Name);
+        NitroPublishTargetResource target)
+        => IOPath.Combine(output, "fusion", target.Name);
 
     private static void DeleteDirectoryBestEffort(string path)
     {
@@ -1565,7 +1518,7 @@ internal sealed class FusionPipelineExecutor
 }
 
 internal sealed record FusionSourceArtifact(
-    FusionDeploymentResource Deployment,
+    NitroPublishTargetResource Target,
     string Name,
     string Version,
     string ArchivePath,
@@ -1575,8 +1528,7 @@ internal sealed record FusionDeploymentTemplate(
     int FormatVersion,
     string CloudUrl,
     string ApiId,
-    string Environment,
-    string Stage,
+    IReadOnlyList<string> Stages,
     string ConfigurationTag,
     string StageOwnership,
     IReadOnlyList<string> Sources);

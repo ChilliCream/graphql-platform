@@ -106,7 +106,8 @@ public sealed class FusionReleaseAcceptanceTests
             CreateModel(
                 runnerCProjects.ProductsProjectPath,
                 runnerCProjects.ReviewsProjectPath,
-                runnerCProjects.GatewayProjectPath),
+                runnerCProjects.GatewayProjectPath,
+                stageName: "test"),
             "Test",
             outputPath: null,
             nitro: nitro);
@@ -117,9 +118,9 @@ public sealed class FusionReleaseAcceptanceTests
         Assert.Equal(1, stagingSession.DeploymentCount);
         Assert.Equal(1, productionSession.DeploymentCount);
         var stagingDeployment = Assert.Single(
-            FusionPipeline.SelectDeployments(
+            await FusionPipeline.SelectStagesAsync(
                 stagingModel,
-                "Development"));
+                TestContext.Current.CancellationToken));
         var preflightState = stagingSession.GetState(stagingDeployment);
         Assert.Equal(0, preflightState.SourceArchiveBytes);
         Assert.Throws<InvalidOperationException>(
@@ -230,7 +231,7 @@ public sealed class FusionReleaseAcceptanceTests
         foreach (var (stage, environment) in publishes)
         {
             var context = CreateContext(
-                CreateParameterizedModel(projects, stage),
+                CreateModel(projects, stage),
                 environment,
                 outputPath: null,
                 nitro: nitro);
@@ -304,35 +305,35 @@ public sealed class FusionReleaseAcceptanceTests
         NormalizeTree(artifactTree).MatchInlineSnapshot(
             """
             fusion
-            fusion/development
-            fusion/development/nitro-deployment-template.json
-            fusion/development/sources
-            fusion/development/sources/products
-            fusion/development/sources/products/provenance.json
-            fusion/development/sources/products/schema-settings.template.json
-            fusion/development/sources/products/schema.graphqls
-            fusion/development/sources/reviews
-            fusion/development/sources/reviews/provenance.json
-            fusion/development/sources/reviews/schema-settings.template.json
-            fusion/development/sources/reviews/schema.graphqls
+            fusion/nitro
+            fusion/nitro/nitro-deployment-template.json
+            fusion/nitro/sources
+            fusion/nitro/sources/products
+            fusion/nitro/sources/products/provenance.json
+            fusion/nitro/sources/products/schema-settings.template.json
+            fusion/nitro/sources/products/schema.graphqls
+            fusion/nitro/sources/reviews
+            fusion/nitro/sources/reviews/provenance.json
+            fusion/nitro/sources/reviews/schema-settings.template.json
+            fusion/nitro/sources/reviews/schema.graphqls
             """);
         NormalizeTree(SnapshotTree(output)).MatchInlineSnapshot(
             """
             fusion
-            fusion/development
-            fusion/development/materialized
-            fusion/development/materialized/products-release-1.zip
-            fusion/development/materialized/reviews-release-1.zip
-            fusion/development/nitro-deployment-template.json
-            fusion/development/sources
-            fusion/development/sources/products
-            fusion/development/sources/products/provenance.json
-            fusion/development/sources/products/schema-settings.template.json
-            fusion/development/sources/products/schema.graphqls
-            fusion/development/sources/reviews
-            fusion/development/sources/reviews/provenance.json
-            fusion/development/sources/reviews/schema-settings.template.json
-            fusion/development/sources/reviews/schema.graphqls
+            fusion/nitro
+            fusion/nitro/materialized
+            fusion/nitro/materialized/products-release-1.zip
+            fusion/nitro/materialized/reviews-release-1.zip
+            fusion/nitro/nitro-deployment-template.json
+            fusion/nitro/sources
+            fusion/nitro/sources/products
+            fusion/nitro/sources/products/provenance.json
+            fusion/nitro/sources/products/schema-settings.template.json
+            fusion/nitro/sources/products/schema.graphqls
+            fusion/nitro/sources/reviews
+            fusion/nitro/sources/reviews/provenance.json
+            fusion/nitro/sources/reviews/schema-settings.template.json
+            fusion/nitro/sources/reviews/schema.graphqls
             """);
         Assert.Equal(
             [
@@ -360,7 +361,9 @@ public sealed class FusionReleaseAcceptanceTests
         await executor.DownloadAsync(context, session);
         await executor.ComposeAsync(context, session);
         var deployment = Assert.Single(
-            FusionPipeline.SelectDeployments(context.Model, "Development"));
+            await FusionPipeline.SelectStagesAsync(
+                context.Model,
+                TestContext.Current.CancellationToken));
         var state = session.GetState(deployment);
         var sourceBuffers = state.Sources
             .Select(source => source.Archive)
@@ -407,7 +410,9 @@ public sealed class FusionReleaseAcceptanceTests
         await executor.DownloadAsync(context, session);
         await executor.ComposeAsync(context, session);
         var deployment = Assert.Single(
-            FusionPipeline.SelectDeployments(context.Model, "Development"));
+            await FusionPipeline.SelectStagesAsync(
+                context.Model,
+                TestContext.Current.CancellationToken));
         var state = session.GetState(deployment);
         var sourceBuffers = state.Sources
             .Select(source => source.Archive)
@@ -597,7 +602,9 @@ public sealed class FusionReleaseAcceptanceTests
         var model = CreateModel(
             await CreateAppHostProjectStubsAsync(testDirectory.Path));
         var deployment = Assert.Single(
-            FusionPipeline.SelectDeployments(model, "Development"));
+            await FusionPipeline.SelectStagesAsync(
+                model,
+                TestContext.Current.CancellationToken));
         using var cancellationSource = new CancellationTokenSource();
         using var session = new FusionPipelineSession(
             cancellationSource.Token);
@@ -622,7 +629,9 @@ public sealed class FusionReleaseAcceptanceTests
         var model = CreateModel(
             await CreateAppHostProjectStubsAsync(testDirectory.Path));
         var deployment = Assert.Single(
-            FusionPipeline.SelectDeployments(model, "Development"));
+            await FusionPipeline.SelectStagesAsync(
+                model,
+                TestContext.Current.CancellationToken));
         using var cancellationSource = new CancellationTokenSource();
         using var session = new FusionPipelineSession(
             cancellationSource.Token);
@@ -730,55 +739,23 @@ public sealed class FusionReleaseAcceptanceTests
     private static DistributedApplicationModel CreateModel(
         (string ProductsProjectPath,
         string ReviewsProjectPath,
-        string GatewayProjectPath) projects)
+        string GatewayProjectPath) projects,
+        string stageName = "development")
         => CreateModel(
             projects.ProductsProjectPath,
             projects.ReviewsProjectPath,
-            projects.GatewayProjectPath);
-
-    private static DistributedApplicationModel CreateParameterizedModel(
-        (string ProductsProjectPath,
-        string ReviewsProjectPath,
-        string GatewayProjectPath) projects,
-        string stageName)
-    {
-        var builder = DistributedApplication.CreateBuilder();
-        var tag = builder.AddParameter("tag", "release-1");
-        var stage = builder.AddParameter("stage", stageName);
-        var apiKey = builder.AddParameter(
-            "nitroApiKey",
-            "test-api-key",
-            secret: true);
-        var products = builder
-            .AddProject("products", projects.ProductsProjectPath)
-            .WithGraphQLSchemaFile();
-        var reviews = builder
-            .AddProject("reviews", projects.ReviewsProjectPath)
-            .WithGraphQLSchemaFile();
-        builder
-            .AddProject("gateway", projects.GatewayProjectPath)
-            .WithReference(products)
-            .WithReference(reviews)
-            .WithGraphQLSchemaComposition();
-        builder
-            .AddNitroPublishTarget("nitro")
-            .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products")
-            .WithNitroApiKey(apiKey)
-            .AddFusionDeployment("fusion")
-            .ToStage(stage)
-            .WithConfigurationTag(tag);
-
-        return new DistributedApplicationModel(builder.Resources);
-    }
+            projects.GatewayProjectPath,
+            stageName);
 
     private static DistributedApplicationModel CreateModel(
         string productsProjectPath,
         string reviewsProjectPath,
-        string gatewayProjectPath)
+        string gatewayProjectPath,
+        string stageName = "development")
     {
         var builder = DistributedApplication.CreateBuilder();
         var tag = builder.AddParameter("tag", "release-1");
+        var stage = builder.AddParameter("stage", stageName);
         var apiKey = builder.AddParameter(
             "nitroApiKey",
             "test-api-key",
@@ -798,19 +775,15 @@ public sealed class FusionReleaseAcceptanceTests
             .AddNitroPublishTarget("nitro")
             .WithNitroCloudUrl("https://api.chillicream.com")
             .WithNitroApiId("products")
-            .WithNitroApiKey(apiKey);
-        nitro
-            .AddFusionDeployment("development")
-            .ForEnvironment("Development")
-            .ToStage("development")
-            .WithCompositionEnvironment("development")
+            .WithNitroApiKey(apiKey)
+            .WithStageParameter(stage)
             .WithConfigurationTag(tag);
         nitro
-            .AddFusionDeployment("test")
-            .ForEnvironment("Test")
-            .ToStage("test")
-            .WithCompositionEnvironment("test")
-            .WithConfigurationTag(tag);
+            .AddStage("development")
+            .WithCompositionEnvironment("development");
+        nitro
+            .AddStage("test")
+            .WithCompositionEnvironment("test");
 
         return new DistributedApplicationModel(builder.Resources);
     }

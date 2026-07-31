@@ -14,112 +14,61 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class FusionPipelineTests
 {
     [Fact]
-    public void SelectDeployments_Should_SelectOnlyMatchingEnvironment()
+    public async Task SelectStages_Should_SelectTheStage_That_TheParameterNames()
     {
+        // arrange
         var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddParameter("stage", "production");
         var nitro = builder
             .AddNitroPublishTarget("nitro")
             .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products");
-        nitro
-            .AddFusionDeployment("production")
-            .ForEnvironment("Production")
-            .ToStage("production")
+            .WithNitroApiId("products")
+            .WithStageParameter(stage)
             .WithConfigurationTag("release-1");
-        nitro
-            .AddFusionDeployment("staging")
-            .ForEnvironment("Staging")
-            .ToStage("staging")
-            .WithConfigurationTag("release-1");
+        nitro.AddStage("production");
+        nitro.AddStage("staging");
         var model = new DistributedApplicationModel(builder.Resources);
 
-        var deployments = FusionPipeline.SelectDeployments(
+        // act
+        var stages = await FusionPipeline.SelectStagesAsync(
             model,
-            "Production");
-
-        Assert.Equal(["production"], deployments.Select(x => x.Name));
-    }
-
-    [Fact]
-    public void SelectDeployments_Should_SelectDeployment_When_NoEnvironmentIsDeclared()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        var stage = builder.AddParameter("stage", "development");
-        builder
-            .AddNitroPublishTarget("nitro")
-            .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products")
-            .AddFusionDeployment("fusion")
-            .ToStage(stage)
-            .WithConfigurationTag("release-1");
-        var model = new DistributedApplicationModel(builder.Resources);
-
-        // act
-        var deployments = FusionPipeline.SelectDeployments(model, "Production");
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(["fusion"], deployments.Select(x => x.Name));
+        Assert.Equal(["production"], stages.Select(x => x.StageName));
     }
 
     [Fact]
-    public async Task ResolveCompositionEnvironment_Should_UseStageParameter_When_NoOverrideExists()
+    public async Task SelectStages_Should_Fail_When_TheStageIsNotDeclared()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        var stage = builder.AddParameter("stage", "development");
-        var deployment = builder
-            .AddNitroPublishTarget("nitro")
-            .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products")
-            .AddFusionDeployment("fusion")
-            .ToStage(stage)
-            .WithConfigurationTag("release-1");
-
-        // act
-        var environment =
-            await FusionPipelineExecutor.ResolveCompositionEnvironmentAsync(
-                deployment.Resource,
-                new GraphQLCompositionSettings(),
-                TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal("development", environment);
-    }
-
-    [Fact]
-    public void SelectDeployments_Should_Fail_When_TwoDeploymentsShareAStageParameter()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        var stage = builder.AddParameter("stage", "development");
+        var stage = builder.AddParameter("stage", "prod");
         var nitro = builder
             .AddNitroPublishTarget("nitro")
             .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products");
-        nitro
-            .AddFusionDeployment("fusion-a")
-            .ToStage(stage)
+            .WithNitroApiId("products")
+            .WithStageParameter(stage)
             .WithConfigurationTag("release-1");
-        nitro
-            .AddFusionDeployment("fusion-b")
-            .ToStage(stage)
-            .WithConfigurationTag("release-1");
+        nitro.AddStage("production");
+        nitro.AddStage("staging");
         var model = new DistributedApplicationModel(builder.Resources);
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => FusionPipeline.SelectDeployments(model, "Production"));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => FusionPipeline.SelectStagesAsync(
+                model,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(
-            "Multiple Fusion deployments map environment 'Production' to Nitro "
-            + "API 'products' stage '{stage}'.",
+            "Nitro target 'nitro' does not declare the stage 'prod'. "
+            + "Declared stages: production, staging.",
             exception.Message);
     }
 
     [Fact]
-    public void SelectDeployments_Should_Fail_When_NoStageIsSelected()
+    public void SelectTargets_Should_Fail_When_NoStageParameterIsConfigured()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -127,17 +76,17 @@ public sealed class FusionPipelineTests
             .AddNitroPublishTarget("nitro")
             .WithNitroCloudUrl("https://api.chillicream.com")
             .WithNitroApiId("products")
-            .AddFusionDeployment("fusion")
-            .WithConfigurationTag("release-1");
+            .WithConfigurationTag("release-1")
+            .AddStage("production");
         var model = new DistributedApplicationModel(builder.Resources);
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => FusionPipeline.SelectDeployments(model, "Production"));
+            () => FusionPipeline.SelectTargets(model));
 
         // assert
         Assert.Equal(
-            "Fusion deployment 'fusion' must select a Nitro stage.",
+            "Nitro target 'nitro' must specify the parameter that selects the stage.",
             exception.Message);
     }
 
@@ -156,27 +105,6 @@ public sealed class FusionPipelineTests
             "The Nitro cloud URL must be an absolute HTTPS origin without "
             + "a path, query, fragment, or user information. (Parameter 'cloudUrl')",
             exception.Message);
-    }
-
-    [Fact]
-    public void SelectDeployments_Should_ReturnEmpty_WhenEnvironmentDoesNotMatch()
-    {
-        var builder = DistributedApplication.CreateBuilder();
-        builder
-            .AddNitroPublishTarget("nitro")
-            .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products")
-            .AddFusionDeployment("production")
-            .ForEnvironment("Production")
-            .ToStage("production")
-            .WithConfigurationTag("release-1");
-        var model = new DistributedApplicationModel(builder.Resources);
-
-        var deployments = FusionPipeline.SelectDeployments(
-            model,
-            "Development");
-
-        Assert.Empty(deployments);
     }
 
     [Fact]
@@ -214,35 +142,6 @@ public sealed class FusionPipelineTests
 
         Assert.Equal(
             "Multiple provider resources map to Fusion source 'shared'.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void SelectDeployments_Should_Fail_WhenMappingIsAmbiguous()
-    {
-        var builder = DistributedApplication.CreateBuilder();
-        var nitro = builder
-            .AddNitroPublishTarget("nitro")
-            .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products");
-        nitro
-            .AddFusionDeployment("production-a")
-            .ForEnvironment("Production")
-            .ToStage("production")
-            .WithConfigurationTag("release-1");
-        nitro
-            .AddFusionDeployment("production-b")
-            .ForEnvironment("Production")
-            .ToStage("production")
-            .WithConfigurationTag("release-1");
-        var model = new DistributedApplicationModel(builder.Resources);
-
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => FusionPipeline.SelectDeployments(model, "Production"));
-
-        Assert.Equal(
-            "Multiple Fusion deployments map environment 'Production' to Nitro "
-            + "API 'products' stage 'production'.",
             exception.Message);
     }
 
@@ -497,20 +396,17 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
-    public async Task ResolveCompositionEnvironment_Should_UseStage_WhenNoOverrideExists()
+    public void ResolveCompositionEnvironment_Should_UseStage_WhenNoOverrideExists()
     {
-        var deployment = new FusionDeploymentResource(
+        var deployment = new FusionStageResource(
+            "nitro-production",
             "production",
-            new NitroPublishTargetResource("nitro"))
-        {
-            StageName = "production"
-        };
+            new NitroPublishTargetResource("nitro"));
 
         var environment =
-            await FusionPipelineExecutor.ResolveCompositionEnvironmentAsync(
+            FusionPipelineExecutor.ResolveCompositionEnvironment(
                 deployment,
-                new GraphQLCompositionSettings(),
-                TestContext.Current.CancellationToken);
+                new GraphQLCompositionSettings());
 
         Assert.Equal("production", environment);
     }

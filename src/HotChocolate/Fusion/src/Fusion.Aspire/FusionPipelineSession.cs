@@ -4,7 +4,7 @@ internal sealed class FusionPipelineSession : IDisposable
 {
     private readonly object _sync = new();
     private readonly Dictionary<
-        FusionDeploymentResource,
+        FusionStageResource,
         FusionDeploymentSessionState> _deployments = [];
     private readonly FusionPipelineMemoryLimits _memoryLimits;
     private readonly CancellationToken _cancellationToken;
@@ -36,12 +36,12 @@ internal sealed class FusionPipelineSession : IDisposable
 
     public void SetAll(
         IReadOnlyList<(
-            FusionDeploymentResource Deployment,
+            FusionStageResource Deployment,
             FusionDeploymentSessionState State)> deployments)
     {
         ArgumentNullException.ThrowIfNull(deployments);
 
-        var uniqueDeployments = new HashSet<FusionDeploymentResource>();
+        var uniqueDeployments = new HashSet<FusionStageResource>();
         foreach (var (deployment, _) in deployments)
         {
             if (!uniqueDeployments.Add(deployment))
@@ -79,7 +79,7 @@ internal sealed class FusionPipelineSession : IDisposable
     }
 
     public FusionDeploymentSessionState GetState(
-        FusionDeploymentResource deployment)
+        FusionStageResource deployment)
     {
         ArgumentNullException.ThrowIfNull(deployment);
 

@@ -30,51 +30,75 @@ internal static class FusionPipeline
             context => ConfigureSteps(context, topology));
     }
 
-    internal static IReadOnlyList<FusionDeploymentResource> SelectDeployments(
-        DistributedApplicationModel model,
-        string environmentName)
+    /// <summary>
+    /// Gets every Nitro api that the distributed application publishes to. The sources an api
+    /// receives are the same for every stage, so the steps that only write immutable source
+    /// versions select apis instead of stages and need no stage.
+    /// </summary>
+    internal static IReadOnlyList<NitroPublishTargetResource> SelectTargets(
+        DistributedApplicationModel model)
     {
-        var deployments = model.Resources
-            .OfType<FusionDeploymentResource>()
-            .Where(deployment =>
-                deployment.EnvironmentName is null
-                || string.Equals(
-                    deployment.EnvironmentName,
-                    environmentName,
-                    StringComparison.Ordinal))
+        var targets = model.Resources
+            .OfType<NitroPublishTargetResource>()
+            .Where(target => GetStages(model, target).Count > 0)
             .ToArray();
 
-        foreach (var deployment in deployments)
+        foreach (var target in targets)
         {
-            ValidateDeclaration(deployment);
+            ValidateDeclaration(target);
         }
 
-        var duplicate = deployments
-            .GroupBy(
-                deployment => (
-                    CloudUrl: deployment.Nitro.CloudUrl,
-                    ApiId: deployment.Nitro.ApiId,
-                    StageName: GetStageKey(deployment)),
-                FusionDeploymentKeyComparer.Instance)
-            .FirstOrDefault(group => group.Count() > 1);
-
-        if (duplicate is not null)
-        {
-            throw new InvalidOperationException(
-                $"Multiple Fusion deployments map environment '{environmentName}' to Nitro "
-                + $"API '{duplicate.Key.ApiId}' stage '{duplicate.Key.StageName}'.");
-        }
-
-        return deployments;
+        return targets;
     }
 
     /// <summary>
-    /// Gets the declaration-time identity of the stage that a deployment publishes to. A stage that
-    /// is supplied by a parameter is only known per publish, so the parameter itself is the
-    /// identity.
+    /// Gets the stage that each Nitro api publishes to in this invocation, resolved from the stage
+    /// parameter of the api.
     /// </summary>
-    private static string GetStageKey(FusionDeploymentResource deployment)
-        => deployment.StageName ?? $"{{{deployment.StageParameter!.Name}}}";
+    internal static async Task<IReadOnlyList<FusionStageResource>> SelectStagesAsync(
+        DistributedApplicationModel model,
+        CancellationToken cancellationToken)
+    {
+        var selected = new List<FusionStageResource>();
+
+        foreach (var target in SelectTargets(model))
+        {
+            var stages = GetStages(model, target);
+            var stageName = await target.StageParameter!.GetValueAsync(cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(stageName))
+            {
+                throw new InvalidOperationException(
+                    $"Nitro target '{target.Name}' stage parameter "
+                    + $"'{target.StageParameter.Name}' resolved to an empty value.");
+            }
+
+            var stage = stages.FirstOrDefault(
+                candidate => string.Equals(
+                    candidate.StageName,
+                    stageName,
+                    StringComparison.Ordinal));
+
+            if (stage is null)
+            {
+                throw new InvalidOperationException(
+                    $"Nitro target '{target.Name}' does not declare the stage '{stageName}'. "
+                    + $"Declared stages: {string.Join(", ", stages.Select(s => s.StageName).Order(StringComparer.Ordinal))}.");
+            }
+
+            selected.Add(stage);
+        }
+
+        return selected;
+    }
+
+    internal static IReadOnlyList<FusionStageResource> GetStages(
+        DistributedApplicationModel model,
+        NitroPublishTargetResource target)
+        => model.Resources
+            .OfType<FusionStageResource>()
+            .Where(stage => ReferenceEquals(stage.Nitro, target))
+            .ToArray();
 
     internal static IResourceWithEndpoints GetCompositionResource(
         DistributedApplicationModel model)
@@ -94,14 +118,8 @@ internal static class FusionPipeline
         PipelineStepFactoryContext context,
         FusionPipelineTopology topology)
     {
-        var environment = context.PipelineContext.Services
-            .GetRequiredService<IHostEnvironment>()
-            .EnvironmentName;
-        var deployments = SelectDeployments(
-            context.PipelineContext.Model,
-            environment);
-
-        topology.HasDeployments = deployments.Count > 0;
+        topology.HasDeployments =
+            SelectTargets(context.PipelineContext.Model).Count > 0;
 
         var session = new FusionPipelineSession(
             context.PipelineContext.CancellationToken);
@@ -361,29 +379,28 @@ internal static class FusionPipeline
         => FusionPipelineExecutor.Instance.UploadAsync(context);
 
     private static void ValidateDeclaration(
-        FusionDeploymentResource deployment)
+        NitroPublishTargetResource target)
     {
-        if (string.IsNullOrWhiteSpace(deployment.StageName)
-            && deployment.StageParameter is null)
+        if (target.StageParameter is null)
         {
             throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' must select a Nitro stage.");
+                $"Nitro target '{target.Name}' must specify the parameter that selects the stage.");
         }
 
-        if (string.IsNullOrWhiteSpace(deployment.Nitro.CloudUrl))
+        if (string.IsNullOrWhiteSpace(target.CloudUrl))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{deployment.Nitro.Name}' must specify a cloud URL.");
+                $"Nitro target '{target.Name}' must specify a cloud URL.");
         }
 
         if (!Uri.TryCreate(
-                deployment.Nitro.CloudUrl,
+                target.CloudUrl,
                 UriKind.Absolute,
                 out var cloudUri)
             || cloudUri.Scheme is not "https")
         {
             throw new InvalidOperationException(
-                $"Nitro target '{deployment.Nitro.Name}' cloud URL must use HTTPS.");
+                $"Nitro target '{target.Name}' cloud URL must use HTTPS.");
         }
 
         if (!string.IsNullOrEmpty(cloudUri.UserInfo)
@@ -392,41 +409,21 @@ internal static class FusionPipeline
             || !string.IsNullOrEmpty(cloudUri.Fragment))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{deployment.Nitro.Name}' cloud URL must be an origin.");
+                $"Nitro target '{target.Name}' cloud URL must be an origin.");
         }
 
-        if (string.IsNullOrWhiteSpace(deployment.Nitro.ApiId))
+        if (string.IsNullOrWhiteSpace(target.ApiId))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{deployment.Nitro.Name}' must specify an API ID.");
+                $"Nitro target '{target.Name}' must specify an API ID.");
         }
 
-        if (deployment.ConfigurationTagParameter is null
-            && string.IsNullOrWhiteSpace(deployment.ConfigurationTag))
+        if (target.ConfigurationTagParameter is null
+            && string.IsNullOrWhiteSpace(target.ConfigurationTag))
         {
             throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' must specify a configuration tag.");
+                $"Nitro target '{target.Name}' must specify a configuration tag.");
         }
-    }
-
-    private sealed class FusionDeploymentKeyComparer
-        : IEqualityComparer<(string? CloudUrl, string? ApiId, string? StageName)>
-    {
-        public static FusionDeploymentKeyComparer Instance { get; } = new();
-
-        public bool Equals(
-            (string? CloudUrl, string? ApiId, string? StageName) x,
-            (string? CloudUrl, string? ApiId, string? StageName) y)
-            => string.Equals(x.CloudUrl, y.CloudUrl, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(x.ApiId, y.ApiId, StringComparison.Ordinal)
-                && string.Equals(x.StageName, y.StageName, StringComparison.Ordinal);
-
-        public int GetHashCode(
-            (string? CloudUrl, string? ApiId, string? StageName) obj)
-            => HashCode.Combine(
-                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.CloudUrl ?? ""),
-                StringComparer.Ordinal.GetHashCode(obj.ApiId ?? ""),
-                StringComparer.Ordinal.GetHashCode(obj.StageName ?? ""));
     }
 }
 

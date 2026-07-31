@@ -355,101 +355,55 @@ public static class NitroExtensions
     }
 
     /// <summary>
-    /// Adds a Fusion deployment that publishes to the Nitro publish target.
+    /// Declares a Nitro stage that this api publishes to. Every stage an api publishes to is
+    /// declared once, and each invocation selects one of them by name.
     /// </summary>
     /// <param name="builder">
     /// The resource builder of a Nitro publish target.
     /// </param>
-    /// <param name="name">
-    /// The name of the deployment resource.
-    /// </param>
-    /// <returns>
-    /// The resource builder of the deployment for chaining.
-    /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> AddFusionDeployment(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
-        string name)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        var resource = new FusionDeploymentResource(name, builder.Resource);
-        return builder.ApplicationBuilder.AddResource(resource);
-    }
-
-    /// <summary>
-    /// Restricts the deployment to an exact Aspire environment.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
-    /// </param>
-    /// <param name="environmentName">
-    /// The name of the Aspire environment.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    /// <remarks>
-    /// When this is not configured, the deployment publishes in every Aspire environment, which is
-    /// the shape to use when the stage is supplied per publish.
-    /// </remarks>
-    public static IResourceBuilder<FusionDeploymentResource> ForEnvironment(
-        this IResourceBuilder<FusionDeploymentResource> builder,
-        string environmentName)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
-
-        builder.Resource.EnvironmentName = environmentName;
-        return builder;
-    }
-
-    /// <summary>
-    /// Maps the deployment to an exact Nitro stage.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
-    /// </param>
     /// <param name="stageName">
-    /// The name of the Nitro stage that the deployment publishes to.
+    /// The name of the Nitro stage.
     /// </param>
     /// <returns>
-    /// The resource builder for chaining.
+    /// The resource builder of the stage for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> ToStage(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<FusionStageResource> AddStage(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
         string stageName)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
 
-        builder.Resource.StageName = stageName;
-        builder.Resource.StageParameter = null;
-        return builder;
+        var resource = new FusionStageResource(
+            $"{builder.Resource.Name}-{stageName}",
+            stageName,
+            builder.Resource);
+        return builder.ApplicationBuilder.AddResource(resource);
     }
 
     /// <summary>
-    /// Maps the deployment to the Nitro stage that the parameter supplies. The stage is resolved
-    /// per publish, so one deployment declaration can serve every stage.
+    /// Sets the parameter that names the declared stage an invocation publishes to.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Nitro publish target.
     /// </param>
     /// <param name="stage">
-    /// The parameter that supplies the name of the Nitro stage.
+    /// The parameter that supplies the name of the stage.
     /// </param>
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> ToStage(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    /// <remarks>
+    /// The publication fails when the parameter names a stage that the api does not declare.
+    /// </remarks>
+    public static IResourceBuilder<NitroPublishTargetResource> WithStageParameter(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
         IResourceBuilder<ParameterResource> stage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(stage);
 
         builder.Resource.StageParameter = stage.Resource;
-        builder.Resource.StageName = null;
         return builder;
     }
 
@@ -457,7 +411,7 @@ public static class NitroExtensions
     /// Selects the exact <c>schema-settings.json</c> environment used for composition.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Fusion stage.
     /// </param>
     /// <param name="environmentName">
     /// The name of the settings environment.
@@ -469,8 +423,8 @@ public static class NitroExtensions
     /// When this is not configured, an environment selected by the GraphQL composition is used,
     /// followed by the Nitro stage name.
     /// </remarks>
-    public static IResourceBuilder<FusionDeploymentResource> WithCompositionEnvironment(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<FusionStageResource> WithCompositionEnvironment(
+        this IResourceBuilder<FusionStageResource> builder,
         string environmentName)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -485,7 +439,7 @@ public static class NitroExtensions
     /// configuration tag of the deployment.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Nitro publish target.
     /// </param>
     /// <param name="configurationTag">
     /// The parameter that supplies the release tag.
@@ -493,8 +447,8 @@ public static class NitroExtensions
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> WithConfigurationTag(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<NitroPublishTargetResource> WithConfigurationTag(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
         IResourceBuilder<ParameterResource> configurationTag)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -510,7 +464,7 @@ public static class NitroExtensions
     /// configuration tag of the deployment.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Nitro publish target.
     /// </param>
     /// <param name="configurationTag">
     /// The release tag.
@@ -518,8 +472,8 @@ public static class NitroExtensions
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> WithConfigurationTag(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<NitroPublishTargetResource> WithConfigurationTag(
+        this IResourceBuilder<NitroPublishTargetResource> builder,
         string configurationTag)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -534,7 +488,7 @@ public static class NitroExtensions
     /// Configures whether Nitro waits for approval before the configuration is committed.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Fusion stage.
     /// </param>
     /// <param name="waitForApproval">
     /// Specifies whether the publication waits for approval.
@@ -542,8 +496,8 @@ public static class NitroExtensions
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> WithApproval(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<FusionStageResource> WithApproval(
+        this IResourceBuilder<FusionStageResource> builder,
         bool waitForApproval)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -555,7 +509,7 @@ public static class NitroExtensions
     /// Configures whether validation failures may be forced.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Fusion stage.
     /// </param>
     /// <param name="force">
     /// Specifies whether the publication proceeds despite validation failures.
@@ -563,8 +517,8 @@ public static class NitroExtensions
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> WithForce(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<FusionStageResource> WithForce(
+        this IResourceBuilder<FusionStageResource> builder,
         bool force)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -576,7 +530,7 @@ public static class NitroExtensions
     /// Configures the operation and approval timeouts of the deployment.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a Fusion deployment.
+    /// The resource builder of a Fusion stage.
     /// </param>
     /// <param name="operation">
     /// The time a single remote operation may take.
@@ -587,8 +541,8 @@ public static class NitroExtensions
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
-    public static IResourceBuilder<FusionDeploymentResource> WithTimeouts(
-        this IResourceBuilder<FusionDeploymentResource> builder,
+    public static IResourceBuilder<FusionStageResource> WithTimeouts(
+        this IResourceBuilder<FusionStageResource> builder,
         TimeSpan operation,
         TimeSpan approval)
     {

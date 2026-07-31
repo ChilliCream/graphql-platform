@@ -24,7 +24,6 @@ jobs:
       group: fusion-nitro-example-invalid-replace-with-nitro-api-id-upload
       cancel-in-progress: false
     env:
-      Parameters__stage: ${{ vars.DEMO_NITRO_STAGE }}
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
     steps:
@@ -49,7 +48,6 @@ jobs:
         run: >-
           aspire do fusion-upload
           --apphost "$APPHOST_PROJECT"
-          --environment Development
           --non-interactive
 
   deploy-development:
@@ -98,7 +96,6 @@ jobs:
         run: >-
           aspire do fusion-publish
           --apphost "$APPHOST_PROJECT"
-          --environment Development
           --non-interactive
 
   deploy-test:
@@ -149,5 +146,4 @@ jobs:
         run: >-
           aspire do fusion-publish
           --apphost "$APPHOST_PROJECT"
-          --environment Test
           --non-interactive

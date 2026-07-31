@@ -8,8 +8,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddNitro();
 builder.AddAzureContainerAppEnvironment("demo-aca");
 
-// the stage and the release tag are supplied per publish, so this AppHost declares one deployment
-// that serves every stage instead of one declaration per environment.
+// every stage this api publishes to is declared here by name. An invocation names one of them
+// through the stage parameter, and the release tag identifies the release across all of them.
 var stage = builder.AddParameter("stage");
 var tag = builder.AddParameter("tag");
 var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
@@ -36,14 +36,16 @@ var gateway = builder
     .WithReference(products)
     .WithReference(reviews);
 
-builder
+var nitro = builder
     .AddNitroPublishTarget("nitro")
     .WithNitroCloudUrl(nitroCloudUrl)
     .WithNitroApiId(nitroApiId)
     .WithNitroApiKey(nitroApiKey)
-    .AddFusionDeployment("fusion")
-    .ToStage(stage)
+    .WithStageParameter(stage)
     .WithConfigurationTag(tag);
+
+nitro.AddStage("development");
+nitro.AddStage("test");
 
 if (!builder.ExecutionContext.IsRunMode)
 {

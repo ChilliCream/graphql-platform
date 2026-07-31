@@ -51,11 +51,8 @@ var nitro = builder
     .WithNitroApiKey(nitroApiKey);
 
 nitro
-    .AddFusionDeployment("production")
-    .ForEnvironment("Production")
-    .ToStage("production")
+    .AddStage("production")
     .WithCompositionEnvironment("production")
-    .WithConfigurationTag(tag)
     .WithApproval(waitForApproval: true)
     .WithForce(false)
     .WithTimeouts(
@@ -63,15 +60,13 @@ nitro
         approval: TimeSpan.FromHours(2));
 ```
 
-`ForEnvironment` restricts the declaration to one Aspire invocation. `ToStage` selects the Nitro
-stage, either as a literal or from a parameter. `WithCompositionEnvironment` selects the
-source-settings environment. `WithConfigurationTag` supplies the immutable source version and final
-configuration tag.
+`AddStage` declares a stage of the api. `WithStageParameter` names the parameter that selects the
+stage of an invocation, and an unknown stage name is rejected. `WithCompositionEnvironment` selects
+the source-settings environment. `WithConfigurationTag` supplies the immutable source version and
+final configuration tag for every stage of the api.
 
-Multiple deployment declarations can map the same AppHost composition to different Aspire
-environments or Nitro stages. Ambiguous duplicate environment/API/stage mappings are rejected. A
-declaration without `ForEnvironment` publishes in every environment, which is the shape to use when
-the stage comes from a parameter, so one declaration serves every stage.
+An AppHost can declare several apis, and each api can declare several stages. One invocation
+publishes to exactly one stage per api.
 
 ## Source declaration and acquisition
 
@@ -116,13 +111,14 @@ never written to output or logs.
 | Cloud URL | Explicit `.WithNitroCloudUrl(...)` HTTPS origin |
 | API ID | Explicit `.WithNitroApiId(...)` |
 | API key | Secret `ParameterResource` |
-| Aspire environment | Optional `.ForEnvironment(...)`, every environment when absent |
-| Nitro stage | Explicit `.ToStage(...)` literal or `ParameterResource` |
+| Nitro stages | Explicit `.AddStage(...)` per stage |
+| Selected stage | `.WithStageParameter(...)`, resolved per invocation |
 | Rollout/source/configuration tag | `builder.AddParameter("tag")` |
 
 ## `fusion-upload`
 
-The upload command selects the deployment declaration for the current Aspire environment. It:
+The upload command writes immutable source versions, which every stage of an api shares, so it
+needs no stage. It:
 
 1. resolves the current AppHost composition and complete effective source-name set;
 2. exports or reads every source and validates schema, settings, extensions, and endpoint binding;
@@ -134,7 +130,7 @@ An existing version with identical canonical content is success. An existing ver
 different content is an immutable-version collision and fails. Partial uploads may remain orphaned
 if a later source fails, but no Nitro stage is changed by upload.
 
-Use a real selected environment for the build job:
+The build job needs only the release tag:
 
 ```shell
 export Parameters__tag="$RELEASE_TAG"
@@ -142,12 +138,11 @@ export Parameters__nitroApiKey="$NITRO_API_KEY"
 
 aspire do fusion-upload \
   --apphost ./src/AppHost/AppHost.csproj \
-  --environment Development \
   --non-interactive
 ```
 
-When Development and Test share the same Nitro cloud URL, API ID, source set, and tag, that upload
-serves both. Run the command once per distinct Nitro API target otherwise.
+An immutable source version serves every stage of its api, so one upload covers all of them. Each
+declared api is uploaded once.
 
 ## `fusion-publish`
 
@@ -221,8 +216,7 @@ run. Exact archive bytes are downloaded again after source compute, compared wit
 leased while composition, readiness, or publication reads them. Cancellation requests cleanup but
 does not zero an actively leased buffer until its reader unwinds. The session retains no credentials
 and writes no source archive, state file, apply directory, or composed FAR to disk.
-Source archives are limited to 128,000,000 bytes each and 512,000,000 bytes in aggregate. The
-composed FAR is limited to 256,000,000 bytes.
+Source archives are limited to 128,000,000 bytes each and 512,000,000 bytes in aggregate.
 
 Compose, readiness, and publish validate:
 
@@ -278,12 +272,12 @@ jobs:
       - run: >-
           aspire do fusion-upload
           --apphost ./src/AppHost/AppHost.csproj
-          --environment Development
           --non-interactive
 
   deploy-development:
     needs: upload
     env:
+      Parameters__stage: development
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.NITRO_API_KEY }}
     steps:
@@ -291,12 +285,12 @@ jobs:
       - run: >-
           aspire do fusion-publish
           --apphost ./src/AppHost/AppHost.csproj
-          --environment Development
           --non-interactive
 
   deploy-test:
     needs: deploy-development
     env:
+      Parameters__stage: test
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.NITRO_API_KEY }}
     steps:
@@ -304,7 +298,6 @@ jobs:
       - run: >-
           aspire do fusion-publish
           --apphost ./src/AppHost/AppHost.csproj
-          --environment Test
           --non-interactive
 ```
 

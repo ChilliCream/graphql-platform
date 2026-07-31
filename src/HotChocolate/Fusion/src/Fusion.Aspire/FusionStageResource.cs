@@ -3,27 +3,23 @@ using Aspire.Hosting.ApplicationModel;
 namespace HotChocolate.Fusion.Aspire;
 
 /// <summary>
-/// Represents a Fusion deployment to Nitro. A deployment publishes to one Nitro stage and can be
-/// restricted to a single Aspire environment.
+/// Represents a Nitro stage that a distributed application publishes its Fusion configuration to.
+/// Every invocation publishes to exactly one declared stage of a Nitro api.
 /// </summary>
-public sealed class FusionDeploymentResource(
+public sealed class FusionStageResource(
     string name,
+    string stageName,
     NitroPublishTargetResource nitro)
     : Resource(name)
 {
     internal NitroPublishTargetResource Nitro { get; } = nitro;
 
-    internal string? EnvironmentName { get; set; }
-
-    internal string? StageName { get; set; }
-
-    internal ParameterResource? StageParameter { get; set; }
+    /// <summary>
+    /// The name of the Nitro stage. It is also the value that selects this stage for an invocation.
+    /// </summary>
+    internal string StageName { get; } = stageName;
 
     internal string? CompositionEnvironmentName { get; set; }
-
-    internal string? ConfigurationTag { get; set; }
-
-    internal ParameterResource? ConfigurationTagParameter { get; set; }
 
     internal bool WaitForApproval { get; set; }
 

@@ -23,11 +23,10 @@ GitHub environments `Development` and `Test`, then configure these environment s
 - `DEMO_AZURE_SUBSCRIPTION_ID`.
 
 Configure `DEMO_NITRO_STAGE`, `DEMO_AZURE_LOCATION`, and `DEMO_AZURE_RESOURCE_GROUP` as environment
-variables. `DEMO_NITRO_STAGE` carries the Nitro stage of each GitHub environment and reaches the
-AppHost as `Parameters__stage`, so the AppHost declares one deployment instead of one per stage. The
-upload job runs outside a GitHub environment and reads the repository-level `DEMO_NITRO_STAGE`. The
-sample uses Azure Container Apps because it contributes the `DeployCompute` steps needed to prove
-source and gateway ordering. Development and Test should normally use distinct resource groups.
+variables. `DEMO_NITRO_STAGE` carries the Nitro stage of each GitHub environment and selects one of
+the stages the AppHost declares. The upload job needs no stage at all. The sample uses Azure
+Container Apps because it contributes the `DeployCompute` steps needed to prove source and gateway
+ordering. Development and Test should normally use distinct resource groups.
 
 The sources and gateway use external HTTP ingress. The deployment runner must reach the configured
 source URLs for readiness polling. The committed `.invalid` URLs deliberately fail a real release.
@@ -53,28 +52,26 @@ settings environment and starts:
 - reviews at `http://localhost:5102/graphql`.
 
 Run mode composes for `local` and injects no `NITRO_*` variables, so the gateway uses its local FAR.
-A publish composes for the stage that `Parameters__stage` supplies and passes that same stage to the
+A publish composes for the stage that the `stage` parameter names and passes that same stage to the
 gateway as `NITRO_STAGE`.
 
 ## Release flow
 
-All jobs use one `RELEASE_TAG`, exposed to the AppHost as `Parameters__tag`, and supply the target
-stage as `Parameters__stage`. The build job uploads both sources as exact immutable versions:
+All jobs use one `RELEASE_TAG`, exposed to the AppHost as `Parameters__tag`. Only the deployment
+jobs also set `Parameters__stage`, because an immutable source version serves every stage. The build
+job uploads both sources as exact immutable versions:
 
 ```shell
-export Parameters__stage="$DEMO_NITRO_STAGE"
 export Parameters__tag="$RELEASE_TAG"
 export Parameters__nitroApiKey="$DEMO_NITRO_API_KEY"
 
 aspire do fusion-upload \
   --apphost examples/FusionReleasePipeline/src/AppHost/AppHost.csproj \
-  --environment Development \
   --non-interactive
 ```
 
-Development and Test share the same Nitro cloud URL, API ID, source set, and tag, so this single
-upload serves both. A real AppHost with distinct Nitro API targets must run `fusion-upload` once per
-distinct target using a matching selected environment.
+Development and Test are two stages of one Nitro api, so this single upload serves both. An AppHost
+that declares several apis uploads each of them in the same invocation.
 
 The deployment job checks out the same revision and publishes without a manifest or CI artifact:
 
@@ -90,7 +87,6 @@ export Azure__Location="$DEMO_AZURE_LOCATION"
 
 aspire do fusion-publish \
   --apphost examples/FusionReleasePipeline/src/AppHost/AppHost.csproj \
-  --environment Development \
   --non-interactive
 ```
 
@@ -99,8 +95,8 @@ versions `products@RELEASE_TAG` and `reviews@RELEASE_TAG` as a metadata-only pre
 deployment it downloads them again, verifies the same canonical digests, and composes the
 Development endpoints.
 
-The Test job uses the same tag with `--environment Test` and the Test `DEMO_NITRO_STAGE`, which
-composes the Test endpoints and publishes to the Test stage.
+The Test job uses the same tag with the Test `DEMO_NITRO_STAGE`, which composes the Test endpoints
+and publishes to the Test stage.
 
 There is no artifact upload/download between jobs. The Fusion-specific publish steps never export
 schemas, upload source versions, write Fusion apply-state files, or resolve Aspire's output-path
