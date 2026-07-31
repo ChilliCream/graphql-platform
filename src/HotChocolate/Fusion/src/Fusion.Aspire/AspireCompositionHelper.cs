@@ -60,6 +60,7 @@ internal static class AspireCompositionHelper
                 [.. sourceSchemas],
                 environmentName,
                 settings,
+                stageSettings: null,
                 SettingsComposerOptions.Default,
                 logger,
                 cancellationToken);
@@ -73,11 +74,38 @@ internal static class AspireCompositionHelper
         }
     }
 
+    /// <summary>
+    /// Composes the given source schema archives into a fusion archive, resolving the source
+    /// schema settings against <paramref name="environmentName"/>.
+    /// </summary>
+    /// <param name="fusionArchive">
+    /// The stream that the composed fusion archive is written to.
+    /// </param>
+    /// <param name="archives">
+    /// The source schema archives that are composed.
+    /// </param>
+    /// <param name="environmentName">
+    /// The environment that the settings of the source schemas resolve against.
+    /// </param>
+    /// <param name="settings">
+    /// The composition settings of the gateway.
+    /// </param>
+    /// <param name="stageSettings">
+    /// The composition settings that the deployment target declares. They only fill values that
+    /// <paramref name="settings"/> leaves unset.
+    /// </param>
+    /// <param name="logger">
+    /// The logger that receives the composition diagnostics.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     internal static async Task<bool> TryComposeArchivesAsync(
         Stream fusionArchive,
         IReadOnlyList<SourceSchemaArchiveInfo> archives,
         string environmentName,
         GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings,
         ILogger logger,
         CancellationToken cancellationToken)
     {
@@ -98,6 +126,7 @@ internal static class AspireCompositionHelper
                 [.. sourceSchemas],
                 environmentName,
                 settings,
+                stageSettings,
                 SettingsComposerOptions.Default,
                 logger,
                 cancellationToken);
@@ -216,6 +245,7 @@ internal static class AspireCompositionHelper
             newSourceSchemas,
             environment,
             settings,
+            stageSettings: null,
             settingsComposerOptions,
             logger,
             cancellationToken);
@@ -227,6 +257,7 @@ internal static class AspireCompositionHelper
         ImmutableArray<SourceSchemaInfo> newSourceSchemas,
         string environment,
         GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings,
         SettingsComposerOptions settingsComposerOptions,
         ILogger logger,
         CancellationToken cancellationToken)
@@ -240,6 +271,7 @@ internal static class AspireCompositionHelper
             newSourceSchemas,
             environment,
             settings,
+            stageSettings,
             settingsComposerOptions,
             logger,
             cancellationToken);
@@ -250,6 +282,7 @@ internal static class AspireCompositionHelper
         ImmutableArray<SourceSchemaInfo> newSourceSchemas,
         string environment,
         GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings,
         SettingsComposerOptions settingsComposerOptions,
         ILogger logger,
         CancellationToken cancellationToken)
@@ -257,7 +290,7 @@ internal static class AspireCompositionHelper
         ArgumentException.ThrowIfNullOrWhiteSpace(environment);
 
         var compositionLog = new CompositionLog();
-        var compositionSettings = CreateCompositionSettings(settings);
+        var compositionSettings = CreateCompositionSettings(settings, stageSettings);
         var sourceSchemas = newSourceSchemas.ToDictionary(
             s => s.Name,
             s => (s.Schema, s.SchemaSettings));
@@ -417,10 +450,16 @@ internal static class AspireCompositionHelper
         return JsonSerializer.SerializeToDocument(resolvedSettings);
     }
 
+    /// <summary>
+    /// Creates the composition settings of a composition. The settings that the distributed
+    /// application declares win, <paramref name="stageSettings"/> only fills the values that they
+    /// leave unset.
+    /// </summary>
     internal static CompositionSettings CreateCompositionSettings(
-        GraphQLCompositionSettings settings)
+        GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings)
     {
-        return new CompositionSettings
+        var localSettings = new CompositionSettings
         {
             Merger =
             {
@@ -437,6 +476,10 @@ internal static class AspireCompositionHelper
             },
             Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };
+
+        return stageSettings is null
+            ? localSettings
+            : localSettings.MergeInto(stageSettings);
     }
 }
 

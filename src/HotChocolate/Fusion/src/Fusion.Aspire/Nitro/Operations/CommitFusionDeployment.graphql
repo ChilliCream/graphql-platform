@@ -2,7 +2,9 @@ mutation CommitFusionDeployment($input: CommitFusionConfigurationPublishInput!) 
   commitFusionConfigurationPublish(input: $input) {
     errors {
       __typename
-      message
+      ... on Error {
+        message
+      }
     }
   }
 }

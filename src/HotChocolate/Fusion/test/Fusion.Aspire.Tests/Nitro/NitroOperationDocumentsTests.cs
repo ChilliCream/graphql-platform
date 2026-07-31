@@ -36,31 +36,35 @@ public sealed class NitroOperationDocumentsTests
             },
             {
                 NitroOperationDocuments.UploadSourceSchemaOperationName,
-                "f091e081d5fea136c590aa34b6f37d391d69844c23f3a61f5e728ba97fed951f"
+                "1114c593d527acede0596dc456f59242f899101ed4c089314adaa60cdddcff79"
             },
             {
                 NitroOperationDocuments.BeginDeploymentOperationName,
-                "d858bf7df2ee5df613f2e699446657dd3bd489b9bd1d246eff7bf021c31307c7"
+                "ceab775204b86a28d147d5799f39b5b05cd2e7abb93d337df315432f5b8a32ac"
             },
             {
                 NitroOperationDocuments.ClaimDeploymentOperationName,
-                "5b818ded677899729e77ceeba1fc6ae179a08cf7982d158fcc2731f798614046"
+                "1efc9d275a44832a90a1a5227e280de66582e21e4e83bc89ae08fe8f0b3c69e1"
             },
             {
                 NitroOperationDocuments.ValidateDeploymentOperationName,
-                "de83bb4fc363ce531c18138aa35938387f46a81b1258f8882dd7c67b6c499a5e"
+                "e5d213965c3e14e470ba31e9c238147ebd35fcec42b636960a7c2dcc535e1325"
             },
             {
                 NitroOperationDocuments.CommitDeploymentOperationName,
-                "f66f07ad033aff0963053bd465ff33463b48b2c4888a30b7db7dfbb8301f48ec"
+                "74a2f5e237fb7213158efed61f9b3e48d420bb3fe45b2f0bce82ecff64319edd"
             },
             {
                 NitroOperationDocuments.ReleaseDeploymentOperationName,
-                "808c0252d2713db0f747a5c6d8d9e56806db032489daac04d9b075c1baef06a2"
+                "0ce52927ce212dfd36404a8a74db96c06be1e791845c526d8c0b0a8ded1a4a61"
             },
             {
                 NitroOperationDocuments.WatchDeploymentOperationName,
                 "25fff4ef7a751b2d9b1008f353dc23c89b8aed8978334407d3aa9a83806839b1"
+            },
+            {
+                NitroOperationDocuments.GetStageCompositionSettingsOperationName,
+                "5cf6fc33bd9b6b535673f8adf0163b1ec7daaa7c8ed25240f77a9e814a7b6b7a"
             }
         };
 
@@ -98,6 +102,9 @@ public sealed class NitroOperationDocumentsTests
     [InlineData("CommitFusionDeployment", "mutation CommitFusionDeployment(")]
     [InlineData("ReleaseFusionDeployment", "mutation ReleaseFusionDeployment(")]
     [InlineData("WatchFusionDeployment", "subscription WatchFusionDeployment(")]
+    [InlineData(
+        "GetFusionStageCompositionSettings",
+        "query GetFusionStageCompositionSettings(")]
     public void OperationName_Should_MatchTheOperationInTheDocument(
         string operationName,
         string expectedDeclaration)
@@ -153,6 +160,8 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetReleaseDeploymentDocument(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentDocument(),
+            NitroOperationDocuments.GetStageCompositionSettingsOperationName
+                => NitroOperationDocuments.GetStageCompositionSettingsDocument(),
             _ => throw new ArgumentOutOfRangeException(nameof(operationName))
         };
 #endif
@@ -198,9 +207,9 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetReleaseDeploymentOperationId(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentOperationId(),
+            NitroOperationDocuments.GetStageCompositionSettingsOperationName
+                => NitroOperationDocuments.GetStageCompositionSettingsOperationId(),
             _ => throw new ArgumentOutOfRangeException(nameof(operationName))
         };
-=======
->>>>>>> origin/main
 #endif
 }

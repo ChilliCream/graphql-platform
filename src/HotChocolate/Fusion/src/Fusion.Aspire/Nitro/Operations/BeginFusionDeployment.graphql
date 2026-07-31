@@ -3,7 +3,9 @@ mutation BeginFusionDeployment($input: BeginFusionConfigurationPublishInput!) {
     requestId
     errors {
       __typename
-      message
+      ... on Error {
+        message
+      }
     }
   }
 }

@@ -2,7 +2,9 @@ mutation ValidateFusionDeployment($input: ValidateFusionConfigurationComposition
   validateFusionConfigurationComposition(input: $input) {
     errors {
       __typename
-      message
+      ... on Error {
+        message
+      }
     }
   }
 }

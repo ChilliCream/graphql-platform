@@ -2,7 +2,9 @@ mutation ReleaseFusionDeployment($input: CancelFusionConfigurationCompositionInp
   cancelFusionConfigurationComposition(input: $input) {
     errors {
       __typename
-      message
+      ... on Error {
+        message
+      }
     }
   }
 }

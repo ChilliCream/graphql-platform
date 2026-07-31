@@ -87,7 +87,9 @@ internal static class NitroGraphQL
                     && errors.ValueKind is JsonValueKind.Array
                     && errors.GetArrayLength() > 0)
                 {
-                    return NitroGraphQLResult.Failed(DescribeErrors(errors));
+                    return NitroGraphQLResult.Failed(
+                        DescribeErrors(errors),
+                        ReadErrorCode(errors));
                 }
 
                 if (!root.TryGetProperty("data", out var data))
@@ -344,6 +346,23 @@ internal static class NitroGraphQL
         }
 
         return (null, "Nitro ended the subscription without a result.");
+    }
+
+    /// <summary>
+    /// Reads the error code that Nitro reported for the first error, or <c>null</c> when the
+    /// error carries no code.
+    /// </summary>
+    private static string? ReadErrorCode(JsonElement errors)
+    {
+        var error = errors[0];
+
+        return error.ValueKind is JsonValueKind.Object
+            && error.TryGetProperty("extensions", out var extensions)
+            && extensions.ValueKind is JsonValueKind.Object
+            && extensions.TryGetProperty("code", out var code)
+            && code.ValueKind is JsonValueKind.String
+                ? code.GetString()
+                : null;
     }
 
     private static string DescribeErrors(JsonElement errors)

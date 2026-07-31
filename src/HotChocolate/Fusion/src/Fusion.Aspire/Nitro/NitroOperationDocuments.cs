@@ -23,6 +23,8 @@ internal static class NitroOperationDocuments
     private const string CommitDeploymentHashFile = "CommitFusionDeployment.graphql.sha256";
     private const string ReleaseDeploymentHashFile = "ReleaseFusionDeployment.graphql.sha256";
     private const string WatchDeploymentHashFile = "WatchFusionDeployment.graphql.sha256";
+    private const string GetStageCompositionSettingsHashFile =
+        "GetFusionStageCompositionSettings.graphql.sha256";
 
     private static string? s_resolveApiNameHash;
     private static string? s_validateSchemaHash;
@@ -36,6 +38,7 @@ internal static class NitroOperationDocuments
     private static string? s_commitDeploymentHash;
     private static string? s_releaseDeploymentHash;
     private static string? s_watchDeploymentHash;
+    private static string? s_getStageCompositionSettingsHash;
 #else
     private const string ResolveApiNameFile = "ResolveNitroApiName.graphql";
     private const string ValidateSchemaFile = "ValidateNitroSchema.graphql";
@@ -49,6 +52,8 @@ internal static class NitroOperationDocuments
     private const string CommitDeploymentFile = "CommitFusionDeployment.graphql";
     private const string ReleaseDeploymentFile = "ReleaseFusionDeployment.graphql";
     private const string WatchDeploymentFile = "WatchFusionDeployment.graphql";
+    private const string GetStageCompositionSettingsFile =
+        "GetFusionStageCompositionSettings.graphql";
 
     private static string? s_resolveApiName;
     private static string? s_validateSchema;
@@ -62,6 +67,7 @@ internal static class NitroOperationDocuments
     private static string? s_commitDeployment;
     private static string? s_releaseDeployment;
     private static string? s_watchDeployment;
+    private static string? s_getStageCompositionSettings;
 #endif
 
     /// <summary>
@@ -108,6 +114,12 @@ internal static class NitroOperationDocuments
     /// </summary>
     public const string WatchDeploymentOperationName = "WatchFusionDeployment";
 
+    /// <summary>
+    /// The operation name of the document that reads the composition settings of a stage.
+    /// </summary>
+    public const string GetStageCompositionSettingsOperationName =
+        "GetFusionStageCompositionSettings";
+
 #if NITRO_PERSISTED_OPERATIONS
     /// <summary>
     /// Gets the persisted operation id of the document that resolves the name of an api by its id.
@@ -147,6 +159,10 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchDeploymentOperationId()
         => s_watchDeploymentHash ??= ReadDocument(WatchDeploymentHashFile).Trim();
+
+    public static string GetStageCompositionSettingsOperationId()
+        => s_getStageCompositionSettingsHash ??=
+            ReadDocument(GetStageCompositionSettingsHashFile).Trim();
 #else
     /// <summary>
     /// Gets the document that resolves the name of an api by its id.
@@ -186,6 +202,9 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchDeploymentDocument()
         => s_watchDeployment ??= ReadDocument(WatchDeploymentFile);
+
+    public static string GetStageCompositionSettingsDocument()
+        => s_getStageCompositionSettings ??= ReadDocument(GetStageCompositionSettingsFile);
 #endif
 
     private static string ReadDocument(string fileName)

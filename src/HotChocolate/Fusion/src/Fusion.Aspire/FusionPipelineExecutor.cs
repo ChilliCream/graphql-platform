@@ -403,6 +403,8 @@ internal sealed class FusionPipelineExecutor
             return;
         }
 
+        var workflow = context.Services
+            .GetRequiredService<FusionDeploymentWorkflow>();
         var compositionResource = FusionPipeline.GetCompositionResource(
             context.Model);
         var currentComposition = GraphQLResourceModel.GetComposition(
@@ -425,6 +427,15 @@ internal sealed class FusionPipelineExecutor
                 await using var farStream = new MemoryStream();
                 var logger = context.Services
                     .GetRequiredService<ILogger<SchemaComposition>>();
+                var target = await ResolveTargetAsync(
+                    deployment,
+                    context,
+                    context.CancellationToken);
+                var stageSettings = await workflow.TryGetStageCompositionSettingsAsync(
+                    target,
+                    deployment.StageName,
+                    logger,
+                    context.CancellationToken);
                 if (!await AspireCompositionHelper.TryComposeArchivesAsync(
                         farStream,
                         state.Sources.Select(
@@ -434,6 +445,7 @@ internal sealed class FusionPipelineExecutor
                             .ToArray(),
                         compositionEnvironment,
                         currentComposition.Settings,
+                        stageSettings?.ToCompositionSettings(),
                         logger,
                         context.CancellationToken))
                 {

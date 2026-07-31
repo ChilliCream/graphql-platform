@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
@@ -53,6 +54,53 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
             {
                 Array.Clear(archive);
             }
+        }
+    }
+
+    /// <summary>
+    /// Reads the composition settings that a stage declares. A Nitro server that does not know
+    /// the operation is reported as a warning and yields <c>null</c>, so that the composition
+    /// continues with the settings of the distributed application alone.
+    /// </summary>
+    /// <param name="target">
+    /// The Nitro api that the stage belongs to.
+    /// </param>
+    /// <param name="stageName">
+    /// The name of the stage.
+    /// </param>
+    /// <param name="logger">
+    /// The logger that receives a warning when the Nitro server does not support the operation.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    public async Task<NitroStageCompositionSettings?> TryGetStageCompositionSettingsAsync(
+        FusionTarget target,
+        string stageName,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ValidateTarget(target);
+        ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        try
+        {
+            return await api.GetStageCompositionSettingsAsync(
+                target,
+                stageName,
+                cancellationToken);
+        }
+        catch (FusionOperationUnsupportedException exception)
+        {
+            logger.LogWarning(
+                "The composition settings of stage {StageName} could not be downloaded, so the "
+                + "composition only uses the settings of the distributed application. Update the "
+                + "Nitro server to the latest version. {Message}",
+                stageName,
+                exception.Message);
+
+            return null;
         }
     }
 

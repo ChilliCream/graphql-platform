@@ -2,7 +2,9 @@ mutation ClaimFusionDeployment($input: StartFusionConfigurationCompositionInput!
   startFusionConfigurationComposition(input: $input) {
     errors {
       __typename
-      message
+      ... on Error {
+        message
+      }
     }
   }
 }

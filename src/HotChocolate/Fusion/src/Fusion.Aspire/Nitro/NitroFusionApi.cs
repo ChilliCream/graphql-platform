@@ -3,6 +3,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
@@ -21,6 +22,11 @@ internal sealed class NitroFusionApi : IDisposable
     private const string ValidatedConfigurationFileName = "gateway.fgp";
     private const string CommittedConfigurationFileName = "gateway.far";
     private const string ArchiveContentType = "application/zip";
+
+    /// <summary>
+    /// The GraphQL error code that a server reports for a field that its schema does not define.
+    /// </summary>
+    private const string UnknownFieldErrorCode = "HC0020";
 
     private readonly HttpClient _httpClient;
     private readonly bool _disposeHttpClient;
@@ -136,6 +142,62 @@ internal sealed class NitroFusionApi : IDisposable
             hasVersion && errors.Count is 0,
             HasError(payload, "DuplicatedTagError"),
             errors);
+    }
+
+    /// <summary>
+    /// Reads the composition settings that a stage declares, or returns <c>null</c> when the api,
+    /// the stage, or its composition settings do not exist.
+    /// </summary>
+    /// <exception cref="FusionOperationUnsupportedException">
+    /// The Nitro server does not know the operation.
+    /// </exception>
+    /// <exception cref="FusionDeploymentException">
+    /// Nitro could not be reached, or it rejected the request.
+    /// </exception>
+    public async Task<NitroStageCompositionSettings?> GetStageCompositionSettingsAsync(
+        FusionTarget target,
+        string stageName,
+        CancellationToken cancellationToken)
+    {
+        var variables = new Dictionary<string, object?>
+        {
+            ["apiId"] = target.ApiId,
+            ["stageName"] = stageName
+        };
+
+        var result = await NitroGraphQL.SendWithRetryAsync(
+            _client,
+            CreateRequest(
+                target,
+                NitroOperationDocuments.GetStageCompositionSettingsOperationName,
+                variables,
+                enableFileUploads: false),
+            // reading the composition settings has no effect, so it is safe to send again.
+            retryTransientFailures: true,
+            NitroGraphQL.DefaultRequestTimeout,
+            cancellationToken);
+
+        if (result.Failure is not null)
+        {
+            // a Nitro server that predates the stage composition settings answers with a field
+            // validation error, which is the only failure the caller can compose without.
+            throw result.FailureCode is UnknownFieldErrorCode
+                ? new FusionOperationUnsupportedException(result.Failure)
+                : new FusionDeploymentException(result.Failure);
+        }
+
+        if (result.Data.ValueKind is not JsonValueKind.Object
+            || !result.Data.TryGetProperty("apiById", out var api)
+            || api.ValueKind is not JsonValueKind.Object
+            || !api.TryGetProperty("stage", out var stage)
+            || stage.ValueKind is not JsonValueKind.Object
+            || !stage.TryGetProperty("compositionSettings", out var settings)
+            || settings.ValueKind is not JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        return ReadStageCompositionSettings(settings);
     }
 
     /// <summary>
@@ -355,6 +417,8 @@ internal sealed class NitroFusionApi : IDisposable
                 => NitroOperationDocuments.GetReleaseDeploymentOperationId(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentOperationId(),
+            NitroOperationDocuments.GetStageCompositionSettingsOperationName
+                => NitroOperationDocuments.GetStageCompositionSettingsOperationId(),
             _ => throw UnknownOperation(operationName)
         };
 
@@ -379,6 +443,8 @@ internal sealed class NitroFusionApi : IDisposable
                 => NitroOperationDocuments.GetReleaseDeploymentDocument(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentDocument(),
+            NitroOperationDocuments.GetStageCompositionSettingsOperationName
+                => NitroOperationDocuments.GetStageCompositionSettingsDocument(),
             _ => throw UnknownOperation(operationName)
         };
 
@@ -458,6 +524,78 @@ internal sealed class NitroFusionApi : IDisposable
 
         return new FusionRemoteEvent(kind, errors);
     }
+
+    private static NitroStageCompositionSettings ReadStageCompositionSettings(JsonElement settings)
+        => new()
+        {
+            CacheControlMergeBehavior = ReadDirectiveMergeBehavior(
+                settings,
+                "cacheControlMergeBehavior"),
+            EnableGlobalObjectIdentification = ReadBoolean(
+                settings,
+                "enableGlobalObjectIdentification"),
+            ExcludeByTag = ReadStrings(settings, "excludeByTag"),
+            NodeResolution = ReadNodeResolution(settings, "nodeResolution"),
+            RemoveUnreferencedDefinitions = ReadBoolean(
+                settings,
+                "removeUnreferencedDefinitions"),
+            TagMergeBehavior = ReadDirectiveMergeBehavior(settings, "tagMergeBehavior")
+        };
+
+    private static DirectiveMergeBehavior? ReadDirectiveMergeBehavior(
+        JsonElement value,
+        string propertyName)
+        => GetString(value, propertyName) switch
+        {
+            null => null,
+            "IGNORE" => DirectiveMergeBehavior.Ignore,
+            "INCLUDE" => DirectiveMergeBehavior.Include,
+            "INCLUDE_PRIVATE" => DirectiveMergeBehavior.IncludePrivate,
+            var behavior => throw UnknownSettingValue(propertyName, behavior)
+        };
+
+    private static NodeResolution? ReadNodeResolution(JsonElement value, string propertyName)
+        => GetString(value, propertyName) switch
+        {
+            null => null,
+            "GATEWAY" => NodeResolution.Gateway,
+            "SOURCE_SCHEMA" => NodeResolution.SourceSchema,
+            var nodeResolution => throw UnknownSettingValue(propertyName, nodeResolution)
+        };
+
+    private static bool? ReadBoolean(JsonElement value, string propertyName)
+        => value.TryGetProperty(propertyName, out var property)
+            && property.ValueKind is JsonValueKind.True or JsonValueKind.False
+                ? property.GetBoolean()
+                : null;
+
+    private static IReadOnlyList<string>? ReadStrings(JsonElement value, string propertyName)
+    {
+        if (!value.TryGetProperty(propertyName, out var property)
+            || property.ValueKind is not JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        var values = new List<string>(property.GetArrayLength());
+
+        foreach (var item in property.EnumerateArray())
+        {
+            if (item.ValueKind is JsonValueKind.String)
+            {
+                values.Add(item.GetString()!);
+            }
+        }
+
+        return values;
+    }
+
+    private static FusionDeploymentException UnknownSettingValue(
+        string propertyName,
+        string value)
+        => new(
+            $"Nitro returned the unknown composition settings value '{value}' "
+            + $"for '{propertyName}'.");
 
     private static FusionRemoteCommandResult ToCommandResult(JsonElement payload)
     {

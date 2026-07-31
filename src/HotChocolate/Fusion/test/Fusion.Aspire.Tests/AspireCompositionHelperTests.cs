@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Aspire.Nitro;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.SourceSchema.Packaging;
@@ -171,7 +172,9 @@ public sealed class AspireCompositionHelperTests
             NodeResolution = nodeResolution
         };
 
-        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
+            settings,
+            stageSettings: null);
 
         Assert.True(compositionSettings.Merger.EnableGlobalObjectIdentification);
         Assert.Equal(nodeResolution, compositionSettings.Merger.NodeResolution);
@@ -189,7 +192,9 @@ public sealed class AspireCompositionHelperTests
             ShareableFieldRuntimeTypeRouting = routing
         };
 
-        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
+            settings,
+            stageSettings: null);
 
         Assert.Equal(
             routing,
@@ -208,7 +213,9 @@ public sealed class AspireCompositionHelperTests
             AllowNonResolvableInterfaceObjects = allow
         };
 
-        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
+            settings,
+            stageSettings: null);
 
         Assert.Equal(
             allow,
@@ -230,7 +237,9 @@ public sealed class AspireCompositionHelperTests
                 ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
             TagMergeBehavior = DirectiveMergeBehavior.Include
         };
-        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
+            settings,
+            stageSettings: null);
         using var document = JsonSerializer.SerializeToDocument(
             compositionSettings,
             SettingsJsonSerializerContext.Default.CompositionSettings);
@@ -263,6 +272,111 @@ public sealed class AspireCompositionHelperTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public void CreateCompositionSettings_Should_UseStageSettings_When_SettingsAreUnset()
+    {
+        // arrange
+        var settings = new GraphQLCompositionSettings
+        {
+            TagMergeBehavior = DirectiveMergeBehavior.Include
+        };
+        var stageSettings = new NitroStageCompositionSettings
+        {
+            CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
+            EnableGlobalObjectIdentification = true,
+            ExcludeByTag = ["internal"],
+            NodeResolution = NodeResolution.SourceSchema,
+            RemoveUnreferencedDefinitions = true,
+            TagMergeBehavior = DirectiveMergeBehavior.Ignore
+        };
+
+        // act
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
+            settings,
+            stageSettings.ToCompositionSettings());
+
+        // assert
+        SerializeSettings(compositionSettings)
+            .MatchInlineSnapshot(
+                """
+                {
+                  "preprocessor": {
+                    "excludeByTag": [
+                      "internal"
+                    ]
+                  },
+                  "merger": {
+                    "addFusionDefinitions": null,
+                    "cacheControlMergeBehavior": "IncludePrivate",
+                    "enableGlobalObjectIdentification": true,
+                    "nodeResolution": "SourceSchema",
+                    "removeUnreferencedDefinitions": true,
+                    "tagMergeBehavior": "Include"
+                  },
+                  "satisfiability": {
+                    "includeSatisfiabilityPaths": null
+                  },
+                  "apolloFederationCompatibility": {
+                    "allowNonResolvableInterfaceObjects": null,
+                    "shareableFieldRuntimeTypeRouting": null
+                  }
+                }
+                """);
+    }
+
+    [Fact]
+    public void CreateCompositionSettings_Should_KeepSettings_When_StageSettingsDeclareThemToo()
+    {
+        // arrange
+        var settings = new GraphQLCompositionSettings
+        {
+            CacheControlMergeBehavior = DirectiveMergeBehavior.Ignore,
+            EnableGlobalObjectIdentification = false,
+            ExcludeByTag = new HashSet<string> { "local" },
+            NodeResolution = NodeResolution.Gateway
+        };
+        var stageSettings = new NitroStageCompositionSettings
+        {
+            CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
+            EnableGlobalObjectIdentification = true,
+            ExcludeByTag = ["stage"],
+            NodeResolution = NodeResolution.SourceSchema
+        };
+
+        // act
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
+            settings,
+            stageSettings.ToCompositionSettings());
+
+        // assert
+        SerializeSettings(compositionSettings)
+            .MatchInlineSnapshot(
+                """
+                {
+                  "preprocessor": {
+                    "excludeByTag": [
+                      "local"
+                    ]
+                  },
+                  "merger": {
+                    "addFusionDefinitions": null,
+                    "cacheControlMergeBehavior": "Ignore",
+                    "enableGlobalObjectIdentification": false,
+                    "nodeResolution": "Gateway",
+                    "removeUnreferencedDefinitions": null,
+                    "tagMergeBehavior": null
+                  },
+                  "satisfiability": {
+                    "includeSatisfiabilityPaths": null
+                  },
+                  "apolloFederationCompatibility": {
+                    "allowNonResolvableInterfaceObjects": null,
+                    "shareableFieldRuntimeTypeRouting": null
+                  }
+                }
+                """);
     }
 
     [Fact]
@@ -655,6 +769,17 @@ public sealed class AspireCompositionHelperTests
                 File.Delete(archivePath);
             }
         }
+    }
+
+    private static string SerializeSettings(CompositionSettings settings)
+    {
+        using var document = JsonSerializer.SerializeToDocument(
+            settings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        return JsonSerializer.Serialize(
+            document.RootElement,
+            new JsonSerializerOptions { WriteIndented = true });
     }
 
     private static async Task CreateSourceArchiveAsync(string archivePath)

@@ -5,7 +5,9 @@ mutation UploadFusionSourceSchema($input: UploadFusionSubgraphInput!) {
     }
     errors {
       __typename
-      message
+      ... on Error {
+        message
+      }
     }
   }
 }

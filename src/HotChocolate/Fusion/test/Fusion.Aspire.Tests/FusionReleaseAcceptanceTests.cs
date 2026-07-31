@@ -1029,6 +1029,11 @@ public sealed class FusionReleaseAcceptanceTests
 
         public Exception? BeginException { get; set; }
 
+        /// <summary>
+        /// Gets or sets the composition settings that the stage declares, as JSON.
+        /// </summary>
+        public string StageCompositionSettingsJson { get; set; } = "null";
+
         public void Seed(string name, string version, byte[] archive)
             => _sources[$"{name}@{version}"] = archive;
 
@@ -1096,6 +1101,9 @@ public sealed class FusionReleaseAcceptanceTests
 
                 case NitroOperationDocuments.ReleaseDeploymentOperationName:
                     return Json(CommandResult("cancelFusionConfigurationComposition"));
+
+                case NitroOperationDocuments.GetStageCompositionSettingsOperationName:
+                    return Json(StageCompositionSettings(StageCompositionSettingsJson));
 
                 default:
                     throw new InvalidOperationException(
@@ -1238,6 +1246,11 @@ public sealed class FusionReleaseAcceptanceTests
             Assert.NotNull(file);
             Assert.Equal(expected, file.FileName);
         }
+
+        private static string StageCompositionSettings(string settingsJson)
+            => "{\"data\":{\"apiById\":{\"stage\":{\"compositionSettings\":"
+                + settingsJson
+                + "}}}}";
 
         private static string CommandResult(string fieldName)
             => "{\"data\":{\"" + fieldName + "\":{\"errors\":[]}}}";
