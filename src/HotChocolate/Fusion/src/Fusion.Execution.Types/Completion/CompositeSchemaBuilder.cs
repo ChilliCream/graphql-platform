@@ -239,11 +239,16 @@ internal static class CompositeSchemaBuilder
         bool isQuery,
         bool enableSemanticIntrospection)
     {
+        var isDeprecated = DeprecatedDirectiveParser.TryParse(
+            definition.Directives,
+            out var deprecated);
         var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
 
         return new FusionObjectTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            isDeprecated,
+            deprecated?.Reason,
             isInaccessible,
             CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection));
     }
