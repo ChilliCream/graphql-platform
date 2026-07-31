@@ -552,7 +552,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ComposeOnGatewayStartAsync_Should_NotWaitOrFail_When_ValidationIsUnavailable()
+    public async Task ComposeOnGatewayStartAsync_Should_ValidateAutomatically_When_GatewayUsesNitro()
     {
         // arrange
         await ServeSeedAsync();
@@ -560,7 +560,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
             notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -601,6 +601,41 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_NotValidate_When_SchemaValidationIsDisabled()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var validator = new RecordingSchemaValidator(blockUntilReleased: false);
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(validator),
+            notifier: new NoopValidationNotifier());
+        var (model, gateway) = CreateModel(
+            GatewayApiId,
+            disableSchemaValidation: true);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        harness.Lifetime.StopApplication();
+
+        // assert
+        $"""
+        Archive installed: {File.Exists(_gatewayArchivePath)}
+        Validation calls: {validator.SchemaHashes.Count}
+        Validation report: {harness.ValidationCoordinator.GetLatestReport(gateway.Name)?.Status.ToString() ?? "none"}
+        """.MatchInlineSnapshot(
+            """
+            Archive installed: True
+            Validation calls: 0
+            Validation report: none
+            """);
+    }
+
+    [Fact]
     public async Task ComposeOnGatewayStartAsync_Should_NotResubmitValidation_When_RestartSchemaIsUnchanged()
     {
         // arrange
@@ -609,7 +644,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
             notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -652,7 +687,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var harness = CompositionHarness.Create(
             coordinator,
             notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await coordinator.AcquireSeedAsync(
             gateway.Name,
@@ -831,7 +866,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     private (DistributedApplicationModel Model, IResourceWithEndpoints Gateway) CreateModel(
         string? gatewayApiId,
         string? productsApiId = null,
-        bool enableValidation = false)
+        bool disableSchemaValidation = false)
     {
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
@@ -845,17 +880,16 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         var gateway = builder
             .AddProject("gateway", _gatewayProjectFile)
-            .WithGraphQLSchemaComposition()
+            .WithGraphQLSchemaComposition(
+                settings: new GraphQLCompositionSettings
+                {
+                    DisableSchemaValidation = disableSchemaValidation
+                })
             .WithReference(products);
 
         if (gatewayApiId is not null)
         {
             gateway.WithNitroApiId(gatewayApiId);
-        }
-
-        if (enableValidation)
-        {
-            gateway.Resource.Annotations.Add(new NitroSchemaValidationAnnotation());
         }
 
         var model = new DistributedApplicationModel(builder.Resources);

@@ -195,86 +195,6 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void WithNitroSchemaValidation_Should_AddTheOptInAnnotation_When_NitroIsConfigured()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
-
-        // act
-        gateway.WithNitroSchemaValidation();
-
-        // assert
-        Assert.True(gateway.Resource.HasNitroSchemaValidation());
-    }
-
-    [Fact]
-    public void WithNitroSchemaValidation_Should_Throw_When_TheStageIsMissing()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => gateway.WithNitroSchemaValidation());
-
-        // assert
-        Assert.Equal(
-            "Nitro schema validation requires AddNitro(stage) to be called before "
-            + "WithNitroSchemaValidation.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void WithNitroSchemaValidation_Should_Throw_When_TheApiIdIsMissing()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => gateway.WithNitroSchemaValidation());
-
-        // assert
-        Assert.Equal(
-            "Nitro schema validation requires WithNitroApiId(apiId) to be configured first.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void WithNitroSchemaValidation_Should_Throw_When_CompositionIsMissing()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => gateway.WithNitroSchemaValidation());
-
-        // assert
-        Assert.Equal(
-            "Nitro schema validation can only be enabled on a gateway configured with "
-            + "WithGraphQLSchemaComposition.",
-            exception.Message);
-    }
-
-    [Fact]
     public void WithGraphQLSchemaComposition_Should_RegisterTheRecomposeCommand()
     {
         // arrange
@@ -291,6 +211,44 @@ public sealed class NitroExtensionsTests
             annotation => annotation.Name == "recompose");
         Assert.Equal("Recompose", command.DisplayName);
         Assert.Equal("ArrowSync", command.IconName);
+    }
+
+    [Fact]
+    public async Task RecomposeCommand_Should_UseLogicalResourceName_When_ExecutingRuntimeInstance()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        var coordinator = new GatewayCompositionCommandCoordinator();
+        coordinator.Register(
+            gateway.Resource.Name,
+            _ => Task.FromResult(CommandResults.Success("Schema composition completed")));
+        await using var services = new ServiceCollection()
+            .AddSingleton(coordinator)
+            .BuildServiceProvider();
+#pragma warning disable ASPIREINTERACTION001
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = "gateway-runtime-instance",
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+#pragma warning restore ASPIREINTERACTION001
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "True|Schema composition completed",
+            $"{result.Success}|{result.Message}");
     }
 
     [Fact]
@@ -528,6 +486,57 @@ public sealed class NitroExtensionsTests
         // assert
         Assert.Equal("Hidden, Hidden", string.Join(", ", beforeStart));
         Assert.Equal("Enabled, Hidden", string.Join(", ", afterStart));
+    }
+
+    [Fact]
+    public async Task DisableAutoUpdateCommand_Should_UseLogicalResourceName_When_ExecutingRuntimeInstance()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+        var lifetime = new TestHostApplicationLifetime();
+        var service = new NitroSeedUpdateService(
+            GetNitroCompositionOptions(builder),
+            new ResourceLoggerService(),
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
+        lifetime.StopApplication();
+        using var gate = new SemaphoreSlim(1, 1);
+        service.Start(
+            gateway.Resource,
+            "QXBpCmdhdGV3YXk",
+            gate,
+            (_, _) => Task.FromResult(true));
+        await using var services = new ServiceCollection()
+            .AddSingleton(service)
+            .BuildServiceProvider();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "disable-nitro-auto-update");
+#pragma warning disable ASPIREINTERACTION001
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = "gateway-runtime-instance",
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+#pragma warning restore ASPIREINTERACTION001
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "True|Automatic Nitro updates disabled",
+            $"{result.Success}|{result.Message}");
     }
 
     /// <summary>
