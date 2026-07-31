@@ -11,4 +11,9 @@ internal sealed class NitroCompositionOptions
     /// the distributed application does not add Nitro.
     /// </summary>
     public NitroSeedCoordinator? Coordinator { get; set; }
+
+    /// <summary>
+    /// Gets or sets the caller-supplied Nitro portal URL.
+    /// </summary>
+    public Uri? PortalUrl { get; set; }
 }

@@ -34,12 +34,20 @@
 
   <ItemGroup Condition="'$(Configuration)' != 'Release'">
     <None Remove="Nitro\Operations\ResolveNitroApiName.graphql" />
+    <None Remove="Nitro\Operations\ValidateNitroSchema.graphql" />
+    <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql" />
     <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <None Remove="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
+    <None Remove="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
+    <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
     <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
   </ItemGroup>
 
   <ItemGroup>

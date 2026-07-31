@@ -1,8 +1,10 @@
 using System.Runtime.CompilerServices;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Lifecycle;
 using HotChocolate.Fusion.Aspire.Nitro;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
@@ -189,6 +191,151 @@ public sealed class NitroExtensionsTests
 
         // assert
         Assert.Equal("apiId", Assert.IsAssignableFrom<ArgumentException>(exception).ParamName);
+    }
+
+    [Fact]
+    public void WithNitroSchemaValidation_Should_AddTheOptInAnnotation_When_NitroIsConfigured()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+
+        // act
+        gateway.WithNitroSchemaValidation();
+
+        // assert
+        Assert.True(gateway.Resource.HasNitroSchemaValidation());
+    }
+
+    [Fact]
+    public void WithNitroSchemaValidation_Should_Throw_When_TheStageIsMissing()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => gateway.WithNitroSchemaValidation());
+
+        // assert
+        Assert.Equal(
+            "Nitro schema validation requires AddNitro(stage) to be called before "
+            + "WithNitroSchemaValidation.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void WithNitroSchemaValidation_Should_Throw_When_TheApiIdIsMissing()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => gateway.WithNitroSchemaValidation());
+
+        // assert
+        Assert.Equal(
+            "Nitro schema validation requires WithNitroApiId(apiId) to be configured first.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void WithNitroSchemaValidation_Should_Throw_When_CompositionIsMissing()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder.AddNitro("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroApiId("QXBpCmdhdGV3YXk");
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => gateway.WithNitroSchemaValidation());
+
+        // assert
+        Assert.Equal(
+            "Nitro schema validation can only be enabled on a gateway configured with "
+            + "WithGraphQLSchemaComposition.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaComposition_Should_RegisterTheRecomposeCommand()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+
+        // assert
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        Assert.Equal("Recompose", command.DisplayName);
+        Assert.Equal("ArrowSync", command.IconName);
+    }
+
+    [Fact]
+    public async Task WithGraphQLSchemaComposition_Should_ReturnControlledFailure_When_CompositionIsNotRegistered()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        await using var services = new ServiceCollection().BuildServiceProvider();
+#pragma warning disable ASPIREINTERACTION001
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = gateway.Resource.Name,
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+#pragma warning restore ASPIREINTERACTION001
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "False|Schema composition is not ready.",
+            $"{result.Success}|{result.Message}");
+    }
+
+    [Fact]
+    public void AddNitro_Should_StoreTheCallerSuppliedPortalUrl()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
+
+        // act
+        builder.AddNitro("production", portalUrl);
+
+        // assert
+        Assert.Same(portalUrl, GetNitroCompositionOptions(builder).PortalUrl);
     }
 
     /// <summary>

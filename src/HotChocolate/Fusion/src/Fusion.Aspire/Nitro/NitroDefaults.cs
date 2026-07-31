@@ -22,6 +22,33 @@ internal static class NitroDefaults
     public static readonly Uri ApiUrl = new("https://api.chillicream.com");
 
     /// <summary>
+    /// Creates the unauthenticated Nitro portal URL for an effective Nitro API URL.
+    /// </summary>
+    public static Uri CreatePortalUrl(Uri apiUrl)
+    {
+        ArgumentNullException.ThrowIfNull(apiUrl);
+
+        if (!apiUrl.IsAbsoluteUri
+            || (!string.Equals(apiUrl.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(apiUrl.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException("The Nitro API URL must be an absolute HTTP URL.", nameof(apiUrl));
+        }
+
+        if (!NitroApiUrl.TryNormalize(apiUrl.ToString(), out var normalized))
+        {
+            throw new ArgumentException("The Nitro API URL must be an absolute HTTP URL.", nameof(apiUrl));
+        }
+
+        return normalized!.Host.ToLowerInvariant() switch
+        {
+            "api.chillicream.com" => new Uri("https://nitro.chillicream.com"),
+            "api.chillicream.cloud" => new Uri("https://nitro.chillicream.cloud"),
+            _ => new Uri(normalized, "ui")
+        };
+    }
+
+    /// <summary>
     /// The delay before the single re-read of the session file that resolves a read which raced
     /// with <c>nitro login</c>.
     /// </summary>

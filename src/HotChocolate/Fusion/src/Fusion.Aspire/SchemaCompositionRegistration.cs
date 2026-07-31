@@ -2,6 +2,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.Lifecycle;
 using HotChocolate.Fusion.Aspire.Nitro;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -30,8 +31,27 @@ internal static class SchemaCompositionRegistration
         // A second AddSingleton would register a second composition, and the two would compose
         // the same archive at the same time behind independent gates.
         builder.Services.TryAddEventingSubscriber<SchemaComposition>();
+        builder.Services.TryAddSingleton<NitroSchemaValidationCoordinator>();
+        builder.Services.TryAddSingleton<INitroSchemaValidationNotifier, NitroSchemaValidationNotifier>();
+        builder.Services.TryAddSingleton<GatewayCompositionCommandCoordinator>();
 
         return options;
+    }
+
+    internal static NitroCompositionOptions? GetOptions(IDistributedApplicationBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        foreach (var descriptor in builder.Services)
+        {
+            if (descriptor.ServiceType == typeof(NitroCompositionOptions)
+                && descriptor.ImplementationInstance is NitroCompositionOptions registered)
+            {
+                return registered;
+            }
+        }
+
+        return null;
     }
 
     private static NitroCompositionOptions GetOrAddOptions(IDistributedApplicationBuilder builder)
