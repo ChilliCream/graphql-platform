@@ -147,14 +147,15 @@ public static class GraphQLResourceBuilderExtensions
             .OfType<ResourceCommandAnnotation>()
             .Any(command => command.Name == "recompose"))
         {
+            var resourceName = builder.Resource.Name;
+
             builder.WithCommand(
                 "recompose",
                 "Recompose",
                 context => context.ServiceProvider
                     .GetService<GatewayCompositionCommandCoordinator>()?
-                    .ExecuteAsync(context.ResourceName, context.CancellationToken)
-                    ?? Task.FromResult(
-                        CommandResults.Failure("Schema composition is not ready.")),
+                    .ExecuteAsync(resourceName, context.CancellationToken)
+                        ?? Task.FromResult(CommandResults.Failure("Schema composition is not ready.")),
                 new CommandOptions
                 {
                     Description = "Recompose and install the gateway schema.",
