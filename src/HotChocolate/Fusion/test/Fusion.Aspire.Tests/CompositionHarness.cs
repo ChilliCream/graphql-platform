@@ -1,6 +1,7 @@
 using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire.Nitro;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -10,11 +11,15 @@ namespace HotChocolate.Fusion.Aspire;
 /// </summary>
 internal sealed record CompositionHarness(
     SchemaComposition Composition,
+    NitroSchemaValidationCoordinator ValidationCoordinator,
     ResourceNotificationService Notifications,
     RecordingLogger<SchemaComposition> Logger,
     TestHostApplicationLifetime Lifetime)
 {
-    public static CompositionHarness Create(NitroSeedCoordinator? coordinator)
+    public static CompositionHarness Create(
+        NitroSeedCoordinator? coordinator,
+        Uri? portalUrl = null,
+        INitroSchemaValidationNotifier? notifier = null)
     {
         var logger = new RecordingLogger<SchemaComposition>();
         var lifetime = new TestHostApplicationLifetime();
@@ -24,14 +29,32 @@ internal sealed record CompositionHarness(
             lifetime,
             EmptyServiceProvider.Instance,
             resourceLoggerService);
+        var options = new NitroCompositionOptions
+        {
+            Coordinator = coordinator,
+            PortalUrl = portalUrl
+        };
+        var validationCoordinator = new NitroSchemaValidationCoordinator(
+            options,
+            resourceLoggerService,
+            notifier,
+            lifetime,
+            NullLoggerFactory.Instance);
         var composition = new SchemaComposition(
             notifications,
             resourceLoggerService,
             lifetime,
-            new NitroCompositionOptions { Coordinator = coordinator },
+            options,
+            validationCoordinator,
+            new GatewayCompositionCommandCoordinator(),
             logger);
 
-        return new CompositionHarness(composition, notifications, logger, lifetime);
+        return new CompositionHarness(
+            composition,
+            validationCoordinator,
+            notifications,
+            logger,
+            lifetime);
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider
@@ -44,11 +67,17 @@ internal sealed record CompositionHarness(
 
 internal sealed class TestHostApplicationLifetime : IHostApplicationLifetime
 {
+    private readonly CancellationTokenSource _stopping = new();
+
     public int StopApplicationCalls { get; private set; }
 
     public CancellationToken ApplicationStarted => CancellationToken.None;
-    public CancellationToken ApplicationStopping => CancellationToken.None;
+    public CancellationToken ApplicationStopping => _stopping.Token;
     public CancellationToken ApplicationStopped => CancellationToken.None;
 
-    public void StopApplication() => StopApplicationCalls++;
+    public void StopApplication()
+    {
+        StopApplicationCalls++;
+        _stopping.Cancel();
+    }
 }

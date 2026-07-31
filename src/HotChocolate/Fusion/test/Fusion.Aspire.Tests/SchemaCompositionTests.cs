@@ -10,6 +10,60 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class SchemaCompositionTests
 {
     [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_Coalesce_When_CompositionIsInProgress()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+        var model = new DistributedApplicationModel(builder.Resources);
+        using var gate = new SemaphoreSlim(0, 1);
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway.Resource,
+            model,
+            gate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result.Success);
+        Assert.Equal("Composition already in progress", result.Message);
+        Assert.Equal(0, gate.CurrentCount);
+    }
+
+    [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_ReturnFailure_When_CompositionFails()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var source = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaFile("missing.graphql");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(source);
+        var model = new DistributedApplicationModel(builder.Resources);
+        using var gate = new SemaphoreSlim(1, 1);
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway.Resource,
+            model,
+            gate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(result.Success);
+        Assert.Equal("Schema composition failed for 'gateway'.", result.Message);
+        Assert.Equal(1, gate.CurrentCount);
+    }
+
+    [Fact]
     public async Task FetchSchemaFromEndpointAsync_Should_RetryWithoutLeakingEndpoint_When_ResponseReadFails()
     {
         // arrange

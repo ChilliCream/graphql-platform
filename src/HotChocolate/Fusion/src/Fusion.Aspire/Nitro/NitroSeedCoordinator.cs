@@ -1,5 +1,6 @@
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
@@ -15,6 +16,7 @@ internal sealed class NitroSeedCoordinator
     private readonly Lock _sync = new();
     private readonly NitroConnectionResolver _connectionResolver;
     private readonly NitroSeedProvider _seedProvider;
+    private readonly INitroSchemaValidator _schemaValidator;
     private readonly string _runSeedDirectory;
 
     /// <summary>
@@ -29,6 +31,9 @@ internal sealed class NitroSeedCoordinator
     /// <param name="seedProvider">
     /// The provider of the fusion configurations.
     /// </param>
+    /// <param name="schemaValidator">
+    /// The client that validates composed gateway schemas against Nitro.
+    /// </param>
     /// <param name="runSeedDirectory">
     /// The directory that holds the private copies of this run.
     /// </param>
@@ -36,16 +41,19 @@ internal sealed class NitroSeedCoordinator
         string stage,
         NitroConnectionResolver connectionResolver,
         NitroSeedProvider seedProvider,
+        INitroSchemaValidator schemaValidator,
         string runSeedDirectory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(stage);
         ArgumentNullException.ThrowIfNull(connectionResolver);
         ArgumentNullException.ThrowIfNull(seedProvider);
+        ArgumentNullException.ThrowIfNull(schemaValidator);
         ArgumentException.ThrowIfNullOrWhiteSpace(runSeedDirectory);
 
         Stage = stage;
         _connectionResolver = connectionResolver;
         _seedProvider = seedProvider;
+        _schemaValidator = schemaValidator;
         _runSeedDirectory = runSeedDirectory;
     }
 
@@ -82,12 +90,39 @@ internal sealed class NitroSeedCoordinator
             new NitroSeedCache(NitroDefaults.GetSeedCacheDirectory(), timeProvider),
             new NitroApiLookupClient(
                 GraphQLHttpClient.Create(httpClient, disposeHttpClient: false)));
+        var schemaValidator = new NitroSchemaValidator(
+            GraphQLHttpClient.Create(httpClient, disposeHttpClient: false),
+            timeProvider,
+            NullLogger<NitroSchemaValidator>.Instance);
 
         return new NitroSeedCoordinator(
             stage,
             connectionResolver,
             seedProvider,
+            schemaValidator,
             NitroDefaults.CreateRunSeedDirectoryPath());
+    }
+
+    public Task<NitroConnection> ResolveConnectionAsync(
+        ILogger logger,
+        CancellationToken cancellationToken)
+        => _connectionResolver.ResolveAsync(logger, cancellationToken);
+
+    public async Task<NitroSchemaValidationReport> ValidateSchemaAsync(
+        string apiId,
+        byte[] schema,
+        string schemaHash,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        var connection = await _connectionResolver.ResolveAsync(logger, cancellationToken);
+        return await _schemaValidator.ValidateAsync(
+            connection,
+            apiId,
+            Stage,
+            schema,
+            schemaHash,
+            cancellationToken);
     }
 
     /// <summary>

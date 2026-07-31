@@ -78,3 +78,17 @@ This is framework code — performance matters. Aim for zero allocations on hot 
 ### C# / .NET
 
 If you need to search for packages on nuget.org use the `dotnet` cli, eg `dotnet package search HotChocolate`.
+
+### Nitro persisted operations (Fusion Aspire)
+
+After adding or editing any `.graphql` document under `src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations`, regenerate the `.sha256` sidecars and verify them:
+
+```bash
+.github/scripts/nitro-aspire-operations.sh update \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations
+.github/scripts/nitro-aspire-operations.sh verify \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations \
+    --output /tmp/nitro-aspire-operations.json
+```
+
+Never hand-write or hand-edit a `.sha256` sidecar. The `update` command is the only source of sidecar content, and `verify` must pass before handoff.

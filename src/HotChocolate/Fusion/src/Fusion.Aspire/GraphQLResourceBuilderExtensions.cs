@@ -1,4 +1,6 @@
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -91,6 +93,31 @@ public static class GraphQLResourceBuilderExtensions
                 OutputFileName = outputFileName,
                 Settings = settings
             });
+
+        if (!builder.Resource.Annotations
+            .OfType<ResourceCommandAnnotation>()
+            .Any(command => command.Name == "recompose"))
+        {
+            builder.WithCommand(
+                "recompose",
+                "Recompose",
+                context => context.ServiceProvider
+                    .GetRequiredService<GatewayCompositionCommandCoordinator>()
+                    .ExecuteAsync(context.ResourceName, context.CancellationToken),
+                new CommandOptions
+                {
+                    Description = "Recompose and install the gateway schema.",
+                    IconName = "ArrowSync",
+                    UpdateState = context =>
+                    {
+                        var state = context.ResourceSnapshot.State?.Text;
+                        return state == KnownResourceStates.Running
+                            || state == KnownResourceStates.RuntimeUnhealthy
+                                ? ResourceCommandState.Enabled
+                                : ResourceCommandState.Disabled;
+                    }
+                });
+        }
 
         return builder;
     }
