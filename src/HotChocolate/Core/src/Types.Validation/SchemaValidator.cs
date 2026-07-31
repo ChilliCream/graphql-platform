@@ -1,5 +1,6 @@
 using HotChocolate.Events;
 using HotChocolate.Events.Contracts;
+using HotChocolate.Language;
 using HotChocolate.Logging.Contracts;
 using HotChocolate.Rules;
 using HotChocolate.Types;
@@ -11,7 +12,11 @@ namespace HotChocolate;
 /// </summary>
 public sealed class SchemaValidator
 {
-    private readonly HashSet<object> _rules;
+    private static int s_eventTypeCount;
+
+    // Handlers are dispatched in the order the rules were added, so this must preserve order.
+    private readonly List<object> _rules;
+    private object?[] _handlers = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SchemaValidator"/> class with the default
@@ -29,7 +34,7 @@ public sealed class SchemaValidator
     /// <param name="rules">The rules to use for validation.</param>
     public SchemaValidator(IEnumerable<object> rules)
     {
-        _rules = rules.ToHashSet();
+        _rules = [.. rules.Distinct()];
     }
 
     /// <summary>
@@ -37,6 +42,8 @@ public sealed class SchemaValidator
     /// </summary>
     public void AddDefaultRules()
     {
+        _handlers = [];
+
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
@@ -50,6 +57,7 @@ public sealed class SchemaValidator
         _rules.Add(new NonEmptyUnionTypeRule());
         _rules.Add(new NoSelfImplementationRule());
         _rules.Add(new TypeIsDefinedRule());
+        _rules.Add(new ValidDefaultValueRule());
         _rules.Add(new ValidDeprecationRule());
         _rules.Add(new ValidImplementationsRule());
         _rules.Add(new ValidNameRule());
@@ -118,6 +126,7 @@ public sealed class SchemaValidator
                             PublishEvent(new InputValueEvent(argument), context);
                             PublishEvent(new NamedMemberEvent(argument), context);
 
+                            PublishDefaultValueNodeEvents(argument, context);
                             PublishDirectiveEvents(argument, context);
                         }
 
@@ -149,6 +158,7 @@ public sealed class SchemaValidator
                         PublishEvent(new InputValueEvent(field), context);
                         PublishEvent(new NamedMemberEvent(field), context);
 
+                        PublishDefaultValueNodeEvents(field, context);
                         PublishDirectiveEvents(field, context);
                     }
 
@@ -173,6 +183,7 @@ public sealed class SchemaValidator
                 PublishEvent(new InputValueEvent(argument), context);
                 PublishEvent(new NamedMemberEvent(argument), context);
 
+                PublishDefaultValueNodeEvents(argument, context);
                 PublishDirectiveEvents(argument, context);
             }
         }
@@ -206,15 +217,107 @@ public sealed class SchemaValidator
         }
     }
 
+    private void PublishDefaultValueNodeEvents(IInputValueDefinition inputValue, ValidationContext context)
+    {
+        if (inputValue.DefaultValue is { } defaultValue)
+        {
+            PublishDefaultValueNodeEvent(defaultValue, inputValue.Type, [], inputValue, context);
+        }
+    }
+
+    private void PublishDefaultValueNodeEvent(
+        IValueNode value,
+        IType type,
+        List<object> path,
+        IInputValueDefinition root,
+        ValidationContext context)
+    {
+        PublishEvent(new DefaultValueNodeEvent(value, type, path.ToArray(), root), context);
+
+        var unwrapped = type.NullableType();
+
+        switch (unwrapped.Kind)
+        {
+            case TypeKind.List:
+                var elementType = unwrapped.ElementType();
+
+                if (value is ListValueNode list)
+                {
+                    for (var i = 0; i < list.Items.Count; i++)
+                    {
+                        path.Add(i);
+                        PublishDefaultValueNodeEvent(list.Items[i], elementType, path, root, context);
+                        path.RemoveAt(path.Count - 1);
+                    }
+                }
+                else if (value.Kind is not (SyntaxKind.NullValue or SyntaxKind.Variable))
+                {
+                    // Spec list-input coercion: a non-list literal is treated as a singleton list at index 0.
+                    path.Add(0);
+                    PublishDefaultValueNodeEvent(value, elementType, path, root, context);
+                    path.RemoveAt(path.Count - 1);
+                }
+
+                break;
+
+            case TypeKind.InputObject when value is ObjectValueNode inputObjectValue:
+                var inputObject = (IInputObjectTypeDefinition)unwrapped.NamedType();
+
+                foreach (var fieldValue in inputObjectValue.Fields)
+                {
+                    if (inputObject.Fields.TryGetField(fieldValue.Name.Value, out var inputField))
+                    {
+                        path.Add(fieldValue.Name.Value);
+                        PublishDefaultValueNodeEvent(fieldValue.Value, inputField.Type, path, root, context);
+                        path.RemoveAt(path.Count - 1);
+                    }
+
+                    // Unknown fields are not recursed; ValidDefaultValueRule flags them at the object node.
+                }
+
+                break;
+        }
+    }
+
     private void PublishEvent<TEvent>(TEvent @event, ValidationContext context)
         where TEvent : IValidationEvent
     {
-        foreach (var rule in _rules)
+        foreach (var handler in GetHandlers<TEvent>())
         {
-            if (rule is IValidationEventHandler<TEvent> handler)
-            {
-                handler.Handle(@event, context);
-            }
+            handler.Handle(@event, context);
         }
+    }
+
+    /// <summary>
+    /// Gets the handlers that are subscribed to <typeparamref name="TEvent"/>. The handlers are
+    /// resolved once per event type and per validator, in the order in which the rules were added.
+    /// </summary>
+    private IValidationEventHandler<TEvent>[] GetHandlers<TEvent>()
+        where TEvent : IValidationEvent
+    {
+        var slot = EventSlot<TEvent>.Index;
+        var slots = _handlers;
+
+        if (slot >= slots.Length)
+        {
+            Array.Resize(ref slots, Math.Max(slot + 1, s_eventTypeCount));
+            _handlers = slots;
+        }
+
+        if (slots[slot] is IValidationEventHandler<TEvent>[] handlers)
+        {
+            return handlers;
+        }
+
+        handlers = _rules.OfType<IValidationEventHandler<TEvent>>().ToArray();
+        slots[slot] = handlers;
+
+        return handlers;
+    }
+
+    private static class EventSlot<TEvent>
+        where TEvent : IValidationEvent
+    {
+        public static readonly int Index = Interlocked.Increment(ref s_eventTypeCount) - 1;
     }
 }

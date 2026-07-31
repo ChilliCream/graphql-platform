@@ -192,6 +192,42 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Equal($"{{\"field\":\"final-{count - 1}\"}}", RenderData(store));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResults_Should_MergeCorrectValue_When_SourcePathHasMultipleSegments(bool containsErrors)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+        var sourcePath = SelectionPath.Root.AppendField("wrapper").AppendField("nested");
+
+        var results = new SourceSchemaResult[3];
+        for (var i = 0; i < results.Length; i++)
+        {
+            results[i] = CreateSourceSchemaResult(
+                sourceArena,
+                CompactPath.Root,
+                $"{{\"data\":{{\"wrapper\":{{\"nested\":{{\"field\":\"value-{i}\"}}}}}}}}");
+        }
+
+        // act
+        var added = store.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);
+
+        // assert
+        Assert.True(added);
+        Assert.Equal("{\"field\":\"value-2\"}", RenderData(store));
+    }
+
     [Fact]
     public void AddPartialResults_Should_ClearRetainedStaging_When_DataReadThrows()
     {

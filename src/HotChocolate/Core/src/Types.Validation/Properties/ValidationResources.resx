@@ -21,6 +21,36 @@
   <data name="LogEntryHelper_AdditionalArgumentNotNullable" xml:space="preserve">
     <value>The field '{0}' must only declare additional arguments to an implemented field that are nullable.</value>
   </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueIncompatibleType" xml:space="preserve">
+    <value>The default value of argument '{0}' is not compatible with the type '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueIncompatibleTypeAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' is not compatible with the type '{1}' at path '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueMissingField" xml:space="preserve">
+    <value>The default value of argument '{0}' is missing the required input field '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueMissingFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' is missing the required input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueOneOf" xml:space="preserve">
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueOneOfAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueUnknownField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the unknown input field '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentDefaultValueUnknownFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_ArgumentNotImplemented" xml:space="preserve">
     <value>The field '{0}' must define the argument '{1}' to match the field defined in interface '{2}'.</value>
   </data>
@@ -47,6 +77,36 @@
   </data>
   <data name="LogEntryHelper_FieldNotImplemented" xml:space="preserve">
     <value>The interface field '{0}' must be implemented by type '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueIncompatibleType" xml:space="preserve">
+    <value>The default value of input field '{0}' is not compatible with the type '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueIncompatibleTypeAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' is not compatible with the type '{1}' at path '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueMissingField" xml:space="preserve">
+    <value>The default value of input field '{0}' is missing the required input field '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueMissingFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' is missing the required input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueOneOf" xml:space="preserve">
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueOneOfAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueUnknownField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the unknown input field '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldDefaultValueUnknownFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
   </data>
   <data name="LogEntryHelper_InputObjectCycle_Direct" xml:space="preserve">
     <value>Invalid circular reference. The Input Object '{0}' references itself in the non-null field '{1}'.</value>

@@ -658,6 +658,7 @@ internal static class FusionPublishHelpers
             newSourceSchemas,
             archive,
             environment,
+            SettingsComposerOptions.Default,
             compositionSettings,
             legacyArchive,
             cancellationToken);

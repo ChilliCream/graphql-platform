@@ -572,6 +572,34 @@ The unique source schema name used in composition. Must match the name used in `
 
 The URL template for the subgraph's GraphQL endpoint. Use `{{VARIABLE_NAME}}` for environment-specific substitution.
 
+### `transports.http.devUrl`
+
+**Type:** `string` (optional)
+
+The URL a local development environment reaches this source schema at. It supports the same `{{VARIABLE_NAME}}` substitution as `url`.
+
+`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./aspire-integration.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
+
+```json
+{
+  "name": "products-api",
+  "transports": {
+    "http": {
+      "url": "https://products.example.com/graphql",
+      "devUrl": "http://localhost:5110/graphql"
+    }
+  }
+}
+```
+
+When such a source schema defines no `devUrl`, composition falls back to its `url` and logs the warning `SOURCE_SCHEMA_DEV_URL_MISSING`, because a deployed URL is often not reachable from a developer machine. When the URL that is selected for such a source schema references a variable that its environment does not define, composition logs the warning `SOURCE_SCHEMA_URL_VARIABLE_UNRESOLVED`, falls back from an unresolvable `devUrl` to the `url`, and composes an unresolvable `url` as it is. Neither case fails the composition.
+
+### `transports.websockets.devUrl`
+
+**Type:** `string` (optional)
+
+The same as `transports.http.devUrl`, for the WebSocket URL of the source schema. A source schema that does not run in the local AppHost and defines no `devUrl` here keeps its configured `transports.websockets.url` without a warning.
+
 ### `transports.http.clientName`
 
 **Type:** `string` (optional, defaults to `"fusion"`)

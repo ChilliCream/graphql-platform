@@ -624,6 +624,7 @@ internal sealed class FusionComposeCommand : Command
                 sourceSchemas,
                 archive,
                 environment,
+                SettingsComposerOptions.Default,
                 compositionSettings,
                 legacyArchive: null,
                 cancellationToken);
