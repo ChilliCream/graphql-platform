@@ -69,10 +69,17 @@ public sealed class NitroSchemaValidationNotifierTests
         stopping.Cancel();
 
         // assert
-        DescribeNotifications(notifier.Notifications).MatchInlineSnapshot(
-            """
-            Error: Client contracts broken: 2 clients, 3 operations affected (gateway 'orders-gateway', stage 'staging').
-            """);
+        notifier.Notifications
+            .Select(
+                notification =>
+                    notification.Message is null
+                        ? notification.Intent
+                        : $"{notification.Intent}: {notification.Message}")
+            .MatchInlineSnapshots(
+            [
+                "Error: Client contracts broken: 2 clients, 3 operations affected "
+                    + "(gateway 'orders-gateway', stage 'staging')."
+            ]);
     }
 
     [Fact]
@@ -90,11 +97,13 @@ public sealed class NitroSchemaValidationNotifierTests
         notifier.NotifyRestored("Client contracts restored.");
 
         // assert
-        DescribePrompts(proxy.Prompts).MatchInlineSnapshot(
-            """
-            Error | Nitro schema validation | Client contracts broken.
-            Success | Nitro schema validation | Client contracts restored.
-            """);
+        proxy.Prompts
+            .Select(prompt => $"{prompt.Intent} | {prompt.Title} | {prompt.Message}")
+            .MatchInlineSnapshots(
+            [
+                "Error | Nitro schema validation | Client contracts broken.",
+                "Success | Nitro schema validation | Client contracts restored."
+            ]);
     }
 
     [Fact]
@@ -319,18 +328,6 @@ public sealed class NitroSchemaValidationNotifierTests
         }
     }
 
-    private static string DescribeNotifications(
-        IReadOnlyList<RecordedNotification> notifications)
-        => notifications.Count == 0
-            ? "<none>"
-            : string.Join(
-                '\n',
-                notifications.Select(
-                    notification =>
-                        notification.Message is null
-                            ? notification.Intent
-                            : $"{notification.Intent}: {notification.Message}"));
-
     private static string DescribeIntents(
         IReadOnlyList<RecordedNotification> notifications)
         => notifications.Count == 0
@@ -343,12 +340,6 @@ public sealed class NitroSchemaValidationNotifierTests
         proxy = new RecordingInteractionService();
         return proxy;
     }
-
-    private static string DescribePrompts(IReadOnlyList<RecordedPrompt> prompts)
-        => string.Join(
-            '\n',
-            prompts.Select(
-                prompt => $"{prompt.Intent} | {prompt.Title} | {prompt.Message}"));
 
     private sealed class RecordingNotifier : INitroSchemaValidationNotifier
     {

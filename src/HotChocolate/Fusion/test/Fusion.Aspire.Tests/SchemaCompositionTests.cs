@@ -35,6 +35,40 @@ public sealed class SchemaCompositionTests
     }
 
     [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_ReturnCanceled_When_CommandIsAlreadyCanceled()
+    {
+        // arrange
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+        var model = new DistributedApplicationModel(builder.Resources);
+        using var gate = new SemaphoreSlim(1, 1);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway.Resource,
+            model,
+            gate,
+            cancellation.Token);
+
+        // assert
+        $"""
+        Success: {result.Success}
+        Canceled: {result.Canceled}
+        Gate count: {gate.CurrentCount}
+        """.MatchInlineSnapshot(
+            """
+            Success: False
+            Canceled: True
+            Gate count: 1
+            """);
+    }
+
+    [Fact]
     public async Task ExecuteRecomposeCommandAsync_Should_ReturnFailure_When_CompositionFails()
     {
         // arrange

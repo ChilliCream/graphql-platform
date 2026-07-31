@@ -4,6 +4,7 @@ using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Lifecycle;
 using HotChocolate.Fusion.Aspire.Nitro;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
@@ -289,6 +290,38 @@ public sealed class NitroExtensionsTests
             annotation => annotation.Name == "recompose");
         Assert.Equal("Recompose", command.DisplayName);
         Assert.Equal("ArrowSync", command.IconName);
+    }
+
+    [Fact]
+    public async Task WithGraphQLSchemaComposition_Should_ReturnControlledFailure_When_CompositionIsNotRegistered()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        await using var services = new ServiceCollection().BuildServiceProvider();
+#pragma warning disable ASPIREINTERACTION001
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = gateway.Resource.Name,
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+#pragma warning restore ASPIREINTERACTION001
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "False|Schema composition is not ready.",
+            $"{result.Success}|{result.Message}");
     }
 
     [Fact]

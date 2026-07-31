@@ -272,6 +272,40 @@ public sealed class NitroSchemaValidatorTests
     }
 
     [Fact]
+    public async Task ValidateAsync_Should_KeepKnownFindings_When_FailureAlsoContainsUnknownType()
+    {
+        // arrange
+        using var session = new ValidatorSession(
+            Json(StartSuccess),
+            Json(
+                PollFailure(
+                    """
+                    {
+                      "__typename": "SchemaVersionSyntaxError",
+                      "message": "Unexpected token.",
+                      "line": 7,
+                      "column": 9,
+                      "position": 42
+                    }
+                    """,
+                    """
+                    {
+                      "__typename": "FutureValidationError",
+                      "message": "A future validation failed."
+                    }
+                    """)));
+
+        // act
+        var report = await session.ValidateAsync();
+
+        // assert
+        Assert.Equal(
+            "Violations|more=False|clients=-|findings=Schema syntax errors>"
+                + "SchemaVersionSyntaxError|-|-|-|7:9|-|Unexpected token.",
+            DescribeViolations(report));
+    }
+
+    [Fact]
     public async Task ValidateAsync_Should_EnforceResponseLimit_When_ContentLengthIsAbsent()
     {
         // arrange
@@ -340,6 +374,29 @@ public sealed class NitroSchemaValidatorTests
                 + "PollNitroSchemaValidation",
             $"{report.Status}|request={report.RequestId}|calls={session.Handler.Requests.Count}"
                 + $"|operations={string.Join(',', session.Handler.Requests.Select(r => r.OperationName))}");
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task ValidateAsync_Should_NotRetry_When_PollReturnsNonTransientStatus(
+        HttpStatusCode statusCode)
+    {
+        // arrange
+        using var session = new ValidatorSession(
+            Json(StartSuccess),
+            Status(statusCode),
+            Json(PollResult("""{"__typename":"SchemaVersionValidationSuccess","state":"SUCCESS"}""")));
+
+        // act
+        var report = await session.ValidateAsync();
+
+        // assert
+        Assert.Equal(
+            $"Unavailable|request=request-1|reason=Nitro returned HTTP {(int)statusCode} "
+                + $"({statusCode}).|calls=2",
+            DescribeUnavailable(report, session.Handler.Requests.Count));
     }
 
     public static TheoryData<string, string> KnownTerminalFailureData()
@@ -659,7 +716,7 @@ public sealed class NitroSchemaValidatorTests
         }
         """;
 
-    private static string PollFailure(string error)
+    private static string PollFailure(params string[] errors)
         => $$"""
         {
           "data": {
@@ -668,7 +725,7 @@ public sealed class NitroSchemaValidatorTests
               "result": {
                 "__typename": "SchemaVersionValidationFailed",
                 "state": "FAILED",
-                "errors": [{{error}}]
+                "errors": [{{string.Join(',', errors)}}]
               }
             }
           }

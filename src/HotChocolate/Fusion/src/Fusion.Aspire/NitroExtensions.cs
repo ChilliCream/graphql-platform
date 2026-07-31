@@ -34,10 +34,14 @@ public static class NitroExtensions
     /// configurations of Nitro and configures the Nitro portal URL shown on each Nitro-composed
     /// gateway. A gateway configured with <see cref="WithNitroApiId{T}"/> composes the source
     /// schemas of the distributed application on top of the fusion configuration that Nitro
-    /// serves for <paramref name="stage"/>.
+    /// serves for <paramref name="stage"/>, so it also serves source schemas that run outside of
+    /// the distributed application.
     /// </summary>
     /// <param name="builder">The distributed application builder.</param>
-    /// <param name="stage">The Nitro stage whose fusion configuration is used.</param>
+    /// <param name="stage">
+    /// The Nitro stage whose fusion configuration is used. The settings of the source schemas
+    /// carried by that configuration resolve against this stage environment.
+    /// </param>
     /// <param name="portalUrl">
     /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
     /// URL.
@@ -48,8 +52,13 @@ public static class NitroExtensions
     /// </exception>
     /// <remarks>
     /// A source schema of the distributed application replaces the source schema of the same name
-    /// in the fusion configuration. A source schema that ends up with another name is added to the
-    /// composition instead of replacing the one in the fusion configuration.
+    /// in the fusion configuration. The name of a source schema declared with
+    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaEndpoint{T}"/> is the
+    /// <c>name</c> in its settings file. The name of a source schema declared with
+    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaFile{T}"/> is the configured
+    /// source schema name or the resource name, and is not checked against its settings file. A
+    /// source schema that ends up with another name is added to the composition instead of
+    /// replacing the one in the fusion configuration.
     /// </remarks>
     public static IDistributedApplicationBuilder AddNitro(
         this IDistributedApplicationBuilder builder,

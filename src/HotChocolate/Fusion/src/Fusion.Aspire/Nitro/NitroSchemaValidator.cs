@@ -153,7 +153,7 @@ internal sealed class NitroSchemaValidator(
             }
         };
 
-        using var result = await SendWithRetryAsync(
+        var result = await SendWithRetryAsync(
             CreateRequest(
                 connection,
                 NitroOperationDocuments.ValidateSchemaOperationName,
@@ -195,7 +195,7 @@ internal sealed class NitroSchemaValidator(
             ["input"] = new Dictionary<string, object?> { ["id"] = requestId }
         };
 
-        using var result = await SendWithRetryAsync(
+        var result = await SendWithRetryAsync(
             CreateRequest(
                 connection,
                 NitroOperationDocuments.PollSchemaValidationOperationName,
@@ -454,7 +454,9 @@ internal sealed class NitroSchemaValidator(
         }
 
         clients = NormalizeClients(clients);
-        if (unknownFailure is not null)
+        if (unknownFailure is not null
+            && clients.Count == 0
+            && findings.Count == 0)
         {
             return NitroSchemaValidationReport.Unavailable(
                 schemaHash,
@@ -827,28 +829,23 @@ internal sealed class NitroSchemaValidator(
             or HttpStatusCode.TooManyRequests
             || statusCode >= HttpStatusCode.InternalServerError;
 
-    private sealed class NitroGraphQLResult : IDisposable
+    private sealed class NitroGraphQLResult
     {
-        private NitroGraphQLResult(JsonDocument? document, JsonElement data, string? failure)
+        private NitroGraphQLResult(JsonElement data, string? failure)
         {
-            Document = document;
             Data = data;
             Failure = failure;
         }
-
-        private JsonDocument? Document { get; }
 
         public JsonElement Data { get; }
 
         public string? Failure { get; }
 
         public static NitroGraphQLResult Success(JsonElement data)
-            => new(null, data, null);
+            => new(data, null);
 
         public static NitroGraphQLResult Failed(string failure)
-            => new(null, default, failure);
-
-        public void Dispose() => Document?.Dispose();
+            => new(default, failure);
     }
 
     private sealed class NitroResponseTooLargeException(string message) : Exception(message);

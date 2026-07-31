@@ -254,16 +254,14 @@ public sealed class GatewaySchemaValidationWorkerTests
         await StopWorkerAsync(stopping, worker);
 
         // assert
-        string.Join(
-            Environment.NewLine,
-            resourceLogger.Entries
-                .Where(entry => entry.Level is LogLevel.Warning)
-                .Select(entry => entry.Message))
-            .MatchInlineSnapshot(
-                """
-                Nitro schema validation is unavailable for gateway: network
-                Nitro schema validation is unavailable for gateway: authentication
-                """);
+        resourceLogger.Entries
+            .Where(entry => entry.Level is LogLevel.Warning)
+            .Select(entry => entry.Message)
+            .MatchInlineSnapshots(
+            [
+                "Nitro schema validation is unavailable for gateway: network",
+                "Nitro schema validation is unavailable for gateway: authentication"
+            ]);
     }
 
     [Fact]

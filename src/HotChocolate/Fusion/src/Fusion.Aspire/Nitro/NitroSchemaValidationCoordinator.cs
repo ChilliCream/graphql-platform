@@ -155,9 +155,8 @@ internal sealed class GatewaySchemaValidationWorker
         ArgumentNullException.ThrowIfNull(request);
 
         NitroSchemaValidationReport? cached;
-        ValidationGeneration? generation = null;
-        CancellationTokenSource? supersededCancellation;
         long nextGeneration;
+        var queued = false;
 
         lock (_sync)
         {
@@ -166,8 +165,20 @@ internal sealed class GatewaySchemaValidationWorker
                 return false;
             }
 
+            try
+            {
+                _activeCancellation?.Cancel();
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "The superseded Nitro schema validation for {ResourceName} could not be "
+                    + "canceled cleanly.",
+                    _gatewayName);
+            }
+
             nextGeneration = ++_generation;
-            supersededCancellation = _activeCancellation;
 
             if (_terminalReports.TryGetValue(request.SchemaHash, out cached))
             {
@@ -176,11 +187,14 @@ internal sealed class GatewaySchemaValidationWorker
             else
             {
                 _pendingHash = request.SchemaHash;
-                generation = new ValidationGeneration(nextGeneration, request);
+                queued = _requests.Writer.TryWrite(
+                    new ValidationGeneration(nextGeneration, request));
+                if (!queued)
+                {
+                    _pendingHash = null;
+                }
             }
         }
-
-        supersededCancellation?.Cancel();
 
         if (cached is not null)
         {
@@ -188,7 +202,7 @@ internal sealed class GatewaySchemaValidationWorker
             return false;
         }
 
-        return _requests.Writer.TryWrite(generation!);
+        return queued;
     }
 
     internal NitroSchemaValidationReport? LatestReport

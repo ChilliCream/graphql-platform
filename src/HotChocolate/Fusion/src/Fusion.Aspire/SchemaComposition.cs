@@ -25,6 +25,7 @@ internal sealed class SchemaComposition(
 {
     private const int FetchMaxRetries = 15;
     private const int ArchiveCopyMaxAttempts = 5;
+    private const string NitroPortalDisplayText = "🌐 Nitro";
     private static readonly TimeSpan s_fetchRetryDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_recompositionDebounceDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_archiveCopyRetryDelay = TimeSpan.FromMilliseconds(250);
@@ -130,15 +131,29 @@ internal sealed class SchemaComposition(
         }
         else
         {
-            var connection = await coordinator.ResolveConnectionAsync(logger, cancellationToken);
-            portalUrl = NitroDefaults.CreatePortalUrl(connection.ApiUrl).OriginalString;
+            try
+            {
+                var connection = await coordinator.ResolveConnectionAsync(logger, cancellationToken);
+                portalUrl = NitroDefaults.CreatePortalUrl(connection.ApiUrl).OriginalString;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                logger.LogWarning(
+                    "The Nitro Portal URL could not be resolved. The informational link will "
+                    + "not be added.");
+                return;
+            }
         }
 
         foreach (var resource in compositionResources)
         {
             if (resource.GetNitroApiId() is null
                 || resource.Annotations.OfType<ResourceUrlAnnotation>()
-                    .Any(url => url.DisplayText == "Nitro Portal"))
+                    .Any(url => url.DisplayText == NitroPortalDisplayText))
             {
                 continue;
             }
@@ -147,7 +162,7 @@ internal sealed class SchemaComposition(
                 new ResourceUrlAnnotation
                 {
                     Url = portalUrl,
-                    DisplayText = "Nitro Portal",
+                    DisplayText = NitroPortalDisplayText,
                     DisplayLocation = UrlDisplayLocation.SummaryAndDetails
                 });
         }
@@ -514,7 +529,17 @@ internal sealed class SchemaComposition(
         SemaphoreSlim compositionGate,
         CancellationToken cancellationToken)
     {
-        if (!await compositionGate.WaitAsync(0, cancellationToken))
+        bool enteredCompositionGate;
+        try
+        {
+            enteredCompositionGate = await compositionGate.WaitAsync(0, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return CommandResults.Canceled();
+        }
+
+        if (!enteredCompositionGate)
         {
             return CommandResults.Success("Composition already in progress");
         }
@@ -1352,9 +1377,9 @@ internal sealed class SchemaComposition(
         }
 
         await using var schema = await configuration.OpenReadSchemaAsync(cancellationToken);
-        await using var buffer = new MemoryStream();
-        await schema.CopyToAsync(buffer, cancellationToken);
-        return buffer.ToArray();
+        var buffer = GC.AllocateUninitializedArray<byte>(checked((int)schema.Length));
+        await schema.ReadExactlyAsync(buffer, cancellationToken);
+        return buffer;
     }
 
     /// <summary>
