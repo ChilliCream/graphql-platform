@@ -11,9 +11,7 @@ The AppHost and services reference the current `graphql-platform` checkout. Chec
 Every remote value is intentionally fake. Replace:
 
 - `https://nitro.example.invalid`;
-- `replace-with-nitro-api-id`;
-- `replace-with-development-stage`;
-- `replace-with-test-stage`; and
+- `replace-with-nitro-api-id`; and
 - the Development and Test source URLs in both `schema-settings.json` files.
 
 Provide `DEMO_NITRO_API_KEY` as a repository or organization secret for the upload job. Create the
@@ -24,7 +22,10 @@ GitHub environments `Development` and `Test`, then configure these environment s
 - `DEMO_AZURE_TENANT_ID`; and
 - `DEMO_AZURE_SUBSCRIPTION_ID`.
 
-Configure `DEMO_AZURE_LOCATION` and `DEMO_AZURE_RESOURCE_GROUP` as environment variables. The
+Configure `DEMO_NITRO_STAGE`, `DEMO_AZURE_LOCATION`, and `DEMO_AZURE_RESOURCE_GROUP` as environment
+variables. `DEMO_NITRO_STAGE` carries the Nitro stage of each GitHub environment and reaches the
+AppHost as `Parameters__stage`, so the AppHost declares one deployment instead of one per stage. The
+upload job runs outside a GitHub environment and reads the repository-level `DEMO_NITRO_STAGE`. The
 sample uses Azure Container Apps because it contributes the `DeployCompute` steps needed to prove
 source and gateway ordering. Development and Test should normally use distinct resource groups.
 
@@ -51,15 +52,17 @@ settings environment and starts:
 - products at `http://localhost:5101/graphql`; and
 - reviews at `http://localhost:5102/graphql`.
 
-The AppHost derives the gateway Nitro stage from the already selected composition environment.
-Run mode maps to `local`, so it injects no `NITRO_*` variables and the gateway uses its local FAR.
+Run mode composes for `local` and injects no `NITRO_*` variables, so the gateway uses its local FAR.
+A publish composes for the stage that `Parameters__stage` supplies and passes that same stage to the
+gateway as `NITRO_STAGE`.
 
 ## Release flow
 
-All jobs use one `RELEASE_TAG`, exposed to the AppHost as `Parameters__tag`. The build job selects
-the real Development declaration and uploads both sources as exact immutable versions:
+All jobs use one `RELEASE_TAG`, exposed to the AppHost as `Parameters__tag`, and supply the target
+stage as `Parameters__stage`. The build job uploads both sources as exact immutable versions:
 
 ```shell
+export Parameters__stage="$DEMO_NITRO_STAGE"
 export Parameters__tag="$RELEASE_TAG"
 export Parameters__nitroApiKey="$DEMO_NITRO_API_KEY"
 
@@ -76,6 +79,7 @@ distinct target using a matching selected environment.
 The deployment job checks out the same revision and publishes without a manifest or CI artifact:
 
 ```shell
+export Parameters__stage="$DEMO_NITRO_STAGE"
 export Parameters__tag="$RELEASE_TAG"
 export Parameters__nitroApiKey="$DEMO_NITRO_API_KEY"
 export Parameters__nitroGatewayApiKey="$DEMO_NITRO_GATEWAY_API_KEY"
@@ -95,7 +99,8 @@ versions `products@RELEASE_TAG` and `reviews@RELEASE_TAG` as a metadata-only pre
 deployment it downloads them again, verifies the same canonical digests, and composes the
 Development endpoints.
 
-The Test job uses the same tag with `--environment Test`, which composes the Test endpoints.
+The Test job uses the same tag with `--environment Test` and the Test `DEMO_NITRO_STAGE`, which
+composes the Test endpoints and publishes to the Test stage.
 
 There is no artifact upload/download between jobs. The Fusion-specific publish steps never export
 schemas, upload source versions, write Fusion apply-state files, or resolve Aspire's output-path
@@ -106,6 +111,6 @@ deployment, exact re-download and composition, source readiness, internal Nitro 
 gateway deployment, then terminal public `fusion-publish`.
 
 The build job has a stable concurrency key for the Nitro API. Each deployment job has a stable key
-for its Nitro stage and Azure target. `cancel-in-progress: false` queues writers. Add external
-locking when another repository or deployment system can write the same Nitro stage or compute
-target.
+for its GitHub environment, which is the one stage and Azure target that environment writes.
+`cancel-in-progress: false` queues writers. Add external locking when another repository or
+deployment system can write the same Nitro stage or compute target.

@@ -13,10 +13,29 @@ Both invocations must evaluate the same AppHost composition and use the same `ta
 
 ## AppHost declaration
 
+One declaration serves every stage when the stage is a parameter:
+
 ```csharp
+var stage = builder.AddParameter("stage");
 var tag = builder.AddParameter("tag");
 var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
 
+builder.AddNitroPublishTarget("nitro")
+    .WithNitroCloudUrl("https://api.chillicream.com")
+    .WithNitroApiId("products-fusion")
+    .WithNitroApiKey(nitroApiKey)
+    .AddFusionDeployment("fusion")
+    .ToStage(stage)
+    .WithConfigurationTag(tag);
+```
+
+Each invocation then supplies the stage the same way it supplies the tag, for example as
+`Parameters__stage`.
+
+Declare one deployment per environment instead when the stages differ in more than their name, for
+example when only production waits for approval:
+
+```csharp
 var nitro = builder.AddNitroPublishTarget("nitro")
     .WithNitroCloudUrl("https://api.chillicream.com")
     .WithNitroApiId("products-fusion")
@@ -40,10 +59,12 @@ nitro.AddFusionDeployment("production")
         approval: TimeSpan.FromHours(2));
 ```
 
-`ForEnvironment` selects the Aspire invocation. `ToStage` selects the Nitro stage.
-`WithCompositionEnvironment` selects the environment block in each source's
-`schema-settings.json`. `WithConfigurationTag` supplies both the source version and Fusion
-configuration tag. `WithApproval`, `WithForce`, and `WithTimeouts` configure the publication
+`ForEnvironment` restricts a declaration to one Aspire invocation. A declaration without it
+publishes in every environment. `ToStage` selects the Nitro stage, either as a literal or from a
+parameter that each invocation supplies. `WithCompositionEnvironment` selects the environment block
+in each source's `schema-settings.json`, and defaults to the composition environment of the AppHost
+followed by the resolved stage name. `WithConfigurationTag` supplies both the source version and
+Fusion configuration tag. `WithApproval`, `WithForce`, and `WithTimeouts` configure the publication
 itself.
 
 `WithNitroCloudUrl` and `WithNitroApiId` default to the `Nitro:CloudUrl` and `Nitro:ApiId`

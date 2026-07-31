@@ -3,7 +3,8 @@ using Aspire.Hosting.ApplicationModel;
 namespace HotChocolate.Fusion.Aspire;
 
 /// <summary>
-/// Represents an environment-specific Fusion deployment to Nitro.
+/// Represents a Fusion deployment to Nitro. A deployment publishes to one Nitro stage and can be
+/// restricted to a single Aspire environment.
 /// </summary>
 public sealed class FusionDeploymentResource(
     string name,
@@ -15,6 +16,8 @@ public sealed class FusionDeploymentResource(
     internal string? EnvironmentName { get; set; }
 
     internal string? StageName { get; set; }
+
+    internal ParameterResource? StageParameter { get; set; }
 
     internal string? CompositionEnvironmentName { get; set; }
 

@@ -210,6 +210,53 @@ public sealed class FusionReleaseAcceptanceTests
     }
 
     [Fact]
+    public async Task Release_Should_PublishToTheStage_That_TheParameterSupplies()
+    {
+        // arrange
+        // one deployment declaration that is not bound to an environment publishes to the stage
+        // that each publish supplies, so the same AppHost serves every stage.
+        using var testDirectory = new TestDirectory();
+        using var nitro = await CreateSeededNitroAsync();
+        var executor = FusionPipelineExecutor.Instance;
+        var projects = await CreateAppHostProjectStubsAsync(testDirectory.Path);
+
+        // act
+        (string Stage, string Environment)[] publishes =
+        [
+            ("development", "Development"),
+            ("test", "Production")
+        ];
+
+        foreach (var (stage, environment) in publishes)
+        {
+            var context = CreateContext(
+                CreateParameterizedModel(projects, stage),
+                environment,
+                outputPath: null,
+                nitro: nitro);
+            using var session = new FusionPipelineSession(
+                context.CancellationToken);
+            await executor.PreflightAsync(context, session);
+            await executor.DownloadAsync(context, session);
+            await executor.ComposeAsync(context, session);
+            await executor.PublishAsync(context, session);
+        }
+
+        // assert
+        Assert.Equal(
+            ["development", "test"],
+            nitro.Publications.Select(publication => publication.Stage));
+        Assert.All(
+            nitro.Publications,
+            publication => Assert.Equal(
+                [
+                    new FusionSourceSchemaVersion("products", "release-1"),
+                    new FusionSourceSchemaVersion("reviews", "release-1")
+                ],
+                publication.Sources));
+    }
+
+    [Fact]
     public async Task CreateArtifacts_Should_WriteAnOutputDirectoryThatUploadReadsBack()
     {
         // arrange
@@ -430,8 +477,7 @@ public sealed class FusionReleaseAcceptanceTests
             nitro: nitro);
         var limits = new FusionPipelineMemoryLimits(
             SourceArchiveBytes: 2,
-            TotalSourceArchiveBytes: 100,
-            FusionArchiveBytes: 100);
+            TotalSourceArchiveBytes: 100);
         var executor = new FusionPipelineExecutor(limits);
         using var session = new FusionPipelineSession(
             context.CancellationToken,
@@ -463,8 +509,7 @@ public sealed class FusionReleaseAcceptanceTests
             nitro: nitro);
         var limits = new FusionPipelineMemoryLimits(
             SourceArchiveBytes: 100_000,
-            TotalSourceArchiveBytes: 2,
-            FusionArchiveBytes: 100_000);
+            TotalSourceArchiveBytes: 2);
         var executor = new FusionPipelineExecutor(limits);
         using var session = new FusionPipelineSession(
             context.CancellationToken,
@@ -690,6 +735,42 @@ public sealed class FusionReleaseAcceptanceTests
             projects.ProductsProjectPath,
             projects.ReviewsProjectPath,
             projects.GatewayProjectPath);
+
+    private static DistributedApplicationModel CreateParameterizedModel(
+        (string ProductsProjectPath,
+        string ReviewsProjectPath,
+        string GatewayProjectPath) projects,
+        string stageName)
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var tag = builder.AddParameter("tag", "release-1");
+        var stage = builder.AddParameter("stage", stageName);
+        var apiKey = builder.AddParameter(
+            "nitroApiKey",
+            "test-api-key",
+            secret: true);
+        var products = builder
+            .AddProject("products", projects.ProductsProjectPath)
+            .WithGraphQLSchemaFile();
+        var reviews = builder
+            .AddProject("reviews", projects.ReviewsProjectPath)
+            .WithGraphQLSchemaFile();
+        builder
+            .AddProject("gateway", projects.GatewayProjectPath)
+            .WithReference(products)
+            .WithReference(reviews)
+            .WithGraphQLSchemaComposition();
+        builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products")
+            .WithNitroApiKey(apiKey)
+            .AddFusionDeployment("fusion")
+            .ToStage(stage)
+            .WithConfigurationTag(tag);
+
+        return new DistributedApplicationModel(builder.Resources);
+    }
 
     private static DistributedApplicationModel CreateModel(
         string productsProjectPath,

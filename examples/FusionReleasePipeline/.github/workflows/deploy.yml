@@ -24,6 +24,7 @@ jobs:
       group: fusion-nitro-example-invalid-replace-with-nitro-api-id-upload
       cancel-in-progress: false
     env:
+      Parameters__stage: ${{ vars.DEMO_NITRO_STAGE }}
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
     steps:
@@ -60,13 +61,14 @@ jobs:
       contents: read
       id-token: write
     concurrency:
-      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-replace-with-development-stage
+      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-development
       cancel-in-progress: false
     env:
       Azure__CredentialSource: AzureCli
       Azure__Location: ${{ vars.DEMO_AZURE_LOCATION }}
       Azure__ResourceGroup: ${{ vars.DEMO_AZURE_RESOURCE_GROUP }}
       Azure__SubscriptionId: ${{ secrets.DEMO_AZURE_SUBSCRIPTION_ID }}
+      Parameters__stage: ${{ vars.DEMO_NITRO_STAGE }}
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
       Parameters__nitroGatewayApiKey: ${{ secrets.DEMO_NITRO_GATEWAY_API_KEY }}
@@ -110,13 +112,14 @@ jobs:
       contents: read
       id-token: write
     concurrency:
-      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-replace-with-test-stage
+      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-test
       cancel-in-progress: false
     env:
       Azure__CredentialSource: AzureCli
       Azure__Location: ${{ vars.DEMO_AZURE_LOCATION }}
       Azure__ResourceGroup: ${{ vars.DEMO_AZURE_RESOURCE_GROUP }}
       Azure__SubscriptionId: ${{ secrets.DEMO_AZURE_SUBSCRIPTION_ID }}
+      Parameters__stage: ${{ vars.DEMO_NITRO_STAGE }}
       Parameters__tag: ${{ env.RELEASE_TAG }}
       Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
       Parameters__nitroGatewayApiKey: ${{ secrets.DEMO_NITRO_GATEWAY_API_KEY }}

@@ -2,22 +2,17 @@ using HotChocolate.Fusion.Aspire;
 
 const string nitroCloudUrl = "https://nitro.example.invalid";
 const string nitroApiId = "replace-with-nitro-api-id";
-const string developmentStage = "replace-with-development-stage";
-const string testStage = "replace-with-test-stage";
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddNitro();
 builder.AddAzureContainerAppEnvironment("demo-aca");
 
-var compositionEnvironment = builder.ExecutionContext.IsRunMode
-    ? "local"
-    : builder.Environment.EnvironmentName switch
-    {
-        "Development" => "development",
-        "Test" => "test",
-        _ => "local"
-    };
+// the stage and the release tag are supplied per publish, so this AppHost declares one deployment
+// that serves every stage instead of one declaration per environment.
+var stage = builder.AddParameter("stage");
+var tag = builder.AddParameter("tag");
+var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
 
 var products = builder
     .AddProject<Projects.Products>("products")
@@ -35,42 +30,22 @@ var gateway = builder
     .WithGraphQLSchemaComposition(
         settings: new GraphQLCompositionSettings
         {
-            EnvironmentName = compositionEnvironment
+            // a publish composes for the stage it publishes to, a local run composes for "local".
+            EnvironmentName = builder.ExecutionContext.IsRunMode ? "local" : null
         })
     .WithReference(products)
     .WithReference(reviews);
 
-var tag = builder.AddParameter("tag");
-var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
-
-var nitro = builder
+builder
     .AddNitroPublishTarget("nitro")
     .WithNitroCloudUrl(nitroCloudUrl)
     .WithNitroApiId(nitroApiId)
-    .WithNitroApiKey(nitroApiKey);
-
-nitro
-    .AddFusionDeployment("fusion-development")
-    .ForEnvironment("Development")
-    .ToStage(developmentStage)
-    .WithCompositionEnvironment("development")
+    .WithNitroApiKey(nitroApiKey)
+    .AddFusionDeployment("fusion")
+    .ToStage(stage)
     .WithConfigurationTag(tag);
 
-nitro
-    .AddFusionDeployment("fusion-test")
-    .ForEnvironment("Test")
-    .ToStage(testStage)
-    .WithCompositionEnvironment("test")
-    .WithConfigurationTag(tag);
-
-var stage = compositionEnvironment switch
-{
-    "development" => developmentStage,
-    "test" => testStage,
-    _ => null
-};
-
-if (stage is not null)
+if (!builder.ExecutionContext.IsRunMode)
 {
     var nitroGatewayApiKey = builder.AddParameter(
         "nitroGatewayApiKey",

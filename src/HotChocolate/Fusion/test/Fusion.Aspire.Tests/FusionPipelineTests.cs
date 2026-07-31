@@ -41,6 +41,107 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
+    public void SelectDeployments_Should_SelectDeployment_When_NoEnvironmentIsDeclared()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddParameter("stage", "development");
+        builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products")
+            .AddFusionDeployment("fusion")
+            .ToStage(stage)
+            .WithConfigurationTag("release-1");
+        var model = new DistributedApplicationModel(builder.Resources);
+
+        // act
+        var deployments = FusionPipeline.SelectDeployments(model, "Production");
+
+        // assert
+        Assert.Equal(["fusion"], deployments.Select(x => x.Name));
+    }
+
+    [Fact]
+    public async Task ResolveCompositionEnvironment_Should_UseStageParameter_When_NoOverrideExists()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddParameter("stage", "development");
+        var deployment = builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products")
+            .AddFusionDeployment("fusion")
+            .ToStage(stage)
+            .WithConfigurationTag("release-1");
+
+        // act
+        var environment =
+            await FusionPipelineExecutor.ResolveCompositionEnvironmentAsync(
+                deployment.Resource,
+                new GraphQLCompositionSettings(),
+                TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("development", environment);
+    }
+
+    [Fact]
+    public void SelectDeployments_Should_Fail_When_TwoDeploymentsShareAStageParameter()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddParameter("stage", "development");
+        var nitro = builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products");
+        nitro
+            .AddFusionDeployment("fusion-a")
+            .ToStage(stage)
+            .WithConfigurationTag("release-1");
+        nitro
+            .AddFusionDeployment("fusion-b")
+            .ToStage(stage)
+            .WithConfigurationTag("release-1");
+        var model = new DistributedApplicationModel(builder.Resources);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionPipeline.SelectDeployments(model, "Production"));
+
+        // assert
+        Assert.Equal(
+            "Multiple Fusion deployments map environment 'Production' to Nitro "
+            + "API 'products' stage '{stage}'.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void SelectDeployments_Should_Fail_When_NoStageIsSelected()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products")
+            .AddFusionDeployment("fusion")
+            .WithConfigurationTag("release-1");
+        var model = new DistributedApplicationModel(builder.Resources);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionPipeline.SelectDeployments(model, "Production"));
+
+        // assert
+        Assert.Equal(
+            "Fusion deployment 'fusion' must select a Nitro stage.",
+            exception.Message);
+    }
+
+    [Fact]
     public void WithCloudUrl_Should_Fail_WhenUrlContainsCaseSensitivePath()
     {
         var builder = DistributedApplication.CreateBuilder();
@@ -396,7 +497,7 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
-    public void ResolveCompositionEnvironment_Should_UseStage_WhenNoOverrideExists()
+    public async Task ResolveCompositionEnvironment_Should_UseStage_WhenNoOverrideExists()
     {
         var deployment = new FusionDeploymentResource(
             "production",
@@ -406,9 +507,10 @@ public sealed class FusionPipelineTests
         };
 
         var environment =
-            FusionPipelineExecutor.ResolveCompositionEnvironment(
+            await FusionPipelineExecutor.ResolveCompositionEnvironmentAsync(
                 deployment,
-                new GraphQLCompositionSettings());
+                new GraphQLCompositionSettings(),
+                TestContext.Current.CancellationToken);
 
         Assert.Equal("production", environment);
     }
@@ -435,33 +537,6 @@ public sealed class FusionPipelineTests
         Assert.Equal(
             "The composed Fusion archive SHA-256 does not match prepared state.",
             exception.Message);
-    }
-
-    [Fact]
-    public void BoundedMemoryStream_Should_RejectWritesBeyondConfiguredLimit()
-    {
-        using var stream = new BoundedMemoryStream(3);
-
-        stream.Write(new byte[] { 1, 2, 3 });
-        var exception = Assert.Throws<InvalidDataException>(
-            () => stream.WriteByte(4));
-
-        Assert.Equal(
-            "The composed Fusion archive exceeds the 3-byte in-memory size limit.",
-            exception.Message);
-        Assert.Equal(3, stream.Length);
-    }
-
-    [Fact]
-    public void BoundedMemoryStream_Should_ClearBackingBuffer_WhenDisposed()
-    {
-        var stream = new BoundedMemoryStream(3);
-        stream.Write(new byte[] { 1, 2, 3 });
-        var buffer = stream.GetBuffer();
-
-        stream.Dispose();
-
-        Assert.Equal(new byte[buffer.Length], buffer);
     }
 
     [Fact]

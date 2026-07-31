@@ -355,7 +355,7 @@ public static class NitroExtensions
     }
 
     /// <summary>
-    /// Adds an environment-specific Fusion deployment that publishes to the Nitro publish target.
+    /// Adds a Fusion deployment that publishes to the Nitro publish target.
     /// </summary>
     /// <param name="builder">
     /// The resource builder of a Nitro publish target.
@@ -378,7 +378,7 @@ public static class NitroExtensions
     }
 
     /// <summary>
-    /// Maps the deployment to an exact Aspire environment.
+    /// Restricts the deployment to an exact Aspire environment.
     /// </summary>
     /// <param name="builder">
     /// The resource builder of a Fusion deployment.
@@ -389,6 +389,10 @@ public static class NitroExtensions
     /// <returns>
     /// The resource builder for chaining.
     /// </returns>
+    /// <remarks>
+    /// When this is not configured, the deployment publishes in every Aspire environment, which is
+    /// the shape to use when the stage is supplied per publish.
+    /// </remarks>
     public static IResourceBuilder<FusionDeploymentResource> ForEnvironment(
         this IResourceBuilder<FusionDeploymentResource> builder,
         string environmentName)
@@ -420,6 +424,32 @@ public static class NitroExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
 
         builder.Resource.StageName = stageName;
+        builder.Resource.StageParameter = null;
+        return builder;
+    }
+
+    /// <summary>
+    /// Maps the deployment to the Nitro stage that the parameter supplies. The stage is resolved
+    /// per publish, so one deployment declaration can serve every stage.
+    /// </summary>
+    /// <param name="builder">
+    /// The resource builder of a Fusion deployment.
+    /// </param>
+    /// <param name="stage">
+    /// The parameter that supplies the name of the Nitro stage.
+    /// </param>
+    /// <returns>
+    /// The resource builder for chaining.
+    /// </returns>
+    public static IResourceBuilder<FusionDeploymentResource> ToStage(
+        this IResourceBuilder<FusionDeploymentResource> builder,
+        IResourceBuilder<ParameterResource> stage)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(stage);
+
+        builder.Resource.StageParameter = stage.Resource;
+        builder.Resource.StageName = null;
         return builder;
     }
 

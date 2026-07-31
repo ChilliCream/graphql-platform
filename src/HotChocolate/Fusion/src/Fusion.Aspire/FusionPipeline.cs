@@ -37,7 +37,8 @@ internal static class FusionPipeline
         var deployments = model.Resources
             .OfType<FusionDeploymentResource>()
             .Where(deployment =>
-                string.Equals(
+                deployment.EnvironmentName is null
+                || string.Equals(
                     deployment.EnvironmentName,
                     environmentName,
                     StringComparison.Ordinal))
@@ -51,9 +52,9 @@ internal static class FusionPipeline
         var duplicate = deployments
             .GroupBy(
                 deployment => (
-                    deployment.Nitro.CloudUrl,
-                    deployment.Nitro.ApiId,
-                    deployment.StageName),
+                    CloudUrl: deployment.Nitro.CloudUrl,
+                    ApiId: deployment.Nitro.ApiId,
+                    StageName: GetStageKey(deployment)),
                 FusionDeploymentKeyComparer.Instance)
             .FirstOrDefault(group => group.Count() > 1);
 
@@ -66,6 +67,14 @@ internal static class FusionPipeline
 
         return deployments;
     }
+
+    /// <summary>
+    /// Gets the declaration-time identity of the stage that a deployment publishes to. A stage that
+    /// is supplied by a parameter is only known per publish, so the parameter itself is the
+    /// identity.
+    /// </summary>
+    private static string GetStageKey(FusionDeploymentResource deployment)
+        => deployment.StageName ?? $"{{{deployment.StageParameter!.Name}}}";
 
     internal static IResourceWithEndpoints GetCompositionResource(
         DistributedApplicationModel model)
@@ -354,13 +363,8 @@ internal static class FusionPipeline
     private static void ValidateDeclaration(
         FusionDeploymentResource deployment)
     {
-        if (string.IsNullOrWhiteSpace(deployment.EnvironmentName))
-        {
-            throw new InvalidOperationException(
-                $"Fusion deployment '{deployment.Name}' must select an Aspire environment.");
-        }
-
-        if (string.IsNullOrWhiteSpace(deployment.StageName))
+        if (string.IsNullOrWhiteSpace(deployment.StageName)
+            && deployment.StageParameter is null)
         {
             throw new InvalidOperationException(
                 $"Fusion deployment '{deployment.Name}' must select a Nitro stage.");

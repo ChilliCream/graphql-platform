@@ -63,12 +63,15 @@ nitro
         approval: TimeSpan.FromHours(2));
 ```
 
-`ForEnvironment` selects the Aspire invocation. `ToStage` selects the Nitro stage.
-`WithCompositionEnvironment` selects the source-settings environment. `WithConfigurationTag`
-supplies the immutable source version and final configuration tag.
+`ForEnvironment` restricts the declaration to one Aspire invocation. `ToStage` selects the Nitro
+stage, either as a literal or from a parameter. `WithCompositionEnvironment` selects the
+source-settings environment. `WithConfigurationTag` supplies the immutable source version and final
+configuration tag.
 
 Multiple deployment declarations can map the same AppHost composition to different Aspire
-environments or Nitro stages. Ambiguous duplicate environment/API/stage mappings are rejected.
+environments or Nitro stages. Ambiguous duplicate environment/API/stage mappings are rejected. A
+declaration without `ForEnvironment` publishes in every environment, which is the shape to use when
+the stage comes from a parameter, so one declaration serves every stage.
 
 ## Source declaration and acquisition
 
@@ -113,8 +116,8 @@ never written to output or logs.
 | Cloud URL | Explicit `.WithNitroCloudUrl(...)` HTTPS origin |
 | API ID | Explicit `.WithNitroApiId(...)` |
 | API key | Secret `ParameterResource` |
-| Aspire environment | Explicit `.ForEnvironment(...)` |
-| Nitro stage | Explicit `.ToStage(...)` |
+| Aspire environment | Optional `.ForEnvironment(...)`, every environment when absent |
+| Nitro stage | Explicit `.ToStage(...)` literal or `ParameterResource` |
 | Rollout/source/configuration tag | `builder.AddParameter("tag")` |
 
 ## `fusion-upload`
