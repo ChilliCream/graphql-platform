@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
@@ -11,11 +12,17 @@ namespace HotChocolate.Fusion.Aspire;
 
 internal static class AspireCompositionHelper
 {
+    private const string DefaultGraphQLPath = "/graphql";
+
+    /// <summary>
+    /// Composes the given source schema archives into a fusion archive, resolving the source
+    /// schema settings against the environment of the distributed application.
+    /// </summary>
     public static Task<bool> TryComposeArchivesAsync(
         string fusionArchivePath,
         IReadOnlyList<SourceSchemaArchiveInfo> archives,
         GraphQLCompositionSettings settings,
-        ILogger<SchemaComposition> logger,
+        ILogger logger,
         CancellationToken cancellationToken)
         => TryComposeArchivesAsync(
             fusionArchivePath,
@@ -25,12 +32,16 @@ internal static class AspireCompositionHelper
             logger,
             cancellationToken);
 
+    /// <summary>
+    /// Composes the given source schema archives into a fusion archive, resolving the source
+    /// schema settings against <paramref name="environmentName"/>.
+    /// </summary>
     public static async Task<bool> TryComposeArchivesAsync(
         string fusionArchivePath,
         IReadOnlyList<SourceSchemaArchiveInfo> archives,
         string environmentName,
         GraphQLCompositionSettings settings,
-        ILogger<SchemaComposition> logger,
+        ILogger logger,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
@@ -67,11 +78,15 @@ internal static class AspireCompositionHelper
                     });
             }
 
-            return await TryComposeAsync(
+            // the archives are composed for a deployment, so the configured URLs are composed as
+            // they are, without local overrides and without a preference for development URLs.
+            return await ComposeAsync(
                 fusionArchivePath,
+                seedArchivePath: null,
                 [.. sourceSchemas],
                 environmentName,
                 settings,
+                SettingsComposerOptions.Default,
                 logger,
                 cancellationToken);
         }
@@ -84,33 +99,79 @@ internal static class AspireCompositionHelper
         }
     }
 
+    /// <summary>
+    /// Composes the source schemas of the distributed application into a fusion archive.
+    /// </summary>
+    /// <param name="fusionArchivePath">
+    /// The full path of the fusion archive that is written.
+    /// </param>
+    /// <param name="seedArchivePath">
+    /// The full path of the fusion archive that the composition builds on, which replaces the
+    /// content of <paramref name="fusionArchivePath"/>. When it is <c>null</c>, the composition
+    /// builds on <paramref name="fusionArchivePath"/> itself.
+    /// </param>
+    /// <param name="newSourceSchemas">
+    /// The source schemas of the distributed application. They replace the source schemas of the
+    /// same name that the composition base carries.
+    /// </param>
+    /// <param name="settings">
+    /// The composition settings of the gateway.
+    /// </param>
+    /// <param name="externalEnvironment">
+    /// The environment that the settings of the source schemas which the composition base carries
+    /// resolve against. When it is <c>null</c>, every source schema resolves against the
+    /// environment of the distributed application.
+    /// </param>
+    /// <param name="logger">
+    /// The logger that receives the composition diagnostics.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     public static Task<bool> TryComposeAsync(
         string fusionArchivePath,
+        string? seedArchivePath,
         ImmutableArray<SourceSchemaInfo> newSourceSchemas,
         GraphQLCompositionSettings settings,
-        ILogger<SchemaComposition> logger,
-        CancellationToken cancellationToken)
-        => TryComposeAsync(
-            fusionArchivePath,
-            newSourceSchemas,
-            settings.EnvironmentName ?? "Aspire",
-            settings,
-            logger,
-            cancellationToken);
-
-    public static async Task<bool> TryComposeAsync(
-        string fusionArchivePath,
-        ImmutableArray<SourceSchemaInfo> newSourceSchemas,
-        string environmentName,
-        GraphQLCompositionSettings settings,
-        ILogger<SchemaComposition> logger,
+        string? externalEnvironment,
+        ILogger logger,
         CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+        var environment = settings.EnvironmentName ?? "Aspire";
+        var settingsComposerOptions = new SettingsComposerOptions
+        {
+            LocalUrlOverrides = BuildLocalUrlOverrides(newSourceSchemas, environment, logger),
+            PreferDevUrls = true,
+            LocalSourceSchemas = newSourceSchemas
+                .Select(s => s.Name)
+                .ToFrozenSet(StringComparer.Ordinal),
+            ExternalEnvironment = externalEnvironment
+        };
 
-        using var archive = File.Exists(fusionArchivePath)
-            ? FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update)
-            : FusionArchive.Create(fusionArchivePath);
+        return ComposeAsync(
+            fusionArchivePath,
+            seedArchivePath,
+            newSourceSchemas,
+            environment,
+            settings,
+            settingsComposerOptions,
+            logger,
+            cancellationToken);
+    }
+
+    private static async Task<bool> ComposeAsync(
+        string fusionArchivePath,
+        string? seedArchivePath,
+        ImmutableArray<SourceSchemaInfo> newSourceSchemas,
+        string environment,
+        GraphQLCompositionSettings settings,
+        SettingsComposerOptions settingsComposerOptions,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(environment);
+
+        using var archive = OpenArchive(fusionArchivePath, seedArchivePath);
 
         var compositionLog = new CompositionLog();
         var compositionSettings = CreateCompositionSettings(settings);
@@ -122,7 +183,8 @@ internal static class AspireCompositionHelper
             compositionLog,
             sourceSchemas,
             archive,
-            environmentName,
+            environment,
+            settingsComposerOptions,
             compositionSettings,
             legacyArchive: null,
             cancellationToken);
@@ -131,29 +193,122 @@ internal static class AspireCompositionHelper
 
         foreach (var entry in compositionLog)
         {
-            if (entry.Severity is LogSeverity.Error)
+            if (entry.Severity is LogSeverity.Warning)
             {
-                output.AppendLine($"‼️ {FormatMultilineMessage(entry.Message)}");
+                logger.LogWarning("{Message}", entry.Message);
+                continue;
             }
-            else
-            {
-                output.AppendLine(entry.Message);
-            }
+
+            output.AppendLine(entry.Message);
         }
 
         if (result.IsFailure)
         {
-            output.Append("❌ Composition failed:");
+            output.Append("Composition failed:");
             logger.LogError("{Message}", output.ToString());
             return false;
         }
 
-        output.Append("✅ Composition completed successfully.");
+        output.Append("Composition completed successfully.");
         logger.LogInformation("{Message}", output.ToString());
 
         return true;
     }
 
+    /// <summary>
+    /// Opens the archive that the composition writes to. A seed replaces the content of the
+    /// archive, so what a previous composition wrote is never an input.
+    /// </summary>
+    private static FusionArchive OpenArchive(string fusionArchivePath, string? seedArchivePath)
+    {
+        if (seedArchivePath is not null)
+        {
+            File.Copy(seedArchivePath, fusionArchivePath, overwrite: true);
+
+            return FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update);
+        }
+
+        return File.Exists(fusionArchivePath)
+            ? FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update)
+            : FusionArchive.Create(fusionArchivePath);
+    }
+
+    /// <summary>
+    /// Builds the local GraphQL endpoint URL per source schema that is backed by a resource
+    /// with an allocated HTTP endpoint. The URL uses the allocated endpoint origin combined
+    /// with the path of the configured HTTP transport URL, or /graphql when no path can be
+    /// determined.
+    /// </summary>
+    internal static Dictionary<string, string> BuildLocalUrlOverrides(
+        ImmutableArray<SourceSchemaInfo> sourceSchemas,
+        string environment,
+        ILogger logger)
+    {
+        var localUrlOverrides = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var sourceSchema in sourceSchemas)
+        {
+            if (sourceSchema.AllocatedHttpEndpointUrl is null)
+            {
+                logger.LogDebug(
+                    "Source schema {Name} has no allocated HTTP endpoint. No local URL is injected.",
+                    sourceSchema.Name);
+                continue;
+            }
+
+            var path = ResolveConfiguredGraphQLPath(sourceSchema.SchemaSettings, environment)
+                ?? DefaultGraphQLPath;
+            var url = sourceSchema.AllocatedHttpEndpointUrl.TrimEnd('/') + path;
+
+            localUrlOverrides[sourceSchema.Name] = url;
+
+            logger.LogDebug(
+                "Injecting local GraphQL endpoint URL {Url} for source schema {Name}.",
+                url,
+                sourceSchema.Name);
+        }
+
+        return localUrlOverrides;
+    }
+
+    /// <summary>
+    /// Determines the GraphQL endpoint path from the configured HTTP transport URL of a source
+    /// schema settings document. Returns <c>null</c> when the settings define no HTTP transport
+    /// URL, when the URL contains variables that cannot be resolved for the environment, or
+    /// when the URL carries no path.
+    /// </summary>
+    internal static string? ResolveConfiguredGraphQLPath(
+        JsonDocument schemaSettings,
+        string environment)
+    {
+        var root = schemaSettings.RootElement;
+
+        if (root.ValueKind is not JsonValueKind.Object
+            || !root.TryGetProperty("transports", out var transports)
+            || transports.ValueKind is not JsonValueKind.Object
+            || !transports.TryGetProperty("http", out var http)
+            || http.ValueKind is not JsonValueKind.Object
+            || !http.TryGetProperty("url", out var url)
+            || url.ValueKind is not JsonValueKind.String)
+        {
+            return null;
+        }
+
+        if (!SettingsComposer.TryResolveVariables(url.GetString()!, root, environment, out var resolvedUrl)
+            || !Uri.TryCreate(resolvedUrl, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            || uri.AbsolutePath.Length <= 1)
+        {
+            return null;
+        }
+
+        return uri.AbsolutePath;
+    }
+
+    /// <summary>
+    /// Resolves the settings of a single source schema against the given environment, so that the
+    /// resulting document no longer carries environment specific overrides.
+    /// </summary>
     internal static JsonDocument ResolveSourceSchemaSettings(
         JsonDocument sourceSchemaSettings,
         string environmentName)
@@ -165,7 +320,9 @@ internal static class AspireCompositionHelper
         new SettingsComposer().Compose(
             buffer,
             [sourceSchemaSettings.RootElement],
-            environmentName);
+            environmentName,
+            SettingsComposerOptions.Default,
+            new CompositionLog());
         using var gatewaySettings = JsonDocument.Parse(buffer.WrittenMemory);
         var sourceSchemas = gatewaySettings.RootElement
             .GetProperty("sourceSchemas");
@@ -197,22 +354,6 @@ internal static class AspireCompositionHelper
             },
             Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };
-    }
-
-    /// <summary>
-    /// Since we're prefixing the message with an emoji and space before printing,
-    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
-    /// </summary>
-    private static string FormatMultilineMessage(string message)
-    {
-        var lines = message.Split(Environment.NewLine);
-
-        if (lines.Length <= 1)
-        {
-            return message;
-        }
-
-        return string.Join(Environment.NewLine + "   ", lines);
     }
 }
 

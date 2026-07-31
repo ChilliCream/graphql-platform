@@ -19,6 +19,7 @@ internal static class CompositionHelper
         Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
         FusionArchive archive,
         string environment,
+        SettingsComposerOptions settingsComposerOptions,
         CompositionSettings? compositionSettings,
         Stream? legacyArchive,
         CancellationToken cancellationToken)
@@ -156,7 +157,9 @@ internal static class CompositionHelper
             new SettingsComposer().Compose(
                 bufferWriter,
                 [.. runtimeSourceSchemaSettings],
-                environment);
+                environment,
+                settingsComposerOptions,
+                compositionLog);
         }
         finally
         {
