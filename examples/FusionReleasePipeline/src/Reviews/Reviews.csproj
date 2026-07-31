@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <RootNamespace>FusionReleasePipeline.Reviews</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="../../../../src/HotChocolate/AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/HotChocolate/AspNetCore/src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
-  </ItemGroup>
-</Project>

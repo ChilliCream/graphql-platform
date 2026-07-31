@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/AppHost/AppHost.csproj" />
-    <Project Path="src/Gateway/Gateway.csproj" />
-    <Project Path="src/Products/Products.csproj" />
-    <Project Path="src/Reviews/Reviews.csproj" />
-  </Folder>
-</Solution>
