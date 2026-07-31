@@ -34,18 +34,27 @@ internal sealed record CompositionHarness(
             Coordinator = coordinator,
             PortalUrl = portalUrl
         };
+        options.SeedUpdates.Enabled = false;
         var validationCoordinator = new NitroSchemaValidationCoordinator(
             options,
             resourceLoggerService,
             notifier,
             lifetime,
             NullLoggerFactory.Instance);
+        var seedUpdateService = new NitroSeedUpdateService(
+            options,
+            resourceLoggerService,
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
         var composition = new SchemaComposition(
             notifications,
             resourceLoggerService,
             lifetime,
             options,
             validationCoordinator,
+            seedUpdateService,
             new GatewayCompositionCommandCoordinator(),
             logger);
 
@@ -55,6 +64,19 @@ internal sealed record CompositionHarness(
             notifications,
             logger,
             lifetime);
+    }
+
+    private sealed class NoopSeedUpdateNotifier : INitroSeedUpdateNotifier
+    {
+        public static NoopSeedUpdateNotifier Instance { get; } = new();
+
+        public void NotifyAdopted(string message)
+        {
+        }
+
+        public void NotifyStaged(string message)
+        {
+        }
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

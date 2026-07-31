@@ -22,12 +22,16 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// <param name="IsFresh">
 /// Whether the fusion configuration was downloaded for this run instead of taken from the cache.
 /// </param>
+/// <param name="SchemaHash">
+/// The SHA-256 hash of the gateway schema carried by the configuration.
+/// </param>
 internal sealed record NitroGatewaySeed(
     string ApiId,
     string Stage,
     string FilePath,
     DateTimeOffset DownloadedAt,
-    bool IsFresh);
+    bool IsFresh,
+    string SchemaHash);
 
 /// <summary>
 /// The outcome of acquiring the fusion configuration of a gateway.

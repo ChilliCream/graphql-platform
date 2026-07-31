@@ -16,4 +16,9 @@ internal sealed class NitroCompositionOptions
     /// Gets or sets the caller-supplied Nitro portal URL.
     /// </summary>
     public Uri? PortalUrl { get; set; }
+
+    /// <summary>
+    /// Gets the options that control stage update detection and automatic adoption.
+    /// </summary>
+    public NitroSeedUpdateOptions SeedUpdates { get; } = new();
 }
