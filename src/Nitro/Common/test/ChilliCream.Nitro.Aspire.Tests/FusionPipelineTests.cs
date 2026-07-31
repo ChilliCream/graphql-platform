@@ -1,8 +1,10 @@
+using System.Net;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Pipelines;
 using HotChocolate.Fusion.Aspire;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChilliCream.Nitro.Aspire;
 
@@ -15,7 +17,7 @@ public sealed class FusionPipelineTests
     {
         var builder = DistributedApplication.CreateBuilder();
         var nitro = builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .WithCloudUrl("https://api.chillicream.com")
             .WithApiId("products");
         nitro
@@ -43,7 +45,7 @@ public sealed class FusionPipelineTests
         var builder = DistributedApplication.CreateBuilder();
         var manifest = builder.AddParameter("fusionReleaseManifest");
         var deployment = builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .AddFusionDeployment("production")
             .WithFusionReleaseManifest(manifest)
             .WithCompositionEnvironment("prod");
@@ -61,7 +63,7 @@ public sealed class FusionPipelineTests
     {
         var builder = DistributedApplication.CreateBuilder();
         var deployment = builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .AddFusionDeployment("production")
             .WithFusionReleaseManifest(
                 builder.AddParameter("fusionReleaseManifest"));
@@ -81,7 +83,7 @@ public sealed class FusionPipelineTests
 
         var exception = Assert.Throws<ArgumentException>(
             () => builder
-                .AddNitro("nitro")
+                .AddNitroTarget("nitro")
                 .WithCloudUrl(
                     "https://api.chillicream.com/CaseSensitivePath"));
 
@@ -96,7 +98,7 @@ public sealed class FusionPipelineTests
     {
         var builder = DistributedApplication.CreateBuilder();
         builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .WithCloudUrl("https://api.chillicream.com")
             .WithApiId("products")
             .AddFusionDeployment("production")
@@ -117,7 +119,7 @@ public sealed class FusionPipelineTests
     {
         var builder = DistributedApplication.CreateBuilder();
         var nitro = builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .WithCloudUrl("https://api.chillicream.com")
             .WithApiId("products");
         nitro
@@ -152,7 +154,7 @@ public sealed class FusionPipelineTests
     {
         var builder = DistributedApplication.CreateBuilder();
         var nitro = builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .WithCloudUrl("https://api.chillicream.com")
             .WithApiId("products");
         nitro
@@ -193,7 +195,8 @@ public sealed class FusionPipelineTests
                 fusion-artifacts: depends=[]; requiredBy=[publish]
                 fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
                 fusion-readiness: depends=[fusion-artifacts]; requiredBy=[]
-                fusion-publish: depends=[fusion-upload, fusion-readiness]; requiredBy=[deploy]
+                fusion-publish-stage: depends=[fusion-upload, fusion-readiness]; requiredBy=[]
+                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[deploy]
                 """);
     }
 
@@ -218,7 +221,8 @@ public sealed class FusionPipelineTests
                 fusion-release-prepare: depends=[]; requiredBy=[]
                 fusion-compose: depends=[fusion-release-prepare]; requiredBy=[]
                 fusion-readiness: depends=[fusion-compose]; requiredBy=[]
-                fusion-publish: depends=[fusion-readiness]; requiredBy=[deploy]
+                fusion-publish-stage: depends=[fusion-readiness]; requiredBy=[]
+                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[deploy]
                 """);
     }
 
@@ -241,6 +245,7 @@ public sealed class FusionPipelineTests
             .MatchInlineSnapshot(
                 """
                 fusion-compose
+                fusion-publish-stage
                 fusion-readiness
                 fusion-release-prepare
                 """);
@@ -263,8 +268,155 @@ public sealed class FusionPipelineTests
                 fusion-artifacts: depends=[]; requiredBy=[publish]
                 fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
                 fusion-readiness: depends=[]; requiredBy=[]
-                fusion-publish: depends=[fusion-readiness]; requiredBy=[]
+                fusion-publish-stage: depends=[fusion-readiness]; requiredBy=[]
+                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[]
                 """);
+    }
+
+    [Fact]
+    public void WireGatewayDeployment_Should_PublishStageBeforeGatewayStarts()
+    {
+        var resource = new FusionPipelineResource("fusion-pipeline");
+        var stagePublication = CreatePipelineStep(
+            FusionPipeline.PublishStageStepName,
+            resource,
+            "fusion");
+        var gatewayDeployment = CreatePipelineStep(
+            "deploy-gateway",
+            resource,
+            WellKnownPipelineTags.DeployCompute);
+        var publication = CreatePipelineStep(
+            FusionPipeline.PublishStepName,
+            resource,
+            "fusion");
+        publication.DependsOn(stagePublication);
+
+        FusionPipeline.WireGatewayDeployment(
+            stagePublication,
+            publication,
+            [gatewayDeployment]);
+
+        string.Join(
+                Environment.NewLine,
+                new[] { stagePublication, gatewayDeployment, publication }
+                    .Select(step =>
+                        $"{step.Name}: depends=[{string.Join(", ", step.DependsOnSteps)}]"))
+            .MatchInlineSnapshot(
+                """
+                fusion-publish-stage: depends=[]
+                deploy-gateway: depends=[fusion-publish-stage]
+                fusion-publish: depends=[fusion-publish-stage, deploy-gateway]
+                """);
+    }
+
+    [Fact]
+    public void SelectResourceDeploymentSteps_Should_PreferDirectDeployComputeSteps()
+    {
+        var source = new FusionPipelineResource("products");
+        var steps = new[]
+        {
+            CreatePipelineStep(
+                "deploy-products",
+                source,
+                WellKnownPipelineTags.DeployCompute),
+            CreatePipelineStep(
+                "provision-products",
+                source,
+                WellKnownPipelineTags.ProvisionInfrastructure)
+        };
+
+        string.Join(
+                Environment.NewLine,
+                FusionPipeline
+                    .SelectResourceDeploymentSteps(
+                        CreatePipelineConfigurationContext(steps),
+                        source)
+                    .Select(step => step.Name))
+            .MatchInlineSnapshot(
+                """
+                deploy-products
+                """);
+    }
+
+    [Fact]
+    public void SelectResourceDeploymentSteps_Should_UseDeploymentTargetDeployComputeSteps()
+    {
+        var source = new FusionPipelineResource("products");
+        var deploymentTarget = new FusionPipelineResource(
+            "products-containerapp");
+        source.Annotations.Add(
+            new DeploymentTargetAnnotation(deploymentTarget));
+        var steps = new[]
+        {
+            CreatePipelineStep(
+                "build-products",
+                source,
+                WellKnownPipelineTags.BuildCompute),
+            CreatePipelineStep(
+                "deploy-products",
+                deploymentTarget,
+                WellKnownPipelineTags.DeployCompute),
+            CreatePipelineStep(
+                "provision-products-containerapp",
+                deploymentTarget,
+                WellKnownPipelineTags.ProvisionInfrastructure)
+        };
+
+        string.Join(
+                Environment.NewLine,
+                FusionPipeline
+                    .SelectResourceDeploymentSteps(
+                        CreatePipelineConfigurationContext(steps),
+                        source)
+                    .Select(step => step.Name))
+            .MatchInlineSnapshot(
+                """
+                deploy-products
+                """);
+    }
+
+    [Fact]
+    public void SelectResourceDeploymentSteps_Should_NotUseProvisionInfrastructureAsTerminal()
+    {
+        var source = new FusionPipelineResource("products");
+        var deploymentTarget = new FusionPipelineResource(
+            "products-containerapp");
+        source.Annotations.Add(
+            new DeploymentTargetAnnotation(deploymentTarget));
+        var steps = new[]
+        {
+            CreatePipelineStep(
+                "build-products",
+                source,
+                WellKnownPipelineTags.BuildCompute),
+            CreatePipelineStep(
+                "provision-products-containerapp",
+                deploymentTarget,
+                WellKnownPipelineTags.ProvisionInfrastructure)
+        };
+
+        string.Join(
+                Environment.NewLine,
+                FusionPipeline
+                    .SelectResourceDeploymentSteps(
+                        CreatePipelineConfigurationContext(steps),
+                        source)
+                    .Select(step => step.Name))
+            .MatchInlineSnapshot(
+                "");
+    }
+
+    [Fact]
+    public void EnsureResourceDeploymentOrdering_Should_Fail_WhenExternalResourceHasNoDeploymentStep()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionPipeline.EnsureResourceDeploymentOrdering(
+                ["external-products"]));
+
+        Assert.Equal(
+            "Fusion publication cannot prove compute deployment ordering for resources: "
+            + "external-products",
+            exception.Message);
     }
 
     [Fact]
@@ -621,6 +773,56 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
+    public async Task WaitForReadiness_Should_Retry_WhenEndpointIsTransientlyUnavailable()
+    {
+        using var handler = new StubHttpMessageHandler(
+            (attempt, _, _) => Task.FromResult(
+                new HttpResponseMessage(
+                    attempt == 1
+                        ? HttpStatusCode.ServiceUnavailable
+                        : HttpStatusCode.NoContent)));
+        using var httpClient = new HttpClient(handler);
+
+        await FusionPipelineExecutor.WaitForReadinessAsync(
+            httpClient,
+            "products",
+            new Uri("https://products.example.com/graphql"),
+            TimeSpan.FromSeconds(1),
+            TimeSpan.Zero,
+            CancellationToken.None);
+
+        Assert.Equal(2, handler.Attempts);
+    }
+
+    [Fact]
+    public async Task WaitForReadiness_Should_FailWithContext_WhenDeadlineExpires()
+    {
+        using var handler = new StubHttpMessageHandler(
+            async (_, _, cancellationToken) =>
+            {
+                await Task.Delay(
+                    Timeout.InfiniteTimeSpan,
+                    cancellationToken);
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+        using var httpClient = new HttpClient(handler);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => FusionPipelineExecutor.WaitForReadinessAsync(
+                httpClient,
+                "products",
+                new Uri("https://products.example.com/graphql"),
+                TimeSpan.FromMilliseconds(50),
+                TimeSpan.Zero,
+                CancellationToken.None));
+
+        Assert.Equal(
+            "Fusion source 'products' at 'https://products.example.com/graphql' "
+            + "did not pass its production readiness check within 00:00:00.0500000.",
+            exception.Message);
+    }
+
+    [Fact]
     public void ReplaceDirectoryAtomically_Should_RemoveSource_WhenSourceWasRemoved()
     {
         using var testDirectory = new TestDirectory();
@@ -722,6 +924,33 @@ public sealed class FusionPipelineTests
         }
     }
 
+    private static PipelineStep CreatePipelineStep(
+        string name,
+        IResource resource,
+        string tag)
+        => new()
+        {
+            Name = name,
+            Description = name,
+            Resource = resource,
+            Tags = [tag],
+            Action = _ => Task.CompletedTask
+        };
+
+    private static PipelineConfigurationContext
+        CreatePipelineConfigurationContext(
+            IReadOnlyList<PipelineStep> steps)
+    {
+        var builder = DistributedApplication.CreateBuilder();
+
+        return new PipelineConfigurationContext
+        {
+            Services = builder.Services.BuildServiceProvider(),
+            Steps = steps,
+            Model = new DistributedApplicationModel(builder.Resources)
+        };
+    }
+
     private static string GetHttpUrl(JsonDocument settings)
         => settings.RootElement
             .GetProperty("transports")
@@ -785,6 +1014,27 @@ public sealed class FusionPipelineTests
         {
             Directory.Delete(Path, recursive: true);
         }
+    }
+
+    private sealed class StubHttpMessageHandler(
+        Func<
+            int,
+            HttpRequestMessage,
+            CancellationToken,
+            Task<HttpResponseMessage>> sendAsync)
+        : HttpMessageHandler
+    {
+        private int _attempts;
+
+        public int Attempts => _attempts;
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+            => sendAsync(
+                Interlocked.Increment(ref _attempts),
+                request,
+                cancellationToken);
     }
 }
 

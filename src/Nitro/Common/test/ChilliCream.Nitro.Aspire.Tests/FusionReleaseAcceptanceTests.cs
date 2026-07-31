@@ -198,7 +198,7 @@ public sealed class FusionReleaseAcceptanceTests
             .WithReference(products)
             .WithGraphQLSchemaComposition();
         var nitro = builder
-            .AddNitro("nitro")
+            .AddNitroTarget("nitro")
             .WithCloudUrl("https://api.chillicream.com")
             .WithApiId("products")
             .WithApiKey(apiKey);

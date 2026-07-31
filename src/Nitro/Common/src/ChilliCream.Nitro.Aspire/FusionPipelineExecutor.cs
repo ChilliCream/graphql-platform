@@ -21,6 +21,9 @@ namespace ChilliCream.Nitro.Aspire;
 
 internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
 {
+    private static readonly TimeSpan s_readinessRetryDelay =
+        TimeSpan.FromSeconds(1);
+
     public static FusionPipelineExecutor Instance { get; } = new();
 
     public async Task CreateArtifactsAsync(PipelineStepContext context)
@@ -132,15 +135,13 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 var endpoint = GetTransportEndpoint(resolvedSettings);
                 RejectLoopbackEndpoint(endpoint);
 
-                using var response = await httpClient.GetAsync(
+                await WaitForReadinessAsync(
+                    httpClient,
+                    Path.GetFileName(sourceDirectory),
                     endpoint,
+                    deployment.OperationTimeout,
+                    s_readinessRetryDelay,
                     context.CancellationToken);
-                if ((int)response.StatusCode >= (int)HttpStatusCode.InternalServerError)
-                {
-                    throw new InvalidOperationException(
-                        $"Fusion source '{Path.GetFileName(sourceDirectory)}' did not pass "
-                        + "its production readiness check.");
-                }
             }
         }
     }
@@ -785,17 +786,92 @@ internal sealed class FusionPipelineExecutor : IFusionPipelineExecutor
                 configuration.Settings))
             {
                 RejectLoopbackEndpoint(endpoint);
-                using var response = await httpClient.GetAsync(
+                await WaitForReadinessAsync(
+                    httpClient,
+                    name,
                     endpoint,
+                    deployment.OperationTimeout,
+                    s_readinessRetryDelay,
                     context.CancellationToken);
-                if ((int)response.StatusCode
-                    >= (int)HttpStatusCode.InternalServerError)
-                {
-                    throw new InvalidOperationException(
-                        $"Fusion source '{name}' did not pass its production readiness check.");
-                }
             }
         }
+    }
+
+    internal static async Task WaitForReadinessAsync(
+        HttpClient httpClient,
+        string sourceName,
+        Uri endpoint,
+        TimeSpan timeout,
+        TimeSpan retryDelay,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(
+            timeout,
+            TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfLessThan(
+            retryDelay,
+            TimeSpan.Zero);
+
+        using var timeoutSource =
+            CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken);
+        timeoutSource.CancelAfter(timeout);
+        Exception? lastFailure = null;
+
+        while (!timeoutSource.IsCancellationRequested)
+        {
+            try
+            {
+                using var response = await httpClient.GetAsync(
+                    endpoint,
+                    timeoutSource.Token);
+                if ((int)response.StatusCode
+                    < (int)HttpStatusCode.InternalServerError)
+                {
+                    return;
+                }
+
+                lastFailure = new HttpRequestException(
+                    $"The readiness endpoint returned HTTP {(int)response.StatusCode} "
+                    + $"({response.StatusCode}).");
+            }
+            catch (HttpRequestException exception)
+            {
+                lastFailure = exception;
+            }
+            catch (OperationCanceledException exception)
+                when (!cancellationToken.IsCancellationRequested)
+            {
+                lastFailure = exception;
+            }
+
+            if (timeoutSource.IsCancellationRequested)
+            {
+                break;
+            }
+
+            try
+            {
+                await Task.Delay(
+                    retryDelay,
+                    timeoutSource.Token);
+            }
+            catch (OperationCanceledException)
+                when (!cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        throw new InvalidOperationException(
+            $"Fusion source '{sourceName}' at '{endpoint}' did not pass its "
+            + $"production readiness check within {timeout}.",
+            lastFailure);
     }
 
     private static async Task PublishReleaseAsync(

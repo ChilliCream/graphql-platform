@@ -10,7 +10,7 @@ var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
 var releaseId = builder.AddParameter("releaseId");
 var releaseManifest = builder.AddParameter("fusionReleaseManifest");
 
-var nitro = builder.AddNitro("nitro")
+var nitro = builder.AddNitroTarget("nitro")
     .WithCloudUrl("https://api.chillicream.com")
     .WithApiId("products-fusion")
     .WithApiKey(nitroApiKey);

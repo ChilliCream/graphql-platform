@@ -16,6 +16,7 @@ internal static class FusionPipeline
     internal const string ComposeReleaseStepName = "fusion-compose";
     internal const string ReadinessStepName = "fusion-readiness";
     internal const string UploadStepName = "fusion-upload";
+    internal const string PublishStageStepName = "fusion-publish-stage";
     internal const string PublishStepName = "fusion-publish";
 
     public static void Configure(
@@ -219,12 +220,20 @@ internal static class FusionPipeline
                 },
                 new PipelineStep
                 {
-                    Name = PublishStepName,
+                    Name = PublishStageStepName,
                     Description = "Publish the promoted Fusion configuration to Nitro.",
                     Resource = resource,
                     DependsOnSteps = [ReadinessStepName],
-                    RequiredBySteps = [WellKnownPipelineSteps.Deploy],
                     Action = ExecutePublishAsync
+                },
+                new PipelineStep
+                {
+                    Name = PublishStepName,
+                    Description = "Complete the promoted Fusion deployment.",
+                    Resource = resource,
+                    DependsOnSteps = [PublishStageStepName],
+                    RequiredBySteps = [WellKnownPipelineSteps.Deploy],
+                    Action = _ => Task.CompletedTask
                 }
             ];
         }
@@ -243,11 +252,19 @@ internal static class FusionPipeline
                 },
                 new PipelineStep
                 {
-                    Name = PublishStepName,
+                    Name = PublishStageStepName,
                     Description = "Publish a Fusion configuration to Nitro.",
                     Resource = resource,
                     DependsOnSteps = [ReadinessStepName],
                     Action = ExecutePublishAsync
+                },
+                new PipelineStep
+                {
+                    Name = PublishStepName,
+                    Description = "Complete the Fusion deployment.",
+                    Resource = resource,
+                    DependsOnSteps = [PublishStageStepName],
+                    Action = _ => Task.CompletedTask
                 }
             ];
         }
@@ -265,12 +282,20 @@ internal static class FusionPipeline
             },
             new PipelineStep
             {
-                Name = PublishStepName,
+                Name = PublishStageStepName,
                 Description = "Compose and publish the Fusion configuration to Nitro.",
                 Resource = resource,
                 DependsOnSteps = [UploadStepName, ReadinessStepName],
-                RequiredBySteps = [WellKnownPipelineSteps.Deploy],
                 Action = ExecutePublishAsync
+            },
+            new PipelineStep
+            {
+                Name = PublishStepName,
+                Description = "Complete the Fusion deployment.",
+                Resource = resource,
+                DependsOnSteps = [PublishStageStepName],
+                RequiredBySteps = [WellKnownPipelineSteps.Deploy],
+                Action = _ => Task.CompletedTask
             }
         ];
     }
@@ -290,18 +315,22 @@ internal static class FusionPipeline
             context.Model);
         var readiness = context.Steps.Single(
             step => step.Name == ReadinessStepName);
+        var stagePublication = context.Steps.Single(
+            step => step.Name == PublishStageStepName);
+        var publication = context.Steps.Single(
+            step => step.Name == PublishStepName);
 
-        topology.SourcesWithoutCompute.Clear();
+        topology.ResourcesWithoutCompute.Clear();
 
         foreach (var source in sources)
         {
-            var computeSteps = context
-                .GetSteps(source.Resource, WellKnownPipelineTags.DeployCompute)
-                .ToArray();
+            var computeSteps = SelectResourceDeploymentSteps(
+                context,
+                source.Resource);
 
             if (computeSteps.Length == 0)
             {
-                topology.SourcesWithoutCompute.Add(source.Resource.Name);
+                topology.ResourcesWithoutCompute.Add(source.Resource.Name);
                 continue;
             }
 
@@ -310,6 +339,67 @@ internal static class FusionPipeline
                 readiness.DependsOn(computeStep);
             }
         }
+
+        var gatewayComputeSteps = SelectResourceDeploymentSteps(
+            context,
+            composition);
+
+        if (gatewayComputeSteps.Length == 0)
+        {
+            topology.ResourcesWithoutCompute.Add(composition.Name);
+            return;
+        }
+
+        WireGatewayDeployment(
+            stagePublication,
+            publication,
+            gatewayComputeSteps);
+    }
+
+    internal static void WireGatewayDeployment(
+        PipelineStep stagePublication,
+        PipelineStep publication,
+        IEnumerable<PipelineStep> gatewayComputeSteps)
+    {
+        foreach (var gatewayComputeStep in gatewayComputeSteps)
+        {
+            gatewayComputeStep.DependsOn(stagePublication);
+            publication.DependsOn(gatewayComputeStep);
+        }
+    }
+
+    internal static PipelineStep[] SelectResourceDeploymentSteps(
+        PipelineConfigurationContext context,
+        IResource resource)
+    {
+        var deployComputeSteps = context
+            .GetSteps(resource, WellKnownPipelineTags.DeployCompute)
+            .ToArray();
+
+        if (deployComputeSteps.Length > 0)
+        {
+            return deployComputeSteps;
+        }
+
+        var deploymentTarget = resource
+            .GetDeploymentTargetAnnotation()
+            ?.DeploymentTarget;
+
+        if (deploymentTarget is not null)
+        {
+            deployComputeSteps = context
+                .GetSteps(
+                    deploymentTarget,
+                    WellKnownPipelineTags.DeployCompute)
+                .ToArray();
+
+            if (deployComputeSteps.Length > 0)
+            {
+                return deployComputeSteps;
+            }
+        }
+
+        return [];
     }
 
     private static Task ExecuteArtifactsAsync(PipelineStepContext context)
@@ -319,14 +409,20 @@ internal static class FusionPipeline
         PipelineStepContext context,
         FusionPipelineTopology topology)
     {
-        if (topology.SourcesWithoutCompute.Count > 0)
+        EnsureResourceDeploymentOrdering(topology.ResourcesWithoutCompute);
+
+        return GetExecutor(context).VerifyReadinessAsync(context);
+    }
+
+    internal static void EnsureResourceDeploymentOrdering(
+        IReadOnlyCollection<string> resourcesWithoutCompute)
+    {
+        if (resourcesWithoutCompute.Count > 0)
         {
             throw new InvalidOperationException(
                 "Fusion publication cannot prove compute deployment ordering for resources: "
-                + string.Join(", ", topology.SourcesWithoutCompute.Order()));
+                + string.Join(", ", resourcesWithoutCompute.Order()));
         }
-
-        return GetExecutor(context).VerifyReadinessAsync(context);
     }
 
     private static Task ExecuteUploadAsync(PipelineStepContext context)
@@ -410,7 +506,7 @@ internal static class FusionPipeline
 
         public bool BuildOnlyManifestProducer { get; set; }
 
-        public HashSet<string> SourcesWithoutCompute { get; } =
+        public HashSet<string> ResourcesWithoutCompute { get; } =
             new(StringComparer.Ordinal);
     }
 

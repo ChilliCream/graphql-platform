@@ -12,7 +12,7 @@ public static class NitroResourceBuilderExtensions
     /// <summary>
     /// Adds a Nitro target.
     /// </summary>
-    public static IResourceBuilder<NitroResource> AddNitro(
+    public static IResourceBuilder<NitroResource> AddNitroTarget(
         this IDistributedApplicationBuilder builder,
         string name)
     {
