@@ -5,6 +5,7 @@ import rehypeMermaid, { RehypeMermaidOptions } from "rehype-mermaid";
 import codeBlockMeta from "./remark/codeBlockMeta.mjs";
 import demoteHeadings from "./remark/demoteHeadings.mjs";
 import extractToc from "./remark/extractToc.mjs";
+import headingTags from "./remark/headingTags.mjs";
 import rewriteMdLinks from "./remark/rewriteMdLinks.mjs";
 import youtubeEmbed from "./remark/youtubeEmbed.mjs";
 import styleStringToObject from "./rehype/styleStringToObject.mjs";
@@ -26,6 +27,9 @@ const remarkPipeline: { spec: string; plugin: Pluggable }[] = [
   { spec: path.join(remarkRoot, "codeBlockMeta.mjs"), plugin: codeBlockMeta },
   { spec: path.join(remarkRoot, "demoteHeadings.mjs"), plugin: demoteHeadings },
   { spec: path.join(remarkRoot, "extractToc.mjs"), plugin: extractToc },
+  // After extractToc: heading ids and TOC entries stay derived from the
+  // heading text alone, so adding tags does not change anchors.
+  { spec: path.join(remarkRoot, "headingTags.mjs"), plugin: headingTags },
   { spec: path.join(remarkRoot, "youtubeEmbed.mjs"), plugin: youtubeEmbed },
 ];
 
