@@ -64,8 +64,7 @@ internal sealed class NitroSchemaValidationCoordinator
     {
         var apiId = resource.GetNitroApiId();
         var coordinator = _options.Coordinator;
-        if (!resource.HasNitroSchemaValidation()
-            || apiId is null
+        if (apiId is null
             || coordinator is null
             || _notifier is null)
         {

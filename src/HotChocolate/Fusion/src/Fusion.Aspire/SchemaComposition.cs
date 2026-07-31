@@ -907,7 +907,9 @@ internal sealed class SchemaComposition(
                     sourceSchemas,
                     settings,
                     compositionLogger,
-                    compositionResource.HasNitroSchemaValidation(),
+                    nitroOptions.Coordinator is not null
+                        && compositionResource.GetNitroApiId() is not null
+                        && !settings.Settings.DisableSchemaValidation,
                     cancellationToken);
             }
             finally

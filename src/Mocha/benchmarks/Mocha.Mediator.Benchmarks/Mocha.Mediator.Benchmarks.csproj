@@ -16,8 +16,8 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="MediatR" VersionOverride="12.4.1" />
-    <PackageReference Include="Mediator.Abstractions" VersionOverride="3.0.1" />
-    <PackageReference Include="Mediator.SourceGenerator" VersionOverride="3.0.1" />
+    <PackageReference Include="Mediator.Abstractions" VersionOverride="3.0.2" />
+    <PackageReference Include="Mediator.SourceGenerator" VersionOverride="3.0.2" />
     <PackageReference Include="MassTransit" VersionOverride="8.5.8" />
     <PackageReference Include="Immediate.Handlers" VersionOverride="3.3.0" />
     <PackageReference Include="Mediator.Switch" VersionOverride="3.1.0" />
