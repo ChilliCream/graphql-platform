@@ -11,7 +11,6 @@ internal interface INitroSeedUpdateNotifier
     void NotifyStaged(string message);
 }
 
-#pragma warning disable ASPIREINTERACTION001
 internal sealed class NitroSeedUpdateNotifier(
     IInteractionService interactionService,
     IHostApplicationLifetime lifetime,
@@ -37,7 +36,7 @@ internal sealed class NitroSeedUpdateNotifier(
         try
         {
             await interactionService.PromptNotificationAsync(
-                "Nitro Fusion configuration",
+                "Nitro:",
                 message,
                 new NotificationInteractionOptions { Intent = MessageIntent.Information },
                 lifetime.ApplicationStopping);
@@ -47,8 +46,7 @@ internal sealed class NitroSeedUpdateNotifier(
         }
         catch (Exception exception)
         {
-            logger.LogDebug(exception, "The Nitro Fusion configuration notification could not be shown.");
+            logger.LogDebug(exception, "The Nitro notification could not be shown.");
         }
     }
 }
-#pragma warning restore ASPIREINTERACTION001

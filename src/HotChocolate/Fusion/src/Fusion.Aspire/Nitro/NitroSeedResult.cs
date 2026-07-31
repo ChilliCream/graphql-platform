@@ -16,6 +16,11 @@ internal enum NitroSeedOutcome
     ServedFromCache,
 
     /// <summary>
+    /// Nitro has no fusion configuration for the requested api and stage yet.
+    /// </summary>
+    NotFound,
+
+    /// <summary>
     /// A fresh fusion configuration could not be fetched and no cached one exists.
     /// </summary>
     Unavailable
@@ -29,11 +34,12 @@ internal enum NitroSeedOutcome
 /// </param>
 /// <param name="FilePath">
 /// The full path of the fusion archive, or <c>null</c> when <paramref name="Outcome"/> is
-/// <see cref="NitroSeedOutcome.Unavailable"/>.
+/// <see cref="NitroSeedOutcome.NotFound"/> or <see cref="NitroSeedOutcome.Unavailable"/>.
 /// </param>
 /// <param name="DownloadedAt">
 /// The point in time at which the fusion configuration was downloaded, or <c>null</c> when
-/// <paramref name="Outcome"/> is <see cref="NitroSeedOutcome.Unavailable"/>.
+/// <paramref name="Outcome"/> is <see cref="NitroSeedOutcome.NotFound"/> or
+/// <see cref="NitroSeedOutcome.Unavailable"/>.
 /// </param>
 /// <param name="Message">
 /// The reason why a fresh fusion configuration could not be fetched. It is <c>null</c> when

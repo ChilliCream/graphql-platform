@@ -78,13 +78,34 @@ public static class GraphQLResourceBuilderExtensions
     /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
     /// </summary>
     /// <param name="builder">The resource builder</param>
-    /// <param name="outputFileName">The output schema file name (defaults to "gateway.fgp")</param>
-    /// <param name="settings">The composition settings.</param>
+    /// <param name="disableValidation">
+    /// A value indicating whether Nitro schema validation shall be disabled.
+    /// </param>
+    /// <param name="outputFileName">The output archive file name.</param>
     /// <returns>The resource builder for chaining</returns>
     public static IResourceBuilder<T> WithGraphQLSchemaComposition<T>(
         this IResourceBuilder<T> builder,
-        string outputFileName = "gateway.far",
-        GraphQLCompositionSettings settings = default)
+        bool disableValidation = false,
+        string outputFileName = "gateway.far")
+        where T : IResourceWithEndpoints
+        => builder.WithGraphQLSchemaComposition(
+            new GraphQLCompositionSettings
+            {
+                DisableSchemaValidation = disableValidation
+            },
+            outputFileName);
+
+    /// <summary>
+    /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
+    /// </summary>
+    /// <param name="builder">The resource builder.</param>
+    /// <param name="settings">The composition settings.</param>
+    /// <param name="outputFileName">The output archive file name.</param>
+    /// <returns>The resource builder for chaining.</returns>
+    public static IResourceBuilder<T> WithGraphQLSchemaComposition<T>(
+        this IResourceBuilder<T> builder,
+        GraphQLCompositionSettings settings,
+        string outputFileName = "gateway.far")
         where T : IResourceWithEndpoints
     {
         builder.WithAnnotation(

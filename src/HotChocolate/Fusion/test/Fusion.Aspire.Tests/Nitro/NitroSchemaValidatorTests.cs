@@ -444,14 +444,45 @@ public sealed class NitroSchemaValidatorTests
                     {
                       "__typename": "ObjectModifiedChange",
                       "severity": "BREAKING",
-                      "coordinate": "Product.name"
+                      "coordinate": "Product",
+                      "changes": [
+                        {
+                          "__typename": "FieldRemovedChange",
+                          "severity": "BREAKING",
+                          "coordinate": "Product.name",
+                          "typeName": "Product",
+                          "fieldName": "name"
+                        }
+                      ]
+                    },
+                    {
+                      "__typename": "ObjectModifiedChange",
+                      "severity": "BREAKING",
+                      "coordinate": "Query",
+                      "changes": [
+                        {
+                          "__typename": "OutputFieldChanged",
+                          "severity": "BREAKING",
+                          "coordinate": "Query.product",
+                          "fieldName": "product",
+                          "changes": [
+                            {
+                              "__typename": "TypeChanged",
+                              "severity": "BREAKING",
+                              "oldType": "Product",
+                              "newType": "Product!"
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Schema change violations>"
-                    + "ObjectModifiedChange|-|Product.name|-|-:-|BREAKING|"
-                    + "ObjectModifiedChange (BREAKING)"
+                    + "FieldRemovedChange|-|Product.name|-|-:-|BREAKING|Field was removed.,"
+                    + "Schema change violations>TypeChanged|-|Query.product|-|-:-|BREAKING|"
+                    + "Type changed from 'Product' to 'Product!'."
             },
             {
                 """

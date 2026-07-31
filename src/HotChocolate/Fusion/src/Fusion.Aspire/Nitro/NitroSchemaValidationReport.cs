@@ -77,7 +77,8 @@ internal sealed record NitroSchemaValidationReport(
         {
             values.Add(
                 $"other|{finding.Group}|{finding.Kind}|{finding.Code}|{finding.Coordinate}|"
-                + $"{finding.Path}|{finding.Line}|{finding.Column}|{finding.Identity}");
+                + $"{finding.Path}|{finding.Line}|{finding.Column}|{finding.Identity}|"
+                + finding.Severity);
         }
 
         values.Sort(StringComparer.Ordinal);
@@ -112,7 +113,8 @@ internal sealed record NitroSchemaValidationFinding(
     string? Path = null,
     int? Line = null,
     int? Column = null,
-    string? Identity = null);
+    string? Identity = null,
+    string? Severity = null);
 
 internal enum NitroSchemaValidationStatus
 {
