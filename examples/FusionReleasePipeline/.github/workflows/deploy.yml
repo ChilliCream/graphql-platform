@@ -1,0 +1,150 @@
+name: Deploy Fusion release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  DEMO_ROOT: examples/FusionReleasePipeline
+  APPHOST_PROJECT: examples/FusionReleasePipeline/src/AppHost/AppHost.csproj
+  RELEASE_TAG: ${{ github.sha }}
+
+jobs:
+  fusion-build:
+    name: Build and upload Fusion release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-upload
+      cancel-in-progress: false
+    env:
+      Parameters__tag: ${{ env.RELEASE_TAG }}
+      Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.100-preview.6.26359.118
+
+      - name: Install Aspire CLI
+        run: dotnet tool install --global Aspire.Cli --version 13.4.6
+
+      - name: Restore
+        run: dotnet restore "$DEMO_ROOT/FusionReleasePipeline.slnx"
+
+      - name: Build
+        run: dotnet build "$DEMO_ROOT/FusionReleasePipeline.slnx" --no-restore
+
+      - name: Upload immutable Fusion sources
+        run: >-
+          aspire do fusion-upload
+          --apphost "$APPHOST_PROJECT"
+          --environment Development
+          --non-interactive
+
+  deploy-development:
+    name: Deploy Development
+    needs: fusion-build
+    runs-on: ubuntu-latest
+    environment: Development
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-replace-with-development-stage
+      cancel-in-progress: false
+    env:
+      Azure__CredentialSource: AzureCli
+      Azure__Location: ${{ vars.DEMO_AZURE_LOCATION }}
+      Azure__ResourceGroup: ${{ vars.DEMO_AZURE_RESOURCE_GROUP }}
+      Azure__SubscriptionId: ${{ secrets.DEMO_AZURE_SUBSCRIPTION_ID }}
+      Parameters__tag: ${{ env.RELEASE_TAG }}
+      Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
+      Parameters__nitroGatewayApiKey: ${{ secrets.DEMO_NITRO_GATEWAY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.100-preview.6.26359.118
+
+      - name: Install Aspire CLI
+        run: dotnet tool install --global Aspire.Cli --version 13.4.6
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.DEMO_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.DEMO_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.DEMO_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Restore
+        run: dotnet restore "$DEMO_ROOT/FusionReleasePipeline.slnx"
+
+      - name: Deploy Development
+        run: >-
+          aspire do fusion-publish
+          --apphost "$APPHOST_PROJECT"
+          --environment Development
+          --non-interactive
+
+  deploy-test:
+    name: Deploy Test
+    needs:
+      - fusion-build
+      - deploy-development
+    runs-on: ubuntu-latest
+    environment: Test
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: fusion-nitro-example-invalid-replace-with-nitro-api-id-replace-with-test-stage
+      cancel-in-progress: false
+    env:
+      Azure__CredentialSource: AzureCli
+      Azure__Location: ${{ vars.DEMO_AZURE_LOCATION }}
+      Azure__ResourceGroup: ${{ vars.DEMO_AZURE_RESOURCE_GROUP }}
+      Azure__SubscriptionId: ${{ secrets.DEMO_AZURE_SUBSCRIPTION_ID }}
+      Parameters__tag: ${{ env.RELEASE_TAG }}
+      Parameters__nitroApiKey: ${{ secrets.DEMO_NITRO_API_KEY }}
+      Parameters__nitroGatewayApiKey: ${{ secrets.DEMO_NITRO_GATEWAY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.100-preview.6.26359.118
+
+      - name: Install Aspire CLI
+        run: dotnet tool install --global Aspire.Cli --version 13.4.6
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.DEMO_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.DEMO_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.DEMO_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Restore
+        run: dotnet restore "$DEMO_ROOT/FusionReleasePipeline.slnx"
+
+      - name: Deploy Test
+        run: >-
+          aspire do fusion-publish
+          --apphost "$APPHOST_PROJECT"
+          --environment Test
+          --non-interactive

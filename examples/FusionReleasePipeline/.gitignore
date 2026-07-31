@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+.aspire/
+aspire-output/
+aspire.config.json
+src/Gateway/gateway.far

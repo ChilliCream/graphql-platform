@@ -1,0 +1,19 @@
+{
+  "name": "reviews",
+  "transports": {
+    "http": {
+      "url": "{{REVIEWS_URL}}/graphql"
+    }
+  },
+  "environments": {
+    "local": {
+      "REVIEWS_URL": "http://localhost:5102"
+    },
+    "development": {
+      "REVIEWS_URL": "https://reviews.development.example.invalid"
+    },
+    "test": {
+      "REVIEWS_URL": "https://reviews.test.example.invalid"
+    }
+  }
+}

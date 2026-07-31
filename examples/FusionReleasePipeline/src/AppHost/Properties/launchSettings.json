@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:15210",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "http://localhost:19210",
+        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "http://localhost:20210",
+        "ASPIRE_ALLOW_UNSECURED_TRANSPORT": "true",
+        "Parameters__tag": "local-release",
+        "Parameters__nitroApiKey": "replace-with-a-real-nitro-api-key"
+      }
+    }
+  }
+}

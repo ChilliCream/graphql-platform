@@ -1,0 +1,19 @@
+{
+  "name": "products",
+  "transports": {
+    "http": {
+      "url": "{{PRODUCTS_URL}}/graphql"
+    }
+  },
+  "environments": {
+    "local": {
+      "PRODUCTS_URL": "http://localhost:5101"
+    },
+    "development": {
+      "PRODUCTS_URL": "https://products.development.example.invalid"
+    },
+    "test": {
+      "PRODUCTS_URL": "https://products.test.example.invalid"
+    }
+  }
+}

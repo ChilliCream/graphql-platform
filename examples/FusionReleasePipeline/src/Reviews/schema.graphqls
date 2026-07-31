@@ -1,0 +1,15 @@
+schema {
+  query: Query
+}
+
+type Query {
+  review(id: ID!): Review
+  reviews: [Review!]!
+}
+
+type Review {
+  commentary: String!
+  id: ID!
+  productId: ID!
+  stars: Int!
+}
