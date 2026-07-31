@@ -61,6 +61,7 @@ public sealed class SchemaValidator
         _rules.Add(new ValidDeprecationRule());
         _rules.Add(new ValidImplementationsRule());
         _rules.Add(new ValidNameRule());
+        _rules.Add(new ValidObjectDeprecationRule());
         _rules.Add(new ValidOneOfFieldRule());
     }
 

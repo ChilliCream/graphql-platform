@@ -1178,6 +1178,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type of `{0}` is the deprecated type `{1}`. Either deprecate the field or change its return type..
+        /// </summary>
+        internal static string ErrorHelper_InvalidObjectDeprecation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidObjectDeprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The middleware pipeline order for the field `{0}` is invalid. Middleware order is important especially with data pipelines. The correct order of a data pipeline is as follows: UseDbContext -&gt; UsePaging -&gt; UseProjection -&gt; UseFiltering -&gt; UseSorting. You may omit any of these middleware or have other middleware in between but you need to abide by the overall order. Your order is: {1}..
         /// </summary>
         internal static string ErrorHelper_MiddlewareOrderInvalid {

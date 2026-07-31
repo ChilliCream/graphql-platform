@@ -138,6 +138,9 @@
   <data name="LogEntryHelper_InvalidMemberName" xml:space="preserve">
     <value>The name of the type system member '{0}' must not start with two underscores '__'.</value>
   </data>
+  <data name="LogEntryHelper_InvalidObjectDeprecation" xml:space="preserve">
+    <value>The type of '{0}' is the deprecated type '{1}'. Either deprecate the field or change its return type.</value>
+  </data>
   <data name="LogEntryHelper_InvalidOneOfField" xml:space="preserve">
     <value>The OneOf Input Object field '{0}' must be nullable and must not have a default value.</value>
   </data>

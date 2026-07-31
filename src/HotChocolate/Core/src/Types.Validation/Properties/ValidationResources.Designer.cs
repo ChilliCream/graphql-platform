@@ -420,6 +420,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type of '{0}' is the deprecated type '{1}'. Either deprecate the field or change its return type..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidObjectDeprecation {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidObjectDeprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The OneOf Input Object field &apos;{0}&apos; must be nullable and must not have a default value..
         /// </summary>
         internal static string LogEntryHelper_InvalidOneOfField {
