@@ -720,6 +720,114 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             """);
     }
 
+    [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_DownloadAndAdoptFreshSeedBeforeComposition()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var coordinator = CreateCoordinator();
+        var harness = CompositionHarness.Create(coordinator);
+        var (model, gateway) = CreateModel(GatewayApiId);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+        var previousHash = coordinator.GetSeed(gateway.Name)!.SchemaHash;
+        await ServeUpdatedSeedAsync();
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        $"""
+        Result: {result.Success} ({result.Message})
+        Downloads: {GetDownloadCount()}
+        Source schemas: {await ReadSourceSchemaNamesAsync()}
+        Seed changed: {coordinator.GetSeed(gateway.Name)!.SchemaHash != previousHash}
+        """.MatchInlineSnapshot(
+            """
+            Result: True (Schema composition completed)
+            Downloads: 2
+            Source schemas: inventory, products
+            Seed changed: True
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_FallBackToHeldSeed_WhenDownloadFails()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var coordinator = CreateCoordinator();
+        var harness = CompositionHarness.Create(coordinator);
+        var (model, gateway) = CreateModel(GatewayApiId);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+        _server.DownloadHandler = _ =>
+            FakeNitroResponse.Status(StatusCodes.Status503ServiceUnavailable);
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            "True|2|orders, products, reviews",
+            $"{result.Success}|{GetDownloadCount()}|{await ReadSourceSchemaNamesAsync()}");
+    }
+
+    [Fact]
+    public async Task RunGuardedRecompositionAsync_Should_AdoptStagedSeedWithoutDownloading()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var coordinator = CreateCoordinator();
+        var harness = CompositionHarness.Create(coordinator);
+        var (model, gateway) = CreateModel(GatewayApiId);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+        await ServeUpdatedSeedAsync();
+        var refresh = await coordinator.DownloadFreshSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            "configuration-2",
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            suppressProviderLogs: false,
+            TestContext.Current.CancellationToken);
+        coordinator.StageCandidate(gateway.Name, refresh.Candidate!);
+        var downloadsBeforeComposition = GetDownloadCount();
+
+        // act
+        await harness.Composition.RunGuardedRecompositionAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            $"{downloadsBeforeComposition}|{downloadsBeforeComposition}|inventory, products|False",
+            $"{downloadsBeforeComposition}|{GetDownloadCount()}|{await ReadSourceSchemaNamesAsync()}|"
+            + $"{coordinator.GetStagedCandidate(gateway.Name) is not null}");
+    }
+
     private (DistributedApplicationModel Model, IResourceWithEndpoints Gateway) CreateModel(
         string? gatewayApiId,
         string? productsApiId = null,
@@ -789,12 +897,32 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                     GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
                     _timeProvider,
                     new RecordingLogger<NitroSchemaValidator>()),
-            _directory.GetPath("run"));
+            new NoopStageUpdateClient(),
+            _directory.GetPath("run"),
+            initialAutoUpdate: true);
 
     private TestNitroEnvironment CreateDefaultEnvironment()
         => new(
             (NitroEnvironmentVariables.CloudUrl, _server.BaseAddress.AbsoluteUri),
             (NitroEnvironmentVariables.ApiKey, "nitro-api-key"));
+
+    private sealed class NoopStageUpdateClient : INitroStageUpdateClient
+    {
+        public Task<NitroStageSubscription> SubscribeAsync(
+            NitroConnection connection,
+            string apiId,
+            string stage,
+            CancellationToken cancellationToken)
+            => Task.FromException<NitroStageSubscription>(
+                new InvalidOperationException("The composition harness does not run a stage monitor."));
+
+        public Task<NitroStageSnapshot?> GetLatestSnapshotAsync(
+            NitroConnection connection,
+            string apiId,
+            string stage,
+            CancellationToken cancellationToken)
+            => Task.FromResult<NitroStageSnapshot?>(null);
+    }
 
     private static int CountRecompositions(CompositionHarness harness)
         => harness.Logger.Entries.Count(
@@ -875,6 +1003,22 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                   }
                 }
                 """));
+
+        _server.DownloadHandler = _ => FakeNitroResponse.Archive(archive);
+    }
+
+    private async Task ServeUpdatedSeedAsync()
+    {
+        var archive = await NitroTestArchive.CreateAsync(
+            TestContext.Current.CancellationToken,
+            new NitroTestSourceSchema(
+                "products",
+                "type Query { staleProduct: String }",
+                CreateSettings("products", "https://stale.example.com/graphql")),
+            new NitroTestSourceSchema(
+                "inventory",
+                "type Query { inventory: Int }",
+                CreateSettings("inventory", "https://inventory.example.com/graphql")));
 
         _server.DownloadHandler = _ => FakeNitroResponse.Archive(archive);
     }

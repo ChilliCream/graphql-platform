@@ -52,6 +52,22 @@ public sealed class NitroOperationDocumentsTests
         Assert.Contains(expectedDeclaration, document, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("GetNitroStageVersion", "query GetNitroStageVersion(")]
+    [InlineData("WatchNitroStage", "subscription WatchNitroStage(")]
+    public void StageUpdateOperationName_Should_MatchTheOperationInTheDocument(
+        string operationName,
+        string expectedDeclaration)
+    {
+        // act
+        var document = operationName == NitroOperationDocuments.GetStageVersionOperationName
+            ? NitroOperationDocuments.GetStageVersionDocument()
+            : NitroOperationDocuments.GetWatchStageDocument();
+
+        // assert
+        Assert.Contains(expectedDeclaration, document, StringComparison.Ordinal);
+    }
+
 #endif
 
 #if NITRO_PERSISTED_OPERATIONS
@@ -82,6 +98,26 @@ public sealed class NitroOperationDocumentsTests
         var operationId = operationName == NitroOperationDocuments.ValidateSchemaOperationName
             ? NitroOperationDocuments.GetValidateSchemaOperationId()
             : NitroOperationDocuments.GetPollSchemaValidationOperationId();
+
+        // assert
+        Assert.Equal(expectedOperationId, operationId);
+    }
+
+    [Theory]
+    [InlineData(
+        "GetNitroStageVersion",
+        "32cc7d1ee75aaa16627d21ee9289b4758f805d8b1eedfa796d832bae05b840f1")]
+    [InlineData(
+        "WatchNitroStage",
+        "6626c4ef1d416a1db6a56bed1f19ab68f8797bb3e9bf79b31d2434b41a0d1d6e")]
+    public void GetStageUpdateOperationId_Should_ReturnTheEmbeddedHash(
+        string operationName,
+        string expectedOperationId)
+    {
+        // act
+        var operationId = operationName == NitroOperationDocuments.GetStageVersionOperationName
+            ? NitroOperationDocuments.GetStageVersionOperationId()
+            : NitroOperationDocuments.GetWatchStageOperationId();
 
         // assert
         Assert.Equal(expectedOperationId, operationId);

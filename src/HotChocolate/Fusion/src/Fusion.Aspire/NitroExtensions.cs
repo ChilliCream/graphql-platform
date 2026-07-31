@@ -1,6 +1,7 @@
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire.Nitro;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -64,6 +65,43 @@ public static class NitroExtensions
         this IDistributedApplicationBuilder builder,
         string stage,
         Uri? portalUrl = null)
+        => AddNitroCore(builder, stage, portalUrl, configureSeedUpdates: null);
+
+    /// <summary>
+    /// Adds GraphQL schema composition orchestration that composes against Nitro and configures
+    /// how Fusion Aspire follows changes to the selected stage during the AppHost run.
+    /// </summary>
+    /// <param name="builder">The distributed application builder.</param>
+    /// <param name="stage">The Nitro stage whose Fusion configuration is used.</param>
+    /// <param name="configureSeedUpdates">
+    /// Configures background stage-change subscriptions, current-version queries, Fusion
+    /// configuration downloads, and automatic adoption.
+    /// </param>
+    /// <param name="portalUrl">
+    /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
+    /// URL.
+    /// </param>
+    /// <returns>The distributed application builder for chaining.</returns>
+    /// <remarks>
+    /// Stage update detection receives stage-change metadata and downloads the same Fusion archive
+    /// that startup seed acquisition downloads. It sends no schema or configuration data to Nitro.
+    /// </remarks>
+    public static IDistributedApplicationBuilder AddNitro(
+        this IDistributedApplicationBuilder builder,
+        string stage,
+        Action<NitroSeedUpdateOptions> configureSeedUpdates,
+        Uri? portalUrl = null)
+    {
+        ArgumentNullException.ThrowIfNull(configureSeedUpdates);
+
+        return AddNitroCore(builder, stage, portalUrl, configureSeedUpdates);
+    }
+
+    private static IDistributedApplicationBuilder AddNitroCore(
+        IDistributedApplicationBuilder builder,
+        string stage,
+        Uri? portalUrl,
+        Action<NitroSeedUpdateOptions>? configureSeedUpdates)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(stage);
@@ -86,6 +124,7 @@ public static class NitroExtensions
         }
 
         var options = SchemaCompositionRegistration.Ensure(builder);
+        configureSeedUpdates?.Invoke(options.SeedUpdates);
 
         if (options.Coordinator is { } coordinator)
         {
@@ -106,11 +145,15 @@ public static class NitroExtensions
             }
 
             options.PortalUrl ??= portalUrl;
+            AddAutoUpdateCommandsToConfiguredGateways(builder);
             return builder;
         }
 
-        options.Coordinator = NitroSeedCoordinator.CreateProduction(stage);
+        options.Coordinator = NitroSeedCoordinator.CreateProduction(
+            stage,
+            options.SeedUpdates.AutoUpdate);
         options.PortalUrl = portalUrl;
+        AddAutoUpdateCommandsToConfiguredGateways(builder);
 
         return builder;
     }
@@ -147,6 +190,7 @@ public static class NitroExtensions
         builder.WithAnnotation(
             new NitroApiIdAnnotation { ApiId = apiId },
             ResourceAnnotationMutationBehavior.Replace);
+        TryAddAutoUpdateCommands(builder);
 
         return builder;
     }
@@ -206,4 +250,88 @@ public static class NitroExtensions
 
     internal static bool HasNitroSchemaValidation(this IResource resource)
         => resource.Annotations.OfType<NitroSchemaValidationAnnotation>().Any();
+
+    internal static void TryAddAutoUpdateCommands<T>(IResourceBuilder<T> builder)
+        where T : IResource
+    {
+        if (!builder.Resource.NeedsGraphQLSchemaComposition()
+            || builder.Resource.GetNitroApiId() is null
+            || SchemaCompositionRegistration.GetOptions(builder.ApplicationBuilder)?.Coordinator
+                is null)
+        {
+            return;
+        }
+
+        AddAutoUpdateCommand(
+            builder,
+            "disable-nitro-auto-update",
+            "Disable auto-update",
+            enabled: false);
+        AddAutoUpdateCommand(
+            builder,
+            "enable-nitro-auto-update",
+            "Enable auto-update",
+            enabled: true);
+    }
+
+    private static void AddAutoUpdateCommandsToConfiguredGateways(
+        IDistributedApplicationBuilder builder)
+    {
+        foreach (var resource in builder.Resources.OfType<IResourceWithEndpoints>())
+        {
+            if (resource.NeedsGraphQLSchemaComposition()
+                && resource.GetNitroApiId() is not null)
+            {
+                TryAddAutoUpdateCommands(builder.CreateResourceBuilder(resource));
+            }
+        }
+    }
+
+    private static void AddAutoUpdateCommand<T>(
+        IResourceBuilder<T> builder,
+        string name,
+        string displayName,
+        bool enabled)
+        where T : IResource
+    {
+        if (builder.Resource.Annotations
+            .OfType<ResourceCommandAnnotation>()
+            .Any(command => command.Name == name))
+        {
+            return;
+        }
+
+        var resourceName = builder.Resource.Name;
+
+        builder.WithCommand(
+            name,
+            displayName,
+            context => context.ServiceProvider
+                .GetService<NitroSeedUpdateService>()?
+                .SetAutoUpdateAsync(
+                    context.ResourceName,
+                    enabled,
+                    context.CancellationToken)
+                ?? Task.FromResult(
+                    CommandResults.Failure("Nitro stage update monitoring is not ready.")),
+            new CommandOptions
+            {
+                Description = enabled
+                    ? "Apply staged Nitro updates and resume automatic updates."
+                    : "Stage Nitro updates until the next local recomposition.",
+                IconName = enabled ? "ArrowSyncCheckmark" : "ArrowSyncOff",
+                UpdateState = context =>
+                {
+                    var service = context.ServiceProvider.GetService<NitroSeedUpdateService>();
+                    if (service is null || !service.IsEnabled)
+                    {
+                        return ResourceCommandState.Hidden;
+                    }
+
+                    return service.IsAutoUpdateEnabled(resourceName) != enabled
+                        ? ResourceCommandState.Enabled
+                        : ResourceCommandState.Hidden;
+                }
+            });
+    }
 }

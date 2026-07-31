@@ -21,6 +21,7 @@
     <!-- Aspire.Hosting 13.4.x requires Microsoft.Extensions.Logging >= 10.0.8, above the net9.0 central pin. -->
     <PackageReference Include="Microsoft.Extensions.Logging" VersionOverride="10.0.8" Condition="'$(TargetFramework)' == 'net9.0'" />
     <PackageReference Include="Microsoft.Extensions.Logging" Condition="'$(TargetFramework)' != 'net9.0'" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,18 +35,26 @@
     <None Remove="Nitro\Operations\ResolveNitroApiName.graphql" />
     <None Remove="Nitro\Operations\ValidateNitroSchema.graphql" />
     <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql" />
+    <None Remove="Nitro\Operations\GetNitroStageVersion.graphql" />
+    <None Remove="Nitro\Operations\WatchNitroStage.graphql" />
     <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql" />
     <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql" />
     <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\GetNitroStageVersion.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\WatchNitroStage.graphql" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <None Remove="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
     <None Remove="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
     <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
+    <None Remove="Nitro\Operations\GetNitroStageVersion.graphql.sha256" />
+    <None Remove="Nitro\Operations\WatchNitroStage.graphql.sha256" />
     <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
     <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
     <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\GetNitroStageVersion.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\WatchNitroStage.graphql.sha256" />
   </ItemGroup>
 
   <ItemGroup>
