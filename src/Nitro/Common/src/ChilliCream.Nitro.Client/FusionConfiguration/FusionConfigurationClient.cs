@@ -233,7 +233,8 @@ internal sealed class FusionConfigurationClient(
             EnableGlobalObjectIdentification = compositionSettings.EnableGlobalObjectIdentification,
             ExcludeByTag = compositionSettings.ExcludeByTag,
             RemoveUnreferencedDefinitions = compositionSettings.RemoveUnreferencedDefinitions,
-            TagMergeBehavior = compositionSettings.TagMergeBehavior
+            TagMergeBehavior = compositionSettings.TagMergeBehavior,
+            NodeResolution = compositionSettings.NodeResolution
         };
     }
 

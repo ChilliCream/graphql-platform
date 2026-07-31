@@ -14,4 +14,6 @@ public sealed record StageCompositionSettings
     public bool? RemoveUnreferencedDefinitions { get; init; }
 
     public CompositionDirectiveMergeBehavior? TagMergeBehavior { get; init; }
+
+    public CompositionNodeResolution? NodeResolution { get; init; }
 }

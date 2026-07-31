@@ -686,7 +686,8 @@ internal static class FusionPublishHelpers
                 CacheControlMergeBehavior = ToDirectiveMergeBehavior(settings.CacheControlMergeBehavior),
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
                 RemoveUnreferencedDefinitions = settings.RemoveUnreferencedDefinitions,
-                TagMergeBehavior = ToDirectiveMergeBehavior(settings.TagMergeBehavior)
+                TagMergeBehavior = ToDirectiveMergeBehavior(settings.TagMergeBehavior),
+                NodeResolution = ToNodeResultion(settings.NodeResolution)
             }
         };
     }
@@ -703,5 +704,14 @@ internal static class FusionPublishHelpers
             CompositionDirectiveMergeBehavior.IncludePrivate
                 => HotChocolate.Fusion.Options.DirectiveMergeBehavior.IncludePrivate,
             _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null)
+        };
+
+    private static NodeResolution? ToNodeResultion(CompositionNodeResolution? nodeResolution)
+        => nodeResolution switch
+        {
+            null => null,
+            CompositionNodeResolution.Gateway => NodeResolution.Gateway,
+            CompositionNodeResolution.SourceSchema => NodeResolution.SourceSchema,
+            _ => throw new ArgumentOutOfRangeException(nameof(nodeResolution), nodeResolution, null)
         };
 }

@@ -69692,13 +69692,14 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings : global::System.IEquatable<FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings>, IFusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings
     {
-        public FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings(global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? cacheControlMergeBehavior, global::System.Boolean? enableGlobalObjectIdentification, global::System.Collections.Generic.IReadOnlyList<global::System.String>? excludeByTag, global::System.Boolean? removeUnreferencedDefinitions, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? tagMergeBehavior)
+        public FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings(global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? cacheControlMergeBehavior, global::System.Boolean? enableGlobalObjectIdentification, global::System.Collections.Generic.IReadOnlyList<global::System.String>? excludeByTag, global::System.Boolean? removeUnreferencedDefinitions, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? tagMergeBehavior, global::ChilliCream.Nitro.Client.CompositionNodeResolution? nodeResolution)
         {
             CacheControlMergeBehavior = cacheControlMergeBehavior;
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
             ExcludeByTag = excludeByTag;
             RemoveUnreferencedDefinitions = removeUnreferencedDefinitions;
             TagMergeBehavior = tagMergeBehavior;
+            NodeResolution = nodeResolution;
         }
 
         public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? CacheControlMergeBehavior { get; }
@@ -69706,6 +69707,7 @@ namespace ChilliCream.Nitro.Client
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? ExcludeByTag { get; }
         public global::System.Boolean? RemoveUnreferencedDefinitions { get; }
         public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? TagMergeBehavior { get; }
+        public global::ChilliCream.Nitro.Client.CompositionNodeResolution? NodeResolution { get; }
 
         public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings? other)
         {
@@ -69724,7 +69726,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (((CacheControlMergeBehavior is null && other.CacheControlMergeBehavior is null) || CacheControlMergeBehavior != null && CacheControlMergeBehavior.Equals(other.CacheControlMergeBehavior))) && global::System.Object.Equals(EnableGlobalObjectIdentification, other.EnableGlobalObjectIdentification) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(ExcludeByTag, other.ExcludeByTag) && global::System.Object.Equals(RemoveUnreferencedDefinitions, other.RemoveUnreferencedDefinitions) && ((TagMergeBehavior is null && other.TagMergeBehavior is null) || TagMergeBehavior != null && TagMergeBehavior.Equals(other.TagMergeBehavior));
+            return (((CacheControlMergeBehavior is null && other.CacheControlMergeBehavior is null) || CacheControlMergeBehavior != null && CacheControlMergeBehavior.Equals(other.CacheControlMergeBehavior))) && global::System.Object.Equals(EnableGlobalObjectIdentification, other.EnableGlobalObjectIdentification) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(ExcludeByTag, other.ExcludeByTag) && global::System.Object.Equals(RemoveUnreferencedDefinitions, other.RemoveUnreferencedDefinitions) && ((TagMergeBehavior is null && other.TagMergeBehavior is null) || TagMergeBehavior != null && TagMergeBehavior.Equals(other.TagMergeBehavior)) && ((NodeResolution is null && other.NodeResolution is null) || NodeResolution != null && NodeResolution.Equals(other.NodeResolution));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -69778,6 +69780,11 @@ namespace ChilliCream.Nitro.Client
                 if (TagMergeBehavior != null)
                 {
                     hash ^= 397 * TagMergeBehavior.GetHashCode();
+                }
+
+                if (NodeResolution != null)
+                {
+                    hash ^= 397 * NodeResolution.GetHashCode();
                 }
 
                 return hash;
@@ -70124,6 +70131,7 @@ namespace ChilliCream.Nitro.Client
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? ExcludeByTag { get; }
         public global::System.Boolean? RemoveUnreferencedDefinitions { get; }
         public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? TagMergeBehavior { get; }
+        public global::ChilliCream.Nitro.Client.CompositionNodeResolution? NodeResolution { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -158622,6 +158630,39 @@ namespace ChilliCream.Nitro.Client
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum CompositionNodeResolution
+    {
+        Gateway,
+        SourceSchema
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CompositionNodeResolutionSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, CompositionNodeResolution>
+    {
+        public global::System.String TypeName => "CompositionNodeResolution";
+
+        public CompositionNodeResolution Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "GATEWAY" => CompositionNodeResolution.Gateway,
+                "SOURCE_SCHEMA" => CompositionNodeResolution.SourceSchema,
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum CompositionNodeResolution")};
+        }
+
+        public global::System.Object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                CompositionNodeResolution.Gateway => "GATEWAY",
+                CompositionNodeResolution.SourceSchema => "SOURCE_SCHEMA",
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum CompositionNodeResolution value '{runtimeValue}' can't be converted to string")};
+        }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the CreateMockSchema GraphQL operation
@@ -171078,6 +171119,7 @@ namespace ChilliCream.Nitro.Client
     ///           excludeByTag
     ///           removeUnreferencedDefinitions
     ///           tagMergeBehavior
+    ///           nodeResolution
     ///         }
     ///       }
     ///     }
@@ -171095,7 +171137,7 @@ namespace ChilliCream.Nitro.Client
         public static FusionStageCompositionSettingsQueryDocument Instance { get; } = new FusionStageCompositionSettingsQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "0119e5e836c844c5b05a6ac5675906a0");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "47e7a58f932dd79ad87eb02792ca290c");
 
         public override global::System.String ToString()
         {
@@ -171124,6 +171166,7 @@ namespace ChilliCream.Nitro.Client
     ///           excludeByTag
     ///           removeUnreferencedDefinitions
     ///           tagMergeBehavior
+    ///           nodeResolution
     ///         }
     ///       }
     ///     }
@@ -171243,6 +171286,7 @@ namespace ChilliCream.Nitro.Client
     ///           excludeByTag
     ///           removeUnreferencedDefinitions
     ///           tagMergeBehavior
+    ///           nodeResolution
     ///         }
     ///       }
     ///     }
@@ -199432,7 +199476,7 @@ namespace ChilliCream.Nitro.Client.State
             IFusionStageCompositionSettings_Node_Stage_CompositionSettings returnValue = default !;
             if (data.__typename.Equals("StageCompositionSettings", global::System.StringComparison.Ordinal))
             {
-                returnValue = new FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings(data.CacheControlMergeBehavior, data.EnableGlobalObjectIdentification, data.ExcludeByTag, data.RemoveUnreferencedDefinitions, data.TagMergeBehavior);
+                returnValue = new FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings(data.CacheControlMergeBehavior, data.EnableGlobalObjectIdentification, data.ExcludeByTag, data.RemoveUnreferencedDefinitions, data.TagMergeBehavior, data.NodeResolution);
             }
             else
             {
@@ -225031,6 +225075,7 @@ namespace ChilliCream.Nitro.Client.State
     public partial class FusionStageCompositionSettingsBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>
     {
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior> _compositionDirectiveMergeBehaviorParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionNodeResolution> _compositionNodeResolutionParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
@@ -225038,6 +225083,7 @@ namespace ChilliCream.Nitro.Client.State
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _compositionDirectiveMergeBehaviorParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior>("CompositionDirectiveMergeBehavior") ?? throw new global::System.ArgumentException("No serializer for type `CompositionDirectiveMergeBehavior` found.");
+            _compositionNodeResolutionParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionNodeResolution>("CompositionNodeResolution") ?? throw new global::System.ArgumentException("No serializer for type `CompositionNodeResolution` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
@@ -225347,7 +225393,7 @@ namespace ChilliCream.Nitro.Client.State
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("StageCompositionSettings", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData(typename, cacheControlMergeBehavior: Deserialize_CompositionDirectiveMergeBehavior(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "cacheControlMergeBehavior")), enableGlobalObjectIdentification: Deserialize_Boolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "enableGlobalObjectIdentification")), excludeByTag: Deserialize_StringNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "excludeByTag")), removeUnreferencedDefinitions: Deserialize_Boolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "removeUnreferencedDefinitions")), tagMergeBehavior: Deserialize_CompositionDirectiveMergeBehavior(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tagMergeBehavior")));
+                return new global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData(typename, cacheControlMergeBehavior: Deserialize_CompositionDirectiveMergeBehavior(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "cacheControlMergeBehavior")), enableGlobalObjectIdentification: Deserialize_Boolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "enableGlobalObjectIdentification")), excludeByTag: Deserialize_StringNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "excludeByTag")), removeUnreferencedDefinitions: Deserialize_Boolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "removeUnreferencedDefinitions")), tagMergeBehavior: Deserialize_CompositionDirectiveMergeBehavior(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tagMergeBehavior")), nodeResolution: Deserialize_CompositionNodeResolution(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "nodeResolution")));
             }
 
             throw new global::System.NotSupportedException();
@@ -225417,6 +225463,21 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::ChilliCream.Nitro.Client.CompositionNodeResolution? Deserialize_CompositionNodeResolution(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return _compositionNodeResolutionParser.Parse(obj.Value.GetString()!);
         }
     }
 
@@ -244090,7 +244151,7 @@ namespace ChilliCream.Nitro.Client.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record StageCompositionSettingsData
     {
-        public StageCompositionSettingsData(global::System.String __typename, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? cacheControlMergeBehavior = default !, global::System.Boolean? enableGlobalObjectIdentification = default !, global::System.Collections.Generic.IReadOnlyList<global::System.String>? excludeByTag = default !, global::System.Boolean? removeUnreferencedDefinitions = default !, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? tagMergeBehavior = default !)
+        public StageCompositionSettingsData(global::System.String __typename, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? cacheControlMergeBehavior = default !, global::System.Boolean? enableGlobalObjectIdentification = default !, global::System.Collections.Generic.IReadOnlyList<global::System.String>? excludeByTag = default !, global::System.Boolean? removeUnreferencedDefinitions = default !, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? tagMergeBehavior = default !, global::ChilliCream.Nitro.Client.CompositionNodeResolution? nodeResolution = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             CacheControlMergeBehavior = cacheControlMergeBehavior;
@@ -244098,6 +244159,7 @@ namespace ChilliCream.Nitro.Client.State
             ExcludeByTag = excludeByTag;
             RemoveUnreferencedDefinitions = removeUnreferencedDefinitions;
             TagMergeBehavior = tagMergeBehavior;
+            NodeResolution = nodeResolution;
         }
 
         public global::System.String __typename { get; init; }
@@ -244106,6 +244168,7 @@ namespace ChilliCream.Nitro.Client.State
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? ExcludeByTag { get; init; }
         public global::System.Boolean? RemoveUnreferencedDefinitions { get; init; }
         public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? TagMergeBehavior { get; init; }
+        public global::ChilliCream.Nitro.Client.CompositionNodeResolution? NodeResolution { get; init; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
@@ -245430,6 +245493,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.DirectiveLocationSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.ApiKindSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehaviorSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.CompositionNodeResolutionSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.AnySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
