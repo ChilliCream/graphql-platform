@@ -125,9 +125,15 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             }
             else
             {
-                foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
+                // The branches are limited to the object types the enclosing selection set can
+                // yield, as an interface type condition can be implemented by types that are not
+                // possible types of that selection set.
+                foreach (var possibleType in schema.GetPossibleTypes(context.SharedType, includeInaccessible: true))
                 {
-                    AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
+                    if (MatchesEnclosingTypeConditions(context, possibleType))
+                    {
+                        AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
+                    }
                 }
             }
         }
@@ -135,6 +141,38 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         {
             AddSelectionsForConcreteType(context, objectType, selectionsWithPath);
         }
+    }
+
+    /// <summary>
+    /// Determines whether the specified object type satisfies all type conditions
+    /// on the current type path.
+    /// </summary>
+    private bool MatchesEnclosingTypeConditions(Context context, FusionObjectTypeDefinition type)
+    {
+        foreach (var typeCondition in context.TypePath)
+        {
+            if (!ContainsType(schema.GetPossibleTypes(typeCondition, includeInaccessible: true), type))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ContainsType(
+        ImmutableArray<FusionObjectTypeDefinition> possibleTypes,
+        FusionObjectTypeDefinition type)
+    {
+        foreach (var possibleType in possibleTypes)
+        {
+            if (ReferenceEquals(possibleType, type))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void AddSelectionsForConcreteType(
