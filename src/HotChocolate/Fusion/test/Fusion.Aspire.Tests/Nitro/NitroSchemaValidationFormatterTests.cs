@@ -92,10 +92,24 @@ public sealed class NitroSchemaValidationFormatterTests
             [
                 new NitroSchemaValidationFinding(
                     "Schema change violations",
+                    "ObjectModifiedChange",
+                    "Object type Product was modified.",
+                    Coordinate: "Product",
+                    Severity: "BREAKING"),
+                new NitroSchemaValidationFinding(
+                    "Schema change violations",
                     "FieldRemovedChange",
-                    "Field 'name' was removed from type 'Product'.",
+                    "Field Product.name of type Product was removed.",
                     Coordinate: "Product.name",
-                    Severity: "BREAKING")
+                    Severity: "BREAKING",
+                    Depth: 1),
+                new NitroSchemaValidationFinding(
+                    "Schema change violations",
+                    "FieldAddedChange",
+                    "Field Product.price of type Product was added.",
+                    Coordinate: "Product.price",
+                    Severity: "SAFE",
+                    Depth: 1)
             ],
             null,
             DateTimeOffset.UtcNow);
@@ -106,12 +120,14 @@ public sealed class NitroSchemaValidationFormatterTests
         // assert
         output.MatchInlineSnapshot(
             """
-            Nitro schema validation found 2 violations; 1 client and 1 operation are affected.
+            Nitro schema validation found 4 violations; 1 client and 1 operation are affected.
             Client: Inventory UI (client-id)
               Operation: operation-hash [tags: production, canary]
                 - Field productName does not exist. [code: HC001] [path: query.productName] [line: 4, column: 7]
             Schema change violations:
-              - Field 'name' was removed from type 'Product'. [severity: BREAKING] [coordinate: Product.name]
+              - ✕ Object type Product was modified.
+                - ✕ Field Product.name of type Product was removed.
+                - ✓ Field Product.price of type Product was added.
             """);
     }
 }

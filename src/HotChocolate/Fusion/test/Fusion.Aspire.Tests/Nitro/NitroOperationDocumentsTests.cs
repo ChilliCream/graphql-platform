@@ -72,6 +72,7 @@ public sealed class NitroOperationDocumentsTests
         var document = NitroOperationDocuments.GetPollSchemaValidationDocument();
 
         // assert
+        // the fragments must be defined and actually spread into the selections
         Assert.Contains(
             "fragment SchemaChangeDetail on SchemaChange",
             document,
@@ -80,6 +81,8 @@ public sealed class NitroOperationDocumentsTests
             "fragment SchemaChangeLeaf on SchemaChange",
             document,
             StringComparison.Ordinal);
+        Assert.Contains("...SchemaChangeDetail", document, StringComparison.Ordinal);
+        Assert.Contains("...SchemaChangeLeaf", document, StringComparison.Ordinal);
     }
 
     [Theory]

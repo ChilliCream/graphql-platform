@@ -114,7 +114,8 @@ internal sealed record NitroSchemaValidationFinding(
     int? Line = null,
     int? Column = null,
     string? Identity = null,
-    string? Severity = null);
+    string? Severity = null,
+    int Depth = 0);
 
 internal enum NitroSchemaValidationStatus
 {
