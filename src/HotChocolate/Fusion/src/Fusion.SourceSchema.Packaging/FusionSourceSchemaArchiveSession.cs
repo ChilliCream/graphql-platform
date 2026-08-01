@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.IO.Compression;
-using HotChocolate.Fusion.Packaging.Storage;
 
 namespace HotChocolate.Fusion.SourceSchema.Packaging;
 
@@ -9,23 +8,19 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
     private readonly Dictionary<string, FileEntry> _files = [];
     private readonly ZipArchive _archive;
     private readonly FusionSourceSchemaArchiveReadOptions _readOptions;
-    private readonly ArchiveEntryStorageKind _storageKind;
     private FusionSourceSchemaArchiveMode _mode;
-    private long _storedBytes;
     private bool _disposed;
 
     public FusionSourceSchemaArchiveSession(
         ZipArchive archive,
         FusionSourceSchemaArchiveMode mode,
-        FusionSourceSchemaArchiveReadOptions readOptions,
-        ArchiveEntryStorageKind storageKind)
+        FusionSourceSchemaArchiveReadOptions readOptions)
     {
         ArgumentNullException.ThrowIfNull(archive);
 
         _archive = archive;
         _mode = mode;
         _readOptions = readOptions;
-        _storageKind = storageKind;
     }
 
     public bool HasUncommittedChanges
@@ -33,16 +28,14 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
 
     public IEnumerable<string> GetFiles()
     {
-        var stagedFiles = _files
-            .Where(file => file.Value.State is not FileState.Deleted)
-            .Select(file => file.Key);
+        var tempFiles = _files.Where(file => file.Value.State is not FileState.Deleted).Select(file => file.Key);
 
         if (_mode is FusionSourceSchemaArchiveMode.Create)
         {
-            return stagedFiles;
+            return tempFiles;
         }
 
-        var files = new HashSet<string>(stagedFiles);
+        var files = new HashSet<string>(tempFiles);
 
         foreach (var entry in _archive.Entries)
         {
@@ -52,10 +45,7 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
         return files;
     }
 
-    public async Task<bool> ExistsAsync(
-        string path,
-        FileKind kind,
-        CancellationToken cancellationToken)
+    public async Task<bool> ExistsAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
         if (_files.TryGetValue(path, out var file))
         {
@@ -64,7 +54,8 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
 
         if (_mode is not FusionSourceSchemaArchiveMode.Create && _archive.GetEntry(path) is { } entry)
         {
-            file = await ExtractFileAsync(entry, path, GetAllowedSize(kind), cancellationToken);
+            file = FileEntry.Read(path);
+            await ExtractFileAsync(entry, file, GetAllowedSize(kind), cancellationToken);
             _files.Add(path, file);
             return true;
         }
@@ -82,10 +73,7 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
         return _mode is not FusionSourceSchemaArchiveMode.Create && _archive.GetEntry(path) is not null;
     }
 
-    public async Task<Stream> OpenReadAsync(
-        string path,
-        FileKind kind,
-        CancellationToken cancellationToken)
+    public async Task<Stream> OpenReadAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
         if (_files.TryGetValue(path, out var file))
         {
@@ -94,14 +82,16 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
                 throw new FileNotFoundException(path);
             }
 
-            return file.Storage.OpenRead();
+            return File.OpenRead(file.TempPath);
         }
 
         if (_mode is not FusionSourceSchemaArchiveMode.Create && _archive.GetEntry(path) is { } entry)
         {
-            file = await ExtractFileAsync(entry, path, GetAllowedSize(kind), cancellationToken);
+            file = FileEntry.Read(path);
+            await ExtractFileAsync(entry, file, GetAllowedSize(kind), cancellationToken);
+            var stream = File.OpenRead(file.TempPath);
             _files.Add(path, file);
-            return file.Storage.OpenRead();
+            return stream;
         }
 
         throw new FileNotFoundException(path);
@@ -114,35 +104,23 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
             throw new InvalidOperationException("Cannot write to a read-only archive.");
         }
 
-        if (!_files.TryGetValue(path, out var file))
+        if (_files.TryGetValue(path, out var file))
         {
-            var state = _mode is not FusionSourceSchemaArchiveMode.Create
-                && _archive.GetEntry(path) is not null
-                    ? FileState.Replaced
-                    : FileState.Created;
-            file = new FileEntry(path, ArchiveEntryStorage.Create(_storageKind), state);
-            _files.Add(path, file);
+            file.MarkMutated();
+            return File.Open(file.TempPath, FileMode.Create, FileAccess.Write);
         }
-        else
+
+        if (_mode is not FusionSourceSchemaArchiveMode.Create && _archive.GetEntry(path) is not null)
         {
+            file = FileEntry.Read(path);
             file.MarkMutated();
         }
 
-        if (_storageKind is ArchiveEntryStorageKind.TempFile)
-        {
-            return file.Storage.OpenWrite(int.MaxValue);
-        }
+        file ??= FileEntry.Created(path);
+        var stream = File.Open(file.TempPath, FileMode.Create, FileAccess.Write);
+        _files.Add(path, file);
 
-        var previousLength = file.Storage.Length;
-        var remainingSessionBytes = checked(
-            _readOptions.MaxAllowedInMemorySessionSize - _storedBytes + previousLength);
-        var maximumLength = (int)Math.Min(
-            Math.Max(0, remainingSessionBytes),
-            GetAllowedSize(GetFileKind(path)));
-
-        return file.Storage.OpenWrite(
-            maximumLength,
-            length => _storedBytes = checked(_storedBytes - previousLength + length));
+        return stream;
     }
 
     public void SetMode(FusionSourceSchemaArchiveMode mode)
@@ -157,12 +135,12 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
             switch (file.State)
             {
                 case FileState.Created:
-                    await CreateEntryFromStorageAsync(file, cancellationToken);
+                    await CreateEntryFromFileAsync(file.TempPath, file.Path, cancellationToken);
                     break;
 
                 case FileState.Replaced:
                     _archive.GetEntry(file.Path)?.Delete();
-                    await CreateEntryFromStorageAsync(file, cancellationToken);
+                    await CreateEntryFromFileAsync(file.TempPath, file.Path, cancellationToken);
                     break;
 
                 case FileState.Deleted:
@@ -174,43 +152,41 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
         }
     }
 
-    private async Task CreateEntryFromStorageAsync(
-        FileEntry file,
+    /// <summary>
+    /// Creates a ZIP entry from a file with a deterministic timestamp.
+    /// Using a fixed timestamp ensures binary reproducibility of the archive.
+    /// </summary>
+    private async Task CreateEntryFromFileAsync(
+        string sourceFileName,
+        string entryName,
         CancellationToken cancellationToken)
     {
-        var entry = _archive.CreateEntry(file.Path);
+        var entry = _archive.CreateEntry(entryName);
+        // Use a fixed timestamp to ensure deterministic archive output
         entry.LastWriteTime = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
+        await using var source = File.OpenRead(sourceFileName);
 #if NET10_0_OR_GREATER
         await using var destination = await entry.OpenAsync(cancellationToken);
 #else
         await using var destination = entry.Open();
 #endif
-        await file.Storage.CopyToAsync(destination, cancellationToken);
+        await source.CopyToAsync(destination, cancellationToken);
     }
 
-    private async Task<FileEntry> ExtractFileAsync(
+    private static async Task ExtractFileAsync(
         ZipArchiveEntry zipEntry,
-        string path,
+        FileEntry fileEntry,
         int maxAllowedSize,
         CancellationToken cancellationToken)
     {
-        var file = new FileEntry(
-            path,
-            ArchiveEntryStorage.Create(_storageKind),
-            FileState.Read);
         var buffer = ArrayPool<byte>.Shared.Rent(4096);
-        var consumed = 0L;
+        var consumed = 0;
 
         try
         {
             await using var readStream = zipEntry.Open();
-            await using var writeStream = file.Storage.OpenWrite(
-                _storageKind is ArchiveEntryStorageKind.Memory
-                    ? (int)Math.Min(
-                        maxAllowedSize,
-                        Math.Max(0L, _readOptions.MaxAllowedInMemorySessionSize - _storedBytes))
-                    : int.MaxValue);
+            await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
 
             int read;
             while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
@@ -223,50 +199,23 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
                         $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
                 }
 
-                if (_storageKind is ArchiveEntryStorageKind.Memory
-                    && _storedBytes + consumed > _readOptions.MaxAllowedInMemorySessionSize)
-                {
-                    throw new InvalidOperationException(
-                        "The archive exceeds the allowed in-memory session size of "
-                        + $"{_readOptions.MaxAllowedInMemorySessionSize}.");
-                }
-
                 await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
             }
-
-            if (_storageKind is ArchiveEntryStorageKind.Memory)
-            {
-                _storedBytes += file.Storage.Length;
-            }
-
-            return file;
-        }
-        catch
-        {
-            file.Storage.Dispose();
-            throw;
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
     private int GetAllowedSize(FileKind kind)
         => kind switch
         {
-            FileKind.GraphQLSchema => _readOptions.MaxAllowedSchemaSize,
-            FileKind.Settings or FileKind.Metadata => _readOptions.MaxAllowedSettingsSize,
+            FileKind.GraphQLSchema
+                => _readOptions.MaxAllowedSchemaSize,
+            FileKind.Settings or FileKind.Metadata
+                => _readOptions.MaxAllowedSettingsSize,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
-        };
-
-    private static FileKind GetFileKind(string path)
-        => Path.GetFileName(path) switch
-        {
-            FileNames.GraphQLSchema or FileNames.GraphQLSchemaExtensions => FileKind.GraphQLSchema,
-            FileNames.ArchiveMetadata => FileKind.Metadata,
-            FileNames.Settings => FileKind.Settings,
-            _ => FileKind.Settings
         };
 
     public void Dispose()
@@ -278,23 +227,36 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
 
         foreach (var file in _files.Values)
         {
-            file.Storage.Dispose();
+            if (file.State is not FileState.Deleted && File.Exists(file.TempPath))
+            {
+                try
+                {
+                    File.Delete(file.TempPath);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
         }
 
-        _storedBytes = 0;
         _disposed = true;
     }
 
-    private sealed class FileEntry(
-        string path,
-        ArchiveEntryStorage storage,
-        FileState state)
+    private class FileEntry
     {
-        public string Path { get; } = path;
+        private FileEntry(string path, string tempPath, FileState state)
+        {
+            Path = path;
+            TempPath = tempPath;
+            State = state;
+        }
 
-        public ArchiveEntryStorage Storage { get; } = storage;
+        public string Path { get; }
 
-        public FileState State { get; private set; } = state;
+        public string TempPath { get; }
+
+        public FileState State { get; private set; }
 
         public void MarkMutated()
         {
@@ -307,6 +269,19 @@ internal sealed class FusionSourceSchemaArchiveSession : IDisposable
         public void MarkRead()
         {
             State = FileState.Read;
+        }
+
+        public static FileEntry Created(string path)
+            => new(path, GetRandomTempFileName(), FileState.Created);
+
+        public static FileEntry Read(string path)
+            => new(path, GetRandomTempFileName(), FileState.Read);
+
+        private static string GetRandomTempFileName()
+        {
+            var tempDir = System.IO.Path.GetTempPath();
+            var fileName = System.IO.Path.GetRandomFileName();
+            return System.IO.Path.Combine(tempDir, fileName);
         }
     }
 

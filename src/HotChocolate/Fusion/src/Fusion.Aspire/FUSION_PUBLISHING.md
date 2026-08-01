@@ -30,10 +30,7 @@ var nitro = builder.AddNitroPublishTarget("nitro")
 nitro.AddStage("development");
 nitro.AddStage("production")
     .WithApproval(waitForApproval: true)
-    .WithForce(false)
-    .WithTimeouts(
-        operation: TimeSpan.FromMinutes(15),
-        approval: TimeSpan.FromHours(2));
+    .WithForce(false);
 ```
 
 `AddStage` declares a stage of the api. `WithStageParameter` sets the parameter that names the
@@ -41,8 +38,9 @@ stage an invocation publishes to, and the publication fails when that parameter 
 api does not declare. `WithConfigurationTag` supplies both the source version and the Fusion
 configuration tag, and belongs to the api because one release carries the same tag to every stage.
 `WithCompositionEnvironment` selects the environment block in each source's `schema-settings.json`
-and defaults to the composition environment of the AppHost followed by the stage name. `WithApproval`,
-`WithForce`, and `WithTimeouts` configure the publication of a single stage.
+and defaults to the composition environment of the AppHost followed by the stage name.
+`WithApproval` and `WithForce` configure the publication of a single stage. Remote operations have a built-in
+15-minute deadline, and approval waits have a built-in two-hour deadline.
 
 Each command needs only the parameters it uses, so `fusion-upload` needs a tag and `fusion-publish`
 needs a tag and a stage. Values reach the AppHost through configuration, either as environment
@@ -65,6 +63,16 @@ CLI session.
 
 The effective source name is `SourceSchemaName` when explicitly declared, otherwise the Aspire
 resource name. Effective names must be unique and portable path segments.
+
+The artifact step supports all three schema declarations:
+
+- `WithGraphQLSchemaFile` reads the checked-in schema, settings, and optional extensions next to
+  the project.
+- `WithGraphQLSchemaExport` runs the explicit Hot Chocolate command-line exporter.
+- `WithGraphQLSchemaEndpoint` downloads the schema from the declared endpoint and reads
+  `schema-settings.json` from the source project. The endpoint must already be reachable from the
+  artifact runner because the publishing pipeline does not start source resources. Configure a
+  fixed endpoint target port because Aspire does not allocate dynamic ports in publish mode.
 
 ## Upload
 
@@ -123,8 +131,8 @@ revalidate the session state and composed FAR digest. Publish never exports a sc
 source checkout, invokes Git, or calls the source-upload API. The Fusion-specific download,
 composition, readiness, and publication steps create no Fusion apply-state files and do not resolve
 Aspire's output-path service. Provider-contributed deployment dependencies may still write target
-artifacts or Aspire deployment state. Source archives are limited to 128,000,000 bytes each and
-512,000,000 bytes in aggregate. Owned buffers are cleared after success, failure, or cancellation.
+artifacts or Aspire deployment state. Source archives are limited to 128,000,000 bytes each. Owned
+buffers are cleared after success, failure, or cancellation.
 
 ## Ordering
 
@@ -197,7 +205,7 @@ and per Nitro stage for publish. Queue writers instead of cancelling them.
 - A missing exact source during publish fails before source compute deployment.
 - A changed AppHost source set, tag, target, downloaded archive, composition environment, or FAR
   fails in-memory session validation.
-- A transient source endpoint is polled until the configured operation timeout.
+- A transient source endpoint is polled until the built-in operation deadline.
 - Approval rejection, timeout, failed commit, or unverified terminal Nitro state fails publication.
 
 The tag is the rollout identity. Use a new tag whenever the source content or intended rollout

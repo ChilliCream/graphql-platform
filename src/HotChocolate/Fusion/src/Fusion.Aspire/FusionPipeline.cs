@@ -141,7 +141,6 @@ internal static class FusionPipeline
                 Name = ArtifactsStepName,
                 Description = "Produce portable Fusion deployment artifacts.",
                 Resource = resource,
-                RequiredBySteps = [WellKnownPipelineSteps.Publish],
                 Action = ExecuteArtifactsAsync
             },
             new PipelineStep
@@ -223,7 +222,6 @@ internal static class FusionPipeline
                 Description = "Complete the Fusion deployment.",
                 Resource = resource,
                 DependsOnSteps = [PublishStageStepName],
-                RequiredBySteps = [WellKnownPipelineSteps.Deploy],
                 Action = _ =>
                 {
                     session.Dispose();
@@ -252,10 +250,6 @@ internal static class FusionPipeline
             step => step.Name == ReadinessStepName);
         var compose = context.Steps.Single(
             step => step.Name == ComposeStepName);
-        var stagePublication = context.Steps.Single(
-            step => step.Name == PublishStageStepName);
-        var publication = context.Steps.Single(
-            step => step.Name == PublishStepName);
 
         topology.ResourcesWithoutCompute.Clear();
 
@@ -286,24 +280,6 @@ internal static class FusionPipeline
         if (gatewayComputeSteps.Length == 0)
         {
             topology.ResourcesWithoutCompute.Add(composition.Name);
-            return;
-        }
-
-        WireGatewayDeployment(
-            stagePublication,
-            publication,
-            gatewayComputeSteps);
-    }
-
-    internal static void WireGatewayDeployment(
-        PipelineStep stagePublication,
-        PipelineStep publication,
-        IEnumerable<PipelineStep> gatewayComputeSteps)
-    {
-        foreach (var gatewayComputeStep in gatewayComputeSteps)
-        {
-            gatewayComputeStep.DependsOn(stagePublication);
-            publication.DependsOn(gatewayComputeStep);
         }
     }
 

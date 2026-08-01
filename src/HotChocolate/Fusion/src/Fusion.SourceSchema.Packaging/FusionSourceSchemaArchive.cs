@@ -2,7 +2,6 @@
 using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Text.Json;
-using HotChocolate.Fusion.Packaging.Storage;
 using HotChocolate.Fusion.SourceSchema.Packaging.Serializers;
 
 namespace HotChocolate.Fusion.SourceSchema.Packaging;
@@ -27,14 +26,13 @@ public sealed class FusionSourceSchemaArchive : IDisposable
         Stream stream,
         FusionSourceSchemaArchiveMode mode,
         bool leaveOpen,
-        FusionSourceSchemaArchiveReadOptions options,
-        ArchiveEntryStorageKind storageKind)
+        FusionSourceSchemaArchiveReadOptions options)
     {
         _stream = stream;
         _mode = mode;
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
-        _session = new FusionSourceSchemaArchiveSession(_archive, mode, options, storageKind);
+        _session = new FusionSourceSchemaArchiveSession(_archive, mode, options);
     }
 
     /// <summary>
@@ -46,12 +44,7 @@ public sealed class FusionSourceSchemaArchive : IDisposable
     public static FusionSourceSchemaArchive Create(string filename)
     {
         ArgumentNullException.ThrowIfNull(filename);
-        return new FusionSourceSchemaArchive(
-            File.Create(filename),
-            FusionSourceSchemaArchiveMode.Create,
-            leaveOpen: false,
-            FusionSourceSchemaArchiveReadOptions.Default,
-            ArchiveEntryStorageKind.TempFile);
+        return Create(File.Create(filename));
     }
 
     /// <summary>
@@ -64,29 +57,7 @@ public sealed class FusionSourceSchemaArchive : IDisposable
     public static FusionSourceSchemaArchive Create(Stream stream, bool leaveOpen = false)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionSourceSchemaArchive(
-            stream,
-            FusionSourceSchemaArchiveMode.Create,
-            leaveOpen,
-            FusionSourceSchemaArchiveReadOptions.Default,
-            ArchiveEntryStorageKind.Memory);
-    }
-
-    /// <summary>
-    /// Creates a new Fusion source schema archive using the provided stream and options.
-    /// </summary>
-    public static FusionSourceSchemaArchive Create(
-        Stream stream,
-        FusionSourceSchemaArchiveOptions options,
-        bool leaveOpen = false)
-    {
-        ArgumentNullException.ThrowIfNull(stream);
-        return new FusionSourceSchemaArchive(
-            stream,
-            FusionSourceSchemaArchiveMode.Create,
-            leaveOpen,
-            CreateReadOptions(options),
-            ArchiveEntryStorageKind.Memory);
+        return new FusionSourceSchemaArchive(stream, FusionSourceSchemaArchiveMode.Create, leaveOpen, FusionSourceSchemaArchiveReadOptions.Default);
     }
 
     /// <summary>
@@ -105,19 +76,9 @@ public sealed class FusionSourceSchemaArchive : IDisposable
 
         return mode switch
         {
-            FusionSourceSchemaArchiveMode.Read => new FusionSourceSchemaArchive(
-                File.OpenRead(filename),
-                mode,
-                leaveOpen: false,
-                FusionSourceSchemaArchiveReadOptions.Default,
-                ArchiveEntryStorageKind.TempFile),
-            FusionSourceSchemaArchiveMode.Create => Create(filename),
-            FusionSourceSchemaArchiveMode.Update => new FusionSourceSchemaArchive(
-                File.Open(filename, FileMode.Open, FileAccess.ReadWrite),
-                mode,
-                leaveOpen: false,
-                FusionSourceSchemaArchiveReadOptions.Default,
-                ArchiveEntryStorageKind.TempFile),
+            FusionSourceSchemaArchiveMode.Read => Open(File.OpenRead(filename), mode),
+            FusionSourceSchemaArchiveMode.Create => Create(File.Create(filename)),
+            FusionSourceSchemaArchiveMode.Update => Open(File.Open(filename, FileMode.Open, FileAccess.ReadWrite), mode),
             _ => throw new ArgumentException("Invalid mode.", nameof(mode))
         };
     }
@@ -138,23 +99,11 @@ public sealed class FusionSourceSchemaArchive : IDisposable
         FusionSourceSchemaArchiveOptions options = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionSourceSchemaArchive(
-            stream,
-            mode,
-            leaveOpen,
-            CreateReadOptions(options),
-            ArchiveEntryStorageKind.Memory);
+        var readOptions = new FusionSourceSchemaArchiveReadOptions(
+            options.MaxAllowedSchemaSize ?? FusionSourceSchemaArchiveReadOptions.Default.MaxAllowedSchemaSize,
+            options.MaxAllowedSettingsSize ?? FusionSourceSchemaArchiveReadOptions.Default.MaxAllowedSettingsSize);
+        return new FusionSourceSchemaArchive(stream, mode, leaveOpen, readOptions);
     }
-
-    private static FusionSourceSchemaArchiveReadOptions CreateReadOptions(
-        FusionSourceSchemaArchiveOptions options)
-        => new(
-            options.MaxAllowedSchemaSize
-                ?? FusionSourceSchemaArchiveReadOptions.Default.MaxAllowedSchemaSize,
-            options.MaxAllowedSettingsSize
-                ?? FusionSourceSchemaArchiveReadOptions.Default.MaxAllowedSettingsSize,
-            options.MaxAllowedInMemorySessionSize
-                ?? FusionSourceSchemaArchiveReadOptions.Default.MaxAllowedInMemorySessionSize);
 
     /// <summary>
     /// Sets the archive metadata.

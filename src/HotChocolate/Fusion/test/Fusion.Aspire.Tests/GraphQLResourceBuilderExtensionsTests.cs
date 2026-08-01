@@ -37,6 +37,24 @@ public sealed class GraphQLResourceBuilderExtensionsTests
     }
 
     [Fact]
+    public void GetGraphQLSchemaUrl_Should_UseTargetEndpoint_When_EndpointIsNotAllocated()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithHttpEndpoint(port: 54321, targetPort: 8080, name: "schema")
+            .WithGraphQLSchemaEndpoint(
+                path: "/custom/schema",
+                endpointName: "schema");
+
+        var schemaUrl = resource.Resource.GetGraphQLSchemaUrl(
+            defaultPath: "/graphql/schema.graphql",
+            endpointName: "schema");
+
+        Assert.Equal("http://localhost:8080/custom/schema", schemaUrl);
+    }
+
+    [Fact]
     public void WithGraphQLSchemaEndpoint_Should_RejectPath_When_PathIsNotRooted()
     {
         var builder = DistributedApplication.CreateBuilder();

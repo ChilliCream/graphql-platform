@@ -476,35 +476,6 @@ public static class NitroExtensions
         return builder;
     }
 
-    /// <summary>
-    /// Configures the operation and approval timeouts of the deployment.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Fusion stage.
-    /// </param>
-    /// <param name="operation">
-    /// The time a single remote operation may take.
-    /// </param>
-    /// <param name="approval">
-    /// The time the publication waits for approval.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    public static IResourceBuilder<FusionStageResource> WithTimeouts(
-        this IResourceBuilder<FusionStageResource> builder,
-        TimeSpan operation,
-        TimeSpan approval)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(operation, TimeSpan.Zero);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(approval, TimeSpan.Zero);
-
-        builder.Resource.OperationTimeout = operation;
-        builder.Resource.ApprovalTimeout = approval;
-        return builder;
-    }
-
     private static void EnsureFusionPipeline(IDistributedApplicationBuilder builder)
     {
         if (builder.Resources.OfType<FusionPipelineResource>().Any())

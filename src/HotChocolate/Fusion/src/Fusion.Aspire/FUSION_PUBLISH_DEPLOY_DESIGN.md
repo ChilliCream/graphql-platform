@@ -54,10 +54,7 @@ nitro
     .AddStage("production")
     .WithCompositionEnvironment("production")
     .WithApproval(waitForApproval: true)
-    .WithForce(false)
-    .WithTimeouts(
-        operation: TimeSpan.FromMinutes(15),
-        approval: TimeSpan.FromHours(2));
+    .WithForce(false);
 ```
 
 `AddStage` declares a stage of the api. `WithStageParameter` names the parameter that selects the
@@ -73,10 +70,14 @@ publishes to exactly one stage per api.
 Fusion sources come from the resources referenced by the single AppHost composition resource.
 Supported acquisition modes are:
 
-1. checked-in `schema.graphqls` and `schema-settings.json` files; and
-2. explicit command-line schema export.
+1. checked-in `schema.graphqls` and `schema-settings.json` files;
+2. explicit command-line schema export; and
+3. schema download from a declared GraphQL endpoint, with `schema-settings.json` read from the
+   source project.
 
-Runtime HTTP introspection is not accepted during publication. File-based input is preferred for
+An endpoint used during publication must already be reachable from the artifact runner. The
+publishing pipeline does not start source resources, and publish mode requires a fixed endpoint
+target port because it does not allocate a dynamic one. File-based input remains preferable for
 deterministic, auditable CI.
 
 The effective source name is the explicitly declared source-schema name when present, otherwise
@@ -106,14 +107,14 @@ Recommended configuration precedence is explicit AppHost values and parameter re
 then documented compatibility configuration. Secrets come from CI or a secret provider and are
 never written to output or logs.
 
-| Concern | Recommended input |
-| --- | --- |
-| Cloud URL | Explicit `.WithNitroCloudUrl(...)` HTTPS origin |
-| API ID | Explicit `.WithNitroApiId(...)` |
-| API key | Secret `ParameterResource` |
-| Nitro stages | Explicit `.AddStage(...)` per stage |
-| Selected stage | `.WithStageParameter(...)`, resolved per invocation |
-| Rollout/source/configuration tag | `builder.AddParameter("tag")` |
+| Concern                          | Recommended input                                   |
+| -------------------------------- | --------------------------------------------------- |
+| Cloud URL                        | Explicit `.WithNitroCloudUrl(...)` HTTPS origin     |
+| API ID                           | Explicit `.WithNitroApiId(...)`                     |
+| API key                          | Secret `ParameterResource`                          |
+| Nitro stages                     | Explicit `.AddStage(...)` per stage                 |
+| Selected stage                   | `.WithStageParameter(...)`, resolved per invocation |
+| Rollout/source/configuration tag | `builder.AddParameter("tag")`                       |
 
 ## `fusion-upload`
 
@@ -216,7 +217,7 @@ run. Exact archive bytes are downloaded again after source compute, compared wit
 leased while composition, readiness, or publication reads them. Cancellation requests cleanup but
 does not zero an actively leased buffer until its reader unwinds. The session retains no credentials
 and writes no source archive, state file, apply directory, or composed FAR to disk.
-Source archives are limited to 128,000,000 bytes each and 512,000,000 bytes in aggregate.
+Source archives are limited to 128,000,000 bytes each.
 
 Compose, readiness, and publish validate:
 
@@ -235,10 +236,11 @@ a new isolated session and downloads the exact source versions from Nitro again.
 
 Readiness comes from the composed gateway settings, not an arbitrary Aspire liveness endpoint.
 Loopback URLs are rejected for deployment. A response below HTTP 500 is considered reachable;
-transport failures and server errors are retried until the configured operation timeout.
+transport failures and server errors are retried until the built-in 15-minute operation deadline.
 
 Publication is successful only after Nitro reports a verified terminal result. Approval rejection,
-approval timeout, failed commit, polling timeout, or an unverified terminal state fails the step.
+the built-in two-hour approval deadline, failed commit, polling timeout, or an unverified terminal
+state fails the step.
 
 Retry rules:
 
@@ -308,18 +310,18 @@ parameter.
 
 The implementation is complete only when focused tests and a real materialized AppHost prove:
 
-| Scenario | Required result |
-| --- | --- |
-| Environment selection | Only the matching declaration is used; ambiguous mappings fail. |
-| Complete source set | Duplicate effective names and missing exact downloads fail. |
-| Cross-runner publish | Publish succeeds with AppHost metadata and Nitro downloads but no schema files, Git metadata, or upload artifact. |
+| Scenario                  | Required result                                                                                                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment selection     | Only the matching declaration is used; ambiguous mappings fail.                                                                                                                                                                    |
+| Complete source set       | Duplicate effective names and missing exact downloads fail.                                                                                                                                                                        |
+| Cross-runner publish      | Publish succeeds with AppHost metadata and Nitro downloads but no schema files, Git metadata, or upload artifact.                                                                                                                  |
 | Fusion-only disk behavior | Fusion download, composition, readiness, and publication succeed without resolving `IPipelineOutputService` or writing source archives, apply state, or a FAR. Provider dependencies own their target output and deployment state. |
-| Invocation isolation | Interleaved environments and repeated deployments use separate sessions with no retained state. |
-| Cleanup | Success, failure, and cancellation clear all owned source and FAR buffers. |
-| Memory bounds | Oversized individual sources, aggregate sources, and FAR output fail with explicit diagnostics. |
-| Environment composition | The same `name@tag` archives compose different Development/Test endpoints. |
-| Integrity | Tag, target, source-set, archive, environment, and FAR drift fail. |
-| Provider ordering | Source deploy waits for download; readiness waits for source compute; gateway waits for Nitro publication. |
-| First release | Nitro stage publication precedes gateway deployment. |
-| Command surface | Real `aspire do --list-steps` exposes `fusion-upload` and terminal `fusion-publish`. |
-| Compatibility | Build and focused tests pass for the repository's supported target frameworks. |
+| Invocation isolation      | Interleaved environments and repeated deployments use separate sessions with no retained state.                                                                                                                                    |
+| Cleanup                   | Success, failure, and cancellation clear all owned source and FAR buffers.                                                                                                                                                         |
+| Memory bounds             | Oversized individual sources fail with explicit diagnostics.                                                                                                                                                                       |
+| Environment composition   | The same `name@tag` archives compose different Development/Test endpoints.                                                                                                                                                         |
+| Integrity                 | Tag, target, source-set, archive, environment, and FAR drift fail.                                                                                                                                                                 |
+| Provider ordering         | Source deploy waits for download; readiness waits for source compute; gateway waits for Nitro publication.                                                                                                                         |
+| First release             | Nitro stage publication precedes gateway deployment.                                                                                                                                                                               |
+| Command surface           | Real `aspire do --list-steps` exposes `fusion-upload` and terminal `fusion-publish`.                                                                                                                                               |
+| Compatibility             | Build and focused tests pass for the repository's supported target frameworks.                                                                                                                                                     |

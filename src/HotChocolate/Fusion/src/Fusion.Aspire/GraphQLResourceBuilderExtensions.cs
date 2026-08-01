@@ -24,6 +24,11 @@ public static class GraphQLResourceBuilderExtensions
     /// <c>name</c> in <c>schema-settings.json</c>.
     /// </param>
     /// <returns>The resource builder for chaining</returns>
+    /// <remarks>
+    /// During Aspire publishing, the endpoint must already be reachable from the artifact runner
+    /// and must use a fixed target port. The publishing pipeline does not start the source
+    /// resource or allocate a dynamic port.
+    /// </remarks>
     public static IResourceBuilder<T> WithGraphQLSchemaEndpoint<T>(
         this IResourceBuilder<T> builder,
         string? path = null,
@@ -214,9 +219,29 @@ public static class GraphQLResourceBuilderExtensions
 
         var targetEndpointName = endpointName ?? annotation.EndpointName;
         var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == targetEndpointName);
-        if (endpoint?.Url == null)
+        if (endpoint is null)
         {
             return null;
+        }
+
+        if (!endpoint.IsAllocated)
+        {
+            var endpointAnnotation = endpoint.EndpointAnnotation;
+            var port = endpointAnnotation.TargetPort ?? endpointAnnotation.Port;
+            if (port is null || string.IsNullOrWhiteSpace(endpointAnnotation.UriScheme))
+            {
+                return null;
+            }
+
+            var host = string.IsNullOrWhiteSpace(endpointAnnotation.TargetHost)
+                ? "localhost"
+                : endpointAnnotation.TargetHost;
+            var uri = new UriBuilder(
+                endpointAnnotation.UriScheme,
+                host,
+                port.Value);
+            return uri.Uri.GetLeftPart(UriPartial.Authority)
+                + resource.GetGraphQLSchemaPath(defaultPath);
         }
 
         var baseUrl = endpoint.Url.TrimEnd('/');

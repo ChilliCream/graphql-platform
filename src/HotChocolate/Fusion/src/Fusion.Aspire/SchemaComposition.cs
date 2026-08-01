@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -25,10 +24,8 @@ internal sealed class SchemaComposition(
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
-    private const int FetchMaxRetries = 15;
     private const int ArchiveCopyMaxAttempts = 5;
     private const string NitroPortalDisplayText = "🌐 Nitro";
-    private static readonly TimeSpan s_fetchRetryDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_recompositionDebounceDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_archiveCopyRetryDelay = TimeSpan.FromMilliseconds(250);
 
@@ -1435,8 +1432,8 @@ internal sealed class SchemaComposition(
             endpoint,
             protocol,
             httpClient,
-            FetchMaxRetries,
-            s_fetchRetryDelay,
+            SchemaEndpointSchemaFetcher.DefaultMaxRetries,
+            SchemaEndpointSchemaFetcher.DefaultRetryDelay,
             cancellationToken);
     }
 
@@ -1449,91 +1446,15 @@ internal sealed class SchemaComposition(
         TimeSpan retryDelay,
         CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
-        ArgumentNullException.ThrowIfNull(endpoint);
-        ArgumentNullException.ThrowIfNull(httpClient);
-        ArgumentOutOfRangeException.ThrowIfLessThan(maxRetries, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(retryDelay, TimeSpan.Zero);
-
-        logger.LogDebug("Waiting for schema service {SourceSchemaName}", sourceSchemaName);
-
-        for (var i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                if (protocol is SchemaEndpointProtocol.ApolloFederation)
-                {
-                    return await ApolloFederationSchemaFetcher.FetchAsync(
-                        httpClient,
-                        sourceSchemaName,
-                        endpoint,
-                        cancellationToken);
-                }
-
-                return await DefaultSchemaFetcher.FetchAsync(
-                    httpClient,
-                    sourceSchemaName,
-                    endpoint,
-                    cancellationToken);
-            }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} timed out (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (HttpRequestException exception) when (exception.StatusCode is null)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (IOException)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            // The DCP proxy keeps an endpoint open while the source process starts or
-            // restarts, so a fetch can observe transient server errors instead of
-            // connection failures. Server errors are retried, everything below 500
-            // fails immediately.
-            catch (HttpRequestException exception) when (
-                exception.StatusCode >= HttpStatusCode.InternalServerError)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (SchemaFetchRequestException exception) when (
-                exception.StatusCode >= HttpStatusCode.InternalServerError)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-
-            if (i + 1 < maxRetries)
-            {
-                await Task.Delay(retryDelay, cancellationToken);
-            }
-        }
-
-        logger.LogWarning(
-            "Schema service {SourceSchemaName} failed to become ready after {MaxRetries} attempts",
+        return await SchemaEndpointSchemaFetcher.FetchAsync(
             sourceSchemaName,
-            maxRetries);
-        return null;
+            endpoint,
+            protocol,
+            httpClient,
+            maxRetries,
+            retryDelay,
+            logger,
+            cancellationToken);
     }
 
     private async Task<(string Schema, string? Extensions)?> ReadSchemaFromProjectDirectoryAsync(

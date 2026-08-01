@@ -321,6 +321,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                 requestId,
                 timeout,
                 request.ApprovalTimeout,
+                request.OperationTimeout,
                 operationToken);
         }
         catch (OperationCanceledException) when (
@@ -506,6 +507,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
         string requestId,
         CancellationTokenSource timeout,
         TimeSpan approvalTimeout,
+        TimeSpan operationTimeout,
         CancellationToken cancellationToken)
     {
         while (await MoveNextAsync(events, requestId, cancellationToken))
@@ -522,6 +524,8 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                     timeout.CancelAfter(approvalTimeout);
                     continue;
                 case FusionRemoteEventKind.Approved:
+                    timeout.CancelAfter(operationTimeout);
+                    continue;
                 case FusionRemoteEventKind.InProgress:
                 case FusionRemoteEventKind.ValidationSucceeded:
                     continue;

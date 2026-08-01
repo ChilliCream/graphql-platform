@@ -6,17 +6,13 @@ internal sealed class FusionPipelineSession : IDisposable
     private readonly Dictionary<
         FusionStageResource,
         FusionDeploymentSessionState> _deployments = [];
-    private readonly FusionPipelineMemoryLimits _memoryLimits;
     private readonly CancellationToken _cancellationToken;
     private readonly CancellationTokenRegistration _cancellationRegistration;
     private bool _canceled;
     private bool _disposed;
 
-    public FusionPipelineSession(
-        CancellationToken cancellationToken,
-        FusionPipelineMemoryLimits? memoryLimits = null)
+    public FusionPipelineSession(CancellationToken cancellationToken)
     {
-        _memoryLimits = memoryLimits ?? FusionPipelineMemoryLimits.Default;
         _cancellationToken = cancellationToken;
         _cancellationRegistration = cancellationToken.UnsafeRegister(
             static state => ((FusionPipelineSession)state!).Cancel(),
@@ -49,16 +45,6 @@ internal sealed class FusionPipelineSession : IDisposable
                 throw new InvalidOperationException(
                     $"Fusion deployment '{deployment.Name}' was downloaded more than once.");
             }
-        }
-
-        var totalSourceBytes = deployments.Sum(
-            item => item.State.SourceArchiveBytes);
-        if (totalSourceBytes > _memoryLimits.TotalSourceArchiveBytes)
-        {
-            throw new InvalidDataException(
-                "The downloaded Fusion sources exceed the "
-                + $"{_memoryLimits.TotalSourceArchiveBytes:N0}-byte "
-                + "aggregate in-memory size limit.");
         }
 
         lock (_sync)

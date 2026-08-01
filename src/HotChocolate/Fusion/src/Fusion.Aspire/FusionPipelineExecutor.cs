@@ -28,10 +28,25 @@ internal sealed class FusionPipelineExecutor
     };
 
     private readonly FusionPipelineMemoryLimits _memoryLimits;
+    private readonly Func<HttpClient> _schemaHttpClientFactory;
 
     internal FusionPipelineExecutor(FusionPipelineMemoryLimits memoryLimits)
+        : this(
+            memoryLimits,
+            static () => new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            })
+    {
+    }
+
+    internal FusionPipelineExecutor(
+        FusionPipelineMemoryLimits memoryLimits,
+        Func<HttpClient> schemaHttpClientFactory)
     {
         _memoryLimits = memoryLimits;
+        _schemaHttpClientFactory = schemaHttpClientFactory
+            ?? throw new ArgumentNullException(nameof(schemaHttpClientFactory));
     }
 
     public static FusionPipelineExecutor Instance { get; } =
@@ -62,6 +77,8 @@ internal sealed class FusionPipelineExecutor
         var output = context.Services
             .GetRequiredService<IPipelineOutputService>()
             .GetOutputDirectory();
+        var logger = context.Services
+            .GetRequiredService<ILogger<SchemaComposition>>();
 
         foreach (var target in targets)
         {
@@ -70,6 +87,7 @@ internal sealed class FusionPipelineExecutor
                 FusionPipeline.GetStages(context.Model, target),
                 sources,
                 output,
+                logger,
                 context.CancellationToken);
         }
     }
@@ -134,7 +152,7 @@ internal sealed class FusionPipelineExecutor
                         httpClient,
                         name,
                         endpoint,
-                        deployment.OperationTimeout,
+                        FusionStageResource.OperationTimeout,
                         s_readinessRetryDelay,
                         context.CancellationToken);
                 }
@@ -196,7 +214,6 @@ internal sealed class FusionPipelineExecutor
         var preparedStates = new List<(
             FusionStageResource Deployment,
             FusionDeploymentSessionState State)>(deployments.Count);
-        long totalSourceBytes = 0;
         var transferred = false;
 
         try
@@ -222,11 +239,10 @@ internal sealed class FusionPipelineExecutor
                         sourceName,
                         tag,
                         context.CancellationToken);
-                    AddSourceBytes(
+                    ValidateSourceSize(
                         download.Archive.Length,
                         sourceName,
-                        tag,
-                        ref totalSourceBytes);
+                        tag);
                     byte[]? archive = download.Archive.ToArray();
                     try
                     {
@@ -295,7 +311,6 @@ internal sealed class FusionPipelineExecutor
 
         var workflow = context.Services
             .GetRequiredService<FusionDeploymentWorkflow>();
-        long totalSourceBytes = 0;
 
         try
         {
@@ -326,11 +341,10 @@ internal sealed class FusionPipelineExecutor
                             identity.Name,
                             identity.Version,
                             context.CancellationToken);
-                        AddSourceBytes(
+                        ValidateSourceSize(
                             download.Archive.Length,
                             identity.Name,
-                            identity.Version,
-                            ref totalSourceBytes);
+                            identity.Version);
                         byte[]? archive = download.Archive.ToArray();
                         try
                         {
@@ -524,8 +538,8 @@ internal sealed class FusionPipelineExecutor
                             .ToArray(),
                         deployment.WaitForApproval,
                         deployment.Force,
-                        deployment.OperationTimeout,
-                        deployment.ApprovalTimeout),
+                        FusionStageResource.OperationTimeout,
+                        FusionStageResource.ApprovalTimeout),
                     state.FusionArchive,
                     context.CancellationToken);
             }
@@ -701,11 +715,12 @@ internal sealed class FusionPipelineExecutor
         return artifacts;
     }
 
-    private static async Task CreateDeploymentArtifactsAsync(
+    private async Task CreateDeploymentArtifactsAsync(
         NitroPublishTargetResource target,
         IReadOnlyList<FusionStageResource> stages,
         IReadOnlyList<GraphQLSourceSchemaResource> sources,
         string output,
+        ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
         var deploymentDirectory = GetTargetDirectory(output, target);
@@ -729,6 +744,7 @@ internal sealed class FusionPipelineExecutor
                         source,
                         sourcesDirectory,
                         exportDirectory,
+                        logger,
                         cancellationToken));
             }
 
@@ -819,10 +835,11 @@ internal sealed class FusionPipelineExecutor
         }
     }
 
-    private static async Task<string> CreateSourceArtifactsAsync(
+    private async Task<string> CreateSourceArtifactsAsync(
         GraphQLSourceSchemaResource sourceSchema,
         string sourcesDirectory,
         string exportDirectory,
+        ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
         var source = sourceSchema.Resource;
@@ -866,10 +883,67 @@ internal sealed class FusionPipelineExecutor
                 break;
 
             case SourceSchemaLocationType.SchemaEndpoint:
-                throw new InvalidOperationException(
-                    $"GraphQL source '{source.Name}' uses runtime endpoint acquisition, which "
-                    + "is unavailable during Aspire publish. Declare a schema file or an "
-                    + "explicit command-line export.");
+                projectPath = GraphQLResourceModel.GetProjectPath(source);
+                settingsPath = IOPath.Combine(
+                    IOPath.GetDirectoryName(projectPath)!,
+                    "schema-settings.json");
+
+                if (!File.Exists(settingsPath))
+                {
+                    throw new InvalidOperationException(
+                        $"GraphQL source '{source.Name}' did not provide schema-settings.json.");
+                }
+
+                using (var endpointSettings = JsonDocument.Parse(
+                    await File.ReadAllTextAsync(
+                        settingsPath,
+                        cancellationToken)))
+                {
+                    var schemaEndpointConfiguration = SchemaComposition.ReadEndpointConfiguration(
+                        source.Name,
+                        declaration.SourceSchemaName,
+                        endpointSettings);
+                    var schemaUrl = source.GetGraphQLSchemaUrl(
+                        schemaEndpointConfiguration.DefaultPath,
+                        declaration.EndpointName);
+                    if (schemaUrl is null)
+                    {
+                        throw new InvalidOperationException(
+                            $"GraphQL source '{source.Name}' has no resolvable endpoint named "
+                            + $"'{declaration.EndpointName}'. Endpoint-based publishing requires "
+                            + "a fixed target port when the endpoint is not allocated.");
+                    }
+
+                    using var httpClient = _schemaHttpClientFactory();
+                    var schemaText = await SchemaEndpointSchemaFetcher.FetchAsync(
+                        schemaEndpointConfiguration.SourceSchemaName,
+                        new Uri(schemaUrl),
+                        schemaEndpointConfiguration.Protocol,
+                        httpClient,
+                        SchemaEndpointSchemaFetcher.DefaultMaxRetries,
+                        SchemaEndpointSchemaFetcher.DefaultRetryDelay,
+                        logger,
+                        cancellationToken)
+                        ?? throw new InvalidOperationException(
+                            $"GraphQL source '{source.Name}' could not be downloaded from "
+                            + $"'{schemaUrl}'.");
+                    var endpointExportDirectory = IOPath.Combine(
+                        exportDirectory,
+                        source.Name);
+                    Directory.CreateDirectory(endpointExportDirectory);
+                    schemaPath = IOPath.Combine(
+                        endpointExportDirectory,
+                        "schema.graphqls");
+                    await File.WriteAllTextAsync(
+                        schemaPath,
+                        schemaText,
+                        cancellationToken);
+                }
+
+                configuration = "endpoint";
+                targetFramework = null;
+                runtimeIdentifier = null;
+                break;
 
             default:
                 throw new InvalidOperationException(
@@ -1101,11 +1175,10 @@ internal sealed class FusionPipelineExecutor
         return download;
     }
 
-    private void AddSourceBytes(
+    private void ValidateSourceSize(
         int sourceBytes,
         string sourceName,
-        string tag,
-        ref long totalSourceBytes)
+        string tag)
     {
         if (sourceBytes > _memoryLimits.SourceArchiveBytes)
         {
@@ -1113,15 +1186,6 @@ internal sealed class FusionPipelineExecutor
                 $"Downloaded Fusion source '{sourceName}@{tag}' exceeds "
                 + $"the {_memoryLimits.SourceArchiveBytes:N0}-byte "
                 + "per-source in-memory size limit.");
-        }
-
-        totalSourceBytes = checked(totalSourceBytes + sourceBytes);
-        if (totalSourceBytes > _memoryLimits.TotalSourceArchiveBytes)
-        {
-            throw new InvalidDataException(
-                "The downloaded Fusion sources exceed the "
-                + $"{_memoryLimits.TotalSourceArchiveBytes:N0}-byte "
-                + "aggregate in-memory size limit.");
         }
     }
 

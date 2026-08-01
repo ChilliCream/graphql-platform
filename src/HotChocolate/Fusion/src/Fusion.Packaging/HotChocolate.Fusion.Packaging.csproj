@@ -10,9 +10,4 @@
     <PackageReference Include="System.IO.Pipelines" Condition="'$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\Fusion.Packaging.Shared\ArchiveEntryStorage.cs" Link="ArchiveEntryStorage.cs" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Packaging.Tests" />
-  </ItemGroup>
-
 </Project>

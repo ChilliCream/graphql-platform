@@ -25,7 +25,7 @@ public sealed class FusionStageResource(
 
     internal bool Force { get; set; }
 
-    internal TimeSpan OperationTimeout { get; set; } = TimeSpan.FromMinutes(15);
+    internal static TimeSpan OperationTimeout { get; } = TimeSpan.FromMinutes(15);
 
-    internal TimeSpan ApprovalTimeout { get; set; } = TimeSpan.FromHours(2);
+    internal static TimeSpan ApprovalTimeout { get; } = TimeSpan.FromHours(2);
 }

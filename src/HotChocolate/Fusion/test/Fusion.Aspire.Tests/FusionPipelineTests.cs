@@ -164,13 +164,13 @@ public sealed class FusionPipelineTests
                 + $"requiredBy=[{string.Join(", ", step.RequiredBySteps)}]"))
             .MatchInlineSnapshot(
                 """
-                fusion-artifacts: depends=[]; requiredBy=[publish]
+                fusion-artifacts: depends=[]; requiredBy=[]
                 fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
                 fusion-download: depends=[]; requiredBy=[]
                 fusion-compose: depends=[fusion-download]; requiredBy=[]
                 fusion-readiness: depends=[fusion-compose]; requiredBy=[]
                 fusion-publish-stage: depends=[fusion-readiness]; requiredBy=[]
-                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[deploy]
+                fusion-publish: depends=[fusion-publish-stage]; requiredBy=[]
                 """);
     }
 
@@ -201,42 +201,6 @@ public sealed class FusionPipelineTests
                 fusion-download
                 fusion-publish-stage
                 fusion-readiness
-                """);
-    }
-
-    [Fact]
-    public void WireGatewayDeployment_Should_PublishStageBeforeGatewayStarts()
-    {
-        var resource = new FusionPipelineResource("fusion-pipeline");
-        var stagePublication = CreatePipelineStep(
-            FusionPipeline.PublishStageStepName,
-            resource,
-            "fusion");
-        var gatewayDeployment = CreatePipelineStep(
-            "deploy-gateway",
-            resource,
-            WellKnownPipelineTags.DeployCompute);
-        var publication = CreatePipelineStep(
-            FusionPipeline.PublishStepName,
-            resource,
-            "fusion");
-        publication.DependsOn(stagePublication);
-
-        FusionPipeline.WireGatewayDeployment(
-            stagePublication,
-            publication,
-            [gatewayDeployment]);
-
-        string.Join(
-                Environment.NewLine,
-                new[] { stagePublication, gatewayDeployment, publication }
-                    .Select(step =>
-                        $"{step.Name}: depends=[{string.Join(", ", step.DependsOnSteps)}]"))
-            .MatchInlineSnapshot(
-                """
-                fusion-publish-stage: depends=[]
-                deploy-gateway: depends=[fusion-publish-stage]
-                fusion-publish: depends=[fusion-publish-stage, deploy-gateway]
                 """);
     }
 

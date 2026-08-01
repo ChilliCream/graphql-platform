@@ -344,6 +344,119 @@ public sealed class FusionReleaseAcceptanceTests
     }
 
     [Fact]
+    public async Task CreateArtifacts_Should_AcquireEndpointSchema_When_EndpointIsConfigured()
+    {
+        // arrange
+        using var testDirectory = new TestDirectory();
+        var sourceDirectory = IOPath.Combine(testDirectory.Path, "Products");
+        var gatewayDirectory = IOPath.Combine(testDirectory.Path, "Gateway");
+        var output = IOPath.Combine(testDirectory.Path, "output");
+        Directory.CreateDirectory(sourceDirectory);
+        Directory.CreateDirectory(gatewayDirectory);
+        var sourceProjectPath = IOPath.Combine(sourceDirectory, "Products.csproj");
+        var gatewayProjectPath = IOPath.Combine(gatewayDirectory, "Gateway.csproj");
+        await File.WriteAllTextAsync(
+            sourceProjectPath,
+            "<Project Sdk=\"Microsoft.NET.Sdk\" />",
+            TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            gatewayProjectPath,
+            "<Project Sdk=\"Microsoft.NET.Sdk\" />",
+            TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            IOPath.Combine(sourceDirectory, "schema-settings.json"),
+            """
+            {
+              "name": "products",
+              "transports": {
+                "http": {
+                  "url": "{{PRODUCTS_URL}}/graphql"
+                }
+              },
+              "environments": {
+                "development": {
+                  "PRODUCTS_URL": "https://products.example.com"
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        var builder = DistributedApplication.CreateBuilder();
+        var tag = builder.AddParameter("tag", "release-1");
+        var stage = builder.AddParameter("stage", "development");
+        var apiKey = builder.AddParameter(
+            "nitroApiKey",
+            "test-api-key",
+            secret: true);
+        var products = builder
+            .AddProject("products", sourceProjectPath)
+            .WithHttpEndpoint(port: 54321, targetPort: 8080, name: "http")
+            .WithGraphQLSchemaEndpoint();
+        builder
+            .AddProject("gateway", gatewayProjectPath)
+            .WithReference(products)
+            .WithGraphQLSchemaComposition();
+        builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products")
+            .WithNitroApiKey(apiKey)
+            .WithStageParameter(stage)
+            .WithConfigurationTag(tag)
+            .AddStage("development")
+            .WithCompositionEnvironment("development");
+        var model = new DistributedApplicationModel(builder.Resources);
+        string? request = null;
+        using var handler = new StubHttpMessageHandler(message =>
+        {
+            request = $"{message.Method} {message.RequestUri}";
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    "type Query { product: String }",
+                    Encoding.UTF8,
+                    "application/graphql-response+json")
+            };
+        });
+        var executor = new FusionPipelineExecutor(
+            FusionPipelineMemoryLimits.Default,
+            () => new HttpClient(handler, disposeHandler: false)
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            });
+        using var nitro = new FakeNitro();
+
+        // act
+        await executor.CreateArtifactsAsync(
+            CreateContext(model, "Development", output, nitro));
+
+        // assert
+        var sourceOutput = IOPath.Combine(
+            output,
+            "fusion",
+            "nitro",
+            "sources",
+            "products");
+        using var provenance = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                IOPath.Combine(sourceOutput, "provenance.json"),
+                TestContext.Current.CancellationToken));
+        $$"""
+        Request: {{request}}
+        Schema: {{await File.ReadAllTextAsync(
+            IOPath.Combine(sourceOutput, "schema.graphqls"),
+            TestContext.Current.CancellationToken)}}
+        Acquisition: {{provenance.RootElement.GetProperty("configuration").GetString()}}
+        """.MatchInlineSnapshot(
+            """
+            Request: GET http://localhost:8080/graphql/schema.graphql
+            Schema: type Query { product: String }
+            Acquisition: endpoint
+            """);
+    }
+
+    [Fact]
     public async Task Publish_Should_ClearSessionBuffers_WhenNitroFailsToOpenTheRequest()
     {
         // arrange
@@ -480,13 +593,9 @@ public sealed class FusionReleaseAcceptanceTests
             "Development",
             outputPath: null,
             nitro: nitro);
-        var limits = new FusionPipelineMemoryLimits(
-            SourceArchiveBytes: 2,
-            TotalSourceArchiveBytes: 100);
+        var limits = new FusionPipelineMemoryLimits(SourceArchiveBytes: 2);
         var executor = new FusionPipelineExecutor(limits);
-        using var session = new FusionPipelineSession(
-            context.CancellationToken,
-            limits);
+        using var session = new FusionPipelineSession(context.CancellationToken);
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidDataException>(
@@ -496,38 +605,6 @@ public sealed class FusionReleaseAcceptanceTests
         Assert.Equal(
             "Downloaded Fusion source 'products@release-1' exceeds the "
             + "2-byte per-source in-memory size limit.",
-            exception.Message);
-        Assert.Equal(0, session.DeploymentCount);
-    }
-
-    [Fact]
-    public async Task Download_Should_RejectSourceArchives_WhenAggregateLimitIsExceeded()
-    {
-        // arrange
-        using var testDirectory = new TestDirectory();
-        using var nitro = await CreateSeededNitroAsync();
-        var context = CreateContext(
-            CreateModel(
-                await CreateAppHostProjectStubsAsync(testDirectory.Path)),
-            "Development",
-            outputPath: null,
-            nitro: nitro);
-        var limits = new FusionPipelineMemoryLimits(
-            SourceArchiveBytes: 100_000,
-            TotalSourceArchiveBytes: 2);
-        var executor = new FusionPipelineExecutor(limits);
-        using var session = new FusionPipelineSession(
-            context.CancellationToken,
-            limits);
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidDataException>(
-            () => executor.PreflightAsync(context, session));
-
-        // assert
-        Assert.Equal(
-            "The downloaded Fusion sources exceed the 2-byte aggregate "
-            + "in-memory size limit.",
             exception.Message);
         Assert.Equal(0, session.DeploymentCount);
     }
@@ -1324,6 +1401,16 @@ public sealed class FusionReleaseAcceptanceTests
 
         public string GetTempDirectory(IResource resource)
             => throw CreateException();
+    }
+
+    private sealed class StubHttpMessageHandler(
+        Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
+        : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+            => Task.FromResult(responseFactory(request));
     }
 
     private sealed class TestPipelineOutputService(string outputPath)

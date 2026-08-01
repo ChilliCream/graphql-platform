@@ -19,9 +19,4 @@ public struct FusionArchiveOptions
     /// Gets or sets the maximum allowed size of the legacy archive in the archive.
     /// </summary>
     public int? MaxAllowedLegacyArchiveSize { get; set; }
-
-    /// <summary>
-    /// Gets or sets the maximum total size of entries staged in memory for a stream-based archive.
-    /// </summary>
-    public int? MaxAllowedInMemorySessionSize { get; set; }
 }
