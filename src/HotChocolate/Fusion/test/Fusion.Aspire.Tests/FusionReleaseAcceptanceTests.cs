@@ -1102,7 +1102,7 @@ public sealed class FusionReleaseAcceptanceTests
                 case NitroOperationDocuments.ReleaseDeploymentOperationName:
                     return Json(CommandResult("cancelFusionConfigurationComposition"));
 
-                case NitroOperationDocuments.GetStageCompositionSettingsOperationName:
+                case NitroOperationDocuments.GetCompositionSettingsOperationName:
                     return Json(StageCompositionSettings(StageCompositionSettingsJson));
 
                 default:
@@ -1248,7 +1248,7 @@ public sealed class FusionReleaseAcceptanceTests
         }
 
         private static string StageCompositionSettings(string settingsJson)
-            => "{\"data\":{\"apiById\":{\"stage\":{\"compositionSettings\":"
+            => "{\"data\":{\"node\":{\"stage\":{\"compositionSettings\":"
                 + settingsJson
                 + "}}}}";
 

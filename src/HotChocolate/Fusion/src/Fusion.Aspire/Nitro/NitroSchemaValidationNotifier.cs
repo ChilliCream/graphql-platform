@@ -6,42 +6,60 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 
 internal interface INitroSchemaValidationNotifier
 {
-    void NotifyViolations(string message);
+    void NotifyViolations(string gatewayName, string message);
 
     void NotifyRestored(string message);
 }
 
-#pragma warning disable ASPIREINTERACTION001
+internal interface INitroCompositionNotifier
+{
+    void NotifyFailure(string gatewayName, string message);
+}
+
 internal sealed class NitroSchemaValidationNotifier(
     IInteractionService interactionService,
     IHostApplicationLifetime lifetime,
     ILogger<NitroSchemaValidationNotifier> logger)
     : INitroSchemaValidationNotifier
+    , INitroCompositionNotifier
 {
-    public void NotifyViolations(string message)
-        => Notify(MessageIntent.Error, message);
+    public void NotifyViolations(string gatewayName, string message)
+        => Notify(MessageIntent.Error, message, gatewayName);
 
     public void NotifyRestored(string message)
-        => Notify(MessageIntent.Success, message);
+        => Notify(MessageIntent.Success, message, null);
 
-    private void Notify(MessageIntent intent, string message)
+    public void NotifyFailure(string gatewayName, string message)
+        => Notify(MessageIntent.Error, message, gatewayName);
+
+    private void Notify(MessageIntent intent, string message, string? gatewayName)
     {
         if (!interactionService.IsAvailable)
         {
             return;
         }
 
-        _ = PromptNotificationAsync(intent, message);
+        _ = PromptNotificationAsync(intent, message, gatewayName);
     }
 
-    private async Task PromptNotificationAsync(MessageIntent intent, string message)
+    private async Task PromptNotificationAsync(
+        MessageIntent intent,
+        string message,
+        string? gatewayName)
     {
         try
         {
+            var options = new NotificationInteractionOptions { Intent = intent };
+            if (gatewayName is not null)
+            {
+                options.LinkText = "View logs";
+                options.LinkUrl = $"/consolelogs/resource/{Uri.EscapeDataString(gatewayName)}";
+            }
+
             await interactionService.PromptNotificationAsync(
-                "Nitro schema validation",
+                "Nitro:",
                 message,
-                new NotificationInteractionOptions { Intent = intent },
+                options,
                 lifetime.ApplicationStopping);
         }
         catch (OperationCanceledException) when (lifetime.ApplicationStopping.IsCancellationRequested)
@@ -49,8 +67,7 @@ internal sealed class NitroSchemaValidationNotifier(
         }
         catch (Exception exception)
         {
-            logger.LogDebug(exception, "The Nitro schema validation notification could not be shown.");
+            logger.LogDebug(exception, "The Nitro notification could not be shown.");
         }
     }
 }
-#pragma warning restore ASPIREINTERACTION001

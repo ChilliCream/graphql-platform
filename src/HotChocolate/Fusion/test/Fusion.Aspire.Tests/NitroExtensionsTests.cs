@@ -231,7 +231,6 @@ public sealed class NitroExtensionsTests
         await using var services = new ServiceCollection()
             .AddSingleton(coordinator)
             .BuildServiceProvider();
-#pragma warning disable ASPIREINTERACTION001
         var context = new ExecuteCommandContext
         {
             ServiceProvider = services,
@@ -240,7 +239,6 @@ public sealed class NitroExtensionsTests
             Logger = NullLogger.Instance,
             Arguments = new InteractionInputCollection([])
         };
-#pragma warning restore ASPIREINTERACTION001
 
         // act
         var result = await command.ExecuteCommand(context);
@@ -263,7 +261,6 @@ public sealed class NitroExtensionsTests
             gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
             annotation => annotation.Name == "recompose");
         await using var services = new ServiceCollection().BuildServiceProvider();
-#pragma warning disable ASPIREINTERACTION001
         var context = new ExecuteCommandContext
         {
             ServiceProvider = services,
@@ -272,7 +269,6 @@ public sealed class NitroExtensionsTests
             Logger = NullLogger.Instance,
             Arguments = new InteractionInputCollection([])
         };
-#pragma warning restore ASPIREINTERACTION001
 
         // act
         var result = await command.ExecuteCommand(context);
@@ -519,7 +515,6 @@ public sealed class NitroExtensionsTests
         var command = Assert.Single(
             gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
             annotation => annotation.Name == "disable-nitro-auto-update");
-#pragma warning disable ASPIREINTERACTION001
         var context = new ExecuteCommandContext
         {
             ServiceProvider = services,
@@ -528,7 +523,6 @@ public sealed class NitroExtensionsTests
             Logger = NullLogger.Instance,
             Arguments = new InteractionInputCollection([])
         };
-#pragma warning restore ASPIREINTERACTION001
 
         // act
         var result = await command.ExecuteCommand(context);

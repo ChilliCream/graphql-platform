@@ -372,6 +372,7 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
                     GraphQLHttpClient.Create(httpClient, disposeHttpClient: false))),
             NoopSchemaValidator.Instance,
             stageClient,
+            NoopCompositionSettingsClient.Instance,
             _directory.GetPath("run"),
             autoUpdate);
 
@@ -558,5 +559,17 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
                     schemaHash,
                     requestId: "noop",
                     DateTimeOffset.UtcNow));
+    }
+
+    private sealed class NoopCompositionSettingsClient : INitroCompositionSettingsClient
+    {
+        public static NoopCompositionSettingsClient Instance { get; } = new();
+
+        public Task<CompositionSettings?> GetAsync(
+            NitroConnection connection,
+            string apiId,
+            string stage,
+            CancellationToken cancellationToken)
+            => Task.FromResult<CompositionSettings?>(null);
     }
 }

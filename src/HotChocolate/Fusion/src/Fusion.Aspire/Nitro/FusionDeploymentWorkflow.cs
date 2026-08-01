@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using HotChocolate.Fusion.Options;
 using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
@@ -8,6 +9,11 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// </summary>
 internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
 {
+    /// <summary>
+    /// The GraphQL error code that a server reports for a field that its schema does not define.
+    /// </summary>
+    private const string UnknownFieldErrorCode = "HC0020";
+
     /// <summary>
     /// Downloads an exact immutable source schema version and computes its canonical content
     /// identity. The caller owns a non-null result and must dispose it after use.
@@ -74,7 +80,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    public async Task<NitroStageCompositionSettings?> TryGetStageCompositionSettingsAsync(
+    public async Task<CompositionSettings?> TryGetStageCompositionSettingsAsync(
         FusionTarget target,
         string stageName,
         ILogger logger,
@@ -91,8 +97,11 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                 stageName,
                 cancellationToken);
         }
-        catch (FusionOperationUnsupportedException exception)
+        catch (NitroOperationException exception)
+            when (exception.ErrorCode is UnknownFieldErrorCode)
         {
+            // a Nitro server that predates the stage composition settings answers with a field
+            // validation error, which is the only failure the composition can continue without.
             logger.LogWarning(
                 "The composition settings of stage {StageName} could not be downloaded, so the "
                 + "composition only uses the settings of the distributed application. Update the "

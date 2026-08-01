@@ -5,6 +5,7 @@
     <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
     <TargetFrameworks>net11.0; net10.0; net9.0</TargetFrameworks>
     <IsAotCompatible>false</IsAotCompatible>
+    <NoWarn>$(NoWarn);ASPIREINTERACTION001</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

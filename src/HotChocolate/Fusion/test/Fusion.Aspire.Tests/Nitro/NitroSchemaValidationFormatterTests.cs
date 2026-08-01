@@ -92,10 +92,10 @@ public sealed class NitroSchemaValidationFormatterTests
             [
                 new NitroSchemaValidationFinding(
                     "Schema change violations",
-                    "SchemaVersionChangeViolationError",
-                    "The field was removed.",
-                    "BREAKING_CHANGE",
-                    Coordinate: "Product.name")
+                    "FieldRemovedChange",
+                    "Field was removed.",
+                    Coordinate: "Product.name",
+                    Severity: "BREAKING")
             ],
             null,
             DateTimeOffset.UtcNow);
@@ -106,12 +106,12 @@ public sealed class NitroSchemaValidationFormatterTests
         // assert
         output.MatchInlineSnapshot(
             """
-            Nitro schema validation found client-contract violations: 1 clients, 1 operations, 2 findings.
+            Nitro schema validation found 2 violations; 1 client and 1 operation are affected.
             Client: Inventory UI (client-id)
               Operation: operation-hash [tags: production, canary]
                 - Field productName does not exist. [code: HC001] [path: query.productName] [line: 4, column: 7]
             Schema change violations:
-              - The field was removed. [code: BREAKING_CHANGE] [coordinate: Product.name]
+              - Field was removed. [severity: BREAKING] [coordinate: Product.name]
             """);
     }
 }

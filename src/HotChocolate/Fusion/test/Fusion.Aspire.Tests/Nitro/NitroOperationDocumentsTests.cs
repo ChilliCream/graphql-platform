@@ -24,7 +24,7 @@ public sealed class NitroOperationDocumentsTests
             },
             {
                 NitroOperationDocuments.WatchSchemaValidationOperationName,
-                "ad7ee984bdd62c1357d5ee29261adff3f60bb119f5f162ae1ee8a1f9c62632d9"
+                "46d75ecdeb81c4a4552e69e43fbadced452774cb897c1f53da8d8b6712cf8b03"
             },
             {
                 NitroOperationDocuments.GetStageVersionOperationName,
@@ -63,8 +63,8 @@ public sealed class NitroOperationDocumentsTests
                 "25fff4ef7a751b2d9b1008f353dc23c89b8aed8978334407d3aa9a83806839b1"
             },
             {
-                NitroOperationDocuments.GetStageCompositionSettingsOperationName,
-                "5cf6fc33bd9b6b535673f8adf0163b1ec7daaa7c8ed25240f77a9e814a7b6b7a"
+                NitroOperationDocuments.GetCompositionSettingsOperationName,
+                "576b1d39b8ed179da29e50247574aaae26d979591a4bbe53fcaf850fe2b02351"
             }
         };
 
@@ -102,9 +102,7 @@ public sealed class NitroOperationDocumentsTests
     [InlineData("CommitFusionDeployment", "mutation CommitFusionDeployment(")]
     [InlineData("ReleaseFusionDeployment", "mutation ReleaseFusionDeployment(")]
     [InlineData("WatchFusionDeployment", "subscription WatchFusionDeployment(")]
-    [InlineData(
-        "GetFusionStageCompositionSettings",
-        "query GetFusionStageCompositionSettings(")]
+    [InlineData("GetNitroCompositionSettings", "query GetNitroCompositionSettings(")]
     public void OperationName_Should_MatchTheOperationInTheDocument(
         string operationName,
         string expectedDeclaration)
@@ -160,8 +158,8 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetReleaseDeploymentDocument(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentDocument(),
-            NitroOperationDocuments.GetStageCompositionSettingsOperationName
-                => NitroOperationDocuments.GetStageCompositionSettingsDocument(),
+            NitroOperationDocuments.GetCompositionSettingsOperationName
+                => NitroOperationDocuments.GetCompositionSettingsDocument(),
             _ => throw new ArgumentOutOfRangeException(nameof(operationName))
         };
 #endif
@@ -207,8 +205,8 @@ public sealed class NitroOperationDocumentsTests
                 => NitroOperationDocuments.GetReleaseDeploymentOperationId(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentOperationId(),
-            NitroOperationDocuments.GetStageCompositionSettingsOperationName
-                => NitroOperationDocuments.GetStageCompositionSettingsOperationId(),
+            NitroOperationDocuments.GetCompositionSettingsOperationName
+                => NitroOperationDocuments.GetCompositionSettingsOperationId(),
             _ => throw new ArgumentOutOfRangeException(nameof(operationName))
         };
 #endif

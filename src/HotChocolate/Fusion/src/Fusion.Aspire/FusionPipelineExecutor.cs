@@ -445,7 +445,7 @@ internal sealed class FusionPipelineExecutor
                             .ToArray(),
                         compositionEnvironment,
                         currentComposition.Settings,
-                        stageSettings?.ToCompositionSettings(),
+                        stageSettings,
                         logger,
                         context.CancellationToken))
                 {

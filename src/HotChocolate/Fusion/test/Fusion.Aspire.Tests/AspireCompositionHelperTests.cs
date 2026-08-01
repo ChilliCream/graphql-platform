@@ -282,20 +282,26 @@ public sealed class AspireCompositionHelperTests
         {
             TagMergeBehavior = DirectiveMergeBehavior.Include
         };
-        var stageSettings = new NitroStageCompositionSettings
+        var stageSettings = new CompositionSettings
         {
-            CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
-            EnableGlobalObjectIdentification = true,
-            ExcludeByTag = ["internal"],
-            NodeResolution = NodeResolution.SourceSchema,
-            RemoveUnreferencedDefinitions = true,
-            TagMergeBehavior = DirectiveMergeBehavior.Ignore
+            Merger = new CompositionSettings.MergerSettings
+            {
+                CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
+                EnableGlobalObjectIdentification = true,
+                NodeResolution = NodeResolution.SourceSchema,
+                RemoveUnreferencedDefinitions = true,
+                TagMergeBehavior = DirectiveMergeBehavior.Ignore
+            },
+            Preprocessor = new CompositionSettings.PreprocessorSettings
+            {
+                ExcludeByTag = ["internal"]
+            }
         };
 
         // act
         var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
             settings,
-            stageSettings.ToCompositionSettings());
+            stageSettings);
 
         // assert
         SerializeSettings(compositionSettings)
@@ -337,18 +343,24 @@ public sealed class AspireCompositionHelperTests
             ExcludeByTag = new HashSet<string> { "local" },
             NodeResolution = NodeResolution.Gateway
         };
-        var stageSettings = new NitroStageCompositionSettings
+        var stageSettings = new CompositionSettings
         {
-            CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
-            EnableGlobalObjectIdentification = true,
-            ExcludeByTag = ["stage"],
-            NodeResolution = NodeResolution.SourceSchema
+            Merger = new CompositionSettings.MergerSettings
+            {
+                CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
+                EnableGlobalObjectIdentification = true,
+                NodeResolution = NodeResolution.SourceSchema
+            },
+            Preprocessor = new CompositionSettings.PreprocessorSettings
+            {
+                ExcludeByTag = ["stage"]
+            }
         };
 
         // act
         var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
             settings,
-            stageSettings.ToCompositionSettings());
+            stageSettings);
 
         // assert
         SerializeSettings(compositionSettings)

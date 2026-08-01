@@ -18,6 +18,7 @@ internal sealed class SchemaComposition(
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
     NitroCompositionOptions nitroOptions,
+    INitroCompositionNotifier nitroCompositionNotifier,
     NitroSchemaValidationCoordinator validationCoordinator,
     NitroSeedUpdateService seedUpdateService,
     GatewayCompositionCommandCoordinator commandCoordinator,
@@ -275,6 +276,7 @@ internal sealed class SchemaComposition(
 
                 logger.LogError(failure, "{Message}", message);
                 resourceLoggerService.GetLogger(compositionResource).LogError(failure, "{Message}", message);
+                NotifyCompositionFailure(compositionResource);
 
                 throw failure is null
                     ? new DistributedApplicationException(message)
@@ -519,6 +521,15 @@ internal sealed class SchemaComposition(
                 downloadFreshSeed: false,
                 cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            NotifyCompositionFailure(compositionResource);
+            throw;
+        }
         finally
         {
             compositionGate.Release();
@@ -570,6 +581,7 @@ internal sealed class SchemaComposition(
                 exception,
                 "Manual schema composition failed for {ResourceName}.",
                 compositionResource.Name);
+            NotifyCompositionFailure(compositionResource);
             return CommandResults.Failure(
                 $"Schema composition failed for '{compositionResource.Name}'.");
         }
@@ -660,6 +672,7 @@ internal sealed class SchemaComposition(
                     "Skipping the schema recomposition for {ResourceName} because no fusion "
                     + "configuration was acquired for it in this run.",
                     compositionResource.Name);
+                NotifyCompositionFailure(compositionResource);
                 return SchemaCompositionOutcome.Failed;
             }
         }
@@ -722,6 +735,7 @@ internal sealed class SchemaComposition(
             logger.LogError(
                 "Schema recomposition for {ResourceName} failed. The gateway keeps the previous schema.",
                 compositionResource.Name);
+            NotifyCompositionFailure(compositionResource);
         }
 
         return outcome;
@@ -826,11 +840,24 @@ internal sealed class SchemaComposition(
             + "configuration...",
             compositionResource.Name);
 
-        var outcome = await ComposeSchemaAsync(
-            compositionResource,
-            appModel,
-            adoption.Current.Seed,
-            cancellationToken);
+        SchemaCompositionOutcome outcome;
+        try
+        {
+            outcome = await ComposeSchemaAsync(
+                compositionResource,
+                appModel,
+                adoption.Current.Seed,
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            NotifyCompositionFailure(compositionResource);
+            throw;
+        }
 
         if (!outcome.Success)
         {
@@ -838,6 +865,7 @@ internal sealed class SchemaComposition(
                 "Schema recomposition for {ResourceName} against the updated Nitro "
                 + "configuration failed. The gateway keeps the previous schema.",
                 compositionResource.Name);
+            NotifyCompositionFailure(compositionResource);
             return false;
         }
 
@@ -852,6 +880,20 @@ internal sealed class SchemaComposition(
         }
 
         return true;
+    }
+
+    private void NotifyCompositionFailure(IResource compositionResource)
+    {
+        if (nitroOptions.Coordinator is not { } coordinator
+            || compositionResource.GetNitroApiId() is null)
+        {
+            return;
+        }
+
+        nitroCompositionNotifier.NotifyFailure(
+            compositionResource.Name,
+            $"Schema composition failed for '{compositionResource.Name}' against stage "
+            + $"'{coordinator.Stage}'; check the logs for details.");
     }
 
     private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(

@@ -16,6 +16,8 @@ internal static class NitroOperationDocuments
     private const string WatchSchemaValidationHashFile = "WatchNitroSchemaValidation.graphql.sha256";
     private const string GetStageVersionHashFile = "GetNitroStageVersion.graphql.sha256";
     private const string WatchStageHashFile = "WatchNitroStage.graphql.sha256";
+    private const string GetCompositionSettingsHashFile =
+        "GetNitroCompositionSettings.graphql.sha256";
     private const string UploadSourceSchemaHashFile = "UploadFusionSourceSchema.graphql.sha256";
     private const string BeginDeploymentHashFile = "BeginFusionDeployment.graphql.sha256";
     private const string ClaimDeploymentHashFile = "ClaimFusionDeployment.graphql.sha256";
@@ -23,14 +25,13 @@ internal static class NitroOperationDocuments
     private const string CommitDeploymentHashFile = "CommitFusionDeployment.graphql.sha256";
     private const string ReleaseDeploymentHashFile = "ReleaseFusionDeployment.graphql.sha256";
     private const string WatchDeploymentHashFile = "WatchFusionDeployment.graphql.sha256";
-    private const string GetStageCompositionSettingsHashFile =
-        "GetFusionStageCompositionSettings.graphql.sha256";
 
     private static string? s_resolveApiNameHash;
     private static string? s_validateSchemaHash;
     private static string? s_watchSchemaValidationHash;
     private static string? s_getStageVersionHash;
     private static string? s_watchStageHash;
+    private static string? s_getCompositionSettingsHash;
     private static string? s_uploadSourceSchemaHash;
     private static string? s_beginDeploymentHash;
     private static string? s_claimDeploymentHash;
@@ -38,13 +39,13 @@ internal static class NitroOperationDocuments
     private static string? s_commitDeploymentHash;
     private static string? s_releaseDeploymentHash;
     private static string? s_watchDeploymentHash;
-    private static string? s_getStageCompositionSettingsHash;
 #else
     private const string ResolveApiNameFile = "ResolveNitroApiName.graphql";
     private const string ValidateSchemaFile = "ValidateNitroSchema.graphql";
     private const string WatchSchemaValidationFile = "WatchNitroSchemaValidation.graphql";
     private const string GetStageVersionFile = "GetNitroStageVersion.graphql";
     private const string WatchStageFile = "WatchNitroStage.graphql";
+    private const string GetCompositionSettingsFile = "GetNitroCompositionSettings.graphql";
     private const string UploadSourceSchemaFile = "UploadFusionSourceSchema.graphql";
     private const string BeginDeploymentFile = "BeginFusionDeployment.graphql";
     private const string ClaimDeploymentFile = "ClaimFusionDeployment.graphql";
@@ -52,14 +53,13 @@ internal static class NitroOperationDocuments
     private const string CommitDeploymentFile = "CommitFusionDeployment.graphql";
     private const string ReleaseDeploymentFile = "ReleaseFusionDeployment.graphql";
     private const string WatchDeploymentFile = "WatchFusionDeployment.graphql";
-    private const string GetStageCompositionSettingsFile =
-        "GetFusionStageCompositionSettings.graphql";
 
     private static string? s_resolveApiName;
     private static string? s_validateSchema;
     private static string? s_watchSchemaValidation;
     private static string? s_getStageVersion;
     private static string? s_watchStage;
+    private static string? s_getCompositionSettings;
     private static string? s_uploadSourceSchema;
     private static string? s_beginDeployment;
     private static string? s_claimDeployment;
@@ -67,7 +67,6 @@ internal static class NitroOperationDocuments
     private static string? s_commitDeployment;
     private static string? s_releaseDeployment;
     private static string? s_watchDeployment;
-    private static string? s_getStageCompositionSettings;
 #endif
 
     /// <summary>
@@ -78,6 +77,7 @@ internal static class NitroOperationDocuments
     public const string WatchSchemaValidationOperationName = "WatchNitroSchemaValidation";
     public const string GetStageVersionOperationName = "GetNitroStageVersion";
     public const string WatchStageOperationName = "WatchNitroStage";
+    public const string GetCompositionSettingsOperationName = "GetNitroCompositionSettings";
 
     /// <summary>
     /// The operation name of the document that uploads an immutable source schema version.
@@ -114,12 +114,6 @@ internal static class NitroOperationDocuments
     /// </summary>
     public const string WatchDeploymentOperationName = "WatchFusionDeployment";
 
-    /// <summary>
-    /// The operation name of the document that reads the composition settings of a stage.
-    /// </summary>
-    public const string GetStageCompositionSettingsOperationName =
-        "GetFusionStageCompositionSettings";
-
 #if NITRO_PERSISTED_OPERATIONS
     /// <summary>
     /// Gets the persisted operation id of the document that resolves the name of an api by its id.
@@ -138,6 +132,9 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchStageOperationId()
         => s_watchStageHash ??= ReadDocument(WatchStageHashFile).Trim();
+
+    public static string GetCompositionSettingsOperationId()
+        => s_getCompositionSettingsHash ??= ReadDocument(GetCompositionSettingsHashFile).Trim();
 
     public static string GetUploadSourceSchemaOperationId()
         => s_uploadSourceSchemaHash ??= ReadDocument(UploadSourceSchemaHashFile).Trim();
@@ -159,10 +156,6 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchDeploymentOperationId()
         => s_watchDeploymentHash ??= ReadDocument(WatchDeploymentHashFile).Trim();
-
-    public static string GetStageCompositionSettingsOperationId()
-        => s_getStageCompositionSettingsHash ??=
-            ReadDocument(GetStageCompositionSettingsHashFile).Trim();
 #else
     /// <summary>
     /// Gets the document that resolves the name of an api by its id.
@@ -181,6 +174,9 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchStageDocument()
         => s_watchStage ??= ReadDocument(WatchStageFile);
+
+    public static string GetCompositionSettingsDocument()
+        => s_getCompositionSettings ??= ReadDocument(GetCompositionSettingsFile);
 
     public static string GetUploadSourceSchemaDocument()
         => s_uploadSourceSchema ??= ReadDocument(UploadSourceSchemaFile);
@@ -202,9 +198,6 @@ internal static class NitroOperationDocuments
 
     public static string GetWatchDeploymentDocument()
         => s_watchDeployment ??= ReadDocument(WatchDeploymentFile);
-
-    public static string GetStageCompositionSettingsDocument()
-        => s_getStageCompositionSettings ??= ReadDocument(GetStageCompositionSettingsFile);
 #endif
 
     private static string ReadDocument(string fileName)

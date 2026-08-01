@@ -30,39 +30,41 @@ subscription WatchNitroSchemaValidation($requestId: ID!) {
         }
         ... on SchemaVersionChangeViolationError {
           changes {
-            __typename
-            ... on SchemaChange {
-              severity
-            }
-            ... on TypeSystemMemberAddedChange {
-              coordinate
-            }
-            ... on TypeSystemMemberModifiedChange {
-              coordinate
-            }
-            ... on TypeSystemMemberRemovedChange {
-              coordinate
-            }
+            ...SchemaChangeSummary
             ... on ObjectModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
             ... on InputObjectModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
             ... on DirectiveModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
             ... on ScalarModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
             ... on EnumModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
             ... on UnionModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
             ... on InterfaceModifiedChange {
-              coordinate
+              changes {
+                ...SchemaChangeDetail
+              }
             }
           }
         }
@@ -141,5 +143,151 @@ subscription WatchNitroSchemaValidation($requestId: ID!) {
         }
       }
     }
+  }
+}
+
+fragment SchemaChangeSummary on SchemaChangeLogEntry {
+  __typename
+  ... on SchemaChange {
+    severity
+  }
+  ... on TypeSystemMemberAddedChange {
+    coordinate
+  }
+  ... on TypeSystemMemberModifiedChange {
+    coordinate
+  }
+  ... on TypeSystemMemberRemovedChange {
+    coordinate
+  }
+  ... on ObjectModifiedChange {
+    coordinate
+  }
+  ... on InputObjectModifiedChange {
+    coordinate
+  }
+  ... on DirectiveModifiedChange {
+    coordinate
+  }
+  ... on ScalarModifiedChange {
+    coordinate
+  }
+  ... on EnumModifiedChange {
+    coordinate
+  }
+  ... on UnionModifiedChange {
+    coordinate
+  }
+  ... on InterfaceModifiedChange {
+    coordinate
+  }
+}
+
+fragment SchemaChangeDetail on SchemaChangeLogEntry {
+  ...SchemaChangeLeaf
+  ... on InputFieldChanged {
+    changes {
+      ...SchemaChangeLeaf
+    }
+  }
+  ... on OutputFieldChanged {
+    changes {
+      ...SchemaChangeLeaf
+      ... on ArgumentChanged {
+        changes {
+          ...SchemaChangeLeaf
+        }
+      }
+    }
+  }
+  ... on ArgumentChanged {
+    changes {
+      ...SchemaChangeLeaf
+    }
+  }
+  ... on EnumValueChanged {
+    changes {
+      ...SchemaChangeLeaf
+    }
+  }
+}
+
+fragment SchemaChangeLeaf on SchemaChangeLogEntry {
+  ...SchemaChangeSummary
+  ... on InterfaceImplementationAdded {
+    interfaceName
+  }
+  ... on InterfaceImplementationRemoved {
+    interfaceName
+  }
+  ... on DescriptionChanged {
+    old
+    new
+  }
+  ... on FieldAddedChange {
+    coordinate
+    typeName
+    fieldName
+  }
+  ... on FieldRemovedChange {
+    coordinate
+    typeName
+    fieldName
+  }
+  ... on InputFieldChanged {
+    coordinate
+    fieldName
+  }
+  ... on OutputFieldChanged {
+    coordinate
+    fieldName
+  }
+  ... on PossibleTypeAdded {
+    typeName
+  }
+  ... on PossibleTypeRemoved {
+    typeName
+  }
+  ... on UnionMemberAdded {
+    typeName
+  }
+  ... on UnionMemberRemoved {
+    typeName
+  }
+  ... on DirectiveLocationAdded {
+    location
+  }
+  ... on DirectiveLocationRemoved {
+    location
+  }
+  ... on DeprecatedChange {
+    deprecationReason
+  }
+  ... on ArgumentAdded {
+    coordinate
+    name
+    typeName
+  }
+  ... on ArgumentRemoved {
+    coordinate
+    name
+    typeName
+  }
+  ... on ArgumentChanged {
+    coordinate
+    name
+  }
+  ... on EnumValueAdded {
+    coordinate
+  }
+  ... on EnumValueRemoved {
+    coordinate
+  }
+  ... on EnumValueChanged {
+    coordinate
+  }
+  ... on TypeChanged {
+    oldType
+    newType
   }
 }

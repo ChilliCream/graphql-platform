@@ -8,11 +8,10 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// </summary>
 internal sealed class NitroGraphQLResult
 {
-    private NitroGraphQLResult(JsonElement data, string? failure, string? failureCode)
+    private NitroGraphQLResult(JsonElement data, string? failure)
     {
         Data = data;
         Failure = failure;
-        FailureCode = failureCode;
     }
 
     /// <summary>
@@ -25,18 +24,9 @@ internal sealed class NitroGraphQLResult
     /// </summary>
     public string? Failure { get; }
 
-    /// <summary>
-    /// Gets the error code that Nitro reported for the failure, or <c>null</c> when Nitro
-    /// reported no code.
-    /// </summary>
-    public string? FailureCode { get; }
-
     public static NitroGraphQLResult Success(JsonElement data)
-        => new(data, null, null);
+        => new(data, null);
 
     public static NitroGraphQLResult Failed(string failure)
-        => new(default, failure, null);
-
-    public static NitroGraphQLResult Failed(string failure, string? failureCode)
-        => new(default, failure, failureCode);
+        => new(default, failure);
 }

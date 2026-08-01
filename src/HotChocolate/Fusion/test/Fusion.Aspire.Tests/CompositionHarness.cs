@@ -19,7 +19,8 @@ internal sealed record CompositionHarness(
     public static CompositionHarness Create(
         NitroSeedCoordinator? coordinator,
         Uri? portalUrl = null,
-        INitroSchemaValidationNotifier? notifier = null)
+        INitroSchemaValidationNotifier? notifier = null,
+        INitroCompositionNotifier? compositionNotifier = null)
     {
         var logger = new RecordingLogger<SchemaComposition>();
         var lifetime = new TestHostApplicationLifetime();
@@ -53,6 +54,9 @@ internal sealed record CompositionHarness(
             resourceLoggerService,
             lifetime,
             options,
+            compositionNotifier
+                ?? notifier as INitroCompositionNotifier
+                ?? NoopCompositionNotifier.Instance,
             validationCoordinator,
             seedUpdateService,
             new GatewayCompositionCommandCoordinator(),
@@ -75,6 +79,15 @@ internal sealed record CompositionHarness(
         }
 
         public void NotifyStaged(string message)
+        {
+        }
+    }
+
+    private sealed class NoopCompositionNotifier : INitroCompositionNotifier
+    {
+        public static NoopCompositionNotifier Instance { get; } = new();
+
+        public void NotifyFailure(string gatewayName, string message)
         {
         }
     }

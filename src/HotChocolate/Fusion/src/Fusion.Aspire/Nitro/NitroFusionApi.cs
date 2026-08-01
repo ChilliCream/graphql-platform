@@ -23,14 +23,10 @@ internal sealed class NitroFusionApi : IDisposable
     private const string CommittedConfigurationFileName = "gateway.far";
     private const string ArchiveContentType = "application/zip";
 
-    /// <summary>
-    /// The GraphQL error code that a server reports for a field that its schema does not define.
-    /// </summary>
-    private const string UnknownFieldErrorCode = "HC0020";
-
     private readonly HttpClient _httpClient;
     private readonly bool _disposeHttpClient;
     private readonly GraphQLHttpClient _client;
+    private readonly INitroCompositionSettingsClient _compositionSettingsClient;
 
     /// <summary>
     /// Initializes the Nitro API over an existing HTTP client.
@@ -49,6 +45,7 @@ internal sealed class NitroFusionApi : IDisposable
         _httpClient = httpClient;
         _disposeHttpClient = disposeHttpClient;
         _client = GraphQLHttpClient.Create(httpClient, disposeHttpClient: false);
+        _compositionSettingsClient = new NitroCompositionSettingsClient(_client);
     }
 
     /// <summary>
@@ -145,60 +142,21 @@ internal sealed class NitroFusionApi : IDisposable
     }
 
     /// <summary>
-    /// Reads the composition settings that a stage declares, or returns <c>null</c> when the api,
-    /// the stage, or its composition settings do not exist.
+    /// Reads the composition settings that a stage declares, or returns <c>null</c> when the
+    /// stage declares none.
     /// </summary>
-    /// <exception cref="FusionOperationUnsupportedException">
-    /// The Nitro server does not know the operation.
+    /// <exception cref="NitroOperationException">
+    /// Nitro rejected the request.
     /// </exception>
-    /// <exception cref="FusionDeploymentException">
-    /// Nitro could not be reached, or it rejected the request.
-    /// </exception>
-    public async Task<NitroStageCompositionSettings?> GetStageCompositionSettingsAsync(
+    public Task<CompositionSettings?> GetStageCompositionSettingsAsync(
         FusionTarget target,
         string stageName,
         CancellationToken cancellationToken)
-    {
-        var variables = new Dictionary<string, object?>
-        {
-            ["apiId"] = target.ApiId,
-            ["stageName"] = stageName
-        };
-
-        var result = await NitroGraphQL.SendWithRetryAsync(
-            _client,
-            CreateRequest(
-                target,
-                NitroOperationDocuments.GetStageCompositionSettingsOperationName,
-                variables,
-                enableFileUploads: false),
-            // reading the composition settings has no effect, so it is safe to send again.
-            retryTransientFailures: true,
-            NitroGraphQL.DefaultRequestTimeout,
+        => _compositionSettingsClient.GetAsync(
+            CreateConnection(target),
+            target.ApiId,
+            stageName,
             cancellationToken);
-
-        if (result.Failure is not null)
-        {
-            // a Nitro server that predates the stage composition settings answers with a field
-            // validation error, which is the only failure the caller can compose without.
-            throw result.FailureCode is UnknownFieldErrorCode
-                ? new FusionOperationUnsupportedException(result.Failure)
-                : new FusionDeploymentException(result.Failure);
-        }
-
-        if (result.Data.ValueKind is not JsonValueKind.Object
-            || !result.Data.TryGetProperty("apiById", out var api)
-            || api.ValueKind is not JsonValueKind.Object
-            || !api.TryGetProperty("stage", out var stage)
-            || stage.ValueKind is not JsonValueKind.Object
-            || !stage.TryGetProperty("compositionSettings", out var settings)
-            || settings.ValueKind is not JsonValueKind.Object)
-        {
-            return null;
-        }
-
-        return ReadStageCompositionSettings(settings);
-    }
 
     /// <summary>
     /// Opens a publication request.
@@ -417,8 +375,6 @@ internal sealed class NitroFusionApi : IDisposable
                 => NitroOperationDocuments.GetReleaseDeploymentOperationId(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentOperationId(),
-            NitroOperationDocuments.GetStageCompositionSettingsOperationName
-                => NitroOperationDocuments.GetStageCompositionSettingsOperationId(),
             _ => throw UnknownOperation(operationName)
         };
 
@@ -443,8 +399,6 @@ internal sealed class NitroFusionApi : IDisposable
                 => NitroOperationDocuments.GetReleaseDeploymentDocument(),
             NitroOperationDocuments.WatchDeploymentOperationName
                 => NitroOperationDocuments.GetWatchDeploymentDocument(),
-            NitroOperationDocuments.GetStageCompositionSettingsOperationName
-                => NitroOperationDocuments.GetStageCompositionSettingsDocument(),
             _ => throw UnknownOperation(operationName)
         };
 
@@ -486,6 +440,12 @@ internal sealed class NitroFusionApi : IDisposable
     private static NitroCredential CreateCredential(FusionTarget target)
         => NitroCredential.FromApiKey(target.ApiKey);
 
+    private static NitroConnection CreateConnection(FusionTarget target)
+        => new(
+            target.CloudUrl,
+            NitroApiUrl.CreateGraphQLEndpoint(target.CloudUrl),
+            CreateCredential(target));
+
     private static FusionRemoteEvent ReadRemoteEvent(OperationResult result)
     {
         if (result.Data.ValueKind is not JsonValueKind.Object
@@ -524,78 +484,6 @@ internal sealed class NitroFusionApi : IDisposable
 
         return new FusionRemoteEvent(kind, errors);
     }
-
-    private static NitroStageCompositionSettings ReadStageCompositionSettings(JsonElement settings)
-        => new()
-        {
-            CacheControlMergeBehavior = ReadDirectiveMergeBehavior(
-                settings,
-                "cacheControlMergeBehavior"),
-            EnableGlobalObjectIdentification = ReadBoolean(
-                settings,
-                "enableGlobalObjectIdentification"),
-            ExcludeByTag = ReadStrings(settings, "excludeByTag"),
-            NodeResolution = ReadNodeResolution(settings, "nodeResolution"),
-            RemoveUnreferencedDefinitions = ReadBoolean(
-                settings,
-                "removeUnreferencedDefinitions"),
-            TagMergeBehavior = ReadDirectiveMergeBehavior(settings, "tagMergeBehavior")
-        };
-
-    private static DirectiveMergeBehavior? ReadDirectiveMergeBehavior(
-        JsonElement value,
-        string propertyName)
-        => GetString(value, propertyName) switch
-        {
-            null => null,
-            "IGNORE" => DirectiveMergeBehavior.Ignore,
-            "INCLUDE" => DirectiveMergeBehavior.Include,
-            "INCLUDE_PRIVATE" => DirectiveMergeBehavior.IncludePrivate,
-            var behavior => throw UnknownSettingValue(propertyName, behavior)
-        };
-
-    private static NodeResolution? ReadNodeResolution(JsonElement value, string propertyName)
-        => GetString(value, propertyName) switch
-        {
-            null => null,
-            "GATEWAY" => NodeResolution.Gateway,
-            "SOURCE_SCHEMA" => NodeResolution.SourceSchema,
-            var nodeResolution => throw UnknownSettingValue(propertyName, nodeResolution)
-        };
-
-    private static bool? ReadBoolean(JsonElement value, string propertyName)
-        => value.TryGetProperty(propertyName, out var property)
-            && property.ValueKind is JsonValueKind.True or JsonValueKind.False
-                ? property.GetBoolean()
-                : null;
-
-    private static IReadOnlyList<string>? ReadStrings(JsonElement value, string propertyName)
-    {
-        if (!value.TryGetProperty(propertyName, out var property)
-            || property.ValueKind is not JsonValueKind.Array)
-        {
-            return null;
-        }
-
-        var values = new List<string>(property.GetArrayLength());
-
-        foreach (var item in property.EnumerateArray())
-        {
-            if (item.ValueKind is JsonValueKind.String)
-            {
-                values.Add(item.GetString()!);
-            }
-        }
-
-        return values;
-    }
-
-    private static FusionDeploymentException UnknownSettingValue(
-        string propertyName,
-        string value)
-        => new(
-            $"Nitro returned the unknown composition settings value '{value}' "
-            + $"for '{propertyName}'.");
 
     private static FusionRemoteCommandResult ToCommandResult(JsonElement payload)
     {
