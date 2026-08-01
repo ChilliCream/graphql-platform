@@ -618,6 +618,33 @@ public sealed class NitroSchemaValidatorTests
             {
                 """
                 {
+                  "__typename": "SchemaVersionChangeViolationError",
+                  "message": "Non-breaking schema changes.",
+                  "changes": [
+                    {
+                      "__typename": "ObjectModifiedChange",
+                      "severity": "NON_BREAKING",
+                      "coordinate": "Product",
+                      "changes": [
+                        {
+                          "__typename": "FieldAddedChange",
+                          "severity": "NON_BREAKING",
+                          "coordinate": "Product.price",
+                          "typeName": "Product",
+                          "fieldName": "price"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """,
+                "Violations|more=False|clients=-|findings=Schema change violations>"
+                    + "FieldAddedChange|-|Product.price|-|-:-|NON_BREAKING|"
+                    + "Field 'price' was added to type 'Product'."
+            },
+            {
+                """
+                {
                   "__typename": "UnexpectedProcessingError",
                   "message": "Processing failed unexpectedly."
                 }
