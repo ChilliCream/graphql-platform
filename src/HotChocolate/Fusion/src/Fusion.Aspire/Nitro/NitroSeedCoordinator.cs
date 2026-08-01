@@ -98,8 +98,21 @@ internal sealed class NitroSeedCoordinator
     public static NitroSeedCoordinator CreateProduction(
         string stage,
         bool initialAutoUpdate = true)
+        => CreateProduction(
+            stage,
+            SystemNitroEnvironment.Instance,
+            NitroDefaults.ApiUrl,
+            initialAutoUpdate);
+
+    internal static NitroSeedCoordinator CreateProduction(
+        string stage,
+        INitroEnvironment environment,
+        Uri defaultApiUrl,
+        bool initialAutoUpdate = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(stage);
+        ArgumentNullException.ThrowIfNull(environment);
+        ArgumentNullException.ThrowIfNull(defaultApiUrl);
 
         var timeProvider = TimeProvider.System;
         var httpClient = new HttpClient();
@@ -110,8 +123,8 @@ internal sealed class NitroSeedCoordinator
             new NitroSessionReader(
                 NitroDefaults.GetSessionFilePath(),
                 NitroDefaults.SessionRereadDelay),
-            SystemNitroEnvironment.Instance,
-            NitroDefaults.ApiUrl,
+            environment,
+            defaultApiUrl,
             timeProvider,
             NitroDefaults.AccessTokenExpiryGrace);
         var seedProvider = new NitroSeedProvider(

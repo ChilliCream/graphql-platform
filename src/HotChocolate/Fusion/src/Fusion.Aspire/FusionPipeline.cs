@@ -35,48 +35,41 @@ internal static class FusionPipeline
     /// receives are the same for every stage, so the steps that only write immutable source
     /// versions select apis instead of stages and need no stage.
     /// </summary>
-    internal static IReadOnlyList<NitroPublishTargetResource> SelectTargets(
+    internal static IReadOnlyList<NitroApiResource> SelectApis(
         DistributedApplicationModel model)
     {
-        var targets = model.Resources
-            .OfType<NitroPublishTargetResource>()
+        var apis = model.Resources
+            .OfType<NitroApiResource>()
             .ToArray();
 
-        foreach (var target in targets)
+        foreach (var api in apis)
         {
-            if (GetStages(model, target).Count is 0)
+            if (GetStages(model, api).Count is 0)
             {
                 throw new InvalidOperationException(
-                    $"Nitro target '{target.Name}' must declare at least one stage.");
+                    $"Nitro API '{api.ApiName}' must declare at least one stage.");
             }
 
-            ValidateDeclaration(target);
+            ValidateDeclaration(api);
         }
 
-        return targets;
+        return apis;
     }
 
     /// <summary>
     /// Gets the stage that each Nitro api publishes to in this invocation, resolved from the stage
     /// parameter of the api.
     /// </summary>
-    internal static async Task<IReadOnlyList<FusionStageResource>> SelectStagesAsync(
+    internal static IReadOnlyList<NitroStageResource> SelectStages(
         DistributedApplicationModel model,
-        CancellationToken cancellationToken)
+        string stageName)
     {
-        var selected = new List<FusionStageResource>();
+        ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
+        var selected = new List<NitroStageResource>();
 
-        foreach (var target in SelectTargets(model))
+        foreach (var api in SelectApis(model))
         {
-            var stages = GetStages(model, target);
-            var stageName = await target.StageParameter!.GetValueAsync(cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(stageName))
-            {
-                throw new InvalidOperationException(
-                    $"Nitro target '{target.Name}' stage parameter "
-                    + $"'{target.StageParameter.Name}' resolved to an empty value.");
-            }
+            var stages = GetStages(model, api);
 
             var stage = stages.FirstOrDefault(
                 candidate => string.Equals(
@@ -87,7 +80,7 @@ internal static class FusionPipeline
             if (stage is null)
             {
                 throw new InvalidOperationException(
-                    $"Nitro target '{target.Name}' does not declare the stage '{stageName}'. "
+                    $"Nitro API '{api.ApiName}' does not declare the stage '{stageName}'. "
                     + $"Declared stages: {string.Join(", ", stages.Select(s => s.StageName).Order(StringComparer.Ordinal))}.");
             }
 
@@ -97,12 +90,12 @@ internal static class FusionPipeline
         return selected;
     }
 
-    internal static IReadOnlyList<FusionStageResource> GetStages(
+    internal static IReadOnlyList<NitroStageResource> GetStages(
         DistributedApplicationModel model,
-        NitroPublishTargetResource target)
+        NitroApiResource api)
         => model.Resources
-            .OfType<FusionStageResource>()
-            .Where(stage => ReferenceEquals(stage.Nitro, target))
+            .OfType<NitroStageResource>()
+            .Where(stage => ReferenceEquals(stage.Api, api))
             .ToArray();
 
     internal static IResourceWithEndpoints GetCompositionResource(
@@ -124,7 +117,7 @@ internal static class FusionPipeline
         FusionPipelineTopology topology)
     {
         topology.HasDeployments =
-            SelectTargets(context.PipelineContext.Model).Count > 0;
+            SelectApis(context.PipelineContext.Model).Count > 0;
 
         var session = new Lazy<FusionPipelineSession>(
             () => new FusionPipelineSession(
@@ -247,7 +240,7 @@ internal static class FusionPipeline
         ];
     }
 
-    private static void ConfigureSteps(
+    internal static void ConfigureSteps(
         PipelineConfigurationContext context,
         FusionPipelineTopology topology)
     {
@@ -266,6 +259,10 @@ internal static class FusionPipeline
             step => step.Name == ReadinessStepName);
         var compose = context.Steps.Single(
             step => step.Name == ComposeStepName);
+        var publishStage = context.Steps.Single(
+            step => step.Name == PublishStageStepName);
+        var publish = context.Steps.Single(
+            step => step.Name == PublishStepName);
 
         topology.ResourcesWithoutCompute.Clear();
 
@@ -296,6 +293,14 @@ internal static class FusionPipeline
         if (gatewayComputeSteps.Length == 0)
         {
             topology.ResourcesWithoutCompute.Add(composition.Name);
+        }
+        else
+        {
+            foreach (var gatewayComputeStep in gatewayComputeSteps)
+            {
+                gatewayComputeStep.DependsOn(publishStage);
+                publish.DependsOn(gatewayComputeStep);
+            }
         }
     }
 
@@ -371,28 +376,22 @@ internal static class FusionPipeline
         => FusionPipelineExecutor.Instance.UploadAsync(context);
 
     private static void ValidateDeclaration(
-        NitroPublishTargetResource target)
+        NitroApiResource api)
     {
-        if (target.StageParameter is null)
+        if (string.IsNullOrWhiteSpace(api.Nitro.CloudUrl))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' must specify the parameter that selects the stage.");
-        }
-
-        if (string.IsNullOrWhiteSpace(target.CloudUrl))
-        {
-            throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' must specify a cloud URL.");
+                $"Nitro API '{api.ApiName}' must specify a cloud URL on its Nitro resource.");
         }
 
         if (!Uri.TryCreate(
-                target.CloudUrl,
+                api.Nitro.CloudUrl,
                 UriKind.Absolute,
                 out var cloudUri)
             || cloudUri.Scheme is not "https")
         {
             throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' cloud URL must use HTTPS.");
+                $"Nitro API '{api.ApiName}' cloud URL must use HTTPS.");
         }
 
         if (!string.IsNullOrEmpty(cloudUri.UserInfo)
@@ -401,20 +400,13 @@ internal static class FusionPipeline
             || !string.IsNullOrEmpty(cloudUri.Fragment))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' cloud URL must be an origin.");
+                $"Nitro API '{api.ApiName}' cloud URL must be an origin.");
         }
 
-        if (string.IsNullOrWhiteSpace(target.ApiId))
+        if (string.IsNullOrWhiteSpace(api.ApiId))
         {
             throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' must specify an API ID.");
-        }
-
-        if (target.ConfigurationTagParameter is null
-            && string.IsNullOrWhiteSpace(target.ConfigurationTag))
-        {
-            throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' must specify a configuration tag.");
+                $"Nitro API '{api.ApiName}' must specify an API ID.");
         }
     }
 }

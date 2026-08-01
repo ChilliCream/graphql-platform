@@ -18,7 +18,6 @@ internal sealed record CompositionHarness(
 {
     public static CompositionHarness Create(
         NitroSeedCoordinator? coordinator,
-        Uri? portalUrl = null,
         INitroSchemaValidationNotifier? notifier = null,
         INitroCompositionNotifier? compositionNotifier = null)
     {
@@ -30,20 +29,16 @@ internal sealed record CompositionHarness(
             lifetime,
             EmptyServiceProvider.Instance,
             resourceLoggerService);
-        var options = new NitroCompositionOptions
-        {
-            Coordinator = coordinator,
-            PortalUrl = portalUrl
-        };
-        options.SeedUpdates.Enabled = false;
+        var coordinatorRegistry = coordinator is null
+            ? new NitroSeedCoordinatorRegistry()
+            : NitroSeedCoordinatorRegistry.CreateForTests(coordinator);
         var validationCoordinator = new NitroSchemaValidationCoordinator(
-            options,
+            coordinatorRegistry,
             resourceLoggerService,
             notifier,
             lifetime,
             NullLoggerFactory.Instance);
         var seedUpdateService = new NitroSeedUpdateService(
-            options,
             resourceLoggerService,
             NoopSeedUpdateNotifier.Instance,
             lifetime,
@@ -53,7 +48,7 @@ internal sealed record CompositionHarness(
             notifications,
             resourceLoggerService,
             lifetime,
-            options,
+            coordinatorRegistry,
             compositionNotifier
                 ?? notifier as INitroCompositionNotifier
                 ?? NoopCompositionNotifier.Instance,

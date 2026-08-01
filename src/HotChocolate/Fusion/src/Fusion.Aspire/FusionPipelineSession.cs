@@ -4,7 +4,7 @@ internal sealed class FusionPipelineSession : IDisposable
 {
     private readonly object _sync = new();
     private readonly Dictionary<
-        FusionStageResource,
+        NitroStageResource,
         FusionDeploymentSessionState> _deployments = [];
     private readonly CancellationToken _cancellationToken;
     private readonly CancellationTokenRegistration _cancellationRegistration;
@@ -32,12 +32,12 @@ internal sealed class FusionPipelineSession : IDisposable
 
     public void SetAll(
         IReadOnlyList<(
-            FusionStageResource Deployment,
+            NitroStageResource Deployment,
             FusionDeploymentSessionState State)> deployments)
     {
         ArgumentNullException.ThrowIfNull(deployments);
 
-        var uniqueDeployments = new HashSet<FusionStageResource>();
+        var uniqueDeployments = new HashSet<NitroStageResource>();
         foreach (var (deployment, _) in deployments)
         {
             if (!uniqueDeployments.Add(deployment))
@@ -65,7 +65,7 @@ internal sealed class FusionPipelineSession : IDisposable
     }
 
     public FusionDeploymentSessionState GetState(
-        FusionStageResource deployment)
+        NitroStageResource deployment)
     {
         ArgumentNullException.ThrowIfNull(deployment);
 
@@ -84,6 +84,20 @@ internal sealed class FusionPipelineSession : IDisposable
             }
 
             return state;
+        }
+    }
+
+    public IReadOnlyList<NitroStageResource> GetDeployments()
+    {
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_canceled)
+            {
+                throw new OperationCanceledException(_cancellationToken);
+            }
+
+            return [.. _deployments.Keys];
         }
     }
 

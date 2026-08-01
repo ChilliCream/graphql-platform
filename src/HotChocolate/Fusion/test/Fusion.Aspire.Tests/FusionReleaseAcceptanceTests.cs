@@ -118,9 +118,7 @@ public sealed class FusionReleaseAcceptanceTests
         Assert.Equal(1, stagingSession.DeploymentCount);
         Assert.Equal(1, productionSession.DeploymentCount);
         var stagingDeployment = Assert.Single(
-            await FusionPipeline.SelectStagesAsync(
-                stagingModel,
-                TestContext.Current.CancellationToken));
+            FusionPipeline.SelectStages(stagingModel, "development"));
         var preflightState = stagingSession.GetState(stagingDeployment);
         Assert.Equal(0, preflightState.SourceArchiveBytes);
         Assert.Throws<InvalidOperationException>(
@@ -234,7 +232,8 @@ public sealed class FusionReleaseAcceptanceTests
                 CreateModel(projects, stage),
                 environment,
                 outputPath: null,
-                nitro: nitro);
+                nitro: nitro,
+                stageName: stage);
             using var session = new FusionPipelineSession(
                 context.CancellationToken);
             await executor.PreflightAsync(context, session);
@@ -305,35 +304,35 @@ public sealed class FusionReleaseAcceptanceTests
         NormalizeTree(artifactTree).MatchInlineSnapshot(
             """
             fusion
-            fusion/nitro
-            fusion/nitro/nitro-deployment-template.json
-            fusion/nitro/sources
-            fusion/nitro/sources/products
-            fusion/nitro/sources/products/provenance.json
-            fusion/nitro/sources/products/schema-settings.template.json
-            fusion/nitro/sources/products/schema.graphqls
-            fusion/nitro/sources/reviews
-            fusion/nitro/sources/reviews/provenance.json
-            fusion/nitro/sources/reviews/schema-settings.template.json
-            fusion/nitro/sources/reviews/schema.graphqls
+            fusion/nitro-products
+            fusion/nitro-products/nitro-deployment-template.json
+            fusion/nitro-products/sources
+            fusion/nitro-products/sources/products
+            fusion/nitro-products/sources/products/provenance.json
+            fusion/nitro-products/sources/products/schema-settings.template.json
+            fusion/nitro-products/sources/products/schema.graphqls
+            fusion/nitro-products/sources/reviews
+            fusion/nitro-products/sources/reviews/provenance.json
+            fusion/nitro-products/sources/reviews/schema-settings.template.json
+            fusion/nitro-products/sources/reviews/schema.graphqls
             """);
         NormalizeTree(SnapshotTree(output)).MatchInlineSnapshot(
             """
             fusion
-            fusion/nitro
-            fusion/nitro/materialized
-            fusion/nitro/materialized/products-release-1.zip
-            fusion/nitro/materialized/reviews-release-1.zip
-            fusion/nitro/nitro-deployment-template.json
-            fusion/nitro/sources
-            fusion/nitro/sources/products
-            fusion/nitro/sources/products/provenance.json
-            fusion/nitro/sources/products/schema-settings.template.json
-            fusion/nitro/sources/products/schema.graphqls
-            fusion/nitro/sources/reviews
-            fusion/nitro/sources/reviews/provenance.json
-            fusion/nitro/sources/reviews/schema-settings.template.json
-            fusion/nitro/sources/reviews/schema.graphqls
+            fusion/nitro-products
+            fusion/nitro-products/materialized
+            fusion/nitro-products/materialized/products-release-1.zip
+            fusion/nitro-products/materialized/reviews-release-1.zip
+            fusion/nitro-products/nitro-deployment-template.json
+            fusion/nitro-products/sources
+            fusion/nitro-products/sources/products
+            fusion/nitro-products/sources/products/provenance.json
+            fusion/nitro-products/sources/products/schema-settings.template.json
+            fusion/nitro-products/sources/products/schema.graphqls
+            fusion/nitro-products/sources/reviews
+            fusion/nitro-products/sources/reviews/provenance.json
+            fusion/nitro-products/sources/reviews/schema-settings.template.json
+            fusion/nitro-products/sources/reviews/schema.graphqls
             """);
         Assert.Equal(
             [
@@ -383,29 +382,26 @@ public sealed class FusionReleaseAcceptanceTests
             TestContext.Current.CancellationToken);
 
         var builder = DistributedApplication.CreateBuilder();
-        var tag = builder.AddParameter("tag", "release-1");
-        var stage = builder.AddParameter("stage", "development");
         var apiKey = builder.AddParameter(
             "nitroApiKey",
             "test-api-key",
             secret: true);
         var products = builder
-            .AddProject("products", sourceProjectPath)
+            .AddProject("products-api", sourceProjectPath)
             .WithHttpEndpoint(port: 54321, targetPort: 8080, name: "http")
-            .WithGraphQLSchemaEndpoint();
+            .WithGraphQLSchemaEndpoint(sourceSchemaName: "products");
         builder
             .AddProject("gateway", gatewayProjectPath)
             .WithReference(products)
             .WithGraphQLSchemaComposition();
         builder
-            .AddNitroPublishTarget("nitro")
+            .AddNitro()
             .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products")
             .WithNitroApiKey(apiKey)
-            .WithStageParameter(stage)
-            .WithConfigurationTag(tag)
+            .AddApi("products")
+            .WithNitroApiId("products")
             .AddStage("development")
-            .WithCompositionEnvironment("development");
+            .WithForcePublish(false);
         var model = new DistributedApplicationModel(builder.Resources);
         string? request = null;
         using var handler = new StubHttpMessageHandler(message =>
@@ -435,7 +431,7 @@ public sealed class FusionReleaseAcceptanceTests
         var sourceOutput = IOPath.Combine(
             output,
             "fusion",
-            "nitro",
+            "nitro-products",
             "sources",
             "products");
         using var provenance = JsonDocument.Parse(
@@ -474,9 +470,7 @@ public sealed class FusionReleaseAcceptanceTests
         await executor.DownloadAsync(context, session);
         await executor.ComposeAsync(context, session);
         var deployment = Assert.Single(
-            await FusionPipeline.SelectStagesAsync(
-                context.Model,
-                TestContext.Current.CancellationToken));
+            FusionPipeline.SelectStages(context.Model, "development"));
         var state = session.GetState(deployment);
         var sourceBuffers = state.Sources
             .Select(source => source.Archive)
@@ -523,9 +517,7 @@ public sealed class FusionReleaseAcceptanceTests
         await executor.DownloadAsync(context, session);
         await executor.ComposeAsync(context, session);
         var deployment = Assert.Single(
-            await FusionPipeline.SelectStagesAsync(
-                context.Model,
-                TestContext.Current.CancellationToken));
+            FusionPipeline.SelectStages(context.Model, "development"));
         var state = session.GetState(deployment);
         var sourceBuffers = state.Sources
             .Select(source => source.Archive)
@@ -574,7 +566,7 @@ public sealed class FusionReleaseAcceptanceTests
 
         // assert
         Assert.Equal(
-            "Fusion source 'products' version 'release-1' does not exist on target 'products'.",
+            "Fusion source 'products' version 'release-1' does not exist on API 'products'.",
             exception.Message);
         Assert.Equal(0, session.DeploymentCount);
         Assert.Empty(nitro.Uploads);
@@ -593,7 +585,10 @@ public sealed class FusionReleaseAcceptanceTests
             "Development",
             outputPath: null,
             nitro: nitro);
-        var limits = new FusionPipelineMemoryLimits(SourceArchiveBytes: 2);
+        var limits = new FusionPipelineMemoryLimits(
+            SourceArchiveBytes: 2,
+            TotalSourceArchiveBytes: long.MaxValue,
+            FusionArchiveBytes: int.MaxValue);
         var executor = new FusionPipelineExecutor(limits);
         using var session = new FusionPipelineSession(context.CancellationToken);
 
@@ -605,6 +600,64 @@ public sealed class FusionReleaseAcceptanceTests
         Assert.Equal(
             "Downloaded Fusion source 'products@release-1' exceeds the "
             + "2-byte per-source in-memory size limit.",
+            exception.Message);
+        Assert.Equal(0, session.DeploymentCount);
+    }
+
+    [Fact]
+    public async Task Download_Should_RejectSources_WhenAggregateLimitIsExceeded()
+    {
+        using var testDirectory = new TestDirectory();
+        using var nitro = await CreateSeededNitroAsync();
+        var context = CreateContext(
+            CreateModel(
+                await CreateAppHostProjectStubsAsync(testDirectory.Path)),
+            "Development",
+            outputPath: null,
+            nitro: nitro);
+        var limits = new FusionPipelineMemoryLimits(
+            SourceArchiveBytes: int.MaxValue,
+            TotalSourceArchiveBytes: 2,
+            FusionArchiveBytes: int.MaxValue);
+        var executor = new FusionPipelineExecutor(limits);
+        using var session = new FusionPipelineSession(context.CancellationToken);
+        await executor.PreflightAsync(context, session);
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(
+            () => executor.DownloadAsync(context, session));
+
+        Assert.Equal(
+            "Downloaded Fusion sources exceed the 2-byte aggregate in-memory size limit across "
+            + "selected stages.",
+            exception.Message);
+        Assert.Equal(0, session.DeploymentCount);
+    }
+
+    [Fact]
+    public async Task Compose_Should_RejectFusionArchive_WhenLimitIsExceeded()
+    {
+        using var testDirectory = new TestDirectory();
+        using var nitro = await CreateSeededNitroAsync();
+        var context = CreateContext(
+            CreateModel(
+                await CreateAppHostProjectStubsAsync(testDirectory.Path)),
+            "Development",
+            outputPath: null,
+            nitro: nitro);
+        var limits = new FusionPipelineMemoryLimits(
+            SourceArchiveBytes: int.MaxValue,
+            TotalSourceArchiveBytes: long.MaxValue,
+            FusionArchiveBytes: 2);
+        var executor = new FusionPipelineExecutor(limits);
+        using var session = new FusionPipelineSession(context.CancellationToken);
+        await executor.PreflightAsync(context, session);
+        await executor.DownloadAsync(context, session);
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(
+            () => executor.ComposeAsync(context, session));
+
+        Assert.Equal(
+            "The composed Fusion archive exceeds the 2-byte in-memory size limit.",
             exception.Message);
         Assert.Equal(0, session.DeploymentCount);
     }
@@ -666,7 +719,7 @@ public sealed class FusionReleaseAcceptanceTests
 
         // assert
         Assert.Equal(
-            "Fusion source 'reviews' version 'release-1' does not exist on target 'products'.",
+            "Fusion source 'reviews' version 'release-1' does not exist on API 'products'.",
             exception.Message);
         Assert.Equal(0, session.DeploymentCount);
     }
@@ -679,9 +732,7 @@ public sealed class FusionReleaseAcceptanceTests
         var model = CreateModel(
             await CreateAppHostProjectStubsAsync(testDirectory.Path));
         var deployment = Assert.Single(
-            await FusionPipeline.SelectStagesAsync(
-                model,
-                TestContext.Current.CancellationToken));
+            FusionPipeline.SelectStages(model, "development"));
         using var cancellationSource = new CancellationTokenSource();
         using var session = new FusionPipelineSession(
             cancellationSource.Token);
@@ -706,9 +757,7 @@ public sealed class FusionReleaseAcceptanceTests
         var model = CreateModel(
             await CreateAppHostProjectStubsAsync(testDirectory.Path));
         var deployment = Assert.Single(
-            await FusionPipeline.SelectStagesAsync(
-                model,
-                TestContext.Current.CancellationToken));
+            FusionPipeline.SelectStages(model, "development"));
         using var cancellationSource = new CancellationTokenSource();
         using var session = new FusionPipelineSession(
             cancellationSource.Token);
@@ -831,8 +880,6 @@ public sealed class FusionReleaseAcceptanceTests
         string stageName = "development")
     {
         var builder = DistributedApplication.CreateBuilder();
-        var tag = builder.AddParameter("tag", "release-1");
-        var stage = builder.AddParameter("stage", stageName);
         var apiKey = builder.AddParameter(
             "nitroApiKey",
             "test-api-key",
@@ -848,19 +895,18 @@ public sealed class FusionReleaseAcceptanceTests
             .WithReference(products)
             .WithReference(reviews)
             .WithGraphQLSchemaComposition();
-        var nitro = builder
-            .AddNitroPublishTarget("nitro")
+        var api = builder
+            .AddNitro()
             .WithNitroCloudUrl("https://api.chillicream.com")
-            .WithNitroApiId("products")
             .WithNitroApiKey(apiKey)
-            .WithStageParameter(stage)
-            .WithConfigurationTag(tag);
-        nitro
-            .AddStage("development")
-            .WithCompositionEnvironment("development");
-        nitro
-            .AddStage("test")
-            .WithCompositionEnvironment("test");
+            .AddApi("products")
+            .WithNitroApiId("products");
+        api.AddStage("development");
+        api.AddStage("test");
+
+        Assert.Contains(
+            api.Resource.Name + "-" + stageName,
+            builder.Resources.Select(resource => resource.Name));
 
         return new DistributedApplicationModel(builder.Resources);
     }
@@ -870,14 +916,22 @@ public sealed class FusionReleaseAcceptanceTests
         string environmentName,
         string? outputPath,
         FakeNitro nitro,
-        CancellationToken? cancellationToken = null)
+        CancellationToken? cancellationToken = null,
+        string? stageName = null)
     {
         var services = new ServiceCollection()
             .AddSingleton<IHostEnvironment>(
                 new TestHostEnvironment(environmentName))
             .AddSingleton(nitro.Workflow)
             .AddSingleton<IConfiguration>(
-                new ConfigurationBuilder().Build());
+                new ConfigurationBuilder()
+                    .AddInMemoryCollection(
+                        new Dictionary<string, string?>
+                        {
+                            ["tag"] = "release-1",
+                            ["stage"] = stageName ?? environmentName.ToLowerInvariant()
+                        })
+                    .Build());
         services.AddSingleton<IPipelineOutputService>(
             outputPath is null
                 ? new ThrowingPipelineOutputService()

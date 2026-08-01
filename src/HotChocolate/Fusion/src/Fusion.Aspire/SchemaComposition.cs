@@ -16,7 +16,7 @@ internal sealed class SchemaComposition(
     ResourceNotificationService resourceNotificationService,
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
-    NitroCompositionOptions nitroOptions,
+    NitroSeedCoordinatorRegistry coordinatorRegistry,
     INitroCompositionNotifier nitroCompositionNotifier,
     NitroSchemaValidationCoordinator validationCoordinator,
     NitroSeedUpdateService seedUpdateService,
@@ -40,10 +40,7 @@ internal sealed class SchemaComposition(
             return Task.CompletedTask;
         }
 
-        if (nitroOptions.Coordinator is { } seedCoordinator)
-        {
-            lifetime.ApplicationStopping.Register(seedCoordinator.DeleteRunSeeds);
-        }
+        lifetime.ApplicationStopping.Register(coordinatorRegistry.DeleteRunSeeds);
 
         // All subscriptions must exist before any resource starts. A fast resource can publish
         // its initial ResourceReadyEvent early, and events are not replayed to late subscribers,
@@ -117,24 +114,35 @@ internal sealed class SchemaComposition(
         IReadOnlyList<IResourceWithEndpoints> compositionResources,
         CancellationToken cancellationToken)
     {
-        var coordinator = nitroOptions.Coordinator;
-        if (coordinator is null
-            || !compositionResources.Any(resource => resource.GetNitroApiId() is not null))
+        foreach (var resource in compositionResources)
         {
-            return;
-        }
+            var stage = resource.GetNitroCompositionBase();
+            if (stage is null
+                || resource.Annotations.OfType<ResourceUrlAnnotation>()
+                    .Any(url => url.DisplayText == NitroPortalDisplayText))
+            {
+                continue;
+            }
 
-        string portalUrl;
-        if (nitroOptions.PortalUrl is { } configured)
-        {
-            portalUrl = configured.OriginalString;
-        }
-        else
-        {
+            string portalUrl;
             try
             {
-                var connection = await coordinator.ResolveConnectionAsync(logger, cancellationToken);
-                portalUrl = NitroDefaults.CreatePortalUrl(connection.ApiUrl).OriginalString;
+                if (stage.Api.Nitro.PortalUrl is { } configured)
+                {
+                    portalUrl = configured.OriginalString;
+                }
+                else
+                {
+                    var coordinator = await coordinatorRegistry.GetAsync(
+                        stage,
+                        cancellationToken);
+                    var connection = await coordinator.ResolveConnectionAsync(
+                        logger,
+                        cancellationToken);
+                    portalUrl = NitroDefaults
+                        .CreatePortalUrl(connection.ApiUrl)
+                        .OriginalString;
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -145,16 +153,6 @@ internal sealed class SchemaComposition(
                 logger.LogWarning(
                     "The Nitro Portal URL could not be resolved. The informational link will "
                     + "not be added.");
-                return;
-            }
-        }
-
-        foreach (var resource in compositionResources)
-        {
-            if (resource.GetNitroApiId() is null
-                || resource.Annotations.OfType<ResourceUrlAnnotation>()
-                    .Any(url => url.DisplayText == NitroPortalDisplayText))
-            {
                 continue;
             }
 
@@ -169,45 +167,29 @@ internal sealed class SchemaComposition(
     }
 
     /// <summary>
-    /// Reports the configurations that cannot take effect: an api id without Nitro, and Nitro
-    /// without a gateway that selects a fusion configuration.
+    /// Reports invalid Nitro composition-base declarations.
     /// </summary>
     internal void ReportNitroConfigurationDiagnostics(
         DistributedApplicationModel appModel,
         IReadOnlyList<IResourceWithEndpoints> compositionResources)
     {
-        var coordinator = nitroOptions.Coordinator;
-
-        if (coordinator is null)
+        _ = appModel;
+        foreach (var resource in compositionResources)
         {
-            foreach (var resource in appModel.Resources)
+            if (resource.GetNitroCompositionBase() is not { } stage
+                || !string.IsNullOrWhiteSpace(stage.Api.ApiId))
             {
-                if (resource.GetNitroApiId() is not { } apiId)
-                {
-                    continue;
-                }
-
-                CreateGatewayLogger(resource).LogWarning(
-                    "The resource {ResourceName} selects the Nitro api {ApiId}, but the "
-                    + "distributed application does not add Nitro. Call AddNitro on the "
-                    + "distributed application builder so the api id takes effect.",
-                    resource.Name,
-                    apiId);
+                continue;
             }
 
-            return;
+            CreateGatewayLogger(resource).LogWarning(
+                "The resource {ResourceName} uses the Nitro stage {Stage} as its composition "
+                + "base, but API {ApiName} has no Nitro API ID. Call WithNitroApiId on the API "
+                + "resource.",
+                resource.Name,
+                stage.StageName,
+                stage.Api.ApiName);
         }
-
-        if (compositionResources.Any(gateway => gateway.GetNitroApiId() is not null))
-        {
-            return;
-        }
-
-        logger.LogWarning(
-            "Nitro is added for the stage {Stage}, but no composed schema selects a Nitro api. "
-            + "Call WithNitroApiId on the gateway that composes against the fusion configuration "
-            + "of Nitro.",
-            coordinator.Stage);
     }
 
     private void StartRecompositionWorkers(List<GatewayRecompositionWorker> recompositionWorkers)
@@ -291,10 +273,11 @@ internal sealed class SchemaComposition(
             validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
         }
 
-        StartSeedUpdateMonitor(
+        await StartSeedUpdateMonitorAsync(
             compositionResource,
             appModel,
-            compositionGate);
+            compositionGate,
+            cancellationToken);
     }
 
     /// <summary>
@@ -311,10 +294,9 @@ internal sealed class SchemaComposition(
         DistributedApplicationModel appModel,
         CancellationToken cancellationToken)
     {
-        var coordinator = nitroOptions.Coordinator;
-        var apiId = compositionResource.GetNitroApiId();
+        var stage = compositionResource.GetNitroCompositionBase();
 
-        if (coordinator is null || apiId is null)
+        if (stage is null)
         {
             await WaitForSourceSchemaResourcesReadyAsync(
                 compositionResource,
@@ -323,6 +305,12 @@ internal sealed class SchemaComposition(
 
             return null;
         }
+
+        var apiId = stage.Api.ApiId
+            ?? throw new InvalidOperationException(
+                $"Nitro API '{stage.Api.ApiName}' must specify an API ID before stage "
+                + $"'{stage.StageName}' can be used as a composition base.");
+        var coordinator = await coordinatorRegistry.GetAsync(stage, cancellationToken);
 
         using var seedCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -642,8 +630,11 @@ internal sealed class SchemaComposition(
         bool downloadFreshSeed,
         CancellationToken cancellationToken)
     {
-        var coordinator = nitroOptions.Coordinator;
-        var apiId = compositionResource.GetNitroApiId();
+        var stage = compositionResource.GetNitroCompositionBase();
+        var coordinator = stage is null
+            ? null
+            : await coordinatorRegistry.GetAsync(stage, cancellationToken);
+        var apiId = stage?.Api.ApiId;
         NitroGatewaySeed? seed = null;
         NitroSeedAdoption? adoption = null;
 
@@ -806,19 +797,25 @@ internal sealed class SchemaComposition(
         return coordinator.TryAdoptStaged(compositionResource.Name);
     }
 
-    private void StartSeedUpdateMonitor(
+    private async Task StartSeedUpdateMonitorAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
-        SemaphoreSlim compositionGate)
+        SemaphoreSlim compositionGate,
+        CancellationToken cancellationToken)
     {
-        if (compositionResource.GetNitroApiId() is not { } apiId)
+        if (compositionResource.GetNitroCompositionBase() is not { } stage
+            || stage.Api.ApiId is not { } apiId)
         {
             return;
         }
 
+        var coordinator = await coordinatorRegistry.GetAsync(stage, cancellationToken);
+
         seedUpdateService.Start(
             compositionResource,
             apiId,
+            stage,
+            coordinator,
             compositionGate,
             (adoption, cancellationToken) => RecomposeAdoptedSeedAsync(
                 compositionResource,
@@ -882,8 +879,7 @@ internal sealed class SchemaComposition(
 
     private void NotifyCompositionFailure(IResource compositionResource)
     {
-        if (nitroOptions.Coordinator is not { } coordinator
-            || compositionResource.GetNitroApiId() is null)
+        if (compositionResource.GetNitroCompositionBase() is not { } stage)
         {
             return;
         }
@@ -891,7 +887,7 @@ internal sealed class SchemaComposition(
         nitroCompositionNotifier.NotifyFailure(
             compositionResource.Name,
             $"Schema composition failed for '{compositionResource.Name}' against stage "
-            + $"'{coordinator.Stage}'; check the logs for details.");
+            + $"'{stage.StageName}'; check the logs for details.");
     }
 
     private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(
@@ -947,8 +943,7 @@ internal sealed class SchemaComposition(
                     sourceSchemas,
                     settings,
                     compositionLogger,
-                    nitroOptions.Coordinator is not null
-                        && compositionResource.GetNitroApiId() is not null
+                    compositionResource.GetNitroCompositionBase() is not null
                         && !settings.Settings.DisableSchemaValidation,
                     cancellationToken);
             }

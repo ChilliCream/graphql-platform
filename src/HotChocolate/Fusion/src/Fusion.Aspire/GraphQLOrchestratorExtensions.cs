@@ -15,5 +15,8 @@ public static class GraphQLOrchestratorExtensions
     [Obsolete("Use AddNitro() instead.")]
     public static IDistributedApplicationBuilder AddGraphQLOrchestrator(
         this IDistributedApplicationBuilder builder)
-        => builder.AddNitro();
+    {
+        builder.AddNitro();
+        return builder;
+    }
 }

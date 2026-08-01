@@ -7,287 +7,241 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace HotChocolate.Fusion.Aspire;
 
 /// <summary>
-/// Provides the extension methods that connect a distributed application to Nitro.
+/// Provides extension methods that connect a distributed application to Nitro.
 /// </summary>
 public static class NitroExtensions
 {
+    private const string NitroResourceName = "nitro";
+
     /// <summary>
-    /// Adds GraphQL schema composition orchestration to the distributed application. Every gateway
-    /// composes the source schemas of the distributed application.
+    /// Adds Nitro and GraphQL schema composition orchestration to the distributed application.
     /// </summary>
-    /// <param name="builder">
-    /// The distributed application builder.
-    /// </param>
-    /// <returns>
-    /// The distributed application builder for chaining.
-    /// </returns>
-    public static IDistributedApplicationBuilder AddNitro(
+    /// <param name="builder">The distributed application builder.</param>
+    /// <returns>The Nitro resource builder.</returns>
+    public static IResourceBuilder<NitroResource> AddNitro(
         this IDistributedApplicationBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        SchemaCompositionRegistration.Ensure(builder);
-
-        return builder;
-    }
+        => AddNitroCore(builder, portalUrl: null, configureSeedUpdates: null);
 
     /// <summary>
-    /// Adds GraphQL schema composition orchestration that composes against the fusion
-    /// configurations of Nitro and configures the Nitro portal URL shown on each Nitro-composed
-    /// gateway. A gateway configured with <see cref="WithNitroApiId{T}"/> composes the source
-    /// schemas of the distributed application on top of the fusion configuration that Nitro
-    /// serves for <paramref name="stage"/>, so it also serves source schemas that run outside of
-    /// the distributed application.
+    /// Adds Nitro and configures the Nitro portal URL shown on Nitro-backed gateways.
     /// </summary>
     /// <param name="builder">The distributed application builder.</param>
-    /// <param name="stage">
-    /// The Nitro stage whose fusion configuration is used. The settings of the source schemas
-    /// carried by that configuration resolve against this stage environment.
-    /// </param>
     /// <param name="portalUrl">
-    /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
-    /// URL.
+    /// The Nitro portal URL. When <see langword="null"/>, it is derived from the effective Nitro
+    /// API URL.
     /// </param>
-    /// <returns>The distributed application builder for chaining.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Nitro is already added for another stage or portal URL.
-    /// </exception>
-    /// <remarks>
-    /// A source schema of the distributed application replaces the source schema of the same name
-    /// in the fusion configuration. The name of a source schema declared with
-    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaEndpoint{T}"/> is the
-    /// <c>name</c> in its settings file. The name of a source schema declared with
-    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaFile{T}"/> is the configured
-    /// source schema name or the resource name. Every declaration must exactly match the
-    /// <c>name</c> in its settings file. A source schema that ends up with another name is added to
-    /// the composition instead of replacing the one in the fusion configuration.
-    /// </remarks>
-    public static IDistributedApplicationBuilder AddNitro(
+    /// <returns>The Nitro resource builder.</returns>
+    public static IResourceBuilder<NitroResource> AddNitro(
         this IDistributedApplicationBuilder builder,
-        string stage,
-        Uri? portalUrl = null)
-        => AddNitroCore(builder, stage, portalUrl, configureSeedUpdates: null);
+        Uri? portalUrl)
+        => AddNitroCore(builder, portalUrl, configureSeedUpdates: null);
 
     /// <summary>
-    /// Adds GraphQL schema composition orchestration that composes against Nitro and configures
-    /// how Fusion Aspire follows changes to the selected stage during the AppHost run.
+    /// Adds Nitro and configures how Fusion Aspire follows stage changes during an AppHost run.
     /// </summary>
     /// <param name="builder">The distributed application builder.</param>
-    /// <param name="stage">The Nitro stage whose Fusion configuration is used.</param>
     /// <param name="portalUrl">
-    /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
-    /// URL.
+    /// The Nitro portal URL. When <see langword="null"/>, it is derived from the effective Nitro
+    /// API URL.
     /// </param>
     /// <param name="configureSeedUpdates">
-    /// Configures background stage-change subscriptions, current-version queries, Fusion
-    /// configuration downloads, and automatic adoption.
+    /// Configures background stage-change subscriptions and automatic adoption.
     /// </param>
-    /// <returns>The distributed application builder for chaining.</returns>
-    /// <remarks>
-    /// Stage update detection receives stage-change metadata and downloads the same Fusion archive
-    /// that startup seed acquisition downloads. It sends no schema or configuration data to Nitro.
-    /// </remarks>
-    public static IDistributedApplicationBuilder AddNitro(
+    /// <returns>The Nitro resource builder.</returns>
+    public static IResourceBuilder<NitroResource> AddNitro(
         this IDistributedApplicationBuilder builder,
-        string stage,
         Uri? portalUrl,
         Action<NitroSeedUpdateOptions> configureSeedUpdates)
     {
         ArgumentNullException.ThrowIfNull(configureSeedUpdates);
-
-        return AddNitroCore(builder, stage, portalUrl, configureSeedUpdates);
+        return AddNitroCore(builder, portalUrl, configureSeedUpdates);
     }
 
-    private static IDistributedApplicationBuilder AddNitroCore(
+    private static IResourceBuilder<NitroResource> AddNitroCore(
         IDistributedApplicationBuilder builder,
-        string stage,
         Uri? portalUrl,
         Action<NitroSeedUpdateOptions>? configureSeedUpdates)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(stage);
+        ValidatePortalUrl(portalUrl);
 
-        if (portalUrl?.IsAbsoluteUri is false
-            || portalUrl is not null
-                && !string.Equals(
-                    portalUrl.Scheme,
-                    Uri.UriSchemeHttp,
-                    StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(
-                    portalUrl.Scheme,
-                    Uri.UriSchemeHttps,
-                    StringComparison.OrdinalIgnoreCase)
-            || !string.IsNullOrEmpty(portalUrl?.UserInfo))
+        var existing = builder.Resources.OfType<NitroResource>().SingleOrDefault();
+        if (existing is not null)
         {
-            throw new ArgumentException(
-                "The Nitro portal URL must be an absolute HTTP URL without user information.",
-                nameof(portalUrl));
-        }
-
-        var options = SchemaCompositionRegistration.Ensure(builder);
-
-        if (options.Coordinator is { } coordinator)
-        {
-            if (!string.Equals(coordinator.Stage, stage, StringComparison.Ordinal))
-            {
-                throw new InvalidOperationException(
-                    $"Nitro is already added for the stage '{coordinator.Stage}'. A distributed "
-                    + "application composes against a single stage, so AddNitro cannot be called "
-                    + $"again for the stage '{stage}'.");
-            }
-
             if (portalUrl is not null
-                && options.PortalUrl is not null
-                && options.PortalUrl != portalUrl)
+                && existing.PortalUrl is not null
+                && existing.PortalUrl != portalUrl)
             {
                 throw new InvalidOperationException(
-                    $"Nitro is already added with the portal URL '{options.PortalUrl}'.");
+                    $"Nitro is already added with the portal URL '{existing.PortalUrl}'.");
             }
 
-            configureSeedUpdates?.Invoke(options.SeedUpdates);
-            coordinator.SetInitialAutoUpdate(options.SeedUpdates.AutoUpdate);
-            options.PortalUrl ??= portalUrl;
-            AddAutoUpdateCommandsToConfiguredGateways(builder);
-            return builder;
+            existing.PortalUrl ??= portalUrl;
+            configureSeedUpdates?.Invoke(existing.SeedUpdates);
+            SchemaCompositionRegistration.Ensure(builder);
+            EnsureFusionPipeline(builder);
+            return builder.CreateResourceBuilder(existing);
         }
-
-        configureSeedUpdates?.Invoke(options.SeedUpdates);
-        options.Coordinator = NitroSeedCoordinator.CreateProduction(
-            stage,
-            options.SeedUpdates.AutoUpdate);
-        options.PortalUrl = portalUrl;
-        AddAutoUpdateCommandsToConfiguredGateways(builder);
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Selects the Nitro api that carries the fusion configuration of a gateway. The api id is the
-    /// id that the Nitro dashboard and the Nitro CLI report for the api. Calling this method again
-    /// replaces the previously configured api id.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a gateway.
-    /// </param>
-    /// <param name="apiId">
-    /// The id of the Nitro api.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    /// <remarks>
-    /// On a gateway the api id selects the fusion configuration that the gateway composes on top
-    /// of, and it only takes effect when the distributed application calls
-    /// <see cref="AddNitro(IDistributedApplicationBuilder, string, Uri)"/>. On a publish target
-    /// added with <see cref="AddNitroPublishTarget"/> the api id selects the api that Fusion
-    /// deployments publish to. On any other resource it is metadata without an effect.
-    /// </remarks>
-    public static IResourceBuilder<T> WithNitroApiId<T>(
-        this IResourceBuilder<T> builder,
-        string apiId)
-        where T : IResource
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(apiId);
-
-        builder.WithAnnotation(
-            new NitroApiIdAnnotation { ApiId = apiId },
-            ResourceAnnotationMutationBehavior.Replace);
-        TryAddAutoUpdateCommands(builder);
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds the Nitro api that the Fusion deployments of the distributed application publish to.
-    /// The cloud URL and the api id default to the <c>Nitro:CloudUrl</c> and <c>Nitro:ApiId</c>
-    /// configuration values, or to the <c>NITRO_CLOUD_URL</c> and <c>NITRO_API_ID</c> environment
-    /// variables.
-    /// </summary>
-    /// <param name="builder">
-    /// The distributed application builder.
-    /// </param>
-    /// <param name="name">
-    /// The name of the publish target resource.
-    /// </param>
-    /// <returns>
-    /// The resource builder of the publish target for chaining.
-    /// </returns>
-    public static IResourceBuilder<NitroPublishTargetResource> AddNitroPublishTarget(
-        this IDistributedApplicationBuilder builder,
-        string name)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        EnsureFusionPipeline(builder);
-        builder.Services.TryAddSingleton(_ => NitroFusionApi.Create());
-        builder.Services.TryAddSingleton<FusionDeploymentWorkflow>();
 
         var configuredCloudUrl =
             builder.Configuration["Nitro:CloudUrl"]
             ?? builder.Configuration["NITRO_CLOUD_URL"];
-        var resource = new NitroPublishTargetResource(name)
+        var resource = new NitroResource(NitroResourceName)
         {
             CloudUrl = string.IsNullOrWhiteSpace(configuredCloudUrl)
                 ? null
-                : NormalizeCloudUrl(configuredCloudUrl)
+                : NormalizeCloudUrl(configuredCloudUrl),
+            PortalUrl = portalUrl
         };
+        configureSeedUpdates?.Invoke(resource.SeedUpdates);
+
         var resourceBuilder = builder.AddResource(resource);
-
-        var configuredApiId =
-            builder.Configuration["Nitro:ApiId"]
-            ?? builder.Configuration["NITRO_API_ID"];
-
-        if (!string.IsNullOrWhiteSpace(configuredApiId))
-        {
-            resourceBuilder.WithNitroApiId(configuredApiId);
-        }
+        SchemaCompositionRegistration.Ensure(builder);
+        EnsureFusionPipeline(builder);
 
         return resourceBuilder;
     }
 
     /// <summary>
-    /// Sets the Nitro api URL that Fusion deployments publish to.
+    /// Adds an API declaration to Nitro.
     /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro publish target.
-    /// </param>
-    /// <param name="cloudUrl">
-    /// An absolute HTTPS origin without a path, query, fragment, or user information.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    public static IResourceBuilder<NitroPublishTargetResource> WithNitroCloudUrl(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
+    /// <param name="builder">The Nitro resource builder.</param>
+    /// <param name="name">The declarative name of the API.</param>
+    /// <returns>The Nitro API resource builder.</returns>
+    public static IResourceBuilder<NitroApiResource> AddApi(
+        this IResourceBuilder<NitroResource> builder,
+        string name)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        if (builder.ApplicationBuilder.Resources
+            .OfType<NitroApiResource>()
+            .Any(api => ReferenceEquals(api.Nitro, builder.Resource)
+                && string.Equals(api.ApiName, name, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException(
+                $"Nitro already declares an API named '{name}'.");
+        }
+
+        var resource = new NitroApiResource(
+            $"{builder.Resource.Name}-{name}",
+            name,
+            builder.Resource);
+
+        return builder.ApplicationBuilder
+            .AddResource(resource)
+            .WithParentRelationship(builder);
+    }
+
+    /// <summary>
+    /// Sets the Nitro ID of an API declaration.
+    /// </summary>
+    /// <param name="builder">The Nitro API resource builder.</param>
+    /// <param name="apiId">The ID reported by the Nitro dashboard and CLI.</param>
+    /// <returns>The Nitro API resource builder for chaining.</returns>
+    public static IResourceBuilder<NitroApiResource> WithNitroApiId(
+        this IResourceBuilder<NitroApiResource> builder,
+        string apiId)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiId);
+
+        builder.Resource.ApiId = apiId;
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a stage declaration to a Nitro API.
+    /// </summary>
+    /// <param name="builder">The Nitro API resource builder.</param>
+    /// <param name="stageName">The Nitro stage name.</param>
+    /// <returns>The Nitro stage resource builder.</returns>
+    public static IResourceBuilder<NitroStageResource> AddStage(
+        this IResourceBuilder<NitroApiResource> builder,
+        string stageName)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
+
+        if (builder.ApplicationBuilder.Resources
+            .OfType<NitroStageResource>()
+            .Any(stage => ReferenceEquals(stage.Api, builder.Resource)
+                && string.Equals(stage.StageName, stageName, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException(
+                $"Nitro API '{builder.Resource.ApiName}' already declares the stage "
+                + $"'{stageName}'.");
+        }
+
+        var resource = new NitroStageResource(
+            $"{builder.Resource.Name}-{stageName}",
+            stageName,
+            builder.Resource);
+
+        return builder.ApplicationBuilder
+            .AddResource(resource)
+            .WithParentRelationship(builder);
+    }
+
+    /// <summary>
+    /// Selects the Nitro stage whose Fusion configuration is the base of a gateway composition.
+    /// </summary>
+    /// <typeparam name="T">The gateway resource type.</typeparam>
+    /// <param name="builder">The gateway resource builder.</param>
+    /// <param name="stage">The Nitro stage resource builder.</param>
+    /// <returns>The gateway resource builder for chaining.</returns>
+    public static IResourceBuilder<T> WithNitroCompositionBase<T>(
+        this IResourceBuilder<T> builder,
+        IResourceBuilder<NitroStageResource> stage)
+        where T : IResource
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(stage);
+
+        var existing = builder.Resource.Annotations
+            .OfType<NitroCompositionBaseAnnotation>()
+            .SingleOrDefault();
+        if (existing is not null && !ReferenceEquals(existing.Stage, stage.Resource))
+        {
+            throw new InvalidOperationException(
+                $"Resource '{builder.Resource.Name}' already uses Nitro stage "
+                + $"'{existing.Stage.StageName}' as its composition base.");
+        }
+
+        if (existing is null)
+        {
+            builder.WithAnnotation(new NitroCompositionBaseAnnotation { Stage = stage.Resource });
+            builder.WithReferenceRelationship(stage);
+        }
+
+        TryAddAutoUpdateCommands(builder);
+        return builder;
+    }
+
+    /// <summary>
+    /// Sets the Nitro API URL used by local composition and publishing.
+    /// </summary>
+    /// <param name="builder">The Nitro resource builder.</param>
+    /// <param name="cloudUrl">An absolute HTTPS origin.</param>
+    /// <returns>The Nitro resource builder for chaining.</returns>
+    public static IResourceBuilder<NitroResource> WithNitroCloudUrl(
+        this IResourceBuilder<NitroResource> builder,
         string cloudUrl)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
         builder.Resource.CloudUrl = NormalizeCloudUrl(cloudUrl);
         return builder;
     }
 
     /// <summary>
-    /// Sets the secret parameter that supplies the Nitro api key. When this is not configured, the
-    /// credential is resolved from the <c>NITRO_API_KEY</c> environment variable or the Nitro CLI
-    /// session.
+    /// Sets the secret parameter that supplies the Nitro API key.
     /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro publish target.
-    /// </param>
-    /// <param name="apiKey">
-    /// The parameter that supplies the api key. It has to be declared as a secret.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    /// <exception cref="ArgumentException">
-    /// The parameter is not declared as a secret.
-    /// </exception>
-    public static IResourceBuilder<NitroPublishTargetResource> WithNitroApiKey(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
+    /// <param name="builder">The Nitro resource builder.</param>
+    /// <param name="apiKey">A parameter declared as a secret.</param>
+    /// <returns>The Nitro resource builder for chaining.</returns>
+    public static IResourceBuilder<NitroResource> WithNitroApiKey(
+        this IResourceBuilder<NitroResource> builder,
         IResourceBuilder<ParameterResource> apiKey)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -305,149 +259,29 @@ public static class NitroExtensions
     }
 
     /// <summary>
-    /// Declares a Nitro stage that this api publishes to. Every stage an api publishes to is
-    /// declared once, and each invocation selects one of them by name.
+    /// Sets the Nitro portal URL shown on Nitro-backed gateways.
     /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro publish target.
-    /// </param>
-    /// <param name="stageName">
-    /// The name of the Nitro stage.
-    /// </param>
-    /// <returns>
-    /// The resource builder of the stage for chaining.
-    /// </returns>
-    public static IResourceBuilder<FusionStageResource> AddStage(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
-        string stageName)
+    /// <param name="builder">The Nitro resource builder.</param>
+    /// <param name="portalUrl">The absolute Nitro portal URL.</param>
+    /// <returns>The Nitro resource builder for chaining.</returns>
+    public static IResourceBuilder<NitroResource> WithNitroPortalUrl(
+        this IResourceBuilder<NitroResource> builder,
+        Uri portalUrl)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
-
-        var resource = new FusionStageResource(
-            $"{builder.Resource.Name}-{stageName}",
-            stageName,
-            builder.Resource);
-        return builder.ApplicationBuilder.AddResource(resource);
-    }
-
-    /// <summary>
-    /// Sets the parameter that names the declared stage an invocation publishes to.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro publish target.
-    /// </param>
-    /// <param name="stage">
-    /// The parameter that supplies the name of the stage.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    /// <remarks>
-    /// The publication fails when the parameter names a stage that the api does not declare.
-    /// </remarks>
-    public static IResourceBuilder<NitroPublishTargetResource> WithStageParameter(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
-        IResourceBuilder<ParameterResource> stage)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(stage);
-
-        builder.Resource.StageParameter = stage.Resource;
+        ValidatePortalUrl(portalUrl);
+        builder.Resource.PortalUrl = portalUrl;
         return builder;
     }
 
     /// <summary>
-    /// Selects the exact <c>schema-settings.json</c> environment used for composition.
+    /// Configures whether Nitro waits for approval before a stage publication is committed.
     /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Fusion stage.
-    /// </param>
-    /// <param name="environmentName">
-    /// The name of the settings environment.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    /// <remarks>
-    /// When this is not configured, an environment selected by the GraphQL composition is used,
-    /// followed by the Nitro stage name.
-    /// </remarks>
-    public static IResourceBuilder<FusionStageResource> WithCompositionEnvironment(
-        this IResourceBuilder<FusionStageResource> builder,
-        string environmentName)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
-
-        builder.Resource.CompositionEnvironmentName = environmentName;
-        return builder;
-    }
-
-    /// <summary>
-    /// Sets the immutable release tag. The tag is both the source schema version and the fusion
-    /// configuration tag of the deployment.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro publish target.
-    /// </param>
-    /// <param name="configurationTag">
-    /// The parameter that supplies the release tag.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    public static IResourceBuilder<NitroPublishTargetResource> WithConfigurationTag(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
-        IResourceBuilder<ParameterResource> configurationTag)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(configurationTag);
-
-        builder.Resource.ConfigurationTagParameter = configurationTag.Resource;
-        builder.Resource.ConfigurationTag = null;
-        return builder;
-    }
-
-    /// <summary>
-    /// Sets the immutable release tag. The tag is both the source schema version and the fusion
-    /// configuration tag of the deployment.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Nitro publish target.
-    /// </param>
-    /// <param name="configurationTag">
-    /// The release tag.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    public static IResourceBuilder<NitroPublishTargetResource> WithConfigurationTag(
-        this IResourceBuilder<NitroPublishTargetResource> builder,
-        string configurationTag)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(configurationTag);
-
-        builder.Resource.ConfigurationTag = configurationTag;
-        builder.Resource.ConfigurationTagParameter = null;
-        return builder;
-    }
-
-    /// <summary>
-    /// Configures whether Nitro waits for approval before the configuration is committed.
-    /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Fusion stage.
-    /// </param>
-    /// <param name="waitForApproval">
-    /// Specifies whether the publication waits for approval.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    public static IResourceBuilder<FusionStageResource> WithApproval(
-        this IResourceBuilder<FusionStageResource> builder,
+    /// <param name="builder">The Nitro stage resource builder.</param>
+    /// <param name="waitForApproval">Whether publication waits for approval.</param>
+    /// <returns>The Nitro stage resource builder for chaining.</returns>
+    public static IResourceBuilder<NitroStageResource> WithApproval(
+        this IResourceBuilder<NitroStageResource> builder,
         bool waitForApproval)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -456,24 +290,45 @@ public static class NitroExtensions
     }
 
     /// <summary>
-    /// Configures whether validation failures may be forced.
+    /// Configures whether publication proceeds despite validation failures.
     /// </summary>
-    /// <param name="builder">
-    /// The resource builder of a Fusion stage.
-    /// </param>
-    /// <param name="force">
-    /// Specifies whether the publication proceeds despite validation failures.
-    /// </param>
-    /// <returns>
-    /// The resource builder for chaining.
-    /// </returns>
-    public static IResourceBuilder<FusionStageResource> WithForce(
-        this IResourceBuilder<FusionStageResource> builder,
+    /// <param name="builder">The Nitro stage resource builder.</param>
+    /// <param name="force">Whether validation failures may be forced.</param>
+    /// <returns>The Nitro stage resource builder for chaining.</returns>
+    public static IResourceBuilder<NitroStageResource> WithForcePublish(
+        this IResourceBuilder<NitroStageResource> builder,
         bool force)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Resource.Force = force;
         return builder;
+    }
+
+    internal static NitroStageResource? GetNitroCompositionBase(this IResource resource)
+        => resource.Annotations
+            .OfType<NitroCompositionBaseAnnotation>()
+            .SingleOrDefault()
+            ?.Stage;
+
+    internal static void TryAddAutoUpdateCommands<T>(IResourceBuilder<T> builder)
+        where T : IResource
+    {
+        if (!builder.Resource.NeedsGraphQLSchemaComposition()
+            || builder.Resource.GetNitroCompositionBase() is null)
+        {
+            return;
+        }
+
+        AddAutoUpdateCommand(
+            builder,
+            "disable-nitro-auto-update",
+            "Disable auto-update",
+            enabled: false);
+        AddAutoUpdateCommand(
+            builder,
+            "enable-nitro-auto-update",
+            "Enable auto-update",
+            enabled: true);
     }
 
     private static void EnsureFusionPipeline(IDistributedApplicationBuilder builder)
@@ -483,9 +338,32 @@ public static class NitroExtensions
             return;
         }
 
+        builder.Services.TryAddSingleton(_ => NitroFusionApi.Create());
+        builder.Services.TryAddSingleton<FusionDeploymentWorkflow>();
+
         var pipeline = builder.AddResource(
             new FusionPipelineResource("fusion-nitro-pipeline"));
         FusionPipeline.Configure(pipeline);
+    }
+
+    private static void ValidatePortalUrl(Uri? portalUrl)
+    {
+        if (portalUrl?.IsAbsoluteUri is false
+            || portalUrl is not null
+                && !string.Equals(
+                    portalUrl.Scheme,
+                    Uri.UriSchemeHttp,
+                    StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(
+                    portalUrl.Scheme,
+                    Uri.UriSchemeHttps,
+                    StringComparison.OrdinalIgnoreCase)
+            || !string.IsNullOrEmpty(portalUrl?.UserInfo))
+        {
+            throw new ArgumentException(
+                "The Nitro portal URL must be an absolute HTTP URL without user information.",
+                nameof(portalUrl));
+        }
     }
 
     private static string NormalizeCloudUrl(string cloudUrl)
@@ -504,45 +382,6 @@ public static class NitroExtensions
         }
 
         return uri.GetLeftPart(UriPartial.Authority);
-    }
-
-    internal static string? GetNitroApiId(this IResource resource)
-        => resource.Annotations.OfType<NitroApiIdAnnotation>().SingleOrDefault()?.ApiId;
-
-    internal static void TryAddAutoUpdateCommands<T>(IResourceBuilder<T> builder)
-        where T : IResource
-    {
-        if (!builder.Resource.NeedsGraphQLSchemaComposition()
-            || builder.Resource.GetNitroApiId() is null
-            || SchemaCompositionRegistration.GetOptions(builder.ApplicationBuilder)?.Coordinator
-                is null)
-        {
-            return;
-        }
-
-        AddAutoUpdateCommand(
-            builder,
-            "disable-nitro-auto-update",
-            "Disable auto-update",
-            enabled: false);
-        AddAutoUpdateCommand(
-            builder,
-            "enable-nitro-auto-update",
-            "Enable auto-update",
-            enabled: true);
-    }
-
-    private static void AddAutoUpdateCommandsToConfiguredGateways(
-        IDistributedApplicationBuilder builder)
-    {
-        foreach (var resource in builder.Resources.OfType<IResourceWithEndpoints>())
-        {
-            if (resource.NeedsGraphQLSchemaComposition()
-                && resource.GetNitroApiId() is not null)
-            {
-                TryAddAutoUpdateCommands(builder.CreateResourceBuilder(resource));
-            }
-        }
     }
 
     private static void AddAutoUpdateCommand<T>(
@@ -582,7 +421,6 @@ public static class NitroExtensions
                 {
                     var service = context.ServiceProvider.GetService<NitroSeedUpdateService>();
                     if (service is null
-                        || !service.IsEnabled
                         || !service.IsReady(resourceName))
                     {
                         return ResourceCommandState.Hidden;

@@ -9,22 +9,57 @@ internal sealed class ClearingPooledMemoryStream : Stream
 {
     private const int DefaultCapacity = 4096;
     private readonly ArrayPool<byte> _pool;
+    private readonly int _maximumLength;
+    private readonly string _maximumLengthErrorMessage;
     private byte[] _buffer;
     private int _length;
     private int _position;
     private bool _disposed;
 
     public ClearingPooledMemoryStream()
-        : this(ArrayPool<byte>.Shared, DefaultCapacity)
+        : this(
+            ArrayPool<byte>.Shared,
+            DefaultCapacity,
+            int.MaxValue,
+            "The in-memory stream exceeds its maximum length.")
     {
     }
 
     internal ClearingPooledMemoryStream(ArrayPool<byte> pool, int initialCapacity)
+        : this(
+            pool,
+            initialCapacity,
+            int.MaxValue,
+            "The in-memory stream exceeds its maximum length.")
+    {
+    }
+
+    internal ClearingPooledMemoryStream(
+        int maximumLength,
+        string maximumLengthErrorMessage)
+        : this(
+            ArrayPool<byte>.Shared,
+            Math.Min(DefaultCapacity, maximumLength),
+            maximumLength,
+            maximumLengthErrorMessage)
+    {
+    }
+
+    private ClearingPooledMemoryStream(
+        ArrayPool<byte> pool,
+        int initialCapacity,
+        int maximumLength,
+        string maximumLengthErrorMessage)
     {
         ArgumentNullException.ThrowIfNull(pool);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(initialCapacity);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maximumLength);
+        ArgumentException.ThrowIfNullOrWhiteSpace(maximumLengthErrorMessage);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(initialCapacity, maximumLength);
 
         _pool = pool;
+        _maximumLength = maximumLength;
+        _maximumLengthErrorMessage = maximumLengthErrorMessage;
         _buffer = pool.Rent(initialCapacity);
     }
 
@@ -216,12 +251,22 @@ internal sealed class ClearingPooledMemoryStream : Stream
 
     private void EnsureCapacity(int capacity)
     {
+        if (capacity > _maximumLength)
+        {
+            throw new InvalidDataException(_maximumLengthErrorMessage);
+        }
+
         if (capacity <= _buffer.Length)
         {
             return;
         }
 
-        var newCapacity = Math.Max(capacity, checked(_buffer.Length * 2));
+        var doubledCapacity = _buffer.Length > _maximumLength / 2
+            ? _maximumLength
+            : _buffer.Length * 2;
+        var newCapacity = Math.Min(
+            _maximumLength,
+            Math.Max(capacity, doubledCapacity));
         var replacement = _pool.Rent(newCapacity);
         _buffer.AsSpan(0, _length).CopyTo(replacement);
         _pool.Return(_buffer, clearArray: true);

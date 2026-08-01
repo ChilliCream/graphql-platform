@@ -7,11 +7,11 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 internal sealed class NitroSeedUpdateService
 {
     private readonly Dictionary<string, NitroSeedUpdateMonitor> _monitors = [with(StringComparer.Ordinal)];
+    private readonly Dictionary<string, NitroSeedCoordinator> _coordinators = [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, IResource> _resources = [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, HashSet<string>> _notifiedVersions = [with(StringComparer.Ordinal)];
     private readonly HashSet<string> _notifiedAdoptedHashes = [with(StringComparer.Ordinal)];
     private readonly Lock _sync = new();
-    private readonly NitroCompositionOptions _options;
     private readonly ResourceLoggerService _resourceLoggerService;
     private readonly INitroSeedUpdateNotifier _notifier;
     private readonly IHostApplicationLifetime _lifetime;
@@ -19,22 +19,18 @@ internal sealed class NitroSeedUpdateService
     private readonly TimeProvider _timeProvider;
 
     public NitroSeedUpdateService(
-        NitroCompositionOptions options,
         ResourceLoggerService resourceLoggerService,
         INitroSeedUpdateNotifier notifier,
         IHostApplicationLifetime lifetime,
         ILoggerFactory loggerFactory,
         TimeProvider timeProvider)
     {
-        _options = options;
         _resourceLoggerService = resourceLoggerService;
         _notifier = notifier;
         _lifetime = lifetime;
         _loggerFactory = loggerFactory;
         _timeProvider = timeProvider;
     }
-
-    public bool IsEnabled => _options.Coordinator is not null && _options.SeedUpdates.Enabled;
 
     internal int MonitorCount
     {
@@ -51,8 +47,11 @@ internal sealed class NitroSeedUpdateService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
 
-        return _options.Coordinator?.IsAutoUpdateEnabled(gatewayName)
-            ?? _options.SeedUpdates.AutoUpdate;
+        lock (_sync)
+        {
+            return _coordinators.TryGetValue(gatewayName, out var coordinator)
+                && coordinator.IsAutoUpdateEnabled(gatewayName);
+        }
     }
 
     public bool IsReady(string gatewayName)
@@ -68,15 +67,19 @@ internal sealed class NitroSeedUpdateService
     public void Start(
         IResource gateway,
         string apiId,
+        NitroStageResource stage,
+        NitroSeedCoordinator coordinator,
         SemaphoreSlim compositionGate,
         Func<NitroSeedAdoption, CancellationToken, Task<bool>> recomposeAsync)
     {
         ArgumentNullException.ThrowIfNull(gateway);
         ArgumentException.ThrowIfNullOrWhiteSpace(apiId);
+        ArgumentNullException.ThrowIfNull(stage);
+        ArgumentNullException.ThrowIfNull(coordinator);
         ArgumentNullException.ThrowIfNull(compositionGate);
         ArgumentNullException.ThrowIfNull(recomposeAsync);
 
-        if (!IsEnabled || _options.Coordinator is not { } coordinator)
+        if (!stage.Api.Nitro.SeedUpdates.Enabled)
         {
             return;
         }
@@ -101,6 +104,7 @@ internal sealed class NitroSeedUpdateService
                 _timeProvider,
                 _loggerFactory.CreateLogger<NitroSeedUpdateMonitor>());
             _monitors.Add(gateway.Name, monitor);
+            _coordinators.Add(gateway.Name, coordinator);
             _resources[gateway.Name] = gateway;
         }
 
