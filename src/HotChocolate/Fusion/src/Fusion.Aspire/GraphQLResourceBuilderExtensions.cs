@@ -50,7 +50,8 @@ public static class GraphQLResourceBuilderExtensions
                 EndpointName = endpointName,
                 SchemaPath = path,
                 Location = SourceSchemaLocationType.SchemaEndpoint
-            });
+            },
+            ResourceAnnotationMutationBehavior.Replace);
 
         return builder;
     }
@@ -74,7 +75,8 @@ public static class GraphQLResourceBuilderExtensions
                 SourceSchemaName = sourceSchemaName,
                 SchemaPath = fileName,
                 Location = SourceSchemaLocationType.ProjectDirectory
-            });
+            },
+            ResourceAnnotationMutationBehavior.Replace);
 
         return builder;
     }
@@ -105,7 +107,8 @@ public static class GraphQLResourceBuilderExtensions
             {
                 SourceSchemaName = schemaName,
                 Location = SourceSchemaLocationType.CommandLineExport
-            });
+            },
+            ResourceAnnotationMutationBehavior.Replace);
 
         GraphQLSchemaExportCommand.Register(builder, schemaName);
 

@@ -188,6 +188,28 @@ public sealed class FusionDeploymentWorkflowTests
     }
 
     [Fact]
+    public async Task DownloadSourceSchemaAsync_Should_SendAccessToken_When_TargetUsesCliSession()
+    {
+        // arrange
+        var nitro = new FakeNitro();
+        var workflow = CreateWorkflow(nitro);
+        var target = new FusionTarget(
+            new Uri("https://api.chillicream.com"),
+            "api-id",
+            NitroCredential.FromAccessToken("access-token"));
+
+        // act
+        await workflow.DownloadSourceSchemaAsync(
+            target,
+            new FusionSourceSchemaVersion("products", "missing"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Null(nitro.LastApiKey);
+        Assert.Equal("Bearer access-token", nitro.LastAuthorization);
+    }
+
+    [Fact]
     public async Task DownloadSourceSchemaAsync_Should_Throw_When_NitroRejectsTheApiKey()
     {
         // arrange
@@ -575,6 +597,65 @@ public sealed class FusionDeploymentWorkflowTests
     }
 
     [Fact]
+    public async Task PublishAsync_Should_Wait_When_InitialStateIsInProgress()
+    {
+        // arrange
+        var nitro = new FakeNitro
+        {
+            Events =
+            [
+                new WatchEvent("OperationInProgress"),
+                new WatchEvent("ProcessingTaskIsReady"),
+                new WatchEvent("FusionConfigurationValidationSuccess"),
+                new WatchEvent("FusionConfigurationPublishingSuccess")
+            ]
+        };
+        var workflow = CreateWorkflow(nitro);
+
+        // act
+        await workflow.PublishAsync(
+            CreatePublicationRequest(force: false),
+            Encoding.UTF8.GetBytes("fusion archive"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            [
+                "BeginFusionDeployment",
+                "WatchFusionDeployment",
+                "ClaimFusionDeployment",
+                "ValidateFusionDeployment",
+                "CommitFusionDeployment"
+            ],
+            nitro.Calls);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_DescribeUnknownRemoteState()
+    {
+        // arrange
+        var nitro = new FakeNitro
+        {
+            Events = [new WatchEvent("FuturePublicationState", "RECONCILING")]
+        };
+        var workflow = CreateWorkflow(nitro);
+
+        // act
+        var exception = await Assert.ThrowsAsync<FusionIndeterminateStateException>(
+            () => workflow.PublishAsync(
+                CreatePublicationRequest(force: false),
+                Encoding.UTF8.GetBytes("fusion archive"),
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "The Fusion publication request was already in an ambiguous "
+            + "'FuturePublicationState (RECONCILING)' state. "
+            + "Nitro request ID: 'request-id'.",
+            exception.Message);
+    }
+
+    [Fact]
     public async Task PublishAsync_Should_ReleaseAndFail_When_ValidationFailsWithoutForce()
     {
         // arrange
@@ -651,6 +732,111 @@ public sealed class FusionDeploymentWorkflowTests
     }
 
     [Fact]
+    public async Task PublishAsync_Should_ReleaseClaim_When_CommitIsRejected()
+    {
+        // arrange
+        var nitro = new FakeNitro
+        {
+            Events =
+            [
+                new WatchEvent("ProcessingTaskIsReady"),
+                new WatchEvent("FusionConfigurationValidationSuccess")
+            ],
+            CommitErrorMessage = "The commit was rejected."
+        };
+        var workflow = CreateWorkflow(nitro);
+
+        // act
+        var exception = await Assert.ThrowsAsync<FusionDeploymentException>(
+            () => workflow.PublishAsync(
+                CreatePublicationRequest(force: false),
+                Encoding.UTF8.GetBytes("fusion archive"),
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "Nitro could not commit the Fusion configuration for request "
+            + "'request-id'. The commit was rejected.",
+            exception.Message);
+        Assert.Equal(
+            [
+                "BeginFusionDeployment",
+                "WatchFusionDeployment",
+                "ClaimFusionDeployment",
+                "ValidateFusionDeployment",
+                "CommitFusionDeployment",
+                "ReleaseFusionDeployment"
+            ],
+            nitro.Calls);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_Fail_When_CommitReturnsUnknownErrorType()
+    {
+        // arrange
+        var nitro = new FakeNitro
+        {
+            Events =
+            [
+                new WatchEvent("ProcessingTaskIsReady"),
+                new WatchEvent("FusionConfigurationValidationSuccess")
+            ],
+            CommitErrorTypeName = "FutureCommitError"
+        };
+        var workflow = CreateWorkflow(nitro);
+
+        // act
+        var exception = await Assert.ThrowsAsync<FusionDeploymentException>(
+            () => workflow.PublishAsync(
+                CreatePublicationRequest(force: false),
+                Encoding.UTF8.GetBytes("fusion archive"),
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "Nitro could not commit the Fusion configuration for request "
+            + "'request-id'. Nitro returned an error of type 'FutureCommitError'.",
+            exception.Message);
+        Assert.Equal("ReleaseFusionDeployment", nitro.Calls[^1]);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_ReleaseClaim_When_ValidationTimesOut()
+    {
+        // arrange
+        var nitro = new FakeNitro
+        {
+            Events = [new WatchEvent("ProcessingTaskIsReady")],
+            ValidateDelay = TimeSpan.FromSeconds(5)
+        };
+        var workflow = CreateWorkflow(nitro);
+
+        // act
+        var exception = await Assert.ThrowsAsync<FusionIndeterminateStateException>(
+            () => workflow.PublishAsync(
+                CreatePublicationRequest(
+                    force: false,
+                    operationTimeout: TimeSpan.FromMilliseconds(100)),
+                Encoding.UTF8.GetBytes("fusion archive"),
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            "The Fusion publication timed out before a terminal result could be verified. "
+            + "Nitro request ID: 'request-id'.",
+            exception.Message);
+        Assert.Equal(
+            [
+                "BeginFusionDeployment",
+                "WatchFusionDeployment",
+                "ClaimFusionDeployment",
+                "ValidateFusionDeployment",
+                "ReleaseFusionDeployment"
+            ],
+            nitro.Calls);
+    }
+
+    [Fact]
     public async Task PublishAsync_Should_Fail_When_NitroRejectsTheRequest()
     {
         // arrange
@@ -694,7 +880,7 @@ public sealed class FusionDeploymentWorkflowTests
         // assert
         Assert.Equal(
             "The Fusion publication event stream ended before Nitro reported "
-            + "a terminal result.",
+            + "a terminal result. Nitro request ID: 'request-id'.",
             exception.Message);
         Assert.Equal("request-id", exception.RequestId);
     }
@@ -720,7 +906,8 @@ public sealed class FusionDeploymentWorkflowTests
 
         // assert
         Assert.Equal(
-            "The Fusion publication event stream ended with an error.",
+            "The Fusion publication event stream ended with an error. "
+            + "Nitro request ID: 'request-id'.",
             exception.Message);
         Assert.Equal(
             "Nitro answered the subscription with the content type "
@@ -738,6 +925,11 @@ public sealed class FusionDeploymentWorkflowTests
             "secret");
 
     private static FusionPublicationRequest CreatePublicationRequest(bool force)
+        => CreatePublicationRequest(force, TimeSpan.FromMinutes(1));
+
+    private static FusionPublicationRequest CreatePublicationRequest(
+        bool force,
+        TimeSpan operationTimeout)
         => new(
             CreateTarget(),
             "production",
@@ -745,7 +937,7 @@ public sealed class FusionDeploymentWorkflowTests
             [new FusionSourceSchemaVersion("products", "20260730")],
             WaitForApproval: false,
             Force: force,
-            OperationTimeout: TimeSpan.FromMinutes(1),
+            OperationTimeout: operationTimeout,
             ApprovalTimeout: TimeSpan.FromMinutes(1));
 
     private static string DescribeConfiguration(string? body)
@@ -846,10 +1038,10 @@ public sealed class FusionDeploymentWorkflowTests
         return path;
     }
 
-    private sealed record WatchEvent(string TypeName)
+    private sealed record WatchEvent(string TypeName, string State = "PROCESSING")
     {
         public WatchEvent(string typeName, IReadOnlyList<string> errors)
-            : this(typeName)
+            : this(typeName, "PROCESSING")
         {
             Errors = errors;
         }
@@ -875,6 +1067,12 @@ public sealed class FusionDeploymentWorkflowTests
 
         public string? BeginErrorMessage { get; set; }
 
+        public string? CommitErrorMessage { get; set; }
+
+        public string? CommitErrorTypeName { get; set; }
+
+        public TimeSpan? ValidateDelay { get; set; }
+
         public IReadOnlyList<WatchEvent> Events { get; init; } = [];
 
         public bool WatchIsEventStream { get; init; } = true;
@@ -888,6 +1086,8 @@ public sealed class FusionDeploymentWorkflowTests
         public string? LastDownloadVersion { get; private set; }
 
         public string? LastApiKey { get; private set; }
+
+        public string? LastAuthorization { get; private set; }
 
         public string? LastContentType { get; private set; }
 
@@ -906,6 +1106,7 @@ public sealed class FusionDeploymentWorkflowTests
             LastApiKey = request.Headers.TryGetValues(ApiKeyHeader, out var values)
                 ? values.Single()
                 : null;
+            LastAuthorization = request.Headers.Authorization?.ToString();
 
             if (request.Method == HttpMethod.Get)
             {
@@ -942,11 +1143,19 @@ public sealed class FusionDeploymentWorkflowTests
 
                 case NitroOperationDocuments.ValidateDeploymentOperationName:
                     ValidateBody = body;
+                    if (ValidateDelay is { } validateDelay)
+                    {
+                        await Task.Delay(validateDelay, cancellationToken);
+                    }
+
                     return Json(CommandResult("validateFusionConfigurationComposition"));
 
                 case NitroOperationDocuments.CommitDeploymentOperationName:
                     CommitBody = body;
-                    return Json(CommandResult("commitFusionConfigurationPublish"));
+                    return Json(CommandResult(
+                        "commitFusionConfigurationPublish",
+                        CommitErrorMessage,
+                        CommitErrorTypeName));
 
                 case NitroOperationDocuments.ReleaseDeploymentOperationName:
                     return Json(CommandResult("cancelFusionConfigurationComposition"));
@@ -1016,8 +1225,19 @@ public sealed class FusionDeploymentWorkflowTests
         private static string Error(string typeName, string message)
             => "{\"__typename\":\"" + typeName + "\",\"message\":\"" + message + "\"}";
 
-        private static string CommandResult(string fieldName)
-            => "{\"data\":{\"" + fieldName + "\":{\"errors\":[]}}}";
+        private static string CommandResult(
+            string fieldName,
+            string? errorMessage = null,
+            string? errorTypeName = null)
+            => errorMessage is null && errorTypeName is null
+                ? "{\"data\":{\"" + fieldName + "\":{\"errors\":[]}}}"
+                : "{\"data\":{\"" + fieldName + "\":{\"errors\":["
+                    + (errorMessage is null
+                        ? "{\"__typename\":\"" + errorTypeName + "\"}"
+                        : Error(
+                            errorTypeName ?? "FusionConfigurationPublishingError",
+                            errorMessage))
+                    + "]}}}";
 
         private HttpResponseMessage Watch()
         {
@@ -1042,7 +1262,7 @@ public sealed class FusionDeploymentWorkflowTests
 
             return "{\"data\":{\"onFusionConfigurationPublishingTaskChanged\":{"
                 + "\"__typename\":\"" + watchEvent.TypeName + "\","
-                + "\"state\":\"PROCESSING\","
+                + "\"state\":\"" + watchEvent.State + "\","
                 + "\"errors\":[" + errors + "]}}}";
         }
 

@@ -1,8 +1,11 @@
+using System.Buffers;
 using System.Net;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Pipelines;
+using HotChocolate.Fusion.Aspire.Nitro;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
@@ -13,6 +16,33 @@ namespace HotChocolate.Fusion.Aspire;
 
 public sealed class FusionPipelineTests
 {
+    [Fact]
+    public void ClearingPooledMemoryStream_Should_ClearEveryBuffer_When_ItGrows()
+    {
+        // arrange
+        var pool = new TrackingArrayPool();
+        var stream = new ClearingPooledMemoryStream(pool, initialCapacity: 4);
+
+        // act
+        stream.Write([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        var content = stream.ToArray();
+        stream.Dispose();
+
+        // assert
+        $"""
+        Content: {string.Join(", ", content)}
+        Rented buffers: {pool.Rented.Count}
+        Returned with clearing: {pool.Returned.All(item => item.ClearArray)}
+        Buffers are clear: {pool.Rented.All(buffer => buffer.All(value => value is 0))}
+        """.MatchInlineSnapshot(
+            """
+            Content: 1, 2, 3, 4, 5, 6, 7, 8, 9
+            Rented buffers: 2
+            Returned with clearing: True
+            Buffers are clear: True
+            """);
+    }
+
     [Fact]
     public async Task SelectStages_Should_SelectTheStage_That_TheParameterNames()
     {
@@ -91,6 +121,81 @@ public sealed class FusionPipelineTests
     }
 
     [Fact]
+    public void SelectTargets_Should_Fail_When_NoStageIsDeclared()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddParameter("stage", "production");
+        builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products")
+            .WithStageParameter(stage)
+            .WithConfigurationTag("release-1");
+        var model = new DistributedApplicationModel(builder.Resources);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionPipeline.SelectTargets(model));
+
+        // assert
+        Assert.Equal(
+            "Nitro target 'nitro' must declare at least one stage.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task ResolveTargetAsync_Should_UseCliSession_When_ApiKeyIsNotConfigured()
+    {
+        // arrange
+        using var directory = new NitroTestDirectory();
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
+        var sessionPath = directory.WriteFile(
+            "session.json",
+            $$"""
+            {
+              "tokens": {
+                "accessToken": "access-token",
+                "expiresAt": "{{expiresAt:O}}"
+              }
+            }
+            """);
+        var resolver = new NitroConnectionResolver(
+            new NitroSessionReader(sessionPath, TimeSpan.Zero),
+            new TestNitroEnvironment(),
+            new Uri("https://api.chillicream.com"),
+            TimeProvider.System,
+            NitroDefaults.AccessTokenExpiryGrace);
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddNitroPublishTarget("nitro")
+            .WithNitroCloudUrl("https://api.chillicream.com")
+            .WithNitroApiId("products");
+
+        // act
+        var target = await FusionPipelineExecutor.ResolveTargetAsync(
+            resource.Resource,
+            new ConfigurationBuilder().Build(),
+            resolver,
+            NullLogger.Instance,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        $"""
+        Cloud URL: {target.CloudUrl}
+        API ID: {target.ApiId}
+        Credential: {target.Credential.Kind}
+        Value: {target.Credential.Value}
+        """.MatchInlineSnapshot(
+            """
+            Cloud URL: https://api.chillicream.com/
+            API ID: products
+            Credential: AccessToken
+            Value: access-token
+            """);
+    }
+
+    [Fact]
     public void WithCloudUrl_Should_Fail_WhenUrlContainsCaseSensitivePath()
     {
         var builder = DistributedApplication.CreateBuilder();
@@ -164,9 +269,9 @@ public sealed class FusionPipelineTests
                 + $"requiredBy=[{string.Join(", ", step.RequiredBySteps)}]"))
             .MatchInlineSnapshot(
                 """
-                fusion-artifacts: depends=[]; requiredBy=[]
+                fusion-artifacts: depends=[process-parameters]; requiredBy=[]
                 fusion-upload: depends=[fusion-artifacts]; requiredBy=[]
-                fusion-download: depends=[]; requiredBy=[]
+                fusion-download: depends=[process-parameters]; requiredBy=[]
                 fusion-compose: depends=[fusion-download]; requiredBy=[]
                 fusion-readiness: depends=[fusion-compose]; requiredBy=[]
                 fusion-publish-stage: depends=[fusion-readiness]; requiredBy=[]
@@ -201,6 +306,7 @@ public sealed class FusionPipelineTests
                 fusion-download
                 fusion-publish-stage
                 fusion-readiness
+                process-parameters
                 """);
     }
 
@@ -590,7 +696,10 @@ public sealed class FusionPipelineTests
             {
                 if (dependencies.Add(dependency))
                 {
-                    Visit(dependency);
+                    if (steps.ContainsKey(dependency))
+                    {
+                        Visit(dependency);
+                    }
                 }
             }
         }
@@ -665,6 +774,30 @@ public sealed class FusionPipelineTests
         public void Dispose()
         {
             Directory.Delete(Path, recursive: true);
+        }
+    }
+
+    private sealed class TrackingArrayPool : ArrayPool<byte>
+    {
+        public List<byte[]> Rented { get; } = [];
+
+        public List<(byte[] Buffer, bool ClearArray)> Returned { get; } = [];
+
+        public override byte[] Rent(int minimumLength)
+        {
+            var buffer = new byte[minimumLength];
+            Rented.Add(buffer);
+            return buffer;
+        }
+
+        public override void Return(byte[] array, bool clearArray = false)
+        {
+            Returned.Add((array, clearArray));
+
+            if (clearArray)
+            {
+                array.AsSpan().Clear();
+            }
         }
     }
 

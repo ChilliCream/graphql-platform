@@ -96,10 +96,10 @@ public sealed class GraphQLResourceModelTests
 
         var projectDirectory = System.IO.Path.GetDirectoryName(GetTestProjectFile())!;
         $$"""
-        Project: {{System.IO.Path.GetRelativePath(projectDirectory, paths.ProjectPath)}}
-        Schema: {{System.IO.Path.GetRelativePath(projectDirectory, paths.SchemaPath)}}
-        Settings: {{System.IO.Path.GetRelativePath(projectDirectory, paths.SettingsPath)}}
-        Extensions: {{System.IO.Path.GetRelativePath(projectDirectory, paths.ExtensionsPath)}}
+        Project: {{GetPortableRelativePath(projectDirectory, paths.ProjectPath)}}
+        Schema: {{GetPortableRelativePath(projectDirectory, paths.SchemaPath)}}
+        Settings: {{GetPortableRelativePath(projectDirectory, paths.SettingsPath)}}
+        Extensions: {{GetPortableRelativePath(projectDirectory, paths.ExtensionsPath)}}
         """.MatchInlineSnapshot(
             """
             Project: HotChocolate.Fusion.Aspire.Tests.csproj
@@ -113,4 +113,7 @@ public sealed class GraphQLResourceModelTests
         => System.IO.Path.Combine(
             System.IO.Path.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
+
+    private static string GetPortableRelativePath(string relativeTo, string path)
+        => System.IO.Path.GetRelativePath(relativeTo, path).Replace('\\', '/');
 }

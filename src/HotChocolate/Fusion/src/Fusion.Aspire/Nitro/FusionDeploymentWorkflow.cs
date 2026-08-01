@@ -221,6 +221,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
         timeout.CancelAfter(request.OperationTimeout);
         var operationToken = timeout.Token;
         string? requestId = null;
+        var releaseRequired = false;
 
         try
         {
@@ -278,6 +279,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                     operationToken),
                 "claim the Fusion publication slot",
                 requestId);
+            releaseRequired = true;
 
             if (!request.WaitForApproval)
             {
@@ -296,11 +298,6 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                     operationToken);
                 if (validation is { Succeeded: false } && !request.Force)
                 {
-                    await ReleaseKnownFailedValidationAsync(
-                        api,
-                        request.Target,
-                        requestId,
-                        operationToken);
                     throw CreateRemoteFailure(
                         "Nitro rejected the Fusion configuration validation.",
                         validation.Errors);
@@ -323,6 +320,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                 request.ApprovalTimeout,
                 request.OperationTimeout,
                 operationToken);
+            releaseRequired = false;
         }
         catch (OperationCanceledException) when (
             !cancellationToken.IsCancellationRequested)
@@ -331,6 +329,19 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                 "The Fusion publication timed out before a terminal result "
                 + "could be verified.",
                 requestId);
+        }
+        finally
+        {
+            if (releaseRequired)
+            {
+                using var releaseTimeout = new CancellationTokenSource(
+                    request.OperationTimeout);
+                await ReleaseClaimedPublicationAsync(
+                    api,
+                    request.Target,
+                    requestId!,
+                    releaseTimeout.Token);
+            }
         }
     }
 
@@ -458,11 +469,12 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                         "The Fusion publication failed.",
                         events.Current.Errors);
                 case FusionRemoteEventKind.Queued:
+                case FusionRemoteEventKind.InProgress:
                     continue;
                 default:
                     throw new FusionIndeterminateStateException(
                         "The Fusion publication request was already in an "
-                        + $"ambiguous '{events.Current.Kind}' state.",
+                        + $"ambiguous '{DescribeRemoteState(events.Current)}' state.",
                         requestId);
             }
         }
@@ -494,7 +506,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                 default:
                     throw new FusionIndeterminateStateException(
                         "Nitro reported an unexpected Fusion validation state "
-                        + $"'{events.Current.Kind}'.",
+                        + $"'{DescribeRemoteState(events.Current)}'.",
                         requestId);
             }
         }
@@ -532,7 +544,7 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
                 default:
                     throw new FusionIndeterminateStateException(
                         "Nitro reported an unexpected Fusion publishing state "
-                        + $"'{events.Current.Kind}'.",
+                        + $"'{DescribeRemoteState(events.Current)}'.",
                         requestId);
             }
         }
@@ -589,27 +601,39 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
 
         if (!result.Succeeded)
         {
-            throw new FusionIndeterminateStateException(
-                $"Nitro could not {operation}: "
-                + FormatErrors(result.Errors),
-                requestId);
+            throw CreateRemoteFailure(
+                $"Nitro could not {operation} for request '{requestId}'.",
+                result.Errors);
         }
     }
 
-    private static async Task ReleaseKnownFailedValidationAsync(
+    private static async Task ReleaseClaimedPublicationAsync(
         NitroFusionApi api,
         FusionTarget target,
         string requestId,
         CancellationToken cancellationToken)
     {
-        var result = await api.ReleasePublishAsync(
-            target,
-            requestId,
-            cancellationToken);
+        FusionRemoteCommandResult result;
+        try
+        {
+            result = await api.ReleasePublishAsync(
+                target,
+                requestId,
+                cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            throw new FusionIndeterminateStateException(
+                "The Fusion publication failed, and its claimed publication "
+                + "slot could not be released.",
+                exception,
+                requestId);
+        }
+
         if (!result.Succeeded)
         {
             throw new FusionIndeterminateStateException(
-                "The failed Fusion validation was known, but its publication "
+                "The Fusion publication failed, and its claimed publication "
                 + "slot could not be released: "
                 + FormatErrors(result.Errors),
                 requestId);
@@ -622,6 +646,18 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
             "The Fusion publication event stream ended before Nitro reported "
             + "a terminal result.",
             requestId);
+
+    private static string DescribeRemoteState(FusionRemoteEvent remoteEvent)
+    {
+        var name = remoteEvent.Kind is FusionRemoteEventKind.Unknown
+            && !string.IsNullOrWhiteSpace(remoteEvent.TypeName)
+                ? remoteEvent.TypeName
+                : remoteEvent.Kind.ToString();
+
+        return string.IsNullOrWhiteSpace(remoteEvent.State)
+            ? name
+            : $"{name} ({remoteEvent.State})";
+    }
 
     private static FusionDeploymentException CreateRemoteFailure(
         string message,
@@ -644,7 +680,14 @@ internal sealed class FusionDeploymentWorkflow(NitroFusionApi api)
         }
 
         ArgumentException.ThrowIfNullOrWhiteSpace(target.ApiId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(target.ApiKey);
+        ArgumentNullException.ThrowIfNull(target.Credential);
+        if (target.Credential.Kind is NitroCredentialKind.None
+            || string.IsNullOrWhiteSpace(target.Credential.Value))
+        {
+            throw new ArgumentException(
+                "The Nitro target must have an available credential.",
+                nameof(target));
+        }
     }
 
     private static void ValidateSource(FusionSourceSchemaUpload source)

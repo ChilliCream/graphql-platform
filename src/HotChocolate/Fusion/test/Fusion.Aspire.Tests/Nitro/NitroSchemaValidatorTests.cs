@@ -390,7 +390,7 @@ public sealed class NitroSchemaValidatorTests
         """.MatchInlineSnapshot(
             """
             Status: Unavailable
-            Reason: Nitro schema validation was unavailable: Nitro returned a schema validation response that exceeded the size limit.
+            Reason: Nitro returned a GraphQL response that exceeded the size limit.
             Content-Length: <none>
             Calls: 1
             """);

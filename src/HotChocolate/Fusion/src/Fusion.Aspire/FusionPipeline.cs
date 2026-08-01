@@ -40,11 +40,16 @@ internal static class FusionPipeline
     {
         var targets = model.Resources
             .OfType<NitroPublishTargetResource>()
-            .Where(target => GetStages(model, target).Count > 0)
             .ToArray();
 
         foreach (var target in targets)
         {
+            if (GetStages(model, target).Count is 0)
+            {
+                throw new InvalidOperationException(
+                    $"Nitro target '{target.Name}' must declare at least one stage.");
+            }
+
             ValidateDeclaration(target);
         }
 
@@ -121,8 +126,9 @@ internal static class FusionPipeline
         topology.HasDeployments =
             SelectTargets(context.PipelineContext.Model).Count > 0;
 
-        var session = new FusionPipelineSession(
-            context.PipelineContext.CancellationToken);
+        var session = new Lazy<FusionPipelineSession>(
+            () => new FusionPipelineSession(
+                context.PipelineContext.CancellationToken));
         return CreateStepDefinitions(
             context.Resource,
             topology,
@@ -132,7 +138,7 @@ internal static class FusionPipeline
     private static PipelineStep[] CreateStepDefinitions(
         IResource resource,
         FusionPipelineTopology topology,
-        FusionPipelineSession session)
+        Lazy<FusionPipelineSession> session)
     {
         var buildSteps = new[]
         {
@@ -141,6 +147,7 @@ internal static class FusionPipeline
                 Name = ArtifactsStepName,
                 Description = "Produce portable Fusion deployment artifacts.",
                 Resource = resource,
+                DependsOnSteps = [WellKnownPipelineSteps.ProcessParameters],
                 Action = ExecuteArtifactsAsync
             },
             new PipelineStep
@@ -156,14 +163,19 @@ internal static class FusionPipeline
         return
         [
             .. buildSteps,
+            // Upload and download are separate pipeline roots by design. CI uploads immutable
+            // source versions before a later publish job downloads those exact versions. A graph
+            // edge would incorrectly make either root execute the other job's work, while the
+            // publish preflight reports a missing version when that external ordering was skipped.
             new PipelineStep
             {
                 Name = DownloadStepName,
                 Description = "Download exact Fusion source schema versions from Nitro.",
                 Resource = resource,
+                DependsOnSteps = [WellKnownPipelineSteps.ProcessParameters],
                 Action = context => ExecuteSessionStepAsync(
                     context,
-                    session,
+                    session.Value,
                     static (executor, stepContext, pipelineSession) =>
                         executor.PreflightAsync(stepContext, pipelineSession))
             },
@@ -175,7 +187,7 @@ internal static class FusionPipeline
                 DependsOnSteps = [DownloadStepName],
                 Action = context => ExecuteSessionStepAsync(
                     context,
-                    session,
+                    session.Value,
                     static async (executor, stepContext, pipelineSession) =>
                     {
                         await executor.DownloadAsync(
@@ -194,7 +206,7 @@ internal static class FusionPipeline
                 DependsOnSteps = [ComposeStepName],
                 Action = context => ExecuteSessionStepAsync(
                     context,
-                    session,
+                    session.Value,
                     (executor, stepContext, pipelineSession) =>
                     {
                         EnsureResourceDeploymentOrdering(
@@ -212,7 +224,7 @@ internal static class FusionPipeline
                 DependsOnSteps = [ReadinessStepName],
                 Action = context => ExecuteSessionStepAsync(
                     context,
-                    session,
+                    session.Value,
                     static (executor, stepContext, pipelineSession) =>
                         executor.PublishAsync(stepContext, pipelineSession))
             },
@@ -224,7 +236,11 @@ internal static class FusionPipeline
                 DependsOnSteps = [PublishStageStepName],
                 Action = _ =>
                 {
-                    session.Dispose();
+                    if (session.IsValueCreated)
+                    {
+                        session.Value.Dispose();
+                    }
+
                     return Task.CompletedTask;
                 }
             }

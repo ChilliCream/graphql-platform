@@ -438,7 +438,7 @@ internal sealed class NitroFusionApi : IDisposable
         };
 
     private static NitroCredential CreateCredential(FusionTarget target)
-        => NitroCredential.FromApiKey(target.ApiKey);
+        => target.Credential;
 
     private static NitroConnection CreateConnection(FusionTarget target)
         => new(
@@ -482,7 +482,11 @@ internal sealed class NitroFusionApi : IDisposable
                 ? GetErrors(value)
                 : [];
 
-        return new FusionRemoteEvent(kind, errors);
+        return new FusionRemoteEvent(
+            kind,
+            errors,
+            typeName,
+            GetString(value, "state"));
     }
 
     private static FusionRemoteCommandResult ToCommandResult(JsonElement payload)
@@ -507,7 +511,14 @@ internal sealed class NitroFusionApi : IDisposable
             if (GetString(error, "message") is { } message)
             {
                 messages.Add(message);
+                continue;
             }
+
+            var typeName = GetString(error, "__typename");
+            messages.Add(
+                string.IsNullOrWhiteSpace(typeName)
+                    ? "Nitro returned an unrecognized error."
+                    : $"Nitro returned an error of type '{typeName}'.");
         }
 
         return messages;
@@ -705,7 +716,9 @@ internal sealed record FusionRemoteBeginResult(
 /// </summary>
 internal sealed record FusionRemoteEvent(
     FusionRemoteEventKind Kind,
-    IReadOnlyList<string> Errors);
+    IReadOnlyList<string> Errors,
+    string? TypeName,
+    string? State);
 
 /// <summary>
 /// The kind of state change that Nitro reported for a publication request.

@@ -58,9 +58,9 @@ public static class NitroExtensions
     /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaEndpoint{T}"/> is the
     /// <c>name</c> in its settings file. The name of a source schema declared with
     /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaFile{T}"/> is the configured
-    /// source schema name or the resource name, and is not checked against its settings file. A
-    /// source schema that ends up with another name is added to the composition instead of
-    /// replacing the one in the fusion configuration.
+    /// source schema name or the resource name. Every declaration must exactly match the
+    /// <c>name</c> in its settings file. A source schema that ends up with another name is added to
+    /// the composition instead of replacing the one in the fusion configuration.
     /// </remarks>
     public static IDistributedApplicationBuilder AddNitro(
         this IDistributedApplicationBuilder builder,

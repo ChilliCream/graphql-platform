@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 internal sealed class FusionIndeterminateStateException : FusionDeploymentException
 {
     public FusionIndeterminateStateException(string message, string? requestId = null)
-        : base(message)
+        : base(IncludeRequestId(message, requestId))
     {
         RequestId = requestId;
     }
@@ -15,7 +15,7 @@ internal sealed class FusionIndeterminateStateException : FusionDeploymentExcept
         string message,
         Exception innerException,
         string? requestId = null)
-        : base(message, innerException)
+        : base(IncludeRequestId(message, requestId), innerException)
     {
         RequestId = requestId;
     }
@@ -24,4 +24,9 @@ internal sealed class FusionIndeterminateStateException : FusionDeploymentExcept
     /// Gets the remote publication request identifier when one is known.
     /// </summary>
     public string? RequestId { get; }
+
+    private static string IncludeRequestId(string message, string? requestId)
+        => string.IsNullOrWhiteSpace(requestId)
+            ? message
+            : $"{message} Nitro request ID: '{requestId}'.";
 }

@@ -188,7 +188,7 @@ A composition or download failure fails only the gateway it belongs to. The rest
 Replacement matches source schemas by name, and the name of a local resource is determined before the configuration is downloaded:
 
 - `WithGraphQLSchemaEndpoint()` uses the `name` from the subgraph's `schema-settings.json`. A `sourceSchemaName` that disagrees with it fails the composition.
-- `WithGraphQLSchemaFile()` uses `sourceSchemaName`, or the Aspire resource name when you do not pass one, and does not check it against the settings file.
+- `WithGraphQLSchemaFile()` uses `sourceSchemaName`, or the Aspire resource name when you do not pass one. The effective name must match the `name` in `schema-settings.json` exactly.
 - `WithGraphQLSchemaExport()` uses its optional schema name, or the Aspire resource name when you do not pass one. The exported `schema-settings.json` must contain that same name.
 
 A local source schema whose name does not match the one in Nitro is added next to it instead of replacing it, which usually surfaces as a composition error about a conflicting field. Pass `sourceSchemaName` explicitly when the Aspire resource name differs from the published source schema name.
@@ -301,11 +301,13 @@ nitro.AddStage("production")
 
 - **`WithStageParameter()`** binds the parameter that selects which stage an invocation publishes to. Every declared stage is allowed; the parameter picks one.
 - **`WithConfigurationTag()`** binds the immutable tag. Use the commit SHA. There is also an overload that takes a literal string.
-- **`AddStage()`** declares one publishable stage. A target with no stages publishes nothing, so declare every stage you intend to use.
+- **`AddStage()`** declares one publishable stage. A target with no stages is rejected as an invalid pipeline declaration.
 - **`WithApproval()`** makes the publication wait for a human to approve it in Nitro before it commits.
 - **`WithForce()`** permits publication after a known validation failure. Reserve it for an explicit operational policy.
 
 The cloud URL and API id can also come from `Nitro:CloudUrl` and `Nitro:ApiId`, or from the `NITRO_CLOUD_URL` and `NITRO_API_ID` environment variables described in [Continuous Integration and Self-Hosted Nitro](#continuous-integration-and-self-hosted-nitro).
+
+`WithNitroApiKey()` is optional. When it is omitted, the publishing commands first check `Nitro:ApiKey` and `NITRO_API_KEY`, then use the active Nitro CLI session. This makes an explicit API key the normal choice for non-interactive CI while allowing a signed-in developer to run the same commands locally.
 
 By default a stage composes with an environment named after the stage itself, so a stage called `production` resolves `{{VARIABLE_NAME}}` placeholders against the `production` environment in `schema-settings.json`. Use `WithCompositionEnvironment("Production")` when the environment in the settings file is spelled differently.
 

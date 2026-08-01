@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
@@ -439,7 +440,7 @@ internal sealed class FusionPipelineExecutor
                 var compositionEnvironment = ResolveCompositionEnvironment(
                     deployment,
                     currentComposition.Settings);
-                await using var farStream = new MemoryStream();
+                await using var farStream = new ClearingPooledMemoryStream();
                 var logger = context.Services
                     .GetRequiredService<ILogger<SchemaComposition>>();
                 var target = await ResolveTargetAsync(
@@ -816,14 +817,32 @@ internal sealed class FusionPipelineExecutor
             {
                 Directory.Move(sourceDirectory, destinationDirectory);
             }
-            catch
+            catch (Exception moveException)
             {
-                if (movedDestination
-                    && !Directory.Exists(destinationDirectory)
-                    && Directory.Exists(backupDirectory))
+                if (movedDestination && Directory.Exists(backupDirectory))
                 {
-                    Directory.Move(backupDirectory, destinationDirectory);
+                    // Once rollback starts, the backup must never be deleted by the finally block.
+                    // If cleanup or restoration fails, preserving it is the only recoverable copy.
                     movedDestination = false;
+
+                    try
+                    {
+                        if (Directory.Exists(destinationDirectory))
+                        {
+                            Directory.Delete(destinationDirectory, recursive: true);
+                        }
+
+                        Directory.Move(backupDirectory, destinationDirectory);
+                    }
+                    catch (Exception rollbackException)
+                    {
+                        throw new AggregateException(
+                            "Replacing the deployment artifacts failed and the previous "
+                            + "artifacts could not be restored. The backup remains at "
+                            + $"'{backupDirectory}'.",
+                            moveException,
+                            rollbackException);
+                    }
                 }
 
                 throw;
@@ -1370,21 +1389,68 @@ internal sealed class FusionPipelineExecutor
         PipelineStepContext context,
         CancellationToken cancellationToken)
     {
-        var apiKey = target.ApiKey is null
-            ? context.Services.GetRequiredService<IConfiguration>()["Nitro:ApiKey"]
-                ?? context.Services.GetRequiredService<IConfiguration>()["NITRO_API_KEY"]
-            : await target.ApiKey.GetValueAsync(cancellationToken);
+        var cloudUrl = new Uri(target.CloudUrl!, UriKind.Absolute);
+        var timeProvider = context.Services.GetService<TimeProvider>()
+            ?? TimeProvider.System;
+        var connectionResolver = new NitroConnectionResolver(
+            new NitroSessionReader(
+                NitroDefaults.GetSessionFilePath(),
+                NitroDefaults.SessionRereadDelay),
+            SystemNitroEnvironment.Instance,
+            cloudUrl,
+            timeProvider,
+            NitroDefaults.AccessTokenExpiryGrace);
 
-        if (string.IsNullOrWhiteSpace(apiKey))
+        return await ResolveTargetAsync(
+            target,
+            context.Services.GetRequiredService<IConfiguration>(),
+            connectionResolver,
+            context.Services.GetService<ILogger<FusionPipelineExecutor>>()
+                ?? NullLogger<FusionPipelineExecutor>.Instance,
+            cancellationToken);
+    }
+
+    internal static async Task<FusionTarget> ResolveTargetAsync(
+        NitroPublishTargetResource target,
+        IConfiguration configuration,
+        NitroConnectionResolver connectionResolver,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(connectionResolver);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        var apiKey = target.ApiKey is null
+            ? configuration["Nitro:ApiKey"]
+                ?? configuration["NITRO_API_KEY"]
+            : await target.ApiKey.GetValueAsync(cancellationToken);
+        NitroCredential credential;
+
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            credential = NitroCredential.FromApiKey(apiKey);
+        }
+        else
+        {
+            var connection = await connectionResolver.ResolveAsync(
+                logger,
+                cancellationToken);
+            credential = connection.Credential;
+        }
+
+        if (credential.Kind is NitroCredentialKind.None)
         {
             throw new InvalidOperationException(
-                $"Nitro target '{target.Name}' requires an API key.");
+                $"Nitro target '{target.Name}' requires a credential. "
+                + credential.UnavailableMessage);
         }
 
         return new(
             new Uri(target.CloudUrl!, UriKind.Absolute),
             target.ApiId!,
-            apiKey);
+            credential);
     }
 
     internal static Uri GetTransportEndpoint(JsonDocument settings)

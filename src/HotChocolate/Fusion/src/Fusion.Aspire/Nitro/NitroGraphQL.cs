@@ -76,7 +76,7 @@ internal static class NitroGraphQL
                 if (response.ContentHeaders.ContentLength is > MaxResponseBytes)
                 {
                     return NitroGraphQLResult.Failed(
-                        "Nitro returned a schema validation response that exceeded the size limit.");
+                        "Nitro returned a GraphQL response that exceeded the size limit.");
                 }
 
                 using var document = await ReadBoundedJsonAsync(
@@ -115,6 +115,10 @@ internal static class NitroGraphQL
                 retryTransientFailures && attempt < MaxAttempts)
             {
                 await DelayRetryAsync(attempt, cancellationToken);
+            }
+            catch (NitroResponseTooLargeException exception)
+            {
+                return NitroGraphQLResult.Failed(exception.Message);
             }
         }
     }
@@ -376,7 +380,7 @@ internal static class NitroGraphQL
             if (destination.Length + read > MaxResponseBytes)
             {
                 throw new NitroResponseTooLargeException(
-                    "Nitro returned a schema validation response that exceeded the size limit.");
+                    "Nitro returned a GraphQL response that exceeded the size limit.");
             }
 
             destination.Write(buffer, 0, read);

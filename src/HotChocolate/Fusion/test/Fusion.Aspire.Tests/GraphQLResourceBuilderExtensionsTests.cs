@@ -113,6 +113,26 @@ public sealed class GraphQLResourceBuilderExtensionsTests
     }
 
     [Fact]
+    public void WithGraphQLSchemaExport_Should_ReplacePreviousAcquisitionMode()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaFile()
+            .WithGraphQLSchemaEndpoint()
+            .WithGraphQLSchemaExport("Products");
+
+        // act
+        var annotation = Assert.Single(
+            resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+
+        // assert
+        Assert.Equal(SourceSchemaLocationType.CommandLineExport, annotation.Location);
+        Assert.Equal("Products", annotation.SourceSchemaName);
+    }
+
+    [Fact]
     public void WithGraphQLSchemaExport_Should_RejectWhitespaceSchemaName()
     {
         var builder = DistributedApplication.CreateBuilder();
