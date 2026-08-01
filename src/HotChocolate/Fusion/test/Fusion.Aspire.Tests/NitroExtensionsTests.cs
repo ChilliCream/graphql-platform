@@ -1,11 +1,7 @@
 using System.Runtime.CompilerServices;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
-using Aspire.Hosting.Lifecycle;
 using HotChocolate.Fusion.Aspire.Nitro;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
@@ -13,355 +9,160 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class NitroExtensionsTests
 {
     [Fact]
-    public void AddNitro_Should_RegisterOneComposition_When_ItIsCalledTwice()
+    public void AddNitro_Should_RegisterOneResourceAndComposition_When_CalledTwice()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
 
-        // act
-        builder.AddNitro();
-        builder.AddNitro();
+        var first = builder.AddNitro();
+        var second = builder.AddNitro();
 
-        // assert
+        Assert.Same(first.Resource, second.Resource);
+        Assert.Single(builder.Resources.OfType<NitroResource>());
         DescribeCompositionRegistrations(builder).MatchInlineSnapshot(
             "IDistributedApplicationEventingSubscriber -> SchemaComposition (Singleton)");
-    }
-
-    [Fact]
-    public void AddNitro_Should_LeaveTheCoordinatorOut_When_TheStageIsNotProvided()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        builder.AddNitro();
-
-        // assert
-        Assert.Null(GetNitroCompositionOptions(builder).Coordinator);
-    }
-
-    [Fact]
-    public void AddNitro_Should_ConnectTheComposition_When_LocalCompositionWasAddedFirst()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        builder.AddNitro();
-        builder.AddNitro("production");
-
-        // assert
-        Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
-    }
-
-    [Fact]
-    public void AddNitro_Should_KeepTheCoordinator_When_LocalCompositionIsAddedAfterTheStage()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        builder.AddNitro("production");
-        builder.AddNitro();
-
-        // assert
-        Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
     }
 
     [Fact]
     public void AddGraphQLOrchestrator_Should_DelegateToAddNitro()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
 
-        // act
 #pragma warning disable CS0618 // Verify the compatibility shim.
         var result = builder.AddGraphQLOrchestrator();
 #pragma warning restore CS0618
 
-        // assert
         Assert.Same(builder, result);
-        Assert.Null(GetNitroCompositionOptions(builder).Coordinator);
+        Assert.Single(builder.Resources.OfType<NitroResource>());
         DescribeCompositionRegistrations(builder).MatchInlineSnapshot(
             "IDistributedApplicationEventingSubscriber -> SchemaComposition (Singleton)");
     }
 
     [Fact]
-    public void AddNitro_Should_KeepTheStage_When_ItIsCalledTwiceForTheSameStage()
+    public void AddApiAndStage_Should_CreateTheDeclarativeResourceHierarchy()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
+        var nitro = builder.AddNitro();
 
-        // act
-        builder.AddNitro("production");
-        builder.AddNitro("production");
+        var api = nitro
+            .AddApi("products-api")
+            .WithNitroApiId("QXBpCnByb2R1Y3Rz");
+        var development = api.AddStage("dev");
+        var production = api
+            .AddStage("prod")
+            .WithApproval(true)
+            .WithForcePublish(true);
 
-        // assert
         $"""
-        {DescribeCompositionRegistrations(builder)}
-        Stage: {GetNitroCompositionOptions(builder).Coordinator?.Stage}
+        Nitro: {nitro.Resource.Name}
+        API: {api.Resource.Name}|{api.Resource.ApiName}|{api.Resource.ApiId}
+        API parent: {Assert.Single(api.Resource.Annotations.OfType<ResourceRelationshipAnnotation>()).Resource.Name}
+        Stages: {string.Join(", ", builder.Resources.OfType<NitroStageResource>().Select(stage => $"{stage.Name}:{stage.StageName}"))}
+        Development API: {development.Resource.Api.ApiName}
+        Development parent: {Assert.Single(development.Resource.Annotations.OfType<ResourceRelationshipAnnotation>()).Resource.Name}
+        Production policy: approval={production.Resource.WaitForApproval}, force={production.Resource.Force}
         """.MatchInlineSnapshot(
             """
-            IDistributedApplicationEventingSubscriber -> SchemaComposition (Singleton)
-            Stage: production
+            Nitro: nitro
+            API: nitro-products-api|products-api|QXBpCnByb2R1Y3Rz
+            API parent: nitro
+            Stages: nitro-products-api-dev:dev, nitro-products-api-prod:prod
+            Development API: products-api
+            Development parent: nitro-products-api
+            Production policy: approval=True, force=True
             """);
     }
 
     [Fact]
-    public void AddNitro_Should_Throw_When_ItIsCalledTwiceForDifferentStages()
+    public void AddApi_Should_Throw_When_TheApiIsDeclaredTwice()
     {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
+        var nitro = DistributedApplication.CreateBuilder().AddNitro();
+        nitro.AddApi("products-api");
 
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(() => builder.AddNitro("staging"));
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => nitro.AddApi("products-api"));
 
-        // assert
+        Assert.Equal("Nitro already declares an API named 'products-api'.", exception.Message);
+    }
+
+    [Fact]
+    public void AddStage_Should_Throw_When_TheStageIsDeclaredTwiceForTheApi()
+    {
+        var api = DistributedApplication.CreateBuilder()
+            .AddNitro()
+            .AddApi("products-api");
+        api.AddStage("dev");
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => api.AddStage("dev"));
+
         Assert.Equal(
-            "Nitro is already added for the stage 'production'. A distributed application "
-            + "composes against a single stage, so AddNitro cannot be called again for the stage "
-            + "'staging'.",
+            "Nitro API 'products-api' already declares the stage 'dev'.",
             exception.Message);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("  ")]
-    public void AddNitro_Should_Throw_When_TheStageIsNotAName(string? stage)
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        var exception = Record.Exception(() => builder.AddNitro(stage!));
-
-        // assert
-        Assert.Equal("stage", Assert.IsAssignableFrom<ArgumentException>(exception).ParamName);
-    }
-
     [Fact]
-    public void WithNitroApiId_Should_SelectTheApi_When_ItIsCalledOnAGateway()
+    public void WithNitroCompositionBase_Should_SelectTheStageExplicitly()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
+        var stage = builder
+            .AddNitro()
+            .AddApi("products-api")
+            .WithNitroApiId("QXBpCnByb2R1Y3Rz")
+            .AddStage("dev");
 
-        // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
+            .WithNitroCompositionBase(stage);
 
-        // assert
-        Assert.Equal("QXBpCmdhdGV3YXk", gateway.Resource.GetNitroApiId());
+        Assert.Same(stage.Resource, gateway.Resource.GetNitroCompositionBase());
+        Assert.Contains(
+            gateway.Resource.Annotations.OfType<ResourceRelationshipAnnotation>(),
+            relationship => ReferenceEquals(relationship.Resource, stage.Resource));
     }
 
     [Fact]
-    public void WithNitroApiId_Should_KeepTheLastApiId_When_ItIsCalledTwice()
+    public void WithNitroCompositionBase_Should_BeIdempotentForTheSameStage()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithNitroApiId("QXBpCmZpcnN0")
-            .WithNitroApiId("QXBpCnNlY29uZA");
-
-        // assert
-        Assert.Equal(
-            ["QXBpCnNlY29uZA"],
-            gateway.Resource.Annotations
-                .OfType<NitroApiIdAnnotation>()
-                .Select(annotation => annotation.ApiId));
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("  ")]
-    public void WithNitroApiId_Should_Throw_When_TheApiIdIsNotAnId(string? apiId)
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddNitro().AddApi("products-api").AddStage("dev");
         var gateway = builder.AddProject("gateway", GetTestProjectFile());
 
-        // act
-        var exception = Record.Exception(() => gateway.WithNitroApiId(apiId!));
+        gateway.WithNitroCompositionBase(stage).WithNitroCompositionBase(stage);
 
-        // assert
-        Assert.Equal("apiId", Assert.IsAssignableFrom<ArgumentException>(exception).ParamName);
+        Assert.Single(gateway.Resource.Annotations.OfType<NitroCompositionBaseAnnotation>());
     }
 
     [Fact]
-    public void WithGraphQLSchemaComposition_Should_RegisterTheRecomposeCommand()
+    public void WithNitroCompositionBase_Should_Throw_When_ASecondStageIsSelected()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
-
-        // act
+        var api = builder.AddNitro().AddApi("products-api");
+        var development = api.AddStage("dev");
+        var production = api.AddStage("prod");
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
+            .WithNitroCompositionBase(development);
 
-        // assert
-        var command = Assert.Single(
-            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
-            annotation => annotation.Name == "recompose");
-        Assert.Equal("Recompose", command.DisplayName);
-        Assert.Equal("ArrowSync", command.IconName);
-    }
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => gateway.WithNitroCompositionBase(production));
 
-    [Fact]
-    public async Task RecomposeCommand_Should_UseLogicalResourceName_When_ExecutingRuntimeInstance()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
-        var command = Assert.Single(
-            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
-            annotation => annotation.Name == "recompose");
-        var coordinator = new GatewayCompositionCommandCoordinator();
-        coordinator.Register(
-            gateway.Resource.Name,
-            _ => Task.FromResult(CommandResults.Success("Schema composition completed")));
-        await using var services = new ServiceCollection()
-            .AddSingleton(coordinator)
-            .BuildServiceProvider();
-        var context = new ExecuteCommandContext
-        {
-            ServiceProvider = services,
-            ResourceName = "gateway-runtime-instance",
-            CancellationToken = TestContext.Current.CancellationToken,
-            Logger = NullLogger.Instance,
-            Arguments = new InteractionInputCollection([])
-        };
-
-        // act
-        var result = await command.ExecuteCommand(context);
-
-        // assert
         Assert.Equal(
-            "True|Schema composition completed",
-            $"{result.Success}|{result.Message}");
+            "Resource 'gateway' already uses Nitro stage 'dev' as its composition base.",
+            exception.Message);
     }
 
     [Fact]
-    public async Task WithGraphQLSchemaComposition_Should_ReturnControlledFailure_When_CompositionIsNotRegistered()
+    public void WithNitroCompositionBase_Should_RegisterAutoUpdateCommands()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
-        var command = Assert.Single(
-            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
-            annotation => annotation.Name == "recompose");
-        await using var services = new ServiceCollection().BuildServiceProvider();
-        var context = new ExecuteCommandContext
-        {
-            ServiceProvider = services,
-            ResourceName = gateway.Resource.Name,
-            CancellationToken = TestContext.Current.CancellationToken,
-            Logger = NullLogger.Instance,
-            Arguments = new InteractionInputCollection([])
-        };
+        var stage = builder.AddNitro().AddApi("products-api").AddStage("dev");
 
-        // act
-        var result = await command.ExecuteCommand(context);
-
-        // assert
-        Assert.Equal(
-            "False|Schema composition is not ready.",
-            $"{result.Success}|{result.Message}");
-    }
-
-    [Fact]
-    public void AddNitro_Should_StoreTheCallerSuppliedPortalUrl()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
-
-        // act
-        builder.AddNitro("production", portalUrl);
-
-        // assert
-        Assert.Same(portalUrl, GetNitroCompositionOptions(builder).PortalUrl);
-    }
-
-    [Fact]
-    public void AddNitro_Should_ConfigureSeedUpdates()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        builder.AddNitro(
-            "production",
-            portalUrl: null,
-            configureSeedUpdates: options =>
-            {
-                options.Enabled = false;
-                options.AutoUpdate = false;
-            });
-
-        // assert
-        var options = GetNitroCompositionOptions(builder).SeedUpdates;
-        Assert.Equal("False|False", $"{options.Enabled}|{options.AutoUpdate}");
-    }
-
-    [Fact]
-    public void AddNitro_Should_AcceptAnExplicitNullPortalUrl()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-
-        // act
-        builder.AddNitro("production", null);
-
-        // assert
-        Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
-    }
-
-    [Fact]
-    public void AddNitro_Should_UpdateAutoUpdateDefault_WhenCalledAgain()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-
-        // act
-        builder.AddNitro(
-            "production",
-            portalUrl: null,
-            configureSeedUpdates: options => options.AutoUpdate = false);
-
-        // assert
-        var options = GetNitroCompositionOptions(builder);
-        Assert.Equal(
-            "False|False",
-            $"{options.SeedUpdates.AutoUpdate}|"
-            + $"{options.Coordinator!.IsAutoUpdateEnabled("gateway")}");
-    }
-
-    [Fact]
-    public void NitroGateway_Should_RegisterBothAutoUpdateCommands_WhenNitroIsAddedFirst()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-
-        // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
+            .WithNitroCompositionBase(stage);
 
-        // assert
         string.Join(
                 Environment.NewLine,
                 gateway.Resource.Annotations
@@ -377,19 +178,16 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void NitroGateway_Should_RegisterBothAutoUpdateCommands_WhenNitroIsAddedLast()
+    public void WithGraphQLSchemaComposition_Should_RegisterAutoUpdateCommands_When_CalledLast()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
+        var stage = builder.AddNitro().AddApi("products-api").AddStage("dev");
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
+            .WithNitroCompositionBase(stage);
 
-        // act
-        builder.AddNitro("production");
+        gateway.WithGraphQLSchemaComposition();
 
-        // assert
         Assert.Equal(
             2,
             gateway.Resource.Annotations
@@ -398,146 +196,87 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void SeedUpdateService_Should_NotStartMonitor_WhenDetectionIsDisabled()
+    public void AddNitro_Should_StorePortalAndSeedUpdateConfiguration()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro(
-            "production",
-            portalUrl: null,
-            configureSeedUpdates: options => options.Enabled = false);
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
-        var lifetime = new TestHostApplicationLifetime();
-        var resourceLoggerService = new ResourceLoggerService();
-        var service = new NitroSeedUpdateService(
-            GetNitroCompositionOptions(builder),
-            resourceLoggerService,
-            NoopSeedUpdateNotifier.Instance,
-            lifetime,
-            NullLoggerFactory.Instance,
-            TimeProvider.System);
-        using var gate = new SemaphoreSlim(1, 1);
+        var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
 
-        // act
-        service.Start(
-            gateway.Resource,
-            "QXBpCmdhdGV3YXk",
-            gate,
-            (_, _) => Task.FromResult(true));
-
-        // assert
-        Assert.Equal(0, service.MonitorCount);
-    }
-
-    [Fact]
-    public async Task AutoUpdateCommands_Should_HideUntilMonitorIsReady()
-    {
-        // arrange
-        var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
-        var lifetime = new TestHostApplicationLifetime();
-        var service = new NitroSeedUpdateService(
-            GetNitroCompositionOptions(builder),
-            new ResourceLoggerService(),
-            NoopSeedUpdateNotifier.Instance,
-            lifetime,
-            NullLoggerFactory.Instance,
-            TimeProvider.System);
-        await using var services = new ServiceCollection()
-            .AddSingleton(service)
-            .BuildServiceProvider();
-        var commands = gateway.Resource.Annotations
-            .OfType<ResourceCommandAnnotation>()
-            .Where(command => command.Name.Contains("nitro-auto-update", StringComparison.Ordinal))
-            .OrderBy(command => command.Name, StringComparer.Ordinal)
-            .ToArray();
-        var context = new UpdateCommandStateContext
-        {
-            ResourceSnapshot = new CustomResourceSnapshot
+        var nitro = builder.AddNitro(
+            portalUrl,
+            options =>
             {
-                ResourceType = "project",
-                Properties = []
-            },
-            ServiceProvider = services
-        };
+                options.Enabled = false;
+                options.AutoUpdate = false;
+            });
 
-        // act
-        var beforeStart = commands.Select(command => command.UpdateState!(context)).ToArray();
-        lifetime.StopApplication();
-        using var gate = new SemaphoreSlim(1, 1);
-        service.Start(
-            gateway.Resource,
-            "QXBpCmdhdGV3YXk",
-            gate,
-            (_, _) => Task.FromResult(true));
-        var afterStart = commands.Select(command => command.UpdateState!(context)).ToArray();
-
-        // assert
-        Assert.Equal("Hidden, Hidden", string.Join(", ", beforeStart));
-        Assert.Equal("Enabled, Hidden", string.Join(", ", afterStart));
+        Assert.Same(portalUrl, nitro.Resource.PortalUrl);
+        Assert.Equal(
+            "False|False",
+            $"{nitro.Resource.SeedUpdates.Enabled}|{nitro.Resource.SeedUpdates.AutoUpdate}");
     }
 
     [Fact]
-    public async Task DisableAutoUpdateCommand_Should_UseLogicalResourceName_When_ExecutingRuntimeInstance()
+    public void WithNitroApiKey_Should_StoreASecretParameter()
     {
-        // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
-        var gateway = builder
-            .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
-            .WithNitroApiId("QXBpCmdhdGV3YXk");
-        var lifetime = new TestHostApplicationLifetime();
-        var service = new NitroSeedUpdateService(
-            GetNitroCompositionOptions(builder),
-            new ResourceLoggerService(),
-            NoopSeedUpdateNotifier.Instance,
-            lifetime,
-            NullLoggerFactory.Instance,
-            TimeProvider.System);
-        lifetime.StopApplication();
-        using var gate = new SemaphoreSlim(1, 1);
-        service.Start(
-            gateway.Resource,
-            "QXBpCmdhdGV3YXk",
-            gate,
-            (_, _) => Task.FromResult(true));
-        await using var services = new ServiceCollection()
-            .AddSingleton(service)
-            .BuildServiceProvider();
-        var command = Assert.Single(
-            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
-            annotation => annotation.Name == "disable-nitro-auto-update");
-        var context = new ExecuteCommandContext
-        {
-            ServiceProvider = services,
-            ResourceName = "gateway-runtime-instance",
-            CancellationToken = TestContext.Current.CancellationToken,
-            Logger = NullLogger.Instance,
-            Arguments = new InteractionInputCollection([])
-        };
+        var apiKey = builder.AddParameter("nitro-api-key", secret: true);
 
-        // act
-        var result = await command.ExecuteCommand(context);
+        var nitro = builder.AddNitro().WithNitroApiKey(apiKey);
 
-        // assert
-        Assert.Equal(
-            "True|Automatic Nitro updates disabled",
-            $"{result.Success}|{result.Message}");
+        Assert.Same(apiKey.Resource, nitro.Resource.ApiKey);
     }
 
-    /// <summary>
-    /// Describes every registration of the schema composition. The distributed application
-    /// registers eventing subscribers of its own, so only the registrations of the composition
-    /// are described.
-    /// </summary>
+    [Fact]
+    public void WithNitroApiKey_Should_RejectANonSecretParameter()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var apiKey = builder.AddParameter("nitro-api-key", secret: false);
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => builder.AddNitro().WithNitroApiKey(apiKey));
+
+        Assert.Equal(
+            "The Nitro API key parameter must be declared as a secret. (Parameter 'apiKey')",
+            exception.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void WithNitroApiId_Should_Throw_When_TheApiIdIsNotAnId(string? apiId)
+    {
+        var api = DistributedApplication.CreateBuilder().AddNitro().AddApi("products-api");
+
+        var exception = Record.Exception(() => api.WithNitroApiId(apiId!));
+
+        Assert.Equal("apiId", Assert.IsAssignableFrom<ArgumentException>(exception).ParamName);
+    }
+
+    [Fact]
+    public void WithNitroCloudUrl_Should_NormalizeTheOrigin()
+    {
+        var nitro = DistributedApplication.CreateBuilder()
+            .AddNitro()
+            .WithNitroCloudUrl("https://api.example.test:443/");
+
+        Assert.Equal("https://api.example.test", nitro.Resource.CloudUrl);
+    }
+
+    [Fact]
+    public void WithNitroCloudUrl_Should_RejectAPath()
+    {
+        var nitro = DistributedApplication.CreateBuilder().AddNitro();
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => nitro.WithNitroCloudUrl("https://api.example.test/graphql"));
+
+        Assert.Equal(
+            "The Nitro cloud URL must be an absolute HTTPS origin without a path, query, "
+            + "fragment, or user information. (Parameter 'cloudUrl')",
+            exception.Message);
+    }
+
     private static string DescribeCompositionRegistrations(IDistributedApplicationBuilder builder)
         => string.Join(
             Environment.NewLine,
@@ -547,28 +286,8 @@ public sealed class NitroExtensionsTests
                     $"{descriptor.ServiceType.Name} -> {descriptor.ImplementationType!.Name} "
                     + $"({descriptor.Lifetime})"));
 
-    private static NitroCompositionOptions GetNitroCompositionOptions(
-        IDistributedApplicationBuilder builder)
-        => (NitroCompositionOptions)Assert.Single(
-                builder.Services,
-                descriptor => descriptor.ServiceType == typeof(NitroCompositionOptions))
-            .ImplementationInstance!;
-
     private static string GetTestProjectFile([CallerFilePath] string sourceFile = "")
         => IOPath.Combine(
             IOPath.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
-
-    private sealed class NoopSeedUpdateNotifier : INitroSeedUpdateNotifier
-    {
-        public static NoopSeedUpdateNotifier Instance { get; } = new();
-
-        public void NotifyAdopted(string message)
-        {
-        }
-
-        public void NotifyStaged(string message)
-        {
-        }
-    }
 }

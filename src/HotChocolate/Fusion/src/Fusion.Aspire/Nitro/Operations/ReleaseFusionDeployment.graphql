@@ -1,0 +1,10 @@
+mutation ReleaseFusionDeployment($input: CancelFusionConfigurationCompositionInput!) {
+  cancelFusionConfigurationComposition(input: $input) {
+    errors {
+      __typename
+      ... on Error {
+        message
+      }
+    }
+  }
+}

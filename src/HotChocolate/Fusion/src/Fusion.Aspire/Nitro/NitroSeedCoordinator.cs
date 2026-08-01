@@ -98,17 +98,33 @@ internal sealed class NitroSeedCoordinator
     public static NitroSeedCoordinator CreateProduction(
         string stage,
         bool initialAutoUpdate = true)
+        => CreateProduction(
+            stage,
+            SystemNitroEnvironment.Instance,
+            NitroDefaults.ApiUrl,
+            initialAutoUpdate);
+
+    internal static NitroSeedCoordinator CreateProduction(
+        string stage,
+        INitroEnvironment environment,
+        Uri defaultApiUrl,
+        bool initialAutoUpdate = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(stage);
+        ArgumentNullException.ThrowIfNull(environment);
+        ArgumentNullException.ThrowIfNull(defaultApiUrl);
 
         var timeProvider = TimeProvider.System;
         var httpClient = new HttpClient();
+        // Schema validation waits on a server-sent event stream that outlives any fixed request
+        // timeout, so the client that carries it is bounded by the validator instead.
+        var streamingHttpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         var connectionResolver = new NitroConnectionResolver(
             new NitroSessionReader(
                 NitroDefaults.GetSessionFilePath(),
                 NitroDefaults.SessionRereadDelay),
-            SystemNitroEnvironment.Instance,
-            NitroDefaults.ApiUrl,
+            environment,
+            defaultApiUrl,
             timeProvider,
             NitroDefaults.AccessTokenExpiryGrace);
         var seedProvider = new NitroSeedProvider(
@@ -120,8 +136,7 @@ internal sealed class NitroSeedCoordinator
             new NitroApiLookupClient(
                 GraphQLHttpClient.Create(httpClient, disposeHttpClient: false)));
         var schemaValidator = new NitroSchemaValidator(
-            GraphQLHttpClient.Create(httpClient, disposeHttpClient: false),
-            timeProvider,
+            GraphQLHttpClient.Create(streamingHttpClient, disposeHttpClient: false),
             NullLogger<NitroSchemaValidator>.Instance);
         var stageUpdateClient = new NitroStageUpdateClient(
             GraphQLHttpClient.Create(httpClient, disposeHttpClient: false));

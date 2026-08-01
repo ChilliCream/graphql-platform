@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -17,18 +16,17 @@ internal sealed class SchemaComposition(
     ResourceNotificationService resourceNotificationService,
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
-    NitroCompositionOptions nitroOptions,
+    NitroSeedCoordinatorRegistry coordinatorRegistry,
     INitroCompositionNotifier nitroCompositionNotifier,
     NitroSchemaValidationCoordinator validationCoordinator,
     NitroSeedUpdateService seedUpdateService,
     GatewayCompositionCommandCoordinator commandCoordinator,
+    IServiceProvider services,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
-    private const int FetchMaxRetries = 15;
     private const int ArchiveCopyMaxAttempts = 5;
     private const string NitroPortalDisplayText = "🌐 Nitro";
-    private static readonly TimeSpan s_fetchRetryDelay = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan s_recompositionDebounceDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_archiveCopyRetryDelay = TimeSpan.FromMilliseconds(250);
 
@@ -42,10 +40,7 @@ internal sealed class SchemaComposition(
             return Task.CompletedTask;
         }
 
-        if (nitroOptions.Coordinator is { } seedCoordinator)
-        {
-            lifetime.ApplicationStopping.Register(seedCoordinator.DeleteRunSeeds);
-        }
+        lifetime.ApplicationStopping.Register(coordinatorRegistry.DeleteRunSeeds);
 
         // All subscriptions must exist before any resource starts. A fast resource can publish
         // its initial ResourceReadyEvent early, and events are not replayed to late subscribers,
@@ -119,24 +114,35 @@ internal sealed class SchemaComposition(
         IReadOnlyList<IResourceWithEndpoints> compositionResources,
         CancellationToken cancellationToken)
     {
-        var coordinator = nitroOptions.Coordinator;
-        if (coordinator is null
-            || !compositionResources.Any(resource => resource.GetNitroApiId() is not null))
+        foreach (var resource in compositionResources)
         {
-            return;
-        }
+            var stage = resource.GetNitroCompositionBase();
+            if (stage is null
+                || resource.Annotations.OfType<ResourceUrlAnnotation>()
+                    .Any(url => url.DisplayText == NitroPortalDisplayText))
+            {
+                continue;
+            }
 
-        string portalUrl;
-        if (nitroOptions.PortalUrl is { } configured)
-        {
-            portalUrl = configured.OriginalString;
-        }
-        else
-        {
+            string portalUrl;
             try
             {
-                var connection = await coordinator.ResolveConnectionAsync(logger, cancellationToken);
-                portalUrl = NitroDefaults.CreatePortalUrl(connection.ApiUrl).OriginalString;
+                if (stage.Api.Nitro.PortalUrl is { } configured)
+                {
+                    portalUrl = configured.OriginalString;
+                }
+                else
+                {
+                    var coordinator = await coordinatorRegistry.GetAsync(
+                        stage,
+                        cancellationToken);
+                    var connection = await coordinator.ResolveConnectionAsync(
+                        logger,
+                        cancellationToken);
+                    portalUrl = NitroDefaults
+                        .CreatePortalUrl(connection.ApiUrl)
+                        .OriginalString;
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -147,16 +153,6 @@ internal sealed class SchemaComposition(
                 logger.LogWarning(
                     "The Nitro Portal URL could not be resolved. The informational link will "
                     + "not be added.");
-                return;
-            }
-        }
-
-        foreach (var resource in compositionResources)
-        {
-            if (resource.GetNitroApiId() is null
-                || resource.Annotations.OfType<ResourceUrlAnnotation>()
-                    .Any(url => url.DisplayText == NitroPortalDisplayText))
-            {
                 continue;
             }
 
@@ -171,45 +167,29 @@ internal sealed class SchemaComposition(
     }
 
     /// <summary>
-    /// Reports the configurations that cannot take effect: an api id without Nitro, and Nitro
-    /// without a gateway that selects a fusion configuration.
+    /// Reports invalid Nitro composition-base declarations.
     /// </summary>
     internal void ReportNitroConfigurationDiagnostics(
         DistributedApplicationModel appModel,
         IReadOnlyList<IResourceWithEndpoints> compositionResources)
     {
-        var coordinator = nitroOptions.Coordinator;
-
-        if (coordinator is null)
+        _ = appModel;
+        foreach (var resource in compositionResources)
         {
-            foreach (var resource in appModel.Resources)
+            if (resource.GetNitroCompositionBase() is not { } stage
+                || !string.IsNullOrWhiteSpace(stage.Api.ApiId))
             {
-                if (resource.GetNitroApiId() is not { } apiId)
-                {
-                    continue;
-                }
-
-                CreateGatewayLogger(resource).LogWarning(
-                    "The resource {ResourceName} selects the Nitro api {ApiId}, but the "
-                    + "distributed application does not add Nitro. Call AddNitro on the "
-                    + "distributed application builder so the api id takes effect.",
-                    resource.Name,
-                    apiId);
+                continue;
             }
 
-            return;
+            CreateGatewayLogger(resource).LogWarning(
+                "The resource {ResourceName} uses the Nitro stage {Stage} as its composition "
+                + "base, but API {ApiName} has no Nitro API ID. Call WithNitroApiId on the API "
+                + "resource.",
+                resource.Name,
+                stage.StageName,
+                stage.Api.ApiName);
         }
-
-        if (compositionResources.Any(gateway => gateway.GetNitroApiId() is not null))
-        {
-            return;
-        }
-
-        logger.LogWarning(
-            "Nitro is added for the stage {Stage}, but no composed schema selects a Nitro api. "
-            + "Call WithNitroApiId on the gateway that composes against the fusion configuration "
-            + "of Nitro.",
-            coordinator.Stage);
     }
 
     private void StartRecompositionWorkers(List<GatewayRecompositionWorker> recompositionWorkers)
@@ -293,10 +273,11 @@ internal sealed class SchemaComposition(
             validationCoordinator.Schedule(compositionResource, outcome.GatewaySchema);
         }
 
-        StartSeedUpdateMonitor(
+        await StartSeedUpdateMonitorAsync(
             compositionResource,
             appModel,
-            compositionGate);
+            compositionGate,
+            cancellationToken);
     }
 
     /// <summary>
@@ -313,10 +294,9 @@ internal sealed class SchemaComposition(
         DistributedApplicationModel appModel,
         CancellationToken cancellationToken)
     {
-        var coordinator = nitroOptions.Coordinator;
-        var apiId = compositionResource.GetNitroApiId();
+        var stage = compositionResource.GetNitroCompositionBase();
 
-        if (coordinator is null || apiId is null)
+        if (stage is null)
         {
             await WaitForSourceSchemaResourcesReadyAsync(
                 compositionResource,
@@ -325,6 +305,12 @@ internal sealed class SchemaComposition(
 
             return null;
         }
+
+        var apiId = stage.Api.ApiId
+            ?? throw new InvalidOperationException(
+                $"Nitro API '{stage.Api.ApiName}' must specify an API ID before stage "
+                + $"'{stage.StageName}' can be used as a composition base.");
+        var coordinator = await coordinatorRegistry.GetAsync(stage, cancellationToken);
 
         using var seedCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -644,8 +630,11 @@ internal sealed class SchemaComposition(
         bool downloadFreshSeed,
         CancellationToken cancellationToken)
     {
-        var coordinator = nitroOptions.Coordinator;
-        var apiId = compositionResource.GetNitroApiId();
+        var stage = compositionResource.GetNitroCompositionBase();
+        var coordinator = stage is null
+            ? null
+            : await coordinatorRegistry.GetAsync(stage, cancellationToken);
+        var apiId = stage?.Api.ApiId;
         NitroGatewaySeed? seed = null;
         NitroSeedAdoption? adoption = null;
 
@@ -808,19 +797,25 @@ internal sealed class SchemaComposition(
         return coordinator.TryAdoptStaged(compositionResource.Name);
     }
 
-    private void StartSeedUpdateMonitor(
+    private async Task StartSeedUpdateMonitorAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
-        SemaphoreSlim compositionGate)
+        SemaphoreSlim compositionGate,
+        CancellationToken cancellationToken)
     {
-        if (compositionResource.GetNitroApiId() is not { } apiId)
+        if (compositionResource.GetNitroCompositionBase() is not { } stage
+            || stage.Api.ApiId is not { } apiId)
         {
             return;
         }
 
+        var coordinator = await coordinatorRegistry.GetAsync(stage, cancellationToken);
+
         seedUpdateService.Start(
             compositionResource,
             apiId,
+            stage,
+            coordinator,
             compositionGate,
             (adoption, cancellationToken) => RecomposeAdoptedSeedAsync(
                 compositionResource,
@@ -884,8 +879,7 @@ internal sealed class SchemaComposition(
 
     private void NotifyCompositionFailure(IResource compositionResource)
     {
-        if (nitroOptions.Coordinator is not { } coordinator
-            || compositionResource.GetNitroApiId() is null)
+        if (compositionResource.GetNitroCompositionBase() is not { } stage)
         {
             return;
         }
@@ -893,7 +887,7 @@ internal sealed class SchemaComposition(
         nitroCompositionNotifier.NotifyFailure(
             compositionResource.Name,
             $"Schema composition failed for '{compositionResource.Name}' against stage "
-            + $"'{coordinator.Stage}'; check the logs for details.");
+            + $"'{stage.StageName}'; check the logs for details.");
     }
 
     private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(
@@ -949,8 +943,7 @@ internal sealed class SchemaComposition(
                     sourceSchemas,
                     settings,
                     compositionLogger,
-                    nitroOptions.Coordinator is not null
-                        && compositionResource.GetNitroApiId() is not null
+                    compositionResource.GetNitroCompositionBase() is not null
                         && !settings.Settings.DisableSchemaValidation,
                     cancellationToken);
             }
@@ -985,8 +978,8 @@ internal sealed class SchemaComposition(
     {
         var sourceSchemas = new List<SourceSchemaInfo>();
 
-        // Get all resources referenced by the composition resource
-        var referencedResources = GetReferencedResources(compositionResource, appModel);
+        var referencedResources =
+            GraphQLResourceModel.GetReferencedSourceSchemas(compositionResource, appModel);
 
         logger.LogInformation(
             "Found {Count} referenced resources for {ResourceName}",
@@ -994,17 +987,12 @@ internal sealed class SchemaComposition(
 
         try
         {
-            foreach (var referencedResource in referencedResources)
+            foreach (var referencedSource in referencedResources)
             {
-                if (!referencedResource.HasGraphQLSchema())
-                {
-                    logger.LogDebug(
-                        "Resource {ResourceName} does not have a GraphQL schema, skipping",
-                        referencedResource.Name);
-                    continue;
-                }
-
-                var schemaInfo = await GetSourceSchemaInfoAsync(referencedResource, cancellationToken);
+                var schemaInfo = await GetSourceSchemaInfoAsync(
+                    referencedSource.Resource,
+                    referencedSource.Declaration,
+                    cancellationToken);
                 if (schemaInfo is null)
                 {
                     // Composing without this source would either drop it from the composed
@@ -1013,7 +1001,8 @@ internal sealed class SchemaComposition(
                     // the gateway as failed to start, on a recomposition the gateway keeps
                     // the previous schema.
                     throw new InvalidOperationException(
-                        $"The source schema for resource '{referencedResource.Name}' could not be loaded.");
+                        $"The source schema for resource '{referencedSource.Resource.Name}' "
+                        + "could not be loaded.");
                 }
 
                 sourceSchemas.Add(schemaInfo);
@@ -1074,14 +1063,9 @@ internal sealed class SchemaComposition(
 
     private async Task<SourceSchemaInfo?> GetSourceSchemaInfoAsync(
         IResourceWithEndpoints resource,
+        GraphQLSourceSchemaAnnotation sourceSchemaSettings,
         CancellationToken cancellationToken)
     {
-        var sourceSchemaSettings = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
-        if (sourceSchemaSettings is null)
-        {
-            return null;
-        }
-
         switch (sourceSchemaSettings.Location)
         {
             case SourceSchemaLocationType.SchemaEndpoint:
@@ -1090,12 +1074,99 @@ internal sealed class SchemaComposition(
             case SourceSchemaLocationType.ProjectDirectory:
                 return await GetSourceSchemaFromFileAsync(resource, sourceSchemaSettings, cancellationToken);
 
+            case SourceSchemaLocationType.CommandLineExport:
+                return await GetSourceSchemaFromCommandLineAsync(
+                    resource,
+                    sourceSchemaSettings,
+                    cancellationToken);
+
             default:
                 logger.LogWarning(
                     "Unknown schema location type {LocationType} for {ResourceName}",
                     sourceSchemaSettings.Location,
                     resource.Name);
                 return null;
+        }
+    }
+
+    private async Task<SourceSchemaInfo> GetSourceSchemaFromCommandLineAsync(
+        IResourceWithEndpoints resource,
+        GraphQLSourceSchemaAnnotation annotation,
+        CancellationToken cancellationToken)
+    {
+        var outputDirectory = IOPath.Combine(
+            IOPath.GetTempPath(),
+            "hotchocolate-fusion-aspire",
+            Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            var result = await GraphQLSchemaExportCommand.ExecuteAsync(
+                services,
+                resource,
+                annotation,
+                outputDirectory,
+                cancellationToken);
+            var schemaText = await File.ReadAllTextAsync(
+                result.SchemaPath,
+                cancellationToken);
+            var settings = JsonDocument.Parse(
+                await File.ReadAllTextAsync(result.SettingsPath, cancellationToken));
+            var ownershipTransferred = false;
+
+            try
+            {
+                var configuration = ReadEndpointConfiguration(
+                    resource.Name,
+                    annotation.SourceSchemaName,
+                    settings);
+                GraphQLSourceSchemaValidator.Validate(
+                    resource.Name,
+                    configuration,
+                    schemaText);
+
+                var sourceSchema = new SourceSchemaInfo
+                {
+                    Name = configuration.SourceSchemaName,
+                    ResourceName = resource.Name,
+                    Schema = new SourceSchemaText(configuration.SourceSchemaName, schemaText),
+                    SchemaSettings = settings
+                };
+
+                ownershipTransferred = true;
+                return sourceSchema;
+            }
+            finally
+            {
+                if (!ownershipTransferred)
+                {
+                    settings.Dispose();
+                }
+            }
+        }
+        finally
+        {
+            try
+            {
+                if (Directory.Exists(outputDirectory))
+                {
+                    Directory.Delete(outputDirectory, recursive: true);
+                }
+            }
+            catch (IOException exception)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Could not remove schema export directory for {ResourceName}.",
+                    resource.Name);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Could not remove schema export directory for {ResourceName}.",
+                    resource.Name);
+            }
         }
     }
 
@@ -1140,6 +1211,11 @@ internal sealed class SchemaComposition(
             {
                 return null;
             }
+
+            GraphQLSourceSchemaValidator.Validate(
+                resource.Name,
+                endpointConfiguration,
+                schemaText);
 
             var sourceSchema = new SourceSchemaInfo
             {
@@ -1219,9 +1295,12 @@ internal sealed class SchemaComposition(
         GraphQLSourceSchemaAnnotation annotation,
         CancellationToken cancellationToken)
     {
-        var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
+        var sourceSchemaName = annotation.SourceSchemaName ?? resource.Name;
 
-        var schemaPath = annotation.SchemaPath ?? "schema.graphql";
+        var schemaPaths = GraphQLResourceModel.GetProjectSchemaPaths(
+            resource,
+            annotation);
+        var schemaPath = schemaPaths.SchemaPath;
 
         if (IsExtensionsSchemaPath(schemaPath))
         {
@@ -1231,31 +1310,62 @@ internal sealed class SchemaComposition(
             return null;
         }
 
-        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, schemaPath, cancellationToken);
+        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(
+            resource,
+            schemaPath,
+            cancellationToken);
         if (schemaFromFile is not { } schemaFiles)
         {
             return null;
         }
 
-        // For file schemas, settings file is named after the schema file
-        // e.g., "foo.graphql" -> "foo-settings.json"
-        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaPath)}-settings.json";
-
-        var schemaSettings = await GetSourceSchemaSettingsAsync(resource, settingsFileName, cancellationToken);
+        var schemaSettings = await GetSourceSchemaSettingsAsync(
+            resource,
+            schemaPaths.SettingsPath,
+            cancellationToken);
         if (schemaSettings == null)
         {
             return null;
         }
 
-        return new SourceSchemaInfo
+        var ownershipTransferred = false;
+
+        try
         {
-            Name = sourceSchemaName,
-            ResourceName = resource.Name,
-            HttpEndpointUrl = null, // No schema download endpoint for file-based schemas
-            AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
-            Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
-            SchemaSettings = schemaSettings
-        };
+            var configuration = ReadEndpointConfiguration(
+                resource.Name,
+                sourceSchemaName,
+                schemaSettings);
+            GraphQLSourceSchemaValidator.Validate(
+                resource.Name,
+                configuration,
+                schemaFiles.Schema,
+                schemaFiles.Extensions);
+
+            var sourceSchema = new SourceSchemaInfo
+            {
+                Name = configuration.SourceSchemaName,
+                ResourceName = resource.Name,
+                // No schema download endpoint for file-based schemas
+                HttpEndpointUrl = null,
+                AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
+                Schema = new SourceSchemaText(
+                    configuration.SourceSchemaName,
+                    schemaFiles.Schema,
+                    schemaFiles.Extensions),
+                SchemaSettings = schemaSettings
+            };
+
+            ownershipTransferred = true;
+            return sourceSchema;
+        }
+        finally
+        {
+            if (!ownershipTransferred)
+            {
+                schemaSettings.Dispose();
+            }
+        }
     }
 
     private async Task<JsonDocument?> GetSourceSchemaSettingsAsync(
@@ -1273,7 +1383,9 @@ internal sealed class SchemaComposition(
             }
 
             var projectDirectory = IOPath.GetDirectoryName(projectPath);
-            var settingsFile = IOPath.Combine(projectDirectory!, settingsFileName);
+            var settingsFile = IOPath.IsPathRooted(settingsFileName)
+                ? settingsFileName
+                : IOPath.Combine(projectDirectory!, settingsFileName);
 
             if (!File.Exists(settingsFile))
             {
@@ -1317,8 +1429,8 @@ internal sealed class SchemaComposition(
             endpoint,
             protocol,
             httpClient,
-            FetchMaxRetries,
-            s_fetchRetryDelay,
+            SchemaEndpointSchemaFetcher.DefaultMaxRetries,
+            SchemaEndpointSchemaFetcher.DefaultRetryDelay,
             cancellationToken);
     }
 
@@ -1331,91 +1443,15 @@ internal sealed class SchemaComposition(
         TimeSpan retryDelay,
         CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
-        ArgumentNullException.ThrowIfNull(endpoint);
-        ArgumentNullException.ThrowIfNull(httpClient);
-        ArgumentOutOfRangeException.ThrowIfLessThan(maxRetries, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(retryDelay, TimeSpan.Zero);
-
-        logger.LogDebug("Waiting for schema service {SourceSchemaName}", sourceSchemaName);
-
-        for (var i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                if (protocol is SchemaEndpointProtocol.ApolloFederation)
-                {
-                    return await ApolloFederationSchemaFetcher.FetchAsync(
-                        httpClient,
-                        sourceSchemaName,
-                        endpoint,
-                        cancellationToken);
-                }
-
-                return await DefaultSchemaFetcher.FetchAsync(
-                    httpClient,
-                    sourceSchemaName,
-                    endpoint,
-                    cancellationToken);
-            }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} timed out (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (HttpRequestException exception) when (exception.StatusCode is null)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (IOException)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            // The DCP proxy keeps an endpoint open while the source process starts or
-            // restarts, so a fetch can observe transient server errors instead of
-            // connection failures. Server errors are retried, everything below 500
-            // fails immediately.
-            catch (HttpRequestException exception) when (
-                exception.StatusCode >= HttpStatusCode.InternalServerError)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-            catch (SchemaFetchRequestException exception) when (
-                exception.StatusCode >= HttpStatusCode.InternalServerError)
-            {
-                logger.LogDebug(
-                    "Schema service {SourceSchemaName} returned a transient server error (attempt {Attempt}/{MaxRetries})",
-                    sourceSchemaName,
-                    i + 1,
-                    maxRetries);
-            }
-
-            if (i + 1 < maxRetries)
-            {
-                await Task.Delay(retryDelay, cancellationToken);
-            }
-        }
-
-        logger.LogWarning(
-            "Schema service {SourceSchemaName} failed to become ready after {MaxRetries} attempts",
+        return await SchemaEndpointSchemaFetcher.FetchAsync(
             sourceSchemaName,
-            maxRetries);
-        return null;
+            endpoint,
+            protocol,
+            httpClient,
+            maxRetries,
+            retryDelay,
+            logger,
+            cancellationToken);
     }
 
     private async Task<(string Schema, string? Extensions)?> ReadSchemaFromProjectDirectoryAsync(
@@ -1434,7 +1470,10 @@ internal sealed class SchemaComposition(
             }
 
             var projectDirectory = IOPath.GetDirectoryName(projectPath);
-            var schemaFile = IOPath.Combine(projectDirectory!, fileName ?? "schema.graphql");
+            var schemaPath = fileName ?? "schema.graphqls";
+            var schemaFile = IOPath.IsPathRooted(schemaPath)
+                ? schemaPath
+                : IOPath.Combine(projectDirectory!, schemaPath);
 
             if (!File.Exists(schemaFile))
             {
@@ -1469,42 +1508,19 @@ internal sealed class SchemaComposition(
         }
     }
 
-    [SuppressMessage(
-        "Trimming",
-        "IL2075:\'this\' argument does not satisfy \'DynamicallyAccessedMembersAttribute\' "
-        + "in call to target method. The return value of the source method does not have matching annotations.")]
     private string? GetProjectPath(IResourceWithEndpoints resource)
     {
-        // Check if this is a ProjectResource
-        if (resource is not ProjectResource projectResource)
+        try
         {
+            return GraphQLResourceModel.GetProjectPath(resource);
+        }
+        catch (InvalidOperationException)
+        {
+            logger.LogWarning(
+                "Could not find project metadata for resource {ResourceName}",
+                resource.Name);
             return null;
         }
-
-        // Get the project metadata from the ProjectResource
-        // The metadata is typically stored as an annotation or property
-        var metadataAnnotation = projectResource.Annotations
-            .FirstOrDefault(a => a.GetType().GetInterfaces().Contains(typeof(IProjectMetadata)));
-
-        if (metadataAnnotation is IProjectMetadata projectMetadata)
-        {
-            return projectMetadata.ProjectPath;
-        }
-
-        // Alternative approach: look for the metadata in the resource's type or properties
-        // Sometimes the metadata might be accessible through reflection on the resource itself
-        var metadataProperty = projectResource.GetType()
-            .GetProperties()
-            .FirstOrDefault(p => p.PropertyType.GetInterfaces().Contains(typeof(IProjectMetadata)));
-
-        if (metadataProperty != null)
-        {
-            var metadata = metadataProperty.GetValue(projectResource) as IProjectMetadata;
-            return metadata?.ProjectPath;
-        }
-
-        logger.LogWarning("Could not find project metadata for resource {ResourceName}", resource.Name);
-        return null;
     }
 
     private async Task<SchemaCompositionOutcome> ComposeSchemaAsync(

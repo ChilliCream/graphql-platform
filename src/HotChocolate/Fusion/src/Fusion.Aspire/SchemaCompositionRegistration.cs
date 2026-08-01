@@ -19,14 +19,9 @@ internal static class SchemaCompositionRegistration
     /// <param name="builder">
     /// The distributed application builder.
     /// </param>
-    /// <returns>
-    /// The Nitro options of the distributed application.
-    /// </returns>
-    public static NitroCompositionOptions Ensure(IDistributedApplicationBuilder builder)
+    public static void Ensure(IDistributedApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        var options = GetOrAddOptions(builder);
 
         // A second AddSingleton would register a second composition, and the two would compose
         // the same archive at the same time behind independent gates.
@@ -36,43 +31,8 @@ internal static class SchemaCompositionRegistration
         builder.Services.TryAddSingleton<INitroCompositionNotifier, NitroSchemaValidationNotifier>();
         builder.Services.TryAddSingleton<INitroSeedUpdateNotifier, NitroSeedUpdateNotifier>();
         builder.Services.TryAddSingleton<NitroSeedUpdateService>();
+        builder.Services.TryAddSingleton<NitroSeedCoordinatorRegistry>();
         builder.Services.TryAddSingleton<GatewayCompositionCommandCoordinator>();
         builder.Services.TryAddSingleton(TimeProvider.System);
-
-        return options;
-    }
-
-    internal static NitroCompositionOptions? GetOptions(IDistributedApplicationBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        foreach (var descriptor in builder.Services)
-        {
-            if (descriptor.ServiceType == typeof(NitroCompositionOptions)
-                && descriptor.ImplementationInstance is NitroCompositionOptions registered)
-            {
-                return registered;
-            }
-        }
-
-        return null;
-    }
-
-    private static NitroCompositionOptions GetOrAddOptions(IDistributedApplicationBuilder builder)
-    {
-        foreach (var descriptor in builder.Services)
-        {
-            if (descriptor.ServiceType == typeof(NitroCompositionOptions)
-                && descriptor.ImplementationInstance is NitroCompositionOptions registered)
-            {
-                return registered;
-            }
-        }
-
-        var options = new NitroCompositionOptions();
-
-        builder.Services.AddSingleton(options);
-
-        return options;
     }
 }

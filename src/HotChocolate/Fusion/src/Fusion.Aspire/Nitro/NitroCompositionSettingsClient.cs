@@ -47,8 +47,10 @@ internal sealed class NitroCompositionSettingsClient(GraphQLHttpClient client)
         if (result.Errors.ValueKind is JsonValueKind.Array
             && result.Errors.GetArrayLength() > 0)
         {
-            throw new InvalidDataException(
-                "Nitro returned GraphQL errors for the composition settings operation.");
+            throw new NitroOperationException(
+                "Nitro returned GraphQL errors for the composition settings operation: "
+                + (ReadErrorMessage(result.Errors) ?? "no message."),
+                ReadErrorCode(result.Errors));
         }
 
         if (result.Data.ValueKind is not JsonValueKind.Object
@@ -108,6 +110,22 @@ internal sealed class NitroCompositionSettingsClient(GraphQLHttpClient client)
             }
         };
     }
+
+    private static string? ReadErrorMessage(JsonElement errors)
+        => errors[0].ValueKind is JsonValueKind.Object
+            && errors[0].TryGetProperty("message", out var message)
+            && message.ValueKind is JsonValueKind.String
+                ? message.GetString()
+                : null;
+
+    private static string? ReadErrorCode(JsonElement errors)
+        => errors[0].ValueKind is JsonValueKind.Object
+            && errors[0].TryGetProperty("extensions", out var extensions)
+            && extensions.ValueKind is JsonValueKind.Object
+            && extensions.TryGetProperty("code", out var code)
+            && code.ValueKind is JsonValueKind.String
+                ? code.GetString()
+                : null;
 
     private static bool? ReadBoolean(JsonElement parent, string propertyName)
     {

@@ -1,0 +1,19 @@
+subscription WatchFusionDeployment($requestId: ID!) {
+  onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
+    __typename
+    state
+    ... on ProcessingTaskIsQueued {
+      queuePosition
+    }
+    ... on FusionConfigurationPublishingFailed {
+      errors {
+        message
+      }
+    }
+    ... on FusionConfigurationValidationFailed {
+      errors {
+        message
+      }
+    }
+  }
+}

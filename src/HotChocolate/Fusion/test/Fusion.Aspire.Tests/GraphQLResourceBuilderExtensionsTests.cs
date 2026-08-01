@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -37,6 +38,24 @@ public sealed class GraphQLResourceBuilderExtensionsTests
     }
 
     [Fact]
+    public void GetGraphQLSchemaUrl_Should_UseTargetEndpoint_When_EndpointIsNotAllocated()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithHttpEndpoint(port: 54321, targetPort: 8080, name: "schema")
+            .WithGraphQLSchemaEndpoint(
+                path: "/custom/schema",
+                endpointName: "schema");
+
+        var schemaUrl = resource.Resource.GetGraphQLSchemaUrl(
+            defaultPath: "/graphql/schema.graphql",
+            endpointName: "schema");
+
+        Assert.Equal("http://localhost:8080/custom/schema", schemaUrl);
+    }
+
+    [Fact]
     public void WithGraphQLSchemaEndpoint_Should_RejectPath_When_PathIsNotRooted()
     {
         var builder = DistributedApplication.CreateBuilder();
@@ -47,6 +66,84 @@ public sealed class GraphQLResourceBuilderExtensionsTests
 
         Assert.Equal(
             "The GraphQL schema endpoint path must start with '/'. (Parameter 'path')",
+            exception.Message);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_LeaveSchemaNameImplicit_When_Omitted()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaExport();
+
+        var annotation = Assert.Single(
+            resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        var command = Assert.Single(
+            resource.Resource.Annotations.OfType<ResourceCommandAnnotation>());
+
+        $$"""
+        Source schema name configured: {{annotation.SourceSchemaName is not null}}
+        Location: {{annotation.Location}}
+        Command: {{command.Name}}
+        Visibility: {{command.Visibility}}
+        Output argument: {{Assert.Single(command.Arguments).Name}}
+        """.MatchInlineSnapshot(
+            """
+            Source schema name configured: False
+            Location: CommandLineExport
+            Command: graphql-schema-export
+            Visibility: None
+            Output argument: output
+            """);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_PreserveExplicitSchemaName()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaExport("Products");
+
+        var annotation = Assert.Single(
+            resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+
+        Assert.Equal("Products", annotation.SourceSchemaName);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_ReplacePreviousAcquisitionMode()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaFile()
+            .WithGraphQLSchemaEndpoint()
+            .WithGraphQLSchemaExport("Products");
+
+        // act
+        var annotation = Assert.Single(
+            resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+
+        // assert
+        Assert.Equal(SourceSchemaLocationType.CommandLineExport, annotation.Location);
+        Assert.Equal("Products", annotation.SourceSchemaName);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_RejectWhitespaceSchemaName()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder.AddProject("products", GetTestProjectFile());
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => resource.WithGraphQLSchemaExport(" "));
+
+        Assert.Equal(
+            "The value cannot be an empty string or composed entirely of whitespace. "
+            + "(Parameter 'schemaName')",
             exception.Message);
     }
 
