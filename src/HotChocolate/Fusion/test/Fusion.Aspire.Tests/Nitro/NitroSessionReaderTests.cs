@@ -41,7 +41,10 @@ public sealed class NitroSessionReaderTests : IDisposable
         // assert
         Assert.Equal(NitroSessionStatus.Available, result.Status);
         Assert.Equal("api.chillicream.com", result.Session!.ApiUrl);
+        Assert.Equal("https://identity.chillicream.com", result.Session.IdentityServer);
         Assert.Equal("access-token", result.Session.Tokens!.AccessToken);
+        Assert.Equal("id-token", result.Session.Tokens.IdToken);
+        Assert.Equal("refresh-token", result.Session.Tokens.RefreshToken);
         Assert.Equal(
             new DateTimeOffset(2026, 7, 29, 10, 0, 0, TimeSpan.Zero),
             result.Session.Tokens.ExpiresAt);

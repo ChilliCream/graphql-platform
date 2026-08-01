@@ -104,13 +104,15 @@ internal sealed class NitroSeedCoordinator
         var timeProvider = TimeProvider.System;
         var httpClient = new HttpClient();
         var connectionResolver = new NitroConnectionResolver(
-            new NitroSessionReader(
-                NitroDefaults.GetSessionFilePath(),
-                NitroDefaults.SessionRereadDelay),
+            new NitroSessionManager(
+                new NitroSessionReader(
+                    NitroDefaults.GetSessionFilePath(),
+                    NitroDefaults.SessionRereadDelay),
+                new NitroTokenRefreshClient(httpClient),
+                timeProvider,
+                NitroDefaults.AccessTokenExpiryGrace),
             SystemNitroEnvironment.Instance,
-            NitroDefaults.ApiUrl,
-            timeProvider,
-            NitroDefaults.AccessTokenExpiryGrace);
+            NitroDefaults.ApiUrl);
         var seedProvider = new NitroSeedProvider(
             new NitroFusionConfigurationDownloader(
                 httpClient,

@@ -207,6 +207,160 @@ public sealed class NitroConnectionResolverTests : IDisposable
         Assert.Equal(accessToken, connection.Credential.Value);
     }
 
+    [Fact]
+    public async Task ResolveAsync_Should_RefreshTheAccessToken_When_TheTokenExpired()
+    {
+        // arrange
+        await using var server = await FakeNitroServer.StartAsync();
+        var identityServer = server.BaseAddress.AbsoluteUri.TrimEnd('/');
+        var refreshedAccessToken = CreateAccessToken("nitro.example.com");
+        var refreshedIdentityToken = CreateIdentityToken("nitro-cli");
+        var sessionFilePath = _directory.WriteFile(
+            "session.json",
+            $$"""
+            {
+              "identityServer": "{{identityServer}}",
+              "apiUrl": "nitro.example.com",
+              "email": "michael@chillicream.com",
+              "tokens": {
+                "accessToken": "expired-access-token",
+                "idToken": "{{CreateIdentityToken("nitro-cli")}}",
+                "refreshToken": "refresh-token",
+                "expiresAt": "{{s_now.AddMinutes(-1):yyyy-MM-ddTHH:mm:ssZ}}"
+              }
+            }
+            """);
+        server.DownloadHandler = request => request.Path switch
+        {
+            "/.well-known/openid-configuration" => FakeNitroResponse.Json(
+                $$"""
+                {
+                  "issuer": "{{identityServer}}",
+                  "token_endpoint": "{{identityServer}}/connect/token"
+                }
+                """),
+            "/connect/token" => FakeNitroResponse.Json(
+                $$"""
+                {
+                  "access_token": "{{refreshedAccessToken}}",
+                  "id_token": "{{refreshedIdentityToken}}",
+                  "refresh_token": "refreshed-refresh-token",
+                  "expires_in": 3600,
+                  "token_type": "Bearer"
+                }
+                """),
+            _ => FakeNitroResponse.Status(404)
+        };
+        var resolver = CreateResolver(sessionFilePath, new TestNitroEnvironment());
+
+        // act
+        var connections = await Task.WhenAll(
+            resolver.ResolveAsync(
+                new RecordingLogger<NitroConnectionResolverTests>(),
+                TestContext.Current.CancellationToken),
+            resolver.ResolveAsync(
+                new RecordingLogger<NitroConnectionResolverTests>(),
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.All(
+            connections,
+            connection =>
+            {
+                Assert.Equal(NitroCredentialKind.AccessToken, connection.Credential.Kind);
+                Assert.Equal(refreshedAccessToken, connection.Credential.Value);
+            });
+        Assert.Collection(
+            server.Requests,
+            request =>
+            {
+                Assert.Equal("GET", request.Method);
+                Assert.Equal("/.well-known/openid-configuration", request.Path);
+            },
+            request =>
+            {
+                Assert.Equal("POST", request.Method);
+                Assert.Equal("/connect/token", request.Path);
+                Assert.Equal(
+                    "grant_type=refresh_token&refresh_token=refresh-token&client_id=nitro-cli",
+                    request.Body);
+            });
+
+        var persisted = await new NitroSessionReader(sessionFilePath, TimeSpan.Zero)
+            .ReadAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(refreshedAccessToken, persisted.Session!.Tokens!.AccessToken);
+        Assert.Equal(refreshedIdentityToken, persisted.Session.Tokens.IdToken);
+        Assert.Equal("refreshed-refresh-token", persisted.Session.Tokens.RefreshToken);
+        Assert.Equal(s_now.AddHours(1), persisted.Session.Tokens.ExpiresAt);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ReportExpired_When_TheRefreshTokenIsRejected()
+    {
+        // arrange
+        await using var server = await FakeNitroServer.StartAsync();
+        var identityServer = server.BaseAddress.AbsoluteUri.TrimEnd('/');
+        var identityToken = CreateIdentityToken("nitro-cli");
+        var sessionFilePath = _directory.WriteFile(
+            "session.json",
+            $$"""
+            {
+              "identityServer": "{{identityServer}}",
+              "apiUrl": "nitro.example.com",
+              "tokens": {
+                "accessToken": "expired-access-token",
+                "idToken": "{{identityToken}}",
+                "refreshToken": "rejected-refresh-token",
+                "expiresAt": "{{s_now.AddMinutes(-1):yyyy-MM-ddTHH:mm:ssZ}}"
+              }
+            }
+            """);
+        server.DownloadHandler = request => request.Path switch
+        {
+            "/.well-known/openid-configuration" => FakeNitroResponse.Json(
+                $$"""
+                {
+                  "issuer": "{{identityServer}}",
+                  "token_endpoint": "{{identityServer}}/connect/token"
+                }
+                """),
+            "/connect/token" => new FakeNitroResponse(
+                400,
+                Encoding.UTF8.GetBytes(
+                    """
+                    {
+                      "error": "invalid_grant",
+                      "error_description": "Refresh token expired"
+                    }
+                    """),
+                "application/json"),
+            _ => FakeNitroResponse.Status(404)
+        };
+        var resolver = CreateResolver(sessionFilePath, new TestNitroEnvironment());
+
+        // act
+        var connection = await resolver.ResolveAsync(
+            new RecordingLogger<NitroConnectionResolverTests>(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NitroCredentialKind.None, connection.Credential.Kind);
+        Assert.Equal(
+            NitroCredentialUnavailableReason.SessionExpired,
+            connection.Credential.UnavailableReason);
+        Assert.Equal(
+            $"The Nitro session stored at '{sessionFilePath}' expired at "
+            + "2026-07-29 11:59:00Z and could not be refreshed because the token endpoint "
+            + "rejected the refresh token (invalid_grant: Refresh token expired). Run 'nitro "
+            + "login' to sign in again.",
+            connection.Credential.UnavailableMessage);
+
+        var persisted = await new NitroSessionReader(sessionFilePath, TimeSpan.Zero)
+            .ReadAsync(TestContext.Current.CancellationToken);
+        Assert.Equal("expired-access-token", persisted.Session!.Tokens!.AccessToken);
+        Assert.Equal("rejected-refresh-token", persisted.Session.Tokens.RefreshToken);
+    }
+
     [Theory]
     [InlineData(-60)]
     [InlineData(0)]
@@ -319,11 +473,13 @@ public sealed class NitroConnectionResolverTests : IDisposable
         string sessionFilePath,
         INitroEnvironment environment)
         => new(
-            new NitroSessionReader(sessionFilePath, TimeSpan.Zero),
+            new NitroSessionManager(
+                new NitroSessionReader(sessionFilePath, TimeSpan.Zero),
+                new NitroTokenRefreshClient(new HttpClient()),
+                new FakeTimeProvider(s_now),
+                TimeSpan.FromSeconds(30)),
             environment,
-            s_defaultApiUrl,
-            new FakeTimeProvider(s_now),
-            TimeSpan.FromSeconds(30));
+            s_defaultApiUrl);
 
     private string WriteSession(
         string apiUrl,
@@ -362,6 +518,14 @@ public sealed class NitroConnectionResolverTests : IDisposable
         }
 
         var payload = Base64UrlEncode(JsonSerializer.Serialize(claims));
+
+        return $"{header}.{payload}.signature";
+    }
+
+    private static string CreateIdentityToken(string audience)
+    {
+        var header = Base64UrlEncode("""{"alg":"RS256","typ":"JWT"}""");
+        var payload = Base64UrlEncode(JsonSerializer.Serialize(new { aud = audience }));
 
         return $"{header}.{payload}.signature";
     }

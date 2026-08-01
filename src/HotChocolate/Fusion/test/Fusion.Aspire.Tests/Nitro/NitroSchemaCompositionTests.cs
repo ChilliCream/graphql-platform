@@ -1037,11 +1037,13 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         => new(
             Stage,
             new NitroConnectionResolver(
-                new NitroSessionReader(_directory.GetPath("session.json"), TimeSpan.Zero),
+                new NitroSessionManager(
+                    new NitroSessionReader(_directory.GetPath("session.json"), TimeSpan.Zero),
+                    new NitroTokenRefreshClient(_httpClient),
+                    _timeProvider,
+                    NitroDefaults.AccessTokenExpiryGrace),
                 environment,
-                NitroDefaults.ApiUrl,
-                _timeProvider,
-                NitroDefaults.AccessTokenExpiryGrace),
+                NitroDefaults.ApiUrl),
             new NitroSeedProvider(
                 new NitroFusionConfigurationDownloader(
                     _httpClient,

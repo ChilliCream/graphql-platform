@@ -1,11 +1,11 @@
 using System.Text.Json;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
 /// Reads the session file that the Nitro CLI writes when a user signs in with
-/// <c>nitro login</c>. The file is treated as strictly read-only, the integration never
-/// refreshes or rewrites it.
+/// <c>nitro login</c> and persists refreshed tokens back to it.
 /// </summary>
 internal sealed class NitroSessionReader
 {
@@ -67,6 +67,67 @@ internal sealed class NitroSessionReader
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Atomically writes a refreshed session to the Nitro CLI session file.
+    /// </summary>
+    /// <param name="session">
+    /// The refreshed session.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    public async Task WriteAsync(NitroSession session, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        var directory = IOPath.GetDirectoryName(_sessionFilePath);
+        if (string.IsNullOrEmpty(directory))
+        {
+            throw new InvalidOperationException(
+                $"The Nitro session path '{_sessionFilePath}' has no parent directory.");
+        }
+
+        Directory.CreateDirectory(directory);
+        var temporaryFilePath = IOPath.Combine(
+            directory,
+            $".{IOPath.GetFileName(_sessionFilePath)}.{Guid.NewGuid():N}.tmp");
+
+        try
+        {
+            await using (var stream = new FileStream(
+                temporaryFilePath,
+                new FileStreamOptions
+                {
+                    Mode = FileMode.CreateNew,
+                    Access = FileAccess.Write,
+                    Share = FileShare.None,
+                    Options = FileOptions.Asynchronous
+                }))
+            {
+                await JsonSerializer.SerializeAsync(
+                    stream,
+                    session,
+                    NitroJsonContext.Default.NitroSession,
+                    cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+            }
+
+            File.Move(temporaryFilePath, _sessionFilePath, overwrite: true);
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(temporaryFilePath);
+            }
+            catch (Exception exception) when (
+                exception is IOException or UnauthorizedAccessException)
+            {
+                // A temporary file that cannot be removed is left for the operating system.
+            }
+        }
     }
 
     private async Task<(NitroSessionReadResult Result, bool Transient)> ReadOnceAsync(
