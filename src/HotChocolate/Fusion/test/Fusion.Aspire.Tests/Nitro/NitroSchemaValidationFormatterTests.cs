@@ -93,7 +93,7 @@ public sealed class NitroSchemaValidationFormatterTests
                 new NitroSchemaValidationFinding(
                     "Schema change violations",
                     "FieldRemovedChange",
-                    "Field was removed.",
+                    "Field 'name' was removed from type 'Product'.",
                     Coordinate: "Product.name",
                     Severity: "BREAKING")
             ],
@@ -111,7 +111,7 @@ public sealed class NitroSchemaValidationFormatterTests
               Operation: operation-hash [tags: production, canary]
                 - Field productName does not exist. [code: HC001] [path: query.productName] [line: 4, column: 7]
             Schema change violations:
-              - Field was removed. [severity: BREAKING] [coordinate: Product.name]
+              - Field 'name' was removed from type 'Product'. [severity: BREAKING] [coordinate: Product.name]
             """);
     }
 }

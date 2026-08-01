@@ -480,7 +480,8 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Schema change violations>"
-                    + "FieldRemovedChange|-|Product.name|-|-:-|BREAKING|Field was removed.,"
+                    + "FieldRemovedChange|-|Product.name|-|-:-|BREAKING|"
+                    + "Field 'name' was removed from type 'Product'.,"
                     + "Schema change violations>TypeChanged|-|Query.product|-|-:-|BREAKING|"
                     + "Type changed from 'Product' to 'Product!'."
             },

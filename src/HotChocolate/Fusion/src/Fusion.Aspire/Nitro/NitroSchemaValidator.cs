@@ -647,10 +647,10 @@ internal sealed class NitroSchemaValidator(
         {
             "TypeSystemMemberAddedChange" => "Type system member was added.",
             "TypeSystemMemberRemovedChange" => "Type system member was removed.",
-            "FieldAddedChange" => "Field was added.",
-            "FieldRemovedChange" => "Field was removed.",
-            "InputFieldChanged" => "Input field was changed.",
-            "OutputFieldChanged" => "Output field was changed.",
+            "FieldAddedChange" => DescribeFieldChange(change, "added"),
+            "FieldRemovedChange" => DescribeFieldChange(change, "removed"),
+            "InputFieldChanged" => DescribeNamedFieldChange(change, "Input field"),
+            "OutputFieldChanged" => DescribeNamedFieldChange(change, "Output field"),
             "InterfaceImplementationAdded" =>
                 $"Interface '{GetString(change, "interfaceName") ?? "unknown"}' was implemented.",
             "InterfaceImplementationRemoved" =>
@@ -689,6 +689,22 @@ internal sealed class NitroSchemaValidator(
         return type is null
             ? $"Argument '{name}' was {action}."
             : $"Argument '{name}' of type '{type}' was {action}.";
+    }
+
+    private static string DescribeFieldChange(JsonElement change, string action)
+    {
+        var fieldName = GetString(change, "fieldName") ?? "unknown";
+        var typeName = GetString(change, "typeName") ?? "unknown";
+        var preposition = action == "removed" ? "from" : "to";
+
+        return $"Field '{fieldName}' was {action} {preposition} type '{typeName}'.";
+    }
+
+    private static string DescribeNamedFieldChange(JsonElement change, string fieldKind)
+    {
+        var fieldName = GetString(change, "fieldName") ?? "unknown";
+
+        return $"{fieldKind} '{fieldName}' was changed.";
     }
 
     private static string DescribeTypeChange(JsonElement change)

@@ -65,6 +65,23 @@ public sealed class NitroOperationDocumentsTests
         Assert.Contains(expectedDeclaration, document, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void GetPollSchemaValidationDocument_Should_RequestNestedSchemaChangeDetails()
+    {
+        // act
+        var document = NitroOperationDocuments.GetPollSchemaValidationDocument();
+
+        // assert
+        Assert.Contains(
+            "fragment SchemaChangeDetail on SchemaChange",
+            document,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "fragment SchemaChangeLeaf on SchemaChange",
+            document,
+            StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("GetNitroStageVersion", "query GetNitroStageVersion(")]
     [InlineData("WatchNitroStage", "subscription WatchNitroStage(")]
@@ -114,7 +131,7 @@ public sealed class NitroOperationDocumentsTests
         "89e8800b8720401041061528aef1101683b241d7d24c7f0912928a1a901def02")]
     [InlineData(
         "PollNitroSchemaValidation",
-        "0fcb0a11b85be6ede7bb6141f0cdcc34a3fc7eaa611747d013d02b9374e48e22")]
+        "9c6725ca85cf073343e4136f6a9b53353328156eb4335363fe624bfefc86bdd3")]
     public void GetValidationOperationId_Should_ReturnTheEmbeddedHash(
         string operationName,
         string expectedOperationId)
