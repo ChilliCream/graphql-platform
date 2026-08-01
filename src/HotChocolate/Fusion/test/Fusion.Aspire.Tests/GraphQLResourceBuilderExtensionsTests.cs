@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -69,58 +70,60 @@ public sealed class GraphQLResourceBuilderExtensionsTests
     }
 
     [Fact]
-    public void WithGraphQLSchemaExport_Should_PreserveExplicitBuildInputs()
+    public void WithGraphQLSchemaExport_Should_LeaveSchemaNameImplicit_When_Omitted()
     {
         var builder = DistributedApplication.CreateBuilder();
         var resource = builder
             .AddProject("products", GetTestProjectFile())
-            .WithGraphQLSchemaExport(
-                "Products",
-                "Release",
-                "net9.0",
-                "linux-x64",
-                TimeSpan.FromMinutes(2));
+            .WithGraphQLSchemaExport();
 
         var annotation = Assert.Single(
             resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        var command = Assert.Single(
+            resource.Resource.Annotations.OfType<ResourceCommandAnnotation>());
 
         $$"""
-        Source schema name: {{annotation.SourceSchemaName}}
-        Export schema name: {{annotation.ExportSchemaName}}
-        Configuration: {{annotation.ExportConfiguration}}
-        Target framework: {{annotation.ExportTargetFramework}}
-        Runtime identifier: {{annotation.ExportRuntimeIdentifier}}
-        Timeout: {{annotation.ExportTimeout}}
+        Source schema name configured: {{annotation.SourceSchemaName is not null}}
         Location: {{annotation.Location}}
+        Command: {{command.Name}}
+        Visibility: {{command.Visibility}}
+        Output argument: {{Assert.Single(command.Arguments).Name}}
         """.MatchInlineSnapshot(
             """
-            Source schema name: Products
-            Export schema name: Products
-            Configuration: Release
-            Target framework: net9.0
-            Runtime identifier: linux-x64
-            Timeout: 00:02:00
+            Source schema name configured: False
             Location: CommandLineExport
+            Command: graphql-schema-export
+            Visibility: None
+            Output argument: output
             """);
     }
 
     [Fact]
-    public void WithGraphQLSchemaExport_Should_RejectWhitespaceRuntimeIdentifier()
+    public void WithGraphQLSchemaExport_Should_PreserveExplicitSchemaName()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var resource = builder
+            .AddProject("products", GetTestProjectFile())
+            .WithGraphQLSchemaExport("Products");
+
+        var annotation = Assert.Single(
+            resource.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+
+        Assert.Equal("Products", annotation.SourceSchemaName);
+    }
+
+    [Fact]
+    public void WithGraphQLSchemaExport_Should_RejectWhitespaceSchemaName()
     {
         var builder = DistributedApplication.CreateBuilder();
         var resource = builder.AddProject("products", GetTestProjectFile());
 
         var exception = Assert.Throws<ArgumentException>(
-            () => resource.WithGraphQLSchemaExport(
-                "Products",
-                "Release",
-                "net9.0",
-                " ",
-                TimeSpan.FromMinutes(2)));
+            () => resource.WithGraphQLSchemaExport(" "));
 
         Assert.Equal(
             "The value cannot be an empty string or composed entirely of whitespace. "
-            + "(Parameter 'runtimeIdentifier')",
+            + "(Parameter 'schemaName')",
             exception.Message);
     }
 

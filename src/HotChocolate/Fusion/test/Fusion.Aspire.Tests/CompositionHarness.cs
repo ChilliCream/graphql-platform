@@ -60,6 +60,7 @@ internal sealed record CompositionHarness(
             validationCoordinator,
             seedUpdateService,
             new GatewayCompositionCommandCoordinator(),
+            EmptyServiceProvider.Instance,
             logger);
 
         return new CompositionHarness(

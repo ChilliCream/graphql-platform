@@ -87,6 +87,7 @@ internal sealed class FusionPipelineExecutor
                 FusionPipeline.GetStages(context.Model, target),
                 sources,
                 output,
+                context.Services,
                 logger,
                 context.CancellationToken);
         }
@@ -720,6 +721,7 @@ internal sealed class FusionPipelineExecutor
         IReadOnlyList<FusionStageResource> stages,
         IReadOnlyList<GraphQLSourceSchemaResource> sources,
         string output,
+        IServiceProvider services,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
@@ -744,6 +746,7 @@ internal sealed class FusionPipelineExecutor
                         source,
                         sourcesDirectory,
                         exportDirectory,
+                        services,
                         logger,
                         cancellationToken));
             }
@@ -839,6 +842,7 @@ internal sealed class FusionPipelineExecutor
         GraphQLSourceSchemaResource sourceSchema,
         string sourcesDirectory,
         string exportDirectory,
+        IServiceProvider services,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
@@ -869,7 +873,8 @@ internal sealed class FusionPipelineExecutor
                 break;
 
             case SourceSchemaLocationType.CommandLineExport:
-                var export = await CommandLineSchemaExporter.ExportAsync(
+                var export = await GraphQLSchemaExportCommand.ExecuteAsync(
+                    services,
                     source,
                     declaration,
                     IOPath.Combine(exportDirectory, source.Name),
@@ -877,9 +882,9 @@ internal sealed class FusionPipelineExecutor
                 schemaPath = export.SchemaPath;
                 settingsPath = export.SettingsPath;
                 projectPath = export.ProjectPath;
-                configuration = export.Configuration;
-                targetFramework = export.TargetFramework;
-                runtimeIdentifier = export.RuntimeIdentifier;
+                configuration = "project-default";
+                targetFramework = null;
+                runtimeIdentifier = null;
                 break;
 
             case SourceSchemaLocationType.SchemaEndpoint:

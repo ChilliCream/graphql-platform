@@ -7,6 +7,9 @@ This page covers the CI/CD pipelines that ship a Fusion gateway in production: u
 
 The gateway closes the loop with `AddNitro().AddDefaults()`, which subscribes to the latest archive on the configured stage and hot-swaps it without a restart.
 
+> [!NOTE]
+> This page drives the pipeline with the `nitro fusion` CLI. If your solution already has a .NET Aspire AppHost, use [Deploying with Aspire](./aspire-integration.md#deploying-with-aspire) instead: `aspire do fusion-upload` and `aspire do fusion-publish` run the same upload-then-publish workflow straight from the AppHost, so the source names, settings, and stages you declare for local development are the ones that ship.
+
 # Prerequisites
 
 Before wiring up your pipelines you need:

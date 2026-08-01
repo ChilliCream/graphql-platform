@@ -21,6 +21,7 @@ internal sealed class SchemaComposition(
     NitroSchemaValidationCoordinator validationCoordinator,
     NitroSeedUpdateService seedUpdateService,
     GatewayCompositionCommandCoordinator commandCoordinator,
+    IServiceProvider services,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
@@ -1105,7 +1106,8 @@ internal sealed class SchemaComposition(
 
         try
         {
-            var result = await CommandLineSchemaExporter.ExportAsync(
+            var result = await GraphQLSchemaExportCommand.ExecuteAsync(
+                services,
                 resource,
                 annotation,
                 outputDirectory,

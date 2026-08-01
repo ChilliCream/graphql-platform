@@ -28,7 +28,7 @@ Your subgraph projects need the `HotChocolate.AspNetCore.CommandLine` package so
 
 # Setting Up the AppHost
 
-The AppHost wires together your subgraphs and gateway. Three extension methods configure the composition pipeline.
+The AppHost wires together your subgraphs and gateway. Resource extension methods configure the composition pipeline.
 
 **C# configuration**
 
@@ -189,6 +189,7 @@ Replacement matches source schemas by name, and the name of a local resource is 
 
 - `WithGraphQLSchemaEndpoint()` uses the `name` from the subgraph's `schema-settings.json`. A `sourceSchemaName` that disagrees with it fails the composition.
 - `WithGraphQLSchemaFile()` uses `sourceSchemaName`, or the Aspire resource name when you do not pass one, and does not check it against the settings file.
+- `WithGraphQLSchemaExport()` uses its optional schema name, or the Aspire resource name when you do not pass one. The exported `schema-settings.json` must contain that same name.
 
 A local source schema whose name does not match the one in Nitro is added next to it instead of replacing it, which usually surfaces as a composition error about a conflicting field. Pass `sourceSchemaName` explicitly when the Aspire resource name differs from the published source schema name.
 
@@ -260,6 +261,108 @@ With Aspire, your inner dev loop looks like this:
 With `AddNitro`, step 3 composes on top of the fusion configuration that was downloaded when the gateway started, so the loop stays the same while your subgraph runs inside the full graph.
 
 If composition fails (for example, a field conflict or a missing lookup), the orchestrator logs the error on the gateway console and the gateway fails to start. Every other resource keeps running, so you can fix the issue and restart the gateway, which composes again. You get the same composition validation as the Nitro CLI, integrated into your build step.
+
+# Deploying with Aspire
+
+The same AppHost that drives your dev loop can also drive a release. Instead of composing on your machine, the integration uploads each source schema to Nitro under an immutable tag, then composes and publishes from those exact versions inside your deployment job.
+
+The work is split across two commands, and both are opt-in. They are not attached to `aspire publish` or `aspire deploy`, so nothing contacts Nitro unless you ask for it by name:
+
+| Command                    | Runs in        | What it does                                                                   |
+| -------------------------- | -------------- | ------------------------------------------------------------------------------ |
+| `aspire do fusion-upload`  | Build job      | Produces source artifacts and reconciles each `name@tag` version in Nitro.     |
+| `aspire do fusion-publish` | Deployment job | Downloads those exact versions, composes them, and publishes to a Nitro stage. |
+
+The two jobs never exchange a file. Nitro is the handoff: the build job writes immutable versions, the deployment job reads them back by tag. Both jobs evaluate the same AppHost, so they must run from the same commit.
+
+## Declaring the Publish Target
+
+A publish target describes the Nitro API you publish to, and each stage you are allowed to publish to.
+
+```csharp filename="AppHost/Program.cs"
+var stage = builder.AddParameter("stage");
+var tag = builder.AddParameter("tag");
+var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
+
+var nitro = builder
+    .AddNitroPublishTarget("nitro")
+    .WithNitroCloudUrl("https://api.chillicream.com")
+    .WithNitroApiId("products-fusion")
+    .WithNitroApiKey(nitroApiKey)
+    .WithStageParameter(stage)
+    .WithConfigurationTag(tag);
+
+nitro.AddStage("development")
+    .WithApproval(waitForApproval: false);
+
+nitro.AddStage("production")
+    .WithApproval(waitForApproval: true);
+```
+
+- **`WithStageParameter()`** binds the parameter that selects which stage an invocation publishes to. Every declared stage is allowed; the parameter picks one.
+- **`WithConfigurationTag()`** binds the immutable tag. Use the commit SHA. There is also an overload that takes a literal string.
+- **`AddStage()`** declares one publishable stage. A target with no stages publishes nothing, so declare every stage you intend to use.
+- **`WithApproval()`** makes the publication wait for a human to approve it in Nitro before it commits.
+- **`WithForce()`** permits publication after a known validation failure. Reserve it for an explicit operational policy.
+
+The cloud URL and API id can also come from `Nitro:CloudUrl` and `Nitro:ApiId`, or from the `NITRO_CLOUD_URL` and `NITRO_API_ID` environment variables described in [Continuous Integration and Self-Hosted Nitro](#continuous-integration-and-self-hosted-nitro).
+
+By default a stage composes with an environment named after the stage itself, so a stage called `production` resolves `{{VARIABLE_NAME}}` placeholders against the `production` environment in `schema-settings.json`. Use `WithCompositionEnvironment("Production")` when the environment in the settings file is spelled differently.
+
+## Preparing Sources for Publishing
+
+Publishing composes from artifacts, not from running services, so each source needs a `schema-settings.json` whose `url` points at the address the deployed gateway will call. A loopback address such as `http://localhost:5000/graphql` is rejected, because it cannot be reachable from production. The source name has to be unique and match the `name` property in that file exactly.
+
+You can supply the schema three ways:
+
+- **`WithGraphQLSchemaFile()`** reads a checked-in `schema.graphqls` next to its `schema-settings.json`. The most predictable option for a build job, because nothing has to run.
+- **`WithGraphQLSchemaExport()`** runs `dotnet run -- schema export` on the source project for every upload, reusing the project's `schema-settings.json`. The project has to be set up for that command, which means the `HotChocolate.AspNetCore.CommandLine` package and returning `app.RunWithGraphQLCommandsAsync(args)` from `Program.cs`. See [Command Line](../hotchocolate/server/command-line.md).
+- **`WithGraphQLSchemaEndpoint()`** downloads the schema over HTTP. The endpoint has to be reachable from the build agent and bound to a fixed port, because the publishing pipeline does not start your resources.
+
+The export takes an optional schema name that defaults to the Aspire resource name. Pass it to select a named schema, or when the source name differs from the resource name:
+
+```csharp filename="AppHost/Program.cs"
+var productsApi = builder
+    .AddProject<Projects.Products>("products-api")
+    .WithGraphQLSchemaExport("Products");
+```
+
+## Running the Two Jobs
+
+Both commands read their parameters from the environment. Prefer environment variables over command-line arguments for secrets, because command-line values are visible to other processes on the machine.
+
+**Build job**
+
+```bash
+export Parameters__tag="$GITHUB_SHA"
+export Parameters__nitroApiKey="$NITRO_API_KEY"
+
+aspire do fusion-upload \
+  --apphost ./src/AppHost/AppHost.csproj \
+  --non-interactive
+```
+
+**Deployment job**
+
+```bash
+export Parameters__stage="production"
+export Parameters__tag="$GITHUB_SHA"
+export Parameters__nitroApiKey="$NITRO_API_KEY"
+
+aspire do fusion-publish \
+  --apphost ./src/AppHost/AppHost.csproj \
+  --non-interactive
+```
+
+Parameters can also be forwarded to the AppHost after `--`:
+
+```bash
+aspire do fusion-publish -- \
+  --Parameters:stage=production \
+  --Parameters:tag="$GITHUB_SHA"
+```
+
+Use one tag for the upload and for every stage in the rollout. Promoting a release to a second stage is the deployment job again with a different `Parameters__stage` and the same tag, which is what makes a promotion provably the same configuration.
 
 # Next Steps
 

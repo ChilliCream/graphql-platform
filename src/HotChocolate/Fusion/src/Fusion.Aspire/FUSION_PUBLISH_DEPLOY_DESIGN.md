@@ -86,8 +86,12 @@ and exactly match the name in source settings. Duplicate names fail before any p
 overwritten or any publication can become ambiguous.
 
 Command-line export must validate the expected schema and settings files, not only exit code zero.
-It runs without a launch profile, records the project/configuration/framework/runtime inputs, and
-rejects missing or empty output.
+It is registered and invoked as an Aspire process command, uses the project's normal .NET SDK
+defaults, runs without a launch profile, follows pipeline cancellation, and rejects missing or
+empty output. When its optional schema name is omitted, Hot Chocolate's default schema is exported
+and the expected source name defaults to the Aspire resource name. The isolated export directory
+is seeded with the project's `schema-settings.json` so deployment URLs and environments are
+preserved without writing generated files into the source tree.
 
 ## Identity
 

@@ -80,48 +80,34 @@ public static class GraphQLResourceBuilderExtensions
     }
 
     /// <summary>
-    /// Marks a project resource as exporting a GraphQL schema through the Hot Chocolate
-    /// command-line schema exporter during publishing.
+    /// Marks a project resource as exporting a GraphQL schema through an Aspire-backed Hot
+    /// Chocolate command whenever the integration acquires the source schema.
     /// </summary>
     /// <param name="builder">The project resource builder.</param>
-    /// <param name="schemaName">The exact registered schema name to export.</param>
-    /// <param name="configuration">The build configuration used by <c>dotnet run</c>.</param>
-    /// <param name="targetFramework">The exact target framework used by <c>dotnet run</c>.</param>
-    /// <param name="runtimeIdentifier">
-    /// The runtime identifier used by <c>dotnet run</c>, or <see langword="null"/> for an
-    /// explicitly portable export.
+    /// <param name="schemaName">
+    /// The registered schema name to export. When omitted, Hot Chocolate's default schema is
+    /// exported and its emitted name must match the Aspire resource name.
     /// </param>
-    /// <param name="timeout">The maximum time allowed for the child process.</param>
     /// <returns>The resource builder for chaining.</returns>
     public static IResourceBuilder<ProjectResource> WithGraphQLSchemaExport(
         this IResourceBuilder<ProjectResource> builder,
-        string schemaName,
-        string configuration,
-        string targetFramework,
-        string? runtimeIdentifier,
-        TimeSpan timeout)
+        string? schemaName = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(schemaName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(configuration);
-        ArgumentException.ThrowIfNullOrWhiteSpace(targetFramework);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
+        ArgumentNullException.ThrowIfNull(builder);
 
-        if (runtimeIdentifier is not null)
+        if (schemaName is not null)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(runtimeIdentifier);
+            ArgumentException.ThrowIfNullOrWhiteSpace(schemaName);
         }
 
         builder.WithAnnotation(
             new GraphQLSourceSchemaAnnotation
             {
                 SourceSchemaName = schemaName,
-                ExportSchemaName = schemaName,
-                ExportConfiguration = configuration,
-                ExportTargetFramework = targetFramework,
-                ExportRuntimeIdentifier = runtimeIdentifier,
-                ExportTimeout = timeout,
                 Location = SourceSchemaLocationType.CommandLineExport
             });
+
+        GraphQLSchemaExportCommand.Register(builder, schemaName);
 
         return builder;
     }

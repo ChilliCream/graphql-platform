@@ -12,12 +12,7 @@ public sealed class GraphQLResourceModelTests
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", GetTestProjectFile())
-            .WithGraphQLSchemaExport(
-                "Products",
-                "Release",
-                "net9.0",
-                runtimeIdentifier: null,
-                TimeSpan.FromMinutes(1));
+            .WithGraphQLSchemaExport("Products");
         var unrelated = builder
             .AddProject("unrelated", GetTestProjectFile())
             .WithGraphQLSchemaFile();

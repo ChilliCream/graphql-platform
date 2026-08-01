@@ -12,40 +12,12 @@ adds command-line and endpoint-based schema acquisition for publishing.
 
 **Recommendation: request changes before merging.** The overall design is thoughtful, especially
 the immutable tag model, exact-version preflight, digest checks, bounded downloads, deployment-step
-ordering, and uncertain-state handling. There are, however, three release-blocking behavior issues
+ordering, and uncertain-state handling. There are, however, two release-blocking behavior issues
 and a number of lower-severity correctness, API, and documentation problems.
 
-One of the blockers (the command-line export settings file) means that acquisition mode cannot
-complete a publish at all. The full Aspire test suite is green, which is misleading: every blocker
-below sits on a path that no test exercises.
+The full Aspire test suite is green, but both blockers below sit on paths that no test exercises.
 
 ## Findings
-
-### P1: Command-line schema export always writes a throwaway settings file with a loopback URL
-
-Location:
-[CommandLineSchemaExporter.cs](../src/HotChocolate/Fusion/src/Fusion.Aspire/CommandLineSchemaExporter.cs#L50-L51)
-
-The exporter points `--output` at `<fresh temp dir>/schema.graphqls`. `SchemaFileExporter` derives
-the settings path from that
-([SchemaFileExporter.cs](../src/HotChocolate/Core/src/Types/Execution/Internal/SchemaFileExporter.cs#L46-L135))
-and only updates a settings file that already exists there. The export directory is always fresh:
-`FusionPipelineExecutor.cs:741` builds it under the temporary directory and deletes it at `:756`,
-and `SchemaComposition.cs` uses a per-run directory. The exporter therefore always falls through to
-`CreateNewSettingsFile`, which writes the hardcoded template
-`{ "name": ..., "transports": { "http": { "url": "http://localhost:5000/graphql" } } }`. The
-project's own committed `schema-settings.json`, with real URLs and its `environments` block, is
-never read.
-
-Failure scenario: declare a source with `WithGraphQLSchemaExport(...)` and run
-`aspire do fusion-upload`. `FusionPipelineExecutor` resolves those settings per stage and calls
-`RejectLoopbackEndpoint` (`:1338`), which throws "Fusion deployment settings must not contain a
-loopback production endpoint." This is deterministic for every command-line-exported source.
-`WithCompositionEnvironment` also has nothing to resolve, because the generated settings carry no
-`environments` block.
-
-Note that the endpoint-acquisition path does read the project's `schema-settings.json` before
-exporting. The command-line export path does not.
 
 ### P1: A claimed deployment slot leaks on every failure path but one
 
@@ -137,42 +109,6 @@ null and `GetValueAsync` falls through to the eager `_lazyValue`, which throws
 `MissingParameterValueException` for any parameter without a configured value. An AppHost whose
 `nitroApiKey`, `tag`, or `stage` parameters are supplied interactively fails at pipeline start
 instead of being prompted. These steps should depend on `WellKnownPipelineSteps.ProcessParameters`.
-
-### P2: The export timeout does not bound the whole operation
-
-Location:
-[CommandLineSchemaExporter.cs](../src/HotChocolate/Fusion/src/Fusion.Aspire/CommandLineSchemaExporter.cs#L219)
-
-`WaitForExitAsync` uses `linkedSource.Token` (timeout plus caller token), but the following
-`await Task.WhenAll(stdout, stderr)` uses `outputSource`, which is only cancelled inside
-`TerminateProcessAsync`, never on the success path. The `finally` also skips termination once
-`HasExited` is true.
-
-Failure scenario: `dotnet run` exits 0, but a descendant that inherited the stdout/stderr pipe
-write-end is still alive (an MSBuild node-reuse worker, or anything the app spawned). The reads
-never see EOF and `ExportAsync` blocks indefinitely past `ExportTimeout`, stalling the
-`BeforeResourceStartedEvent` handler or the publish pipeline step.
-
-### P2: A failed export captures child output at cost and then discards it
-
-Location:
-[CommandLineSchemaExporter.cs](../src/HotChocolate/Fusion/src/Fusion.Aspire/CommandLineSchemaExporter.cs#L69-L75)
-
-`RunProcessAsync` retains up to 32 KB of stdout, and `ExportAsync` throws "...exited with code {n}.
-Child-process output was suppressed..." without ever using `processResult.StandardOutput`. When the
-user's schema fails to build, the Aspire user sees only an exit code and must reproduce the exact
-command by hand. The stdout of `dotnet run -- schema export` is CLI and build diagnostics, not
-secrets, and stderr is already deliberately count-only.
-
-### P2: The export environment allow-list omits variables the .NET CLI needs on Windows
-
-Location:
-[CommandLineSchemaExporter.cs](../src/HotChocolate/Fusion/src/Fusion.Aspire/CommandLineSchemaExporter.cs#L239-L289)
-
-`APPDATA`, `ProgramFiles`, `ProgramFiles(x86)`, `ProgramData`, `PATHEXT`, `COMSPEC`, and `windir`
-are all dropped. On Windows the implicit restore in `dotnet run` cannot find
-`%APPDATA%\NuGet\NuGet.Config`, so a project restoring from an authenticated private feed fails.
-Combined with the discarded child output above, the user sees only "exited with code 1".
 
 ### P2: The request id needed to recover from a stranded claim never reaches the operator
 
@@ -276,10 +212,8 @@ blocker above lives in an untested gap.
   `Assert.Collection`. A regression anywhere in the chain surfaces as one opaque failure.
 - Missing `// arrange` / `// act` / `// assert` markers across most new test files, including
   `FusionPipelineTests.cs` (inconsistent within the file itself: roughly 6 methods have them and 16
-  do not), `NitroFusionApiTests.cs`, `CommandLineSchemaExporterTests.cs`,
+  do not), `NitroFusionApiTests.cs`, `GraphQLSchemaExportCommandTests.cs`,
   `GraphQLResourceModelTests.cs`, and `GraphQLResourceBuilderExtensionsTests.cs`.
-- [CommandLineSchemaExporterTests.cs](../src/HotChocolate/Fusion/test/Fusion.Aspire.Tests/CommandLineSchemaExporterTests.cs#L176):
-  `ValidateArtifactsAsync_Should_AcceptExactNameAndValidSchema` asserts nothing at all.
 
 **Portability and flakiness:**
 
@@ -292,15 +226,15 @@ and rollback half of the deployment state machine (claim failure, validate failu
 operation timeout, release itself failing, `PublishingFailed` after commit);
 `ReplaceDirectoryAtomically`'s rollback path; `VerifyReadinessAsync` rejecting a loopback endpoint
 from a composed archive or clearing the session when readiness fails; `PublishAsync` failing on the
-second of multiple targets after the first has committed; and, in the exporter, the timeout branch,
-the incomplete-declaration guard, the non-zero-exit message, and the missing-artifact branch.
+second of multiple targets after the first has committed; and an end-to-end invocation of the
+Aspire-backed exporter, including the incomplete-declaration and missing-artifact branches.
 
 ## Documentation placement
 
 Three markdown files were added under `src/HotChocolate/Fusion/src/Fusion.Aspire/`, roughly 1,200
-lines in total, and `git diff origin/main...HEAD -- website/` is **empty**. The entire publish and
-deploy feature ships with no changes to `website/content/docs/fusion/`, so the only user-facing
-description of `fusion-upload` and `fusion-publish` lives inside a NuGet package's source folder.
+lines in total. The working tree now also documents `fusion-upload`, `fusion-publish`, all three
+schema acquisition modes, and the Aspire-backed export command in
+`website/content/docs/fusion/aspire-integration.md`.
 
 - `ASPIRE_PUBLISH_AND_DEPLOY.md` (637 lines) is a dated third-party research report. It opens with
   "Research date: 2026-07-30. Version reviewed: Aspire 13.4.6" and closes with a "Primary official
@@ -312,16 +246,16 @@ description of `fusion-upload` and `fusion-publish` lives inside a NuGet package
   ending in a verification matrix of acceptance criteria. It documents target selection by
   "environment" in places where the implementation selects by **stage** via `WithStageParameter` and
   `Parameters__stage`, while its own AppHost sample already uses `AddStage`.
-- `FUSION_PUBLISHING.md` (204 lines) is the only user-facing document, and it is accurate.
+- `FUSION_PUBLISHING.md` (204 lines) is the concise source-level companion document.
   `AddNitroPublishTarget`, `WithNitroCloudUrl`, `WithNitroApiKey`, `WithStageParameter`,
   `WithConfigurationTag`, `AddStage`, `WithApproval`, `WithForce`, and `WithCompositionEnvironment`
   all exist in `NitroExtensions.cs`; the step names match `FusionPipeline.cs:14-20`; and the
   128,000,000-byte per-source limit matches `FusionPipelineMemoryLimits.cs`.
 
-The two documents also duplicate the AppHost sample, pipeline graph, CI YAML, and retry rules almost
-verbatim, with only the design document's copy stale. Recommendation: promote `FUSION_PUBLISHING.md`
-into `website/content/docs/fusion/` and delete or relocate the other two, subject to the credential
-correction above.
+The two source documents also duplicate the AppHost sample, pipeline graph, CI YAML, and retry rules
+almost verbatim, with only the design document's copy stale. Recommendation: retain the website
+guide as the user-facing source of truth and delete or relocate the dated research report and design
+plan, subject to the credential correction above.
 
 ## What the new integration does
 
@@ -392,12 +326,7 @@ var products = builder
 
 var reviews = builder
     .AddProject<Projects.Reviews>("reviews")
-    .WithGraphQLSchemaExport(
-        schemaName: "reviews",
-        configuration: "Release",
-        targetFramework: "net10.0",
-        runtimeIdentifier: null,
-        timeout: TimeSpan.FromMinutes(5));
+    .WithGraphQLSchemaExport("reviews");
 
 var inventory = builder
     .AddProject<Projects.Inventory>("inventory")
@@ -427,12 +356,13 @@ schema-extensions.graphqls   # optional
 The effective source name must be unique, safe as a portable path segment, and exactly match the
 `name` property in `schema-settings.json` with the current implementation.
 
-The command-line export runs the source project with `dotnet run`, an exact configuration and
-target framework, no launch profile, and a small environment allowlist. Projects whose schema
-startup requires arbitrary environment variables should either make schema export independent of
-those values or use checked-in schema artifacts. With the code as reviewed, this acquisition mode
-cannot complete a publish because the generated settings file always carries a loopback URL; see the
-findings above.
+The schema export is registered as a hidden Aspire process command and invoked through Aspire's
+resource-command service. It runs the source project with `dotnet run`, uses the project's normal
+.NET SDK defaults, runs without a launch profile, and follows pipeline cancellation. When the
+optional schema name is omitted, Hot Chocolate exports its default schema and the expected source
+name defaults to the Aspire resource name. The project's `schema-settings.json` is copied into the
+isolated export directory first, so Hot Chocolate preserves its deployment URLs and environment
+blocks while updating the schema name.
 
 Endpoint acquisition reads `schema-settings.json` from the source project and downloads the schema
 using the configured native or Apollo Federation protocol. The endpoint must already be reachable
@@ -559,11 +489,11 @@ than canceling an in-flight writer whose remote state may be indeterminate.
 
 | Check                                                               | Result                         |
 | ------------------------------------------------------------------- | ------------------------------ |
-| `git diff --check origin/main...HEAD`                               | Passed                         |
+| `git diff --check origin/main`                                      | Passed                         |
 | `dotnet build src/HotChocolate/Fusion/HotChocolate.Fusion.slnx`     | Passed, no new warnings        |
 | Nitro persisted-operation verification                              | Passed, 13 operations verified |
-| Fusion Aspire tests, Debug, .NET 9/10/11                            | Passed, 1,167 executions       |
-| Fusion Aspire tests, Release persisted-operation mode, .NET 9/10/11 | Passed, 1,122 executions       |
+| Fusion Aspire tests, Debug, .NET 9/10/11                            | Passed, 1,161 executions       |
+| Fusion Aspire tests, Release persisted-operation mode, .NET 9/10/11 | Passed, 1,116 executions       |
 | Fusion packaging project diff against `origin/main`                 | No changes                     |
 
 Step scheduling was checked against the declared step graph in this branch and against decompiled
@@ -587,6 +517,21 @@ are recorded here so they are not re-reported.
 - **Endpoint acquisition was rejected by the publish pipeline.**
   `SourceSchemaLocationType.SchemaEndpoint` is now handled in the artifact path
   (`FusionPipelineExecutor.cs:889`) via the new `SchemaEndpointSchemaFetcher`.
+- **Command-line export generated loopback-only settings in its fresh output directory.** The
+  Aspire-backed export now copies the project's `schema-settings.json` into the isolated directory
+  before running Hot Chocolate, preserving deployment URLs and environment blocks without changing
+  the source tree.
+- **Command-line export manually managed child processes, output pipes, environment allow-lists,
+  and its own timeout.** It is now a hidden Aspire process command invoked through
+  `ResourceCommandService`, so Aspire owns process cleanup and logging and pipeline cancellation
+  controls the command. The AppHost no longer specifies configuration, target framework, runtime
+  identifier, or timeout.
+- **`WithGraphQLSchemaExport` required five arguments.** Its only argument is now the optional
+  schema name. When omitted, the export command selects Hot Chocolate's default schema and the
+  expected source name defaults to the Aspire resource name.
+- **The publishing feature had no website documentation.**
+  `website/content/docs/fusion/aspire-integration.md` now covers release publishing and the fresh
+  schema export workflow.
 
 ## Recommended follow-up coverage
 

@@ -68,7 +68,12 @@ The artifact step supports all three schema declarations:
 
 - `WithGraphQLSchemaFile` reads the checked-in schema, settings, and optional extensions next to
   the project.
-- `WithGraphQLSchemaExport` runs the explicit Hot Chocolate command-line exporter.
+- `WithGraphQLSchemaExport` registers an Aspire process command that runs the Hot Chocolate
+  command-line exporter. When its optional schema name is omitted, Hot Chocolate's default schema
+  is exported and the expected source name defaults to the Aspire resource name. The command uses
+  the project's normal .NET SDK defaults, runs without a launch profile, and follows pipeline
+  cancellation. It seeds the isolated export directory with the project's
+  `schema-settings.json`, preserving its deployment URLs and environments.
 - `WithGraphQLSchemaEndpoint` downloads the schema from the declared endpoint and reads
   `schema-settings.json` from the source project. The endpoint must already be reachable from the
   artifact runner because the publishing pipeline does not start source resources. Configure a
