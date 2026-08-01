@@ -183,7 +183,7 @@ fragment SchemaChangeSummary on SchemaChangeLogEntry {
   }
 }
 
-fragment SchemaChangeDetail on SchemaChangeLogEntry {
+fragment SchemaChangeDetail on SchemaChange {
   ...SchemaChangeLeaf
   ... on InputFieldChanged {
     changes {
@@ -212,8 +212,9 @@ fragment SchemaChangeDetail on SchemaChangeLogEntry {
   }
 }
 
-fragment SchemaChangeLeaf on SchemaChangeLogEntry {
-  ...SchemaChangeSummary
+fragment SchemaChangeLeaf on SchemaChange {
+  __typename
+  severity
   ... on InterfaceImplementationAdded {
     interfaceName
   }

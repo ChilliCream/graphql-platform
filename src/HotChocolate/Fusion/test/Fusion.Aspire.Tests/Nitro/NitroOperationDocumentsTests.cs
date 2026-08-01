@@ -24,7 +24,7 @@ public sealed class NitroOperationDocumentsTests
             },
             {
                 NitroOperationDocuments.WatchSchemaValidationOperationName,
-                "46d75ecdeb81c4a4552e69e43fbadced452774cb897c1f53da8d8b6712cf8b03"
+                "22190a0146ff00a9719826ea025019ea279b61a1be0d88b0b21015acd1f88dc4"
             },
             {
                 NitroOperationDocuments.GetStageVersionOperationName,
@@ -112,6 +112,26 @@ public sealed class NitroOperationDocumentsTests
 
         // assert
         Assert.Contains(expectedDeclaration, document, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetWatchSchemaValidationDocument_Should_RequestNestedSchemaChangeDetails()
+    {
+        // act
+        var document = NitroOperationDocuments.GetWatchSchemaValidationDocument();
+
+        // assert
+        // the fragments must be defined and actually spread into the selections
+        Assert.Contains(
+            "fragment SchemaChangeDetail on SchemaChange",
+            document,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "fragment SchemaChangeLeaf on SchemaChange",
+            document,
+            StringComparison.Ordinal);
+        Assert.Contains("...SchemaChangeDetail", document, StringComparison.Ordinal);
+        Assert.Contains("...SchemaChangeLeaf", document, StringComparison.Ordinal);
     }
 
     [Theory]

@@ -111,23 +111,25 @@ internal static class NitroSchemaValidationFormatter
         string indent,
         NitroSchemaValidationFinding finding)
     {
-        builder.Append(indent)
-            .Append("- ")
-            .Append(finding.Message);
+        builder.Append(indent);
+
+        for (var level = 0; level < finding.Depth; level++)
+        {
+            builder.Append("  ");
+        }
+
+        builder.Append("- ");
+
+        if (finding.Severity is not null)
+        {
+            builder.Append(SeverityMarker(finding.Severity)).Append(' ');
+        }
+
+        builder.Append(finding.Message);
 
         if (finding.Code is not null)
         {
             builder.Append(" [code: ").Append(finding.Code).Append(']');
-        }
-
-        if (finding.Severity is not null)
-        {
-            builder.Append(" [severity: ").Append(finding.Severity).Append(']');
-        }
-
-        if (finding.Coordinate is not null)
-        {
-            builder.Append(" [coordinate: ").Append(finding.Coordinate).Append(']');
         }
 
         if (finding.Path is not null)
@@ -146,4 +148,13 @@ internal static class NitroSchemaValidationFormatter
 
         builder.AppendLine();
     }
+
+    private static string SeverityMarker(string severity)
+        => severity switch
+        {
+            "BREAKING" => "✕",
+            "DANGEROUS" => "!",
+            "SAFE" => "✓",
+            _ => $"[{severity}]"
+        };
 }

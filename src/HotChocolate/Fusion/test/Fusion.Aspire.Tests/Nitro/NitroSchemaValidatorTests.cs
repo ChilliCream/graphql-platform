@@ -193,7 +193,7 @@ public sealed class NitroSchemaValidatorTests
         Assert.Equal(
             "Violations|more=True|clients=client-fallback/unknown>"
                 + "operation-fallback[production]>"
-                + "Client contract violations>PersistedQueryValidationError|-|-|-|-:-|-|"
+                + "Client contract violations>PersistedQueryValidationError|-|-|-|-:-|-|d0|"
                 + "The operation no longer validates."
                 + "|findings=-",
             DescribeViolations(report));
@@ -361,7 +361,7 @@ public sealed class NitroSchemaValidatorTests
         // assert
         Assert.Equal(
             "Violations|more=False|clients=-|findings=Schema syntax errors>"
-                + "SchemaVersionSyntaxError|-|-|-|7:9|-|Unexpected token.",
+                + "SchemaVersionSyntaxError|-|-|-|7:9|-|d0|Unexpected token.",
             DescribeViolations(report));
     }
 
@@ -491,7 +491,7 @@ public sealed class NitroSchemaValidatorTests
                 """,
                 "Violations|more=False|clients=client-1/Web>operation-1[production]>"
                     + "Client contract violations>PersistedQueryValidationError|HC001|-|"
-                    + "query.product|2:3|-|Unknown field."
+                    + "query.product|2:3|-|d0|Unknown field."
                     + "|findings=-"
             },
             {
@@ -539,9 +539,16 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Schema change violations>"
-                    + "FieldRemovedChange|-|Product.name|-|-:-|BREAKING|Field was removed.,"
-                    + "Schema change violations>TypeChanged|-|Query.product|-|-:-|BREAKING|"
-                    + "Type changed from 'Product' to 'Product!'."
+                    + "ObjectModifiedChange|-|Product|-|-:-|BREAKING|d0|"
+                    + "Object type Product was modified.,"
+                    + "Schema change violations>FieldRemovedChange|-|Product.name|-|-:-|BREAKING|d1|"
+                    + "Field Product.name of type Product was removed.,"
+                    + "Schema change violations>ObjectModifiedChange|-|Query|-|-:-|BREAKING|d0|"
+                    + "Object type Query was modified.,"
+                    + "Schema change violations>OutputFieldChanged|-|Query.product|-|-:-|BREAKING|d1|"
+                    + "Field Query.product was modified.,"
+                    + "Schema change violations>TypeChanged|-|Query.product|-|-:-|BREAKING|d2|"
+                    + "Type changed from Product to Product!."
             },
             {
                 """
@@ -557,7 +564,7 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Invalid GraphQL schema>"
-                    + "InvalidGraphQLSchemaError|HC002|-|-|-:-|-|Type Query is missing."
+                    + "InvalidGraphQLSchemaError|HC002|-|-|-:-|-|d0|Type Query is missing."
             },
             {
                 """
@@ -592,7 +599,7 @@ public sealed class NitroSchemaValidatorTests
                 """,
                 "Violations|more=False|clients=-|findings=OpenAPI>"
                     + "OpenApiCollectionValidationDocumentError|OA001|-|paths./products|10:5|"
-                    + "openapi-1|GET /products|Store API, GET /products: The endpoint is missing."
+                    + "openapi-1|GET /products|d0|Store API, GET /products: The endpoint is missing."
             },
             {
                 """
@@ -626,7 +633,7 @@ public sealed class NitroSchemaValidatorTests
                 """,
                 "Violations|more=False|clients=-|findings=MCP>"
                     + "McpFeatureCollectionValidationDocumentError|MCP001|-|tools.findProduct|4:2|"
-                    + "mcp-1|findProduct|Store tools, findProduct: The tool is invalid."
+                    + "mcp-1|findProduct|d0|Store tools, findProduct: The tool is invalid."
             },
             {
                 """
@@ -639,7 +646,7 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Schema syntax errors>"
-                    + "SchemaVersionSyntaxError|-|-|-|7:9|-|Unexpected token."
+                    + "SchemaVersionSyntaxError|-|-|-|7:9|-|d0|Unexpected token."
             },
             {
                 """
@@ -650,7 +657,7 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Operation policy errors>"
-                    + "OperationsAreNotAllowedError|-|-|-|-:-|ForbiddenOperation|"
+                    + "OperationsAreNotAllowedError|-|-|-|-:-|ForbiddenOperation|d0|"
                     + "Operations are forbidden."
             },
             {
@@ -661,7 +668,7 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Processing errors>"
-                    + "ProcessingTimeoutError|-|-|-|-:-|-|Processing timed out."
+                    + "ProcessingTimeoutError|-|-|-|-:-|-|d0|Processing timed out."
             },
             {
                 """
@@ -671,7 +678,36 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Processing errors>"
-                    + "ReadyTimeoutError|-|-|-|-:-|-|The task did not become ready."
+                    + "ReadyTimeoutError|-|-|-|-:-|-|d0|The task did not become ready."
+            },
+            {
+                """
+                {
+                  "__typename": "SchemaVersionChangeViolationError",
+                  "message": "Non-breaking schema changes.",
+                  "changes": [
+                    {
+                      "__typename": "ObjectModifiedChange",
+                      "severity": "SAFE",
+                      "coordinate": "Product",
+                      "changes": [
+                        {
+                          "__typename": "FieldAddedChange",
+                          "severity": "SAFE",
+                          "coordinate": "Product.price",
+                          "typeName": "Product",
+                          "fieldName": "price"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """,
+                "Violations|more=False|clients=-|findings=Schema change violations>"
+                    + "ObjectModifiedChange|-|Product|-|-:-|SAFE|d0|"
+                    + "Object type Product was modified.,"
+                    + "Schema change violations>FieldAddedChange|-|Product.price|-|-:-|SAFE|d1|"
+                    + "Field Product.price of type Product was added."
             },
             {
                 """
@@ -681,7 +717,7 @@ public sealed class NitroSchemaValidatorTests
                 }
                 """,
                 "Violations|more=False|clients=-|findings=Processing errors>"
-                    + "UnexpectedProcessingError|-|-|-|-:-|-|Processing failed unexpectedly."
+                    + "UnexpectedProcessingError|-|-|-|-:-|-|d0|Processing failed unexpectedly."
             }
         };
 
@@ -755,7 +791,8 @@ public sealed class NitroSchemaValidatorTests
     private static string DescribeFinding(NitroSchemaValidationFinding finding)
         => $"{finding.Group}>{finding.Kind}|{finding.Code ?? "-"}|{finding.Coordinate ?? "-"}|"
             + $"{finding.Path ?? "-"}|{finding.Line?.ToString() ?? "-"}:"
-            + $"{finding.Column?.ToString() ?? "-"}|{finding.Identity ?? "-"}|{finding.Message}";
+            + $"{finding.Column?.ToString() ?? "-"}|{finding.Identity ?? "-"}|d{finding.Depth}|"
+            + finding.Message;
 
     private static string DescribeUnavailable(
         NitroSchemaValidationReport report,
