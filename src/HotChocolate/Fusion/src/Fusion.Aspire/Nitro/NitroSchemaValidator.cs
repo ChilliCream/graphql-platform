@@ -596,7 +596,7 @@ internal sealed class NitroSchemaValidator(
 
         foreach (var change in changes.EnumerateArray())
         {
-            ParseSchemaChange(change, findings, null, ref findingCount);
+            ParseSchemaChange(change, findings, null, 0, ref findingCount);
         }
     }
 
@@ -604,6 +604,7 @@ internal sealed class NitroSchemaValidator(
         JsonElement change,
         List<NitroSchemaValidationFinding> findings,
         string? parentCoordinate,
+        int depth,
         ref int findingCount)
     {
         if (findingCount >= MaxParsedFindings)
@@ -613,22 +614,6 @@ internal sealed class NitroSchemaValidator(
         }
 
         var coordinate = GetString(change, "coordinate") ?? parentCoordinate;
-        if (change.TryGetProperty("changes", out var nestedChanges)
-            && nestedChanges.ValueKind is JsonValueKind.Array
-            && nestedChanges.GetArrayLength() > 0)
-        {
-            foreach (var nestedChange in nestedChanges.EnumerateArray())
-            {
-                ParseSchemaChange(
-                    nestedChange,
-                    findings,
-                    coordinate,
-                    ref findingCount);
-            }
-
-            return;
-        }
-
         var typeName = GetString(change, "__typename") ?? "SchemaChange";
         var severity = GetString(change, "severity");
         findings.Add(
@@ -638,66 +623,90 @@ internal sealed class NitroSchemaValidator(
                 DescribeSchemaChange(change, typeName),
                 Coordinate: coordinate,
                 Identity: severity,
-                Severity: severity));
+                Severity: severity,
+                Depth: depth));
         findingCount++;
+
+        if (change.TryGetProperty("changes", out var nestedChanges)
+            && nestedChanges.ValueKind is JsonValueKind.Array)
+        {
+            foreach (var nestedChange in nestedChanges.EnumerateArray())
+            {
+                ParseSchemaChange(
+                    nestedChange,
+                    findings,
+                    coordinate,
+                    depth + 1,
+                    ref findingCount);
+            }
+        }
     }
 
     private static string DescribeSchemaChange(JsonElement change, string typeName)
         => typeName switch
         {
-            "TypeSystemMemberAddedChange" => "Type system member was added.",
-            "TypeSystemMemberRemovedChange" => "Type system member was removed.",
-            "FieldAddedChange" => "Field was added.",
-            "FieldRemovedChange" => "Field was removed.",
-            "InputFieldChanged" => "Input field was changed.",
-            "OutputFieldChanged" => "Output field was changed.",
+            "TypeSystemMemberAddedChange" =>
+                $"Type system member {Coordinate(change)} was added.",
+            "TypeSystemMemberRemovedChange" =>
+                $"Type system member {Coordinate(change)} was removed.",
+            "TypeSystemMemberModifiedChange" =>
+                $"Type system member {Coordinate(change)} was modified.",
+            "ObjectModifiedChange" => $"Object type {Coordinate(change)} was modified.",
+            "InputObjectModifiedChange" =>
+                $"Input object type {Coordinate(change)} was modified.",
+            "InterfaceModifiedChange" => $"Interface type {Coordinate(change)} was modified.",
+            "UnionModifiedChange" => $"Union {Coordinate(change)} was modified.",
+            "EnumModifiedChange" => $"Enum {Coordinate(change)} was modified.",
+            "ScalarModifiedChange" => $"Scalar {Coordinate(change)} was modified.",
+            "DirectiveModifiedChange" => $"Directive {Coordinate(change)} was modified.",
+            "FieldAddedChange" =>
+                $"Field {Coordinate(change)} of type {Name(change, "typeName")} was added.",
+            "FieldRemovedChange" =>
+                $"Field {Coordinate(change)} of type {Name(change, "typeName")} was removed.",
+            "InputFieldChanged" or "OutputFieldChanged" =>
+                $"Field {Coordinate(change)} was modified.",
+            "ArgumentAdded" => $"The argument {Coordinate(change)} was added.",
+            "ArgumentRemoved" => $"The argument {Coordinate(change)} was removed.",
+            "ArgumentChanged" => $"The argument {Coordinate(change)} has changed.",
             "InterfaceImplementationAdded" =>
-                $"Interface '{GetString(change, "interfaceName") ?? "unknown"}' was implemented.",
+                $"Interface implementation {Name(change, "interfaceName")} was added.",
             "InterfaceImplementationRemoved" =>
-                $"Interface '{GetString(change, "interfaceName") ?? "unknown"}' was removed.",
-            "PossibleTypeAdded" =>
-                $"Possible type '{GetString(change, "typeName") ?? "unknown"}' was added.",
-            "PossibleTypeRemoved" =>
-                $"Possible type '{GetString(change, "typeName") ?? "unknown"}' was removed.",
-            "UnionMemberAdded" =>
-                $"Union member '{GetString(change, "typeName") ?? "unknown"}' was added.",
+                $"Interface implementation {Name(change, "interfaceName")} was removed.",
+            "PossibleTypeAdded" => $"Possible type {Name(change, "typeName")} was added.",
+            "PossibleTypeRemoved" => $"Possible type {Name(change, "typeName")} was removed.",
+            "UnionMemberAdded" => $"Type {Name(change, "typeName")} was added to the union.",
             "UnionMemberRemoved" =>
-                $"Union member '{GetString(change, "typeName") ?? "unknown"}' was removed.",
-            "ArgumentAdded" => DescribeArgumentChange(change, "added"),
-            "ArgumentRemoved" => DescribeArgumentChange(change, "removed"),
-            "ArgumentChanged" => DescribeArgumentChange(change, "changed"),
+                $"Type {Name(change, "typeName")} was removed from the union.",
             "DirectiveLocationAdded" =>
-                $"Directive location '{GetString(change, "location") ?? "unknown"}' was added.",
+                $"Directive location {Name(change, "location")} was added.",
             "DirectiveLocationRemoved" =>
-                $"Directive location '{GetString(change, "location") ?? "unknown"}' was removed.",
-            "EnumValueAdded" => "Enum value was added.",
-            "EnumValueRemoved" => "Enum value was removed.",
-            "EnumValueChanged" => "Enum value was changed.",
-            "DescriptionChanged" => "Description was changed.",
+                $"Directive location {Name(change, "location")} was removed.",
+            "EnumValueAdded" => $"Enum value {Coordinate(change)} was added.",
+            "EnumValueRemoved" => $"Enum value {Coordinate(change)} was removed.",
+            "EnumValueChanged" => $"Enum value {Coordinate(change)} was modified.",
+            "DescriptionChanged" => DescribeDescriptionChange(change),
             "DeprecatedChange" => GetString(change, "deprecationReason") is { } reason
-                ? $"Deprecation changed to '{reason}'."
-                : "Deprecation was removed.",
-            "TypeChanged" => DescribeTypeChange(change),
-            _ => $"{typeName} was detected."
+                ? $"The member was deprecated with the reason '{reason}'."
+                : "The member was deprecated.",
+            "TypeChanged" =>
+                $"Type changed from {Name(change, "oldType")} to {Name(change, "newType")}.",
+            _ => $"Unknown change '{typeName}' was detected."
         };
 
-    private static string DescribeArgumentChange(JsonElement change, string action)
-    {
-        var name = GetString(change, "name") ?? "unknown";
-        var type = GetString(change, "typeName");
+    private static string DescribeDescriptionChange(JsonElement change)
+        => (GetString(change, "old"), GetString(change, "new")) switch
+        {
+            ({ } old, { } @new) => $"Description changed from '{old}' to '{@new}'.",
+            (null, { } @new) => $"Description added: '{@new}'.",
+            ({ } old, null) => $"Description removed: '{old}'.",
+            _ => "Description was changed."
+        };
 
-        return type is null
-            ? $"Argument '{name}' was {action}."
-            : $"Argument '{name}' of type '{type}' was {action}.";
-    }
+    private static string Coordinate(JsonElement change)
+        => GetString(change, "coordinate") ?? "unknown";
 
-    private static string DescribeTypeChange(JsonElement change)
-    {
-        var oldType = GetString(change, "oldType") ?? "unknown";
-        var newType = GetString(change, "newType") ?? "unknown";
-
-        return $"Type changed from '{oldType}' to '{newType}'.";
-    }
+    private static string Name(JsonElement change, string propertyName)
+        => GetString(change, propertyName) ?? "unknown";
 
     private static void ParseNestedErrors(
         JsonElement error,
