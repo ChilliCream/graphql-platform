@@ -1,5 +1,7 @@
 using System.Text;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
+using HotChocolate.Language;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -299,6 +301,57 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
+    public async Task ApiNotFound_WithArchive_ReturnsError()
+    {
+        SetupArchiveFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_WithArchive_ReturnsError()
+    {
+        SetupArchiveFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_WithArchive_ReturnsError()
+    {
+        SetupArchiveFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithArchive_ValidateSchemaVersionThrows_ReturnsError()
     {
         // arrange
@@ -456,6 +509,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
@@ -490,6 +544,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -561,6 +616,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -601,6 +657,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -638,6 +695,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -678,6 +736,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -718,6 +777,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
 
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
@@ -751,6 +811,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation(error);
 
@@ -780,10 +841,71 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
+    public async Task ApiNotFound_WithSourceSchema_ReturnsError()
+    {
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownload();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
+            "--source-schema-file", SourceSchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_WithSourceSchema_ReturnsError()
+    {
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownload();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
+            "--source-schema-file", SourceSchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_WithSourceSchema_ReturnsError()
+    {
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownload();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
+            "--source-schema-file", SourceSchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_ValidateSchemaVersionThrows_ReturnsError()
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutationException();
 
@@ -820,6 +942,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription(
@@ -883,6 +1006,191 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_NullStageCompositionSettings_ArchiveSettingsPreserved()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "tag1"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Ignore",
+                "enableGlobalObjectIdentification": false,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              }
+            }
+            """);
+        var capturedStream = SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        AssertSchemaUploadWithArchiveSettingsPreserved(capturedStream);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_PartialStageCompositionSettings_OnlyOverridesProvidedSettings()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                ExcludeByTag = ["tag2"],
+                TagMergeBehavior = CompositionDirectiveMergeBehavior.IncludePrivate
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "tag1"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Ignore",
+                "enableGlobalObjectIdentification": false,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              }
+            }
+            """);
+        var capturedStream = SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        AssertSchemaUploadWithPartialStageSettings(capturedStream);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to download the composition settings from stage 'dev': Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to download the composition settings from stage 'dev'.
+            └── ✕ Failed to validate the Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        var capturedStream = SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! Failed to download the composition settings from stage 'dev': If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        AssertSchemaUploadAfterCompose(capturedStream);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_ConfigurationDownloadThrows_ReturnsError()
     {
         // arrange
@@ -920,6 +1228,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFileWithInvalidSchema();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
 
         // act
@@ -1719,16 +2028,50 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
     }
 
+    private static void AssertSchemaUploadWithArchiveSettingsPreserved(MemoryStream stream)
+    {
+        GetQueryType(stream).ToString().MatchInlineSnapshot(
+            """
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
+              cachedField: String @fusion__field(schema: REVIEWS)
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
+              tag2Field: String @fusion__field(schema: REVIEWS)
+            }
+            """);
+    }
+
+    private static void AssertSchemaUploadWithPartialStageSettings(MemoryStream stream)
+    {
+        GetQueryType(stream).ToString().MatchInlineSnapshot(
+            """
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
+              cachedField: String @fusion__field(schema: REVIEWS)
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
+              tag1Field: String @fusion__field(schema: REVIEWS)
+            }
+            """);
+    }
+
+    private static ObjectTypeDefinitionNode GetQueryType(MemoryStream stream)
+    {
+        var schema = Utf8GraphQLParser.Parse(Encoding.UTF8.GetString(stream.ToArray()));
+
+        return schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>()
+            .Single(type => type.Name.Value == "Query");
+    }
+
     #region Error Theory Data
 
     public static TheoryData<
         IValidateSchemaVersion_ValidateSchema_Errors,
         string> GetValidateSchemaVersionErrors() => new()
     {
-        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." },
-        { CreateValidateSchemaVersionApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreateValidateSchemaVersionStageNotFoundError(), $"Stage '{Stage}' was not found." },
-        { CreateValidateSchemaVersionSchemaNotFoundError(), "Schema not found." }
+        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." }
     };
 
     #endregion

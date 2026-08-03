@@ -199,6 +199,8 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
         result.StdErr.MatchInlineSnapshot(
             """
             Client not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         result.StdOut.MatchInlineSnapshot(
             """

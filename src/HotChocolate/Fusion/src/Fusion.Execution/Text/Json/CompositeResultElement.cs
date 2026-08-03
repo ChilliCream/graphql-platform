@@ -454,6 +454,16 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        string propertyName,
+        ref PropertyLookupMemo memo,
+        out CompositeResultElement value)
+    {
+        ArgumentNullException.ThrowIfNull(propertyName);
+
+        return _parent.TryGetNamedPropertyValue(_cursor, propertyName, ref memo, out value);
+    }
+
     /// <summary>
     /// Attempts to get a property by UTF-8 encoded name when the current element is an object.
     /// </summary>
@@ -1001,12 +1011,17 @@ public readonly partial struct CompositeResultElement
     }
 
     internal void SetObjectValue(SelectionSet selectionSet)
+        => SetObjectValue(selectionSet, out _);
+
+    internal void SetObjectValue(
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
+        var obj = _parent.CreateObject(_cursor, selectionSet, out objectContext);
         _parent.AssignCompositeValue(this, obj);
     }
 
@@ -1025,6 +1040,13 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         _parent.AssignSourceValue(this, source);
+    }
+
+    internal void SetLeafValue(SourceResultElementSnapshot source)
+    {
+        CheckValidInstance();
+
+        _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
     }
 
     internal void SetNullValue()

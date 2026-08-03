@@ -127,6 +127,35 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupUploadSourceSchemaMutation(
+            new UploadFusionSubgraph_UploadFusionSubgraph_Errors_ApiNotFoundError("API 'api-1' was not found."));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "upload",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UploadSourceSchema_ReturnsSuccess()
     {
         // arrange

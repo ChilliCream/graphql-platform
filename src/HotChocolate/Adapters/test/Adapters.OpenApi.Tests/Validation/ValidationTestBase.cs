@@ -64,6 +64,44 @@ public abstract class ValidationTestBase : OpenApiTestBase
         Assert.Equal("Model contains the '@stream' directive, which is not supported for OpenAPI models.", error.Message);
     }
 
+    [Fact]
+    public async Task External_Model_Contains_ResponseBody_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                address @responseBody {
+                  street
+                }
+                ...UserPreferences
+              }
+            }
+            """,
+            """
+            fragment UserPreferences on User {
+              preferences @responseBody {
+                color
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "OpenAPI models cannot contain the '@responseBody' directive.",
+            error.Message);
+    }
+
     #endregion
 
     #region Endpoint
@@ -152,6 +190,254 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal("Endpoint must select exactly one root field.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Multiple_ResponseBody_Directives_In_Operation_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                address @responseBody {
+                  street
+                }
+                preferences @responseBody {
+                  color
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint operations can contain at most one '@responseBody' directive.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Named_Fragment_Contains_ResponseBody_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ...UserPreferences
+              }
+            }
+
+            fragment UserPreferences on User {
+              preferences @responseBody {
+                color
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint named fragments cannot contain the '@responseBody' directive.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Field_Has_Multiple_ResponseBody_Directives_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ... on User {
+                  address @responseBody @responseBody {
+                    street
+                  }
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint operations can contain at most one '@responseBody' directive.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_ResponseBody_Directive_Is_Not_On_Field_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ... @responseBody {
+                  name
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "The '@responseBody' directive can only be applied to fields.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_ResponseBody_Path_Contains_List_Field_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUserNames @http(method: GET, route: "/users/names") {
+              usersWithoutAuth {
+                name @responseBody
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "The path to a field with the '@responseBody' directive cannot contain list fields.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_ResponseBody_Path_Contains_Aliased_List_Field_And_Untyped_Fragment_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUserNames @http(method: GET, route: "/users/names") {
+              users: usersWithoutAuth {
+                ... {
+                  name @responseBody
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "The path to a field with the '@responseBody' directive cannot contain list fields.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_ResponseBody_Field_Returns_List_IsValid()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth @responseBody {
+                name
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        Assert.Empty(eventListener.Errors);
+    }
+
+    [Fact]
+    public async Task Endpoint_ResponseBody_Path_Contains_Type_Refinement_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ... on User {
+                  ... on User {
+                    name
+                  }
+                  ... {
+                    address @responseBody {
+                      street
+                    }
+                  }
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint operations cannot contain the '@responseBody' directive "
+            + "within an inline fragment with a type condition.",
+            error.Message);
     }
 
     [Fact]

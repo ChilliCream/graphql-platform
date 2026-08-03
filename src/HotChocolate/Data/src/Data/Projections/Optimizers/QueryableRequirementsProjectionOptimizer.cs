@@ -94,6 +94,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
                         field,
                         [new FieldSelectionNode(fieldNode, 0)],
                         [],
+                        isProjectionRequirement: true,
                         isInternal: true,
                         resolverPipeline: resolverPipeline));
             }
@@ -109,6 +110,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
                 field,
                 [new FieldSelectionNode(fieldNode, 0)],
                 [],
+                isProjectionRequirement: true,
                 isInternal: true,
                 resolverPipeline: resolverPipeline));
     }

@@ -543,17 +543,4 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         return runtime;
     }
-
-    private static void ValidateDefaultTransports(ImmutableArray<MessagingTransport> transports)
-    {
-        var defaultTransportNames = transports
-            .Where(t => t.IsDefaultTransport)
-            .Select(t => t.Name)
-            .ToArray();
-
-        if (defaultTransportNames.Length > 1)
-        {
-            throw ThrowHelper.MultipleDefaultTransports(defaultTransportNames);
-        }
-    }
 }

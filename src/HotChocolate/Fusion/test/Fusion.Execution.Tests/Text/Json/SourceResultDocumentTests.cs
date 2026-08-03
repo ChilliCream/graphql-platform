@@ -592,67 +592,75 @@ public class SourceResultDocumentTests
     }
 
     [Fact]
-    public void TryGetRawStringValue_Should_ReturnRawUtf8_When_StringIsNotEscaped()
+    public void AssertUtf8String_Should_ReturnRawUtf8_When_StringIsNotEscaped()
     {
+        // arrange
         var json = "{\"__typename\":\"Product\"}"u8.ToArray();
         using var result = SourceResultDocument.Parse(
             CommonTestExtensions.CreateArena(),
             json,
             json.Length);
 
-        var success = result.Root
-            .GetProperty("__typename")
-            .TryGetRawStringValue(out var typeName);
+        // act
+        var typeName = result.Root.GetProperty("__typename").AssertUtf8String();
 
-        Assert.True(success);
+        // assert
         Assert.True(typeName.SequenceEqual("Product"u8));
     }
 
     [Fact]
-    public void TryGetRawStringValue_Should_ReturnFalse_When_StringIsEscaped()
+    public void AssertUtf8String_Should_ReturnRawEscapedBytes_When_StringIsEscaped()
     {
+        // arrange
         var json = "{\"__typename\":\"Pro\\u0064uct\"}"u8.ToArray();
         using var result = SourceResultDocument.Parse(
             CommonTestExtensions.CreateArena(),
             json,
             json.Length);
 
-        var success = result.Root
-            .GetProperty("__typename")
-            .TryGetRawStringValue(out var typeName);
+        // act
+        var typeName = result.Root.GetProperty("__typename").AssertUtf8String();
 
-        Assert.False(success);
-        Assert.True(typeName.IsEmpty);
-        Assert.Equal("Product", result.Root.GetProperty("__typename").AssertString());
+        // assert
+        // Escape sequences are not decoded; the raw bytes as stored are returned.
+        Assert.True(typeName.SequenceEqual("Pro\\u0064uct"u8));
     }
 
     [Fact]
-    public void TryGetRawStringValue_Should_ReturnFalse_When_ValueIsNotString()
+    public void AssertUtf8String_Should_Throw_When_ValueIsNotString()
     {
+        // arrange
         var json = "{\"__typename\":42}"u8.ToArray();
         using var result = SourceResultDocument.Parse(
             CommonTestExtensions.CreateArena(),
             json,
             json.Length);
+        var property = result.Root.GetProperty("__typename");
 
-        var success = result.Root
-            .GetProperty("__typename")
-            .TryGetRawStringValue(out var typeName);
+        // act
+        void Act() => property.AssertUtf8String();
 
-        Assert.False(success);
-        Assert.True(typeName.IsEmpty);
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
     }
 
     [Fact]
-    public void TryGetRawStringValue_Should_ThrowInvalidOperation_When_ElementIsDefault()
+    public void AssertUtf8String_Should_Throw_When_ElementIsDefault()
     {
-        Assert.Throws<InvalidOperationException>(
-            () => default(SourceResultElement).TryGetRawStringValue(out _));
+        // arrange
+        var element = default(SourceResultElement);
+
+        // act
+        void Act() => element.AssertUtf8String();
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
     }
 
     [Fact]
-    public void TryGetRawStringValue_Should_ReturnFalseWithoutAllocating_When_StringSpansChunks()
+    public void AssertUtf8String_Should_ReturnCorrectBytes_When_StringSpansChunks()
     {
+        // arrange
         var json = Encoding.UTF8.GetBytes(
             $"{{\"padding\":\"{new string('x', 993)}\",\"__typename\":\"Product\"}}");
         var chunks = new[]
@@ -665,22 +673,12 @@ public class SourceResultDocumentTests
             chunks,
             chunks[1].Length,
             chunks.Length);
-        var element = result.Root.GetProperty("__typename");
 
-        element.TryGetRawStringValue(out _);
-        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
-        var success = false;
+        // act
+        var typeName = result.Root.GetProperty("__typename").AssertUtf8String();
 
-        for (var i = 0; i < 1000; i++)
-        {
-            success |= element.TryGetRawStringValue(out _);
-        }
-
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
-
-        Assert.False(success);
-        Assert.Equal(0, allocated);
-        Assert.Equal("Product", element.AssertString());
+        // assert
+        Assert.True(typeName.SequenceEqual("Product"u8));
     }
 
     [Fact]
@@ -921,6 +919,47 @@ public class SourceResultDocumentTests
         var array = result.Root.GetProperty("arr");
         Assert.Equal("[1,2,3]", array.GetRawText());
         Assert.Equal("[1,2,3]", Encoding.UTF8.GetString(array.GetRawValueAsMemory().Span));
+    }
+
+    [Fact]
+    public void RawJsonFormatter_Should_PreservePropertyNames_When_SourceNamesContainEscapes()
+    {
+        var json =
+            """
+            {
+              "ascii": 1,
+              "quote\"name": 2,
+              "backslash\\name": 3,
+              "newline\nname": 4
+            }
+            """u8.ToArray();
+        using var arena = new MemoryArena();
+        using var document = SourceResultDocument.Parse(arena, json, json.Length);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions());
+        var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
+
+        formatter.WriteValue(default);
+
+        var serialized = Encoding.UTF8.GetString(output.WrittenSpan);
+        Assert.Equal(
+            """{"ascii":1,"quote\"name":2,"backslash\\name":3,"newline\nname":4}""",
+            serialized);
+
+        using var emitted = JsonDocument.Parse(output.WrittenMemory);
+        var actual = emitted.RootElement
+            .EnumerateObject()
+            .Select(static property => (property.Name, property.Value.GetInt32()))
+            .ToArray();
+        var expected = new[]
+        {
+            ("ascii", 1),
+            ("quote\"name", 2),
+            ("backslash\\name", 3),
+            ("newline\nname", 4)
+        };
+
+        Assert.Equal(expected, actual);
     }
 
     [Theory]

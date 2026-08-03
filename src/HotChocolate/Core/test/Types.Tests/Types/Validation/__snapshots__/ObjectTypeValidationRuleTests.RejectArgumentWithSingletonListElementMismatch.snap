@@ -1,0 +1,10 @@
+{
+  "message": "The default value of argument 'Foo.field(arg:)' is not compatible with the type 'Int' at path '[0]'.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "arg",
+    "path": "[0]",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+  }
+}
+

@@ -863,6 +863,96 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueDuplicateField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueDuplicateField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is not compatible with the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueIncompatibleType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueIncompatibleType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is not compatible with the type &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueIncompatibleTypeAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueIncompatibleTypeAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is missing the required input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueMissingField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueMissingField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; is missing the required input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueMissingFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueMissingFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos;, and that field must not be null..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueOneOf {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;, and that field must not be null..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueOneOfAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueOneOfAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueUnknownField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueUnknownField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of argument &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueUnknownFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueUnknownFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument `{0}` of the implemented field `{1}` must be defined. The field `{2}` must include an argument of the same name for every argument defined on the implemented field of the interface type `{3}`..
         /// </summary>
         internal static string ErrorHelper_ArgumentNotImplemented {
@@ -949,6 +1039,96 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_FieldNotImplemented {
             get {
                 return ResourceManager.GetString("ErrorHelper_FieldNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueDuplicateField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueDuplicateField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the input field &apos;{1}&apos; more than once at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is not compatible with the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueIncompatibleType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueIncompatibleType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is not compatible with the type &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueIncompatibleTypeAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueIncompatibleTypeAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is missing the required input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueMissingField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueMissingField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; is missing the required input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueMissingFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueMissingFieldAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos;, and that field must not be null..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueOneOf {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; must specify exactly one field for the oneOf input object &apos;{1}&apos; at path &apos;{2}&apos;, and that field must not be null..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueOneOfAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueOneOfAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueUnknownField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueUnknownField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value of input field &apos;{0}&apos; specifies the unknown input field &apos;{1}&apos; at path &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_InputFieldDefaultValueUnknownFieldAtPath {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputFieldDefaultValueUnknownFieldAtPath", resourceCulture);
             }
         }
         
@@ -1165,6 +1345,24 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName {
             get {
                 return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of argument &apos;{1}&apos; is not defined in the enum &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_UndefinedArgumentDefaultEnumValue {
+            get {
+                return ResourceManager.GetString("ErrorHelper_UndefinedArgumentDefaultEnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of field &apos;{1}&apos; is not defined in the enum &apos;{2}&apos;..
+        /// </summary>
+        internal static string ErrorHelper_UndefinedInputFieldDefaultEnumValue {
+            get {
+                return ResourceManager.GetString("ErrorHelper_UndefinedInputFieldDefaultEnumValue", resourceCulture);
             }
         }
         
@@ -3268,7 +3466,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_VarNameEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to {0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type..
         /// </summary>

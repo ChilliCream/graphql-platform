@@ -27,26 +27,6 @@ Build or test a subset directly (each area has its own solution file):
 dotnet test src/HotChocolate/Fusion
 ```
 
-## Orchestration
-
-- You are the orchestrator, not the worker.
-- Keep the main context window focused on decisions.
-- Do not do work yourself that a subagent could do.
-- Context-window discipline: when instructed to "let it cook" or "don't inspect", trust the subagent and do not re-read its output.
-- For non-trivial work, minimum team composition is lead developer plus devil's advocate.
-
-## Verification
-
-- "Done" means the code compiles, tests pass, and results are verified by running relevant tests.
-- Never mark work complete without proving it works.
-- During iteration, use `--filter` and avoid running the full suite unnecessarily.
-
-## Core Principles
-
-- Simplicity first: make every change as simple as possible and keep impact minimal.
-- No lazy fixes: find root causes and avoid temporary patches.
-- Minimal impact: touch only what is necessary and avoid regressions.
-
 ## Code Quality
 
 ### C# / .NET
@@ -87,3 +67,17 @@ Use `dotnet` CLI to search NuGet packages, for example:
 ```bash
 dotnet package search HotChocolate
 ```
+
+### Nitro persisted operations (Fusion Aspire)
+
+After adding or editing any `.graphql` document under `src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations`, regenerate the `.sha256` sidecars and verify them:
+
+```bash
+.github/scripts/nitro-aspire-operations.sh update \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations
+.github/scripts/nitro-aspire-operations.sh verify \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations \
+    --output /tmp/nitro-aspire-operations.json
+```
+
+Never hand-write or hand-edit a `.sha256` sidecar. The `update` command is the only source of sidecar content, and `verify` must pass before handoff.

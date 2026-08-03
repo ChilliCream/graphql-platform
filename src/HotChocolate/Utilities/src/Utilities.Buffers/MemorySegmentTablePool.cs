@@ -29,6 +29,8 @@ internal static class MemorySegmentTablePool
     // The first bucket index. Bucket i holds tables of length (MinLength << i).
     private static readonly Bucket[] s_buckets = CreateBuckets();
     private static readonly ArrayPool<MemorySegment> s_fallbackPool = ArrayPool<MemorySegment>.Create();
+    private static readonly ArrayPool<MemorySegment[]> s_batchGroupPool =
+        ArrayPool<MemorySegment[]>.Shared;
 
     private static Bucket[] CreateBuckets()
     {
@@ -95,6 +97,75 @@ internal static class MemorySegmentTablePool
 
         Array.Clear(table, 0, table.Length);
         s_buckets[BucketIndex(length)].Return(table);
+    }
+
+    /// <summary>
+    /// Returns several tables to the pool, taking the return lock once per distinct bucket.
+    /// </summary>
+    /// <param name="tables">The tables to return.</param>
+    public static void ReturnBatch(ReadOnlySpan<MemorySegment[]> tables)
+    {
+        if (tables.IsEmpty)
+        {
+            return;
+        }
+
+        var bucketedCount = 0;
+
+        for (var i = 0; i < tables.Length; i++)
+        {
+            var table = tables[i];
+            var length = table.Length;
+
+            if (length >= MinLength && length <= MaxLength && IsPowerOfTwo(length))
+            {
+                Array.Clear(table, 0, length);
+                bucketedCount++;
+            }
+            else
+            {
+                s_fallbackPool.Return(table, clearArray: true);
+            }
+        }
+
+        if (bucketedCount == 0)
+        {
+            return;
+        }
+
+        var grouped = s_batchGroupPool.Rent(bucketedCount);
+        var groupedCount = 0;
+
+        try
+        {
+            for (var bucketIndex = 0; bucketIndex < s_buckets.Length; bucketIndex++)
+            {
+                var bucketLength = MinLength << bucketIndex;
+                var start = groupedCount;
+
+                for (var i = 0; i < tables.Length; i++)
+                {
+                    var table = tables[i];
+
+                    if (table.Length == bucketLength)
+                    {
+                        grouped[groupedCount++] = table;
+                    }
+                }
+
+                var count = groupedCount - start;
+
+                if (count > 0)
+                {
+                    s_buckets[bucketIndex].ReturnMany(grouped.AsSpan(start, count));
+                }
+            }
+        }
+        finally
+        {
+            Array.Clear(grouped, 0, groupedCount);
+            s_batchGroupPool.Return(grouped);
+        }
     }
 
     private static int RoundUpToBucketLength(int minLength)
@@ -222,6 +293,53 @@ internal static class MemorySegmentTablePool
                 if (log.IsEnabled())
                 {
                     log.TableDropped(_tableLength);
+                }
+            }
+        }
+
+        public void ReturnMany(ReadOnlySpan<MemorySegment[]> tables)
+        {
+            var lockTaken = false;
+            var dropped = 0;
+
+            try
+            {
+                _lock.Enter(ref lockTaken);
+
+                for (var i = 0; i < tables.Length; i++)
+                {
+                    var table = tables[i];
+                    Debug.Assert(
+                        table.Length == _tableLength,
+                        "A table returned to a bucket must match the bucket length.");
+
+                    if (_index < _tables.Length)
+                    {
+                        _tables[_index++] = table;
+                    }
+                    else
+                    {
+                        dropped++;
+                    }
+                }
+            }
+            finally
+            {
+                if (lockTaken)
+                {
+                    _lock.Exit(false);
+                }
+            }
+
+            if (dropped > 0)
+            {
+                var log = Log;
+                if (log.IsEnabled())
+                {
+                    for (var i = 0; i < dropped; i++)
+                    {
+                        log.TableDropped(_tableLength);
+                    }
                 }
             }
         }

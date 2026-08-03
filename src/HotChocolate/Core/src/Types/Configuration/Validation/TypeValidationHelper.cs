@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -55,6 +56,182 @@ internal static class TypeValidationHelper
             {
                 errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
             }
+        }
+    }
+
+    public static void EnsureDefaultValuesAreValid(
+        IComplexTypeDefinition type,
+        ICollection<ISchemaError> errors)
+    {
+        foreach (var field in type.Fields)
+        {
+            foreach (var argument in field.Arguments)
+            {
+                ValidateDefaultValue(argument, errors);
+            }
+        }
+    }
+
+    public static void EnsureDefaultValuesAreValid(
+        IInputObjectTypeDefinition type,
+        ICollection<ISchemaError> errors)
+    {
+        foreach (var field in type.Fields)
+        {
+            ValidateDefaultValue(field, errors);
+        }
+    }
+
+    public static void EnsureDefaultValuesAreValid(
+        IDirectiveDefinition type,
+        ICollection<ISchemaError> errors)
+    {
+        foreach (var argument in type.Arguments)
+        {
+            ValidateDefaultValue(argument, errors);
+        }
+    }
+
+    private static void ValidateDefaultValue(
+        IInputValueDefinition inputValue,
+        ICollection<ISchemaError> errors)
+    {
+        if (inputValue.DefaultValue is { } defaultValue)
+        {
+            ValidateDefaultValueNode(inputValue, defaultValue, inputValue.Type, [], errors);
+        }
+    }
+
+    private static void ValidateDefaultValueNode(
+        IInputValueDefinition root,
+        IValueNode value,
+        IType type,
+        List<object> path,
+        ICollection<ISchemaError> errors)
+    {
+        if (value.Kind is SyntaxKind.NullValue)
+        {
+            if (type.Kind is TypeKind.NonNull)
+            {
+                errors.Add(IncompatibleDefaultValueType(root, path, type.Print()));
+            }
+
+            return;
+        }
+
+        if (value.Kind is SyntaxKind.Variable)
+        {
+            errors.Add(IncompatibleDefaultValueType(root, path, type.Print()));
+            return;
+        }
+
+        var unwrapped = type.NullableType();
+
+        switch (unwrapped.Kind)
+        {
+            case TypeKind.List:
+                var elementType = ((ListType)unwrapped).ElementType;
+
+                if (value is ListValueNode list)
+                {
+                    for (var i = 0; i < list.Items.Count; i++)
+                    {
+                        path.Add(i);
+                        ValidateDefaultValueNode(root, list.Items[i], elementType, path, errors);
+                        path.RemoveAt(path.Count - 1);
+                    }
+                }
+                else
+                {
+                    // Spec list-input coercion: a non-list literal is treated as a singleton list at index 0.
+                    path.Add(0);
+                    ValidateDefaultValueNode(root, value, elementType, path, errors);
+                    path.RemoveAt(path.Count - 1);
+                }
+
+                break;
+
+            case TypeKind.InputObject:
+                if (value is not ObjectValueNode inputObjectValue)
+                {
+                    errors.Add(IncompatibleDefaultValueType(root, path, type.Print()));
+                    break;
+                }
+
+                ValidateInputObjectDefault(
+                    root,
+                    (InputObjectType)unwrapped.NamedType(),
+                    inputObjectValue,
+                    path,
+                    errors);
+                break;
+
+            case TypeKind.Enum:
+                var enumType = (EnumType)unwrapped.NamedType();
+
+                if (value is not EnumValueNode enumValue)
+                {
+                    errors.Add(IncompatibleDefaultValueType(root, path, type.Print()));
+                }
+                else if (!enumType.Values.ContainsName(enumValue.Value))
+                {
+                    errors.Add(UndefinedDefaultEnumValue(root, enumValue.Value, enumType.Name));
+                }
+
+                break;
+
+            case TypeKind.Scalar:
+                if (!((ILeafType)unwrapped.NamedType()).IsValueCompatible(value))
+                {
+                    errors.Add(IncompatibleDefaultValueType(root, path, type.Print()));
+                }
+
+                break;
+        }
+    }
+
+    private static void ValidateInputObjectDefault(
+        IInputValueDefinition root,
+        InputObjectType inputObject,
+        ObjectValueNode value,
+        List<object> path,
+        ICollection<ISchemaError> errors)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var fieldValue in value.Fields)
+        {
+            if (!seen.Add(fieldValue.Name.Value))
+            {
+                errors.Add(DuplicateFieldInDefaultValue(root, path, fieldValue.Name.Value));
+            }
+
+            if (inputObject.Fields.TryGetField(fieldValue.Name.Value, out var inputField))
+            {
+                path.Add(fieldValue.Name.Value);
+                ValidateDefaultValueNode(root, fieldValue.Value, inputField.Type, path, errors);
+                path.RemoveAt(path.Count - 1);
+            }
+            else
+            {
+                errors.Add(UnknownFieldInDefaultValue(root, path, fieldValue.Name.Value));
+            }
+        }
+
+        foreach (var field in inputObject.Fields)
+        {
+            if (field.Type.IsNonNullType()
+                && field.DefaultValue is null
+                && !seen.Contains(field.Name))
+            {
+                errors.Add(MissingRequiredFieldInDefaultValue(root, path, field.Name));
+            }
+        }
+
+        if (inputObject.Directives.ContainsDirective(DirectiveNames.OneOf.Name)
+            && (value.Fields.Count != 1 || value.Fields[0].Value.Kind is SyntaxKind.NullValue))
+        {
+            errors.Add(OneOfDefaultValueMustHaveExactlyOneField(root, path, inputObject.Name));
         }
     }
 

@@ -432,7 +432,8 @@ internal sealed class FusionPublishCommand : Command
                                 var errorMessage = error switch
                                 {
                                     IUnauthorizedOperation err => err.Message,
-                                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                                    IFusionConfigurationRequestNotFoundError err =>
+                                        throw new NitroClientNotFoundException(err.Message),
                                     IInvalidProcessingStateTransitionError err => err.Message,
                                     IError err => Messages.UnexpectedMutationError(err),
                                     _ => Messages.UnexpectedMutationError()

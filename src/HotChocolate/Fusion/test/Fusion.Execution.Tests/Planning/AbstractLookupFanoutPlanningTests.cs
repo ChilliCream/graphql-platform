@@ -61,6 +61,53 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Prune_NonNode_Implementor_When_InterfaceFragment_Is_In_NodeSelectionSet()
+    {
+        // arrange
+        // The Manageable fragment fans out over all Manageable implementors, but the enclosing
+        // node selection set only ever yields Node implementors, so Draft must not get a branch.
+        var schema = CreateManageableNodeSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Node { id }
+                ... on Manageable { canEdit }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Prune_NonNode_Implementor_When_NodeSelectionSet_Has_No_Shared_Selections()
+    {
+        // arrange
+        var schema = CreateManageableNodeSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Manageable { canEdit }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     // sku is co-located with the products root in "a", reviews in "r", Book-only title in "books".
     private static FusionSchemaDefinition CreateProductTitleSchema()
         => ComposeSchema(
@@ -150,5 +197,24 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
             }
 
             type Magazine @key(fields: "id") { id: ID! title: String }
+            """);
+
+    // Ticket is both Manageable and a Node, Draft is only Manageable and has no id.
+    private static FusionSchemaDefinition CreateManageableNodeSchema()
+        => ComposeSchema(
+            """
+            # name: tickets
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              draft: Draft
+            }
+
+            interface Node { id: ID! }
+            interface Manageable { canEdit: Boolean! }
+
+            type Ticket implements Node & Manageable { id: ID! canEdit: Boolean! }
+            type Draft implements Manageable { canEdit: Boolean! name: String }
             """);
 }

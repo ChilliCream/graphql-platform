@@ -93,9 +93,11 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                     {
                         IUnauthorizedOperation err => err.Message,
                         IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IStageNotFoundError err => err.Message,
-                        IMcpFeatureCollectionNotFoundError err => err.Message,
-                        IMcpFeatureCollectionVersionNotFoundError err => err.Message,
+                        IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IMcpFeatureCollectionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
+                        IMcpFeatureCollectionVersionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

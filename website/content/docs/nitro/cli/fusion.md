@@ -43,6 +43,8 @@ nitro fusion upload \
 
 # `nitro fusion publish`
 
+Since: 16.6.0, Nitro: 10.3.0
+
 Publish a Fusion configuration to a stage.
 
 ```shell

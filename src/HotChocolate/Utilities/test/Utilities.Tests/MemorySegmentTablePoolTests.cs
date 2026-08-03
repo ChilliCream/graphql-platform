@@ -87,4 +87,78 @@ public class MemorySegmentTablePoolTests
             MemorySegmentTablePool.Return(recycled);
         }
     }
+
+    [Fact]
+    public void ReturnBatch_Should_ClearAndRecycleTables_AcrossBucketSizes()
+    {
+        // arrange
+        var table16A = MemorySegmentTablePool.Rent(16);
+        var table16B = MemorySegmentTablePool.Rent(16);
+        var table64 = MemorySegmentTablePool.Rent(64);
+        var table128 = MemorySegmentTablePool.Rent(128);
+
+        table16A[0] = new MemorySegment(new byte[8], 0, 8);
+        table16B[0] = new MemorySegment(new byte[8], 0, 8);
+        table64[0] = new MemorySegment(new byte[8], 0, 8);
+        table128[0] = new MemorySegment(new byte[8], 0, 8);
+
+        // act
+        MemorySegmentTablePool.ReturnBatch([table16A, table16B, table64, table128]);
+
+        var recycled16B = MemorySegmentTablePool.Rent(16);
+        var recycled16A = MemorySegmentTablePool.Rent(16);
+        var recycled64 = MemorySegmentTablePool.Rent(64);
+        var recycled128 = MemorySegmentTablePool.Rent(128);
+
+        try
+        {
+            // assert
+            AssertClearedAndSame(table16B, recycled16B);
+            AssertClearedAndSame(table16A, recycled16A);
+            AssertClearedAndSame(table64, recycled64);
+            AssertClearedAndSame(table128, recycled128);
+        }
+        finally
+        {
+            MemorySegmentTablePool.ReturnBatch([recycled16B, recycled16A, recycled64, recycled128]);
+        }
+    }
+
+    [Fact]
+    public void ReturnBatch_Should_ClearAndRecycleFallbackTables()
+    {
+        // arrange
+        var table = MemorySegmentTablePool.Rent(256);
+        Array.Fill(table, new MemorySegment(new byte[8], 1, 2));
+
+        // act
+        MemorySegmentTablePool.ReturnBatch([table]);
+        var recycled = MemorySegmentTablePool.Rent(256);
+
+        try
+        {
+            // assert
+            Assert.Same(table, recycled);
+            Assert.All(
+                recycled,
+                static segment =>
+                {
+                    Assert.Null(segment.Buffer);
+                    Assert.Equal(0, segment.Offset);
+                    Assert.Equal(0, segment.Length);
+                });
+        }
+        finally
+        {
+            MemorySegmentTablePool.Return(recycled);
+        }
+    }
+
+    private static void AssertClearedAndSame(MemorySegment[] expected, MemorySegment[] actual)
+    {
+        Assert.Same(expected, actual);
+        Assert.Null(actual[0].Buffer);
+        Assert.Equal(0, actual[0].Offset);
+        Assert.Equal(0, actual[0].Length);
+    }
 }

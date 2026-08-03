@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -126,11 +127,29 @@ public sealed partial class SourceResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    internal int GetArrayLength(DbRow row)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        CheckExpectedType(JsonTokenType.StartArray, row.TokenType);
+
+        return row.SizeOrLength;
+    }
+
     internal int GetPropertyCount(Cursor cursor)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(cursor);
+
+        CheckExpectedType(JsonTokenType.StartObject, row.TokenType);
+
+        return row.SizeOrLength;
+    }
+
+    internal int GetPropertyCount(DbRow row)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         CheckExpectedType(JsonTokenType.StartObject, row.TokenType);
 
@@ -223,12 +242,20 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
-        var startSeg = _segments[startChunkIndex];
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
 
         // Fast path: the value lives in a single chunk and can be written without a copy.
         if (offsetInStartChunk + size <= startSeg.Length)
         {
-            writer.WriteStringValue(startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size), skipEscaping: true);
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            writer.WriteStringValue(
+                MemoryMarshal.CreateReadOnlySpan(ref start, size),
+                skipEscaping: true);
             return;
         }
 
@@ -245,12 +272,18 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
-        var startSeg = _segments[startChunkIndex];
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
 
         // Fast path: the value lives in a single chunk and can be written without a copy.
         if (offsetInStartChunk + size <= startSeg.Length)
         {
-            writer.WriteNumberValue(startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size));
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            writer.WriteNumberValue(MemoryMarshal.CreateReadOnlySpan(ref start, size));
             return;
         }
 
@@ -371,12 +404,18 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
-        var startSeg = _segments[startChunkIndex];
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
 
         // Fast path: data fits in a single chunk
         if (offsetInStartChunk + size <= startSeg.Length)
         {
-            return startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size);
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            return MemoryMarshal.CreateReadOnlySpan(ref start, size);
         }
 
         Span<byte> buffer = new byte[size];

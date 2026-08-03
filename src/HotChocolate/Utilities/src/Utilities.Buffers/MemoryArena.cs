@@ -378,16 +378,12 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
                 JsonMemory.Return(JsonMemoryKind.Arena, pages, count);
             }
 
-            // The arena owns the tables, so on a sealed deterministic dispose it returns each one to
-            // the pool and then returns the tracker itself. The abandon path below intentionally
-            // skips this, because a live document may still index into a table.
+            // The arena owns the tables, so on a sealed deterministic dispose it returns them to
+            // the pool as one batch and then returns the tracker itself. The abandon path below
+            // intentionally skips this, because a live document may still index into a table.
             if (tables is not null)
             {
-                for (var i = 0; i < tableCount; i++)
-                {
-                    MemorySegmentTablePool.Return(tables[i]);
-                }
-
+                MemorySegmentTablePool.ReturnBatch(tables.AsSpan(0, tableCount));
                 MemorySegmentTableTrackerPool.Return(tables, tableCount);
             }
 
