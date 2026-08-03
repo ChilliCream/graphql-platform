@@ -263,35 +263,35 @@ public sealed class NitroConnectionResolverTests : IDisposable
                 TestContext.Current.CancellationToken));
 
         // assert
-        Assert.All(
-            connections,
-            connection =>
-            {
-                Assert.Equal(NitroCredentialKind.AccessToken, connection.Credential.Kind);
-                Assert.Equal(refreshedAccessToken, connection.Credential.Value);
-            });
-        Assert.Collection(
-            server.Requests,
-            request =>
-            {
-                Assert.Equal("GET", request.Method);
-                Assert.Equal("/.well-known/openid-configuration", request.Path);
-            },
-            request =>
-            {
-                Assert.Equal("POST", request.Method);
-                Assert.Equal("/connect/token", request.Path);
-                Assert.Equal(
-                    "grant_type=refresh_token&refresh_token=refresh-token&client_id=nitro-cli",
-                    request.Body);
-            });
-
         var persisted = await new NitroSessionReader(sessionFilePath, TimeSpan.Zero)
             .ReadAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(refreshedAccessToken, persisted.Session!.Tokens!.AccessToken);
-        Assert.Equal(refreshedIdentityToken, persisted.Session.Tokens.IdToken);
-        Assert.Equal("refreshed-refresh-token", persisted.Session.Tokens.RefreshToken);
-        Assert.Equal(s_now.AddHours(1), persisted.Session.Tokens.ExpiresAt);
+        var persistedTokens = persisted.Session!.Tokens!;
+
+        new
+        {
+            Credentials = connections
+                .Select(connection => new
+                {
+                    connection.Credential.Kind,
+                    connection.Credential.Value
+                })
+                .ToArray(),
+            Requests = server.Requests
+                .Select(request => new
+                {
+                    request.Method,
+                    request.Path,
+                    request.Body
+                })
+                .ToArray(),
+            PersistedTokens = new
+            {
+                persistedTokens.AccessToken,
+                persistedTokens.IdToken,
+                persistedTokens.RefreshToken,
+                persistedTokens.ExpiresAt
+            }
+        }.MatchMarkdownSnapshot();
     }
 
     [Fact]
