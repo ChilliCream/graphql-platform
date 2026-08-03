@@ -136,6 +136,43 @@ internal sealed partial class FetchResultStore
             return RepresentationValue.Empty;
         }
 
+        return CreateRepresentationVariableValue(
+            selectionSet,
+            new ForwardedVariableValues(requestVariables),
+            requiredData,
+            entityTypeName,
+            shape);
+    }
+
+    internal RepresentationValue CreateRepresentationVariableValueFromResolvedVariables(
+        SelectionPath selectionSet,
+        ReadOnlySpan<ForwardedVariableValue> resolvedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        string entityTypeName,
+        List<RepresentationShapeNode> shape)
+        => CreateRepresentationVariableValue(
+            selectionSet,
+            new ForwardedVariableValues(resolvedVariables),
+            requiredData,
+            entityTypeName,
+            shape);
+
+    private RepresentationValue CreateRepresentationVariableValue(
+        SelectionPath selectionSet,
+        ForwardedVariableValues requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        string entityTypeName,
+        List<RepresentationShapeNode> shape)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(shape);
+
+        if (requiredData.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
         lock (_lock)
         {
             var elements = CollectTargetElements(selectionSet);
@@ -180,6 +217,56 @@ internal sealed partial class FetchResultStore
             }
         }
 
+        return CreateRepresentationVariableValueFromSnapshot(
+            importedEntries,
+            importedKeys,
+            new ForwardedVariableValues(requestVariables),
+            requiredData,
+            entityTypeName,
+            shape);
+    }
+
+    internal RepresentationValue CreateRepresentationVariableValueFromSnapshotWithResolvedVariables(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        ReadOnlySpan<ForwardedVariableValue> resolvedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        string entityTypeName,
+        List<RepresentationShapeNode> shape)
+        => CreateRepresentationVariableValueFromSnapshot(
+            importedEntries,
+            importedKeys,
+            new ForwardedVariableValues(resolvedVariables),
+            requiredData,
+            entityTypeName,
+            shape);
+
+    private RepresentationValue CreateRepresentationVariableValueFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        ForwardedVariableValues requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        string entityTypeName,
+        List<RepresentationShapeNode> shape)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(importedKeys);
+        ArgumentNullException.ThrowIfNull(shape);
+
+        if (importedEntries.IsDefaultOrEmpty || requiredData.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
+        foreach (var requirement in requiredData)
+        {
+            if (!importedKeys.Contains(requirement.Key))
+            {
+                throw new InvalidOperationException(
+                    "A deferred incremental plan fetch references a requirement that was not imported.");
+            }
+        }
+
         lock (_lock)
         {
             return BuildRepresentationValueFromSnapshot(
@@ -193,7 +280,7 @@ internal sealed partial class FetchResultStore
 
     private RepresentationValue BuildRepresentationValueFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ForwardedVariableValues requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
         string entityTypeName,
         List<RepresentationShapeNode> shape)
@@ -280,7 +367,7 @@ internal sealed partial class FetchResultStore
 
     private RepresentationValue BuildRepresentationValue(
         ReadOnlySpan<CompositeResultElement> elements,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ForwardedVariableValues requestVariables,
         string entityTypeName,
         List<RepresentationShapeNode> shape)
     {
@@ -352,16 +439,6 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private void WriteRequestVariableProperties(IReadOnlyList<ObjectFieldNode> requestVariables)
-    {
-        for (var i = 0; i < requestVariables.Count; i++)
-        {
-            var field = requestVariables[i];
-            _jsonWriter.WritePropertyName(field.Name.Value);
-            WriteValueNode(field.Value);
-        }
-    }
-
     private int StartRepresentationVariableValue()
     {
         _jsonWriter.Reset(_variableWriter);
@@ -374,7 +451,7 @@ internal sealed partial class FetchResultStore
 
     private RepresentationValue CompleteRepresentationVariableValue(
         int startPosition,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ForwardedVariableValues requestVariables,
         EntityResultPath[] resultPaths,
         ref RepresentationPathAccumulator additionalPaths,
         int count)
@@ -388,7 +465,7 @@ internal sealed partial class FetchResultStore
         }
 
         _jsonWriter.WriteEndArray();
-        WriteRequestVariableProperties(requestVariables);
+        WriteForwardedVariableValues(requestVariables);
         _jsonWriter.WriteEndObject();
 
         additionalPaths.ApplyTo(resultPaths, count);

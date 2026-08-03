@@ -457,6 +457,54 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateRepresentationVariableValueFromResolvedVariables_Should_WriteRepresentationsBeforeForwardedValues_When_ValuesAreResolved()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+        var requirements = new[]
+        {
+            Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("String"))
+        };
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var representation = store.CreateRepresentationVariableValueFromResolvedVariables(
+            SelectionPath.Root.AppendField("foos"),
+            [
+                new ForwardedVariableValue("limit", new IntValueNode(10)),
+                new ForwardedVariableValue("nullable", NullValueNode.Default)
+            ],
+            requirements,
+            "Foo",
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, "Foo"));
+
+        // assert
+        Normalize(representation.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Foo","id":"1"}],"limit":10,"nullable":null}
+            """);
+    }
+
+    [Fact]
     public void RepresentationShapeBuilder_Should_MatchValueSelectionRewriterOutput_When_MapsAreRewritten()
     {
         // arrange
