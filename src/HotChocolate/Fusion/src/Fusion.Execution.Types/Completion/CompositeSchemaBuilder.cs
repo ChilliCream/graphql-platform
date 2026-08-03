@@ -107,7 +107,8 @@ internal static class CompositeSchemaBuilder
                     var type = CreateObjectType(
                         objectType,
                         objectType.Name.Value.Equals(queryType, StringComparison.Ordinal),
-                        options.EnableSemanticIntrospection);
+                        options.EnableSemanticIntrospection,
+                        options.EnableObjectDeprecation);
                     types.Add(type);
                     typeDefinitions.Add(objectType.Name.Value, objectType);
                     break;
@@ -230,11 +231,19 @@ internal static class CompositeSchemaBuilder
     private static FusionObjectTypeDefinition CreateObjectType(
         ObjectTypeDefinitionNode definition,
         bool isQuery,
-        bool enableSemanticIntrospection)
+        bool enableSemanticIntrospection,
+        bool enableObjectDeprecation)
     {
-        var isDeprecated = DeprecatedDirectiveParser.TryParse(
-            definition.Directives,
-            out var deprecated);
+        var isDeprecated = false;
+        DeprecatedDirective? deprecated = null;
+
+        if (enableObjectDeprecation)
+        {
+            isDeprecated = DeprecatedDirectiveParser.TryParse(
+                definition.Directives,
+                out deprecated);
+        }
+
         var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
 
         return new FusionObjectTypeDefinition(
