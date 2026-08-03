@@ -314,6 +314,7 @@ internal sealed class SchemaComposer
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToDeprecatedTypeRule(),
         new ReferenceToInaccessibleTypeRule(),
         new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()
