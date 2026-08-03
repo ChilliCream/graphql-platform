@@ -149,7 +149,7 @@ internal static class OperationContextExtensions
         }
         else
         {
-            errors.Add(error);
+            errors.Add(handled);
         }
     }
 }
