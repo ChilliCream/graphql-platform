@@ -3977,7 +3977,8 @@ public sealed partial class OperationPlanner
                         if (steps[s] is OperationPlanStep step
                             && step.SelectionSets.Contains(candidateSelectionSetId)
                             && step.Target.IsParentOfOrSame(targetPath)
-                            && !string.IsNullOrEmpty(step.SchemaName))
+                            && !string.IsNullOrEmpty(step.SchemaName)
+                            && IsConnectorChainResolvable(path, i, currentType, step.SchemaName))
                         {
                             var connectors = new List<AncestorConnector>(path.Count - i);
                             for (var j = i; j < path.Count; j++)
@@ -4066,6 +4067,50 @@ public sealed partial class OperationPlanner
 
             return null;
         }
+    }
+
+    /// <summary>
+    /// Determines whether the source schema <paramref name="schemaName"/> resolves every
+    /// connector of <paramref name="path"/> from <paramref name="startIndex"/> down to the
+    /// requirement target, whose type is <paramref name="targetType"/>.
+    /// </summary>
+    private static bool IsConnectorChainResolvable(
+        List<(SelectionSetNode SelectionSet, ISelectionNode ConnectingNode, ITypeDefinition Type)> path,
+        int startIndex,
+        ITypeDefinition targetType,
+        string schemaName)
+    {
+        for (var i = startIndex; i < path.Count; i++)
+        {
+            switch (path[i].ConnectingNode)
+            {
+                case FieldNode fieldNode:
+                    if (path[i].Type is not FusionComplexTypeDefinition complexType
+                        || !complexType.Fields.TryGetField(
+                            fieldNode.Name.Value,
+                            allowInaccessibleFields: true,
+                            out var field)
+                        || !field.Sources.TryGetMember(schemaName, out var source)
+                        || source.IsExternal)
+                    {
+                        return false;
+                    }
+                    break;
+
+                case InlineFragmentNode { TypeCondition: not null }:
+                    // a connector's own type is the declaring type of the next connector,
+                    // and for the last connector it is the type of the requirement target.
+                    var typeCondition = i + 1 < path.Count ? path[i + 1].Type : targetType;
+
+                    if (!typeCondition.ExistsInSchema(schemaName))
+                    {
+                        return false;
+                    }
+                    break;
+            }
+        }
+
+        return true;
     }
 
     private bool TryInlineIntoAncestorStep(
