@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal static class OperationPlanExecutor
+internal static partial class OperationPlanExecutor
 {
     public static async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
@@ -1062,8 +1062,6 @@ internal static class OperationPlanExecutor
             new DeferredPayloadDataFormatter(element),
             memoryHolder: null);
 
-    private readonly record struct DeliveryPath(Path PendingPath, int PendingFieldCount);
-
     public static async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
         OperationPlan operationPlan,
@@ -1508,9 +1506,3 @@ internal static class OperationPlanExecutor
         => subscriptionNode.SchemaName
             ?? (subscriptionNode is EventStreamExecutionNode ? "event-stream" : context.GetDynamicSchemaName(subscriptionNode));
 }
-
-internal readonly record struct IncrementalPlanResult(
-    IncrementalPlan IncrementalPlan,
-    OperationPlanContext? Context,
-    OperationResult? Result,
-    Exception? Error);
