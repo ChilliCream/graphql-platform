@@ -16,13 +16,14 @@ internal static class NitroSchemaValidationFormatter
         var shownClients = 0;
         var shownFindings = 0;
 
-        builder.Append("Nitro schema validation found client-contract violations: ")
-            .Append(report.ClientCount)
-            .Append(" clients, ")
-            .Append(report.OperationCount)
-            .Append(" operations, ")
+        builder.Append("Nitro schema validation found ")
             .Append(report.FindingCount)
-            .AppendLine(" findings.");
+            .Append(report.FindingCount == 1 ? " violation; " : " violations; ")
+            .Append(report.ClientCount)
+            .Append(report.ClientCount == 1 ? " client and " : " clients and ")
+            .Append(report.OperationCount)
+            .Append(report.OperationCount == 1 ? " operation are affected." : " operations are affected.")
+            .AppendLine();
 
         for (var clientIndex = 0;
             clientIndex < clientLimit && shownFindings < MaxFindings;
@@ -110,18 +111,25 @@ internal static class NitroSchemaValidationFormatter
         string indent,
         NitroSchemaValidationFinding finding)
     {
-        builder.Append(indent)
-            .Append("- ")
-            .Append(finding.Message);
+        builder.Append(indent);
+
+        for (var level = 0; level < finding.Depth; level++)
+        {
+            builder.Append("  ");
+        }
+
+        builder.Append("- ");
+
+        if (finding.Severity is not null)
+        {
+            builder.Append(SeverityMarker(finding.Severity)).Append(' ');
+        }
+
+        builder.Append(finding.Message);
 
         if (finding.Code is not null)
         {
             builder.Append(" [code: ").Append(finding.Code).Append(']');
-        }
-
-        if (finding.Coordinate is not null)
-        {
-            builder.Append(" [coordinate: ").Append(finding.Coordinate).Append(']');
         }
 
         if (finding.Path is not null)
@@ -140,4 +148,13 @@ internal static class NitroSchemaValidationFormatter
 
         builder.AppendLine();
     }
+
+    private static string SeverityMarker(string severity)
+        => severity switch
+        {
+            "BREAKING" => "✕",
+            "DANGEROUS" => "!",
+            "SAFE" => "✓",
+            _ => $"[{severity}]"
+        };
 }

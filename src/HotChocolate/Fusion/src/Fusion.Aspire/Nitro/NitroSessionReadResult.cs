@@ -11,6 +11,11 @@ internal enum NitroSessionStatus
     Available,
 
     /// <summary>
+    /// The access token expired and could not be refreshed.
+    /// </summary>
+    Expired,
+
+    /// <summary>
     /// No session file exists, which means the user never signed in on this machine.
     /// </summary>
     Missing,
@@ -30,7 +35,7 @@ internal enum NitroSessionStatus
 /// </param>
 /// <param name="Session">
 /// The session, set when <paramref name="Status"/> is
-/// <see cref="NitroSessionStatus.Available"/>.
+/// <see cref="NitroSessionStatus.Available"/> or <see cref="NitroSessionStatus.Expired"/>.
 /// </param>
 /// <param name="Message">
 /// A message that names the session file and explains why no usable session was read. It is

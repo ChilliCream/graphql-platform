@@ -19,7 +19,8 @@ internal sealed record CompositionHarness(
     public static CompositionHarness Create(
         NitroSeedCoordinator? coordinator,
         Uri? portalUrl = null,
-        INitroSchemaValidationNotifier? notifier = null)
+        INitroSchemaValidationNotifier? notifier = null,
+        INitroCompositionNotifier? compositionNotifier = null)
     {
         var logger = new RecordingLogger<SchemaComposition>();
         var lifetime = new TestHostApplicationLifetime();
@@ -34,18 +35,30 @@ internal sealed record CompositionHarness(
             Coordinator = coordinator,
             PortalUrl = portalUrl
         };
+        options.SeedUpdates.Enabled = false;
         var validationCoordinator = new NitroSchemaValidationCoordinator(
             options,
             resourceLoggerService,
             notifier,
             lifetime,
             NullLoggerFactory.Instance);
+        var seedUpdateService = new NitroSeedUpdateService(
+            options,
+            resourceLoggerService,
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
         var composition = new SchemaComposition(
             notifications,
             resourceLoggerService,
             lifetime,
             options,
+            compositionNotifier
+                ?? notifier as INitroCompositionNotifier
+                ?? NoopCompositionNotifier.Instance,
             validationCoordinator,
+            seedUpdateService,
             new GatewayCompositionCommandCoordinator(),
             logger);
 
@@ -55,6 +68,28 @@ internal sealed record CompositionHarness(
             notifications,
             logger,
             lifetime);
+    }
+
+    private sealed class NoopSeedUpdateNotifier : INitroSeedUpdateNotifier
+    {
+        public static NoopSeedUpdateNotifier Instance { get; } = new();
+
+        public void NotifyAdopted(string message)
+        {
+        }
+
+        public void NotifyStaged(string message)
+        {
+        }
+    }
+
+    private sealed class NoopCompositionNotifier : INitroCompositionNotifier
+    {
+        public static NoopCompositionNotifier Instance { get; } = new();
+
+        public void NotifyFailure(string gatewayName, string message)
+        {
+        }
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

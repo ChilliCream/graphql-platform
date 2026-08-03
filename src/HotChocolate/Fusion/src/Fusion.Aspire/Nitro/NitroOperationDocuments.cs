@@ -14,18 +14,31 @@ internal static class NitroOperationDocuments
     private const string ResolveApiNameHashFile = "ResolveNitroApiName.graphql.sha256";
     private const string ValidateSchemaHashFile = "ValidateNitroSchema.graphql.sha256";
     private const string PollSchemaValidationHashFile = "PollNitroSchemaValidation.graphql.sha256";
+    private const string GetStageVersionHashFile = "GetNitroStageVersion.graphql.sha256";
+    private const string WatchStageHashFile = "WatchNitroStage.graphql.sha256";
+    private const string GetCompositionSettingsHashFile =
+        "GetNitroCompositionSettings.graphql.sha256";
 
     private static string? s_resolveApiNameHash;
     private static string? s_validateSchemaHash;
     private static string? s_pollSchemaValidationHash;
+    private static string? s_getStageVersionHash;
+    private static string? s_watchStageHash;
+    private static string? s_getCompositionSettingsHash;
 #else
     private const string ResolveApiNameFile = "ResolveNitroApiName.graphql";
     private const string ValidateSchemaFile = "ValidateNitroSchema.graphql";
     private const string PollSchemaValidationFile = "PollNitroSchemaValidation.graphql";
+    private const string GetStageVersionFile = "GetNitroStageVersion.graphql";
+    private const string WatchStageFile = "WatchNitroStage.graphql";
+    private const string GetCompositionSettingsFile = "GetNitroCompositionSettings.graphql";
 
     private static string? s_resolveApiName;
     private static string? s_validateSchema;
     private static string? s_pollSchemaValidation;
+    private static string? s_getStageVersion;
+    private static string? s_watchStage;
+    private static string? s_getCompositionSettings;
 #endif
 
     /// <summary>
@@ -34,6 +47,9 @@ internal static class NitroOperationDocuments
     public const string ResolveApiNameOperationName = "ResolveNitroApiName";
     public const string ValidateSchemaOperationName = "ValidateNitroSchema";
     public const string PollSchemaValidationOperationName = "PollNitroSchemaValidation";
+    public const string GetStageVersionOperationName = "GetNitroStageVersion";
+    public const string WatchStageOperationName = "WatchNitroStage";
+    public const string GetCompositionSettingsOperationName = "GetNitroCompositionSettings";
 
 #if NITRO_PERSISTED_OPERATIONS
     /// <summary>
@@ -47,6 +63,16 @@ internal static class NitroOperationDocuments
 
     public static string GetPollSchemaValidationOperationId()
         => s_pollSchemaValidationHash ??= ReadDocument(PollSchemaValidationHashFile).Trim();
+
+    public static string GetStageVersionOperationId()
+        => s_getStageVersionHash ??= ReadDocument(GetStageVersionHashFile).Trim();
+
+    public static string GetWatchStageOperationId()
+        => s_watchStageHash ??= ReadDocument(WatchStageHashFile).Trim();
+
+    public static string GetCompositionSettingsOperationId()
+        => s_getCompositionSettingsHash ??=
+            ReadDocument(GetCompositionSettingsHashFile).Trim();
 #else
     /// <summary>
     /// Gets the document that resolves the name of an api by its id.
@@ -59,6 +85,15 @@ internal static class NitroOperationDocuments
 
     public static string GetPollSchemaValidationDocument()
         => s_pollSchemaValidation ??= ReadDocument(PollSchemaValidationFile);
+
+    public static string GetStageVersionDocument()
+        => s_getStageVersion ??= ReadDocument(GetStageVersionFile);
+
+    public static string GetWatchStageDocument()
+        => s_watchStage ??= ReadDocument(WatchStageFile);
+
+    public static string GetCompositionSettingsDocument()
+        => s_getCompositionSettings ??= ReadDocument(GetCompositionSettingsFile);
 #endif
 
     private static string ReadDocument(string fileName)

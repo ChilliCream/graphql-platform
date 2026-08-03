@@ -33,7 +33,11 @@ internal static class SchemaCompositionRegistration
         builder.Services.TryAddEventingSubscriber<SchemaComposition>();
         builder.Services.TryAddSingleton<NitroSchemaValidationCoordinator>();
         builder.Services.TryAddSingleton<INitroSchemaValidationNotifier, NitroSchemaValidationNotifier>();
+        builder.Services.TryAddSingleton<INitroCompositionNotifier, NitroSchemaValidationNotifier>();
+        builder.Services.TryAddSingleton<INitroSeedUpdateNotifier, NitroSeedUpdateNotifier>();
+        builder.Services.TryAddSingleton<NitroSeedUpdateService>();
         builder.Services.TryAddSingleton<GatewayCompositionCommandCoordinator>();
+        builder.Services.TryAddSingleton(TimeProvider.System);
 
         return options;
     }

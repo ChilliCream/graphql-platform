@@ -66702,6 +66702,3446 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettingsResult : global::System.IEquatable<FusionStageCompositionSettingsResult>, IFusionStageCompositionSettingsResult
+    {
+        public FusionStageCompositionSettingsResult(global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node? node)
+        {
+            Node = node;
+        }
+
+        /// <summary>
+        /// Fetches an object given its ID.
+        /// </summary>
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node? Node { get; }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettingsResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Node is null && other.Node is null) || Node != null && Node.Equals(other.Node)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettingsResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Node != null)
+                {
+                    hash ^= 397 * Node.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Api : global::System.IEquatable<FusionStageCompositionSettings_Node_Api>, IFusionStageCompositionSettings_Node_Api
+    {
+        public FusionStageCompositionSettings_Node_Api(global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_1? stage)
+        {
+            Stage = stage;
+        }
+
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_1? Stage { get; }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Api? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Stage is null && other.Stage is null) || Stage != null && Stage.Equals(other.Stage)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Api)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Stage != null)
+                {
+                    hash ^= 397 * Stage.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_ApiDocument : global::System.IEquatable<FusionStageCompositionSettings_Node_ApiDocument>, IFusionStageCompositionSettings_Node_ApiDocument
+    {
+        public FusionStageCompositionSettings_Node_ApiDocument()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_ApiDocument? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_ApiDocument)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+    /// API Key Details
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_ApiKey : global::System.IEquatable<FusionStageCompositionSettings_Node_ApiKey>, IFusionStageCompositionSettings_Node_ApiKey
+    {
+        public FusionStageCompositionSettings_Node_ApiKey()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_ApiKey? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_ApiKey)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Client : global::System.IEquatable<FusionStageCompositionSettings_Node_Client>, IFusionStageCompositionSettings_Node_Client
+    {
+        public FusionStageCompositionSettings_Node_Client()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Client? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Client)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_ClientChangeLog : global::System.IEquatable<FusionStageCompositionSettings_Node_ClientChangeLog>, IFusionStageCompositionSettings_Node_ClientChangeLog
+    {
+        public FusionStageCompositionSettings_Node_ClientChangeLog()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_ClientChangeLog? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_ClientChangeLog)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_ClientDeployment : global::System.IEquatable<FusionStageCompositionSettings_Node_ClientDeployment>, IFusionStageCompositionSettings_Node_ClientDeployment
+    {
+        public FusionStageCompositionSettings_Node_ClientDeployment()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_ClientDeployment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_ClientDeployment)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_ClientVersion : global::System.IEquatable<FusionStageCompositionSettings_Node_ClientVersion>, IFusionStageCompositionSettings_Node_ClientVersion
+    {
+        public FusionStageCompositionSettings_Node_ClientVersion()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_ClientVersion? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_ClientVersion)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_CoordinateClientUsageMetrics : global::System.IEquatable<FusionStageCompositionSettings_Node_CoordinateClientUsageMetrics>, IFusionStageCompositionSettings_Node_CoordinateClientUsageMetrics
+    {
+        public FusionStageCompositionSettings_Node_CoordinateClientUsageMetrics()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_CoordinateClientUsageMetrics? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_CoordinateClientUsageMetrics)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Environment : global::System.IEquatable<FusionStageCompositionSettings_Node_Environment>, IFusionStageCompositionSettings_Node_Environment
+    {
+        public FusionStageCompositionSettings_Node_Environment()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Environment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Environment)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_FusionConfigurationChangeLog : global::System.IEquatable<FusionStageCompositionSettings_Node_FusionConfigurationChangeLog>, IFusionStageCompositionSettings_Node_FusionConfigurationChangeLog
+    {
+        public FusionStageCompositionSettings_Node_FusionConfigurationChangeLog()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_FusionConfigurationChangeLog? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_FusionConfigurationChangeLog)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_FusionConfigurationDeployment : global::System.IEquatable<FusionStageCompositionSettings_Node_FusionConfigurationDeployment>, IFusionStageCompositionSettings_Node_FusionConfigurationDeployment
+    {
+        public FusionStageCompositionSettings_Node_FusionConfigurationDeployment()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_FusionConfigurationDeployment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_FusionConfigurationDeployment)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition>, IFusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLDirectiveDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLDirectiveDefinition>, IFusionStageCompositionSettings_Node_GraphQLDirectiveDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLDirectiveDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLDirectiveDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLDirectiveDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition>, IFusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLEnumValueDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLEnumValueDefinition>, IFusionStageCompositionSettings_Node_GraphQLEnumValueDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLEnumValueDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLEnumValueDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLEnumValueDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition>, IFusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition>, IFusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition>, IFusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition>, IFusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition>, IFusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition>, IFusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition>, IFusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition>, IFusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition : global::System.IEquatable<FusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition>, IFusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition
+    {
+        public FusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Group : global::System.IEquatable<FusionStageCompositionSettings_Node_Group>, IFusionStageCompositionSettings_Node_Group
+    {
+        public FusionStageCompositionSettings_Node_Group()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Group? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Group)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_McpFeatureCollection : global::System.IEquatable<FusionStageCompositionSettings_Node_McpFeatureCollection>, IFusionStageCompositionSettings_Node_McpFeatureCollection
+    {
+        public FusionStageCompositionSettings_Node_McpFeatureCollection()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_McpFeatureCollection? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_McpFeatureCollection)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog : global::System.IEquatable<FusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog>, IFusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog
+    {
+        public FusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_McpFeatureCollectionDeployment : global::System.IEquatable<FusionStageCompositionSettings_Node_McpFeatureCollectionDeployment>, IFusionStageCompositionSettings_Node_McpFeatureCollectionDeployment
+    {
+        public FusionStageCompositionSettings_Node_McpFeatureCollectionDeployment()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_McpFeatureCollectionDeployment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_McpFeatureCollectionDeployment)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_McpFeatureCollectionVersion : global::System.IEquatable<FusionStageCompositionSettings_Node_McpFeatureCollectionVersion>, IFusionStageCompositionSettings_Node_McpFeatureCollectionVersion
+    {
+        public FusionStageCompositionSettings_Node_McpFeatureCollectionVersion()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_McpFeatureCollectionVersion? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_McpFeatureCollectionVersion)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_McpTool : global::System.IEquatable<FusionStageCompositionSettings_Node_McpTool>, IFusionStageCompositionSettings_Node_McpTool
+    {
+        public FusionStageCompositionSettings_Node_McpTool()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_McpTool? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_McpTool)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OpenApiCollection : global::System.IEquatable<FusionStageCompositionSettings_Node_OpenApiCollection>, IFusionStageCompositionSettings_Node_OpenApiCollection
+    {
+        public FusionStageCompositionSettings_Node_OpenApiCollection()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OpenApiCollection? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OpenApiCollection)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OpenApiCollectionChangeLog : global::System.IEquatable<FusionStageCompositionSettings_Node_OpenApiCollectionChangeLog>, IFusionStageCompositionSettings_Node_OpenApiCollectionChangeLog
+    {
+        public FusionStageCompositionSettings_Node_OpenApiCollectionChangeLog()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OpenApiCollectionChangeLog? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OpenApiCollectionChangeLog)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OpenApiCollectionDeployment : global::System.IEquatable<FusionStageCompositionSettings_Node_OpenApiCollectionDeployment>, IFusionStageCompositionSettings_Node_OpenApiCollectionDeployment
+    {
+        public FusionStageCompositionSettings_Node_OpenApiCollectionDeployment()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OpenApiCollectionDeployment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OpenApiCollectionDeployment)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OpenApiCollectionVersion : global::System.IEquatable<FusionStageCompositionSettings_Node_OpenApiCollectionVersion>, IFusionStageCompositionSettings_Node_OpenApiCollectionVersion
+    {
+        public FusionStageCompositionSettings_Node_OpenApiCollectionVersion()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OpenApiCollectionVersion? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OpenApiCollectionVersion)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OpenApiEndpoint : global::System.IEquatable<FusionStageCompositionSettings_Node_OpenApiEndpoint>, IFusionStageCompositionSettings_Node_OpenApiEndpoint
+    {
+        public FusionStageCompositionSettings_Node_OpenApiEndpoint()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OpenApiEndpoint? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OpenApiEndpoint)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OpenApiModel : global::System.IEquatable<FusionStageCompositionSettings_Node_OpenApiModel>, IFusionStageCompositionSettings_Node_OpenApiModel
+    {
+        public FusionStageCompositionSettings_Node_OpenApiModel()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OpenApiModel? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OpenApiModel)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Organization : global::System.IEquatable<FusionStageCompositionSettings_Node_Organization>, IFusionStageCompositionSettings_Node_Organization
+    {
+        public FusionStageCompositionSettings_Node_Organization()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Organization? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Organization)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_OrganizationMember : global::System.IEquatable<FusionStageCompositionSettings_Node_OrganizationMember>, IFusionStageCompositionSettings_Node_OrganizationMember
+    {
+        public FusionStageCompositionSettings_Node_OrganizationMember()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_OrganizationMember? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_OrganizationMember)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion : global::System.IEquatable<FusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion>, IFusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion
+    {
+        public FusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_PublishedMcpTool : global::System.IEquatable<FusionStageCompositionSettings_Node_PublishedMcpTool>, IFusionStageCompositionSettings_Node_PublishedMcpTool
+    {
+        public FusionStageCompositionSettings_Node_PublishedMcpTool()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_PublishedMcpTool? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_PublishedMcpTool)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion : global::System.IEquatable<FusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion>, IFusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion
+    {
+        public FusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_PublishedOpenApiEndpoint : global::System.IEquatable<FusionStageCompositionSettings_Node_PublishedOpenApiEndpoint>, IFusionStageCompositionSettings_Node_PublishedOpenApiEndpoint
+    {
+        public FusionStageCompositionSettings_Node_PublishedOpenApiEndpoint()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_PublishedOpenApiEndpoint? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_PublishedOpenApiEndpoint)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_PublishedOpenApiModel : global::System.IEquatable<FusionStageCompositionSettings_Node_PublishedOpenApiModel>, IFusionStageCompositionSettings_Node_PublishedOpenApiModel
+    {
+        public FusionStageCompositionSettings_Node_PublishedOpenApiModel()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_PublishedOpenApiModel? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_PublishedOpenApiModel)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_SchemaChangeLog : global::System.IEquatable<FusionStageCompositionSettings_Node_SchemaChangeLog>, IFusionStageCompositionSettings_Node_SchemaChangeLog
+    {
+        public FusionStageCompositionSettings_Node_SchemaChangeLog()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_SchemaChangeLog? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_SchemaChangeLog)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_SchemaDeployment : global::System.IEquatable<FusionStageCompositionSettings_Node_SchemaDeployment>, IFusionStageCompositionSettings_Node_SchemaDeployment
+    {
+        public FusionStageCompositionSettings_Node_SchemaDeployment()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_SchemaDeployment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_SchemaDeployment)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Stage : global::System.IEquatable<FusionStageCompositionSettings_Node_Stage>, IFusionStageCompositionSettings_Node_Stage
+    {
+        public FusionStageCompositionSettings_Node_Stage()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Stage? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Stage)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_User : global::System.IEquatable<FusionStageCompositionSettings_Node_User>, IFusionStageCompositionSettings_Node_User
+    {
+        public FusionStageCompositionSettings_Node_User()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_User? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_User)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Workspace : global::System.IEquatable<FusionStageCompositionSettings_Node_Workspace>, IFusionStageCompositionSettings_Node_Workspace
+    {
+        public FusionStageCompositionSettings_Node_Workspace()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Workspace? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Workspace)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_WorkspaceDocument : global::System.IEquatable<FusionStageCompositionSettings_Node_WorkspaceDocument>, IFusionStageCompositionSettings_Node_WorkspaceDocument
+    {
+        public FusionStageCompositionSettings_Node_WorkspaceDocument()
+        {
+        }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_WorkspaceDocument? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_WorkspaceDocument)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Stage_Stage : global::System.IEquatable<FusionStageCompositionSettings_Node_Stage_Stage>, IFusionStageCompositionSettings_Node_Stage_Stage
+    {
+        public FusionStageCompositionSettings_Node_Stage_Stage(global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_CompositionSettings? compositionSettings)
+        {
+            CompositionSettings = compositionSettings;
+        }
+
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_CompositionSettings? CompositionSettings { get; }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Stage_Stage? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((CompositionSettings is null && other.CompositionSettings is null) || CompositionSettings != null && CompositionSettings.Equals(other.CompositionSettings)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Stage_Stage)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (CompositionSettings != null)
+                {
+                    hash ^= 397 * CompositionSettings.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings : global::System.IEquatable<FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings>, IFusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings
+    {
+        public FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings(global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? cacheControlMergeBehavior, global::System.Boolean? enableGlobalObjectIdentification, global::System.Collections.Generic.IReadOnlyList<global::System.String>? excludeByTag, global::System.Boolean? removeUnreferencedDefinitions, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? tagMergeBehavior, global::ChilliCream.Nitro.Client.CompositionNodeResolution? nodeResolution)
+        {
+            CacheControlMergeBehavior = cacheControlMergeBehavior;
+            EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            ExcludeByTag = excludeByTag;
+            RemoveUnreferencedDefinitions = removeUnreferencedDefinitions;
+            TagMergeBehavior = tagMergeBehavior;
+            NodeResolution = nodeResolution;
+        }
+
+        public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? CacheControlMergeBehavior { get; }
+        public global::System.Boolean? EnableGlobalObjectIdentification { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.String>? ExcludeByTag { get; }
+        public global::System.Boolean? RemoveUnreferencedDefinitions { get; }
+        public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? TagMergeBehavior { get; }
+        public global::ChilliCream.Nitro.Client.CompositionNodeResolution? NodeResolution { get; }
+
+        public virtual global::System.Boolean Equals(FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((CacheControlMergeBehavior is null && other.CacheControlMergeBehavior is null) || CacheControlMergeBehavior != null && CacheControlMergeBehavior.Equals(other.CacheControlMergeBehavior))) && global::System.Object.Equals(EnableGlobalObjectIdentification, other.EnableGlobalObjectIdentification) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(ExcludeByTag, other.ExcludeByTag) && global::System.Object.Equals(RemoveUnreferencedDefinitions, other.RemoveUnreferencedDefinitions) && ((TagMergeBehavior is null && other.TagMergeBehavior is null) || TagMergeBehavior != null && TagMergeBehavior.Equals(other.TagMergeBehavior)) && ((NodeResolution is null && other.NodeResolution is null) || NodeResolution != null && NodeResolution.Equals(other.NodeResolution));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (CacheControlMergeBehavior != null)
+                {
+                    hash ^= 397 * CacheControlMergeBehavior.GetHashCode();
+                }
+
+                if (EnableGlobalObjectIdentification != null)
+                {
+                    hash ^= 397 * EnableGlobalObjectIdentification.GetHashCode();
+                }
+
+                if (ExcludeByTag != null)
+                {
+                    foreach (var ExcludeByTag_elm in ExcludeByTag)
+                    {
+                        hash ^= 397 * ExcludeByTag_elm.GetHashCode();
+                    }
+                }
+
+                if (RemoveUnreferencedDefinitions != null)
+                {
+                    hash ^= 397 * RemoveUnreferencedDefinitions.GetHashCode();
+                }
+
+                if (TagMergeBehavior != null)
+                {
+                    hash ^= 397 * TagMergeBehavior.GetHashCode();
+                }
+
+                if (NodeResolution != null)
+                {
+                    hash ^= 397 * NodeResolution.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettingsResult
+    {
+        /// <summary>
+        /// Fetches an object given its ID.
+        /// </summary>
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node? Node { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The node interface is implemented by entities that have a global unique identifier.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Api : IFusionStageCompositionSettings_Node
+    {
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_1? Stage { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_ApiDocument : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// API Key Details
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_ApiKey : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Client : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_ClientChangeLog : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_ClientDeployment : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_ClientVersion : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_CoordinateClientUsageMetrics : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Environment : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_FusionConfigurationChangeLog : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_FusionConfigurationDeployment : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLDirectiveDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLEnumValueDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Group : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_McpFeatureCollection : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_McpFeatureCollectionDeployment : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_McpFeatureCollectionVersion : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_McpTool : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OpenApiCollection : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OpenApiCollectionChangeLog : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OpenApiCollectionDeployment : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OpenApiCollectionVersion : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OpenApiEndpoint : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OpenApiModel : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Organization : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_OrganizationMember : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_PublishedMcpTool : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_PublishedOpenApiEndpoint : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_PublishedOpenApiModel : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_SchemaChangeLog : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_SchemaDeployment : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Stage : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_User : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Workspace : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_WorkspaceDocument : IFusionStageCompositionSettings_Node
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Stage_1
+    {
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_CompositionSettings? CompositionSettings { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Stage_Stage : IFusionStageCompositionSettings_Node_Stage_1
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Stage_CompositionSettings
+    {
+        public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? CacheControlMergeBehavior { get; }
+        public global::System.Boolean? EnableGlobalObjectIdentification { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.String>? ExcludeByTag { get; }
+        public global::System.Boolean? RemoveUnreferencedDefinitions { get; }
+        public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? TagMergeBehavior { get; }
+        public global::ChilliCream.Nitro.Client.CompositionNodeResolution? NodeResolution { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings : IFusionStageCompositionSettings_Node_Stage_CompositionSettings
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ValidateFusionConfigurationPublishResult : global::System.IEquatable<ValidateFusionConfigurationPublishResult>, IValidateFusionConfigurationPublishResult
     {
         public ValidateFusionConfigurationPublishResult(global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition validateFusionConfigurationComposition)
@@ -155154,6 +158594,75 @@ namespace ChilliCream.Nitro.Client
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum CompositionDirectiveMergeBehavior
+    {
+        Ignore,
+        Include,
+        IncludePrivate
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CompositionDirectiveMergeBehaviorSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, CompositionDirectiveMergeBehavior>
+    {
+        public global::System.String TypeName => "CompositionDirectiveMergeBehavior";
+
+        public CompositionDirectiveMergeBehavior Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "IGNORE" => CompositionDirectiveMergeBehavior.Ignore,
+                "INCLUDE" => CompositionDirectiveMergeBehavior.Include,
+                "INCLUDE_PRIVATE" => CompositionDirectiveMergeBehavior.IncludePrivate,
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum CompositionDirectiveMergeBehavior")};
+        }
+
+        public global::System.Object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                CompositionDirectiveMergeBehavior.Ignore => "IGNORE",
+                CompositionDirectiveMergeBehavior.Include => "INCLUDE",
+                CompositionDirectiveMergeBehavior.IncludePrivate => "INCLUDE_PRIVATE",
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum CompositionDirectiveMergeBehavior value '{runtimeValue}' can't be converted to string")};
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum CompositionNodeResolution
+    {
+        Gateway,
+        SourceSchema
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CompositionNodeResolutionSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, CompositionNodeResolution>
+    {
+        public global::System.String TypeName => "CompositionNodeResolution";
+
+        public CompositionNodeResolution Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "GATEWAY" => CompositionNodeResolution.Gateway,
+                "SOURCE_SCHEMA" => CompositionNodeResolution.SourceSchema,
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum CompositionNodeResolution")};
+        }
+
+        public global::System.Object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                CompositionNodeResolution.Gateway => "GATEWAY",
+                CompositionNodeResolution.SourceSchema => "SOURCE_SCHEMA",
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum CompositionNodeResolution value '{runtimeValue}' can't be converted to string")};
+        }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the CreateMockSchema GraphQL operation
@@ -167591,6 +171100,208 @@ namespace ChilliCream.Nitro.Client
         global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IUploadFusionSubgraphResult>> ExecuteAsync(global::ChilliCream.Nitro.Client.UploadFusionSubgraphInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IUploadFusionSubgraphResult>> Watch(global::ChilliCream.Nitro.Client.UploadFusionSubgraphInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+    /// Represents the operation service of the FusionStageCompositionSettings GraphQL operation
+    /// <code>
+    /// query FusionStageCompositionSettings($apiId: ID!, $stageName: String!) {
+    ///   node(id: $apiId) {
+    ///     __typename
+    ///     ... on Api {
+    ///       stage(name: $stageName) {
+    ///         __typename
+    ///         compositionSettings {
+    ///           __typename
+    ///           cacheControlMergeBehavior
+    ///           enableGlobalObjectIdentification
+    ///           excludeByTag
+    ///           removeUnreferencedDefinitions
+    ///           tagMergeBehavior
+    ///           nodeResolution
+    ///         }
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettingsQueryDocument : global::StrawberryShake.IDocument
+    {
+        private FusionStageCompositionSettingsQueryDocument()
+        {
+        }
+
+        public static FusionStageCompositionSettingsQueryDocument Instance { get; } = new FusionStageCompositionSettingsQueryDocument();
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "47e7a58f932dd79ad87eb02792ca290c");
+
+        public override global::System.String ToString()
+        {
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
+#else
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#endif
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+    /// Represents the operation service of the FusionStageCompositionSettings GraphQL operation
+    /// <code>
+    /// query FusionStageCompositionSettings($apiId: ID!, $stageName: String!) {
+    ///   node(id: $apiId) {
+    ///     __typename
+    ///     ... on Api {
+    ///       stage(name: $stageName) {
+    ///         __typename
+    ///         compositionSettings {
+    ///           __typename
+    ///           cacheControlMergeBehavior
+    ///           enableGlobalObjectIdentification
+    ///           excludeByTag
+    ///           removeUnreferencedDefinitions
+    ///           tagMergeBehavior
+    ///           nodeResolution
+    ///         }
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettingsQuery : global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IFusionStageCompositionSettingsResult> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        public FusionStageCompositionSettingsQuery(global::StrawberryShake.IOperationExecutor<IFusionStageCompositionSettingsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+        }
+
+        private FusionStageCompositionSettingsQuery(global::StrawberryShake.IOperationExecutor<IFusionStageCompositionSettingsResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter iDFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _iDFormatter = iDFormatter;
+            _stringFormatter = @stringFormatter;
+        }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IFusionStageCompositionSettingsResult);
+
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::ChilliCream.Nitro.Client.FusionStageCompositionSettingsQuery(_operationExecutor, _configure.Add(configure), _iDFormatter, _stringFormatter);
+        }
+
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IFusionStageCompositionSettingsResult>> ExecuteAsync(global::System.String apiId, global::System.String stageName, global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest(apiId, stageName);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
+            return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IFusionStageCompositionSettingsResult>> Watch(global::System.String apiId, global::System.String stageName, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest(apiId, stageName);
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.String apiId, global::System.String stageName)
+        {
+            var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            variables.Add("apiId", FormatApiId(apiId));
+            variables.Add("stageName", FormatStageName(stageName));
+            return CreateRequest(variables);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return new global::StrawberryShake.OperationRequest(id: FusionStageCompositionSettingsQueryDocument.Instance.Hash.Value, name: "FusionStageCompositionSettings", document: FusionStageCompositionSettingsQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+        }
+
+        private global::System.Object? FormatApiId(global::System.String value)
+        {
+            if (value is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(value));
+            }
+
+            return _iDFormatter.Format(value);
+        }
+
+        private global::System.Object? FormatStageName(global::System.String value)
+        {
+            if (value is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(value));
+            }
+
+            return _stringFormatter.Format(value);
+        }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest(variables!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+    /// Represents the operation service of the FusionStageCompositionSettings GraphQL operation
+    /// <code>
+    /// query FusionStageCompositionSettings($apiId: ID!, $stageName: String!) {
+    ///   node(id: $apiId) {
+    ///     __typename
+    ///     ... on Api {
+    ///       stage(name: $stageName) {
+    ///         __typename
+    ///         compositionSettings {
+    ///           __typename
+    ///           cacheControlMergeBehavior
+    ///           enableGlobalObjectIdentification
+    ///           excludeByTag
+    ///           removeUnreferencedDefinitions
+    ///           tagMergeBehavior
+    ///           nodeResolution
+    ///         }
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFusionStageCompositionSettingsQuery : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery WithRequestUri(global::System.Uri requestUri);
+        global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IFusionStageCompositionSettingsResult>> ExecuteAsync(global::System.String apiId, global::System.String stageName, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IFusionStageCompositionSettingsResult>> Watch(global::System.String apiId, global::System.String stageName, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -185381,6 +189092,7 @@ namespace ChilliCream.Nitro.Client
         private readonly global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishMutation _beginFusionConfigurationPublish;
         private readonly global::ChilliCream.Nitro.Client.IOnFusionConfigurationPublishingTaskChangedSubscription _onFusionConfigurationPublishingTaskChanged;
         private readonly global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation _uploadFusionSubgraph;
+        private readonly global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery _fusionStageCompositionSettings;
         private readonly global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation _validateFusionConfigurationPublish;
         private readonly global::ChilliCream.Nitro.Client.IForceDeleteStageByApiIdCommandMutationMutation _forceDeleteStageByApiIdCommandMutation;
         private readonly global::ChilliCream.Nitro.Client.IUpdateStagesMutation _updateStages;
@@ -185421,7 +189133,7 @@ namespace ChilliCream.Nitro.Client
         private readonly global::ChilliCream.Nitro.Client.IUploadSchemaMutation _uploadSchema;
         private readonly global::ChilliCream.Nitro.Client.IValidateSchemaVersionMutation _validateSchemaVersion;
         private readonly global::ChilliCream.Nitro.Client.IOnSchemaVersionValidationUpdatedSubscription _onSchemaVersionValidationUpdated;
-        public ApiClient(global::ChilliCream.Nitro.Client.ICreateMockSchemaMutation createMockSchema, global::ChilliCream.Nitro.Client.IUpdateMockSchemaMutation updateMockSchema, global::ChilliCream.Nitro.Client.ISelectMockSchemaPromptQueryQuery selectMockSchemaPromptQuery, global::ChilliCream.Nitro.Client.IListMockCommandQueryQuery listMockCommandQuery, global::ChilliCream.Nitro.Client.IListClientPublishedVersionsCommandQueryQuery listClientPublishedVersionsCommandQuery, global::ChilliCream.Nitro.Client.IShowClientCommandQueryQuery showClientCommandQuery, global::ChilliCream.Nitro.Client.IUnpublishClientMutation unpublishClient, global::ChilliCream.Nitro.Client.IPageClientVersionDetailQueryQuery pageClientVersionDetailQuery, global::ChilliCream.Nitro.Client.ISelectClientPromptQueryQuery selectClientPromptQuery, global::ChilliCream.Nitro.Client.IUploadClientMutation uploadClient, global::ChilliCream.Nitro.Client.IValidateClientVersionMutation validateClientVersion, global::ChilliCream.Nitro.Client.IOnClientVersionValidationUpdatedSubscription onClientVersionValidationUpdated, global::ChilliCream.Nitro.Client.IDeleteClientByIdCommandMutationMutation deleteClientByIdCommandMutation, global::ChilliCream.Nitro.Client.IPublishClientVersionMutation publishClientVersion, global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdatedSubscription onClientVersionPublishUpdated, global::ChilliCream.Nitro.Client.IListClientCommandQueryQuery listClientCommandQuery, global::ChilliCream.Nitro.Client.ICreateClientCommandMutationMutation createClientCommandMutation, global::ChilliCream.Nitro.Client.IShowApiCommandQueryQuery showApiCommandQuery, global::ChilliCream.Nitro.Client.IDeleteApiCommandQueryQuery deleteApiCommandQuery, global::ChilliCream.Nitro.Client.IDeleteApiCommandMutationMutation deleteApiCommandMutation, global::ChilliCream.Nitro.Client.ISelectApiPromptQueryQuery selectApiPromptQuery, global::ChilliCream.Nitro.Client.IListApiCommandQueryQuery listApiCommandQuery, global::ChilliCream.Nitro.Client.ISetApiSettingsCommandMutationMutation setApiSettingsCommandMutation, global::ChilliCream.Nitro.Client.ICreateApiCommandMutationMutation createApiCommandMutation, global::ChilliCream.Nitro.Client.ICancelFusionConfigurationPublishMutation cancelFusionConfigurationPublish, global::ChilliCream.Nitro.Client.ICommitFusionConfigurationPublishMutation commitFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IStartFusionConfigurationPublishMutation startFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishMutation beginFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IOnFusionConfigurationPublishingTaskChangedSubscription onFusionConfigurationPublishingTaskChanged, global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation uploadFusionSubgraph, global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation validateFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IForceDeleteStageByApiIdCommandMutationMutation forceDeleteStageByApiIdCommandMutation, global::ChilliCream.Nitro.Client.IUpdateStagesMutation updateStages, global::ChilliCream.Nitro.Client.IListStagesQueryQuery listStagesQuery, global::ChilliCream.Nitro.Client.IListEnvironmentCommandQueryQuery listEnvironmentCommandQuery, global::ChilliCream.Nitro.Client.IShowEnvironmentCommandQueryQuery showEnvironmentCommandQuery, global::ChilliCream.Nitro.Client.ICreateEnvironmentCommandMutationMutation createEnvironmentCommandMutation, global::ChilliCream.Nitro.Client.IListApiKeyCommandQueryQuery listApiKeyCommandQuery, global::ChilliCream.Nitro.Client.ICreateApiKeyCommandMutationMutation createApiKeyCommandMutation, global::ChilliCream.Nitro.Client.IDeleteApiKeyCommandMutationMutation deleteApiKeyCommandMutation, global::ChilliCream.Nitro.Client.ISelectMcpFeatureCollectionPromptQueryQuery selectMcpFeatureCollectionPromptQuery, global::ChilliCream.Nitro.Client.IUploadMcpFeatureCollectionCommandMutationMutation uploadMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IValidateMcpFeatureCollectionCommandMutationMutation validateMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IValidateMcpFeatureCollectionCommandSubscriptionSubscription validateMcpFeatureCollectionCommandSubscription, global::ChilliCream.Nitro.Client.IDeleteMcpFeatureCollectionByIdCommandMutationMutation deleteMcpFeatureCollectionByIdCommandMutation, global::ChilliCream.Nitro.Client.ICreateMcpFeatureCollectionCommandMutationMutation createMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IListMcpFeatureCollectionCommandQueryQuery listMcpFeatureCollectionCommandQuery, global::ChilliCream.Nitro.Client.IPublishMcpFeatureCollectionCommandMutationMutation publishMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IPublishMcpFeatureCollectionCommandSubscriptionSubscription publishMcpFeatureCollectionCommandSubscription, global::ChilliCream.Nitro.Client.IListPersonalAccessTokenCommandQueryQuery listPersonalAccessTokenCommandQuery, global::ChilliCream.Nitro.Client.ICreatePersonalAccessTokenCommandMutationMutation createPersonalAccessTokenCommandMutation, global::ChilliCream.Nitro.Client.IRevokePersonalAccessTokenCommandMutationMutation revokePersonalAccessTokenCommandMutation, global::ChilliCream.Nitro.Client.ISelectOpenApiCollectionPromptQueryQuery selectOpenApiCollectionPromptQuery, global::ChilliCream.Nitro.Client.IUploadOpenApiCollectionCommandMutationMutation uploadOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IListOpenApiCollectionCommandQueryQuery listOpenApiCollectionCommandQuery, global::ChilliCream.Nitro.Client.IPublishOpenApiCollectionCommandMutationMutation publishOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IPublishOpenApiCollectionCommandSubscriptionSubscription publishOpenApiCollectionCommandSubscription, global::ChilliCream.Nitro.Client.IValidateOpenApiCollectionCommandMutationMutation validateOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IValidateOpenApiCollectionCommandSubscriptionSubscription validateOpenApiCollectionCommandSubscription, global::ChilliCream.Nitro.Client.ICreateOpenApiCollectionCommandMutationMutation createOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IDeleteOpenApiCollectionByIdCommandMutationMutation deleteOpenApiCollectionByIdCommandMutation, global::ChilliCream.Nitro.Client.IShowWorkspaceCommandQueryQuery showWorkspaceCommandQuery, global::ChilliCream.Nitro.Client.ICreateWorkspaceCommandMutationMutation createWorkspaceCommandMutation, global::ChilliCream.Nitro.Client.IListWorkspaceCommandQueryQuery listWorkspaceCommandQuery, global::ChilliCream.Nitro.Client.ISetDefaultWorkspaceCommand_SelectWorkspace_QueryQuery setDefaultWorkspaceCommand_SelectWorkspace_Query, global::ChilliCream.Nitro.Client.IPublishSchemaVersionMutation publishSchemaVersion, global::ChilliCream.Nitro.Client.IOnSchemaVersionPublishUpdatedSubscription onSchemaVersionPublishUpdated, global::ChilliCream.Nitro.Client.IUploadSchemaMutation uploadSchema, global::ChilliCream.Nitro.Client.IValidateSchemaVersionMutation validateSchemaVersion, global::ChilliCream.Nitro.Client.IOnSchemaVersionValidationUpdatedSubscription onSchemaVersionValidationUpdated)
+        public ApiClient(global::ChilliCream.Nitro.Client.ICreateMockSchemaMutation createMockSchema, global::ChilliCream.Nitro.Client.IUpdateMockSchemaMutation updateMockSchema, global::ChilliCream.Nitro.Client.ISelectMockSchemaPromptQueryQuery selectMockSchemaPromptQuery, global::ChilliCream.Nitro.Client.IListMockCommandQueryQuery listMockCommandQuery, global::ChilliCream.Nitro.Client.IListClientPublishedVersionsCommandQueryQuery listClientPublishedVersionsCommandQuery, global::ChilliCream.Nitro.Client.IShowClientCommandQueryQuery showClientCommandQuery, global::ChilliCream.Nitro.Client.IUnpublishClientMutation unpublishClient, global::ChilliCream.Nitro.Client.IPageClientVersionDetailQueryQuery pageClientVersionDetailQuery, global::ChilliCream.Nitro.Client.ISelectClientPromptQueryQuery selectClientPromptQuery, global::ChilliCream.Nitro.Client.IUploadClientMutation uploadClient, global::ChilliCream.Nitro.Client.IValidateClientVersionMutation validateClientVersion, global::ChilliCream.Nitro.Client.IOnClientVersionValidationUpdatedSubscription onClientVersionValidationUpdated, global::ChilliCream.Nitro.Client.IDeleteClientByIdCommandMutationMutation deleteClientByIdCommandMutation, global::ChilliCream.Nitro.Client.IPublishClientVersionMutation publishClientVersion, global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdatedSubscription onClientVersionPublishUpdated, global::ChilliCream.Nitro.Client.IListClientCommandQueryQuery listClientCommandQuery, global::ChilliCream.Nitro.Client.ICreateClientCommandMutationMutation createClientCommandMutation, global::ChilliCream.Nitro.Client.IShowApiCommandQueryQuery showApiCommandQuery, global::ChilliCream.Nitro.Client.IDeleteApiCommandQueryQuery deleteApiCommandQuery, global::ChilliCream.Nitro.Client.IDeleteApiCommandMutationMutation deleteApiCommandMutation, global::ChilliCream.Nitro.Client.ISelectApiPromptQueryQuery selectApiPromptQuery, global::ChilliCream.Nitro.Client.IListApiCommandQueryQuery listApiCommandQuery, global::ChilliCream.Nitro.Client.ISetApiSettingsCommandMutationMutation setApiSettingsCommandMutation, global::ChilliCream.Nitro.Client.ICreateApiCommandMutationMutation createApiCommandMutation, global::ChilliCream.Nitro.Client.ICancelFusionConfigurationPublishMutation cancelFusionConfigurationPublish, global::ChilliCream.Nitro.Client.ICommitFusionConfigurationPublishMutation commitFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IStartFusionConfigurationPublishMutation startFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishMutation beginFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IOnFusionConfigurationPublishingTaskChangedSubscription onFusionConfigurationPublishingTaskChanged, global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation uploadFusionSubgraph, global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery fusionStageCompositionSettings, global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation validateFusionConfigurationPublish, global::ChilliCream.Nitro.Client.IForceDeleteStageByApiIdCommandMutationMutation forceDeleteStageByApiIdCommandMutation, global::ChilliCream.Nitro.Client.IUpdateStagesMutation updateStages, global::ChilliCream.Nitro.Client.IListStagesQueryQuery listStagesQuery, global::ChilliCream.Nitro.Client.IListEnvironmentCommandQueryQuery listEnvironmentCommandQuery, global::ChilliCream.Nitro.Client.IShowEnvironmentCommandQueryQuery showEnvironmentCommandQuery, global::ChilliCream.Nitro.Client.ICreateEnvironmentCommandMutationMutation createEnvironmentCommandMutation, global::ChilliCream.Nitro.Client.IListApiKeyCommandQueryQuery listApiKeyCommandQuery, global::ChilliCream.Nitro.Client.ICreateApiKeyCommandMutationMutation createApiKeyCommandMutation, global::ChilliCream.Nitro.Client.IDeleteApiKeyCommandMutationMutation deleteApiKeyCommandMutation, global::ChilliCream.Nitro.Client.ISelectMcpFeatureCollectionPromptQueryQuery selectMcpFeatureCollectionPromptQuery, global::ChilliCream.Nitro.Client.IUploadMcpFeatureCollectionCommandMutationMutation uploadMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IValidateMcpFeatureCollectionCommandMutationMutation validateMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IValidateMcpFeatureCollectionCommandSubscriptionSubscription validateMcpFeatureCollectionCommandSubscription, global::ChilliCream.Nitro.Client.IDeleteMcpFeatureCollectionByIdCommandMutationMutation deleteMcpFeatureCollectionByIdCommandMutation, global::ChilliCream.Nitro.Client.ICreateMcpFeatureCollectionCommandMutationMutation createMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IListMcpFeatureCollectionCommandQueryQuery listMcpFeatureCollectionCommandQuery, global::ChilliCream.Nitro.Client.IPublishMcpFeatureCollectionCommandMutationMutation publishMcpFeatureCollectionCommandMutation, global::ChilliCream.Nitro.Client.IPublishMcpFeatureCollectionCommandSubscriptionSubscription publishMcpFeatureCollectionCommandSubscription, global::ChilliCream.Nitro.Client.IListPersonalAccessTokenCommandQueryQuery listPersonalAccessTokenCommandQuery, global::ChilliCream.Nitro.Client.ICreatePersonalAccessTokenCommandMutationMutation createPersonalAccessTokenCommandMutation, global::ChilliCream.Nitro.Client.IRevokePersonalAccessTokenCommandMutationMutation revokePersonalAccessTokenCommandMutation, global::ChilliCream.Nitro.Client.ISelectOpenApiCollectionPromptQueryQuery selectOpenApiCollectionPromptQuery, global::ChilliCream.Nitro.Client.IUploadOpenApiCollectionCommandMutationMutation uploadOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IListOpenApiCollectionCommandQueryQuery listOpenApiCollectionCommandQuery, global::ChilliCream.Nitro.Client.IPublishOpenApiCollectionCommandMutationMutation publishOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IPublishOpenApiCollectionCommandSubscriptionSubscription publishOpenApiCollectionCommandSubscription, global::ChilliCream.Nitro.Client.IValidateOpenApiCollectionCommandMutationMutation validateOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IValidateOpenApiCollectionCommandSubscriptionSubscription validateOpenApiCollectionCommandSubscription, global::ChilliCream.Nitro.Client.ICreateOpenApiCollectionCommandMutationMutation createOpenApiCollectionCommandMutation, global::ChilliCream.Nitro.Client.IDeleteOpenApiCollectionByIdCommandMutationMutation deleteOpenApiCollectionByIdCommandMutation, global::ChilliCream.Nitro.Client.IShowWorkspaceCommandQueryQuery showWorkspaceCommandQuery, global::ChilliCream.Nitro.Client.ICreateWorkspaceCommandMutationMutation createWorkspaceCommandMutation, global::ChilliCream.Nitro.Client.IListWorkspaceCommandQueryQuery listWorkspaceCommandQuery, global::ChilliCream.Nitro.Client.ISetDefaultWorkspaceCommand_SelectWorkspace_QueryQuery setDefaultWorkspaceCommand_SelectWorkspace_Query, global::ChilliCream.Nitro.Client.IPublishSchemaVersionMutation publishSchemaVersion, global::ChilliCream.Nitro.Client.IOnSchemaVersionPublishUpdatedSubscription onSchemaVersionPublishUpdated, global::ChilliCream.Nitro.Client.IUploadSchemaMutation uploadSchema, global::ChilliCream.Nitro.Client.IValidateSchemaVersionMutation validateSchemaVersion, global::ChilliCream.Nitro.Client.IOnSchemaVersionValidationUpdatedSubscription onSchemaVersionValidationUpdated)
         {
             _createMockSchema = createMockSchema ?? throw new global::System.ArgumentNullException(nameof(createMockSchema));
             _updateMockSchema = updateMockSchema ?? throw new global::System.ArgumentNullException(nameof(updateMockSchema));
@@ -185453,6 +189165,7 @@ namespace ChilliCream.Nitro.Client
             _beginFusionConfigurationPublish = beginFusionConfigurationPublish ?? throw new global::System.ArgumentNullException(nameof(beginFusionConfigurationPublish));
             _onFusionConfigurationPublishingTaskChanged = onFusionConfigurationPublishingTaskChanged ?? throw new global::System.ArgumentNullException(nameof(onFusionConfigurationPublishingTaskChanged));
             _uploadFusionSubgraph = uploadFusionSubgraph ?? throw new global::System.ArgumentNullException(nameof(uploadFusionSubgraph));
+            _fusionStageCompositionSettings = fusionStageCompositionSettings ?? throw new global::System.ArgumentNullException(nameof(fusionStageCompositionSettings));
             _validateFusionConfigurationPublish = validateFusionConfigurationPublish ?? throw new global::System.ArgumentNullException(nameof(validateFusionConfigurationPublish));
             _forceDeleteStageByApiIdCommandMutation = forceDeleteStageByApiIdCommandMutation ?? throw new global::System.ArgumentNullException(nameof(forceDeleteStageByApiIdCommandMutation));
             _updateStages = updateStages ?? throw new global::System.ArgumentNullException(nameof(updateStages));
@@ -185526,6 +189239,7 @@ namespace ChilliCream.Nitro.Client
         public global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishMutation BeginFusionConfigurationPublish => _beginFusionConfigurationPublish;
         public global::ChilliCream.Nitro.Client.IOnFusionConfigurationPublishingTaskChangedSubscription OnFusionConfigurationPublishingTaskChanged => _onFusionConfigurationPublishingTaskChanged;
         public global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation UploadFusionSubgraph => _uploadFusionSubgraph;
+        public global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery FusionStageCompositionSettings => _fusionStageCompositionSettings;
         public global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation ValidateFusionConfigurationPublish => _validateFusionConfigurationPublish;
         public global::ChilliCream.Nitro.Client.IForceDeleteStageByApiIdCommandMutationMutation ForceDeleteStageByApiIdCommandMutation => _forceDeleteStageByApiIdCommandMutation;
         public global::ChilliCream.Nitro.Client.IUpdateStagesMutation UpdateStages => _updateStages;
@@ -185634,6 +189348,8 @@ namespace ChilliCream.Nitro.Client
         global::ChilliCream.Nitro.Client.IOnFusionConfigurationPublishingTaskChangedSubscription OnFusionConfigurationPublishingTaskChanged { get; }
 
         global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation UploadFusionSubgraph { get; }
+
+        global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery FusionStageCompositionSettings { get; }
 
         global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation ValidateFusionConfigurationPublish { get; }
 
@@ -195495,6 +199211,306 @@ namespace ChilliCream.Nitro.Client.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new UploadFusionSubgraphResultInfo(UploadFusionSubgraph);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettingsResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.FusionStageCompositionSettingsResult>
+    {
+        public FusionStageCompositionSettingsResultFactory()
+        {
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult);
+
+        public FusionStageCompositionSettingsResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (dataInfo is FusionStageCompositionSettingsResultInfo info)
+            {
+                return new FusionStageCompositionSettingsResult(MapIFusionStageCompositionSettings_Node(info.Node));
+            }
+
+            throw new global::System.ArgumentException("FusionStageCompositionSettingsResultInfo expected.");
+        }
+
+        private global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node? MapIFusionStageCompositionSettings_Node(global::ChilliCream.Nitro.Client.State.INodeData? data)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IFusionStageCompositionSettings_Node? returnValue;
+            if (data is global::ChilliCream.Nitro.Client.State.ApiData api)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Api(MapIFusionStageCompositionSettings_Node_Stage_1(api.Stage));
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ApiDocumentData apiDocument)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_ApiDocument();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ApiKeyData apiKey)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_ApiKey();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ClientData client)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Client();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ClientChangeLogData clientChangeLog)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_ClientChangeLog();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ClientDeploymentData clientDeployment)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_ClientDeployment();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ClientVersionData clientVersion)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_ClientVersion();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.CoordinateClientUsageMetricsData coordinateClientUsageMetrics)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_CoordinateClientUsageMetrics();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.EnvironmentData environment)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Environment();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.FusionConfigurationChangeLogData fusionConfigurationChangeLog)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_FusionConfigurationChangeLog();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.FusionConfigurationDeploymentData fusionConfigurationDeployment)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_FusionConfigurationDeployment();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLDirectiveArgumentDefinitionData graphQLDirectiveArgumentDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLDirectiveArgumentDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLDirectiveDefinitionData graphQLDirectiveDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLDirectiveDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLEnumTypeDefinitionData graphQLEnumTypeDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLEnumTypeDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLEnumValueDefinitionData graphQLEnumValueDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLEnumValueDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLInputObjectFieldDefinitionData graphQLInputObjectFieldDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLInputObjectFieldDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLInputObjectTypeDefinitionData graphQLInputObjectTypeDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLInputObjectTypeDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLInterfaceFieldArgumentDefinitionData graphQLInterfaceFieldArgumentDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLInterfaceFieldArgumentDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLInterfaceFieldDefinitionData graphQLInterfaceFieldDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLInterfaceFieldDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLInterfaceTypeDefinitionData graphQLInterfaceTypeDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLInterfaceTypeDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLObjectFieldArgumentDefinitionData graphQLObjectFieldArgumentDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLObjectFieldArgumentDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLObjectFieldDefinitionData graphQLObjectFieldDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLObjectFieldDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLScalarTypeDefinitionData graphQLScalarTypeDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLScalarTypeDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GraphQLUnionTypeDefinitionData graphQLUnionTypeDefinition)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_GraphQLUnionTypeDefinition();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.GroupData @group)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Group();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.McpFeatureCollectionData mcpFeatureCollection)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_McpFeatureCollection();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.McpFeatureCollectionChangeLogData mcpFeatureCollectionChangeLog)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_McpFeatureCollectionChangeLog();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.McpFeatureCollectionDeploymentData mcpFeatureCollectionDeployment)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_McpFeatureCollectionDeployment();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.McpFeatureCollectionVersionData mcpFeatureCollectionVersion)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_McpFeatureCollectionVersion();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.McpToolData mcpTool)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_McpTool();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OpenApiCollectionData openApiCollection)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OpenApiCollection();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OpenApiCollectionChangeLogData openApiCollectionChangeLog)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OpenApiCollectionChangeLog();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OpenApiCollectionDeploymentData openApiCollectionDeployment)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OpenApiCollectionDeployment();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OpenApiCollectionVersionData openApiCollectionVersion)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OpenApiCollectionVersion();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OpenApiEndpointData openApiEndpoint)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OpenApiEndpoint();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OpenApiModelData openApiModel)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OpenApiModel();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OrganizationData organization)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Organization();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.OrganizationMemberData organizationMember)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_OrganizationMember();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.PublishedMcpFeatureCollectionVersionData publishedMcpFeatureCollectionVersion)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_PublishedMcpFeatureCollectionVersion();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.PublishedMcpToolData publishedMcpTool)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_PublishedMcpTool();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.PublishedOpenApiCollectionVersionData publishedOpenApiCollectionVersion)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_PublishedOpenApiCollectionVersion();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.PublishedOpenApiEndpointData publishedOpenApiEndpoint)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_PublishedOpenApiEndpoint();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.PublishedOpenApiModelData publishedOpenApiModel)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_PublishedOpenApiModel();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.SchemaChangeLogData schemaChangeLog)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_SchemaChangeLog();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.SchemaDeploymentData schemaDeployment)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_SchemaDeployment();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.StageData stage)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Stage();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.UserData user)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_User();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.WorkspaceData workspace)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_Workspace();
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.WorkspaceDocumentData workspaceDocument)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.FusionStageCompositionSettings_Node_WorkspaceDocument();
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_1? MapIFusionStageCompositionSettings_Node_Stage_1(global::ChilliCream.Nitro.Client.State.StageData? data)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IFusionStageCompositionSettings_Node_Stage_1 returnValue = default !;
+            if (data.__typename.Equals("Stage", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new FusionStageCompositionSettings_Node_Stage_Stage(MapIFusionStageCompositionSettings_Node_Stage_CompositionSettings(data.CompositionSettings));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::ChilliCream.Nitro.Client.IFusionStageCompositionSettings_Node_Stage_CompositionSettings? MapIFusionStageCompositionSettings_Node_Stage_CompositionSettings(global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData? data)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IFusionStageCompositionSettings_Node_Stage_CompositionSettings returnValue = default !;
+            if (data.__typename.Equals("StageCompositionSettings", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new FusionStageCompositionSettings_Node_Stage_CompositionSettings_StageCompositionSettings(data.CacheControlMergeBehavior, data.EnableGlobalObjectIdentification, data.ExcludeByTag, data.RemoveUnreferencedDefinitions, data.TagMergeBehavior, data.NodeResolution);
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(dataInfo, snapshot);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettingsResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    {
+        public FusionStageCompositionSettingsResultInfo(global::ChilliCream.Nitro.Client.State.INodeData? node)
+        {
+            Node = node;
+        }
+
+        /// <summary>
+        /// Fetches an object given its ID.
+        /// </summary>
+        public global::ChilliCream.Nitro.Client.State.INodeData? Node { get; }
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
+        public global::System.UInt64 Version => 0;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new FusionStageCompositionSettingsResultInfo(Node);
         }
     }
 
@@ -221056,6 +225072,417 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FusionStageCompositionSettingsBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>
+    {
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior> _compositionDirectiveMergeBehaviorParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionNodeResolution> _compositionNodeResolutionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        public FusionStageCompositionSettingsBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _compositionDirectiveMergeBehaviorParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior>("CompositionDirectiveMergeBehavior") ?? throw new global::System.ArgumentException("No serializer for type `CompositionDirectiveMergeBehavior` found.");
+            _compositionNodeResolutionParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.CompositionNodeResolution>("CompositionNodeResolution") ?? throw new global::System.ArgumentException("No serializer for type `CompositionNodeResolution` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
+        }
+
+        protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult> ResultDataFactory { get; }
+
+        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            return new FusionStageCompositionSettingsResultInfo(Deserialize_INodeData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "node")));
+        }
+
+        private global::ChilliCream.Nitro.Client.State.INodeData? Deserialize_INodeData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("Api", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ApiData(typename, stage: Deserialize_IFusionStageCompositionSettings_Node_Stage_1(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "stage")));
+            }
+
+            if (typename?.Equals("ApiDocument", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ApiDocumentData(typename);
+            }
+
+            if (typename?.Equals("ApiKey", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ApiKeyData(typename);
+            }
+
+            if (typename?.Equals("Client", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ClientData(typename);
+            }
+
+            if (typename?.Equals("ClientChangeLog", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ClientChangeLogData(typename);
+            }
+
+            if (typename?.Equals("ClientDeployment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ClientDeploymentData(typename);
+            }
+
+            if (typename?.Equals("ClientVersion", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ClientVersionData(typename);
+            }
+
+            if (typename?.Equals("CoordinateClientUsageMetrics", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.CoordinateClientUsageMetricsData(typename);
+            }
+
+            if (typename?.Equals("Environment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.EnvironmentData(typename);
+            }
+
+            if (typename?.Equals("FusionConfigurationChangeLog", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.FusionConfigurationChangeLogData(typename);
+            }
+
+            if (typename?.Equals("FusionConfigurationDeployment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.FusionConfigurationDeploymentData(typename);
+            }
+
+            if (typename?.Equals("GraphQLDirectiveArgumentDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLDirectiveArgumentDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLDirectiveDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLDirectiveDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLEnumTypeDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLEnumTypeDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLEnumValueDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLEnumValueDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLInputObjectFieldDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLInputObjectFieldDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLInputObjectTypeDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLInputObjectTypeDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLInterfaceFieldArgumentDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLInterfaceFieldArgumentDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLInterfaceFieldDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLInterfaceFieldDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLInterfaceTypeDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLInterfaceTypeDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLObjectFieldArgumentDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLObjectFieldArgumentDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLObjectFieldDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLObjectFieldDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLScalarTypeDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLScalarTypeDefinitionData(typename);
+            }
+
+            if (typename?.Equals("GraphQLUnionTypeDefinition", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GraphQLUnionTypeDefinitionData(typename);
+            }
+
+            if (typename?.Equals("Group", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.GroupData(typename);
+            }
+
+            if (typename?.Equals("McpFeatureCollection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.McpFeatureCollectionData(typename);
+            }
+
+            if (typename?.Equals("McpFeatureCollectionChangeLog", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.McpFeatureCollectionChangeLogData(typename);
+            }
+
+            if (typename?.Equals("McpFeatureCollectionDeployment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.McpFeatureCollectionDeploymentData(typename);
+            }
+
+            if (typename?.Equals("McpFeatureCollectionVersion", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.McpFeatureCollectionVersionData(typename);
+            }
+
+            if (typename?.Equals("McpTool", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.McpToolData(typename);
+            }
+
+            if (typename?.Equals("OpenApiCollection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OpenApiCollectionData(typename);
+            }
+
+            if (typename?.Equals("OpenApiCollectionChangeLog", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OpenApiCollectionChangeLogData(typename);
+            }
+
+            if (typename?.Equals("OpenApiCollectionDeployment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OpenApiCollectionDeploymentData(typename);
+            }
+
+            if (typename?.Equals("OpenApiCollectionVersion", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OpenApiCollectionVersionData(typename);
+            }
+
+            if (typename?.Equals("OpenApiEndpoint", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OpenApiEndpointData(typename);
+            }
+
+            if (typename?.Equals("OpenApiModel", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OpenApiModelData(typename);
+            }
+
+            if (typename?.Equals("Organization", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OrganizationData(typename);
+            }
+
+            if (typename?.Equals("OrganizationMember", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.OrganizationMemberData(typename);
+            }
+
+            if (typename?.Equals("PublishedMcpFeatureCollectionVersion", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.PublishedMcpFeatureCollectionVersionData(typename);
+            }
+
+            if (typename?.Equals("PublishedMcpTool", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.PublishedMcpToolData(typename);
+            }
+
+            if (typename?.Equals("PublishedOpenApiCollectionVersion", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.PublishedOpenApiCollectionVersionData(typename);
+            }
+
+            if (typename?.Equals("PublishedOpenApiEndpoint", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.PublishedOpenApiEndpointData(typename);
+            }
+
+            if (typename?.Equals("PublishedOpenApiModel", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.PublishedOpenApiModelData(typename);
+            }
+
+            if (typename?.Equals("SchemaChangeLog", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.SchemaChangeLogData(typename);
+            }
+
+            if (typename?.Equals("SchemaDeployment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.SchemaDeploymentData(typename);
+            }
+
+            if (typename?.Equals("Stage", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.StageData(typename);
+            }
+
+            if (typename?.Equals("User", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.UserData(typename);
+            }
+
+            if (typename?.Equals("Workspace", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.WorkspaceData(typename);
+            }
+
+            if (typename?.Equals("WorkspaceDocument", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.WorkspaceDocumentData(typename);
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::ChilliCream.Nitro.Client.State.StageData? Deserialize_IFusionStageCompositionSettings_Node_Stage_1(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("Stage", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.StageData(typename, compositionSettings: Deserialize_IFusionStageCompositionSettings_Node_Stage_CompositionSettings(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "compositionSettings")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData? Deserialize_IFusionStageCompositionSettings_Node_Stage_CompositionSettings(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("StageCompositionSettings", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData(typename, cacheControlMergeBehavior: Deserialize_CompositionDirectiveMergeBehavior(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "cacheControlMergeBehavior")), enableGlobalObjectIdentification: Deserialize_Boolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "enableGlobalObjectIdentification")), excludeByTag: Deserialize_StringNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "excludeByTag")), removeUnreferencedDefinitions: Deserialize_Boolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "removeUnreferencedDefinitions")), tagMergeBehavior: Deserialize_CompositionDirectiveMergeBehavior(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tagMergeBehavior")), nodeResolution: Deserialize_CompositionNodeResolution(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "nodeResolution")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? Deserialize_CompositionDirectiveMergeBehavior(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return _compositionDirectiveMergeBehaviorParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Boolean? Deserialize_Boolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::System.String>? Deserialize_StringNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            var @strings = new global::System.Collections.Generic.List<global::System.String>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                @strings.Add(Deserialize_NonNullableString(child));
+            }
+
+            return @strings;
+        }
+
+        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::ChilliCream.Nitro.Client.CompositionNodeResolution? Deserialize_CompositionNodeResolution(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return _compositionNodeResolutionParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ValidateFusionConfigurationPublishBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishResult>
     {
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
@@ -236650,7 +241077,7 @@ namespace ChilliCream.Nitro.Client.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record ApiData : IApiKeyReferenceData, IAuthorizationEventLogResourceData, IWorkspaceChangeResultData, INodeData
     {
-        public ApiData(global::System.String __typename, global::ChilliCream.Nitro.Client.State.MockSchemasConnectionData? mockSchemas = default !, global::System.String? name = default !, global::System.Collections.Generic.IReadOnlyList<global::System.String>? path = default !, global::ChilliCream.Nitro.Client.State.ClientsConnectionData? clients = default !, global::System.String? id = default !, global::ChilliCream.Nitro.Client.State.WorkspaceData? workspace = default !, global::ChilliCream.Nitro.Client.State.ApiSettingsData? settings = default !, global::System.String? version = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.StageData>? stages = default !, global::ChilliCream.Nitro.Client.State.ApiMcpFeatureCollectionsConnectionData? mcpFeatureCollections = default !, global::ChilliCream.Nitro.Client.State.ApiOpenApiCollectionsConnectionData? openApiCollections = default !)
+        public ApiData(global::System.String __typename, global::ChilliCream.Nitro.Client.State.MockSchemasConnectionData? mockSchemas = default !, global::System.String? name = default !, global::System.Collections.Generic.IReadOnlyList<global::System.String>? path = default !, global::ChilliCream.Nitro.Client.State.ClientsConnectionData? clients = default !, global::System.String? id = default !, global::ChilliCream.Nitro.Client.State.WorkspaceData? workspace = default !, global::ChilliCream.Nitro.Client.State.ApiSettingsData? settings = default !, global::System.String? version = default !, global::ChilliCream.Nitro.Client.State.StageData? stage = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.StageData>? stages = default !, global::ChilliCream.Nitro.Client.State.ApiMcpFeatureCollectionsConnectionData? mcpFeatureCollections = default !, global::ChilliCream.Nitro.Client.State.ApiOpenApiCollectionsConnectionData? openApiCollections = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             MockSchemas = mockSchemas;
@@ -236661,6 +241088,7 @@ namespace ChilliCream.Nitro.Client.State
             Workspace = workspace;
             Settings = settings;
             Version = version;
+            Stage = stage;
             Stages = stages;
             McpFeatureCollections = mcpFeatureCollections;
             OpenApiCollections = openApiCollections;
@@ -236675,6 +241103,7 @@ namespace ChilliCream.Nitro.Client.State
         public global::ChilliCream.Nitro.Client.State.WorkspaceData? Workspace { get; init; }
         public global::ChilliCream.Nitro.Client.State.ApiSettingsData? Settings { get; init; }
         public global::System.String? Version { get; init; }
+        public global::ChilliCream.Nitro.Client.State.StageData? Stage { get; init; }
         public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.StageData>? Stages { get; init; }
         public global::ChilliCream.Nitro.Client.State.ApiMcpFeatureCollectionsConnectionData? McpFeatureCollections { get; init; }
         public global::ChilliCream.Nitro.Client.State.ApiOpenApiCollectionsConnectionData? OpenApiCollections { get; init; }
@@ -237387,10 +241816,11 @@ namespace ChilliCream.Nitro.Client.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record StageData : INodeData
     {
-        public StageData(global::System.String __typename, global::System.String? name = default !, global::System.String? id = default !, global::System.String? displayName = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.IStageConditionData>? conditions = default !, global::ChilliCream.Nitro.Client.State.PublishedSchemaVersionData? publishedSchema = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.PublishedClientData>? publishedClients = default !)
+        public StageData(global::System.String __typename, global::System.String? name = default !, global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData? compositionSettings = default !, global::System.String? id = default !, global::System.String? displayName = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.IStageConditionData>? conditions = default !, global::ChilliCream.Nitro.Client.State.PublishedSchemaVersionData? publishedSchema = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.PublishedClientData>? publishedClients = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;
+            CompositionSettings = compositionSettings;
             Id = id;
             DisplayName = displayName;
             Conditions = conditions;
@@ -237400,6 +241830,7 @@ namespace ChilliCream.Nitro.Client.State
 
         public global::System.String __typename { get; init; }
         public global::System.String? Name { get; init; }
+        public global::ChilliCream.Nitro.Client.State.StageCompositionSettingsData? CompositionSettings { get; init; }
         public global::System.String? Id { get; init; }
         public global::System.String? DisplayName { get; init; }
         public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.IStageConditionData>? Conditions { get; init; }
@@ -239718,6 +244149,30 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial record StageCompositionSettingsData
+    {
+        public StageCompositionSettingsData(global::System.String __typename, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? cacheControlMergeBehavior = default !, global::System.Boolean? enableGlobalObjectIdentification = default !, global::System.Collections.Generic.IReadOnlyList<global::System.String>? excludeByTag = default !, global::System.Boolean? removeUnreferencedDefinitions = default !, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? tagMergeBehavior = default !, global::ChilliCream.Nitro.Client.CompositionNodeResolution? nodeResolution = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            CacheControlMergeBehavior = cacheControlMergeBehavior;
+            EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            ExcludeByTag = excludeByTag;
+            RemoveUnreferencedDefinitions = removeUnreferencedDefinitions;
+            TagMergeBehavior = tagMergeBehavior;
+            NodeResolution = nodeResolution;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? CacheControlMergeBehavior { get; init; }
+        public global::System.Boolean? EnableGlobalObjectIdentification { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.String>? ExcludeByTag { get; init; }
+        public global::System.Boolean? RemoveUnreferencedDefinitions { get; init; }
+        public global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehavior? TagMergeBehavior { get; init; }
+        public global::ChilliCream.Nitro.Client.CompositionNodeResolution? NodeResolution { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record ValidateFusionConfigurationCompositionPayloadData
     {
         public ValidateFusionConfigurationCompositionPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.IValidateFusionConfigurationCompositionErrorData>? errors = default !)
@@ -240908,6 +245363,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.BeginFusionConfigurationPublishMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.OnFusionConfigurationPublishingTaskChangedSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.UploadFusionSubgraphMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.FusionStageCompositionSettingsQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.ValidateFusionConfigurationPublishMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.ForceDeleteStageByApiIdCommandMutationMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.UpdateStagesMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
@@ -240978,6 +245434,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IOnFusionConfigurationPublishingTaskChangedSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IForceDeleteStageByApiIdCommandMutationMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IUpdateStagesMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
@@ -241035,6 +245492,8 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.SchemaChangeSeveritySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.DirectiveLocationSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.ApiKindSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.CompositionDirectiveMergeBehaviorSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.CompositionNodeResolutionSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.AnySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -241347,6 +245806,14 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Client.UploadFusionSubgraphMutation>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Client.IUploadFusionSubgraphMutation>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.UploadFusionSubgraphMutation>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>, global::ChilliCream.Nitro.Client.State.FusionStageCompositionSettingsResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>, global::ChilliCream.Nitro.Client.State.FusionStageCompositionSettingsBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>>(services, sp => new global::StrawberryShake.StorelessOperationExecutor<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Client.FusionStageCompositionSettingsQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::ChilliCream.Nitro.Client.IFusionStageCompositionSettingsQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.FusionStageCompositionSettingsQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishResult>, global::ChilliCream.Nitro.Client.State.ValidateFusionConfigurationPublishResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::ChilliCream.Nitro.Client.IValidateFusionConfigurationPublishMutation>(sp));

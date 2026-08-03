@@ -393,7 +393,8 @@ public sealed class GatewaySchemaValidationWorkerTests
 
         public IReadOnlyList<string> Transitions => [.. _transitions];
 
-        public void NotifyViolations(string message) => _transitions.Enqueue("violations");
+        public void NotifyViolations(string gatewayName, string message)
+            => _transitions.Enqueue("violations");
 
         public void NotifyRestored(string message) => _transitions.Enqueue("restored");
     }

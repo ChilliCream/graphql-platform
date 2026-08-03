@@ -271,6 +271,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             TestContext.Current.CancellationToken);
 
         // assert
+        Assert.Equal(NitroSeedOutcome.NotFound, result.Outcome);
         Normalize(result.Message!).MatchInlineSnapshot(
             "The api 'Demo Api' with the id 'QXBpCmc1YzhkY2Uz' has no fusion configuration for "
             + "the stage 'dev' in Nitro.");

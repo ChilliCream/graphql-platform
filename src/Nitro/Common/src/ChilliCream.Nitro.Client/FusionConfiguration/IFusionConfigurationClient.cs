@@ -197,4 +197,28 @@ public interface IFusionConfigurationClient
         string sourceSchemaName,
         string sourceSchemaVersion,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the composition settings stored on the specified stage.
+    /// </summary>
+    /// <returns>
+    /// The stage composition settings, or <c>null</c> if the stage or its composition
+    /// settings were not found.
+    /// </returns>
+    /// <exception cref="NitroClientGraphQLException">
+    /// The server returned a GraphQL error.
+    /// </exception>
+    /// <exception cref="NitroClientHttpRequestException">
+    /// The server returned an HTTP error without a GraphQL response body.
+    /// </exception>
+    /// <exception cref="NitroClientAuthorizationException">
+    /// The request was rejected because the current credentials do not grant access.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// The operation was canceled.
+    /// </exception>
+    Task<StageCompositionSettings?> GetStageCompositionSettingsAsync(
+        string apiId,
+        string stageName,
+        CancellationToken cancellationToken);
 }

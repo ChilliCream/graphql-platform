@@ -43,6 +43,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         _server = await FakeNitroServer.StartAsync();
+        _server.GraphQLHandler = _ => CreateEmptyCompositionSettingsResponse();
 
         var productsDirectory = Directory.CreateDirectory(_directory.GetPath("products"));
         var gatewayDirectory = Directory.CreateDirectory(_directory.GetPath("gateway"));
@@ -135,6 +136,123 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                 }
               }
             }
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_UseInitialSettings_When_NitroHasNoArchiveYet()
+    {
+        // arrange
+        _server.DownloadHandler = _ => FakeNitroResponse.Status(StatusCodes.Status404NotFound);
+        _server.GraphQLHandler = request => request.Body.Contains(
+            NitroOperationDocuments.ResolveApiNameOperationName,
+            StringComparison.Ordinal)
+                ? FakeNitroResponse.Json("""{"data":{"node":{"name":"Gateway"}}}""")
+                : CreateCompositionSettingsResponse();
+        var harness = CompositionHarness.Create(CreateCoordinator());
+        var (model, gateway) = CreateModel(GatewayApiId, disableSchemaValidation: true);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var archive = FusionArchive.Open(_gatewayArchivePath);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+
+        $"""
+        Downloads: {GetDownloadCount()}
+        Source schemas: {await ReadSourceSchemaNamesAsync()}
+        Composition settings:
+        {settings?.RootElement}
+        """.MatchInlineSnapshot(
+            """
+            Downloads: 1
+            Source schemas: products
+            Composition settings:
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "internal"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": "Gateway",
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "IncludePrivate"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_MergeNitroSettings_WhenArchiveExists()
+    {
+        // arrange
+        await ServeSeedAsync();
+        _server.GraphQLHandler = _ => CreateCompositionSettingsResponse();
+        var harness = CompositionHarness.Create(CreateCoordinator());
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", _productsProjectFile)
+            .WithGraphQLSchemaFile();
+        var configuredGateway = builder
+            .AddProject("gateway", _gatewayProjectFile)
+            .WithGraphQLSchemaComposition(
+                new GraphQLCompositionSettings
+                {
+                    DisableSchemaValidation = true,
+                    EnableGlobalObjectIdentification = true
+                })
+            .WithNitroApiId(GatewayApiId)
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gateway = configuredGateway.Resource;
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var archive = FusionArchive.Open(_gatewayArchivePath);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(settings);
+        var merger = settings.RootElement.GetProperty("merger");
+        $"""
+        Global object identification: {merger.GetProperty("enableGlobalObjectIdentification")}
+        Cache control: {merger.GetProperty("cacheControlMergeBehavior")}
+        Tag: {merger.GetProperty("tagMergeBehavior")}
+        Settings requests: {_server.Requests.Count(
+            request => request.Body.Contains(
+                NitroOperationDocuments.GetCompositionSettingsOperationName,
+                StringComparison.Ordinal))}
+        """.MatchInlineSnapshot(
+            """
+            Global object identification: True
+            Cache control: Include
+            Tag: IncludePrivate
+            Settings requests: 1
             """);
     }
 
@@ -240,7 +358,10 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         _server.DownloadHandler = _ =>
             FakeNitroResponse.Status(StatusCodes.Status503ServiceUnavailable);
-        var harness = CompositionHarness.Create(CreateCoordinator());
+        var notifier = new RecordingCompositionNotifier();
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(),
+            compositionNotifier: notifier);
         var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
@@ -258,12 +379,14 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         StopApplication calls: {harness.Lifetime.StopApplicationCalls}
         Gate count: {compositionGate.CurrentCount}
         Archive written: {File.Exists(_gatewayArchivePath)}
+        Notifications: {string.Join(" | ", notifier.Messages)}
         """.MatchInlineSnapshot(
             """
             Exception: The GraphQL schema composition for 'gateway' failed: The fusion configuration for the api 'QXBpCmdhdGV3YXk' and the stage 'production' could not be downloaded from 'https://nitro.test/' after 1 attempts (Nitro returned the status code 503.).
             StopApplication calls: 0
             Gate count: 1
             Archive written: False
+            Notifications: gateway: Schema composition failed for 'gateway' against stage 'production'; check the logs for details.
             """);
     }
 
@@ -304,7 +427,10 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         // the start gate failed, so no fusion configuration was acquired for the gateway.
-        var harness = CompositionHarness.Create(CreateCoordinator());
+        var notifier = new RecordingCompositionNotifier();
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(),
+            compositionNotifier: notifier);
         var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
@@ -319,12 +445,14 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         $"""
         Requests: {_server.Requests.Count}
         Archive written: {File.Exists(_gatewayArchivePath)}
+        Notifications: {string.Join(" | ", notifier.Messages)}
         Information:
         {DescribeEntries(harness, LogLevel.Information)}
         """.MatchInlineSnapshot(
             """
             Requests: 0
             Archive written: False
+            Notifications: gateway: Schema composition failed for 'gateway' against stage 'production'; check the logs for details.
             Information:
             Skipping the schema recomposition for gateway because no fusion configuration was acquired for it in this run.
             """);
@@ -410,7 +538,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             TestContext.Current.CancellationToken);
 
         // assert
-        var request = Assert.Single(_server.Requests);
+        var request = Assert.Single(
+            _server.Requests,
+            request => request.Path.StartsWith("/api/v1/apis/", StringComparison.Ordinal));
 
         Assert.Equal(
             $"/api/v1/apis/{GatewayApiId}/fusion/configurations/latest/download",
@@ -552,7 +682,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ComposeOnGatewayStartAsync_Should_NotWaitOrFail_When_ValidationIsUnavailable()
+    public async Task ComposeOnGatewayStartAsync_Should_ValidateAutomatically_When_GatewayUsesNitro()
     {
         // arrange
         await ServeSeedAsync();
@@ -560,7 +690,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
             notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -601,6 +731,41 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ComposeOnGatewayStartAsync_Should_NotValidate_When_SchemaValidationIsDisabled()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var validator = new RecordingSchemaValidator(blockUntilReleased: false);
+        var harness = CompositionHarness.Create(
+            CreateCoordinator(validator),
+            notifier: new NoopValidationNotifier());
+        var (model, gateway) = CreateModel(
+            GatewayApiId,
+            disableSchemaValidation: true);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+        harness.Lifetime.StopApplication();
+
+        // assert
+        $"""
+        Archive installed: {File.Exists(_gatewayArchivePath)}
+        Validation calls: {validator.SchemaHashes.Count}
+        Validation report: {harness.ValidationCoordinator.GetLatestReport(gateway.Name)?.Status.ToString() ?? "none"}
+        """.MatchInlineSnapshot(
+            """
+            Archive installed: True
+            Validation calls: 0
+            Validation report: none
+            """);
+    }
+
+    [Fact]
     public async Task ComposeOnGatewayStartAsync_Should_NotResubmitValidation_When_RestartSchemaIsUnchanged()
     {
         // arrange
@@ -609,7 +774,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
             notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -652,7 +817,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var harness = CompositionHarness.Create(
             coordinator,
             notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId, enableValidation: true);
+        var (model, gateway) = CreateModel(GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await coordinator.AcquireSeedAsync(
             gateway.Name,
@@ -720,10 +885,118 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             """);
     }
 
+    [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_DownloadAndAdoptFreshSeedBeforeComposition()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var coordinator = CreateCoordinator();
+        var harness = CompositionHarness.Create(coordinator);
+        var (model, gateway) = CreateModel(GatewayApiId);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+        var previousHash = coordinator.GetSeed(gateway.Name)!.SchemaHash;
+        await ServeUpdatedSeedAsync();
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        $"""
+        Result: {result.Success} ({result.Message})
+        Downloads: {GetDownloadCount()}
+        Source schemas: {await ReadSourceSchemaNamesAsync()}
+        Seed changed: {coordinator.GetSeed(gateway.Name)!.SchemaHash != previousHash}
+        """.MatchInlineSnapshot(
+            """
+            Result: True (Schema composition completed)
+            Downloads: 2
+            Source schemas: inventory, products
+            Seed changed: True
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteRecomposeCommandAsync_Should_FallBackToHeldSeed_WhenDownloadFails()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var coordinator = CreateCoordinator();
+        var harness = CompositionHarness.Create(coordinator);
+        var (model, gateway) = CreateModel(GatewayApiId);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+        _server.DownloadHandler = _ =>
+            FakeNitroResponse.Status(StatusCodes.Status503ServiceUnavailable);
+
+        // act
+        var result = await harness.Composition.ExecuteRecomposeCommandAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            "True|2|orders, products, reviews",
+            $"{result.Success}|{GetDownloadCount()}|{await ReadSourceSchemaNamesAsync()}");
+    }
+
+    [Fact]
+    public async Task RunGuardedRecompositionAsync_Should_AdoptStagedSeedWithoutDownloading()
+    {
+        // arrange
+        await ServeSeedAsync();
+        var coordinator = CreateCoordinator();
+        var harness = CompositionHarness.Create(coordinator);
+        var (model, gateway) = CreateModel(GatewayApiId);
+        using var compositionGate = new SemaphoreSlim(1, 1);
+        await coordinator.AcquireSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            TestContext.Current.CancellationToken);
+        await ServeUpdatedSeedAsync();
+        var refresh = await coordinator.DownloadFreshSeedAsync(
+            gateway.Name,
+            GatewayApiId,
+            "configuration-2",
+            new RecordingLogger<NitroSchemaCompositionTests>(),
+            suppressProviderLogs: false,
+            TestContext.Current.CancellationToken);
+        coordinator.StageCandidate(gateway.Name, refresh.Candidate!);
+        var downloadsBeforeComposition = GetDownloadCount();
+
+        // act
+        await harness.Composition.RunGuardedRecompositionAsync(
+            gateway,
+            model,
+            compositionGate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            $"{downloadsBeforeComposition}|{downloadsBeforeComposition}|inventory, products|False",
+            $"{downloadsBeforeComposition}|{GetDownloadCount()}|{await ReadSourceSchemaNamesAsync()}|"
+            + $"{coordinator.GetStagedCandidate(gateway.Name) is not null}");
+    }
+
     private (DistributedApplicationModel Model, IResourceWithEndpoints Gateway) CreateModel(
         string? gatewayApiId,
         string? productsApiId = null,
-        bool enableValidation = false)
+        bool disableSchemaValidation = false)
     {
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
@@ -737,17 +1010,13 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         var gateway = builder
             .AddProject("gateway", _gatewayProjectFile)
-            .WithGraphQLSchemaComposition()
+            .WithGraphQLSchemaComposition(
+                disableValidation: disableSchemaValidation)
             .WithReference(products);
 
         if (gatewayApiId is not null)
         {
             gateway.WithNitroApiId(gatewayApiId);
-        }
-
-        if (enableValidation)
-        {
-            gateway.Resource.Annotations.Add(new NitroSchemaValidationAnnotation());
         }
 
         var model = new DistributedApplicationModel(builder.Resources);
@@ -768,11 +1037,13 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         => new(
             Stage,
             new NitroConnectionResolver(
-                new NitroSessionReader(_directory.GetPath("session.json"), TimeSpan.Zero),
+                new NitroSessionManager(
+                    new NitroSessionReader(_directory.GetPath("session.json"), TimeSpan.Zero),
+                    new NitroTokenRefreshClient(_httpClient),
+                    _timeProvider,
+                    NitroDefaults.AccessTokenExpiryGrace),
                 environment,
-                NitroDefaults.ApiUrl,
-                _timeProvider,
-                NitroDefaults.AccessTokenExpiryGrace),
+                NitroDefaults.ApiUrl),
             new NitroSeedProvider(
                 new NitroFusionConfigurationDownloader(
                     _httpClient,
@@ -789,12 +1060,34 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                     GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
                     _timeProvider,
                     new RecordingLogger<NitroSchemaValidator>()),
-            _directory.GetPath("run"));
+            new NoopStageUpdateClient(),
+            new NitroCompositionSettingsClient(
+                GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false)),
+            _directory.GetPath("run"),
+            initialAutoUpdate: true);
 
     private TestNitroEnvironment CreateDefaultEnvironment()
         => new(
             (NitroEnvironmentVariables.CloudUrl, _server.BaseAddress.AbsoluteUri),
             (NitroEnvironmentVariables.ApiKey, "nitro-api-key"));
+
+    private sealed class NoopStageUpdateClient : INitroStageUpdateClient
+    {
+        public Task<NitroStageSubscription> SubscribeAsync(
+            NitroConnection connection,
+            string apiId,
+            string stage,
+            CancellationToken cancellationToken)
+            => Task.FromException<NitroStageSubscription>(
+                new InvalidOperationException("The composition harness does not run a stage monitor."));
+
+        public Task<NitroStageSnapshot?> GetLatestSnapshotAsync(
+            NitroConnection connection,
+            string apiId,
+            string stage,
+            CancellationToken cancellationToken)
+            => Task.FromResult<NitroStageSnapshot?>(null);
+    }
 
     private static int CountRecompositions(CompositionHarness harness)
         => harness.Logger.Entries.Count(
@@ -875,6 +1168,59 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                   }
                 }
                 """));
+
+        _server.DownloadHandler = _ => FakeNitroResponse.Archive(archive);
+    }
+
+    private static FakeNitroResponse CreateCompositionSettingsResponse()
+        => FakeNitroResponse.Json(
+            """
+            {
+              "data": {
+                "node": {
+                  "stage": {
+                    "compositionSettings": {
+                      "cacheControlMergeBehavior": "INCLUDE",
+                      "enableGlobalObjectIdentification": false,
+                      "excludeByTag": [
+                        "internal"
+                      ],
+                      "nodeResolution": "GATEWAY",
+                      "removeUnreferencedDefinitions": false,
+                      "tagMergeBehavior": "INCLUDE_PRIVATE"
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+    private static FakeNitroResponse CreateEmptyCompositionSettingsResponse()
+        => FakeNitroResponse.Json(
+            """
+            {
+              "data": {
+                "node": {
+                  "stage": {
+                    "compositionSettings": null
+                  }
+                }
+              }
+            }
+            """);
+
+    private async Task ServeUpdatedSeedAsync()
+    {
+        var archive = await NitroTestArchive.CreateAsync(
+            TestContext.Current.CancellationToken,
+            new NitroTestSourceSchema(
+                "products",
+                "type Query { staleProduct: String }",
+                CreateSettings("products", "https://stale.example.com/graphql")),
+            new NitroTestSourceSchema(
+                "inventory",
+                "type Query { inventory: Int }",
+                CreateSettings("inventory", "https://inventory.example.com/graphql")));
 
         _server.DownloadHandler = _ => FakeNitroResponse.Archive(archive);
     }
@@ -1050,13 +1396,23 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
     private sealed class NoopValidationNotifier : INitroSchemaValidationNotifier
     {
-        public void NotifyViolations(string message)
+        public void NotifyViolations(string gatewayName, string message)
         {
         }
 
         public void NotifyRestored(string message)
         {
         }
+    }
+
+    private sealed class RecordingCompositionNotifier : INitroCompositionNotifier
+    {
+        private readonly ConcurrentQueue<string> _messages = [];
+
+        public IReadOnlyList<string> Messages => [.. _messages];
+
+        public void NotifyFailure(string gatewayName, string message)
+            => _messages.Enqueue($"{gatewayName}: {message}");
     }
 
     private sealed class ThrowingNitroEnvironment : INitroEnvironment

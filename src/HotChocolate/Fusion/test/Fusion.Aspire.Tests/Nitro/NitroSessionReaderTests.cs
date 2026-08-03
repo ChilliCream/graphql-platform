@@ -39,12 +39,30 @@ public sealed class NitroSessionReaderTests : IDisposable
         var result = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(NitroSessionStatus.Available, result.Status);
-        Assert.Equal("api.chillicream.com", result.Session!.ApiUrl);
-        Assert.Equal("access-token", result.Session.Tokens!.AccessToken);
-        Assert.Equal(
-            new DateTimeOffset(2026, 7, 29, 10, 0, 0, TimeSpan.Zero),
-            result.Session.Tokens.ExpiresAt);
+        var session = result.Session!;
+        var tokens = session.Tokens!;
+
+        new
+        {
+            result.Status,
+            session.ApiUrl,
+            session.IdentityServer,
+            tokens.AccessToken,
+            tokens.IdToken,
+            tokens.RefreshToken,
+            tokens.ExpiresAt
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Status": "Available",
+              "ApiUrl": "api.chillicream.com",
+              "IdentityServer": "https://identity.chillicream.com",
+              "AccessToken": "access-token",
+              "IdToken": "id-token",
+              "RefreshToken": "refresh-token",
+              "ExpiresAt": "2026-07-29T10:00:00+00:00"
+            }
+            """);
     }
 
     [Fact]
