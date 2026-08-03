@@ -21,6 +21,7 @@ autonumber
 backplane
 backpressure
 Badurina
+Baiji
 bananacakepop
 basicsaga
 bbox
@@ -65,6 +66,7 @@ debuggable
 decompile
 deepagents
 depersist
+deprecatable
 deprioritization
 deprioritized
 dexto

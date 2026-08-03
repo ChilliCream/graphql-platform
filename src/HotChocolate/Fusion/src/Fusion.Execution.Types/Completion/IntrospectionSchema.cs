@@ -30,12 +30,13 @@ internal static class IntrospectionSchema
 
     private static DocumentNode CreateDocument(Shape shape)
     {
+        var objectDeprecation = shape.ObjectDeprecation;
         var optIn = shape.OptInFeatures;
 
         List<IDefinitionNode> definitions =
         [
-            CreateSchemaType(optIn),
-            CreateTypeType(optIn),
+            CreateSchemaType(objectDeprecation, optIn),
+            CreateTypeType(objectDeprecation, optIn),
             CreateTypeKindType(),
             CreateFieldType(optIn),
             CreateInputValueType(optIn),
@@ -58,12 +59,12 @@ internal static class IntrospectionSchema
         return new DocumentNode(definitions);
     }
 
-    private static ObjectTypeDefinitionNode CreateSchemaType(bool optIn)
+    private static ObjectTypeDefinitionNode CreateSchemaType(bool objectDeprecation, bool optIn)
         => ObjectType(
             "__Schema",
             [
                 Field("description", "String"),
-                Field("types", "[__Type!]!"),
+                Field("types", "[__Type!]!", When(objectDeprecation, s_includeDeprecated)),
                 Field("queryType", "__Type!"),
                 Field("mutationType", "__Type"),
                 Field("subscriptionType", "__Type"),
@@ -74,7 +75,7 @@ internal static class IntrospectionSchema
                     Field("optInFeatureStability", "[__OptInFeatureStability!]!"))
             ]);
 
-    private static ObjectTypeDefinitionNode CreateTypeType(bool optIn)
+    private static ObjectTypeDefinitionNode CreateTypeType(bool objectDeprecation, bool optIn)
     {
         var filterArguments = FilterArguments(optIn);
 
@@ -91,7 +92,7 @@ internal static class IntrospectionSchema
                 // must be non-null for OBJECT and INTERFACE, otherwise null.
                 Field("interfaces", "[__Type!]"),
                 // must be non-null for INTERFACE and UNION, otherwise null.
-                Field("possibleTypes", "[__Type!]"),
+                Field("possibleTypes", "[__Type!]", When(objectDeprecation, s_includeDeprecated)),
                 // must be non-null for ENUM, otherwise null.
                 Field("enumValues", "[__EnumValue!]", filterArguments),
                 // must be non-null for INPUT_OBJECT, otherwise null.
@@ -99,7 +100,12 @@ internal static class IntrospectionSchema
                 // must be non-null for NON_NULL and LIST, otherwise null.
                 Field("ofType", "__Type"),
                 // must be non-null for INPUT_OBJECT, otherwise null.
-                Field("isOneOf", "Boolean")
+                Field("isOneOf", "Boolean"),
+                // must be non-null for OBJECT, otherwise null.
+                .. When(
+                    objectDeprecation,
+                    Field("isDeprecated", "Boolean"),
+                    Field("deprecationReason", "String"))
             ]);
     }
 
@@ -283,10 +289,14 @@ internal static class IntrospectionSchema
     /// Identifies an introspection schema document. Every schema option that the document
     /// depends on must be part of the shape, as documents are cached and shared by shape.
     /// </summary>
-    private readonly record struct Shape(bool OptInFeatures, bool SemanticIntrospection)
+    private readonly record struct Shape(
+        bool ObjectDeprecation,
+        bool OptInFeatures,
+        bool SemanticIntrospection)
     {
         public static Shape From(IFusionSchemaOptions options)
             => new(
+                ObjectDeprecation: options.EnableObjectDeprecation,
                 OptInFeatures: options.EnableOptInFeatures,
                 SemanticIntrospection: options.EnableSemanticIntrospection);
     }

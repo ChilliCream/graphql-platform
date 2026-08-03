@@ -33,6 +33,7 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
               "HasStreamSupport": true,
               "HasArgumentDeprecation": true,
               "HasDirectiveDeprecation": true,
+              "HasObjectDeprecation": false,
               "HasSchemaDescription": true
             }
             """);
@@ -87,6 +88,33 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
             directive @obsolete(
               obsoleteArg: String @deprecated(reason: "Argument no longer supported.")
             ) @deprecated(reason: "Directive no longer supported.") on FIELD
+            """);
+    }
+
+    [Fact]
+    public async Task IntrospectServer_With_DeprecatedObject()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQL()
+                .AddType<DeprecatedObjectType>()
+                .ModifyOptions(o => o.EnableObjectDeprecation = true));
+        var client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        // act
+        var schema = await IntrospectionClient.IntrospectServerAsync(client, TestContext.Current.CancellationToken);
+
+        // assert
+        var type = Assert.Single(
+            schema.Definitions.OfType<ObjectTypeDefinitionNode>(),
+            t => t.Name.Value.Equals("DeprecatedObject", StringComparison.Ordinal));
+        type.Print(indented: true).MatchInlineSnapshot(
+            """
+            type DeprecatedObject @deprecated(reason: "Object no longer supported.") {
+              field: String
+            }
             """);
     }
 
@@ -160,6 +188,21 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
                 .Type<StringType>()
                 .Deprecated("Argument no longer supported.");
         }
+    }
+
+    private sealed class DeprecatedObjectType : ObjectType<DeprecatedObject>
+    {
+        protected override void Configure(IObjectTypeDescriptor<DeprecatedObject> descriptor)
+        {
+            descriptor
+                .Name("DeprecatedObject")
+                .Deprecated("Object no longer supported.");
+        }
+    }
+
+    public class DeprecatedObject
+    {
+        public string? Field { get; set; }
     }
 
     private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler

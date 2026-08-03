@@ -42,6 +42,11 @@ public class ServerCapabilities
     public bool HasDirectiveDeprecation { get; internal set; }
 
     /// <summary>
+    /// Gets a value that defines if the GraphQL server supports object type deprecation.
+    /// </summary>
+    public bool HasObjectDeprecation { get; internal set; }
+
+    /// <summary>
     /// Gets a value that defines if the GraphQL server supports schema descriptions.
     /// </summary>
     public bool HasSchemaDescription { get; internal set; }

@@ -10,8 +10,40 @@ public class MutableObjectTypeDefinition(string name)
     , INamedTypeSystemMemberDefinition<MutableObjectTypeDefinition>
     , IObjectTypeDefinition
 {
+    private bool _isDeprecated;
+
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
+
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
+    public bool IsDeprecated
+    {
+        get => _isDeprecated;
+        set
+        {
+            _isDeprecated = value;
+
+            if (!value)
+            {
+                DeprecationReason = null;
+            }
+        }
+    }
+
+    /// <inheritdoc cref="IDeprecationProvider.DeprecationReason" />
+    public string? DeprecationReason
+    {
+        get;
+        set
+        {
+            field = value;
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                _isDeprecated = true;
+            }
+        }
+    }
 
     /// <summary>
     /// Creates a <see cref="ObjectTypeDefinitionNode"/> from a

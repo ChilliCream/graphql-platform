@@ -2043,6 +2043,23 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
+    public async Task CodeFirst_DeprecatedObjectType_Should_BeDeprecated()
+    {
+        // arrange & act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithDeprecatedType>()
+            .AddType<DeprecatedTypeDescriptor>()
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var objectType = schema.Types.GetType<ObjectType>("Foo");
+        Assert.True(objectType.IsDeprecated);
+        Assert.Equal("Use Bar.", objectType.DeprecationReason);
+    }
+
+    [Fact]
     public async Task Static_Field_Inference_1()
     {
         // arrange
@@ -2570,6 +2587,21 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithDeprecatedArgumentsIllegal
     {
         public string Field([GraphQLDeprecated("Not longer allowed")] int deprecated) => "";
+    }
+
+    public class QueryWithDeprecatedType
+    {
+        [GraphQLDeprecated("Use bar.")]
+        public Foo? Foo => null;
+    }
+
+    public class DeprecatedTypeDescriptor : ObjectType<Foo>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Name("Foo");
+            descriptor.Deprecated("Use Bar.");
+        }
     }
 
     public class WithStaticField

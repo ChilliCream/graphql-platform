@@ -343,6 +343,21 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InvalidObjectDeprecation(
+        IOutputFieldDefinition field,
+        IObjectTypeDefinition objectType)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidObjectDeprecation,
+                field.Coordinate.ToString(),
+                objectType.Name)
+            .SetCode(LogEntryCodes.InvalidObjectDeprecation)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .Build();
+    }
+
     public static LogEntry InvalidOneOfField(IInputValueDefinition inputField)
     {
         return LogEntryBuilder.New()

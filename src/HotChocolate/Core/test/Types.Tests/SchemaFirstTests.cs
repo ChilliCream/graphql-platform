@@ -842,6 +842,78 @@ public class SchemaFirstTests
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task SchemaFirst_ObjectTypeDeprecated_ReasonIsReadFromSdl()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { foo: Foo @deprecated(reason: "Use bar.") }
+
+            type Foo @deprecated(reason: "Use Bar.") { id: ID }
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(next => next)
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("Use Bar.", schema.Types.GetType<ObjectType>("Foo").DeprecationReason);
+    }
+
+    [Fact]
+    public async Task SchemaFirst_ExtendObjectTypeDeprecated_ReasonIsReadFromSdl()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { foo: Foo @deprecated(reason: "Use bar.") }
+
+            type Foo { id: ID }
+
+            extend type Foo @deprecated(reason: "Use Bar.")
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(next => next)
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("Use Bar.", schema.Types.GetType<ObjectType>("Foo").DeprecationReason);
+    }
+
+    [Fact]
+    public async Task SchemaFirst_ObjectTypeDeprecated_IsIgnoredWhenOptionIsDisabled()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { foo: Foo }
+
+            type Foo @deprecated(reason: "Use Bar.") { id: ID }
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var fooType = schema.Types.GetType<ObjectType>("Foo");
+        Assert.False(fooType.IsDeprecated);
+        Assert.Null(fooType.DeprecationReason);
+    }
+
     public class Query
     {
         public string Hello() => "World";

@@ -59,6 +59,24 @@ internal static class TypeValidationHelper
         }
     }
 
+    public static void EnsureObjectDeprecationIsValid(
+        IComplexTypeDefinition type,
+        ICollection<ISchemaError> errors)
+    {
+        foreach (var field in type.Fields)
+        {
+            if (field.IsDeprecated)
+            {
+                continue;
+            }
+
+            if (field.Type.NamedType() is IObjectTypeDefinition { IsDeprecated: true } objectType)
+            {
+                errors.Add(InvalidObjectDeprecation(field, objectType));
+            }
+        }
+    }
+
     public static void EnsureDefaultValuesAreValid(
         IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
