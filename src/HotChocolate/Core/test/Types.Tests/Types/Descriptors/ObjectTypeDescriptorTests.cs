@@ -305,7 +305,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void Deprecated_SchemaTypeHasGraphQLDeprecatedAttribute_SetsReason()
+    public void Deprecated_NonGenericSchemaTypeHasGraphQLDeprecatedAttribute_SetsReason()
     {
         // arrange
         var context = DescriptorContext.Create(
@@ -345,7 +345,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [GraphQLDeprecated("Use Bar.")]
-    public class FooType : ObjectType<Foo>;
+    public class FooType : ObjectType;
 
     public class FooBase
     {
