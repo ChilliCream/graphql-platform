@@ -54,6 +54,9 @@
   <data name="SourceSchemaClient_SubscriptionsNotSupported" xml:space="preserve">
     <value>The source schema client does not support subscription requests.</value>
   </data>
+  <data name="HttpSourceSchemaClient_InvalidAliasBatchResponse" xml:space="preserve">
+    <value>The batched response does not follow the shape of the batched request that was sent to the source schema '{0}'.</value>
+  </data>
   <data name="HttpSourceSchemaClient_InvalidRequestIndex" xml:space="preserve">
     <value>The batch response contains an invalid requestIndex '{0}'.</value>
   </data>

@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Configuration.Parsers;
@@ -29,17 +30,24 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
             return false;
         }
 
-        configurations = [CreateHttpClientConfiguration(sourceSchema.Name, http)];
+        configurations = [CreateHttpClientConfiguration(schema, sourceSchema.Name, http)];
         return true;
     }
 
     private static HttpSourceSchemaClientConfiguration CreateHttpClientConfiguration(
+        FusionSchemaDefinition schema,
         string schemaName,
         JsonElement http)
     {
         var clientName = HttpSourceSchemaClientConfiguration.DefaultClientName;
 
-        var capabilities = SourceSchemaClientCapabilities.All;
+        // An Apollo Federation subgraph is only assumed to speak plain GraphQL, so alias batching
+        // is the only batching capability that is defaulted on for it. Every other source schema
+        // keeps the protocol-extension defaults. Explicitly declared settings win, per flag.
+        var capabilities =
+            schema.GetSourceSchemaConnectorKind(schemaName) == ConnectorKindNames.ApolloFederation
+                ? SourceSchemaClientCapabilities.AliasBatching
+                : SourceSchemaClientCapabilities.Default;
         var supportedOperations = SupportedOperationType.All;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
@@ -85,6 +93,13 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
                     capabilities = supported.GetBoolean()
                         ? capabilities | SourceSchemaClientCapabilities.RequestBatching
                         : capabilities & ~SourceSchemaClientCapabilities.RequestBatching;
+                }
+
+                if (batchingElement.TryGetProperty("aliasBatching", out supported))
+                {
+                    capabilities = supported.GetBoolean()
+                        ? capabilities | SourceSchemaClientCapabilities.AliasBatching
+                        : capabilities & ~SourceSchemaClientCapabilities.AliasBatching;
                 }
 
                 if (batchingElement.TryGetProperty("formats", out var formats))

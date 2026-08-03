@@ -32,9 +32,11 @@ nodes:
     type: ApolloOperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        fusion__lookup_brandById(id: $__fusion_1_id) {
-          name
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Brand {
+            name
+          }
         }
       }
     source: $._entities
@@ -50,9 +52,11 @@ nodes:
     type: ApolloOperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        fusion__lookup_productById(id: $__fusion_2_id) {
-          name
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            name
+          }
         }
       }
     source: $._entities

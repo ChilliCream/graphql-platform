@@ -189,7 +189,7 @@ public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
 
     private static string GetRootResponseName(SourceSchemaClientRequest request)
     {
-        var document = Utf8GraphQLParser.Parse(request.OperationSourceText);
+        var document = Utf8GraphQLParser.Parse(request.OperationSourceText.Value.Span);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var field = operation.SelectionSet.Selections.OfType<FieldNode>().Single();
 

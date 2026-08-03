@@ -1,11 +1,13 @@
-title: Fetch_With_ApolloRequestBatching_JsonArray
+title: BatchedLookups_Should_UseTheProtocolTheCapabilitiesSelect
 request:
   document: |
     {
       books {
-        author {
-          id
-          name
+        a: author {
+          a: name
+        }
+        b: author {
+          b: name(postFix: "2")
         }
       }
     }
@@ -15,27 +17,19 @@ response:
       "data": {
         "books": [
           {
-            "author": {
-              "id": "1",
-              "name": "Author 2"
+            "a": {
+              "a": "Author 1"
+            },
+            "b": {
+              "b": "Author 1 - 2"
             }
           },
           {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
+            "a": {
+              "a": "Author 2"
+            },
+            "b": {
+              "b": "Author 2 - 2"
             }
           }
         ]
@@ -48,26 +42,31 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
       type Author @key(fields: "id") {
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
+        author: Author
         id: ID!
         title: String!
-        author: Author! @shareable
-      }
-
-      type Query {
-        books: [Book!]!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_fb4f667e_1 {
+            query Op_1b3419da_1 {
               books {
-                author {
+                a: author {
+                  id
+                }
+                b: author {
                   id
                 }
               }
@@ -79,22 +78,18 @@ sourceSchemas:
                 "data": {
                   "books": [
                     {
-                      "author": {
+                      "a": {
+                        "id": "1"
+                      },
+                      "b": {
                         "id": "1"
                       }
                     },
                     {
-                      "author": {
+                      "a": {
                         "id": "2"
-                      }
-                    },
-                    {
-                      "author": {
-                        "id": "2"
-                      }
-                    },
-                    {
-                      "author": {
+                      },
+                      "b": {
                         "id": "2"
                       }
                     }
@@ -107,13 +102,13 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: ID!
-        name: String!
+      type Query {
+        authorById(id: ID!): Author @lookup @internal
       }
 
-      type Query {
-        authorById(id: ID!): Author @lookup
+      type Author @key(fields: "id") {
+        name(postFix: String): String!
+        id: ID!
       }
     interactions:
       - request:
@@ -121,11 +116,9 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_fb4f667e_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_1b3419da_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
-                    name
+                    b: name(postFix: "2")
                   }
                 }
               variables: |
@@ -133,25 +126,43 @@ sourceSchemas:
                   "__fusion_1_id": "1"
                 }
             - document: |
-                query Op_fb4f667e_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_1b3419da_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
-                    name
+                    b: name(postFix: "2")
                   }
                 }
               variables: |
                 {
                   "__fusion_1_id": "2"
                 }
+            - document: |
+                query Op_1b3419da_3($__fusion_2_id: ID!) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "1"
+                }
+            - document: |
+                query Op_1b3419da_3($__fusion_2_id: ID!) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "2"
+                }
         response:
-          contentType: application/json; charset=utf-8
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "authorById": {
-                    "name": "Author 1"
+                    "b": "Author 1 - 2"
                   }
                 }
               }
@@ -159,7 +170,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author 2"
+                    "b": "Author 2 - 2"
                   }
                 }
               }
@@ -167,7 +178,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author 2"
+                    "a": "Author 1"
                   }
                 }
               }
@@ -175,15 +186,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "Author 2"
+                    "a": "Author 2"
                   }
                 }
               }
@@ -192,14 +195,17 @@ operationPlan:
     - document: |
         {
           books {
-            author {
-              id
+            a: author {
+              a: name
               id @fusion__requirement
-              name
+            }
+            b: author {
+              b: name(postFix: "2")
+              id @fusion__requirement
             }
           }
         }
-      hash: fb4f667e3d4167a23589ae9f3b3f9182
+      hash: 1b3419daa4dae74e12e1ad0237002b57
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -207,9 +213,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_fb4f667e_1 {
+        query Op_1b3419da_1 {
           books {
-            author {
+            a: author {
+              id
+            }
+            b: author {
               id
             }
           }
@@ -218,17 +227,34 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_fb4f667e_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_1b3419da_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
-            name
+            b: name(postFix: "2")
           }
         }
       source: $.authorById
-      target: $.books.author
+      target: $.books.b
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: b
+      operation: |
+        query Op_1b3419da_3($__fusion_2_id: ID!) {
+          authorById(id: $__fusion_2_id) {
+            a: name
+          }
+        }
+      source: $.authorById
+      target: $.books.a
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
