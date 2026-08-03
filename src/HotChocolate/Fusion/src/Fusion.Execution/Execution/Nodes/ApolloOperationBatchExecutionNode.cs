@@ -336,8 +336,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 operation.Target,
                 operation.ForwardedVariables,
                 operation.Requirements,
-                lookup.EntityTypeName,
-                lookup.RepresentationShape);
+                lookup.RepresentationShape,
+                lookup.EntityTypeName);
 
             if (representation.IsEmpty)
             {

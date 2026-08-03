@@ -3133,8 +3133,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             selectionSet,
             requestVariables,
             requirements,
-            entityTypeName,
-            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName));
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName),
+            entityTypeName);
 
     private static RepresentationValue CreateRepresentationFromSnapshot(
         FetchResultStore store,
@@ -3150,8 +3150,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             importedKeys,
             requestVariables,
             requirements,
-            entityTypeName,
-            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName));
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName),
+            entityTypeName);
 
     private static SourceSchemaResult CreateResponse(MemoryArena arena, string payloadJson)
     {

@@ -1,8 +1,10 @@
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
@@ -384,6 +386,45 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedNode = Assert.Single(parsedPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
         AssertOperationSourceTextEqual(originalNode.Operation, parsedNode.Operation);
         AssertApolloLookup(parsedNode.Lookup, "Product");
+        FormatRepresentationShapeRoundTrip(
+            originalNode.Lookup.RepresentationShape,
+            parsedNode.Lookup.RepresentationShape).MatchInlineSnapshot(
+            """
+            {
+              "planner": [
+                {
+                  "name": "id",
+                  "responseName": "id",
+                  "requirementIndex": 0,
+                  "lhsPath": [],
+                  "isList": false,
+                  "skipOnNull": true,
+                  "elementInputType": null,
+                  "parentTypeCondition": null,
+                  "typeCondition": null,
+                  "requiresTypeName": false,
+                  "nodes": "default",
+                  "branches": []
+                }
+              ],
+              "parser": [
+                {
+                  "name": "id",
+                  "responseName": "id",
+                  "requirementIndex": 0,
+                  "lhsPath": [],
+                  "isList": false,
+                  "skipOnNull": true,
+                  "elementInputType": null,
+                  "parentTypeCondition": null,
+                  "typeCondition": null,
+                  "requiresTypeName": false,
+                  "nodes": "default",
+                  "branches": []
+                }
+              ]
+            }
+            """);
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
@@ -548,28 +589,56 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         Assert.Equal(planSource, formatter.Format(parsedPlan));
         var parsedNode = Assert.Single(
             parsedPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
-        Assert.Collection(
-            parsedNode.Lookup.RepresentationShape,
-            id =>
-            {
-                Assert.Equal("id", id.Name);
-                Assert.Equal("id", id.ResponseName);
-                Assert.Equal(0, id.RequirementIndex);
-            },
-            bar =>
-            {
-                Assert.Equal("bar", bar.Name);
-                Assert.Equal("details", bar.ResponseName);
-                Assert.Equal(-1, bar.RequirementIndex);
-                Assert.Collection(
-                    bar.Nodes!,
-                    y =>
-                    {
-                        Assert.Equal("y", y.Name);
-                        Assert.Equal("y", y.ResponseName);
-                        Assert.Equal(1, y.RequirementIndex);
-                    });
-            });
+        FormatRepresentationShape(parsedNode.Lookup.RepresentationShape)
+            .ToJsonString(new JsonSerializerOptions { WriteIndented = true })
+            .MatchInlineSnapshot(
+            """
+            [
+              {
+                "name": "id",
+                "responseName": "id",
+                "requirementIndex": 0,
+                "lhsPath": [],
+                "isList": false,
+                "skipOnNull": true,
+                "elementInputType": null,
+                "parentTypeCondition": null,
+                "typeCondition": null,
+                "requiresTypeName": false,
+                "nodes": "default",
+                "branches": []
+              },
+              {
+                "name": "bar",
+                "responseName": "details",
+                "requirementIndex": -1,
+                "lhsPath": [],
+                "isList": false,
+                "skipOnNull": true,
+                "elementInputType": null,
+                "parentTypeCondition": null,
+                "typeCondition": null,
+                "requiresTypeName": false,
+                "nodes": [
+                  {
+                    "name": "y",
+                    "responseName": "y",
+                    "requirementIndex": 1,
+                    "lhsPath": [],
+                    "isList": false,
+                    "skipOnNull": false,
+                    "elementInputType": null,
+                    "parentTypeCondition": null,
+                    "typeCondition": null,
+                    "requiresTypeName": false,
+                    "nodes": "default",
+                    "branches": []
+                  }
+                ],
+                "branches": []
+              }
+            ]
+            """);
     }
 
     [Fact]
@@ -867,6 +936,65 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         Assert.Equal(expected.Type, actual.Type);
         Assert.Equal(expected.Hash, actual.Hash);
         Assert.Equal(expected.Value.ToArray(), actual.Value.ToArray());
+    }
+
+    private static string FormatRepresentationShapeRoundTrip(
+        ImmutableArray<RepresentationShapeNode> plannerShape,
+        ImmutableArray<RepresentationShapeNode> parserShape)
+        => new JsonObject
+        {
+            ["planner"] = FormatRepresentationShape(plannerShape),
+            ["parser"] = FormatRepresentationShape(parserShape)
+        }.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+
+    private static JsonNode FormatRepresentationShape(
+        ImmutableArray<RepresentationShapeNode> shape)
+    {
+        if (shape.IsDefault)
+        {
+            return JsonValue.Create("default")!;
+        }
+
+        var nodes = new JsonArray();
+
+        foreach (var node in shape)
+        {
+            var lhsPath = new JsonArray();
+
+            foreach (var segment in node.LhsPath)
+            {
+                lhsPath.Add(segment);
+            }
+
+            var branches = new JsonArray();
+
+            foreach (var branch in node.Branches)
+            {
+                branches.Add(new JsonObject
+                {
+                    ["typeCondition"] = branch.TypeCondition,
+                    ["nodes"] = FormatRepresentationShape(branch.Nodes)
+                });
+            }
+
+            nodes.Add(new JsonObject
+            {
+                ["name"] = node.Name,
+                ["responseName"] = node.ResponseName,
+                ["requirementIndex"] = node.RequirementIndex,
+                ["lhsPath"] = lhsPath,
+                ["isList"] = node.IsList,
+                ["skipOnNull"] = node.SkipOnNull,
+                ["elementInputType"] = node.ElementInputType?.ToString(),
+                ["parentTypeCondition"] = node.ParentTypeCondition,
+                ["typeCondition"] = node.TypeCondition,
+                ["requiresTypeName"] = node.RequiresTypeName,
+                ["nodes"] = FormatRepresentationShape(node.Nodes),
+                ["branches"] = branches
+            });
+        }
+
+        return nodes;
     }
 
     /// <summary>

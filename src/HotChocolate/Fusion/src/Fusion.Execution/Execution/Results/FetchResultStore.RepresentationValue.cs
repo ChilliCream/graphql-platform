@@ -123,13 +123,12 @@ internal sealed partial class FetchResultStore
         SelectionPath selectionSet,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(selectionSet);
         ArgumentNullException.ThrowIfNull(requestVariables);
-        ArgumentNullException.ThrowIfNull(shape);
 
         if (requiredData.Length == 0)
         {
@@ -148,8 +147,8 @@ internal sealed partial class FetchResultStore
             return BuildRepresentationValue(
                 elements,
                 requestVariables,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
     }
 
@@ -158,13 +157,12 @@ internal sealed partial class FetchResultStore
         HashSet<string> importedKeys,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(importedKeys);
         ArgumentNullException.ThrowIfNull(requestVariables);
-        ArgumentNullException.ThrowIfNull(shape);
 
         if (importedEntries.IsDefaultOrEmpty || requiredData.Length == 0)
         {
@@ -186,8 +184,8 @@ internal sealed partial class FetchResultStore
                 importedEntries,
                 requestVariables,
                 requiredData,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
     }
 
@@ -195,8 +193,8 @@ internal sealed partial class FetchResultStore
         ImmutableArray<VariableValues> importedEntries,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         Span<(long Start, long Length)> requirementSlices = requiredData.Length <= 32
             ? stackalloc (long, long)[requiredData.Length]
@@ -226,7 +224,7 @@ internal sealed partial class FetchResultStore
                 var writeResult = TryWriteRepresentation(
                     importedEntry.Values,
                     requiredData,
-                    shape,
+                    requiredShape,
                     entityTypeName,
                     requirementSlices,
                     representationWriter,
@@ -281,8 +279,8 @@ internal sealed partial class FetchResultStore
     private RepresentationValue BuildRepresentationValue(
         ReadOnlySpan<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         using var representationWriter = new ChunkedArrayWriter();
         using var dedupTable = new VariableDedupTable(representationWriter);
@@ -303,7 +301,7 @@ internal sealed partial class FetchResultStore
             {
                 var writeResult = TryWriteRepresentation(
                     result,
-                    shape,
+                    requiredShape,
                     entityTypeName,
                     representationWriter,
                     representationJsonWriter,
@@ -409,7 +407,7 @@ internal sealed partial class FetchResultStore
 
     private RepresentationWriteResult TryWriteRepresentation(
         CompositeResultElement result,
-        List<RepresentationShapeNode> shape,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
         ChunkedArrayWriter representationWriter,
         JsonWriter representationJsonWriter,
@@ -419,7 +417,7 @@ internal sealed partial class FetchResultStore
     {
         if (!TryBufferRepresentation(
             result,
-            shape,
+            requiredShape,
             entityTypeName,
             representationWriter,
             representationJsonWriter,
@@ -439,7 +437,7 @@ internal sealed partial class FetchResultStore
 
     private bool TryBufferRepresentation(
         CompositeResultElement result,
-        List<RepresentationShapeNode> shape,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
         ChunkedArrayWriter representationWriter,
         JsonWriter representationJsonWriter,
@@ -451,7 +449,7 @@ internal sealed partial class FetchResultStore
         representationJsonWriter.WritePropertyName(TypeNameFieldName);
         representationJsonWriter.WriteStringValue(entityTypeName);
 
-        if (!TryWriteShapeLevel(result, shape, representationJsonWriter))
+        if (!TryWriteShapeLevel(result, requiredShape, representationJsonWriter))
         {
             representationWriter.ResetTo(startPosition);
             return false;
@@ -464,7 +462,7 @@ internal sealed partial class FetchResultStore
     private RepresentationWriteResult TryWriteRepresentation(
         JsonSegment values,
         ReadOnlySpan<OperationRequirement> requiredData,
-        List<RepresentationShapeNode> shape,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
         Span<(long Start, long Length)> requirementSlices,
         ChunkedArrayWriter representationWriter,
@@ -476,7 +474,7 @@ internal sealed partial class FetchResultStore
         if (!TryBufferRepresentationFromSnapshot(
             values,
             requiredData,
-            shape,
+            requiredShape,
             entityTypeName,
             requirementSlices,
             representationWriter,
@@ -498,7 +496,7 @@ internal sealed partial class FetchResultStore
     private bool TryBufferRepresentationFromSnapshot(
         JsonSegment values,
         ReadOnlySpan<OperationRequirement> requiredData,
-        List<RepresentationShapeNode> shape,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
         Span<(long Start, long Length)> requirementSlices,
         ChunkedArrayWriter representationWriter,
@@ -520,7 +518,11 @@ internal sealed partial class FetchResultStore
         var sequence = values.AsSequence();
 
         if (!TryCollectRequirementSlices(sequence, requiredData, requirementSlices)
-            || !TryWriteShapeLevelFromSnapshot(sequence, requirementSlices, shape, representationJsonWriter))
+            || !TryWriteShapeLevelFromSnapshot(
+                sequence,
+                requirementSlices,
+                requiredShape,
+                representationJsonWriter))
         {
             representationWriter.ResetTo(startPosition);
             return false;
@@ -577,10 +579,10 @@ internal sealed partial class FetchResultStore
 
     private bool TryWriteShapeLevel(
         CompositeResultElement element,
-        List<RepresentationShapeNode> level,
+        ImmutableArray<RepresentationShapeNode> level,
         JsonWriter writer)
     {
-        for (var i = 0; i < level.Count; i++)
+        for (var i = 0; i < level.Length; i++)
         {
             var node = level[i];
 
@@ -619,13 +621,13 @@ internal sealed partial class FetchResultStore
                     return false;
                 }
 
-                if (node.Children is null || node.IsList)
+                if (node.Nodes.IsDefault || node.IsList)
                 {
                     writer.WriteNullValue();
                     continue;
                 }
 
-                if (!TryWriteNullLeafStructure(node.Children, writer))
+                if (!TryWriteNullLeafStructure(node.Nodes, writer))
                 {
                     return false;
                 }
@@ -633,7 +635,7 @@ internal sealed partial class FetchResultStore
                 continue;
             }
 
-            if (node.Children is null)
+            if (node.Nodes.IsDefault)
             {
                 if (valueKind is JsonValueKind.Array)
                 {
@@ -654,7 +656,7 @@ internal sealed partial class FetchResultStore
             {
                 writer.WriteStartObject();
 
-                if (node.Branches is { Count: > 0 })
+                if (!node.Branches.IsEmpty)
                 {
                     if (!TryWriteBranchedComposite(value, node, writer))
                     {
@@ -674,7 +676,7 @@ internal sealed partial class FetchResultStore
                         writer.WriteStringValue(runtimeTypeName);
                     }
 
-                    if (!TryWriteShapeLevel(value, node.Children, writer))
+                    if (!TryWriteShapeLevel(value, node.Nodes, writer))
                     {
                         return false;
                     }
@@ -713,20 +715,20 @@ internal sealed partial class FetchResultStore
         writer.WritePropertyName(TypeNameFieldName);
         writer.WriteStringValue(runtimeTypeName);
 
-        if (!TryWriteShapeLevel(value, node.Children!, writer))
+        if (!TryWriteShapeLevel(value, node.Nodes, writer))
         {
             return false;
         }
 
-        var branches = node.Branches!;
+        var branches = node.Branches;
 
-        for (var i = 0; i < branches.Count; i++)
+        for (var i = 0; i < branches.Length; i++)
         {
             var branch = branches[i];
             var branchType = _schema.Types.GetType<IOutputTypeDefinition>(branch.TypeCondition);
 
             if (branchType.IsAssignableFrom(runtimeType)
-                && !TryWriteShapeLevel(value, branch.Children, writer))
+                && !TryWriteShapeLevel(value, branch.Nodes, writer))
             {
                 return false;
             }
@@ -775,7 +777,7 @@ internal sealed partial class FetchResultStore
 
             writer.WriteStartObject();
 
-            if (!TryWriteShapeLevel(item, node.Children!, writer))
+            if (!TryWriteShapeLevel(item, node.Nodes, writer))
             {
                 return false;
             }
@@ -788,12 +790,12 @@ internal sealed partial class FetchResultStore
     }
 
     private static bool TryWriteNullLeafStructure(
-        List<RepresentationShapeNode> level,
+        ImmutableArray<RepresentationShapeNode> level,
         JsonWriter writer)
     {
         writer.WriteStartObject();
 
-        for (var i = 0; i < level.Count; i++)
+        for (var i = 0; i < level.Length; i++)
         {
             var node = level[i];
 
@@ -804,11 +806,11 @@ internal sealed partial class FetchResultStore
 
             writer.WritePropertyName(node.NameUtf8);
 
-            if (node.Children is null || node.IsList)
+            if (node.Nodes.IsDefault || node.IsList)
             {
                 writer.WriteNullValue();
             }
-            else if (!TryWriteNullLeafStructure(node.Children, writer))
+            else if (!TryWriteNullLeafStructure(node.Nodes, writer))
             {
                 return false;
             }
@@ -961,19 +963,19 @@ internal sealed partial class FetchResultStore
     private bool TryWriteShapeLevelFromSnapshot(
         ReadOnlySequence<byte> values,
         ReadOnlySpan<(long Start, long Length)> slices,
-        List<RepresentationShapeNode> level,
+        ImmutableArray<RepresentationShapeNode> level,
         JsonWriter writer)
     {
-        for (var i = 0; i < level.Count; i++)
+        for (var i = 0; i < level.Length; i++)
         {
             var node = level[i];
 
-            if (node.Children is not null && !node.IsList)
+            if (!node.Nodes.IsDefault && !node.IsList)
             {
                 writer.WritePropertyName(node.NameUtf8);
                 writer.WriteStartObject();
 
-                if (node.Branches is { Count: > 0 })
+                if (!node.Branches.IsEmpty)
                 {
                     if (!TryWriteBranchedCompositeFromSnapshot(values, slices, node, writer))
                     {
@@ -987,7 +989,7 @@ internal sealed partial class FetchResultStore
                         if (!TryResolveRuntimeTypeFromSnapshot(
                             values,
                             slices,
-                            node.Children,
+                            node.Nodes,
                             out var runtimeTypeName,
                             out _))
                         {
@@ -998,7 +1000,7 @@ internal sealed partial class FetchResultStore
                         writer.WriteStringValue(runtimeTypeName);
                     }
 
-                    if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Children, writer))
+                    if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Nodes, writer))
                     {
                         return false;
                     }
@@ -1043,20 +1045,20 @@ internal sealed partial class FetchResultStore
         writer.WritePropertyName(TypeNameFieldName);
         writer.WriteStringValue(runtimeTypeName);
 
-        if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Children!, writer))
+        if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Nodes, writer))
         {
             return false;
         }
 
-        var branches = node.Branches!;
+        var branches = node.Branches;
 
-        for (var i = 0; i < branches.Count; i++)
+        for (var i = 0; i < branches.Length; i++)
         {
             var branch = branches[i];
             var branchType = _schema.Types.GetType<IOutputTypeDefinition>(branch.TypeCondition);
 
             if (branchType.IsAssignableFrom(runtimeType)
-                && !TryWriteShapeLevelFromSnapshot(values, slices, branch.Children, writer))
+                && !TryWriteShapeLevelFromSnapshot(values, slices, branch.Nodes, writer))
             {
                 return false;
             }
@@ -1067,19 +1069,19 @@ internal sealed partial class FetchResultStore
 
     private bool TryWriteNodesFromScope(
         ReadOnlySequence<byte> scope,
-        List<RepresentationShapeNode> nodes,
+        ImmutableArray<RepresentationShapeNode> nodes,
         JsonWriter writer)
     {
-        for (var i = 0; i < nodes.Count; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
 
-            if (node.Children is not null && !node.IsList)
+            if (!node.Nodes.IsDefault && !node.IsList)
             {
                 writer.WritePropertyName(node.NameUtf8);
                 writer.WriteStartObject();
 
-                if (node.Branches is { Count: > 0 })
+                if (!node.Branches.IsEmpty)
                 {
                     if (!TryWriteBranchedCompositeFromScope(scope, node, writer))
                     {
@@ -1102,7 +1104,7 @@ internal sealed partial class FetchResultStore
                         writer.WriteStringValue(runtimeTypeName);
                     }
 
-                    if (!TryWriteNodesFromScope(scope, node.Children, writer))
+                    if (!TryWriteNodesFromScope(scope, node.Nodes, writer))
                     {
                         return false;
                     }
@@ -1137,20 +1139,20 @@ internal sealed partial class FetchResultStore
         writer.WritePropertyName(TypeNameFieldName);
         writer.WriteStringValue(runtimeTypeName);
 
-        if (!TryWriteNodesFromScope(scope, node.Children!, writer))
+        if (!TryWriteNodesFromScope(scope, node.Nodes, writer))
         {
             return false;
         }
 
-        var branches = node.Branches!;
+        var branches = node.Branches;
 
-        for (var i = 0; i < branches.Count; i++)
+        for (var i = 0; i < branches.Length; i++)
         {
             var branch = branches[i];
             var branchType = _schema.Types.GetType<IOutputTypeDefinition>(branch.TypeCondition);
 
             if (branchType.IsAssignableFrom(runtimeType)
-                && !TryWriteNodesFromScope(scope, branch.Children, writer))
+                && !TryWriteNodesFromScope(scope, branch.Nodes, writer))
             {
                 return false;
             }
@@ -1178,7 +1180,7 @@ internal sealed partial class FetchResultStore
 
         if (node.IsList)
         {
-            return TryWriteListFromScope(value, node.Children!, writer);
+            return TryWriteListFromScope(value, node.Nodes, writer);
         }
 
         WriteRawJsonValue(writer, value);
@@ -1187,7 +1189,7 @@ internal sealed partial class FetchResultStore
 
     private bool TryWriteListFromScope(
         ReadOnlySequence<byte> value,
-        List<RepresentationShapeNode> children,
+        ImmutableArray<RepresentationShapeNode> children,
         JsonWriter writer)
     {
         var reader = new Utf8JsonReader(value);
@@ -1255,21 +1257,21 @@ internal sealed partial class FetchResultStore
         if (TryResolveRuntimeTypeFromSnapshot(
             values,
             slices,
-            node.Children!,
+            node.Nodes,
             out runtimeTypeName,
             out runtimeType))
         {
             return true;
         }
 
-        var branches = node.Branches!;
+        var branches = node.Branches;
 
-        for (var i = 0; i < branches.Count; i++)
+        for (var i = 0; i < branches.Length; i++)
         {
             if (TryResolveRuntimeTypeFromSnapshot(
                 values,
                 slices,
-                branches[i].Children,
+                branches[i].Nodes,
                 out runtimeTypeName,
                 out runtimeType))
             {
@@ -1285,20 +1287,20 @@ internal sealed partial class FetchResultStore
     private bool TryResolveRuntimeTypeFromSnapshot(
         ReadOnlySequence<byte> values,
         ReadOnlySpan<(long Start, long Length)> slices,
-        List<RepresentationShapeNode> nodes,
+        ImmutableArray<RepresentationShapeNode> nodes,
         out string runtimeTypeName,
         out IOutputTypeDefinition runtimeType)
     {
-        for (var i = 0; i < nodes.Count; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
 
-            if (node.Children is not null && !node.IsList)
+            if (!node.Nodes.IsDefault && !node.IsList)
             {
                 if (TryResolveRuntimeTypeFromSnapshot(
                     values,
                     slices,
-                    node.Children,
+                    node.Nodes,
                     out runtimeTypeName,
                     out runtimeType))
                 {

@@ -198,8 +198,8 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             _target,
             _forwardedVariables,
             _requirements,
-            _lookup.EntityTypeName,
-            _lookup.RepresentationShape);
+            _lookup.RepresentationShape,
+            _lookup.EntityTypeName);
 
         if (representation.IsEmpty)
         {
