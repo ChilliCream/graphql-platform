@@ -13,11 +13,10 @@ namespace HotChocolate.Fusion.Suites.SimpleInaccessible.Friends;
 ///   type: FriendType
 /// }
 /// </code>
-/// The <c>type</c> argument default is the <c>@inaccessible</c> enum value, so
-/// the supergraph hides the default from clients while the source schema still
-/// resolves friends without an explicit <c>type</c> selection. The <c>type</c>
-/// field always returns <c>FAMILY</c>; the supergraph nulls that value out
-/// because <c>FAMILY</c> is inaccessible.
+/// The <c>type</c> argument is marked <c>@inaccessible</c>, so the supergraph hides
+/// the entire argument while the source schema still applies its <c>FAMILY</c>
+/// default. The <c>type</c> field always returns <c>FAMILY</c>; the supergraph nulls
+/// that value out because <c>FAMILY</c> is inaccessible.
 /// </summary>
 public sealed class UserType : ObjectType<User>
 {

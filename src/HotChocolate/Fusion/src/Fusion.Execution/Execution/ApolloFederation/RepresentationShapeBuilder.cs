@@ -1,7 +1,9 @@
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.ApolloFederation;
 
@@ -21,6 +23,15 @@ internal static class RepresentationShapeBuilder
     /// </summary>
     /// <param name="lookupField">The original, un-stripped root lookup field.</param>
     /// <param name="requiredData">The operation requirements of the lookup.</param>
+    /// <param name="schema">
+    /// The composite schema used to resolve the declared types along the
+    /// requirement paths, which detects abstract composite positions that must
+    /// carry a runtime <c>__typename</c> in the representation.
+    /// </param>
+    /// <param name="entityTypeName">
+    /// The name of the entity type the representation is built for. It is the
+    /// root type from which the declared requirement-path types are resolved.
+    /// </param>
     /// <returns>
     /// The root level of the representation shape. The result is a plan-time
     /// constant that callers may cache and reuse across concurrent executions.
@@ -37,7 +48,9 @@ internal static class RepresentationShapeBuilder
     /// </exception>
     public static List<RepresentationShapeNode> Build(
         FieldNode lookupField,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData,
+        FusionSchemaDefinition schema,
+        string entityTypeName)
     {
         ArgumentNullException.ThrowIfNull(lookupField);
 
@@ -60,7 +73,85 @@ internal static class RepresentationShapeBuilder
             }
         }
 
+        // Bake the abstract-composite decision now, at plan build, so the
+        // emitter's per-entity write path reads a single flag instead of
+        // resolving types per value.
+        if (schema.Types.TryGetType<FusionComplexTypeDefinition>(
+            entityTypeName,
+            allowInaccessibleFields: true,
+            out var entityType))
+        {
+            AnnotateAbstractComposites(root, entityType, schema);
+        }
+
         return root;
+    }
+
+    // Walks the built shape against the declared types, flagging every
+    // non-branched composite node whose declared type is abstract so the
+    // emitter writes its runtime __typename. Branched nodes already carry an
+    // unconditional __typename via their branch handling and are left unflagged.
+    private static void AnnotateAbstractComposites(
+        List<RepresentationShapeNode> level,
+        FusionComplexTypeDefinition declaringType,
+        FusionSchemaDefinition schema)
+    {
+        for (var i = 0; i < level.Count; i++)
+        {
+            var node = level[i];
+
+            if (node.Children is null || node.IsList)
+            {
+                continue;
+            }
+
+            var fieldDeclaringType = declaringType;
+
+            if (node.ParentTypeCondition is { } parentTypeCondition
+                && schema.Types.TryGetType<FusionComplexTypeDefinition>(
+                    parentTypeCondition,
+                    allowInaccessibleFields: true,
+                    out var conditionedType))
+            {
+                fieldDeclaringType = conditionedType;
+            }
+
+            if (!fieldDeclaringType.Fields.TryGetField(
+                node.Name,
+                allowInaccessibleFields: true,
+                out var field))
+            {
+                continue;
+            }
+
+            var namedType = field.Type.NamedType();
+
+            if (node.Branches is not { Count: > 0 } && namedType.IsAbstractType())
+            {
+                node.RequiresTypeName = true;
+            }
+
+            if (namedType is not FusionComplexTypeDefinition complexFieldType)
+            {
+                continue;
+            }
+
+            AnnotateAbstractComposites(node.Children, complexFieldType, schema);
+
+            if (node.Branches is { } branches)
+            {
+                for (var b = 0; b < branches.Count; b++)
+                {
+                    if (schema.Types.TryGetType<FusionComplexTypeDefinition>(
+                        branches[b].TypeCondition,
+                        allowInaccessibleFields: true,
+                        out var branchType))
+                    {
+                        AnnotateAbstractComposites(branches[b].Children, branchType, schema);
+                    }
+                }
+            }
+        }
     }
 
     private static void WalkSelections(
@@ -131,7 +222,8 @@ internal static class RepresentationShapeBuilder
                 requiredData[index].Map,
                 index,
                 [],
-                requiredData[index].Type);
+                requiredData[index].Type,
+                requiredData[index].InternalAlias);
         }
     }
 
@@ -198,29 +290,31 @@ internal static class RepresentationShapeBuilder
         IValueSelectionNode selection,
         int requirementIndex,
         List<string> lhsPath,
-        ITypeNode? inputType)
+        ITypeNode? inputType,
+        string? rootResponseName)
     {
         switch (selection)
         {
             case PathNode path:
-                AddPath(level, path, requirementIndex, lhsPath, inputType);
+                AddPath(level, path, requirementIndex, lhsPath, inputType, rootResponseName);
                 break;
 
             case ObjectValueSelectionNode objectValue:
-                AddObjectFields(level, objectValue, requirementIndex, lhsPath);
+                AddObjectFields(level, objectValue, requirementIndex, lhsPath, rootResponseName);
                 break;
 
             case PathObjectValueSelectionNode pathObject:
-                var terminal = EnsureCompositeChain(level, pathObject.Path);
+                var terminal = EnsureCompositeChain(level, pathObject.Path, rootResponseName);
                 AddObjectFields(
                     terminal,
                     pathObject.ObjectValueSelection,
                     requirementIndex,
-                    lhsPath);
+                    lhsPath,
+                    rootResponseName: null);
                 break;
 
             case PathListValueSelectionNode pathList:
-                AddPathList(level, pathList, requirementIndex, lhsPath, inputType);
+                AddPathList(level, pathList, requirementIndex, lhsPath, inputType, rootResponseName);
                 break;
 
             default:
@@ -235,11 +329,13 @@ internal static class RepresentationShapeBuilder
         PathNode path,
         int requirementIndex,
         List<string> lhsPath,
-        ITypeNode? inputType)
+        ITypeNode? inputType,
+        string? rootResponseName)
     {
         var currentLevel = level;
         var parentTypeCondition = path.TypeName?.Value;
         var segment = path.PathSegment;
+        var responseName = rootResponseName ?? segment.FieldName.Value;
 
         while (segment.PathSegment is not null)
         {
@@ -248,16 +344,19 @@ internal static class RepresentationShapeBuilder
             currentLevel = GetOrCreateCompositeNode(
                 currentLevel,
                 segment.FieldName.Value,
+                responseName,
                 parentTypeCondition,
                 segment.TypeName?.Value,
                 skipOnNull: false);
             parentTypeCondition = null;
             segment = segment.PathSegment;
+            responseName = segment.FieldName.Value;
         }
 
         AddLeafNode(
             currentLevel,
             segment.FieldName.Value,
+            responseName,
             requirementIndex,
             lhsPath,
             parentTypeCondition,
@@ -270,7 +369,8 @@ internal static class RepresentationShapeBuilder
         PathListValueSelectionNode pathList,
         int requirementIndex,
         List<string> lhsPath,
-        ITypeNode? inputType)
+        ITypeNode? inputType,
+        string? rootResponseName)
     {
         if (pathList.ListValueSelection.ElementSelection
             is not ObjectValueSelectionNode elementSelection)
@@ -283,6 +383,7 @@ internal static class RepresentationShapeBuilder
         var currentLevel = level;
         var parentTypeCondition = pathList.Path.TypeName?.Value;
         var segment = pathList.Path.PathSegment;
+        var responseName = rootResponseName ?? segment.FieldName.Value;
 
         while (segment.PathSegment is not null)
         {
@@ -291,11 +392,13 @@ internal static class RepresentationShapeBuilder
             currentLevel = GetOrCreateCompositeNode(
                 currentLevel,
                 segment.FieldName.Value,
+                responseName,
                 parentTypeCondition,
                 segment.TypeName?.Value,
                 skipOnNull: false);
             parentTypeCondition = null;
             segment = segment.PathSegment;
+            responseName = segment.FieldName.Value;
         }
 
         var elementType = GetElementType(inputType);
@@ -303,7 +406,8 @@ internal static class RepresentationShapeBuilder
 
         if (existing is not null)
         {
-            if (!existing.IsList)
+            if (!existing.IsList
+                || !string.Equals(existing.ResponseName, responseName, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
                     "The requirement maps produce conflicting representation nodes "
@@ -318,7 +422,7 @@ internal static class RepresentationShapeBuilder
             return;
         }
 
-        var listNode = CreateNode(segment.FieldName.Value, segment.FieldName.Value);
+        var listNode = CreateNode(segment.FieldName.Value, responseName);
         listNode.Children = [];
         listNode.IsList = true;
         listNode.RequirementIndex = requirementIndex;
@@ -331,24 +435,30 @@ internal static class RepresentationShapeBuilder
 
         // Element fields resolve against a single list element, so the input
         // path restarts at the list boundary.
-        AddObjectFields(listNode.Children, elementSelection, requirementIndex, []);
+        AddObjectFields(listNode.Children, elementSelection, requirementIndex, [], rootResponseName: null);
     }
 
     private static void AddObjectFields(
         List<RepresentationShapeNode> level,
         ObjectValueSelectionNode objectValue,
         int requirementIndex,
-        List<string> lhsPath)
+        List<string> lhsPath,
+        string? rootResponseName)
     {
         foreach (var field in objectValue.Fields)
         {
             lhsPath.Add(field.Name.Value);
+            var fieldRootResponseName =
+                rootResponseName is not null && objectValue.Fields.Length == 1
+                    ? rootResponseName
+                    : null;
 
             if (field.ValueSelection is null)
             {
                 AddLeafNode(
                     level,
                     field.Name.Value,
+                    fieldRootResponseName ?? field.Name.Value,
                     requirementIndex,
                     lhsPath,
                     parentTypeCondition: null,
@@ -357,7 +467,13 @@ internal static class RepresentationShapeBuilder
             }
             else
             {
-                AddValueSelection(level, field.ValueSelection, requirementIndex, lhsPath, inputType: null);
+                AddValueSelection(
+                    level,
+                    field.ValueSelection,
+                    requirementIndex,
+                    lhsPath,
+                    inputType: null,
+                    rootResponseName: fieldRootResponseName);
             }
 
             lhsPath.RemoveAt(lhsPath.Count - 1);
@@ -366,11 +482,13 @@ internal static class RepresentationShapeBuilder
 
     private static List<RepresentationShapeNode> EnsureCompositeChain(
         List<RepresentationShapeNode> level,
-        PathNode path)
+        PathNode path,
+        string? rootResponseName)
     {
         var currentLevel = level;
         var parentTypeCondition = path.TypeName?.Value;
         var segment = path.PathSegment;
+        var responseName = rootResponseName ?? segment.FieldName.Value;
 
         while (true)
         {
@@ -379,6 +497,7 @@ internal static class RepresentationShapeBuilder
             currentLevel = GetOrCreateCompositeNode(
                 currentLevel,
                 segment.FieldName.Value,
+                responseName,
                 parentTypeCondition,
                 segment.TypeName?.Value,
                 skipOnNull: true);
@@ -390,6 +509,7 @@ internal static class RepresentationShapeBuilder
 
             parentTypeCondition = null;
             segment = segment.PathSegment;
+            responseName = segment.FieldName.Value;
         }
     }
 
@@ -436,6 +556,7 @@ internal static class RepresentationShapeBuilder
     private static List<RepresentationShapeNode> GetOrCreateCompositeNode(
         List<RepresentationShapeNode> level,
         string name,
+        string responseName,
         string? parentTypeCondition,
         string? typeCondition,
         bool skipOnNull)
@@ -450,7 +571,7 @@ internal static class RepresentationShapeBuilder
                     $"The requirement maps produce conflicting representation nodes for '{name}'.");
             }
 
-            if (!string.Equals(existing.ResponseName, name, StringComparison.Ordinal)
+            if (!string.Equals(existing.ResponseName, responseName, StringComparison.Ordinal)
                 || !string.Equals(existing.ParentTypeCondition, parentTypeCondition, StringComparison.Ordinal)
                 || existing.TypeCondition is not null)
             {
@@ -470,7 +591,7 @@ internal static class RepresentationShapeBuilder
             return GetOrCreateBranch(existing, typeCondition).Children;
         }
 
-        var node = CreateNode(name, name);
+        var node = CreateNode(name, responseName);
         node.Children = [];
         node.ParentTypeCondition = parentTypeCondition;
         node.SkipOnNull = skipOnNull;
@@ -512,6 +633,7 @@ internal static class RepresentationShapeBuilder
     private static void AddLeafNode(
         List<RepresentationShapeNode> level,
         string name,
+        string responseName,
         int requirementIndex,
         List<string> lhsPath,
         string? parentTypeCondition,
@@ -524,7 +646,8 @@ internal static class RepresentationShapeBuilder
 
         if (existing is not null)
         {
-            if (existing.Children is not null)
+            if (existing.Children is not null
+                || !string.Equals(existing.ResponseName, responseName, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
                     $"The requirement maps produce conflicting representation nodes for '{name}'.");
@@ -538,7 +661,7 @@ internal static class RepresentationShapeBuilder
             return;
         }
 
-        var node = CreateNode(name, name);
+        var node = CreateNode(name, responseName);
         node.RequirementIndex = requirementIndex;
         node.LhsPath = [.. lhsPath];
         node.ParentTypeCondition = parentTypeCondition;

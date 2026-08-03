@@ -9,10 +9,12 @@ namespace Mocha;
 /// <param name="StateTypeFullName">The fully qualified type name of the saga state, or <c>null</c> if unavailable.</param>
 /// <param name="ConsumerName">The name of the consumer that drives this saga.</param>
 /// <param name="States">The descriptions of all states in this saga.</param>
+/// <param name="Source">Source metadata captured from the saga declaration, or <c>null</c> when not provided.</param>
 public sealed record SagaDescription(
     string Id,
     string Name,
     string StateType,
     string? StateTypeFullName,
     string ConsumerName,
-    IReadOnlyList<SagaStateDescription> States);
+    IReadOnlyList<SagaStateDescription> States,
+    SourceMetadata? Source);

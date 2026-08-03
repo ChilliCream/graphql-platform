@@ -20,13 +20,12 @@ internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
 
     public bool Push(SatisfiabilityPathItem item)
     {
-        if (_hashSet.Contains(item))
+        if (!_hashSet.Add(item))
         {
             return false;
         }
 
         _stack.Push(item);
-        _hashSet.Add(item);
 
         return true;
     }
@@ -96,6 +95,13 @@ internal sealed record SatisfiabilityPathItem(
     public ITypeDefinition FieldType { get; } = Field.Type.AsTypeDefinition();
 
     public SelectionSetNode? ProvidedSelectionSet { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="ProvidedSelectionSet"/> originates from an event
+    /// stream message rather than an <c>@provides</c> selection. Event stream messages genuinely gate
+    /// satisfiability; <c>@provides</c> is an optimization that never makes a path satisfiable.
+    /// </summary>
+    public bool ProvidedByEventStream { get; init; }
 
     private readonly int _hashCode = HashCode.Combine(Field, Type, SchemaName);
 

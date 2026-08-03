@@ -1,6 +1,7 @@
 import NextLink from "next/link";
 import type { ReactElement } from "react";
 
+import { CardGrid } from "@/src/components/CardGrid";
 import { GITHUB, SLACK, YOUTUBE } from "@/src/components/help/helpLinks";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
@@ -73,11 +74,11 @@ export function SelfServeGrid() {
           description="Most questions have already been answered. Five places to look before you reach out."
         />
       </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <CardGrid cols={3} step="progressive" gap={6}>
         {CHANNELS.map((channel) => (
           <ChannelCard key={channel.title} channel={channel} />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

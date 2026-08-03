@@ -1,7 +1,9 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { ContentSection } from "@/src/components/ContentSection";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+import { Card } from "@/src/design-system/Card";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 export const metadata = pageMetadata({
@@ -82,21 +84,18 @@ export default function EcosystemPage() {
         <p className="text-cc-ink-dim -mt-4 mb-8 text-center text-base sm:text-lg">
           Everything you need to build great APIs &mdash; and more
         </p>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <CardGrid cols={3} step="progressive" gap={6}>
           {FEATURES.map((feature) => (
-            <div
-              key={feature.title}
-              className="border-cc-card-border bg-cc-card-bg rounded-xl border p-6 backdrop-blur-sm"
-            >
+            <Card key={feature.title} variant="tile">
               <h3 className="text-cc-ink text-lg font-semibold">
                 {feature.title}
               </h3>
               <p className="text-cc-ink-dim mt-2 text-sm">
                 {feature.description}
               </p>
-            </div>
+            </Card>
           ))}
-        </div>
+        </CardGrid>
       </Section>
       <ContentSection
         title="Continuous Evolution"

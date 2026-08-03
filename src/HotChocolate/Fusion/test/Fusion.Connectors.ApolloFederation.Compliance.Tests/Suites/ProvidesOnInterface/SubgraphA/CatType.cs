@@ -14,12 +14,8 @@ public sealed class CatType : ObjectType<Cat>
     {
         descriptor
             .Implements<AnimalInterfaceType>()
-            .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .Key("id");
 
-        descriptor.Field(c => c.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(c => c.Id).External().Type<NonNullType<IdType>>();
     }
-
-    private static Cat? ResolveById(string id)
-        => new Cat { Id = id };
 }

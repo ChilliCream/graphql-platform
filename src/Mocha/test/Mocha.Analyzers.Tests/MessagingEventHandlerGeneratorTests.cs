@@ -163,7 +163,7 @@ public class MessagingEventHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_EmitProjectRelativePath_When_ProjectDirProvided()
+    public async Task Generate_Should_EmitFileNameOnly_When_NoSourceRoots()
     {
         await MessagingTestHelper.GetGeneratedSourceSnapshot(
         [
@@ -193,7 +193,41 @@ public class MessagingEventHandlerGeneratorTests
             public partial class TestJsonContext : JsonSerializerContext;
             """
         ],
-        projectDir: "C:\\app\\",
         sourcePaths: ["C:\\app\\Handlers\\OrderHandlers.cs"]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitDirectory_When_SourceRootMatches()
+    {
+        await MessagingTestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using System.Text.Json.Serialization;
+            using Mocha;
+
+            [assembly: MessagingModule("TestApp", JsonContext = typeof(TestApp.TestJsonContext))]
+
+            namespace TestApp;
+
+            /// <summary>
+            /// Published after an order is placed.
+            /// </summary>
+            public record OrderPlacedEvent(int OrderId);
+
+            /// <summary>
+            /// Handles order placed events.
+            /// </summary>
+            public class OrderPlacedHandler : IEventHandler<OrderPlacedEvent>
+            {
+                public ValueTask HandleAsync(OrderPlacedEvent message, CancellationToken cancellationToken)
+                    => default;
+            }
+
+            [JsonSerializable(typeof(OrderPlacedEvent))]
+            public partial class TestJsonContext : JsonSerializerContext;
+            """
+        ],
+        sourcePaths: ["/repo/src/Order/Handlers/OrderHandlers.cs"],
+        sourceRoots: "/repo/>>git").MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

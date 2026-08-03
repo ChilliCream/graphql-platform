@@ -34,5 +34,6 @@ public sealed class UserType : ObjectType<User>
             });
     }
 
-    private static User ResolveById(string id) => new() { Id = id };
+    private static User? ResolveById(string id)
+        => ReviewsData.UsernameById.ContainsKey(id) ? new User { Id = id } : null;
 }

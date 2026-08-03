@@ -92,7 +92,11 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 // requirement maps and unbound requirements fail here rather than at
                 // execution time. The shape is a plan-time constant, so it is retained and
                 // reused for every request this lookup serves.
-                RepresentationShapeBuilder.Build(rewritten.LookupField, definition.Requirements));
+                RepresentationShapeBuilder.Build(
+                    rewritten.LookupField,
+                    definition.Requirements,
+                    schema,
+                    rewritten.EntityTypeName));
         }
 
         return new ApolloOperationBatchExecutionNode(id, operations, lookups, schemaName);

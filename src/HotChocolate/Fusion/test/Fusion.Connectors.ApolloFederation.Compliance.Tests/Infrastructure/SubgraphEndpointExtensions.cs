@@ -17,10 +17,15 @@ internal static class SubgraphEndpointExtensions
     /// required.
     /// </summary>
     /// <param name="app">The subgraph web application.</param>
-    public static void MapSubgraph(this WebApplication app)
+    public static void MapSubgraph(this WebApplication app, bool enableBatching = false)
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        app.MapGraphQL().WithOptions(o => o.Batching = AllowedBatching.All);
+        var endpoint = app.MapGraphQL();
+
+        if (enableBatching)
+        {
+            endpoint.WithOptions(o => o.Batching = AllowedBatching.All);
+        }
     }
 }

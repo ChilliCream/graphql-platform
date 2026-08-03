@@ -3,6 +3,7 @@ namespace HotChocolate.Fusion;
 internal static class WellKnownArgumentNames
 {
     public const string Apply = "apply";
+    public const string AllowNonResolvableInterfaceObjects = "allowNonResolvableInterfaceObjects";
     public const string AssumedSize = "assumedSize";
     public const string Broker = "broker";
     public const string CursorArgument = "cursorArgument";
@@ -24,6 +25,7 @@ internal static class WellKnownArgumentNames
     public const string Member = "member";
     public const string Message = "message";
     public const string Name = "name";
+    public const string NodeResolution = "nodeResolution";
     public const string OpenWorldHint = "openWorldHint";
     public const string Partial = "partial";
     public const string Path = "path";
@@ -34,11 +36,13 @@ internal static class WellKnownArgumentNames
     public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
     public const string Roles = "roles";
     public const string Schema = "schema";
+    public const string ShareableFieldRuntimeTypeRouting = "shareableFieldRuntimeTypeRouting";
     public const string Scope = "scope";
     public const string SharedMaxAge = "sharedMaxAge";
     public const string SizedFields = "sizedFields";
     public const string SlicingArgumentDefaultValue = "slicingArgumentDefaultValue";
     public const string SlicingArguments = "slicingArguments";
+    public const string SourceExternal = "sourceExternal";
     public const string SourceType = "sourceType";
     public const string Topics = "topics";
     public const string Type = "type";

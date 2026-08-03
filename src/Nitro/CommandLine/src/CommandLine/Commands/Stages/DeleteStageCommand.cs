@@ -80,8 +80,8 @@ internal sealed class DeleteStageCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IApiNotFoundError err => err.Message,
-                        IStageNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()

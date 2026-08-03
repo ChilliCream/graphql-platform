@@ -6,8 +6,11 @@ namespace Mocha;
 /// the entire declaration from its start to its end.
 /// </summary>
 /// <param name="File">
-/// The source file path, relative to the project directory using forward slashes,
-/// or the file name alone when a project-relative path is not available.
+/// Name of the declaring source file.
+/// </param>
+/// <param name="Directory">
+/// Directory of the declaring source file relative to the repository root, empty when the file is
+/// at the repository root, or null when the build does not provide source root information.
 /// </param>
 /// <param name="StartLine">The 1-based line number where the declaration starts.</param>
 /// <param name="StartColumn">The 1-based column number where the declaration starts.</param>
@@ -15,6 +18,7 @@ namespace Mocha;
 /// <param name="EndColumn">The 1-based column number where the declaration ends.</param>
 public sealed record DeclarationLocation(
     string File,
+    string? Directory,
     int StartLine,
     int StartColumn,
     int EndLine,

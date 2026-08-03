@@ -127,6 +127,37 @@ public class RequirementCrossEntityTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_Keep_Requirement_And_Client_List_Field_Separate_When_Arguments_Differ()
+    {
+        // arrange
+        // the client selects comments(limit: 1) while author @requires comments(limit: 3); the
+        // requirement's list fetch must not adopt the client's argument (limit: 1). Before the
+        // ReverseSelectionPath argument-safe fix the parent-path reconstruction resolved the
+        // comments segment by response name only and reused the client field, collapsing the
+        // requirement fetch onto limit: 1. The plan must keep both fetches with their own argument.
+        var schema = CreateWithArgumentInputObjectCrossProviderSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              feed {
+                author {
+                  id
+                }
+                comments(limit: 1) {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Resolve_ByNovice_When_Require_Is_Single_Provider()
     {
         // arrange

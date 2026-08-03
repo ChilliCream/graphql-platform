@@ -1,3 +1,4 @@
+import { Card } from "@/src/design-system/Card";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { CloudGlyph } from "@/src/icons/CloudGlyph";
 import { ShieldGlyph } from "@/src/icons/ShieldGlyph";
@@ -63,7 +64,7 @@ function UnlockRow({
 }) {
   const Glyph = UNLOCK_ICONS[index] ?? SupportGlyph;
   return (
-    <li className="border-cc-card-border bg-cc-card-bg flex items-center gap-4 rounded-2xl border p-5 sm:gap-5 sm:p-6">
+    <Card as="li" className="flex items-center gap-4 p-5 sm:gap-5 sm:p-6">
       <span className="border-cc-card-border bg-cc-surface text-cc-accent flex size-11 shrink-0 items-center justify-center rounded-xl border">
         <Glyph className="size-5" />
       </span>
@@ -78,7 +79,7 @@ function UnlockRow({
       <span className="font-heading text-cc-heading shrink-0 text-lg font-semibold sm:text-xl">
         {unlock.spend}
       </span>
-    </li>
+    </Card>
   );
 }
 

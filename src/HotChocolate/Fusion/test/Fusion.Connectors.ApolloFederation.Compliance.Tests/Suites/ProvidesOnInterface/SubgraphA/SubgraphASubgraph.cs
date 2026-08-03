@@ -14,7 +14,7 @@ public static class SubgraphASubgraph
     /// <summary>
     /// The source-schema name by which the gateway addresses this subgraph.
     /// </summary>
-    public const string Name = "subgraph-a";
+    public const string Name = "a";
 
     /// <summary>
     /// Starts the subgraph's <see cref="TestServer"/> and returns a

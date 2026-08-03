@@ -11,7 +11,11 @@ public sealed class QueryType : ObjectType
         descriptor
             .Field("a")
             .Type<NodeType>()
-            .Resolve(_ => new NodeImpl { Id = AData.NodeId });
+            .Resolve(_ => new Dictionary<string, object?>
+            {
+                ["__typename"] = "Node",
+                ["id"] = AData.NodeId
+            });
 
         descriptor
             .Field("product")

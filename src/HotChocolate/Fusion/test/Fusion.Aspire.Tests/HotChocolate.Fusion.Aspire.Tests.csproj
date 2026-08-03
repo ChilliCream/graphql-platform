@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Aspire.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
+    <TargetFrameworks>net11.0;net10.0;net9.0</TargetFrameworks>
+    <NoWarn>$(NoWarn);ASPIREINTERACTION001</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>$(DefineConstants);NITRO_PERSISTED_OPERATIONS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Aspire\HotChocolate.Fusion.Aspire.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The Nitro tests run a real Kestrel server on a loopback port so the download request is
+      exercised over a real socket instead of a stubbed HttpMessageHandler.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+</Project>

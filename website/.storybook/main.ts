@@ -4,7 +4,9 @@ const config: StorybookConfig = {
   stories: [
     "../src/design-system/**/*.stories.@(ts|tsx|mdx)",
     "../src/components/**/*.stories.@(ts|tsx|mdx)",
+    "../src/nitro/**/*.stories.@(ts|tsx|mdx)",
     "../src/og/**/*.stories.@(ts|tsx|mdx)",
+    "../app/**/*.stories.@(ts|tsx|mdx)",
   ],
   staticDirs: ["../.storybook/static"],
   framework: {

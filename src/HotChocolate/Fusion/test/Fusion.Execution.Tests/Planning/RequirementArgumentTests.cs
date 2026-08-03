@@ -212,6 +212,32 @@ public class RequirementArgumentTests : FusionTestBase
     }
 
     [Fact]
+    public void Requires_Arguments_Reentrant_Comments_Collides_With_Client_Comments()
+    {
+        // arrange
+        var schema = CreateReentrantRequiresArgumentsSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              feed {
+                author {
+                  id
+                }
+                comments(limit: 1) {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Simple_Requires_Arguments()
     {
         // arrange
@@ -315,6 +341,60 @@ public class RequirementArgumentTests : FusionTestBase
               author(
                 commentAuthorIds: [ID]
                   @require(field: "comments[authorId]")): Author
+            }
+
+            type Author {
+              id: ID!
+              name: String
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateReentrantRequiresArgumentsSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: c
+            schema {
+              query: Query
+            }
+
+            type Query {
+              feed: [Post]
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+              commentById(id: ID! @is(field: "id")): Comment @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+            }
+
+            type Comment @key(fields: "id") {
+              id: ID!
+              somethingElse: String
+            }
+            """,
+            """
+            # name: d
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              comments(limit: Int): [Comment]
+              author(
+                somethingElse: [String]
+                  @require(field: "comments(limit: 3)[somethingElse]")): Author
+            }
+
+            type Comment @key(fields: "id") {
+              id: ID!
+              somethingElse: String @external
             }
 
             type Author {

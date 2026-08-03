@@ -81,6 +81,7 @@ internal static class ExternalSetterExpressionHelper
     {
         var statements = new List<Expression>();
         var variables = new List<ParameterExpression>();
+        var keyFields = CollectKeyFieldNames(type);
 
         foreach (var field in type.Fields)
         {
@@ -91,6 +92,14 @@ internal static class ExternalSetterExpressionHelper
 
             var fieldType = field.Type is NonNullType nonNull ? nonNull.NullableType : field.Type;
             var path = Append(pathPrefix, field.Name);
+
+            // Fields that participate in a '@key' identify the entity and are owned by the reference
+            // resolver. The representation echoes them back only so the entity can be located, so the
+            // resolver's returned values are preserved instead of being overwritten.
+            if (keyFields?.Contains(field.Name) == true)
+            {
+                continue;
+            }
 
             if (fieldType is ListType)
             {
@@ -147,6 +156,29 @@ internal static class ExternalSetterExpressionHelper
         }
 
         return statements.Count == 0 ? null : Block(variables, statements);
+    }
+
+    private static HashSet<string>? CollectKeyFieldNames(ObjectType type)
+    {
+        HashSet<string>? names = null;
+
+        foreach (var directive in type.Directives)
+        {
+            if (directive.Type.RuntimeType != typeof(KeyDirective))
+            {
+                continue;
+            }
+
+            foreach (var selection in directive.ToValue<KeyDirective>().Fields.Selections)
+            {
+                if (selection is FieldNode keyField)
+                {
+                    (names ??= []).Add(keyField.Name.Value);
+                }
+            }
+        }
+
+        return names;
     }
 
     private static MethodCallExpression CreateTrySetValue(

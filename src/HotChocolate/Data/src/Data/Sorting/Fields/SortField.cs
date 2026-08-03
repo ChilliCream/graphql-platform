@@ -45,5 +45,9 @@ public class SortField : InputField, ISortField
         {
             RuntimeType = context.TypeInspector.GetType(lambda.ReturnType);
         }
+        else if (base.RuntimeType is { } runtimeType)
+        {
+            RuntimeType = context.TypeInspector.GetType(runtimeType);
+        }
     }
 }

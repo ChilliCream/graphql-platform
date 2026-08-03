@@ -155,7 +155,14 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
 
     public override ConsumerDescription Describe()
     {
-        return new ConsumerDescription(Urn, Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, true);
+        return new ConsumerDescription(
+            Urn,
+            Name,
+            DescriptionHelpers.GetTypeName(Identity),
+            Identity.FullName,
+            null,
+            true,
+            Configuration?.Source);
     }
 
     public override async ValueTask DisposeAsync()

@@ -55,7 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     </summary>
                 </member>
                 """,
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 13, 1, 17, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 13, 1, 17, 2)
             };
         }
     }

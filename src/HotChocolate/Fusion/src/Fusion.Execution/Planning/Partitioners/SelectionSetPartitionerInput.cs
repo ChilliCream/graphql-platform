@@ -9,4 +9,5 @@ internal readonly ref struct SelectionSetPartitionerInput
     public required ISelectionSetIndex SelectionSetIndex { get; init; }
     public SelectionSetNode? ProvidedSelectionSet { get; init; }
     public bool PruneUnprovidedAbstractBranches { get; init; }
+    public bool TreatSourceExternalAsUnresolvable { get; init; }
 }

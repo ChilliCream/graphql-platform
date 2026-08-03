@@ -1,0 +1,40 @@
+operation:
+  - document: |
+      {
+        a {
+          __typename @fusion__requirement
+          field
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        a {
+          __typename
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: b
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        fusion__lookup_nodeById(id: $__fusion_1_id) {
+          field
+        }
+      }
+    source: $._entities
+    target: $.a
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

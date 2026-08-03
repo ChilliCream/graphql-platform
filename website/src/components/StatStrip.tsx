@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 interface StatStripProps {
   readonly items: readonly { readonly label: string; readonly value: string }[];
@@ -24,9 +25,9 @@ export function StatStrip({ items, className = "" }: StatStripProps) {
           key={item.label}
           className="bg-cc-surface px-4 py-5 text-center sm:px-6"
         >
-          <dt className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+          <Eyebrow as="dt" size="2xs">
             {item.label}
-          </dt>
+          </Eyebrow>
           <dd className="font-heading text-cc-heading mt-2 text-xl font-semibold sm:text-2xl">
             {item.value}
           </dd>

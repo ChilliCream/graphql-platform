@@ -125,5 +125,6 @@ Before composition, verify:
 # Next Steps
 
 - **Need identity and lookup routing?** See [Entities and Lookups](./entities-and-lookups.md).
+- **Need to add a default field to every implementation of an interface?** See [Interface Objects](./interface-objects.md).
 - **Need dependency and mapping syntax?** See [Data Requirements and Mapping](./data-requirements-and-mapping.md).
 - **Need merge and validation rules?** See [Composition](./composition.md).

@@ -410,6 +410,7 @@ builder
 
 # Next Steps
 
+- **Need to add fields to an interface from another source?** See [Interface Objects](./interface-objects.md).
 - **Need field ownership contracts?** See [Field Ownership](./field-ownership-and-sharing.md).
 - **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@is`, `@require`, and FieldSelectionMap patterns.
 - **Need runtime performance guidance?** See Hot Chocolate docs for DataLoader and batching patterns used inside lookup resolvers.

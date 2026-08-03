@@ -9,10 +9,12 @@ namespace Mocha;
 /// <param name="IdentityTypeFullName">The fully qualified type name of the handler, or <c>null</c> if unavailable.</param>
 /// <param name="SagaName">The name of the associated saga, or <c>null</c> if this consumer is not part of a saga.</param>
 /// <param name="IsBatch">Whether this consumer processes messages in batches.</param>
+/// <param name="Source">Source metadata captured from the consumer declaration, or <c>null</c> when not provided.</param>
 public sealed record ConsumerDescription(
     string Id,
     string Name,
     string IdentityType,
     string? IdentityTypeFullName,
     string? SagaName,
-    bool IsBatch);
+    bool IsBatch,
+    SourceMetadata? Source);

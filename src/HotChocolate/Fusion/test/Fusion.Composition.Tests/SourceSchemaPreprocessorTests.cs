@@ -940,4 +940,78 @@ public sealed class SourceSchemaPreprocessorTests
         var productAdded = subscriptionType.Fields["productAdded"];
         Assert.False(productAdded.Directives.ContainsName(WellKnownDirectiveNames.Shareable));
     }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Preprocess_Should_NotInferShareable_When_EitherDuplicateFieldIsExternal(
+        bool currentFieldIsExternal,
+        bool otherFieldIsExternal)
+    {
+        // arrange
+        var currentField = currentFieldIsExternal
+            ? "sku: String @external"
+            : "sku: String";
+        var currentQueryField = currentFieldIsExternal
+            ? "product: Product @provides(fields: \"sku\")"
+            : "product: Product";
+        var otherField = otherFieldIsExternal
+            ? "sku: String @external"
+            : "sku: String";
+        var otherQueryField = otherFieldIsExternal
+            ? "product: Product @provides(fields: \"sku\")"
+            : "product: Product";
+        var log = new CompositionLog();
+        var currentSchema = new SourceSchemaParser(
+            new SourceSchemaText(
+                "A",
+                $$"""
+                type Query {
+                  {{currentQueryField}}
+                }
+
+                type Product {
+                  {{currentField}}
+                }
+                """),
+            log,
+            isApolloFederationV1: true).Parse().Value;
+        var otherSchema = new SourceSchemaParser(
+            new SourceSchemaText(
+                "B",
+                $$"""
+                type Query {
+                  {{otherQueryField}}
+                }
+
+                type Product {
+                  {{otherField}}
+                }
+                """),
+            log).Parse().Value;
+        var schemas = ImmutableSortedSet.Create(
+            new SchemaByNameComparer<MutableSchemaDefinition>(),
+            currentSchema,
+            otherSchema);
+        var preprocessor = new SourceSchemaPreprocessor(
+            currentSchema,
+            schemas,
+            log,
+            isApolloFederationV1: true);
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var product = Assert.IsType<MutableObjectTypeDefinition>(
+            currentSchema.Types["Product"]);
+        string[] expectedDirectives = currentFieldIsExternal ? ["external"] : [];
+        Assert.Equal(
+            expectedDirectives,
+            product.Fields["sku"].Directives
+                .AsEnumerable()
+                .Select(directive => directive.Name)
+                .ToArray());
+    }
 }

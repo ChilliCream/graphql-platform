@@ -177,21 +177,9 @@ public sealed class SocketClient : ISocket
         IProtocolHandler protocolHandler)
         : IMessageHandler
     {
-        public async ValueTask OnReceiveAsync(
+        public ValueTask OnReceiveAsync(
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await protocolHandler.OnReceiveAsync(context, message, cancellationToken);
-            }
-            finally
-            {
-                if (context.Socket.IsClosed())
-                {
-                    context.Messages.OnCompleted();
-                }
-            }
-        }
+            => protocolHandler.OnReceiveAsync(context, message, cancellationToken);
     }
 }

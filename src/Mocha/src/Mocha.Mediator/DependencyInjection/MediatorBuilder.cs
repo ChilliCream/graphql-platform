@@ -204,7 +204,8 @@ public sealed class MediatorBuilder : IMediatorBuilder
                 config.Kind,
                 MediatorUrn.Message(serviceName, messageName),
                 messageName,
-                config.ResponseType is { } responseType ? MediatorDescriptionHelpers.GetTypeName(responseType) : null));
+                config.ResponseType is { } responseType ? MediatorDescriptionHelpers.GetTypeName(responseType) : null,
+                config.Source));
 
             var terminal = config.Delegate ?? BuildPipelineViaReflection(config);
 

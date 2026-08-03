@@ -1,0 +1,289 @@
+title: AnotherUsers_SelectsConcreteFragmentStandInField
+request:
+  document: |
+    query testQuery {
+      anotherUsers {
+        ... on User {
+          age
+          id
+          name
+          score
+        }
+        id
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "anotherUsers": [
+          {
+            "id": "Tm9kZVdpdGhOYW1lOjE=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjE=",
+            "age": 123,
+            "score": 123
+          },
+          {
+            "id": "Tm9kZVdpdGhOYW1lOjI=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjI=",
+            "age": 123,
+            "score": 123
+          },
+          {
+            "id": "Tm9kZVdpdGhOYW1lOjM=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjM=",
+            "age": 123,
+            "score": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [NodeWithName!]!
+        nodeById(id: ID!): NodeWithName @lookup
+      }
+
+      type User implements NodeWithName @key(fields: "id") {
+        id: ID!
+        name: String!
+        age: Int!
+      }
+
+      interface NodeWithName {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_40a12cd0_2($__fusion_1_id: ID!) {
+              nodeById(id: $__fusion_1_id) {
+                __typename
+                name
+                ... on User {
+                  age
+                  id
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjE="
+              },
+              {
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjI="
+              },
+              {
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjM="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjE=",
+                    "age": 123,
+                    "id": "Tm9kZVdpdGhOYW1lOjE="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjI=",
+                    "age": 123,
+                    "id": "Tm9kZVdpdGhOYW1lOjI="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjM=",
+                    "age": 123,
+                    "id": "Tm9kZVdpdGhOYW1lOjM="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        anotherUsers: [NodeWithName!]!
+        nodeByKey(id: ID!): NodeWithName @lookup @internal
+      }
+
+      type NodeWithName @interfaceObject @key(fields: "id") {
+        id: ID!
+        name: String! @external
+        username(name: String @require(field: "name")): String!
+        score: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_40a12cd0_1 {
+              anotherUsers {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "anotherUsers": [
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjE="
+                    },
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjI="
+                    },
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjM="
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_40a12cd0_3($__fusion_2_id: ID!) {
+              nodeByKey(id: $__fusion_2_id) {
+                score
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE="
+              },
+              {
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjI="
+              },
+              {
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjM="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "nodeByKey": {
+                    "score": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeByKey": {
+                    "score": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeByKey": {
+                    "score": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          anotherUsers {
+            __typename @fusion__requirement
+            id
+            id @fusion__requirement
+            name
+            ... on User {
+              age
+              id
+              id @fusion__requirement
+              name
+              score
+            }
+          }
+        }
+      name: testQuery
+      hash: 40a12cd0f30c3393c17f5534c07956c6
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_40a12cd0_1 {
+          anotherUsers {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_40a12cd0_2($__fusion_1_id: ID!) {
+          nodeById(id: $__fusion_1_id) {
+            __typename
+            name
+            ... on User {
+              age
+              id
+              name
+            }
+          }
+        }
+      source: $.nodeById
+      target: $.anotherUsers
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_40a12cd0_3($__fusion_2_id: ID!) {
+          nodeByKey(id: $__fusion_2_id) {
+            score
+          }
+        }
+      source: $.nodeByKey
+      target: $.anotherUsers<User>
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

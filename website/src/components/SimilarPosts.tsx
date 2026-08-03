@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ArrowLink } from "@/src/components/ArrowLink";
 import { BlogTeaserGrid } from "./BlogTeaserGrid";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 
@@ -17,12 +17,7 @@ export function SimilarPosts({ posts }: SimilarPostsProps) {
         <h2 className="text-cc-heading m-0 text-2xl font-semibold">
           You might also like
         </h2>
-        <Link
-          href="/blog"
-          className="text-cc-accent hover:text-cc-accent-hover flex-none text-sm font-medium no-underline"
-        >
-          View all →
-        </Link>
+        <ArrowLink href="/blog">View all</ArrowLink>
       </div>
       <BlogTeaserGrid posts={posts} />
     </section>

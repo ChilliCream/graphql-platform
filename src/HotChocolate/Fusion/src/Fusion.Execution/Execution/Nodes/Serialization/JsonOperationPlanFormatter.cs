@@ -312,6 +312,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("path");
         jsonWriter.WriteStringValue(requirement.Path.ToString());
 
+        if (requirement.InternalAlias is not null)
+        {
+            jsonWriter.WritePropertyName("internalAlias");
+            jsonWriter.WriteStringValue(requirement.InternalAlias);
+        }
+
         jsonWriter.WritePropertyName("selectionMap");
         jsonWriter.WriteStringValue(requirement.Map.ToString());
 
@@ -628,21 +634,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
             foreach (var requirement in operationDef.Requirements)
             {
-                jsonWriter.WriteStartObject();
-
-                jsonWriter.WritePropertyName("name");
-                jsonWriter.WriteStringValue(requirement.Key);
-
-                jsonWriter.WritePropertyName("type");
-                jsonWriter.WriteStringValue(requirement.Type.ToString());
-
-                jsonWriter.WritePropertyName("path");
-                jsonWriter.WriteStringValue(requirement.Path.ToString());
-
-                jsonWriter.WritePropertyName("selectionMap");
-                jsonWriter.WriteStringValue(requirement.Map.ToString());
-
-                jsonWriter.WriteEndObject();
+                WriteRequirement(jsonWriter, requirement);
             }
 
             jsonWriter.WriteEndArray();

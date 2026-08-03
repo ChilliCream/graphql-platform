@@ -18,6 +18,7 @@ public static class InventorySubgraph
             .AddGraphQLServer()
             .AddApolloFederation()
             .AddQueryType<QueryType>()
+            .AddType<InventoryProductInterfaceType>()
             .AddType<InventoryBookType>()
             .AddType<InventoryMagazineType>()
             .AddType<InventoryProductDimensionType>()

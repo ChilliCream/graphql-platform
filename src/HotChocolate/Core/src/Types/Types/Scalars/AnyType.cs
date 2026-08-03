@@ -30,7 +30,7 @@ public sealed class AnyType : ScalarType<JsonElement>
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
-import Link from "next/link";
 import { PRODUCTS } from "@/src/data/products";
+import { LinkCard } from "@/src/components/LinkCard";
 import { Typography } from "@/src/design-system/Typography";
 import { Fusion } from "@/src/icons/Fusion";
 import { HotChocolate } from "@/src/icons/HotChocolate";
@@ -37,24 +37,14 @@ export default function DocsIndex() {
           {PRODUCTS.map((product) => {
             const Icon = PRODUCT_ICONS[product.slug];
             return (
-              <li key={product.slug}>
-                <Link
-                  href={`/docs/${product.slug}`}
-                  className="border-cc-card-border bg-cc-card-bg/60 hover:border-cc-accent group flex h-full items-center gap-4 rounded-2xl border p-5 no-underline transition-colors"
-                >
-                  <span className="bg-cc-hover ring-cc-card-border flex h-14 w-14 flex-none items-center justify-center rounded-xl ring-1">
-                    {Icon ? <Icon className="h-8 w-8" /> : null}
-                  </span>
-                  <span className="flex flex-col">
-                    <span className="font-heading text-cc-heading text-lg font-semibold">
-                      {product.title}
-                    </span>
-                    <span className="text-cc-ink-dim text-sm">
-                      {product.description}
-                    </span>
-                  </span>
-                </Link>
-              </li>
+              <LinkCard
+                key={product.slug}
+                variant="icon"
+                href={`/docs/${product.slug}`}
+                title={product.title}
+                description={product.description}
+                icon={Icon ? <Icon className="h-8 w-8" /> : undefined}
+              />
             );
           })}
         </ul>

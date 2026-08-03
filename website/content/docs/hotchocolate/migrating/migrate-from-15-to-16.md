@@ -1402,6 +1402,39 @@ public class CustomFilteringConvention : FilterConvention
 
 The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
 
+## Extension type resolvers are no longer projected by default
+
+A field whose resolver is defined on a different type than the entity being projected, most commonly a resolver class annotated with `[ExtendObjectType]`, is no longer added to the queryable projection by default.
+
+In v15, the projection included the backing member of such a field even though a custom resolver produced the value, and opting out required an explicit `[IsProjected(false)]`. v16 treats a resolver defined on a separate type as a genuine custom resolver: its backing member is left out of the projection unless you opt in. Fields whose resolver member is declared on the entity's runtime type, on an interface the entity implements, or on a base type it extends are unaffected and continue to be projected.
+
+The following resolver reads a member of its parent through `[ExtendObjectType]`:
+
+```csharp
+[ExtendObjectType(typeof(Author))]
+public sealed class AuthorExtensions
+{
+    public string DisplayName([Parent] Author author) => author.Name;
+}
+```
+
+In v15, `Author.Name` was projected, so `displayName` returned the author's name. In v16, `Name` is no longer projected, so the resolver receives an `Author` whose `Name` is unset (the CLR default, `null` for a string), and `displayName` no longer returns the real name.
+
+To keep the backing member in the projection, annotate the resolver with `[BindMember]` and name the member it reads:
+
+```diff
+[ExtendObjectType(typeof(Author))]
+public sealed class AuthorExtensions
+{
++   [BindMember(nameof(Author.Name))]
+    public string DisplayName([Parent] Author author) => author.Name;
+}
+```
+
+`[IsProjected(true)]` re-enables projection as well.
+
+If the resolver does not read a member of the entity, because it calls a service, resolves a DataLoader, or returns a computed value, no member needs to be projected and no change is required.
+
 ## Transaction scope handlers removed
 
 `AddTransactionScopeHandler` and `AddDefaultTransactionScopeHandler` have been removed. The `ITransactionScopeHandler` abstraction wrapped an entire mutation operation in a single transaction and rolled back all root field results when any root field errored. This violates the GraphQL specification, which defines mutation root fields as independent: each field's result must be observable regardless of whether subsequent fields succeed or fail.
@@ -1439,6 +1472,14 @@ For a query against a nullable `Bar` column:
 
 - Previously: only rows where `Bar = false` were returned.
 - Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
+
+## Default values are validated against their type
+
+Argument and input field default values are now validated for compatibility with their type when the schema is built. Previously an incompatible default (for example an argument typed `Int` with a default of `"abc"`, or an enum default naming a value the enum does not define) built successfully and failed only when the default was actually used, or produced silently wrong behavior.
+
+Such schemas now fail at build with a schema error. This applies to defaults on object and interface field arguments, input object fields, and directive definition arguments, at any nesting depth (inside lists and input objects).
+
+If your schema fails to build after upgrading, correct the default value to a literal compatible with its type. `[ID]`-typed defaults given as strings remain valid; only genuinely incompatible literals are rejected.
 
 # Deprecations
 

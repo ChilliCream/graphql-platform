@@ -16,7 +16,8 @@ internal class FieldDirective(
     string? sourceName,
     ITypeNode? sourceType,
     SelectionSetNode? provides,
-    bool isExternal)
+    bool isExternal,
+    bool isSourceExternal)
 {
     public SchemaKey SchemaKey { get; } = schemaKey;
 
@@ -27,4 +28,6 @@ internal class FieldDirective(
     public SelectionSetNode? Provides { get; } = provides;
 
     public bool IsExternal { get; } = isExternal;
+
+    public bool IsSourceExternal { get; } = isSourceExternal;
 }

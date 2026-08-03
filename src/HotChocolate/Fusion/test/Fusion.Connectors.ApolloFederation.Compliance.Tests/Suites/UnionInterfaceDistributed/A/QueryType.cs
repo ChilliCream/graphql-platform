@@ -25,10 +25,14 @@ public sealed class QueryType : ObjectType
             {
                 var id = ctx.ArgumentValue<string>("id");
 
-                // Only Toaster implements Node in subgraph A.
+                if (SubgraphAData.OvensById.TryGetValue(id, out var oven))
+                {
+                    return oven;
+                }
+
                 if (SubgraphAData.ToastersById.TryGetValue(id, out var toaster))
                 {
-                    return (INode)toaster;
+                    return toaster;
                 }
 
                 return null;

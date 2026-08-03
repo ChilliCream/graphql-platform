@@ -136,7 +136,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 23, 1, 23, 46)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 23, 1, 23, 46)
             };
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 31, 1, 31, 46)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 31, 1, 31, 46)
             };
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 15, 1, 15, 74)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 15, 1, 15, 74)
             };
         }
 
@@ -163,7 +163,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 7, 45)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 7, 45)
             };
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 40, 1, 43, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 40, 1, 43, 2)
             };
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 32, 1, 36, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 32, 1, 36, 2)
             };
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 24, 1, 28, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 24, 1, 28, 2)
             };
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 16, 1, 20, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 16, 1, 20, 2)
             };
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 8, 1, 12, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 8, 1, 12, 2)
             };
         }
     }

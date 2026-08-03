@@ -15,22 +15,41 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SatisfiabilityValidator
+internal sealed partial class SatisfiabilityValidator
 {
     private readonly SatisfiabilityOptions _options;
+    private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
+    private readonly IReadOnlySet<string> _apolloFederationSchemaNames;
+    private readonly NodeResolution _nodeResolution;
     private readonly RequirementsValidator _requirementsValidator;
+    private readonly FusionLookupDirectiveCache _lookupCache;
+    private readonly SatisfiabilityFacts _facts;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
 
     public SatisfiabilityValidator(
         MutableSchemaDefinition schema,
         ICompositionLog log,
-        SatisfiabilityOptions? options = null)
+        SatisfiabilityOptions? options = null,
+        NodeResolution nodeResolution = NodeResolution.Gateway,
+        ApolloFederationCompatibilityOptions? apolloFederationCompatibility = null,
+        IReadOnlySet<string>? apolloFederationSchemaNames = null)
     {
         _schema = schema;
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
-        _requirementsValidator = new RequirementsValidator(schema, _options.IncludeSatisfiabilityPaths);
+        _nodeResolution = nodeResolution;
+        _apolloFederationCompatibility =
+            apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
+        _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
+        _lookupCache = new FusionLookupDirectiveCache(schema);
+        _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
+        _requirementsValidator =
+            new RequirementsValidator(
+                schema,
+                _lookupCache,
+                _facts,
+                _options.IncludeSatisfiabilityPaths);
     }
 
     public CompositionResult Validate()
@@ -61,6 +80,8 @@ internal sealed class SatisfiabilityValidator
 
             VisitObjectType(work.ObjectType, work.Path, worklist, visited);
         }
+
+        ValidateInterfaceObjectBindings();
 
         return _log.HasErrors
             ? ErrorHelper.SatisfiabilityValidationFailed()
@@ -137,21 +158,22 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // If the field is marked as partial, it must be provided by the current schema for it
-            // to be an option.
+            // A partial (@external) field is never a resolution candidate in its declaring schema;
+            // only an event stream message can make it an option. @provides never does (PR #231).
             if (field.IsPartial(schemaName)
-                && path?.Item.Provides(field, type, schemaName, _schema) != true)
+                && path?.Item.ProvidesViaEventStream(field, type, schemaName, _schema) != true)
             {
                 continue;
             }
 
+            var eventStreamMessage = field.GetFusionEventStreamMessage(schemaName);
             var pathItem = new SatisfiabilityPathItem(
                 field,
                 type,
                 schemaName)
             {
-                ProvidedSelectionSet =
-                    field.GetFusionEventStreamMessage(schemaName) ?? providedSelectionSet
+                ProvidedSelectionSet = eventStreamMessage ?? providedSelectionSet,
+                ProvidedByEventStream = eventStreamMessage is not null
             };
 
             // Validate that we are not in a cycle by checking if this path item
@@ -162,8 +184,15 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // Validate transition between source schemas.
-            if (previousSchemaName is not null && previousSchemaName != schemaName)
+            // Validate transition between source schemas. The fixpoint answers the direct-lookup
+            // route in O(1); only when it cannot confirm the transition do we fall back to the full
+            // recursion, which also covers the parent-call and one-to-one routes and builds the error.
+            // A provided selection set (event stream message or @provides) narrows the context in a
+            // way the fixpoint does not model, so we always defer to the recursion in that case.
+            if (previousSchemaName is not null
+                && previousSchemaName != schemaName
+                && (path?.Item.ProvidedSelectionSet is not null
+                    || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
                 var transitionErrors = ValidateSourceSchemaTransition(type, path, schemaName);
 
@@ -182,10 +211,14 @@ internal sealed class SatisfiabilityValidator
                 }
             }
 
-            // Validate field requirements (@require).
+            // Validate field requirements (@require). The fixpoint answers whether the requirement
+            // holds in O(1); only when it does not, or when a provided selection set narrows the
+            // context, do we re-run the recursion to build the error tree.
             var requirements = field.GetFusionRequiresRequirements(schemaName);
 
-            if (requirements is not null)
+            if (requirements is not null
+                && (path?.Item.ProvidedSelectionSet is not null
+                    || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
                 var requirementErrors =
                     _requirementsValidator.Validate(
@@ -245,6 +278,11 @@ internal sealed class SatisfiabilityValidator
         // (f.e. relatedProduct.relatedProduct.relatedProduct)
         if (optionCount == 0 && !cycle)
         {
+            if (CanReportAtRuntimeForNonResolvableInterfaceObject(type, field))
+            {
+                return;
+            }
+
             var qualifiedFieldName = $"{type.Name}.{field.Name}";
 
             if (_options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
@@ -277,6 +315,61 @@ internal sealed class SatisfiabilityValidator
         }
     }
 
+    private bool CanReportAtRuntimeForNonResolvableInterfaceObject(
+        MutableObjectTypeDefinition objectType,
+        MutableOutputFieldDefinition field)
+    {
+        if (!_apolloFederationCompatibility.AllowNonResolvableInterfaceObjects)
+        {
+            return false;
+        }
+
+        var hasSource = false;
+
+        foreach (var directive in field.Directives.AsEnumerable())
+        {
+            if (directive.Name != WellKnownDirectiveNames.FusionField
+                || directive.Arguments[WellKnownArgumentNames.Schema]
+                    is not EnumValueNode { Value: var schemaName })
+            {
+                continue;
+            }
+
+            hasSource = true;
+
+            if (!_apolloFederationSchemaNames.Contains(schemaName)
+                || objectType.ExistsInSchema(schemaName)
+                || !IsProjectedFromInterfaceObject(objectType, field.Name, schemaName))
+            {
+                return false;
+            }
+        }
+
+        return hasSource;
+    }
+
+    private static bool IsProjectedFromInterfaceObject(
+        MutableObjectTypeDefinition objectType,
+        string fieldName,
+        string schemaName)
+    {
+        foreach (var interfaceType in objectType.Implements)
+        {
+            if (!MutableSchemaDefinitionExtensions
+                    .GetInterfaceObjectSchemaNames(interfaceType)
+                    .Contains(schemaName, StringComparer.Ordinal)
+                || !interfaceType.Fields.TryGetField(fieldName, out var interfaceField)
+                || !FieldHasSource(interfaceField, schemaName))
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private void VisitNodeField(
         MutableObjectTypeDefinition queryType,
         MutableOutputFieldDefinition nodeField,
@@ -284,10 +377,15 @@ internal sealed class SatisfiabilityValidator
         PathNode? path,
         Queue<WorkItem> worklist)
     {
+        if (_nodeResolution is NodeResolution.SourceSchema)
+        {
+            VisitSourceSchemaNodeField(queryType, nodeField, nodeType, path, worklist);
+            return;
+        }
+
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
-            var byIdLookups = _schema
-                .GetPossibleFusionLookupDirectivesById(possibleType);
+            var byIdLookups = _lookupCache.GetPossibleFusionLookupDirectivesById(possibleType);
 
             var hasNodeLookup = false;
 
@@ -337,13 +435,124 @@ internal sealed class SatisfiabilityValidator
         }
     }
 
+    private void VisitSourceSchemaNodeField(
+        MutableObjectTypeDefinition queryType,
+        MutableOutputFieldDefinition nodeField,
+        IInterfaceTypeDefinition nodeType,
+        PathNode? path,
+        Queue<WorkItem> worklist)
+    {
+        var sourceNodeLookups = new List<(string SchemaName, MutableOutputFieldDefinition Field)>();
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectivesById(
+            (MutableComplexTypeDefinition)nodeType))
+        {
+            var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
+            var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
+
+            if (lookupFieldDefinition.Name.Value != WellKnownFieldNames.Node
+                || lookupFieldDefinition.Type.NamedType().Name.Value != WellKnownTypeNames.Node
+                || lookup.Arguments[WellKnownArgumentNames.Path] is not NullValueNode)
+            {
+                continue;
+            }
+
+            var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
+            var lookupField = new MutableOutputFieldDefinition(
+                lookupFieldDefinition.Name.Value,
+                CreateType(lookupFieldDefinition.Type, nodeType).ExpectOutputType());
+
+            sourceNodeLookups.Add((schemaName, lookupField));
+        }
+
+        var possibleTypes = _schema.GetPossibleTypes(nodeType).ToArray();
+
+        if (sourceNodeLookups.Count == 0)
+        {
+            ReportMissingNodeLookups(possibleTypes);
+
+            return;
+        }
+
+        var coveredTypes = new HashSet<MutableObjectTypeDefinition>();
+        var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
+        var nodePath = new PathNode(nodePathItem, path);
+
+        foreach (var (schemaName, lookupField) in sourceNodeLookups)
+        {
+            var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
+            var lookupPath = new PathNode(lookupPathItem, nodePath);
+
+            // Only validate the concrete Node implementations declared by this source. In
+            // particular, an Apollo interface-object stand-in is not Node lookup coverage.
+            foreach (var possibleType in nodeType.GetPossibleTypes(schemaName, _schema))
+            {
+                coveredTypes.Add(possibleType);
+                worklist.Enqueue(new WorkItem(possibleType, lookupPath));
+            }
+        }
+
+        if (coveredTypes.Count == 0)
+        {
+            ReportMissingNodeLookups(possibleTypes);
+            return;
+        }
+
+        foreach (var possibleType in possibleTypes)
+        {
+            if (!coveredTypes.Contains(possibleType))
+            {
+                ReportMissingNodeLookup(possibleType, LogSeverity.Warning);
+            }
+        }
+    }
+
+    private void ReportMissingNodeLookups(
+        IReadOnlyList<MutableObjectTypeDefinition> possibleTypes)
+    {
+        if (possibleTypes.Count == 0)
+        {
+            const string message =
+                "No source schema provides a non-internal 'Query.node<Node>' lookup field.";
+
+            _log.Write(
+                LogEntryBuilder.New()
+                    .SetMessage(message)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
+                    .SetSeverity(LogSeverity.Error)
+                    .Build());
+            return;
+        }
+
+        foreach (var possibleType in possibleTypes)
+        {
+            ReportMissingNodeLookup(possibleType, LogSeverity.Error);
+        }
+    }
+
+    private void ReportMissingNodeLookup(
+        MutableObjectTypeDefinition possibleType,
+        LogSeverity severity)
+    {
+        var error = new SatisfiabilityError(
+            string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
+
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(error.ToString())
+                .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
+                .SetSeverity(severity)
+                .SetExtension("error", error)
+                .Build());
+    }
+
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
         MutableObjectTypeDefinition type,
         PathNode? path,
         string transitionToSchemaName)
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
-            _schema,
+            _lookupCache,
             type,
             transitionToSchemaName,
             [.. path.EnumerateFromLeaf()],

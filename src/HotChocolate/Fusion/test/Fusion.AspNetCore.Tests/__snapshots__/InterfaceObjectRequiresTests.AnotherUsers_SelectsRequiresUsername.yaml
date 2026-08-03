@@ -1,0 +1,335 @@
+title: AnotherUsers_SelectsRequiresUsername
+request:
+  document: |
+    query testQuery {
+      anotherUsers {
+        id
+        name
+        username
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "anotherUsers": [
+          {
+            "id": "Tm9kZVdpdGhOYW1lOjE=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjE=",
+            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM="
+          },
+          {
+            "id": "Tm9kZVdpdGhOYW1lOjI=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjI=",
+            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjI="
+          },
+          {
+            "id": "Tm9kZVdpdGhOYW1lOjM=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjM=",
+            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjE="
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [NodeWithName!]!
+        nodeById(id: ID!): NodeWithName @lookup
+      }
+
+      type User implements NodeWithName @key(fields: "id") {
+        id: ID!
+        name: String!
+        age: Int!
+      }
+
+      interface NodeWithName {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_def11e8e_3($__fusion_3_id: ID!) {
+                  nodeById(id: $__fusion_3_id) {
+                    __typename
+                    name
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjE="
+                  },
+                  {
+                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjI="
+                  },
+                  {
+                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjM="
+                  }
+                ]
+            - document: |
+                query testQuery_def11e8e_4($__fusion_4_id: ID!) {
+                  nodeById(id: $__fusion_4_id) {
+                    __typename
+                    id
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjE="
+                  },
+                  {
+                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjI="
+                  },
+                  {
+                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjM="
+                  }
+                ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "id": "Tm9kZVdpdGhOYW1lOjI="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "id": "Tm9kZVdpdGhOYW1lOjM="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjM="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "id": "Tm9kZVdpdGhOYW1lOjE="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjE="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjI="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        anotherUsers: [NodeWithName!]!
+        nodeByKey(id: ID!): NodeWithName @lookup @internal
+      }
+
+      type NodeWithName @interfaceObject @key(fields: "id") {
+        id: ID!
+        name: String! @external
+        username(name: String @require(field: "name")): String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_def11e8e_1 {
+              anotherUsers {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "anotherUsers": [
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjE="
+                    },
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjI="
+                    },
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjM="
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_def11e8e_2($__fusion_1_name: String, $__fusion_2_id: ID!) {
+              nodeByKey(id: $__fusion_2_id) {
+                username(name: $__fusion_1_name)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjE=",
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE="
+              },
+              {
+                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjI=",
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjI="
+              },
+              {
+                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjM=",
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjM="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "nodeByKey": {
+                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeByKey": {
+                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjI="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeByKey": {
+                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjE="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          anotherUsers {
+            __typename @fusion__requirement
+            id
+            id @fusion__requirement
+            name
+            name @fusion__requirement
+            username
+          }
+        }
+      name: testQuery
+      hash: def11e8ef61b4f475c70501ad6f43705
+      searchSpace: 2
+      expandedNodes: 7
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_def11e8e_1 {
+          anotherUsers {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_def11e8e_2($__fusion_1_name: String, $__fusion_2_id: ID!) {
+          nodeByKey(id: $__fusion_2_id) {
+            username(name: $__fusion_1_name)
+          }
+        }
+      source: $.nodeByKey
+      target: $.anotherUsers
+      requirements:
+        - name: __fusion_1_name
+          selectionMap: >-
+            name
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 3
+      type: OperationBatch
+      schema: A
+      operation: |
+        query testQuery_def11e8e_3($__fusion_3_id: ID!) {
+          nodeById(id: $__fusion_3_id) {
+            __typename
+            name
+          }
+        }
+      source: $.nodeById
+      targets:
+        - $.anotherUsers
+        - $.anotherUsers
+      batchingGroupId: 3
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_def11e8e_4($__fusion_4_id: ID!) {
+          nodeById(id: $__fusion_4_id) {
+            __typename
+            id
+          }
+        }
+      source: $.nodeById
+      target: $.anotherUsers
+      batchingGroupId: 3
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

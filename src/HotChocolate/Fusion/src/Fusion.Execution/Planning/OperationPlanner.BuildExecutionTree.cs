@@ -587,12 +587,36 @@ public sealed partial class OperationPlanner
         var requiresFileUpload = requiresUpload
             && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
 
-        var operation = RemoveInternalDirectives(operationStep.Definition);
+        var sourceRewrite = operationStep.SchemaName is null
+            ? SourceFieldTypeMismatchRewriter.RewriteDynamic(
+                operationStep.Definition,
+                schema.GetOperationType(operationStep.Definition.Operation),
+                schema)
+            : SourceFieldTypeMismatchRewriter.Rewrite(
+                operationStep.Definition,
+                schema.GetOperationType(operationStep.Definition.Operation),
+                operationStep.SchemaName,
+                schema);
+        var operation = RemoveInternalDirectives(sourceRewrite.Operation);
         var operationSource = operation.ToSourceText();
 
         var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
-        selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
-        var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
+        var sourceAliasSelectionSets = CreateSourceAliasSelectionSetLookup(
+            selectionSetNode,
+            sourceRewrite.Aliases);
+        selectionSetNode = PruneNonValueTypeChildren(
+            selectionSetNode,
+            operationStep.Type,
+            schema,
+            operationStep.SchemaName,
+            sourceRewrite.Aliases,
+            sourceAliasSelectionSets);
+        var resultSelectionSet = ResultSelectionSet.Create(
+            selectionSetNode,
+            schema,
+            operationStep.Type,
+            operationStep.SchemaName,
+            sourceRewrite.Aliases);
 
         // Only synthetic internal key lookups resolve through _entities. Real public
         // root-field lookups, for example the composed node field, stay native even
@@ -657,8 +681,18 @@ public sealed partial class OperationPlanner
             ?? throw new InvalidOperationException("The operation step does not carry event-stream metadata.");
 
         var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
-        selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
-        var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
+        selectionSetNode = PruneNonValueTypeChildren(
+            selectionSetNode,
+            operationStep.Type,
+            schema,
+            operationStep.SchemaName,
+            sourceAliases: null,
+            sourceAliasSelectionSets: null);
+        var resultSelectionSet = ResultSelectionSet.Create(
+            selectionSetNode,
+            schema,
+            operationStep.Type,
+            operationStep.SchemaName);
 
         var node = new EventStreamExecutionNode(
             operationStep.Id,
@@ -1366,7 +1400,7 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            // For a standalone operation node, attach dependencies directly.
+            // For a standalone execution node, attach dependencies directly.
             foreach (var dependencyId in stepDependencies)
             {
                 if (!ctx.ExecutionNodes.TryGetValue(dependencyId, out var childEntry)
@@ -1858,12 +1892,12 @@ public sealed partial class OperationPlanner
     private static SelectionSetNode PruneNonValueTypeChildren(
         SelectionSetNode selectionSet,
         ITypeDefinition parentType,
-        FusionSchemaDefinition schema)
+        FusionSchemaDefinition schema,
+        string? sourceSchemaName,
+        Dictionary<FieldNode, string>? sourceAliases,
+        HashSet<SelectionSetNode>? sourceAliasSelectionSets)
     {
-        if (parentType is not IComplexTypeDefinition complexType)
-        {
-            return selectionSet;
-        }
+        var complexType = parentType as IComplexTypeDefinition;
 
         var changed = false;
         var selections = new ISelectionNode[selectionSet.Selections.Count];
@@ -1876,31 +1910,77 @@ public sealed partial class OperationPlanner
             {
                 case FieldNode field when field.SelectionSet is not null:
                 {
-                    var responseName = field.Alias?.Value ?? field.Name.Value;
-
-                    if (complexType.Fields.TryGetField(responseName, out var fieldDef))
+                    if (complexType is not null
+                        && complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
                     {
                         var fieldNamedType = fieldDef.Type.NamedType();
 
                         if (fieldNamedType is FusionComplexTypeDefinition { IsValueType: true } valueType)
                         {
-                            var pruned = PruneNonValueTypeChildren(field.SelectionSet, valueType, schema);
+                            var pruned = PruneNonValueTypeChildren(
+                                field.SelectionSet,
+                                valueType,
+                                schema,
+                                sourceSchemaName,
+                                sourceAliases,
+                                sourceAliasSelectionSets);
 
                             if (!ReferenceEquals(pruned, field.SelectionSet))
                             {
-                                selections[i] = new FieldNode(
-                                    field.Name, field.Alias, field.Directives, field.Arguments, pruned);
+                                var updated = new FieldNode(
+                                    field.Name,
+                                    field.Alias,
+                                    field.Directives,
+                                    field.Arguments,
+                                    pruned);
+                                CopySourceAlias(field, updated, sourceAliases);
+                                selections[i] = updated;
                                 changed = true;
                                 continue;
                             }
                         }
-                        else
+                        else if (!IsOpaqueInterfaceObjectStandIn(fieldNamedType, sourceSchemaName))
                         {
-                            selections[i] = new FieldNode(
+                            // A non-value complex field (an entity boundary) is normally stripped
+                            // because it is completed by a separate execution node. When its subtree
+                            // reaches an @interfaceObject stand-in, however, the path to that field
+                            // must be kept so the result selection set can carry the opacity marker;
+                            // recurse to preserve it instead of stripping the whole subtree.
+                            if (sourceAliasSelectionSets?.Contains(field.SelectionSet) == true
+                                || (fieldNamedType is FusionComplexTypeDefinition complexFieldType
+                                    && SubtreeContainsOpaqueStandIn(
+                                        field.SelectionSet,
+                                        complexFieldType,
+                                        schema,
+                                        sourceSchemaName)))
+                            {
+                                var pruned = PruneNonValueTypeChildren(
+                                    field.SelectionSet,
+                                    fieldNamedType,
+                                    schema,
+                                    sourceSchemaName,
+                                    sourceAliases,
+                                    sourceAliasSelectionSets);
+
+                                var updated = new FieldNode(
+                                    field.Name, field.Alias, field.Directives, field.Arguments, pruned);
+                                CopySourceAlias(field, updated, sourceAliases);
+                                selections[i] = updated;
+                                changed = true;
+                                continue;
+                            }
+
+                            var stripped = new FieldNode(
                                 field.Name, field.Alias, field.Directives, field.Arguments, null);
+                            CopySourceAlias(field, stripped, sourceAliases);
+                            selections[i] = stripped;
                             changed = true;
                             continue;
                         }
+
+                        // An @interfaceObject stand-in field keeps its interface-declared child
+                        // selections so the result selection set can carry the opacity marker; the
+                        // opaque value completes interface-typed against exactly those fields.
                     }
 
                     selections[i] = selection;
@@ -1917,7 +1997,13 @@ public sealed partial class OperationPlanner
                             ? resolvedType
                             : parentType;
 
-                    var pruned = PruneNonValueTypeChildren(inlineFragment.SelectionSet, fragmentType, schema);
+                    var pruned = PruneNonValueTypeChildren(
+                        inlineFragment.SelectionSet,
+                        fragmentType,
+                        schema,
+                        sourceSchemaName,
+                        sourceAliases,
+                        sourceAliasSelectionSets);
 
                     if (!ReferenceEquals(pruned, inlineFragment.SelectionSet))
                     {
@@ -1940,7 +2026,120 @@ public sealed partial class OperationPlanner
             }
         }
 
-        return changed ? new SelectionSetNode(selections) : selectionSet;
+        return changed ? selectionSet.WithSelections(selections) : selectionSet;
+    }
+
+    private static HashSet<SelectionSetNode>? CreateSourceAliasSelectionSetLookup(
+        SelectionSetNode selectionSet,
+        Dictionary<FieldNode, string>? sourceAliases)
+    {
+        if (sourceAliases is null)
+        {
+            return null;
+        }
+
+        var selectionSets = new HashSet<SelectionSetNode>(ReferenceEqualityComparer.Instance);
+        Collect(selectionSet);
+        return selectionSets;
+
+        bool Collect(SelectionSetNode current)
+        {
+            var containsAlias = false;
+
+            foreach (var selection in current.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode field:
+                        containsAlias |= sourceAliases.ContainsKey(field);
+                        if (field.SelectionSet is not null)
+                        {
+                            containsAlias |= Collect(field.SelectionSet);
+                        }
+                        break;
+
+                    case InlineFragmentNode inlineFragment:
+                        containsAlias |= Collect(inlineFragment.SelectionSet);
+                        break;
+                }
+            }
+
+            if (containsAlias)
+            {
+                selectionSets.Add(current);
+            }
+
+            return containsAlias;
+        }
+    }
+
+    private static void CopySourceAlias(
+        FieldNode source,
+        FieldNode target,
+        Dictionary<FieldNode, string>? sourceAliases)
+    {
+        if (sourceAliases is not null && sourceAliases.TryGetValue(source, out var alias))
+        {
+            sourceAliases.TryAdd(target, alias);
+        }
+    }
+
+    private static bool IsOpaqueInterfaceObjectStandIn(ITypeDefinition namedType, string? sourceSchemaName)
+        => sourceSchemaName is not null
+            && namedType is FusionInterfaceTypeDefinition interfaceType
+            && interfaceType.Sources.TryGetMember(sourceSchemaName, out var source)
+            && source.IsInterfaceObject;
+
+    // Reports whether a selection set reaches an @interfaceObject stand-in field anywhere in its
+    // subtree. Used to decide whether a non-value entity boundary must keep its child selections so
+    // the result selection set can carry the opacity marker for a nested stand-in value.
+    private static bool SubtreeContainsOpaqueStandIn(
+        SelectionSetNode selectionSet,
+        ITypeDefinition parentType,
+        FusionSchemaDefinition schema,
+        string? sourceSchemaName)
+    {
+        if (parentType is not IComplexTypeDefinition complexType)
+        {
+            return false;
+        }
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode { SelectionSet: not null } field)
+            {
+                if (complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
+                {
+                    var fieldNamedType = fieldDef.Type.NamedType();
+
+                    if (IsOpaqueInterfaceObjectStandIn(fieldNamedType, sourceSchemaName)
+                        || (fieldNamedType is FusionComplexTypeDefinition complexFieldType
+                            && SubtreeContainsOpaqueStandIn(
+                                field.SelectionSet, complexFieldType, schema, sourceSchemaName)))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (selection is InlineFragmentNode inlineFragment)
+            {
+                var fragmentType = inlineFragment.TypeCondition is not null
+                    && schema.Types.TryGetType(
+                        inlineFragment.TypeCondition.Name.Value,
+                        allowInaccessibleFields: true,
+                        out var resolvedType)
+                        ? resolvedType
+                        : parentType;
+
+                if (SubtreeContainsOpaqueStandIn(
+                        inlineFragment.SelectionSet, fragmentType, schema, sourceSchemaName))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static bool DoVariablesContainUploadScalar(

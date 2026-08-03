@@ -21,6 +21,19 @@ internal static class SatisfiabilityPathItemExtensions
             MutableSchemaDefinition schema)
             => item.TryGetProvidedSelectionSet(field, type, schemaName, schema, out _);
 
+        /// <summary>
+        /// Determines whether the path item provides the given field via an event stream message.
+        /// Unlike <see cref="Provides"/>, an <c>@provides</c> selection never counts here, because
+        /// <c>@provides</c> is an optimization that must not make a query path satisfiable.
+        /// </summary>
+        public bool ProvidesViaEventStream(
+            MutableOutputFieldDefinition field,
+            MutableObjectTypeDefinition type,
+            string schemaName,
+            MutableSchemaDefinition schema)
+            => item.ProvidedByEventStream
+                && item.TryGetProvidedSelectionSet(field, type, schemaName, schema, out _);
+
         public bool TryGetProvidedSelectionSet(
             MutableOutputFieldDefinition field,
             MutableObjectTypeDefinition type,

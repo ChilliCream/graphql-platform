@@ -1,10 +1,8 @@
-import type { ComponentType, CSSProperties } from "react";
+import type { ComponentType } from "react";
 
+import { CheckListItem } from "@/src/components/CheckListItem";
+import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
-
-import { CheckIcon } from "./CheckIcon";
-import { popularBorderStyle } from "./popularRing";
-import { PopularBadge } from "./PopularBadge";
 
 interface OfferingProps {
   readonly title: string;
@@ -46,22 +44,15 @@ export function Offering({
   // must match the number of section cells rendered.
   const rowCount = 2 + (Icon ? 1 : 0) + (description ? 1 : 0) + (price ? 1 : 0);
 
-  // The popular card gets a rainbow gradient border (the gradient paints the
-  // border-box layer, the opaque surface fill paints the padding-box layer on
-  // top), so the rainbow shows only on the edge and the interior stays solid.
-  const cardStyle: CSSProperties = popular
-    ? { gridRow: `span ${rowCount}`, ...popularBorderStyle }
-    : { gridRow: `span ${rowCount}` };
-
   return (
-    <div
-      className={`relative grid h-full grid-rows-subgrid gap-0 rounded-3xl p-6 sm:p-7 ${
-        popular ? "" : "border-cc-card-border bg-cc-card-bg/60 border"
-      }`}
-      style={cardStyle}
+    <HighlightCard
+      subgrid
+      rowCount={rowCount}
+      gap="gap-0"
+      padding="p-6 sm:p-7"
+      highlight={popular}
+      badgeLabel={popularLabel}
     >
-      {popular && <PopularBadge label={popularLabel} />}
-
       {Icon && (
         <div className="flex flex-col items-center text-center">
           <Icon className="text-cc-ink h-28 w-auto" />
@@ -93,12 +84,7 @@ export function Offering({
         <Dots />
         <ul className="flex flex-1 flex-col gap-3">
           {perks.map((perk) => (
-            <li key={perk} className="flex items-start gap-3">
-              <span className="text-cc-accent mt-1 flex-none">
-                <CheckIcon />
-              </span>
-              <span className="text-cc-ink text-sm">{perk}</span>
-            </li>
+            <CheckListItem key={perk}>{perk}</CheckListItem>
           ))}
         </ul>
 
@@ -108,7 +94,7 @@ export function Offering({
           </CallToActionButton>
         )}
       </div>
-    </div>
+    </HighlightCard>
   );
 }
 

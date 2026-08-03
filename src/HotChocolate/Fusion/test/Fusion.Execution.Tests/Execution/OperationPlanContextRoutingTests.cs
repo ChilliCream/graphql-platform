@@ -279,7 +279,8 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             key,
             new NamedTypeNode("String"),
             SelectionPath.Root,
-            new PathNode(new PathSegmentNode(new FusionNameNode(key))));
+            new PathNode(new PathSegmentNode(new FusionNameNode(key))),
+            null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);

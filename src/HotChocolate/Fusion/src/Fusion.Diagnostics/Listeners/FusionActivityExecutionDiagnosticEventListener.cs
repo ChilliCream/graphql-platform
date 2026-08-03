@@ -346,7 +346,25 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         enricher.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, span.Activity);
 
+        // The span is tracked on the request so that SubscriptionEventDelivered can
+        // mark it once the event result has been written to the client. Events of a
+        // subscription are processed strictly sequentially, so at most one event span
+        // is live per request at any time.
+        context.RequestContext.Features.Set(span);
+
         return span;
+    }
+
+    public override void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+        if (context.RequestContext.Features.TryGet<SubscriptionEventSpan>(out var span))
+        {
+            span.SetDelivered();
+        }
     }
 
     public override void SubscriptionEventError(

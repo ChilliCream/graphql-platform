@@ -2,6 +2,7 @@ import { Offering } from "@/src/components/Offering";
 import { OfferingGrid } from "@/src/components/OfferingGrid";
 import type { Tier } from "@/src/components/pricing/pricingData";
 import { TIERS } from "@/src/components/pricing/pricingData";
+import { Card } from "@/src/design-system/Card";
 import { OutlineButton } from "@/src/design-system/Button";
 
 const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
@@ -39,7 +40,10 @@ export function PlanSelector() {
 
 function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
   return (
-    <div className="border-cc-card-border bg-cc-card-bg/60 mt-6 flex flex-col gap-5 rounded-3xl border p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+    <Card
+      variant="panel"
+      className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div>
         <h3 className="font-heading text-cc-heading text-h6 font-semibold">
           {tier.name}
@@ -52,6 +56,6 @@ function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
       <OutlineButton href={tier.ctaHref} className="shrink-0 sm:w-auto">
         {tier.cta}
       </OutlineButton>
-    </div>
+    </Card>
   );
 }

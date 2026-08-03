@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
@@ -46,15 +47,17 @@ export function TeamSection() {
         description="ChilliCream advisory is not a generalist consultancy that learned GraphQL last quarter. The engineers on the call are the ones who write the framework you depend on."
       />
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {CREDENTIALS.map((column) => (
-          <PerkCard
-            key={column.title}
-            title={column.title}
-            intro={column.body}
-            items={column.bullets}
-          />
-        ))}
+      <div className="mt-10">
+        <CardGrid cols={3} gap={6}>
+          {CREDENTIALS.map((column) => (
+            <PerkCard
+              key={column.title}
+              title={column.title}
+              intro={column.body}
+              items={column.bullets}
+            />
+          ))}
+        </CardGrid>
       </div>
     </section>
   );

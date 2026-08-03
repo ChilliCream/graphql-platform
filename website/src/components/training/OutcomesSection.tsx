@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { BranchIcon } from "@/src/icons/BranchIcon";
@@ -55,7 +56,7 @@ export function OutcomesSection() {
           description="No certificate-printer outcomes. These are the things we expect every team to walk away able to do, regardless of where they started."
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <CardGrid cols={3} step="progressive" gap={4}>
         {OUTCOMES.map((outcome) => (
           <IconFeatureCard
             key={outcome.title}
@@ -64,7 +65,7 @@ export function OutcomesSection() {
             copy={outcome.copy}
           />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

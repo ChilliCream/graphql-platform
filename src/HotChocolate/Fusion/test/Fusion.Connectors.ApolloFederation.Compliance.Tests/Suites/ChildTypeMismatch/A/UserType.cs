@@ -12,6 +12,6 @@ public sealed class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
     {
-        descriptor.Field(u => u.Id).Shareable().Type<NonNullType<IdType>>();
+        descriptor.Field(u => u.Id).Shareable().Type<IdType>();
     }
 }

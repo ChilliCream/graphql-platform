@@ -21,6 +21,7 @@ public sealed class Selection : ISelection
     private readonly DeliveryGroup[] _deliveryGroups;
     private readonly ITypeDefinition _namedType;
     private Flags _flags;
+    private SelectionSet? _childSelectionSet;
 
     public Selection(
         int id,
@@ -124,8 +125,32 @@ public sealed class Selection : ISelection
     /// The child selection set, or <c>null</c> when this selection has no child
     /// selection set.
     /// </returns>
-    public SelectionSet? GetSelectionSet(IObjectTypeDefinition typeContext)
-        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+    public SelectionSet? GetSelectionSet(IComplexTypeDefinition typeContext)
+    {
+        if ((_flags & Flags.Leaf) == Flags.Leaf)
+        {
+            return null;
+        }
+
+        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
+        // When it is set, we can return it right away because that child selection set is plan-stable.
+        // A concurrent recompute produces the same instance, so no synchronization is needed.
+        var childSelectionSet = _childSelectionSet;
+
+        if (childSelectionSet is not null)
+        {
+            return childSelectionSet;
+        }
+
+        if (_namedType is IObjectTypeDefinition)
+        {
+            childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+            _childSelectionSet = childSelectionSet;
+            return childSelectionSet;
+        }
+
+        return DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+    }
 
     /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
@@ -212,6 +237,11 @@ public sealed class Selection : ISelection
     }
 
     public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
+
+    /// <summary>
+    /// Gets a value indicating whether this selection can be deferred for some request.
+    /// </summary>
+    internal bool CanBeDeferred => _deferMask != 0;
 
     /// <summary>
     /// Returns the active delivery groups for this selection after resolving

@@ -1,4 +1,5 @@
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Suites.RequiresWithFragments.B;
@@ -15,7 +16,7 @@ public sealed class EntityType : ObjectType<Entity>
     {
         descriptor
             .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .ResolveReferenceWith(_ => ResolveById(default!, default));
 
         descriptor.Field(e => e.Id).Type<NonNullType<IdType>>();
         descriptor.Field(e => e.Data).External().Type<FooInterfaceType>();
@@ -34,7 +35,7 @@ public sealed class EntityType : ObjectType<Entity>
                 var entity = ctx.Parent<Entity>();
                 if (entity.Data is not { Foo: { Length: > 0 } foo })
                 {
-                    return "no_data_requirer";
+                    throw new InvalidOperationException("Expected entity to have a data field.");
                 }
 
                 return foo + "_requirer";
@@ -51,20 +52,24 @@ public sealed class EntityType : ObjectType<Entity>
                 var entity = ctx.Parent<Entity>();
                 if (entity.Data is not { Foo: { Length: > 0 } foo })
                 {
-                    return "no_data_requirer2";
+                    throw new InvalidOperationException("Expected entity to have a data field.");
                 }
 
                 return foo + "_requirer2";
             });
     }
 
-    private static Entity? ResolveById(string id)
+    private static Entity? ResolveById(string id, [Map("data.foo")] string? foo)
     {
         if (!BData.EntitiesById.TryGetValue(id, out var record))
         {
             return null;
         }
 
-        return new Entity { Id = record.Id };
+        return new Entity
+        {
+            Id = record.Id,
+            Data = foo is null ? null : new RequiredFoo(foo)
+        };
     }
 }

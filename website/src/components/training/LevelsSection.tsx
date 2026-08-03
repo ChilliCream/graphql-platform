@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { MixIcon } from "@/src/icons/MixIcon";
@@ -70,7 +71,7 @@ export function LevelsSection() {
           description="The curriculum is the same set of building blocks. The order, the depth, and the exercises change for the room."
         />
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <CardGrid cols={3} gap={4}>
         {LEVELS.map((level) => (
           <PerkCard
             key={level.title}
@@ -84,7 +85,7 @@ export function LevelsSection() {
             accent={level.accent}
           />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

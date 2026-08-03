@@ -25,7 +25,8 @@ internal sealed class FusionSchemaMutableEnumTypeDefinition : MutableEnumTypeDef
                 {
                     new Directive(
                         new FusionSchemaMetadataMutableDirectiveDefinition(
-                            BuiltIns.String.Create()),
+                            BuiltIns.String.Create(),
+                            BuiltIns.Boolean.Create()),
                         new ArgumentAssignment(WellKnownArgumentNames.Name, schemaName))
                 }
             };

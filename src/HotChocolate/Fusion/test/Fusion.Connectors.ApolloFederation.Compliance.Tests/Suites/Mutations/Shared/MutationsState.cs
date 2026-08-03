@@ -14,7 +14,6 @@ public sealed class MutationsState
     private readonly List<Category> _categories = [];
     private readonly ConcurrentDictionary<string, int> _numbers = new(StringComparer.Ordinal);
     private readonly object _lock = new();
-    private bool _initialized;
 
     /// <summary>
     /// Returns a snapshot of the current product list.
@@ -39,19 +38,18 @@ public sealed class MutationsState
     }
 
     /// <summary>
-    /// Seeds the initial product (id <c>p1</c>) once per state instance.
+    /// Restores the initial product (id <c>p1</c>) when it is absent.
     /// </summary>
     public void InitProducts()
     {
         lock (_lock)
         {
-            if (_initialized)
+            if (_products.Any(p => string.Equals(p.Id, "p1", StringComparison.Ordinal)))
             {
                 return;
             }
 
             _products.Add(new Product("p1", "p1-name", 9.99));
-            _initialized = true;
         }
     }
 

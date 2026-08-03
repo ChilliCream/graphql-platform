@@ -2,7 +2,8 @@ namespace HotChocolate;
 
 /// <summary>
 /// Denotes a deprecated field on a GraphQL type, a deprecated value on a
-/// GraphQL enum, or a deprecated GraphQL directive definition.
+/// GraphQL enum, a deprecated GraphQL directive definition, or a deprecated
+/// GraphQL object type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class // Required for directive definitions
     | AttributeTargets.Field // Required for enum values

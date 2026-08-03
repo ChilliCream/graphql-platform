@@ -40,6 +40,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionDirectiveCollection directives,
         FusionTypeDefinitionCollection types,
         FusionDirectiveDefinitionCollection directiveDefinitions,
+        NodeResolution nodeResolution,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
         IFeatureCollection features,
         ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
@@ -52,6 +54,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         Directives = directives;
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
+        NodeResolution = nodeResolution;
+        ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
         _features = features;
         _sourceSchemaLookup = sourceSchemaLookup;
     }
@@ -135,6 +139,16 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// </summary>
     public FusionDirectiveDefinitionCollection DirectiveDefinitions { get; }
 
+    /// <summary>
+    /// Gets how the gateway resolves the <c>Query.node</c> field.
+    /// </summary>
+    public NodeResolution NodeResolution { get; }
+
+    /// <summary>
+    /// Gets how runtime types are routed for shareable fields whose result type is abstract.
+    /// </summary>
+    public ShareableFieldRuntimeTypeRouting ShareableFieldRuntimeTypeRouting { get; }
+
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
@@ -164,6 +178,204 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets whether the specified source schema allows non-resolvable Apollo Federation
+    /// <c>@interfaceObject</c> stand-ins to be handled as field errors at runtime.
+    /// </summary>
+    public bool AllowsNonResolvableInterfaceObjects(string sourceSchemaName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+
+        foreach (var info in _sourceSchemaLookup.Values)
+        {
+            if (string.Equals(info.Name, sourceSchemaName, StringComparison.Ordinal))
+            {
+                return info.AllowNonResolvableInterfaceObjects;
+            }
+        }
+
+        return false;
+    }
+
+    internal bool IsAllowedNonResolvableInterfaceObjectSelection(
+        FusionComplexTypeDefinition type,
+        SelectionSetNode selectionSet)
+    {
+        var hasSelection = false;
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field when field.Name.Value == IntrospectionFieldNames.TypeName:
+                    hasSelection = true;
+
+                    if (!IsBackedOnlyByCompatibleInterfaceObject(type))
+                    {
+                        return false;
+                    }
+                    break;
+
+                case FieldNode field:
+                    hasSelection = true;
+
+                    if (!type.Fields.TryGetField(
+                            field.Name.Value,
+                            allowInaccessibleFields: true,
+                            out var fieldDefinition)
+                        || !IsCompatibleProjectedField(type, fieldDefinition))
+                    {
+                        return false;
+                    }
+                    break;
+
+                case InlineFragmentNode fragment:
+                    var fragmentType = type;
+
+                    if (fragment.TypeCondition is { } typeCondition)
+                    {
+                        if (!Types.TryGetType(
+                                typeCondition.Name.Value,
+                                allowInaccessibleFields: true,
+                                out var conditionType)
+                            || conditionType is not FusionComplexTypeDefinition complexConditionType)
+                        {
+                            return false;
+                        }
+
+                        fragmentType = complexConditionType;
+                    }
+
+                    if (!IsAllowedNonResolvableInterfaceObjectSelection(
+                            fragmentType,
+                            fragment.SelectionSet))
+                    {
+                        return false;
+                    }
+
+                    hasSelection = true;
+                    break;
+            }
+        }
+
+        return hasSelection;
+    }
+
+    private bool IsCompatibleProjectedField(
+        FusionComplexTypeDefinition type,
+        FusionOutputFieldDefinition field)
+    {
+        if (field.Sources.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var source in field.Sources)
+        {
+            if (!IsCompatibleInterfaceObjectSource(type, field.Name, source.SchemaName))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool IsBackedOnlyByCompatibleInterfaceObject(FusionComplexTypeDefinition type)
+    {
+        var found = false;
+
+        foreach (var sourceSchemaName in GetCompatibleInterfaceObjectSchemaNames(type))
+        {
+            found = true;
+        }
+
+        return found;
+    }
+
+    private bool IsCompatibleInterfaceObjectSource(
+        FusionComplexTypeDefinition type,
+        string fieldName,
+        string sourceSchemaName)
+    {
+        if (!AllowsNonResolvableInterfaceObjects(sourceSchemaName)
+            || GetSourceSchemaConnectorKind(sourceSchemaName)
+                != ConnectorKindNames.ApolloFederation)
+        {
+            return false;
+        }
+
+        if (type is FusionInterfaceTypeDefinition interfaceType)
+        {
+            return interfaceType.Sources.TryGetMember(sourceSchemaName, out var interfaceSource)
+                && interfaceSource.IsInterfaceObject
+                && interfaceType.Fields.TryGetField(
+                    fieldName,
+                    allowInaccessibleFields: true,
+                    out var interfaceField)
+                && interfaceField.Sources.ContainsSchema(sourceSchemaName);
+        }
+
+        if (type is not FusionObjectTypeDefinition objectType
+            || objectType.Sources.ContainsSchema(sourceSchemaName))
+        {
+            return false;
+        }
+
+        foreach (var implementedInterface in objectType.Implements)
+        {
+            if (implementedInterface.Sources.TryGetMember(
+                    sourceSchemaName,
+                    out var interfaceSource)
+                && interfaceSource.IsInterfaceObject
+                && implementedInterface.Fields.TryGetField(
+                    fieldName,
+                    allowInaccessibleFields: true,
+                    out var interfaceField)
+                && interfaceField.Sources.ContainsSchema(sourceSchemaName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private IEnumerable<string> GetCompatibleInterfaceObjectSchemaNames(
+        FusionComplexTypeDefinition type)
+    {
+        if (type is FusionInterfaceTypeDefinition interfaceType)
+        {
+            foreach (var source in interfaceType.Sources)
+            {
+                if (source.IsInterfaceObject
+                    && AllowsNonResolvableInterfaceObjects(source.SchemaName)
+                    && GetSourceSchemaConnectorKind(source.SchemaName)
+                        == ConnectorKindNames.ApolloFederation)
+                {
+                    yield return source.SchemaName;
+                }
+            }
+
+            yield break;
+        }
+
+        foreach (var implementedInterface in type.Implements)
+        {
+            foreach (var source in implementedInterface.Sources)
+            {
+                if (source.IsInterfaceObject
+                    && !type.Sources.ContainsSchema(source.SchemaName)
+                    && AllowsNonResolvableInterfaceObjects(source.SchemaName)
+                    && GetSourceSchemaConnectorKind(source.SchemaName)
+                        == ConnectorKindNames.ApolloFederation)
+                {
+                    yield return source.SchemaName;
+                }
+            }
+        }
     }
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
@@ -423,6 +635,31 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
                         {
                             lookups.AddRange(unionSource.Lookups);
                         }
+                    }
+                }
+            }
+
+            if (objectType is not null)
+            {
+                // A concrete type has no source of its own in an @interfaceObject stand-in schema,
+                // yet the stand-in's covering interface lookup resolves every possible type of the
+                // interface by key. Offer those interface lookups so a field the stand-in owns stays
+                // reachable under a concrete type condition, where the normal per-source loop above
+                // never sees the stand-in schema. Gated on the stand-in fact and on the type being
+                // absent from that schema, so a schema without @interfaceObject is unaffected.
+                foreach (var interfaceType in complexType.Implements)
+                {
+                    foreach (var interfaceSource in interfaceType.Sources)
+                    {
+                        if (!interfaceSource.IsInterfaceObject
+                            || (schemaName is not null
+                                && !interfaceSource.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+                            || complexType.Sources.TryGetMember(interfaceSource.SchemaName, out _))
+                        {
+                            continue;
+                        }
+
+                        lookups.AddRange(interfaceSource.Lookups);
                     }
                 }
             }

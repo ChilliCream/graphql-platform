@@ -5,6 +5,7 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <LangVersion>preview</LangVersion>
     <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

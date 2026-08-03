@@ -1,13 +1,17 @@
+import type { ReactNode } from "react";
+
 export function PageHero({
   eyebrow,
   title,
   subtitle,
   teaser,
+  children,
 }: {
   eyebrow?: string;
-  title: string;
+  title: ReactNode;
   subtitle?: string;
-  teaser?: string;
+  teaser?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <section className="py-16 text-center sm:py-24">
@@ -29,6 +33,7 @@ export function PageHero({
           {teaser}
         </p>
       )}
+      {children}
     </section>
   );
 }

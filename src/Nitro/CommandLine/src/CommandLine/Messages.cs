@@ -24,6 +24,25 @@ internal static class Messages
 
     public static string SchemaSettingsFileDoesNotExist(string path) => $"Schema settings file '{path}' does not exist.";
 
+    public static string SourceSchemaSettingsNameInvalid(string path)
+        => $"Source schema settings file '{path}' must specify a non-empty string 'name'.";
+
+    public static string SourceSchemaUrlInvalid()
+        => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
+
+    public static string SourceSchemaUrlSettingsCountMismatch()
+        => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
+            + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";
+
+    public static string SourceSchemaTransportFailed(string sourceSchemaName)
+        => $"Failed to connect to source schema '{sourceSchemaName}' while downloading its schema.";
+
+    public static string DuplicateSourceSchemaName(string sourceSchemaName)
+        => $"Source schema '{sourceSchemaName}' was specified more than once.";
+
+    public static string WatchedSourceSchemaNameChanged()
+        => "A source schema settings 'name' cannot change during watch mode.";
+
     public static string SchemaExtensionsFileCannotBeUsedAsSchemaFile(string path)
         => $"Schema extensions file '{path}' cannot be used as a source schema file. Provide the base schema file instead.";
 
@@ -36,6 +55,11 @@ internal static class Messages
 
     public static string FailedToOpenLegacyArchive(string filePath, string detail)
         => $"Failed to open legacy v1 archive '{filePath}': {detail}";
+
+    public static string FailedToDownloadCompositionSettings(string stageName, string? detail = null)
+        => detail is null
+            ? $"Failed to download the composition settings from stage '{stageName}'."
+            : $"Failed to download the composition settings from stage '{stageName}': {detail}";
 
     public static string LegacyArchiveRequiredForFgpStage(string stageName)
         => $"Stage '{stageName.EscapeMarkup()}' currently has a Fusion v1 archive but no '{OptionalLegacyFusionArchiveFileOption.OptionName}' was provided. "
@@ -77,6 +101,9 @@ internal static class Messages
 
     public const string RequestApproved =
         "Your request has been approved.";
+
+    public const string SelfHostLatestVersionReminder =
+        "If you are targeting a self-hosted instance, make sure it's running the latest version.";
 
     public static string QueuedAtPosition(int position)
         => $"Your request is queued at position {position}.";

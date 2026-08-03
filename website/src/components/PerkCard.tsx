@@ -1,9 +1,9 @@
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 
-import { CheckIcon } from "@/src/components/CheckIcon";
-import { PopularBadge } from "@/src/components/PopularBadge";
-import { popularBorderStyle } from "@/src/components/popularRing";
+import { CheckListItem } from "@/src/components/CheckListItem";
+import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 type PerkAccent = "accent" | "violet" | "coral";
 
@@ -66,19 +66,17 @@ export function PerkCard({
   // One subgrid row per section cell below; the count must match the number of
   // in-flow children (the absolutely-positioned badge does not take a row).
   const rowCount = 2 + (tag ? 1 : 0) + (intro ? 1 : 0);
-  const cardStyle: CSSProperties = highlight
-    ? { gridRow: `span ${rowCount}`, ...popularBorderStyle }
-    : { gridRow: `span ${rowCount}` };
 
   return (
-    <article
-      className={`relative grid h-full grid-rows-subgrid gap-5 rounded-3xl p-6 sm:p-7 ${
-        highlight ? "" : "border-cc-card-border bg-cc-card-bg/60 border"
-      }`}
-      style={cardStyle}
+    <HighlightCard
+      as="article"
+      subgrid
+      rowCount={rowCount}
+      gap="gap-5"
+      padding="p-6 sm:p-7"
+      highlight={highlight}
+      badgeLabel={highlightLabel}
     >
-      {highlight && <PopularBadge label={highlightLabel} />}
-
       {tag && (
         <span
           className={`font-mono text-xs font-semibold tracking-[0.2em] ${accentText}`}
@@ -108,19 +106,12 @@ export function PerkCard({
       {intro && <p className="text-cc-ink text-sm leading-relaxed">{intro}</p>}
 
       <div className="flex h-full flex-col gap-5">
-        {listLabel && (
-          <p className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-            {listLabel}
-          </p>
-        )}
+        {listLabel && <Eyebrow size="2xs">{listLabel}</Eyebrow>}
         <ul className="flex flex-1 flex-col gap-2">
           {items.map((item) => (
-            <li key={item} className="flex items-start gap-3">
-              <span className={`mt-1 flex-none ${accentText}`}>
-                <CheckIcon />
-              </span>
-              <span className="text-cc-ink text-sm">{item}</span>
-            </li>
+            <CheckListItem key={item} iconClassName={accentText}>
+              {item}
+            </CheckListItem>
           ))}
         </ul>
 
@@ -130,6 +121,6 @@ export function PerkCard({
           </CtaButton>
         )}
       </div>
-    </article>
+    </HighlightCard>
   );
 }

@@ -80,6 +80,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableDirectiveIntrospection"/>
     public bool EnableDirectiveIntrospection { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableObjectDeprecation"/>
+    public bool EnableObjectDeprecation { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultDirectiveVisibility"/>
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
@@ -215,6 +218,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             FieldMiddleware = options.FieldMiddleware,
             DefaultBindingBehavior = options.DefaultBindingBehavior,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
+            EnableObjectDeprecation = options.EnableObjectDeprecation,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
             DisableInternalDirectives = options.DisableInternalDirectives,
             DefaultResolverStrategy = options.DefaultResolverStrategy,

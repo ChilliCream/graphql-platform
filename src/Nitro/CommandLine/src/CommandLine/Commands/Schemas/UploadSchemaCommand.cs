@@ -85,7 +85,7 @@ internal sealed class UploadSchemaCommand : Command
                         IInvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IApiNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

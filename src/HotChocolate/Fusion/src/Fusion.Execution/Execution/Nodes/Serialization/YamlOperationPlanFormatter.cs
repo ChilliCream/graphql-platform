@@ -250,6 +250,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
 
+                if (requirement.InternalAlias is not null)
+                {
+                    writer.WriteLine("internalAlias: {0}", requirement.InternalAlias);
+                }
+
                 writer.WriteLine("selectionMap: >-");
                 writer.Indent();
                 var selectionMapReader = new StringReader(requirement.Map.ToString(indented: true));
@@ -634,6 +639,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             {
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
+
+                if (requirement.InternalAlias is not null)
+                {
+                    writer.WriteLine("internalAlias: {0}", requirement.InternalAlias);
+                }
 
                 writer.WriteLine("selectionMap: >-");
                 writer.Indent();

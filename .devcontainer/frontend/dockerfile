@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y bubblewrap \
 # Install Playwright's OS dependencies for Chromium (version-independent apt packages).
 # The browser binary itself is downloaded in postCreateCommand so it matches the
 # Playwright version resolved from yarn.lock.
-RUN npx -y playwright install-deps chromium \
+RUN apt-get update && npx -y playwright install-deps chromium \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub Copilot CLI and Codex CLI

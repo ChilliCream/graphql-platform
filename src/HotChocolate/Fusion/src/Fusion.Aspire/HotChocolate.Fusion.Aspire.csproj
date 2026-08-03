@@ -5,17 +5,61 @@
     <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
     <TargetFrameworks>net11.0; net10.0; net9.0</TargetFrameworks>
     <IsAotCompatible>false</IsAotCompatible>
+    <NoWarn>$(NoWarn);ASPIREINTERACTION001</NoWarn>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>$(DefineConstants);NITRO_PERSISTED_OPERATIONS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" />
     <PackageReference Include="MessagePack" />
-    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <!-- Aspire.Hosting 13.4.x requires Microsoft.Extensions.Logging >= 10.0.8, above the net9.0 central pin. -->
+    <PackageReference Include="Microsoft.Extensions.Logging" VersionOverride="10.0.8" Condition="'$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Condition="'$(TargetFramework)' != 'net9.0'" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' != 'Release'">
+    <None Remove="Nitro\Operations\ResolveNitroApiName.graphql" />
+    <None Remove="Nitro\Operations\ValidateNitroSchema.graphql" />
+    <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql" />
+    <None Remove="Nitro\Operations\GetNitroStageVersion.graphql" />
+    <None Remove="Nitro\Operations\WatchNitroStage.graphql" />
+    <None Remove="Nitro\Operations\GetNitroCompositionSettings.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\GetNitroStageVersion.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\WatchNitroStage.graphql" />
+    <EmbeddedResource Include="Nitro\Operations\GetNitroCompositionSettings.graphql" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <None Remove="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
+    <None Remove="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
+    <None Remove="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
+    <None Remove="Nitro\Operations\GetNitroStageVersion.graphql.sha256" />
+    <None Remove="Nitro\Operations\WatchNitroStage.graphql.sha256" />
+    <None Remove="Nitro\Operations\GetNitroCompositionSettings.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\ResolveNitroApiName.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\ValidateNitroSchema.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\PollNitroSchemaValidation.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\GetNitroStageVersion.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\WatchNitroStage.graphql.sha256" />
+    <EmbeddedResource Include="Nitro\Operations\GetNitroCompositionSettings.graphql.sha256" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,6 +18,16 @@ internal static class ThrowHelper
     }
 
     [DoesNotReturn]
+    public static void ThrowArgumentException_ValueTooLarge(int length)
+    {
+        throw new ArgumentException(
+            string.Format(
+                "The JSON value of length {0} is too large and not supported.",
+                length),
+            "value");
+    }
+
+    [DoesNotReturn]
     public static void ThrowInvalidOperationException_ReadInvalidUTF16(int charAsInt)
     {
         throw new InvalidOperationException(string.Format(

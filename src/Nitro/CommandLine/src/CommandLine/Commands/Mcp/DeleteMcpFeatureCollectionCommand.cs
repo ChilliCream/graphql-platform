@@ -88,7 +88,8 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IMcpFeatureCollectionNotFoundError err => err.Message,
+                        IMcpFeatureCollectionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()

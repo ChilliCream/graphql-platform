@@ -1,0 +1,150 @@
+operation:
+  - document: |
+      {
+        products {
+          __typename @fusion__requirement
+          id
+          id @fusion__requirement
+          reviews {
+            product {
+              __typename @fusion__requirement
+              sku
+              id @fusion__requirement
+              ... on Magazine {
+                title
+                id @fusion__requirement
+              }
+              ... on Book {
+                reviewsCount
+              }
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          __typename
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        magazineById(id: $__fusion_1_id) {
+          reviews {
+            product {
+              __typename
+              reviewsCount
+              id
+            }
+          }
+        }
+      }
+    source: $.magazineById
+    target: $.products<Magazine>
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_6($__fusion_5_id: ID!) {
+        bookById(id: $__fusion_5_id) {
+          reviews {
+            product {
+              __typename
+              reviewsCount
+              id
+            }
+          }
+        }
+      }
+    source: $.bookById
+    target: $.products<Book>
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: OperationBatch
+    schema: products
+    operation: |
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
+        magazineById(id: $__fusion_2_id) {
+          sku
+          ... on Magazine {
+            id
+          }
+        }
+      }
+    source: $.magazineById
+    targets:
+      - $.products<Magazine>.reviews.product<Magazine>
+      - $.products<Book>.reviews.product<Magazine>
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+      - id: 6
+  - id: 5
+    type: OperationBatch
+    schema: products
+    operation: |
+      query Op_123456789101112_5($__fusion_4_id: ID!) {
+        bookById(id: $__fusion_4_id) {
+          sku
+        }
+      }
+    source: $.bookById
+    targets:
+      - $.products<Magazine>.reviews.product<Book>
+      - $.products<Book>.reviews.product<Book>
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+      - id: 6
+  - id: 4
+    type: OperationBatch
+    schema: magazines
+    operation: |
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
+        magazineById(id: $__fusion_3_id) {
+          title
+        }
+      }
+    source: $.magazineById
+    targets:
+      - $.products<Magazine>.reviews.product<Magazine><Magazine>
+      - $.products<Book>.reviews.product<Magazine><Magazine>
+    batchingGroupId: 4
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3

@@ -85,8 +85,9 @@
   --color-cc-youtube: #ff0000;
   --color-cc-youtube-hover: #cc0000;
 
-  /* Docs sidebar: cool-slate nav text. */
+  /* Docs sidebar: cool-slate nav text + a dimmer muted section-label tone. */
   --color-cc-nav-text: #cad5e2;
+  --color-cc-nav-label: #62748e;
 }
 
 @layer base {
@@ -479,6 +480,7 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-accent: #0e7490;
     --color-cc-accent-hover: #0e7490;
     --color-cc-nav-text: #1f2937;
+    --color-cc-nav-label: #4b5563;
     --cc-dark-surface: none;
   }
 
@@ -526,4 +528,34 @@ svg[role="graphics-document"][id^="mermaid-"] {
   [data-docs-layout] .fixed {
     display: none !important;
   }
+}
+
+@keyframes logo-in {
+  from {
+    opacity: 0;
+    transform: translateY(50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logo-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50%);
+  }
+}
+
+.animate-logo-in {
+  animation: logo-in 900ms cubic-bezier(1, 0, 0, 1) both;
+}
+
+.animate-logo-out {
+  animation: logo-out 900ms cubic-bezier(1, 0, 0, 1) both;
 }

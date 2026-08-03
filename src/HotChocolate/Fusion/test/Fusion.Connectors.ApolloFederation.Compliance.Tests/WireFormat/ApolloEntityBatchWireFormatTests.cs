@@ -30,6 +30,7 @@ public sealed class ApolloEntityBatchWireFormatTests
         """;
 
     [Fact]
+    [Trait("Category", "WireFormat")]
     public async Task ApolloEntityBatch_Should_SendOneOperationBatch_When_CapabilitiesUndeclared()
     {
         // arrange
@@ -49,6 +50,7 @@ public sealed class ApolloEntityBatchWireFormatTests
     }
 
     [Fact]
+    [Trait("Category", "WireFormat")]
     public async Task ApolloEntityBatch_Should_SendSequentialSingleRequests_When_OperatorDeclaresRequestBatchingFalse()
     {
         // arrange

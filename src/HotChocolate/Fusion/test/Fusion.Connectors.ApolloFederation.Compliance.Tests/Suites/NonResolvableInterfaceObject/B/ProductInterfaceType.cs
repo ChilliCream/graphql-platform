@@ -3,14 +3,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
 
-public sealed class ProductInterfaceType : InterfaceType
+public sealed class ProductInterfaceType : InterfaceType<IProduct>
 {
-    protected override void Configure(IInterfaceTypeDescriptor descriptor)
+    protected override void Configure(IInterfaceTypeDescriptor<IProduct> descriptor)
     {
         descriptor.Name("Product");
 
-        descriptor.Key("id");
+        descriptor
+            .Key("id")
+            .ResolveReferenceWith(_ => ResolveById(default!));
 
-        descriptor.Field("id").Type<NonNullType<IdType>>();
+        descriptor.Field(p => p.Id).Type<NonNullType<IdType>>();
     }
+
+    private static IProduct? ResolveById(string id)
+        => BData.ProductsById.TryGetValue(id, out var bread) ? bread : null;
 }

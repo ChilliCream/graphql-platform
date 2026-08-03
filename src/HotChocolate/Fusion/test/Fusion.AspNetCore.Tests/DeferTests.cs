@@ -537,6 +537,202 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_NotEmitDescendantData_When_InaccessibleRuntimeTypeNullsPendingAncestor()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                entity: Entity
+            }
+
+            type Entity {
+                id: ID!
+                wrapper: Wrapper
+            }
+
+            type Wrapper {
+                visible: String
+                value: Foo! @returns(types: ["Baz"])
+            }
+
+            interface Foo {
+                name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+                name: String
+            }
+
+            type Qux implements Foo {
+                name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                entity {
+                    id
+                    wrapper {
+                        visible
+                        ... @defer(label: "hidden") {
+                            value {
+                                __typename
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+        rawBody.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Defer_Should_EmitSingleNullPatch_When_InaccessibleRuntimeTypeNullsPendingList()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                entities: [Entity!]
+            }
+
+            type Entity {
+                id: ID!
+                value: Foo! @returns(types: ["Baz"])
+            }
+
+            interface Foo {
+                name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+                name: String
+            }
+
+            type Qux implements Foo {
+                name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                entities {
+                    id
+                    ... @defer(label: "hidden") {
+                        value {
+                            __typename
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+        rawBody.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Defer_Should_SuppressDescendantPatch_When_NullMarkerBubblesAbovePendingPath()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                deep: Deep
+            }
+
+            type Deep {
+                parent: Parent
+            }
+
+            type Parent {
+                visible: String
+                child: Child!
+            }
+
+            type Child {
+                visible: String
+                value: Foo! @returns(types: ["Baz"])
+            }
+
+            interface Foo {
+                name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+                name: String
+            }
+
+            type Qux implements Foo {
+                name: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                deep {
+                    parent {
+                        visible
+                        child {
+                            visible
+                            ... @defer(label: "hidden") {
+                                value {
+                                    __typename
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+        rawBody.MatchSnapshot();
+    }
+
     [Fact(Skip = "Requires validation of @skip/@include interaction with @defer at the planning level")]
     public async Task Defer_With_Skip_Directive_Should_Skip_Deferred_Fragment()
     {

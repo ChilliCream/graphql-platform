@@ -314,6 +314,8 @@ public static class SchemaFormatter
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
 
+            directives = ApplyDeprecatedDirective(type, directives);
+
             VisitOutputFields(type.Fields, context);
             var fields = (List<FieldDefinitionNode>)context.Result!;
 
@@ -396,7 +398,7 @@ public static class SchemaFormatter
                         DirectiveNames.SpecifiedBy.Name,
                         new ArgumentNode(
                             DirectiveNames.SpecifiedBy.Arguments.Url,
-                            new StringValueNode(type.SpecifiedBy.ToString()))));
+                            new StringValueNode(type.SpecifiedBy))));
             }
 
             context.Result = IsTypeExtension(type)

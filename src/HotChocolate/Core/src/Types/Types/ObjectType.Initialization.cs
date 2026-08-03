@@ -61,6 +61,9 @@ public partial class ObjectType
     {
         base.OnCompleteType(context, configuration);
 
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
+
         if (ValidateFields(context, configuration))
         {
             _isOfType = configuration.IsOfType;

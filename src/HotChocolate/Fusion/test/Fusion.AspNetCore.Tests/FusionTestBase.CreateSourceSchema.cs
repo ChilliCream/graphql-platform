@@ -136,6 +136,8 @@ public abstract partial class FusionTestBase
                 yield return typeInspector.GetTypeRef(typeof(Composite.Is));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Provides));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Shareable));
+                yield return typeInspector.GetTypeRef(typeof(Composite.InterfaceObject));
+                yield return typeInspector.GetTypeRef(typeof(Composite.External));
 
                 _registeredTypes = true;
             }

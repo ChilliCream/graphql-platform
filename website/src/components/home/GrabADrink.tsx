@@ -1,3 +1,4 @@
+import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 /**
@@ -7,7 +8,7 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
  */
 export function GrabADrink() {
   return (
-    <section className="mx-auto max-w-5xl px-5 py-24 text-center sm:px-12 sm:py-32">
+    <PageSection maxWidth="5xl" className="py-24 text-center sm:py-32">
       <h2 className="font-heading text-cc-heading text-h2 sm:text-h1 leading-[1.05] font-semibold text-balance">
         Fancy a drink?
       </h2>
@@ -24,6 +25,6 @@ export function GrabADrink() {
           Talk to Us
         </OutlineButton>
       </div>
-    </section>
+    </PageSection>
   );
 }

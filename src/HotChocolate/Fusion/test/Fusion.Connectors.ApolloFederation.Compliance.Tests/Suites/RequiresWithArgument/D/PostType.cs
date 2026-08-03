@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 
@@ -15,7 +16,7 @@ public sealed class PostType : ObjectType<Post>
     {
         descriptor
             .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .ResolveReferenceWith(_ => ResolveById(default!, default));
 
         descriptor.Field(p => p.Id).Type<NonNullType<IdType>>();
 
@@ -26,12 +27,7 @@ public sealed class PostType : ObjectType<Post>
             .Resolve(ctx =>
             {
                 var post = ctx.Parent<Post>();
-                if (post.Comments is not { Count: 3 } comments)
-                {
-                    return null;
-                }
-
-                var authorId = comments[2].AuthorId;
+                var authorId = post.AuthorId;
                 if (authorId is null)
                 {
                     return null;
@@ -43,7 +39,7 @@ public sealed class PostType : ObjectType<Post>
             });
 
         descriptor
-            .Field("comments")
+            .Field(p => p.Comments)
             .Type<ListType<CommentType>>()
             .Argument("limit", a => a.Type<NonNullType<IntType>>())
             .Resolve(ctx =>
@@ -63,8 +59,30 @@ public sealed class PostType : ObjectType<Post>
             });
     }
 
-    private static Post? ResolveById(string id)
-        => DData.PostsById.ContainsKey(id)
-            ? new Post { Id = id }
-            : null;
+    private static Post? ResolveById(
+        string id,
+        [Map("comments")] IReadOnlyList<Comment>? comments)
+    {
+        if (!DData.PostsById.ContainsKey(id))
+        {
+            return null;
+        }
+
+        if (comments is null)
+        {
+            return new Post { Id = id };
+        }
+
+        if (comments.Count != 3)
+        {
+            throw new InvalidOperationException("Expected 3 comments.");
+        }
+
+        return new Post
+        {
+            Id = id,
+            AuthorId = comments[2].AuthorId,
+            Comments = comments
+        };
+    }
 }

@@ -13,7 +13,7 @@ internal static class OperationPlanContextExtensions
     extension(OperationPlanContext context)
     {
         internal NodeResolution NodeResolution
-            => context.RequestContext.Schema.Features.Get<FusionOptions>()?.NodeResolution ?? NodeResolution.Gateway;
+            => ((FusionSchemaDefinition)context.RequestContext.Schema).NodeResolution;
 
         internal bool TryGetAnyNodeLookupSchema([NotNullWhen(true)] out string? schemaName)
             => context.RequestContext.Schema.Features.GetRequired<NodeFallbackLookup>()

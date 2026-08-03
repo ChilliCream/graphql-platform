@@ -52,7 +52,7 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
 
         if (format == DurationFormat.Iso8601)
         {
-            SpecifiedBy = new Uri(SpecifiedByUri);
+            SpecifiedBy = SpecifiedByUri;
         }
     }
 

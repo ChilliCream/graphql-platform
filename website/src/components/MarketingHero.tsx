@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 interface MarketingHeroProps {
   readonly eyebrow?: string;
@@ -29,11 +30,7 @@ export function MarketingHero({
 }: MarketingHeroProps) {
   return (
     <section className="pt-16 pb-12 text-center sm:pt-24 sm:pb-16">
-      {eyebrow && (
-        <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
-          {eyebrow}
-        </p>
-      )}
+      {eyebrow && <Eyebrow color="ink-dim">{eyebrow}</Eyebrow>}
       <h1 className="font-heading text-cc-heading sm:text-h2 mx-auto mt-5 max-w-3xl text-4xl leading-tight font-semibold tracking-tight text-balance">
         {title}
       </h1>
@@ -45,9 +42,9 @@ export function MarketingHero({
       {children}
       {actions && <div className="mt-9">{actions}</div>}
       {footnote && (
-        <p className="text-cc-ink-dim mt-5 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+        <Eyebrow color="ink-dim" size="2xs" className="mt-5">
           {footnote}
-        </p>
+        </Eyebrow>
       )}
     </section>
   );

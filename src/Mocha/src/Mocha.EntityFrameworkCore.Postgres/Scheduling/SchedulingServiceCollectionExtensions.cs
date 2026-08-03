@@ -78,9 +78,15 @@ public static class SchedulingServiceCollectionExtensions
 
         builder.Services.AddHostedService(sp => sp.GetRequiredService<ScheduledMessageWorker>());
 
-        builder.Services.TryAddScoped<IScheduledMessageStore>(sp =>
+        builder.Services.TryAddScoped(sp =>
             EfCoreScheduledMessageStore.Create(contextType, builder.Name, sp)
         );
+        builder.Services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                transportType: null,
+                tokenPrefix: EfCoreScheduledMessageStore.ProviderPrefix,
+                storeType: typeof(EfCoreScheduledMessageStore),
+                isFallback: true));
 
         builder.UseSchedulingCore();
 

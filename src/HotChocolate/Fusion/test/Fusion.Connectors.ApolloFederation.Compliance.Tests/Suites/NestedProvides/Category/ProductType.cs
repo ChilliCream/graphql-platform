@@ -21,5 +21,6 @@ public sealed class ProductType : ObjectType<Product>
         descriptor.Field(p => p.Categories).External().Type<ListType<CategoryEntityType>>();
     }
 
-    private static Product ResolveById(string id) => new() { Id = id };
+    private static Product? ResolveById(string id)
+        => CategoryData.ProductCategories.ContainsKey(id) ? new Product { Id = id } : null;
 }

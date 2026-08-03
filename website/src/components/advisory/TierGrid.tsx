@@ -3,10 +3,11 @@ import {
   CONTRACTING_MAILTO,
   CONTACT_FORM,
 } from "@/src/components/advisory/advisoryLinks";
-import { CheckIcon } from "@/src/components/CheckIcon";
-import { PopularBadge } from "@/src/components/PopularBadge";
-import { popularBorderStyle } from "@/src/components/popularRing";
+import { CardGrid } from "@/src/components/CardGrid";
+import { CheckListItem } from "@/src/components/CheckListItem";
+import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 interface Tier {
   readonly id: "consulting" | "contracting";
@@ -70,11 +71,11 @@ export function TierGrid() {
       <h2 id="tiers-heading" className="sr-only">
         Engagement tiers
       </h2>
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+      <CardGrid cols={2} breakpoint="lg" gap={6} itemsStretch>
         {TIERS.map((tier) => (
           <TierCard key={tier.id} tier={tier} />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }
@@ -82,13 +83,9 @@ export function TierGrid() {
 function TierCard({ tier }: { readonly tier: Tier }) {
   if (tier.highlight) {
     return (
-      <div
-        className="relative flex h-full flex-col rounded-3xl p-7 sm:p-9"
-        style={popularBorderStyle}
-      >
-        <PopularBadge label="Start here" />
+      <HighlightCard highlight badgeLabel="Start here" gap="">
         <TierCardBody tier={tier} />
-      </div>
+      </HighlightCard>
     );
   }
 
@@ -102,9 +99,7 @@ function TierCard({ tier }: { readonly tier: Tier }) {
 function TierCardBody({ tier }: { readonly tier: Tier }) {
   return (
     <>
-      <p className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-        {tier.eyebrow}
-      </p>
+      <Eyebrow size="2xs">{tier.eyebrow}</Eyebrow>
       <h3 className="font-heading text-cc-heading text-h3 mt-3 font-semibold">
         {tier.name}
       </h3>
@@ -126,22 +121,17 @@ function TierCardBody({ tier }: { readonly tier: Tier }) {
         className="border-cc-ink-faint my-6 border-t border-dashed"
       />
 
-      <p className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-        Best for
-      </p>
+      <Eyebrow size="2xs">Best for</Eyebrow>
       <p className="text-cc-ink mt-2 text-sm leading-relaxed">{tier.bestFor}</p>
 
-      <p className="text-cc-nav-label mt-6 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+      <Eyebrow size="2xs" className="mt-6">
         What is included
-      </p>
+      </Eyebrow>
       <ul className="mt-3 flex flex-1 flex-col gap-3">
         {tier.perks.map((perk) => (
-          <li key={perk} className="flex items-start gap-3">
-            <span className="text-cc-accent mt-[5px] flex-none">
-              <CheckIcon />
-            </span>
-            <span className="text-cc-ink text-sm">{perk}</span>
-          </li>
+          <CheckListItem key={perk} iconClassName="text-cc-accent mt-[5px]">
+            {perk}
+          </CheckListItem>
         ))}
       </ul>
 

@@ -2,6 +2,7 @@ using System.Text;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
@@ -2871,6 +2872,148 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void SourceSchemaNodeResolution_Should_WarnForUncoveredCompositePossibleType()
+    {
+        var schema = CreateDistributedNodeSchema();
+        var log = new CompositionLog();
+        var validator = new SatisfiabilityValidator(
+            schema,
+            log,
+            nodeResolution: NodeResolution.SourceSchema);
+
+        var result = validator.Validate();
+
+        Assert.True(result.IsSuccess);
+        var warning = Assert.Single(log);
+        Assert.Equal(LogSeverity.Warning, warning.Severity);
+        Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, warning.Code);
+        Assert.Equal(
+            "Type 'Oven' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.",
+            warning.Message);
+    }
+
+    [Fact]
+    public void GatewayNodeResolution_Should_ErrorForUncoveredCompositePossibleType()
+    {
+        var schema = CreateDistributedNodeSchema();
+        var log = new CompositionLog();
+        var validator = new SatisfiabilityValidator(schema, log);
+
+        var result = validator.Validate();
+
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(log);
+        Assert.Equal(LogSeverity.Error, error.Severity);
+        Assert.Equal(
+            "Type 'Oven' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.",
+            error.Message);
+    }
+
+    [Theory]
+    [InlineData("@internal")]
+    [InlineData("")]
+    public void SourceSchemaNodeResolution_Should_ErrorWithoutPublicRootDispatcher(
+        string internalDirective)
+    {
+        var sourceSchema = string.IsNullOrEmpty(internalDirective)
+            ? """
+              type Query {
+                  lookups: Lookups
+              }
+
+              type Lookups {
+                  node(id: ID!): Node @lookup
+              }
+
+              interface Node {
+                  id: ID!
+              }
+
+              type Cat implements Node {
+                  id: ID!
+              }
+              """
+            : $$"""
+              type Query {
+                  node(id: ID!): Node @lookup {{internalDirective}}
+              }
+
+              interface Node {
+                  id: ID!
+              }
+
+              type Cat implements Node {
+                  id: ID!
+              }
+              """;
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions([sourceSchema]),
+            new SourceSchemaMergerOptions
+            {
+                AddFusionDefinitions = false,
+                EnableGlobalObjectIdentification = true
+            });
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var validator = new SatisfiabilityValidator(
+            schema,
+            log,
+            nodeResolution: NodeResolution.SourceSchema);
+
+        var result = validator.Validate();
+
+        Assert.True(result.IsFailure);
+        Assert.All(log, entry => Assert.Equal(LogSeverity.Error, entry.Severity));
+        Assert.Contains(log, entry => entry.Message.Contains("Type 'Cat' implements the 'Node' interface"));
+    }
+
+    private static MutableSchemaDefinition CreateDistributedNodeSchema()
+    {
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    node(id: ID!): Node @lookup
+                    toasters: [Toaster]
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Toaster implements Node {
+                    id: ID!
+                    warranty: Int
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    ovens: [Oven]
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Oven implements Node {
+                    id: ID!
+                    warranty: Int
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions
+            {
+                AddFusionDefinitions = false,
+                EnableGlobalObjectIdentification = true
+            });
+
+        return merger.Merge().Value;
     }
 
     [Fact]

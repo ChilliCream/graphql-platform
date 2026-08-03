@@ -12,6 +12,7 @@ interface StoryEntry {
   readonly id: string;
   readonly title: string;
   readonly name: string;
+  readonly tags?: readonly string[];
 }
 
 interface StoryIndex {
@@ -31,7 +32,7 @@ try {
 }
 
 const stories = Object.values(index.entries).filter(
-  (entry) => entry.type === "story",
+  (entry) => entry.type === "story" && !entry.tags?.includes("no-snapshot"),
 );
 
 for (const story of stories) {
@@ -44,6 +45,22 @@ for (const story of stories) {
     await page.locator("body.sb-show-main").waitFor();
     // Wait for webfonts so text metrics are stable before the screenshot.
     await page.evaluate(() => document.fonts.ready);
+
+    // Wait for every image to finish loading (or fail) so the screenshot
+    // never races a slow request, e.g. the YouTube poster from i.ytimg.com.
+    await page.evaluate(() =>
+      Promise.all(
+        Array.from(document.images)
+          .filter((img) => !img.complete)
+          .map(
+            (img) =>
+              new Promise((resolve) => {
+                img.addEventListener("load", resolve, { once: true });
+                img.addEventListener("error", resolve, { once: true });
+              }),
+          ),
+      ),
+    );
 
     await expect(page).toHaveScreenshot(`${story.id}.png`, {
       fullPage: true,

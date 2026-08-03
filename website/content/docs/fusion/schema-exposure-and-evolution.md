@@ -141,7 +141,7 @@ These directives serve different purposes. `@inaccessible` hides data from clien
 
 Use `@inaccessible` when the field carries data that other subgraphs need but clients should not see. Use `@internal` on lookups that exist only for gateway entity resolution.
 
-# Deprecating Fields and Values
+# Deprecating Fields, Values, and Types
 
 The `@deprecated` directive signals that a field, argument, or enum value is being phased out. Clients see the deprecation reason in introspection, and GraphQL tooling (IDEs, linters, code generators) can warn consumers to migrate away. The field continues to work. Deprecation is a soft signal, not a hard removal.
 
@@ -179,7 +179,7 @@ public static partial class ProductQueries
 }
 ```
 
-You can also use .NET's built-in `[Obsolete]` attribute. Hot Chocolate treats it the same as `[GraphQLDeprecated]`.
+You can also use .NET's built-in `[Obsolete]` attribute. Hot Chocolate treats it the same as `[GraphQLDeprecated]` for fields, arguments, input fields, and enum values. Deprecating an object type itself is different: see [Deprecating Object Types](#deprecating-object-types).
 
 ```csharp
 [Obsolete("Use `productById` instead.")]
@@ -188,7 +188,7 @@ public static async Task<Product?> GetProductAsync(...)
     => ...;
 ```
 
-Deprecation applies to output fields, input fields, arguments, and enum values.
+Deprecation applies to output fields, input fields, arguments, and enum values without any extra configuration. Object types can be deprecated too, but only once you enable a separate opt-in option (see [Deprecating Object Types](#deprecating-object-types)).
 
 **Enum value deprecation**
 
@@ -202,11 +202,85 @@ enum SortOrder {
 
 **Constraint:** You cannot deprecate a non-null argument or input field without a default value. If clients must provide a value, they cannot stop using the field.
 
+## Deprecating Object Types
+
+Object type deprecation is not yet part of the released GraphQL specification. It tracks [graphql-spec RFC #997](https://github.com/graphql/graphql-spec/pull/997), which is still open, so its final shape could still change. It is disabled by default; enable it separately on each subgraph and on the Fusion gateway.
+
+**Subgraph configuration**
+
+```csharp filename="Products/Program.cs"
+builder
+    .AddGraphQL("Products")
+    .AddTypes()
+    .ModifyOptions(o => o.EnableObjectDeprecation = true);
+```
+
+**Gateway configuration**
+
+```csharp filename="Gateway/Program.cs"
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .ModifyOptions(o => o.EnableObjectDeprecation = true);
+```
+
+When `EnableObjectDeprecation` is enabled on the gateway, the introspection schema exposes `isDeprecated` and `deprecationReason` on `__Type`, plus the `includeDeprecated` argument on `__schema.types` and `__Type.possibleTypes`. Deprecated object types are hidden from both by default; clients pass `includeDeprecated: true` to see them.
+
+**GraphQL schema**
+
+```graphql
+type Query {
+  animals: [Animal]
+}
+
+interface Animal {
+  name: String
+}
+
+type Dog implements Animal {
+  name: String
+}
+
+type Baiji implements Animal @deprecated(reason: "No longer known to exist.") {
+  name: String
+}
+```
+
+**C# declaration**
+
+```csharp
+[GraphQLDeprecated("No longer known to exist.")]
+public class Baiji
+{
+    public string? Name { get; set; }
+}
+```
+
+The .NET `[Obsolete]` attribute does not deprecate an object type; only `[GraphQLDeprecated]` on the class does. Unifying the two attributes for object types is deferred to a future major version.
+
+A field that is not itself deprecated cannot return a deprecated object type. Here, `Query.animals` returns the interface `Animal`, not `Baiji` directly, so the subgraph's schema is valid. A field that returns `Baiji` directly would need to be deprecated too:
+
+```graphql
+type Query {
+  baiji: Baiji
+}
+
+type Baiji @deprecated(reason: "No longer known to exist.") {
+  name: String
+}
+```
+
+**Constraint:** `Query.baiji` is not deprecated but returns the deprecated `Baiji` type, so building the subgraph's schema fails. Deprecate the field, or change its return type.
+
+A deprecated object type remains a valid union member and interface implementation. Only the field returning it is checked.
+
 ## Deprecation Across Subgraphs
 
 If a shareable field is deprecated in at least one subgraph, it is deprecated in the composite schema. You do not need to deprecate it in every subgraph that defines it. With shared ownership comes the power for any owner to deprecate the field for all clients.
 
 If you only want to remove a shared field from one subgraph, you do not need to deprecate it. Remove the field from that subgraph and the gateway will resolve it from the remaining subgraphs that still provide it.
+
+Object types follow the same rule. If at least one subgraph deprecates a type, it is deprecated in the composite schema, and the reason is taken from the first subgraph that provides one.
 
 # Experimental and Preview Features
 

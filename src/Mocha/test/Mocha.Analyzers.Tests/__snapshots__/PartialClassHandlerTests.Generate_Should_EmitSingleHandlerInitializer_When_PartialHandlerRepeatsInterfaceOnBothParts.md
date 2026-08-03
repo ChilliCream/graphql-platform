@@ -49,7 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 5, 1, 5, 84)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 5, 1, 5, 84)
             };
         }
     }

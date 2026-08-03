@@ -449,15 +449,16 @@ internal sealed class SelectionExpressionBuilder
         var field = selection.Field;
         var namedType = field.Type.NamedType();
 
-        // A field is projectable if its resolver is the underlying member (a pure resolver
-        // declared on the parent runtime type, on an interface it implements, or on a base
-        // type) or if it explicitly replaces that member (fluent ResolveWith / [BindMember]).
-        var isPureMemberResolver = field.PureResolver is not null
+        // A field is projectable if it has a pure member resolver before middleware is
+        // compiled and the member is declared on the parent runtime type, a base type, or
+        // an implemented interface. Middleware prevents the pure resolver from being used
+        // for execution, but the resolver still reads the member, so it must be projected.
+        var isMemberResolver = field.Flags.HasFlag(CoreFieldFlags.HasPureResolver)
             && field.ResolverMember?.DeclaringType?.IsAssignableFrom(
                 field.DeclaringType.RuntimeType) == true;
         var isMemberReplacement = field.Flags.HasFlag(CoreFieldFlags.MemberReplacement);
 
-        if (!isPureMemberResolver && !isMemberReplacement)
+        if (!isMemberResolver && !isMemberReplacement)
         {
             return;
         }

@@ -9,10 +9,12 @@ namespace Mocha.Mediator;
 /// <param name="MessageId">The URN identity of the message the handler handles.</param>
 /// <param name="MessageName">The readable message type name.</param>
 /// <param name="ResponseTypeName">The readable response type name, or <c>null</c> for void commands and notifications.</param>
+/// <param name="Source">Source metadata captured from the handler declaration, or <c>null</c> when not provided.</param>
 public sealed record MediatorHandlerDescription(
     string Id,
     string Name,
     MediatorHandlerKind Kind,
     string MessageId,
     string MessageName,
-    string? ResponseTypeName);
+    string? ResponseTypeName,
+    SourceMetadata? Source);

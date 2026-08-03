@@ -1,3 +1,5 @@
+import { PageSection } from "@/src/components/PageSection";
+
 interface Source {
   readonly label: string;
   readonly color: string;
@@ -85,7 +87,7 @@ const SCRIM =
  */
 export function FusionFlow() {
   return (
-    <section className="mx-auto max-w-7xl px-5 sm:px-12">
+    <PageSection>
       {/* Built apart / queried together */}
       <div className="py-16 text-center sm:py-20">
         <h2 className="font-heading text-cc-heading text-h2 sm:text-h1 leading-[1.05] font-semibold text-balance">
@@ -269,6 +271,6 @@ export function FusionFlow() {
           }}
         />
       </div>
-    </section>
+    </PageSection>
   );
 }

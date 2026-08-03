@@ -32,5 +32,6 @@
 
   <ItemGroup>
     <None Include="buildTransitive\Mocha.Analyzers.props" Pack="true" PackagePath="buildTransitive" Visible="false" />
+    <None Include="buildTransitive\Mocha.Analyzers.targets" Pack="true" PackagePath="buildTransitive" Visible="false" />
   </ItemGroup>
 </Project>

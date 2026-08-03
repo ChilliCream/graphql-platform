@@ -23,5 +23,5 @@ public sealed class DogType : ObjectType<Dog>
     }
 
     private static Dog? ResolveById(string id)
-        => SubgraphCData.DogsById.TryGetValue(id, out var dog) ? dog : null;
+        => throw new InvalidOperationException("You should be using the 'c' subgraph!");
 }

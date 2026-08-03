@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
@@ -55,16 +56,18 @@ export function EngagementStrip() {
         description="No long sales cycle. You speak to an engineer, you get a written proposal, you kick off."
       />
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {ENGAGEMENT_STEPS.map((step) => (
-          <PerkCard
-            key={step.index}
-            tag={`Step ${step.index}`}
-            title={step.title}
-            intro={step.description}
-            items={step.bullets}
-          />
-        ))}
+      <div className="mt-10">
+        <CardGrid cols={3} gap={6}>
+          {ENGAGEMENT_STEPS.map((step) => (
+            <PerkCard
+              key={step.index}
+              tag={`Step ${step.index}`}
+              title={step.title}
+              intro={step.description}
+              items={step.bullets}
+            />
+          ))}
+        </CardGrid>
       </div>
     </section>
   );

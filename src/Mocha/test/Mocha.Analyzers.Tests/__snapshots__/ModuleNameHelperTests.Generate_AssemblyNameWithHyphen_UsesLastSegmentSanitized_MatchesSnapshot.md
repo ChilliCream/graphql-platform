@@ -48,7 +48,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "My-Company.Services.Order-Processing",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 11, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
             };
         }
     }

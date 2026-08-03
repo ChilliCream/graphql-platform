@@ -39,6 +39,11 @@ type Query {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): PublisherConnection
+  animal: Animal!
+  zoo: Zoo!
+  formatAnimalKinds(kinds: AnimalKind!): String!
+  formatNullableAnimalKinds(kinds: AnimalKind): String!
+  formatAnimalKindList(kinds: [AnimalKind]!): String!
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
@@ -105,11 +110,17 @@ type Query {
 type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
+  createExport(currentUser: CurrentUserInput!, name: String!): String!
 }
 
 type Subscription {
   onProductAdded(categoryId: Int!): Int!
   onProductPriceChanged(productId: Int!): Int!
+}
+
+type Animal {
+  id: String!
+  kind: AnimalKind!
 }
 
 type Author {
@@ -146,6 +157,7 @@ type AuthorEdge {
 }
 
 type Book implements Product {
+  batchGreeting: String!
   title: String!
   id: String!
   kind: String!
@@ -290,6 +302,21 @@ type Television implements Product {
   kind: String!
 }
 
+type Zoo {
+  propertyAnimals: AnimalKind!
+  animals: AnimalKind!
+  nullableAnimals: AnimalKind
+  taskAnimals: AnimalKind!
+  valueTaskAnimals: AnimalKind!
+  animalArray: [AnimalKind]
+  animalList: [AnimalKind!]!
+  nestedAnimalList: [[AnimalKind!]!]!
+  taskAnimalList: [AnimalKind!]!
+  batchAnimals: AnimalKind!
+  fauxFlags: FauxFlagsKind!
+  id: String!
+}
+
 "The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
@@ -300,9 +327,23 @@ interface Product {
   id: String!
 }
 
+input CurrentUserInput {
+  name: String!
+}
+
 input ShapeInput {
   key: String!
   name: String!
+}
+
+enum AnimalKind {
+  DOG
+  CAT
+}
+
+enum FauxFlagsKind {
+  FIRST
+  SECOND
 }
 
 scalar Version

@@ -80,21 +80,6 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 256;
 
     /// <summary>
-    /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
-    /// <see cref="NodeResolution.Gateway"/> by default.
-    /// </summary>
-    public NodeResolution NodeResolution
-    {
-        get;
-        set
-        {
-            ExpectMutableOptions();
-
-            field = value;
-        }
-    } = NodeResolution.Gateway;
-
-    /// <summary>
     /// Gets or sets the initial capacity of the local path segment pool used during result composition.
     /// <c>64</c> by default. <c>1</c> is the minimum.
     /// </summary>
@@ -184,6 +169,23 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = true;
 
     /// <summary>
+    /// Gets or sets whether <c>@deprecated</c> on object types is enabled. When <c>true</c>, the
+    /// introspection schema exposes <c>isDeprecated</c> and <c>deprecationReason</c> on
+    /// <c>__Type</c> and the <c>includeDeprecated</c> argument on <c>__Type.possibleTypes</c>
+    /// and <c>__Schema.types</c>.
+    /// </summary>
+    public bool EnableObjectDeprecation
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets whether opt-in feature support is enabled. When <c>true</c>, the introspection
     /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
     /// introspection unless the client opts into their feature.
@@ -222,21 +224,11 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     /// </returns>
     public FusionOptions Clone()
     {
-        return new FusionOptions
-        {
-            EvictionTimeout = EvictionTimeout,
-            OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
-            OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
-            OperationDocumentCacheSize = OperationDocumentCacheSize,
-            NodeResolution = NodeResolution,
-            PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
-            LazyInitialization = LazyInitialization,
-            NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
-            EnableDefer = EnableDefer,
-            EnableOptInFeatures = EnableOptInFeatures,
-            EnableSemanticIntrospection = EnableSemanticIntrospection
-        };
+        var clone = (FusionOptions)MemberwiseClone();
+
+        clone._isReadOnly = false;
+
+        return clone;
     }
 
     object ICloneable.Clone() => Clone();

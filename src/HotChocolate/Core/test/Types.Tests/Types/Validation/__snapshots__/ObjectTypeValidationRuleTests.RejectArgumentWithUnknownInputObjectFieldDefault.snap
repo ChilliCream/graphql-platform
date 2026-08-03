@@ -1,0 +1,9 @@
+{
+  "message": "The default value of argument 'Foo.field(arg:)' specifies the unknown input field 'missing'.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "arg",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+  }
+}
+

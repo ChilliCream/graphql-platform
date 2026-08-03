@@ -79,7 +79,8 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
             DescriptionHelpers.GetTypeName(Identity),
             Identity.FullName,
             saga.Name,
-            false);
+            false,
+            Configuration?.Source ?? saga.Configuration?.Source);
     }
 
     /// <inheritdoc />

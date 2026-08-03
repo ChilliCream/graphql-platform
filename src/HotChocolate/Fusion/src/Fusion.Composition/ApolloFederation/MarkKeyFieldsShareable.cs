@@ -30,14 +30,17 @@ internal static class MarkKeyFieldsShareable
 
         foreach (var type in schema.Types)
         {
-            if (type is not MutableComplexTypeDefinition complexType)
+            // '@shareable' is only meaningful on object type fields. Interface types can carry
+            // a '@key' (entity interfaces), but their field definitions must never be stamped
+            // '@shareable' or the composition's shareable-usage validation rejects them.
+            if (type is not MutableObjectTypeDefinition objectType)
             {
                 continue;
             }
 
-            foreach (var field in complexType.Fields)
+            foreach (var field in objectType.Fields)
             {
-                if (!keyReferences.Contains((complexType.Name, field.Name)))
+                if (!keyReferences.Contains((objectType.Name, field.Name)))
                 {
                     continue;
                 }

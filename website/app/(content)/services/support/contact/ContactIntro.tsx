@@ -1,4 +1,5 @@
 import { CheckList } from "@/src/components/CheckList";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { SlackIcon } from "@/src/icons/Slack";
 
 const POINTS = [
@@ -15,9 +16,7 @@ const POINTS = [
 export function ContactIntro() {
   return (
     <div className="flex h-full flex-col">
-      <p className="text-cc-accent font-mono text-xs font-semibold tracking-[0.18em] uppercase">
-        Talk to us
-      </p>
+      <Eyebrow color="accent">Talk to us</Eyebrow>
       <h1 className="font-heading text-cc-heading mt-5 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
         Tell us what you need.
       </h1>

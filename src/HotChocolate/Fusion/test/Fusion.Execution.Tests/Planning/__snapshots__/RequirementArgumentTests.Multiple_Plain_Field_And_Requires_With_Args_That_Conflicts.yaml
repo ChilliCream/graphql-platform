@@ -7,7 +7,7 @@ operation:
           fieldWithRequiresAndArgs
           anotherWithRequiresAndArgs
           otherField(arg: 1)
-          otherField @fusion__requirement
+          fusion__requirement_otherField_0: otherField @fusion__requirement
         }
       }
     hash: 123456789101112
@@ -29,8 +29,8 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_otherField: String!
-          $__fusion_2_id: ID!
-          $__fusion_5_otherField: String!
+        $__fusion_2_id: ID!
+        $__fusion_5_otherField: String!
       ) {
         testById(id: $__fusion_2_id) {
           anotherWithRequiresAndArgs(otherField: $__fusion_1_otherField)
@@ -41,12 +41,14 @@ nodes:
     target: $.test
     requirements:
       - name: __fusion_1_otherField
+        internalAlias: fusion__requirement_otherField_0
         selectionMap: >-
           otherField
       - name: __fusion_2_id
         selectionMap: >-
           id
       - name: __fusion_5_otherField
+        internalAlias: fusion__requirement_otherField_0
         selectionMap: >-
           otherField
     dependencies:
@@ -57,7 +59,7 @@ nodes:
     operation: |
       query Op_123456789101112_3($__fusion_3_id: ID!) {
         testById(id: $__fusion_3_id) {
-          otherField
+          fusion__requirement_otherField_0: otherField
         }
       }
     source: $.testById

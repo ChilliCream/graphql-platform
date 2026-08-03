@@ -41,7 +41,7 @@ public static class WellKnownTypes
     public const string Executable = "HotChocolate.IExecutable";
     public const string ClaimsPrincipal = "System.Security.Claims.ClaimsPrincipal";
     public const string DocumentNode = "HotChocolate.Language.DocumentNode";
-    public const string OutputField = "HotChocolate.Types.IOutputField";
+    public const string OutputField = "HotChocolate.Types.IOutputFieldDefinition";
     public const string ParameterBindingResolver = "HotChocolate.Resolvers.ParameterBindingResolver";
     public const string CustomAttributeData = "HotChocolate.Internal.GenCustomAttributeData";
     public const string ParameterInfo = "HotChocolate.Internal.GenParameterInfo";

@@ -1,0 +1,198 @@
+title: Execution_Should_ResolveUnionMemberField_When_LookupNarrowsSourcePathByTypeCondition
+request:
+  document: |
+    {
+      search {
+        ... on Book {
+          id
+          title
+        }
+        ... on Movie {
+          id
+          runtime
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": {
+          "id": "Qm9vazox",
+          "title": "Book: Qm9vazox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        search: SearchResult
+      }
+
+      type Book @key(fields: "id") {
+        id: ID!
+      }
+
+      type Movie @key(fields: "id") {
+        id: ID!
+      }
+
+      union SearchResult = Book | Movie
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_36f2cac2_1 {
+              search {
+                __typename
+                ... on Book {
+                  id
+                }
+                ... on Movie {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "search": {
+                    "__typename": "Book",
+                    "id": "Qm9vazox"
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        searchResultById(id: ID!): SearchResult @lookup @internal
+      }
+
+      type Book @key(fields: "id") {
+        id: ID!
+        title: String
+      }
+
+      type Movie @key(fields: "id") {
+        id: ID!
+        runtime: Int
+      }
+
+      union SearchResult = Book | Movie
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_36f2cac2_3($__fusion_2_id: ID!) {
+              searchResultById(id: $__fusion_2_id) {
+                __typename
+                ... on Book {
+                  title
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "Qm9vazox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "searchResultById": {
+                    "__typename": "Book",
+                    "title": "Book: Qm9vazox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          search {
+            __typename @fusion__requirement
+            ... on Book {
+              id
+              id @fusion__requirement
+              title
+            }
+            ... on Movie {
+              id
+              id @fusion__requirement
+              runtime
+            }
+          }
+        }
+      hash: 36f2cac230747a195d060d87c0dcb2c8
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation: |
+        query Op_36f2cac2_1 {
+          search {
+            __typename
+            ... on Book {
+              id
+            }
+            ... on Movie {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: details
+      operation: |
+        query Op_36f2cac2_2($__fusion_1_id: ID!) {
+          searchResultById(id: $__fusion_1_id) {
+            __typename
+            ... on Movie {
+              runtime
+            }
+          }
+        }
+      source: $.searchResultById<Movie>
+      target: $.search<Movie>
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: details
+      operation: |
+        query Op_36f2cac2_3($__fusion_2_id: ID!) {
+          searchResultById(id: $__fusion_2_id) {
+            __typename
+            ... on Book {
+              title
+            }
+          }
+        }
+      source: $.searchResultById<Book>
+      target: $.search<Book>
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

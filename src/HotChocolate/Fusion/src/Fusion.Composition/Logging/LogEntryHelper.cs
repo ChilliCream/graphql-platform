@@ -600,6 +600,105 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InterfaceObjectFieldRequiresImplement(
+        string interfaceName,
+        string fieldName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectFieldRequiresImplement,
+                fieldName,
+                schema.Name,
+                interfaceName)
+            .SetCode(LogEntryCodes.InterfaceObjectFieldRequiresImplement)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ImplementWithoutDefault(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ImplementWithoutDefault,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.ImplementWithoutDefault)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InvalidProjectedFieldSharing(
+        string typeName,
+        string fieldName,
+        string interfaceNames,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidProjectedFieldSharing,
+                fieldName,
+                typeName,
+                interfaceNames)
+            .SetCode(LogEntryCodes.InvalidProjectedFieldSharing)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InterfaceObjectKeyMismatch(
+        MutableObjectTypeDefinition standIn,
+        string keyFields,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectKeyMismatch,
+                standIn.Name,
+                schema.Name,
+                keyFields)
+            .SetCode(LogEntryCodes.InterfaceObjectKeyMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InterfaceObjectKeyMissing(
+        MutableObjectTypeDefinition standIn,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectKeyMissing,
+                standIn.Name,
+                schema.Name)
+            .SetCode(LogEntryCodes.InterfaceObjectKeyMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InterfaceObjectNoInterface(
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InterfaceObjectNoInterface,
+                typeName)
+            .SetCode(LogEntryCodes.InterfaceObjectNoInterface)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InvalidFieldSharing(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -1231,6 +1330,25 @@ internal static class LogEntryHelper
             .SetCode(LogEntryCodes.QueryRootTypeInaccessible)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(type)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToDeprecatedType(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToDeprecatedType,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToDeprecatedType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
             .SetSchema(schema)
             .Build();
     }

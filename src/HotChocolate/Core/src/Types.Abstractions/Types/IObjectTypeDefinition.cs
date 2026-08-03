@@ -22,4 +22,10 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IObjectTypeDefinition
     : IComplexTypeDefinition
-    , ISyntaxNodeProvider<ObjectTypeDefinitionNode>;
+    , IDeprecationProvider
+    , ISyntaxNodeProvider<ObjectTypeDefinitionNode>
+{
+    bool IDeprecationProvider.IsDeprecated => false;
+
+    string? IDeprecationProvider.DeprecationReason => null;
+}

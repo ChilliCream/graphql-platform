@@ -4,6 +4,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Results;
@@ -15,7 +16,7 @@ internal sealed partial class FetchResultStore
     /// </summary>
     public void Initialize(
         IMemoryArena arena,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         IErrorHandler errorHandler,
         Operation operation,
         ErrorHandlingMode errorHandlingMode,
@@ -109,7 +110,7 @@ internal sealed partial class FetchResultStore
         }
 
         // return path segments to global pool and reset local pool
-        _pathPool.Dispose();
+        _pathPool?.Dispose();
         _pathPool = null!;
 
         // clear errors
@@ -127,7 +128,6 @@ internal sealed partial class FetchResultStore
 
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
-        _variableDedupTable.Clear();
 
         // null out per-request references
         _result = default!;

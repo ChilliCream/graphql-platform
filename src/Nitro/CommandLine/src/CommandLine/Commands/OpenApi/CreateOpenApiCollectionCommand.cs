@@ -66,7 +66,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IApiNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
                         IDuplicateNameError => Messages.DuplicateName(name, "OpenAPI Collection"),
                         IError err => Messages.UnexpectedMutationError(err),

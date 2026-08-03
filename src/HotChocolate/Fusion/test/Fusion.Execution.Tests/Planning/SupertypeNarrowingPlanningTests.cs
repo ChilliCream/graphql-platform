@@ -9,6 +9,53 @@ namespace HotChocolate.Fusion.Planning;
 public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
 {
     [Fact]
+    public void Plan_Should_Preserve_Interface_And_Union_Supertype_Directives_When_Parent_Is_Concrete_Object()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query {
+              book: Book
+              publications: [Publication]
+            }
+
+            interface Media { id: ID! }
+            union Publication = Book | Magazine
+
+            type Book implements Media {
+              id: ID!
+              title: String
+            }
+
+            type Magazine implements Media {
+              id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query($includeMedia: Boolean!, $skipPublication: Boolean!) {
+              book {
+                ... on Media @include(if: $includeMedia) {
+                  id
+                }
+                ... on Publication @skip(if: $skipPublication) {
+                  ... on Book {
+                    title
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_SpillWholeFieldToCoveringSchema_When_UnionNarrowingCannotCoverRequestedMember()
     {
         // arrange
@@ -493,6 +540,303 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
             fieldWithRequirements.FieldSelection.Path);
     }
 
+    [Fact]
+    public void Partition_Should_Expand_InterfaceFragment_When_SourceMembershipIsNarrower()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              products {
+                __typename
+                ... {
+                  ... on Oven {
+                    id
+                  }
+                  ... on Toaster {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+        Assert.True(unresolvable.IsEmpty);
+    }
+
+    [Fact]
+    public void Partition_Should_RouteNestedInterfaceFragment_When_ParentWasExpandedToConcreteTypes()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  ... on WithWarranty {
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              products {
+                __typename
+                ... {
+                  ... on Oven {
+                    ... on Oven {
+                      __typename
+                    }
+                  }
+                  ... on Toaster {
+                    ... on Toaster {
+                      warranty
+                    }
+                  }
+                }
+              }
+            }
+            """);
+        var unresolved = Assert.Single(unresolvable);
+        Assert.Equal("Oven", unresolved.SelectionSet.Type.Name);
+        var ovenWarranty = schema.Types.GetType<FusionObjectTypeDefinition>("Oven")
+            .Fields.GetField("warranty", allowInaccessibleFields: true);
+        Assert.False(ovenWarranty.Sources.TryGetMember("A", out _));
+        Assert.True(ovenWarranty.Sources.TryGetMember("B", out _));
+        unresolved.SelectionSet.Node.MatchInlineSnapshot(
+            """
+            {
+              warranty
+            }
+            """);
+    }
+
+    [Fact]
+    public void Partition_Should_CloneNestedSelectionSets_When_ParentExpandsToConcreteTypes()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (_, unresolvable, _, index) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  details {
+                    __typename
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var unresolved = unresolvable.ToArray();
+        Assert.Equal(2, unresolved.Length);
+        Assert.All(unresolved, entry => Assert.Equal("Details", entry.SelectionSet.Type.Name));
+
+        var firstId = unresolved[0].SelectionSet.Id;
+        var secondId = unresolved[1].SelectionSet.Id;
+        Assert.NotEqual(firstId, secondId);
+        Assert.True(index.TryGetOriginalIdFromCloned(firstId, out var firstOriginalId));
+        Assert.True(index.TryGetOriginalIdFromCloned(secondId, out var secondOriginalId));
+        Assert.Equal(firstOriginalId, secondOriginalId);
+
+        Assert.All(
+            unresolved,
+            entry => entry.SelectionSet.Node.MatchInlineSnapshot(
+                """
+                {
+                  warranty
+                }
+                """));
+    }
+
+    [Fact]
+    public void Plan_Should_FetchNestedInterfaceField_When_SyntheticBranchIsOwnedByOtherSource()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  ... on WithWarranty {
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  {
+                    products {
+                      __typename @fusion__requirement
+                      ... on Node {
+                        ... on WithWarranty {
+                          warranty
+                          id @fusion__requirement
+                        }
+                      }
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 2
+            nodes:
+              - id: 1
+                type: Operation
+                schema: A
+                operation: |
+                  query Op_123456789101112_1 {
+                    products {
+                      __typename
+                      ... {
+                        ... on Oven {
+                          ... on Oven {
+                            __typename
+                            id
+                          }
+                        }
+                        ... on Toaster {
+                          ... on Toaster {
+                            warranty
+                          }
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                type: Operation
+                schema: B
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!) {
+                    ovenById(id: $__fusion_1_id) {
+                      warranty
+                    }
+                  }
+                source: $.ovenById
+                target: $.products<Node><Oven><WithWarranty><Oven>
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Partition_Should_NotExpandInterfaceFragment_When_SourceFieldNarrowsRuntimeType()
+    {
+        // arrange
+        var schema = CreateNarrowedDistributedInterfaceMembershipSchema();
+        AssertSourceTypeName(schema, "item", "S", "B");
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchema(
+            schema,
+            """
+            query {
+              item {
+                ... on Node {
+                  id
+                }
+              }
+            }
+            """,
+            "S");
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              item {
+                __typename
+                ... on Node {
+                  __typename
+                  id
+                }
+              }
+            }
+            """);
+        Assert.True(unresolvable.IsEmpty);
+    }
+
+    [Fact]
+    public void Partition_Should_PruneConcreteFragment_When_SourceParentCannotProduceType()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              nodes {
+                ... on Toaster {
+                  warranty
+                }
+                ... on Oven {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              nodes {
+                __typename
+                ... on Toaster {
+                  warranty
+                }
+              }
+            }
+            """);
+        Assert.True(unresolvable.IsEmpty);
+    }
+
     private static FusionSchemaDefinition CreateFeaturedItemSchema()
         => CreateExecutionSchema(
             """
@@ -885,12 +1229,144 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
               @fusion__unionMember(schema: B, member: "Product") = Product
             """);
 
+    private static FusionSchemaDefinition CreateDistributedInterfaceMembershipSchema()
+        => CreateExecutionSchema(
+            """
+            type Query
+              @fusion__type(schema: A) {
+              products: [Product]
+                @fusion__field(schema: A)
+              nodes: [Node]
+                @fusion__field(schema: A)
+            }
+
+            union Product
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Oven")
+              @fusion__unionMember(schema: A, member: "Toaster") = Oven | Toaster
+
+            interface Node
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              details: Details
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+            }
+
+            interface WithWarranty
+              @fusion__type(schema: B) {
+              warranty: Int
+                @fusion__field(schema: B)
+            }
+
+            type Details
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              warranty: Int
+                @fusion__field(schema: B)
+            }
+
+            type Oven implements Node & WithWarranty
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__implements(schema: B, interface: "Node")
+              @fusion__implements(schema: B, interface: "WithWarranty")
+              @fusion__lookup(
+                schema: B
+                key: "{ id }"
+                field: "ovenById(id: ID!): Oven"
+                map: ["id"]
+              ) {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              details: Details
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              warranty: Int
+                @fusion__field(schema: B)
+            }
+
+            type Toaster implements Node & WithWarranty
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__implements(schema: A, interface: "Node")
+              @fusion__implements(schema: B, interface: "WithWarranty") {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              details: Details
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              warranty: Int
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+            }
+            """);
+
+    private static FusionSchemaDefinition CreateNarrowedDistributedInterfaceMembershipSchema()
+        => CreateExecutionSchema(
+            """
+            type Query
+              @fusion__type(schema: S) {
+              item: AB
+                @fusion__field(schema: S, sourceType: "B!")
+            }
+
+            union AB
+              @fusion__type(schema: S)
+              @fusion__unionMember(schema: S, member: "B")
+              @fusion__unionMember(schema: S, member: "C") = B | C
+
+            interface Node
+              @fusion__type(schema: S)
+              @fusion__type(schema: A)
+              {
+              id: ID!
+                @fusion__field(schema: S)
+                @fusion__field(schema: A)
+            }
+
+            type B implements Node
+              @fusion__type(schema: S)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: S, interface: "Node")
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID!
+                @fusion__field(schema: S)
+                @fusion__field(schema: A)
+            }
+
+            type C implements Node
+              @fusion__type(schema: S)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID!
+                @fusion__field(schema: S)
+                @fusion__field(schema: A)
+            }
+            """);
+
     private static FusionSchemaDefinition CreateExecutionSchema(string schema)
         => CreateCompositeSchema(schema + FusionDefinitions);
+
+    private static SelectionSetPartitionerResult PartitionSchemaA(
+        FusionSchemaDefinition schema,
+        string operationText)
+        => PartitionSchema(schema, operationText, "A");
 
     private static SelectionSetPartitionerResult PartitionSchemaB(
         FusionSchemaDefinition schema,
         string operationText)
+        => PartitionSchema(schema, operationText, "B");
+
+    private static SelectionSetPartitionerResult PartitionSchema(
+        FusionSchemaDefinition schema,
+        string operationText,
+        string schemaName)
     {
         var document = Utf8GraphQLParser.Parse(operationText);
         var rewriter = new DocumentRewriter(schema);
@@ -903,7 +1379,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         return partitioner.Partition(
             new SelectionSetPartitionerInput
             {
-                SchemaName = "B",
+                SchemaName = schemaName,
                 SelectionSet = new SelectionSet(
                     index.GetId(operation.SelectionSet),
                     operation.SelectionSet,
@@ -964,6 +1440,14 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
           field: fusion__FieldDefinition!
           map: [fusion__FieldSelectionMap]!
         ) repeatable on FIELD_DEFINITION
+
+        directive @fusion__lookup(
+          schema: fusion__Schema!
+          key: fusion__FieldSelectionSet!
+          field: fusion__FieldDefinition!
+          map: [fusion__FieldSelectionMap!]!
+          internal: Boolean! = false
+        ) repeatable on OBJECT | INTERFACE
 
         directive @fusion__implements(
           schema: fusion__Schema!

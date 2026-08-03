@@ -14,7 +14,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 #pragma warning disable IDE0052 // WIP
     private readonly DocumentNode _document;
 #pragma warning restore IDE0052
-    private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
+    // A source type structure can be resolved against a differently named composite type.
+    // Both values are therefore part of the cache identity.
+    private readonly Dictionary<string, Dictionary<ITypeNode, IType>> _compositeTypes = [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, IFusionTypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
@@ -138,10 +140,16 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     {
         typeName ??= typeStructure.NamedType().Name.Value;
 
-        if (!_compositeTypes.TryGetValue(typeStructure, out var type))
+        if (!_compositeTypes.TryGetValue(typeName, out var typeLookup))
+        {
+            typeLookup = [with(SyntaxComparer.BySyntax)];
+            _compositeTypes.Add(typeName, typeLookup);
+        }
+
+        if (!typeLookup.TryGetValue(typeStructure, out var type))
         {
             type = CreateType(typeStructure, typeName);
-            _compositeTypes[typeStructure] = type;
+            typeLookup.Add(typeStructure, type);
         }
 
         return type;
@@ -169,10 +177,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var type = new FusionScalarTypeDefinition(name, GetSpecScalarDescription(name), isInaccessible: false);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
         type.Complete(new CompositeScalarTypeCompletionContext(
-            default,
             FusionDirectiveCollection.Empty,
             specifiedBy: null,
-            serializationType: GetSpecScalarSerializationType(name),
+            serializationType: ScalarSerializationType.Undefined,
             pattern: null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
@@ -195,19 +202,6 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             SpecScalarNames.ID.Name =>
                 "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
             _ => null
-        };
-
-    private static ScalarSerializationType GetSpecScalarSerializationType(string name)
-        => name switch
-        {
-            SpecScalarNames.String.Name => ScalarSerializationType.String,
-            SpecScalarNames.Int.Name => ScalarSerializationType.Int,
-            SpecScalarNames.Float.Name => ScalarSerializationType.Float,
-            SpecScalarNames.Boolean.Name => ScalarSerializationType.Boolean,
-            SpecScalarNames.ID.Name => ScalarSerializationType.String | ScalarSerializationType.Int,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(name),
-                $"The specified name `{name}` is not a valid spec scalar name.")
         };
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition compositeNamedType)

@@ -19,5 +19,11 @@ public sealed class QueryType : ObjectType
             .Shareable()
             .Type<ContainerType>()
             .Resolve(_ => new Container { Id = AData.ContainerId, Actions = AData.SharedActions });
+
+        descriptor
+            .Field("sharedActions")
+            .Shareable()
+            .Type<NonNullType<ListType<NonNullType<ActionUnionType>>>>()
+            .Resolve(_ => AData.AActions);
     }
 }

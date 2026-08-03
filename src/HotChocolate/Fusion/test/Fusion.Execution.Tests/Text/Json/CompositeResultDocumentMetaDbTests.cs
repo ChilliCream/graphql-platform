@@ -118,6 +118,36 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     }
 
     [Fact]
+    public void PackedFlags_Should_PreserveAllEightBits_WhenRowsAreCreated()
+    {
+        // Arrange
+        const ElementFlags flags = (ElementFlags)DbRow.FlagsMask;
+        var replaceCursor = _metaDb.AppendNull(parentRow: 7);
+
+        // Act
+        var cursors = new[]
+        {
+            _metaDb.Append(ElementTokenType.String, flags: flags),
+            _metaDb.AppendEmptyProperty(parentRow: 0, selectionId: 1, flags: flags),
+            _metaDb.AppendEmptyPropertyWithNullValue(parentRow: 0, selectionId: 2, flags: flags),
+            _metaDb.AppendStartObject(
+                parentRow: 0,
+                selectionSetId: 3,
+                propertyCount: 0,
+                flags: flags),
+            _metaDb.AppendStartArray(parentRow: 0, length: 0, flags: flags),
+            replaceCursor
+        };
+        _metaDb.ReplacePreserveParent(replaceCursor, ElementTokenType.String, flags: flags);
+
+        // Assert
+        Assert.Equal(17, DbRow.FlagsShift);
+        Assert.Equal(8, DbRow.FlagsBitCount);
+        Assert.Equal(0xFF, DbRow.FlagsMask);
+        Assert.All(cursors, cursor => Assert.Equal(flags, _metaDb.Get(cursor).Flags));
+    }
+
+    [Fact]
     public void Get_WithComplexChildren_ReturnsCorrectFlag()
     {
         // Arrange
@@ -419,11 +449,15 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             flags: ElementFlags.None);
 
         // Act
-        _metaDb.SetFlags(index, ElementFlags.IsNullable | ElementFlags.IsRoot);
+        _metaDb.SetFlags(
+            index,
+            ElementFlags.IsNullable | ElementFlags.IsRoot | ElementFlags.NullMarker);
 
         // Assert — Flags updated, other fields preserved
         var row = _metaDb.Get(index);
-        Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsRoot, row.Flags);
+        Assert.Equal(
+            ElementFlags.IsNullable | ElementFlags.IsRoot | ElementFlags.NullMarker,
+            row.Flags);
         Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
         Assert.Equal(100, row.Parent);
         Assert.Equal(42, row.OperationReferenceId);
