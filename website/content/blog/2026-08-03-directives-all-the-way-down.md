@@ -1,5 +1,5 @@
 ---
-date: "2026-07-07"
+date: "2026-08-03"
 title: "Directives All the Way Down"
 description: "GraphQL directives can now be applied to directive definitions themselves in Hot Chocolate 16.4, so you can finally deprecate a directive and attach metadata to your schema's own extension points."
 tags: ["hotchocolate", "graphql", "directives", "deprecation"]
