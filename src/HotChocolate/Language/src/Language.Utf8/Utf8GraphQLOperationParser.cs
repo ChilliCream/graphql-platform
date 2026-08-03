@@ -924,21 +924,13 @@ public ref struct Utf8GraphQLOperationParser
     /// <returns>
     /// The parsed document.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="sourceText"/> is <see langword="null"/>.
-    /// </exception>
     /// <exception cref="ArgumentException">
     /// <paramref name="sourceText"/> is empty.
     /// </exception>
     public static Utf8OperationDocument Parse(
-        byte[] sourceText,
+        ReadOnlyMemory<byte> sourceText,
         ParserOptions? options = null)
     {
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
-
         if (sourceText.Length == 0)
         {
             throw new ArgumentException(GraphQLData_Empty, nameof(sourceText));

@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
@@ -12,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationSourceTextTests : FusionTestBase
+public sealed class OperationExecutionNodeCreationTests : FusionTestBase
 {
     private const string SourceSchemaA =
         """
@@ -52,7 +51,7 @@ public sealed class OperationSourceTextTests : FusionTestBase
         // The root node and the lookup node both carry the syntax tree of their operation.
         Assert.All(
             plan.AllNodes.OfType<OperationExecutionNode>(),
-            node => Assert.NotNull(node.Operation.Document));
+            node => Assert.NotNull(node.OperationDocument));
     }
 
     [Fact]
@@ -71,7 +70,7 @@ public sealed class OperationSourceTextTests : FusionTestBase
         var request = Assert.Single(client.Requests, r => r.LookupTypeName is not null);
         var node = Assert.IsType<OperationExecutionNode>(request.Node);
         Assert.NotNull(request.OperationDocument);
-        Assert.Same(node.Operation.Document, request.OperationDocument);
+        Assert.Same(node.OperationDocument, request.OperationDocument);
     }
 
     [Fact]
@@ -84,7 +83,7 @@ public sealed class OperationSourceTextTests : FusionTestBase
         var plan = PlanOperation(schema, "{ books { rating } }");
 
         // assert
-        Assert.Equal("Book", GetLookupNode(plan).Operation.LookupTypeName);
+        Assert.Equal("Book", GetLookupNode(plan).LookupTypeName);
     }
 
     [Fact]
@@ -98,60 +97,36 @@ public sealed class OperationSourceTextTests : FusionTestBase
 
         // assert
         var root = Assert.Single(plan.AllNodes.OfType<OperationExecutionNode>());
-        Assert.Null(root.Operation.LookupTypeName);
-    }
-
-    [Fact]
-    public void Create_Should_CarryTheDocument_When_OperationIsNoLookup()
-    {
-        // arrange
-        var sourceText = "query { books { title } }"u8.ToArray();
-
-        // act
-        var operation = OperationSourceText.Create(
-            "Op_1",
-            OperationType.Query,
-            sourceText,
-            "hash",
-            lookupTypeName: null);
-
-        // assert
-        Assert.True(OperationSourceText.TryGetSingleRootField(operation.Document, out _, out var rootField));
-        Assert.Equal("books", Encoding.UTF8.GetString(rootField.Utf8Name));
-        Assert.Null(operation.LookupTypeName);
-    }
-
-    [Fact]
-    public void Create_Should_CarryNoLookupTypeName_When_OperationSelectsTwoRootFields()
-    {
-        // arrange
-        var sourceText = "query { bookById(id: 1) { title } authorById(id: 1) { name } }"u8.ToArray();
-
-        // act
-        var operation = OperationSourceText.Create(
-            "Op_1",
-            OperationType.Query,
-            sourceText,
-            "hash",
-            lookupTypeName: "Book");
-
-        // assert
-        Assert.Null(operation.LookupTypeName);
+        Assert.Null(root.LookupTypeName);
     }
 
     [Fact]
     public void Create_Should_Throw_When_SourceTextDoesNotParse()
     {
         // arrange
+        var schema = ComposeSchema(SourceSchemaA, SourceSchemaB);
+        var plan = PlanOperation(schema, "{ books { title } }");
+        var node = Assert.Single(plan.AllNodes.OfType<OperationExecutionNode>());
         var sourceText = "query { books "u8.ToArray();
-
-        // act
-        void Act() => OperationSourceText.Create(
+        var operation = new OperationSourceText(
             "Op_1",
             OperationType.Query,
             sourceText,
-            "hash",
-            lookupTypeName: null);
+            OperationSourceTextHash.Compute(sourceText));
+
+        // act
+        void Act() => new OperationExecutionNode(
+            node.Id,
+            operation,
+            lookupTypeName: null,
+            node.SchemaName,
+            node.Target,
+            node.Source,
+            [],
+            [],
+            node.ResultSelectionSet,
+            [],
+            requiresFileUpload: false);
 
         // assert
         Assert.Throws<SyntaxException>(Act);

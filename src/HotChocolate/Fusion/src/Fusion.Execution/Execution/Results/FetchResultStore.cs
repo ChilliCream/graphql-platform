@@ -135,7 +135,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     rootErrors.AddRange(rootErrorsFromResult);
                 }
 
-                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+                dataElementsSpan[i] = GetDataElement(sourcePath, result);
                 errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
             }
 
@@ -238,7 +238,7 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             for (var i = 0; i < results.Length; i++)
             {
-                dataElementsSpan[i] = GetDataElement(sourcePath, results[i].Data);
+                dataElementsSpan[i] = GetDataElement(sourcePath, results[i]);
             }
 
             lock (_lock)
@@ -327,7 +327,7 @@ internal sealed partial class FetchResultStore : IDisposable
         ResultSelectionSet resultSelectionSet)
     {
         var errors = result.Errors;
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
         var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
         lock (_lock)
@@ -362,7 +362,7 @@ internal sealed partial class FetchResultStore : IDisposable
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
 
         lock (_lock)
         {
@@ -1960,16 +1960,15 @@ AddErrors_Next:
         return buffer;
     }
 
-    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceSchemaResult result)
     {
-        if (sourcePath.IsRoot)
-        {
-            return data;
-        }
+        // A source schema client can resolve the root field of a response while it reads it. The
+        // element it hands over with the result stands in for the first segment of the source
+        // path, so the walk continues after that segment.
+        var lookupData = result.LookupData;
+        var current = lookupData ?? result.Data;
 
-        var current = data;
-
-        for (var i = 0; i < sourcePath.Length; i++)
+        for (var i = lookupData is null ? 0 : 1; i < sourcePath.Length; i++)
         {
             if (current.ValueKind != JsonValueKind.Object)
             {

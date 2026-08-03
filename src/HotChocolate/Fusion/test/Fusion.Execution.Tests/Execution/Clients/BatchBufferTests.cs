@@ -123,8 +123,11 @@ public sealed class BatchBufferTests : FusionTestBase
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = sourceText,
-            OperationHash = 1,
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Query,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
             Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
         };

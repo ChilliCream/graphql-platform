@@ -256,8 +256,11 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             Node = fixture.GetRootNode(),
             SchemaName = "a",
             OperationType = OperationType.Subscription,
-            OperationSourceText = sourceText,
-            OperationHash = 0,
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Subscription,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText)
         };
 

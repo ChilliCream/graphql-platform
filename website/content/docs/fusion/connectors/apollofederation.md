@@ -357,11 +357,37 @@ The gateway uses Apollo's entity protocol when it routes to Apollo Federation su
 
 **Entity batching.** When the gateway needs several entities of the same type from one subgraph, it sends one `_entities` call with all representations in the `representations` array. Identical representations are de-duplicated.
 
-When a query plan needs several different lookups from the same subgraph, the gateway dispatches them together as one batched request.
-
 **Requirement threading.** When a field on one subgraph depends on data owned by another (the `@requires` case), the gateway resolves the required fields first. It then threads them into the representation it sends to the subgraph that needs them.
 
 **Error propagation.** Errors returned by a subgraph and transport failures that prevent the gateway from reaching it are attached to the affected result paths and surfaced in the gateway response.
+
+## Batching
+
+Because entity keys travel in the `representations` argument, a single `_entities` call already resolves many entities at once. What is left to batch is the case where one plan wave needs several _different_ operations from the same subgraph, for example two `_entities` calls with different sub-selections.
+
+For an Apollo Federation subgraph the gateway defaults to **alias batching only**: it merges those operations into one plain GraphQL operation with alias-prefixed root fields, which any spec-compliant GraphQL server can answer. Neither protocol extension, variable batching nor request batching, is assumed on this connector. Subgraphs connected through the default GraphQL connector keep the protocol-extension defaults instead.
+
+If your federation server does accept JSON-array request batching, declare it in that source schema's settings and the gateway prefers it over alias batching:
+
+```json
+{
+  "name": "Products",
+  "transports": {
+    "http": {
+      "url": "https://products.internal/graphql",
+      "capabilities": {
+        "batching": {
+          "requestBatching": true
+        }
+      }
+    }
+  }
+}
+```
+
+Each flag you declare wins over the default on its own; the flags you leave out keep it. The snippet above therefore ends up with request batching **and** alias batching. To turn batching off completely for a federation subgraph, declare `"aliasBatching": false` as well.
+
+See [Batching](../batching.md) for the three capabilities, how the gateway picks between them, and how errors are attributed to items of a merged operation.
 
 # Current Limitations
 

@@ -49,7 +49,37 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         var body = await fixture.SendAsync(fixture.CreateLookupRequest());
 
         // assert
-        Assert.Equal(expectsAliasBatching, body.StartsWith("""{"query":"query Batch_""", StringComparison.Ordinal));
+        Assert.Equal(expectsAliasBatching, body.Contains("_Batch_", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_NameTheMergedOperation_When_ItemsAreMerged()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+
+        // act
+        var body = await fixture.SendAsync(fixture.CreateLookupRequest());
+
+        // assert
+        ReadOperationName(body).MatchInlineSnapshot("Op_123456789101112_Batch_60bf52c63719e74a");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_NameTheMergedOperationDifferently_When_TheBatchCarriesAnotherItem()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        var request = fixture.CreateLookupRequest();
+
+        // act
+        var twoItems = ReadOperationName(await fixture.SendAsync(request));
+        var threeItems = ReadOperationName(
+            await fixture.SendAsync(
+                request with { Variables = [.. request.Variables, fixture.CreateVariableValues("3")] }));
+
+        // assert
+        Assert.NotEqual(twoItems, threeItems);
     }
 
     [Fact]
@@ -192,6 +222,26 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         Assert.Throws<ObjectDisposedException>(() => root.GetProperty("field").GetString());
     }
 
+    private static OperationSourceText CreateSourceText(string sourceText)
+    {
+        var value = Encoding.UTF8.GetBytes(sourceText);
+        return new OperationSourceText(
+            "Op",
+            OperationType.Query,
+            value,
+            OperationSourceTextHash.Compute(value));
+    }
+
+    /// <summary>
+    /// Reads the name of the operation the body carries.
+    /// </summary>
+    private static string ReadOperationName(string body)
+    {
+        using var document = JsonDocument.Parse(body);
+        var query = document.RootElement.GetProperty("query").GetString()!;
+        return query[(query.IndexOf(' ') + 1)..query.IndexOf('(')];
+    }
+
     private static string ReadVariables(string body)
     {
         using var document = JsonDocument.Parse(body);
@@ -268,8 +318,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
                 Node = _operationPlan.RootNodes[0],
                 SchemaName = "A",
                 OperationType = OperationType.Query,
-                OperationSourceText = Encoding.UTF8.GetBytes(Lookup),
-                OperationHash = 1,
+                OperationSourceText = CreateSourceText(Lookup),
                 Variables = [CreateVariableValues("1"), CreateVariableValues("2")],
                 OperationDocument = _document,
                 LookupTypeName = "Foo"

@@ -14,6 +14,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.NATS.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.Kafka.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />

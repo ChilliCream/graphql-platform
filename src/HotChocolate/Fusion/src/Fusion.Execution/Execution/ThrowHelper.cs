@@ -34,6 +34,11 @@ internal static class ThrowHelper
     public static InvalidOperationException SingleOperationRequired()
         => new(FusionExecutionResources.JsonOperationPlanParser_SingleOperationRequired);
 
+    public static InvalidOperationException InvalidAliasBatchResponse(string schemaName)
+        => new(string.Format(
+            FusionExecutionResources.HttpSourceSchemaClient_InvalidAliasBatchResponse,
+            schemaName));
+
     public static InvalidOperationException RequestIndexOutOfRange(int requestIndex)
         => new(string.Format(
             FusionExecutionResources.HttpSourceSchemaClient_InvalidRequestIndex,

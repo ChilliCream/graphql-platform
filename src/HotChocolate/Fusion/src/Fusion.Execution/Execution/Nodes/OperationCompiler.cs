@@ -36,7 +36,25 @@ public sealed class OperationCompiler
     /// </summary>
     public FusionSchemaDefinition Schema => _schema;
 
-    public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
+    public Operation Compile(
+        string id,
+        string hash,
+        OperationDefinitionNode operationDefinition)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+
+        return Compile(
+            id,
+            hash,
+            hash[..Math.Min(hash.Length, 8)],
+            operationDefinition);
+    }
+
+    public Operation Compile(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -92,6 +110,7 @@ public sealed class OperationCompiler
             return new Operation(
                 id,
                 hash,
+                shortHash,
                 operationDefinition,
                 rootType,
                 _schema,

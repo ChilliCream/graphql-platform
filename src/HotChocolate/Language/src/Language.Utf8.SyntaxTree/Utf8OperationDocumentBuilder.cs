@@ -1,17 +1,26 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Diagnostics;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Builds a batched lookup operation from root field selections of packed UTF-8 syntax trees and
+/// streams it to a buffer writer. Each added selection becomes an aliased root field whose
+/// variables are renamed per item, unless the variable is declared as shared.
+/// </summary>
 internal struct Utf8OperationDocumentBuilder
 {
     private const int InitialCapacity = 4;
     private const int PrefixBufferLength = 12;
+    private const int OrdinalBufferLength = 10;
     private const int StackWordThreshold = 64;
 
     private readonly Utf8SyntaxWriter _writer;
-    private Utf8FieldNode[]? _items;
+    private Item[]? _items;
     private int _itemCount;
+    private SelectionBody[]? _bodies;
+    private int _bodyCount;
     private Utf8VariableDefinitionNode[]? _sharedDefinitions;
     private int _sharedCount;
     private WriterStage _stage;
@@ -23,11 +32,11 @@ internal struct Utf8OperationDocumentBuilder
         => _writer = new Utf8SyntaxWriter(writer, formatAsJsonStringValue);
 
     /// <summary>
-    /// Creates a new builder that streams a batched lookup operation into <paramref name="writer"/>.
+    /// Creates a new builder that writes a batched lookup operation to <paramref name="writer"/>.
     /// </summary>
     /// <remarks>
-    /// The operation is streamed as it is built, so when a call fails after the first content byte
-    /// was written, the destination buffer holds a partial operation and must be discarded.
+    /// When a call fails after the first content byte was written, the destination buffer holds a
+    /// partial operation and must be discarded.
     /// </remarks>
     /// <param name="writer">
     /// The buffer writer that receives the UTF-8 encoded output.
@@ -60,7 +69,7 @@ internal struct Utf8OperationDocumentBuilder
     /// shared variable or root selection is added.
     /// </summary>
     /// <param name="name">
-    /// The operation name.
+    /// The operation name, which must be a valid GraphQL name.
     /// </param>
     /// <returns>
     /// The builder for chaining.
@@ -69,7 +78,7 @@ internal struct Utf8OperationDocumentBuilder
     /// <paramref name="name"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    /// The name is set out of order.
+    /// The name was already set, or a shared variable or root selection was already added.
     /// </exception>
     internal Utf8OperationDocumentBuilder SetName(string name)
     {
@@ -92,14 +101,14 @@ internal struct Utf8OperationDocumentBuilder
     /// shared variable or root selection is added.
     /// </summary>
     /// <param name="name">
-    /// The UTF-8 encoded operation name. The bytes are written immediately and need not outlive
+    /// The UTF-8 encoded operation name, which must be a valid GraphQL name and need not outlive
     /// the call.
     /// </param>
     /// <returns>
     /// The builder for chaining.
     /// </returns>
     /// <exception cref="InvalidOperationException">
-    /// The name is set out of order.
+    /// The name was already set, or a shared variable or root selection was already added.
     /// </exception>
     internal Utf8OperationDocumentBuilder SetName(ReadOnlySpan<byte> name)
     {
@@ -114,18 +123,18 @@ internal struct Utf8OperationDocumentBuilder
 
     /// <summary>
     /// Declares a variable that is shared across all items and writes its definition immediately.
-    /// A shared variable is declared once and keeps its original name, so items that use it are not
-    /// prefixed. Shared variables must be added before any root selection.
+    /// A shared variable is declared once and keeps its original name in every item that uses it,
+    /// and shared variables must be added before any root selection.
     /// </summary>
     /// <param name="definition">
-    /// The variable definition to declare. Its source range is written in compact form.
+    /// The variable definition to declare, which is written in compact form.
     /// </param>
     /// <returns>
     /// The builder for chaining.
     /// </returns>
     /// <exception cref="InvalidOperationException">
-    /// The shared variable is added out of order, or <paramref name="definition"/> is not
-    /// associated with a document.
+    /// A root selection was already added, the operation was already completed, or
+    /// <paramref name="definition"/> is not associated with a document.
     /// </exception>
     internal Utf8OperationDocumentBuilder AddSharedVariable(Utf8VariableDefinitionNode definition)
     {
@@ -154,31 +163,102 @@ internal struct Utf8OperationDocumentBuilder
     /// and its body is written when the operation is completed.
     /// </summary>
     /// <param name="selection">
-    /// The root field selection to add.
+    /// The root field selection to add, which must be a plain field without an alias.
+    /// </param>
+    /// <param name="typeCondition">
+    /// The name of the type the body of <paramref name="selection"/> is selected on, which must be
+    /// a valid GraphQL name and must match the type condition of every other item that shares the
+    /// body.
     /// </param>
     /// <returns>
     /// The builder for chaining.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="typeCondition"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="typeCondition"/> is empty.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     /// The selection is added after the operation is completed, the selection is not associated
-    /// with a document, or the source document does not contain exactly one operation.
+    /// with a document, the source document does not contain exactly one operation, or a body that
+    /// was already added declares a different type condition.
     /// </exception>
     /// <exception cref="NotSupportedException">
     /// <paramref name="selection"/> carries an alias, or its source document contains a fragment
-    /// spread. Batched lookup selections must be plain fields, and fragment spreads are not
-    /// supported.
+    /// spread.
     /// </exception>
-    internal Utf8OperationDocumentBuilder AddRootSelection(Utf8FieldNode selection)
+    internal Utf8OperationDocumentBuilder AddRootSelection(
+        Utf8FieldNode selection,
+        string typeCondition)
+    {
+        if (typeCondition is null)
+        {
+            throw new ArgumentNullException(nameof(typeCondition));
+        }
+
+        if (typeCondition.Length == 0)
+        {
+            throw new ArgumentException(
+                "The type condition must not be empty.",
+                nameof(typeCondition));
+        }
+
+        return AddRootSelection(selection, typeCondition, default);
+    }
+
+    /// <summary>
+    /// Adds a root selection to the batched operation and writes its renamed variable definitions
+    /// immediately. The field is emitted as an aliased copy whose variables are renamed per item,
+    /// and its body is written when the operation is completed.
+    /// </summary>
+    /// <param name="selection">
+    /// The root field selection to add, which must be a plain field without an alias.
+    /// </param>
+    /// <param name="typeCondition">
+    /// The UTF-8 encoded name of the type the body of <paramref name="selection"/> is selected on,
+    /// which must be a valid GraphQL name, must stay valid until <see cref="Complete"/> returns,
+    /// and must match the type condition of every other item that shares the body.
+    /// </param>
+    /// <returns>
+    /// The builder for chaining.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="typeCondition"/> is empty.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The selection is added after the operation is completed, the selection is not associated
+    /// with a document, the source document does not contain exactly one operation, or a body that
+    /// was already added declares a different type condition.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// <paramref name="selection"/> carries an alias, or its source document contains a fragment
+    /// spread.
+    /// </exception>
+    internal Utf8OperationDocumentBuilder AddRootSelection(
+        Utf8FieldNode selection,
+        ReadOnlyMemory<byte> typeCondition)
+    {
+        if (typeCondition.IsEmpty)
+        {
+            throw new ArgumentException(
+                "The type condition must not be empty.",
+                nameof(typeCondition));
+        }
+
+        return AddRootSelection(selection, null, typeCondition);
+    }
+
+    private Utf8OperationDocumentBuilder AddRootSelection(
+        Utf8FieldNode selection,
+        string? typeConditionText,
+        ReadOnlyMemory<byte> typeConditionUtf8)
     {
         EnsureCanAddRootSelection();
 
-        var document = selection.Document;
-
-        if (document is null)
-        {
-            throw new InvalidOperationException(
+        var document = selection.Document
+            ?? throw new InvalidOperationException(
                 "The root selection is not associated with a document.");
-        }
 
         if (selection.HasAlias)
         {
@@ -194,6 +274,14 @@ internal struct Utf8OperationDocumentBuilder
 
         var operationCursor = FindSingleOperationCursor(document);
 
+        // Registering the body is the last step that can fail, so no bytes are written before the
+        // item is known to be valid.
+        var bodyIndex = RegisterBody(
+            document,
+            selection.SelectionSetCursor(),
+            typeConditionText,
+            typeConditionUtf8);
+
         EnsureKeyword();
         WriteItemVariableDefinitions(document, operationCursor, _itemCount);
 
@@ -202,26 +290,28 @@ internal struct Utf8OperationDocumentBuilder
             GrowItems();
         }
 
-        _items![_itemCount++] = selection;
+        _items![_itemCount++] = new Item(selection, bodyIndex);
         _stage = WriterStage.RootSelections;
         return this;
     }
 
     /// <summary>
-    /// Writes the item bodies and closes the batched lookup operation. The builder is single use,
-    /// and a second call throws.
+    /// Writes the item bodies and the fragments the items share, and closes the batched lookup
+    /// operation.
     /// </summary>
     /// <exception cref="InvalidOperationException">
     /// The operation has already been completed, or no root selection was added.
     /// </exception>
     internal void Complete()
     {
-        EnsureCanComplete();
-        _stage = WriterStage.Completed;
-
         ulong[]? rentedBits = null;
         try
         {
+            // The precondition is checked inside the try so that a builder that cannot be
+            // completed still hands back the buffers it rented.
+            EnsureCanComplete();
+            _stage = WriterStage.Completed;
+
             EnsureOpened();
 
             if (_parenOpened)
@@ -229,7 +319,7 @@ internal struct Utf8OperationDocumentBuilder
                 _writer.Write(")"u8);
             }
 
-            _writer.Write(" { "u8);
+            _writer.Write("{"u8);
 
             var maxVariableCount = MaxVariableCount();
             var wordCount = (maxVariableCount + 63) >> 6;
@@ -237,7 +327,10 @@ internal struct Utf8OperationDocumentBuilder
                 ? stackalloc ulong[1]
                 : (rentedBits = ArrayPool<ulong>.Shared.Rent(wordCount)).AsSpan(0, wordCount);
 
+            AssignFragmentOrdinals(bits);
+
             Span<byte> prefixBuffer = stackalloc byte[PrefixBufferLength];
+            Span<byte> ordinalBuffer = stackalloc byte[OrdinalBufferLength];
 
             for (var i = 0; i < _itemCount; i++)
             {
@@ -246,10 +339,12 @@ internal struct Utf8OperationDocumentBuilder
                     _writer.Write(" "u8);
                 }
 
-                WriteItem(i, prefixBuffer, bits);
+                WriteItem(i, prefixBuffer, ordinalBuffer, bits);
             }
 
-            _writer.Write(" }"u8);
+            _writer.Write("}"u8);
+
+            WriteFragmentDefinitions(ordinalBuffer, bits);
             _writer.WriteDelimiter();
         }
         finally
@@ -263,28 +358,89 @@ internal struct Utf8OperationDocumentBuilder
         }
     }
 
-    private readonly void WriteItem(int index, Span<byte> prefixBuffer, Span<ulong> bits)
+    /// <summary>
+    /// Assigns the ordinal of the generated fragment to every body that more than one item shares
+    /// and that uses shared variables only.
+    /// </summary>
+    private readonly void AssignFragmentOrdinals(Span<ulong> bits)
     {
-        var field = _items![index];
-        var document = field.Document;
+        var ordinal = 0;
+
+        for (var i = 0; i < _bodyCount; i++)
+        {
+            ref var body = ref _bodies![i];
+
+            if (body.ItemCount > 1
+                && UsesSharedVariablesOnly(body.Document, body.SelectionSetCursor, bits))
+            {
+                body.FragmentOrdinal = ++ordinal;
+            }
+        }
+    }
+
+    private readonly void WriteItem(
+        int index,
+        Span<byte> prefixBuffer,
+        Span<byte> ordinalBuffer,
+        Span<ulong> bits)
+    {
+        var item = _items![index];
+        var field = item.Field;
         var prefix = ComposePrefix(prefixBuffer, index);
 
         _writer.Write(prefix);
         _writer.Write(field.Utf8Name);
         _writer.Write(":"u8);
 
-        var variableCount = document.VariableCount;
-        var shared = new SharedOrdinalSet(bits.Slice(0, (variableCount + 63) >> 6));
+        var shared = CreateSharedSet(field.Document, bits);
+        var fragmentOrdinal = item.BodyIndex < 0 ? 0 : _bodies![item.BodyIndex].FragmentOrdinal;
 
-        for (var ordinal = 0; ordinal < variableCount; ordinal++)
+        if (fragmentOrdinal == 0)
         {
-            if (ContainsSharedDefinition(document.GetVariableName(ordinal)))
-            {
-                shared.Add(ordinal);
-            }
+            field.Format(_writer, prefix, shared);
+            return;
         }
 
-        field.Format(_writer, prefix, shared);
+        field.FormatWithoutSelectionSet(_writer, prefix, shared);
+        _writer.Write("{..."u8);
+        WriteFragmentName(fragmentOrdinal, ordinalBuffer);
+        _writer.Write("}"u8);
+    }
+
+    private readonly void WriteFragmentDefinitions(Span<byte> ordinalBuffer, Span<ulong> bits)
+    {
+        for (var i = 0; i < _bodyCount; i++)
+        {
+            ref var body = ref _bodies![i];
+
+            if (body.FragmentOrdinal == 0)
+            {
+                continue;
+            }
+
+            // A fragment body is written without substitution, so every variable it uses must be
+            // one that keeps its original name.
+            Debug.Assert(UsesSharedVariablesOnly(body.Document, body.SelectionSetCursor, bits));
+
+            _writer.Write(" fragment "u8);
+            WriteFragmentName(body.FragmentOrdinal, ordinalBuffer);
+            _writer.Write(" on "u8);
+            body.WriteTypeCondition(_writer);
+
+            Utf8SyntaxFormatter.Write(
+                body.Document,
+                body.SelectionSetCursor,
+                _writer,
+                variables: default,
+                indented: false);
+        }
+    }
+
+    private readonly void WriteFragmentName(int ordinal, Span<byte> ordinalBuffer)
+    {
+        _writer.Write("_fusion_body_"u8);
+        Utf8Formatter.TryFormat(ordinal, ordinalBuffer, out var written);
+        _writer.Write(ordinalBuffer.Slice(0, written));
     }
 
     private void WriteItemVariableDefinitions(
@@ -327,7 +483,7 @@ internal struct Utf8OperationDocumentBuilder
     {
         if (_parenOpened)
         {
-            _writer.Write(", "u8);
+            _writer.Write(","u8);
         }
         else
         {
@@ -400,6 +556,110 @@ internal struct Utf8OperationDocumentBuilder
         }
     }
 
+    /// <summary>
+    /// Returns the index of the body of the added selection, or <c>-1</c> when the selection
+    /// declares no body. A body is matched by its document and its selection set, and the type
+    /// condition of its first item is kept.
+    /// </summary>
+    private int RegisterBody(
+        Utf8OperationDocument document,
+        int selectionSetCursor,
+        string? typeConditionText,
+        ReadOnlyMemory<byte> typeConditionUtf8)
+    {
+        if (selectionSetCursor < 0)
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < _bodyCount; i++)
+        {
+            ref var body = ref _bodies![i];
+
+            if (!ReferenceEquals(body.Document, document)
+                || body.SelectionSetCursor != selectionSetCursor)
+            {
+                continue;
+            }
+
+            if (!body.HasTypeCondition(typeConditionText, typeConditionUtf8.Span))
+            {
+                throw new InvalidOperationException(
+                    "The items that share a body must declare the same type condition.");
+            }
+
+            body.ItemCount++;
+            return i;
+        }
+
+        if (_bodies is null || _bodies.Length == _bodyCount)
+        {
+            GrowBodies();
+        }
+
+        _bodies![_bodyCount] = new SelectionBody(
+            document,
+            selectionSetCursor,
+            typeConditionText,
+            typeConditionUtf8);
+
+        return _bodyCount++;
+    }
+
+    /// <summary>
+    /// Determines whether every variable the body at <paramref name="selectionSetCursor"/> uses
+    /// keeps its original name.
+    /// </summary>
+    private readonly bool UsesSharedVariablesOnly(
+        Utf8OperationDocument document,
+        int selectionSetCursor,
+        Span<ulong> bits)
+    {
+        var siteCount = document.VariableSiteCount;
+
+        if (siteCount == 0)
+        {
+            return true;
+        }
+
+        var row = document.GetRow(selectionSetCursor);
+        var end = row.SourceEnd;
+        var shared = CreateSharedSet(document, bits);
+
+        for (var i = document.FindFirstVariableSite(row.Location); i < siteCount; i++)
+        {
+            if (document.GetVariableSitePosition(i) >= end)
+            {
+                break;
+            }
+
+            if (!shared.Contains(document.GetVariableSiteOrdinal(i)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private readonly SharedOrdinalSet CreateSharedSet(
+        Utf8OperationDocument document,
+        Span<ulong> bits)
+    {
+        var variableCount = document.VariableCount;
+        var shared = new SharedOrdinalSet(bits.Slice(0, (variableCount + 63) >> 6));
+
+        for (var ordinal = 0; ordinal < variableCount; ordinal++)
+        {
+            if (ContainsSharedDefinition(document.GetVariableName(ordinal)))
+            {
+                shared.Add(ordinal);
+            }
+        }
+
+        return shared;
+    }
+
     private readonly bool ContainsSharedDefinition(ReadOnlySpan<byte> name)
     {
         for (var i = 0; i < _sharedCount; i++)
@@ -417,7 +677,7 @@ internal struct Utf8OperationDocumentBuilder
     {
         for (var i = 0; i < _itemCount; i++)
         {
-            if (ReferenceEquals(_items![i].Document, document))
+            if (ReferenceEquals(_items![i].Field.Document, document))
             {
                 return false;
             }
@@ -431,7 +691,7 @@ internal struct Utf8OperationDocumentBuilder
         var max = 0;
         for (var i = 0; i < _itemCount; i++)
         {
-            var count = _items![i].Document.VariableCount;
+            var count = _items![i].Field.Document.VariableCount;
             if (count > max)
             {
                 max = count;
@@ -506,15 +766,29 @@ internal struct Utf8OperationDocumentBuilder
     private void GrowItems()
     {
         var capacity = _items is null ? InitialCapacity : _items.Length * 2;
-        var next = ArrayPool<Utf8FieldNode>.Shared.Rent(capacity);
+        var next = ArrayPool<Item>.Shared.Rent(capacity);
 
         if (_items is not null)
         {
             Array.Copy(_items, next, _itemCount);
-            ArrayPool<Utf8FieldNode>.Shared.Return(_items, clearArray: true);
+            ArrayPool<Item>.Shared.Return(_items, clearArray: true);
         }
 
         _items = next;
+    }
+
+    private void GrowBodies()
+    {
+        var capacity = _bodies is null ? InitialCapacity : _bodies.Length * 2;
+        var next = ArrayPool<SelectionBody>.Shared.Rent(capacity);
+
+        if (_bodies is not null)
+        {
+            Array.Copy(_bodies, next, _bodyCount);
+            ArrayPool<SelectionBody>.Shared.Return(_bodies, clearArray: true);
+        }
+
+        _bodies = next;
     }
 
     private void GrowSharedDefinitions()
@@ -535,8 +809,14 @@ internal struct Utf8OperationDocumentBuilder
     {
         if (_items is not null)
         {
-            ArrayPool<Utf8FieldNode>.Shared.Return(_items, clearArray: true);
+            ArrayPool<Item>.Shared.Return(_items, clearArray: true);
             _items = null;
+        }
+
+        if (_bodies is not null)
+        {
+            ArrayPool<SelectionBody>.Shared.Return(_bodies, clearArray: true);
+            _bodies = null;
         }
 
         if (_sharedDefinitions is not null)
@@ -546,6 +826,7 @@ internal struct Utf8OperationDocumentBuilder
         }
 
         _itemCount = 0;
+        _bodyCount = 0;
         _sharedCount = 0;
     }
 
@@ -556,5 +837,123 @@ internal struct Utf8OperationDocumentBuilder
         SharedVariables,
         RootSelections,
         Completed
+    }
+
+    /// <summary>
+    /// Holds one added root selection together with the body it selects.
+    /// </summary>
+    private readonly struct Item
+    {
+        internal Item(Utf8FieldNode field, int bodyIndex)
+        {
+            Field = field;
+            BodyIndex = bodyIndex;
+        }
+
+        /// <summary>
+        /// Gets the root field selection of this item.
+        /// </summary>
+        internal Utf8FieldNode Field { get; }
+
+        /// <summary>
+        /// Gets the index of the body this item selects, or <c>-1</c> when the item declares no
+        /// body.
+        /// </summary>
+        internal int BodyIndex { get; }
+    }
+
+    /// <summary>
+    /// Holds one distinct item body, identified by the document it belongs to and the selection set
+    /// that holds it.
+    /// </summary>
+    private struct SelectionBody
+    {
+        private readonly string? _typeConditionText;
+        private readonly ReadOnlyMemory<byte> _typeConditionUtf8;
+
+        internal SelectionBody(
+            Utf8OperationDocument document,
+            int selectionSetCursor,
+            string? typeConditionText,
+            ReadOnlyMemory<byte> typeConditionUtf8)
+        {
+            Document = document;
+            SelectionSetCursor = selectionSetCursor;
+            _typeConditionText = typeConditionText;
+            _typeConditionUtf8 = typeConditionUtf8;
+            ItemCount = 1;
+        }
+
+        /// <summary>
+        /// Gets the document this body belongs to.
+        /// </summary>
+        internal Utf8OperationDocument Document { get; }
+
+        /// <summary>
+        /// Gets the cursor of the selection set that holds this body.
+        /// </summary>
+        internal int SelectionSetCursor { get; }
+
+        /// <summary>
+        /// Gets or sets the number of items that select this body.
+        /// </summary>
+        internal int ItemCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the one-based ordinal of the fragment that holds this body, or zero when
+        /// the body is written inline.
+        /// </summary>
+        internal int FragmentOrdinal { get; set; }
+
+        /// <summary>
+        /// Determines whether this body is selected on the specified type condition, which is given
+        /// either as a string or in its UTF-8 encoded form.
+        /// </summary>
+        internal readonly bool HasTypeCondition(string? text, ReadOnlySpan<byte> utf8)
+        {
+            if (_typeConditionText is null)
+            {
+                return text is null
+                    ? _typeConditionUtf8.Span.SequenceEqual(utf8)
+                    : EqualsAscii(text, _typeConditionUtf8.Span);
+            }
+
+            return text is null
+                ? EqualsAscii(_typeConditionText, utf8)
+                : string.Equals(_typeConditionText, text, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Writes the type condition this body is selected on.
+        /// </summary>
+        internal readonly void WriteTypeCondition(Utf8SyntaxWriter writer)
+        {
+            if (_typeConditionText is null)
+            {
+                writer.Write(_typeConditionUtf8.Span);
+                return;
+            }
+
+            writer.Write(_typeConditionText);
+        }
+
+        // A GraphQL name holds ASCII characters only, so each character is one UTF-8 byte.
+        private static bool EqualsAscii(string text, ReadOnlySpan<byte> utf8)
+        {
+            if (text.Length != utf8.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (text[i] != utf8[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

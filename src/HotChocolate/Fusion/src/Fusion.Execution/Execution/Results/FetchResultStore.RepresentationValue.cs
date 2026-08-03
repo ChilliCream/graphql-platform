@@ -36,7 +36,7 @@ internal sealed partial class FetchResultStore
         ArgumentNullException.ThrowIfNull(sourcePath);
         ArgumentNullException.ThrowIfNull(result);
 
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
         var errors = containsErrors ? result.Errors : null;
         var errorTrie = containsErrors ? GetErrorTrie(sourcePath, errors?.Trie) : null;
         var resultPaths = representation.ResultPaths.AsSpan();

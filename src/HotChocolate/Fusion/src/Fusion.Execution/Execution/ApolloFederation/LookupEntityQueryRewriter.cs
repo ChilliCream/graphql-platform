@@ -69,7 +69,7 @@ internal static class LookupEntityQueryRewriter
             strippedSelections = FlattenConcreteTypeConditions(strippedSelections);
         }
 
-        var sourceText = Encoding.UTF8.GetBytes(
+        var value = Encoding.UTF8.GetBytes(
             BuildEntitiesDocument(
                 entityTypeName,
                 strippedSelections,
@@ -79,8 +79,8 @@ internal static class LookupEntityQueryRewriter
             new OperationSourceText(
                 operation.Name,
                 operation.Type,
-                sourceText,
-                OperationSourceTextHash.Compute(sourceText)),
+                value,
+                OperationSourceTextHash.Compute(value)),
             entityTypeName,
             lookupField);
     }

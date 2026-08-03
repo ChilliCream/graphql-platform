@@ -33,15 +33,38 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         int id,
         SingleOperationDefinition[] operations,
         ApolloEntityLookup[] lookups,
+        FusionSchemaDefinition schema,
         string schemaName)
     {
         Id = id;
         _operations = operations;
-        _lookups = lookups;
+        _lookups = new ApolloEntityLookup[lookups.Length];
         _schemaName = schemaName;
+
+        for (var i = 0; i < lookups.Length; i++)
+        {
+            var lookup = lookups[i];
+
+            if (!lookup.RepresentationShape.IsDefault)
+            {
+                throw new ArgumentException(
+                    "An Apollo entity lookup must be unmaterialized before node construction.",
+                    nameof(lookups));
+            }
+
+            var representationShape = RepresentationShapeBuilder.Build(
+                lookup.Operation,
+                lookup.EntityTypeName,
+                operations[i].Target,
+                operations[i].Requirements,
+                operations[i].ResultSelectionSet,
+                schema);
+
+            _lookups[i] = lookup with { RepresentationShape = representationShape };
+        }
     }
 
-    internal static ApolloOperationBatchExecutionNode Create(
+    internal static ApolloOperationBatchExecutionNode CreateFromLookup(
         int id,
         SingleOperationDefinition[] operations,
         FusionSchemaDefinition schema)
@@ -49,58 +72,48 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         ArgumentNullException.ThrowIfNull(operations);
         ArgumentNullException.ThrowIfNull(schema);
 
-        if (operations.Length < 2)
-        {
-            throw new ArgumentException(
-                "An Apollo entity batch requires at least two operation definitions.",
-                nameof(operations));
-        }
-
-        var schemaName = operations[0].SchemaName;
-
-        if (string.IsNullOrEmpty(schemaName))
-        {
-            throw new ArgumentException(
-                "An Apollo entity batch requires a statically known source schema name.",
-                nameof(operations));
-        }
-
-        foreach (var definition in operations)
-        {
-            if (!string.Equals(definition.SchemaName, schemaName, StringComparison.Ordinal))
-            {
-                throw new ArgumentException(
-                    "All operation definitions of an Apollo entity batch must target "
-                    + "the same source schema.",
-                    nameof(operations));
-            }
-        }
-
+        var schemaName = ValidateOperations(operations);
         var lookups = new ApolloEntityLookup[operations.Length];
 
         for (var i = 0; i < operations.Length; i++)
         {
-            var definition = operations[i];
-            var rewritten = LookupEntityQueryRewriter.Rewrite(schema, schemaName, definition.Operation);
-
-            lookups[i] = new ApolloEntityLookup(
-                rewritten.Operation,
-                Utf8GraphQLOperationParser.Parse(rewritten.Operation.SourceText),
-                rewritten.Operation.SourceText.ComputeHash(),
-                rewritten.EntityTypeName,
-
-                // Compile the representation shape once at plan build so that unsupported
-                // requirement maps and unbound requirements fail here rather than at
-                // execution time. The shape is a plan-time constant, so it is retained and
-                // reused for every request this lookup serves.
-                RepresentationShapeBuilder.Build(
-                    rewritten.LookupField,
-                    definition.Requirements,
-                    schema,
-                    rewritten.EntityTypeName));
+            lookups[i] = RewriteLookup(operations[i], schemaName, schema);
         }
 
-        return new ApolloOperationBatchExecutionNode(id, operations, lookups, schemaName);
+        return new ApolloOperationBatchExecutionNode(
+            id,
+            operations,
+            lookups,
+            schema,
+            schemaName);
+    }
+
+    internal static ApolloOperationBatchExecutionNode CreateFromParser(
+        int id,
+        SingleOperationDefinition[] operations,
+        ApolloEntityLookup[] lookups,
+        FusionSchemaDefinition schema)
+    {
+        ArgumentNullException.ThrowIfNull(operations);
+        ArgumentNullException.ThrowIfNull(lookups);
+        ArgumentNullException.ThrowIfNull(schema);
+
+        if (operations.Length != lookups.Length)
+        {
+            throw new ArgumentException(
+                "An Apollo entity batch requires one parsed entity lookup per "
+                + "operation definition.",
+                nameof(lookups));
+        }
+
+        var schemaName = ValidateOperations(operations);
+
+        return new ApolloOperationBatchExecutionNode(
+            id,
+            operations,
+            lookups,
+            schema,
+            schemaName);
     }
 
     /// <inheritdoc />
@@ -344,9 +357,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 Node = this,
                 SchemaName = schemaName,
                 OperationType = lookup.Operation.Type,
-                OperationSourceText = lookup.Operation.SourceText,
+                OperationSourceText = lookup.Operation,
                 OperationDocument = lookup.OperationDocument,
-                OperationHash = lookup.OperationHash,
                 LookupTypeName = lookup.EntityTypeName,
                 Variables = requestVariables,
                 RequiresFileUpload = false
@@ -437,5 +449,54 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         {
             operation.Seal();
         }
+    }
+
+    private static ApolloEntityLookup RewriteLookup(
+        SingleOperationDefinition operation,
+        string schemaName,
+        FusionSchemaDefinition schema)
+    {
+        var rewritten = LookupEntityQueryRewriter.Rewrite(
+            schema,
+            schemaName,
+            operation.SourceText);
+
+        return new ApolloEntityLookup(
+            rewritten.SourceText,
+            Utf8GraphQLOperationParser.Parse(rewritten.SourceText.Value),
+            rewritten.EntityTypeName,
+            RepresentationShape: default);
+    }
+
+    private static string ValidateOperations(SingleOperationDefinition[] operations)
+    {
+        if (operations.Length < 2)
+        {
+            throw new ArgumentException(
+                "An Apollo entity batch requires at least two operation definitions.",
+                nameof(operations));
+        }
+
+        var schemaName = operations[0].SchemaName;
+
+        if (string.IsNullOrEmpty(schemaName))
+        {
+            throw new ArgumentException(
+                "An Apollo entity batch requires a statically known source schema name.",
+                nameof(operations));
+        }
+
+        foreach (var definition in operations)
+        {
+            if (!string.Equals(definition.SchemaName, schemaName, StringComparison.Ordinal))
+            {
+                throw new ArgumentException(
+                    "All operation definitions of an Apollo entity batch must target "
+                    + "the same source schema.",
+                    nameof(operations));
+            }
+        }
+
+        return schemaName;
     }
 }

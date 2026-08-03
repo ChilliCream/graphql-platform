@@ -127,7 +127,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var batchOps = GetBatchOperationsForSchema(plan, "b");
         Assert.Single(batchOps);
         Assert.Equal(2, batchOps[0].Targets.Length);
-        Assert.Contains("café", Encoding.UTF8.GetString(batchOps[0].Operation.SourceText.Span));
+        Assert.Contains("café", Encoding.UTF8.GetString(batchOps[0].SourceText.Value.Span));
     }
 
     [Fact]

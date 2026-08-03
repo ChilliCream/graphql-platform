@@ -151,13 +151,6 @@ public sealed class SourceSchemaResult : IDisposable
     /// </summary>
     public FinalMessage Final { get; }
 
-    /// <summary>
-    /// Creates a copy of this result associated with a different path, without taking ownership
-    /// of the underlying document.
-    /// </summary>
-    internal SourceSchemaResult WithPath(CompactPath path)
-        => WithPath(path, additionalPaths: default);
-
     internal SourceSchemaResult WithPath(CompactPath path, CompactPathSegment additionalPaths)
         => new(
             path,

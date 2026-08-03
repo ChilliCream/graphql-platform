@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace HotChocolate.Buffers;
 
 /// <summary>
-/// A memory owner over memory whose lifetime is managed elsewhere.
+/// An <see cref="IMemoryOwner{T}"/> over memory whose lifetime the caller manages.
 /// </summary>
 public sealed class ArrayMemoryOwner : IMemoryOwner<byte>
 {
@@ -14,7 +14,7 @@ public sealed class ArrayMemoryOwner : IMemoryOwner<byte>
     /// Initializes a new instance of <see cref="ArrayMemoryOwner"/>.
     /// </summary>
     /// <param name="memory">
-    /// The memory that is exposed by this owner.
+    /// The memory this owner exposes, which must stay valid for as long as this owner is used.
     /// </param>
     public ArrayMemoryOwner(ReadOnlyMemory<byte> memory)
     {
@@ -22,12 +22,12 @@ public sealed class ArrayMemoryOwner : IMemoryOwner<byte>
     }
 
     /// <summary>
-    /// Gets the memory that is exposed by this owner.
+    /// Gets the memory this owner exposes.
     /// </summary>
     public Memory<byte> Memory => MemoryMarshal.AsMemory(_memory);
 
     /// <summary>
-    /// Does nothing as the memory is not owned by this instance.
+    /// Does nothing. The memory is not released by this owner.
     /// </summary>
     public void Dispose()
     {

@@ -5,8 +5,8 @@ using System.Buffers;
 namespace HotChocolate.Buffers;
 
 /// <summary>
-/// A segment of memory that is either owned by a <see cref="IMemoryOwner{T}"/>
-/// or refers to memory whose lifetime is managed elsewhere.
+/// A segment of memory that is either backed by an <see cref="IMemoryOwner{T}"/> or refers to
+/// memory whose lifetime the caller manages.
 /// </summary>
 public readonly struct ReadOnlyMemorySegment
 {
@@ -16,16 +16,17 @@ public readonly struct ReadOnlyMemorySegment
     private readonly int _length;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/>.
+    /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/> that resolves against the
+    /// current memory of <paramref name="owner"/>.
     /// </summary>
     /// <param name="owner">
-    /// The owner of the memory segment.
+    /// The owner whose memory backs the segment.
     /// </param>
     /// <param name="start">
-    /// The start index of the memory segment.
+    /// The start index of the segment within the memory of <paramref name="owner"/>.
     /// </param>
     /// <param name="length">
-    /// The length of the memory segment.
+    /// The length of the segment.
     /// </param>
     public ReadOnlyMemorySegment(IMemoryOwner<byte> owner, int start, int length)
     {
@@ -58,10 +59,11 @@ public readonly struct ReadOnlyMemorySegment
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/>.
+    /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/> that refers to memory
+    /// whose lifetime the caller manages.
     /// </summary>
     /// <param name="memory">
-    /// The memory the segment refers to.
+    /// The memory the segment refers to, which must stay valid for as long as the segment is used.
     /// </param>
     public ReadOnlyMemorySegment(ReadOnlyMemory<byte> memory)
     {

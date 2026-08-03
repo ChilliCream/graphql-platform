@@ -21,20 +21,6 @@ public sealed class GeneratedOperationNameTests : FusionTestBase
         Assert.Equal("Op_abcdef12_1", GetOperationName(plan));
     }
 
-    [Fact]
-    public void CreatePlan_Should_ReplaceInvalidCharacters_When_TheShortHashIsNotBase16()
-    {
-        // arrange
-        var schema = CreateCompositeSchema();
-
-        // act
-        // A base64 document hash carries characters that a GraphQL name cannot hold.
-        var plan = CreatePlan(schema, "ab-cd+e/");
-
-        // assert
-        Assert.Equal("Op_ab_cd_e__1", GetOperationName(plan));
-    }
-
     private static string GetOperationName(OperationPlan plan)
         => plan.AllNodes.OfType<OperationExecutionNode>().First().Operation.Name;
 

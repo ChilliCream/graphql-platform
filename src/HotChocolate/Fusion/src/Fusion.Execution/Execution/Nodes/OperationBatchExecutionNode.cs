@@ -76,12 +76,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         {
             Node = this,
             SchemaName = schemaName,
-            OperationType = operation.Operation.Type,
-            OperationSourceText = operation.Operation.SourceText,
+            OperationType = operation.SourceText.Type,
+            OperationSourceText = operation.SourceText,
             Variables = variables,
             RequiresFileUpload = operation.RequiresFileUpload,
-            OperationHash = operation.OperationHash,
-            OperationDocument = operation.OperationDocument,
+            OperationDocument = operation.Document,
             LookupTypeName = operation.LookupTypeName,
             ForwardedVariables = operation.GetForwardedVariablesArray()
         };
@@ -90,7 +89,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         try
         {
-            var client = context.GetClient(schemaName, operation.Operation.Type);
+            var client = context.GetClient(schemaName, operation.SourceText.Type);
 
             await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
             {
@@ -358,12 +357,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             {
                 Node = this,
                 SchemaName = schemaName,
-                OperationType = operation.Operation.Type,
-                OperationSourceText = operation.Operation.SourceText,
+                OperationType = operation.SourceText.Type,
+                OperationSourceText = operation.SourceText,
                 Variables = variables,
                 RequiresFileUpload = _requiresFileUpload,
-                OperationHash = operation.OperationHash,
-                OperationDocument = operation.OperationDocument,
+                OperationDocument = operation.Document,
                 LookupTypeName = operation.LookupTypeName,
                 ForwardedVariables = operation.GetForwardedVariablesArray()
             });

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -9,7 +10,6 @@ internal abstract class OperationDefinition : IOperationPlanNode
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
     private readonly ExecutionNodeCondition[] _conditions;
-    private readonly ulong _operationHash;
     private int[] _parentDependencies = [];
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
@@ -20,6 +20,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     protected OperationDefinition(
         int id,
         OperationSourceText operation,
+        string? lookupTypeName,
         string? schemaName,
         SelectionPath source,
         OperationRequirement[] requirements,
@@ -29,8 +30,9 @@ internal abstract class OperationDefinition : IOperationPlanNode
         bool requiresFileUpload)
     {
         Id = id;
-        Operation = operation;
-        _operationHash = operation.SourceText.ComputeHash();
+        SourceText = operation;
+        Document = Utf8GraphQLOperationParser.Parse(operation.Value);
+        LookupTypeName = lookupTypeName;
         SchemaName = schemaName;
         Source = source;
         _requirements = requirements;
@@ -49,12 +51,18 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// Gets the source text and metadata for the GraphQL operation that this
     /// definition represents.
     /// </summary>
-    public OperationSourceText Operation { get; }
+    public OperationSourceText SourceText { get; }
 
     /// <summary>
-    /// Gets the xxhash64 of the operation source text.
+    /// Gets the parsed syntax tree of the operation source text.
     /// </summary>
-    public ulong OperationHash => _operationHash;
+    public Utf8OperationDocument Document { get; }
+
+    /// <summary>
+    /// Gets the name of the type that the body of the operation's single root selection is
+    /// selected on, or <c>null</c> when the operation is not a lookup.
+    /// </summary>
+    public string? LookupTypeName { get; }
 
     /// <summary>
     /// Gets the name of the source schema that this operation targets,

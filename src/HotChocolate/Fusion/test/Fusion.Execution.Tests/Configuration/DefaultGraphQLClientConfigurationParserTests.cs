@@ -78,7 +78,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
             HttpClientName: products-client
             BaseAddress: http://localhost:5000/graphql
             SupportedOperations: All
-            Capabilities: All
+            Capabilities: Default
             OnError: <null>
             """);
     }
