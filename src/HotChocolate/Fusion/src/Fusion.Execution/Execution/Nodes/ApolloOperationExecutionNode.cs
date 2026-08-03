@@ -1,10 +1,12 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -18,47 +20,14 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
-    private readonly OperationSourceText _operation;
-    private readonly OperationSourceText _lookupOperation;
-    private readonly ulong _operationHash;
-    private readonly string? _schemaName;
+    private readonly ApolloEntityLookup _lookup;
+    private readonly string _schemaName;
     private readonly SelectionPath _target;
-    private readonly string _entityTypeName;
-    private readonly List<RepresentationShapeNode> _representationShape;
 
     private ApolloOperationExecutionNode(
         int id,
-        OperationSourceText operation,
-        OperationSourceText lookupOperation,
-        string? schemaName,
-        SelectionPath target,
-        string entityTypeName,
-        List<RepresentationShapeNode> representationShape,
-        OperationRequirement[] requirements,
-        string[] forwardedVariables,
-        ResultSelectionSet resultSelectionSet,
-        ExecutionNodeCondition[] conditions,
-        bool requiresFileUpload)
-    {
-        Id = id;
-        _operation = operation;
-        _lookupOperation = lookupOperation;
-        _operationHash = operation.SourceText.ComputeHash();
-        _schemaName = schemaName;
-        _target = target;
-        _entityTypeName = entityTypeName;
-        _representationShape = representationShape;
-        _requirements = requirements;
-        _forwardedVariables = forwardedVariables;
-        _resultSelectionSet = resultSelectionSet;
-        _conditions = conditions;
-        _requiresFileUpload = requiresFileUpload;
-    }
-
-    internal static ApolloOperationExecutionNode Create(
-        int id,
-        OperationSourceText operation,
-        string? schemaName,
+        ApolloEntityLookup lookup,
+        string schemaName,
         SelectionPath target,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
@@ -67,32 +36,100 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         bool requiresFileUpload,
         FusionSchemaDefinition schema)
     {
-        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, schemaName!, operation);
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        // Compile the representation shape once at plan build so that unsupported
-        // requirement maps and unbound requirements fail here rather than at
-        // execution time. The shape is a plan-time constant, so it is retained and
-        // reused for every request this node serves.
-        var representationShape =
-            RepresentationShapeBuilder.Build(
-                rewritten.LookupField,
-                requirements,
-                schema,
-                rewritten.EntityTypeName);
+        if (!lookup.RepresentationShape.IsDefault)
+        {
+            throw new ArgumentException(
+                "An Apollo entity lookup must be unmaterialized before node construction.",
+                nameof(lookup));
+        }
+
+        Id = id;
+        lookup = lookup with
+        {
+            RepresentationShape =
+                RepresentationShapeBuilder.Build(
+                    lookup.Operation,
+                    lookup.EntityTypeName,
+                    target,
+                    requirements,
+                    resultSelectionSet,
+                    schema)
+        };
+
+        _lookup = lookup;
+        _schemaName = schemaName;
+        _target = target;
+        _requirements = requirements;
+        _forwardedVariables = forwardedVariables;
+        _resultSelectionSet = resultSelectionSet;
+        _conditions = conditions;
+        _requiresFileUpload = requiresFileUpload;
+    }
+
+    internal static ApolloOperationExecutionNode CreateFromLookup(
+        int id,
+        OperationSourceText lookupOperation,
+        string schemaName,
+        SelectionPath target,
+        OperationRequirement[] requirements,
+        string[] forwardedVariables,
+        ResultSelectionSet resultSelectionSet,
+        ExecutionNodeCondition[] conditions,
+        bool requiresFileUpload,
+        FusionSchemaDefinition schema)
+    {
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, schemaName, lookupOperation);
+        var lookup = new ApolloEntityLookup(
+            rewritten.SourceText,
+            Utf8GraphQLOperationParser.Parse(rewritten.SourceText.Value),
+            rewritten.EntityTypeName,
+            RepresentationShape: default);
 
         return new ApolloOperationExecutionNode(
             id,
-            rewritten.Operation,
-            operation,
+            lookup,
             schemaName,
             target,
-            rewritten.EntityTypeName,
-            representationShape,
             requirements,
             forwardedVariables,
             resultSelectionSet,
             conditions,
-            requiresFileUpload);
+            requiresFileUpload,
+            schema);
+    }
+
+    internal static ApolloOperationExecutionNode CreateFromParser(
+        int id,
+        OperationSourceText operation,
+        string entityTypeName,
+        string schemaName,
+        SelectionPath target,
+        OperationRequirement[] requirements,
+        string[] forwardedVariables,
+        ResultSelectionSet resultSelectionSet,
+        ExecutionNodeCondition[] conditions,
+        bool requiresFileUpload,
+        FusionSchemaDefinition schema)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+
+        return new(
+            id,
+            new ApolloEntityLookup(
+                operation,
+                Utf8GraphQLOperationParser.Parse(operation.Value),
+                entityTypeName,
+                RepresentationShape: default),
+            schemaName,
+            target,
+            requirements,
+            forwardedVariables,
+            resultSelectionSet,
+            conditions,
+            requiresFileUpload,
+            schema);
     }
 
     /// <inheritdoc />
@@ -107,13 +144,12 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the operation definition that this execution node represents.
     /// </summary>
-    public OperationSourceText Operation => _operation;
+    public OperationSourceText Operation => _lookup.Operation;
 
     /// <summary>
-    /// Gets the lookup operation this node was created from, before it was
-    /// rewritten into an <c>_entities</c> operation.
+    /// Gets the entity lookup that this operation resolves.
     /// </summary>
-    internal OperationSourceText LookupOperation => _lookupOperation;
+    internal ApolloEntityLookup Lookup => _lookup;
 
     /// <summary>
     /// Gets the result selection set fulfilled by this operation.
@@ -121,7 +157,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
 
     /// <inheritdoc />
-    public override string? SchemaName => _schemaName;
+    public override string SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
@@ -162,8 +198,8 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             _target,
             _forwardedVariables,
             _requirements,
-            _entityTypeName,
-            _representationShape);
+            _lookup.RepresentationShape,
+            _lookup.EntityTypeName);
 
         if (representation.IsEmpty)
         {
@@ -171,7 +207,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         }
 
         var variables = representation.ToVariableValues();
-        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
+        var schemaName = _schemaName;
 
         // The combined representations object must be the request's single
         // variable set so the request is routed as a single operation. The
@@ -184,11 +220,12 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         {
             Node = this,
             SchemaName = schemaName,
-            OperationType = _operation.Type,
-            OperationSourceText = _operation.SourceText,
+            OperationType = _lookup.Operation.Type,
+            OperationSourceText = _lookup.Operation,
             Variables = requestVariables,
             RequiresFileUpload = false,
-            OperationHash = _operationHash
+            OperationDocument = _lookup.OperationDocument,
+            LookupTypeName = _lookup.EntityTypeName
         };
 
         SourceSchemaResult? result = null;
@@ -196,7 +233,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
 
         try
         {
-            var client = context.GetClient(schemaName, _operation.Type);
+            var client = context.GetClient(schemaName, _lookup.Operation.Type);
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
 
             await foreach (var current in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
@@ -291,7 +328,6 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
 
     protected override IDisposable CreateScope(OperationPlanContext context)
     {
-        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
-        return context.DiagnosticEvents.ExecuteApolloOperationExecutionNode(context, this, schemaName);
+        return context.DiagnosticEvents.ExecuteApolloOperationExecutionNode(context, this, _schemaName);
     }
 }

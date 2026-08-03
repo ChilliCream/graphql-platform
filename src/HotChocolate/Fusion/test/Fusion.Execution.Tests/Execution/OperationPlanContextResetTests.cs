@@ -77,7 +77,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             "node",
             new StringValueNode("Rm9vOjE="),
             []);
-        var apolloBatch = ApolloOperationBatchExecutionNode.Create(
+        var apolloBatch = ApolloOperationBatchExecutionNode.CreateFromLookup(
             batchPlan.MaxNodeId + 2,
             GetSingleOperations(batchNode),
             s_schema);

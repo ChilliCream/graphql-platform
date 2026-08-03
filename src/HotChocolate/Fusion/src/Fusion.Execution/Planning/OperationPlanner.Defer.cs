@@ -69,6 +69,7 @@ public sealed partial class OperationPlanner
     private ImmutableArray<IncrementalPlan> BuildIncrementalPlans(
         string id,
         string hash,
+        string shortHash,
         ImmutableArray<DeferRoutingState> routingStates,
         PlanContextGraph contextGraph,
         CancellationToken cancellationToken)
@@ -101,6 +102,7 @@ public sealed partial class OperationPlanner
             var deferredOperation = _operationCompiler.Compile(
                 id + "#defer_" + routingState.Index,
                 hash + "#defer_" + routingState.Index,
+                shortHash,
                 compiledOp);
 
             var planScopeRequirements = descriptor.Requirements.Count == 0
@@ -941,7 +943,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
-        MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps

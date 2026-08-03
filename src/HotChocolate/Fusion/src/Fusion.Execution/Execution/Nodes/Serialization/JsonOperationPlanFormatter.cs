@@ -129,7 +129,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(operation.Hash);
 
         jsonWriter.WritePropertyName("shortHash");
-        jsonWriter.WriteStringValue(operation.Hash[..8]);
+        jsonWriter.WriteStringValue(operation.ShortHash);
 
         jsonWriter.WriteEndObject();
     }
@@ -354,15 +354,13 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(node.Operation.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(node.Operation.SourceText);
+        jsonWriter.WriteStringValue(node.Operation.Value.Span);
 
-        jsonWriter.WritePropertyName("hash");
-        jsonWriter.WriteStringValue(node.Operation.Hash);
-
-        jsonWriter.WritePropertyName("shortHash");
-        jsonWriter.WriteStringValue(node.Operation.Hash[..8]);
+        WriteOperationSourceTextHash(jsonWriter, node.Operation.Hash);
 
         jsonWriter.WriteEndObject();
+
+        WriteLookupTypeName(jsonWriter, node.LookupTypeName);
 
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(node.ResultSelectionSet.ToString(indented: false));
@@ -593,21 +591,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("name");
-        jsonWriter.WriteStringValue(operationDef.Operation.Name);
+        jsonWriter.WriteStringValue(operationDef.SourceText.Name);
 
         jsonWriter.WritePropertyName("kind");
-        jsonWriter.WriteStringValue(operationDef.Operation.Type.ToString());
+        jsonWriter.WriteStringValue(operationDef.SourceText.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operationDef.Operation.SourceText);
+        jsonWriter.WriteStringValue(operationDef.SourceText.Value.Span);
 
-        jsonWriter.WritePropertyName("hash");
-        jsonWriter.WriteStringValue(operationDef.Operation.Hash);
-
-        jsonWriter.WritePropertyName("shortHash");
-        jsonWriter.WriteStringValue(operationDef.Operation.Hash[..8]);
+        WriteOperationSourceTextHash(jsonWriter, operationDef.SourceText.Hash);
 
         jsonWriter.WriteEndObject();
+
+        WriteLookupTypeName(jsonWriter, operationDef.LookupTypeName);
 
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
@@ -709,21 +705,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("name");
-        jsonWriter.WriteStringValue(operationDef.Operation.Name);
+        jsonWriter.WriteStringValue(operationDef.SourceText.Name);
 
         jsonWriter.WritePropertyName("kind");
-        jsonWriter.WriteStringValue(operationDef.Operation.Type.ToString());
+        jsonWriter.WriteStringValue(operationDef.SourceText.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operationDef.Operation.SourceText);
+        jsonWriter.WriteStringValue(operationDef.SourceText.Value.Span);
 
-        jsonWriter.WritePropertyName("hash");
-        jsonWriter.WriteStringValue(operationDef.Operation.Hash);
-
-        jsonWriter.WritePropertyName("shortHash");
-        jsonWriter.WriteStringValue(operationDef.Operation.Hash[..8]);
+        WriteOperationSourceTextHash(jsonWriter, operationDef.SourceText.Hash);
 
         jsonWriter.WriteEndObject();
+
+        WriteLookupTypeName(jsonWriter, operationDef.LookupTypeName);
 
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
@@ -824,11 +818,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteStringValue(node.SchemaName);
         }
 
-        // The lookup operation is serialized rather than the rewritten
-        // _entities operation because the node derives the rewritten form
-        // from the lookup operation when it is created.
         jsonWriter.WritePropertyName("operation");
-        WriteOperationSourceText(jsonWriter, node.LookupOperation);
+        WriteOperationSourceText(jsonWriter, node.Lookup.Operation);
+
+        WriteApolloRepresentation(jsonWriter, node.Lookup);
 
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(node.ResultSelectionSet.ToString(indented: false));
@@ -869,9 +862,18 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     {
         // Each operation within the batch is serialized as its own node entry,
         // using the batch node's ID as batchGroupId to preserve the grouping.
-        foreach (var operationDef in batchNode.Operations)
+        var operations = batchNode.Operations;
+        var lookups = batchNode.Lookups;
+
+        for (var i = 0; i < operations.Length; i++)
         {
-            WriteApolloOperationDefinitionAsNode(jsonWriter, operation, batchNode, operationDef, trace);
+            WriteApolloOperationDefinitionAsNode(
+                jsonWriter,
+                operation,
+                batchNode,
+                operations[i],
+                lookups[i],
+                trace);
         }
     }
 
@@ -880,6 +882,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         Operation operation,
         ApolloOperationBatchExecutionNode batchNode,
         SingleOperationDefinition operationDef,
+        ApolloEntityLookup lookup,
         ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
@@ -897,7 +900,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WritePropertyName("operation");
-        WriteOperationSourceText(jsonWriter, operationDef.Operation);
+        WriteOperationSourceText(jsonWriter, lookup.Operation);
+
+        WriteApolloRepresentation(jsonWriter, lookup);
 
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
@@ -933,6 +938,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndObject();
     }
 
+    private static void WriteApolloRepresentation(JsonWriter jsonWriter, ApolloEntityLookup lookup)
+    {
+        jsonWriter.WritePropertyName("entityType");
+        jsonWriter.WriteStringValue(lookup.EntityTypeName);
+    }
+
     private static void WriteOperationSourceText(JsonWriter jsonWriter, OperationSourceText operationSource)
     {
         jsonWriter.WriteStartObject();
@@ -944,15 +955,32 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(operationSource.Type.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operationSource.SourceText);
+        jsonWriter.WriteStringValue(operationSource.Value.Span);
 
-        jsonWriter.WritePropertyName("hash");
-        jsonWriter.WriteStringValue(operationSource.Hash);
-
-        jsonWriter.WritePropertyName("shortHash");
-        jsonWriter.WriteStringValue(operationSource.Hash[..8]);
+        WriteOperationSourceTextHash(jsonWriter, operationSource.Hash);
 
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteOperationSourceTextHash(JsonWriter jsonWriter, OperationSourceTextHash hash)
+    {
+        jsonWriter.WritePropertyName("hash");
+        jsonWriter.WriteStringValue(hash.Sha256);
+
+        jsonWriter.WritePropertyName("shortHash");
+        jsonWriter.WriteStringValue(hash.Sha256Short);
+
+        jsonWriter.WritePropertyName("xxHash");
+        jsonWriter.WriteNumberValue(hash.Xxx);
+    }
+
+    private static void WriteLookupTypeName(JsonWriter jsonWriter, string? lookupTypeName)
+    {
+        if (lookupTypeName is not null)
+        {
+            jsonWriter.WritePropertyName("lookupTypeName");
+            jsonWriter.WriteStringValue(lookupTypeName);
+        }
     }
 
     private static void WriteRequirements(JsonWriter jsonWriter, ReadOnlySpan<OperationRequirement> requirements)

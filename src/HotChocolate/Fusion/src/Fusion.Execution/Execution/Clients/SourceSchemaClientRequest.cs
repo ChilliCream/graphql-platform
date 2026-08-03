@@ -27,13 +27,12 @@ public readonly record struct SourceSchemaClientRequest()
     /// <summary>
     /// Gets the GraphQL operation source text to send.
     /// </summary>
-    public required string OperationSourceText { get; init; }
+    public required OperationSourceText OperationSourceText { get; init; }
 
     /// <summary>
-    /// Gets the xxhash64 of the operation source text.
-    /// Precomputed during planning for use as a cache key by connectors.
+    /// Gets the parsed syntax tree of <see cref="OperationSourceText"/>.
     /// </summary>
-    public required ulong OperationHash { get; init; }
+    public required Utf8OperationDocument OperationDocument { get; init; }
 
     /// <summary>
     /// Gets the variable value sets for this operation. Multiple entries indicate
@@ -46,4 +45,17 @@ public readonly record struct SourceSchemaClientRequest()
     /// requiring multipart form encoding.
     /// </summary>
     public bool RequiresFileUpload { get; init; }
+
+    /// <summary>
+    /// Gets the name of the type that the body of the operation's root selection is selected on,
+    /// or <see langword="null"/> when the operation does not select a single root field that the
+    /// schema declares.
+    /// </summary>
+    internal string? LookupTypeName { get; init; }
+
+    /// <summary>
+    /// Gets the names of the variables that this operation takes from the client request. Every
+    /// other variable of the operation carries a value per variable value set.
+    /// </summary>
+    internal ImmutableArray<string> ForwardedVariables { get; init; } = [];
 }

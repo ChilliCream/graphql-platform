@@ -256,13 +256,14 @@ public sealed partial class OperationPlanner
             }
 
             // Use the latest root operation definition after deferred planning.
-            var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+            var operation = _operationCompiler.Compile(id, hash, shortHash, internalOperationDefinition);
 
             if (deferContextGraph is not null)
             {
                 incrementalPlans = BuildIncrementalPlans(
                     id,
                     hash,
+                    shortHash,
                     deferRoutingStates,
                     deferContextGraph,
                     cancellationToken);

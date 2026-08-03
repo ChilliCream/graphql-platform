@@ -30,6 +30,8 @@ items:
     title: Cache Control
   - path: subscriptions
     title: Subscriptions
+  - path: batching
+    title: Batching
   - path: performance-tuning
     title: Performance Tuning
   - path: aspire-integration

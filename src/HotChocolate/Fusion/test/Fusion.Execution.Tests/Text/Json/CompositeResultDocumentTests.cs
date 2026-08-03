@@ -938,7 +938,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
 
         // act
         // The first document builds the operation-shared template while the deferred selection

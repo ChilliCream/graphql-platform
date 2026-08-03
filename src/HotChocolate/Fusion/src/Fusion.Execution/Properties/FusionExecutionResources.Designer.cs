@@ -117,6 +117,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string HttpSourceSchemaClient_InvalidAliasBatchResponse {
+            get {
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidAliasBatchResponse", resourceCulture);
+            }
+        }
+
         internal static string HttpSourceSchemaClient_InvalidRequestIndex {
             get {
                 return ResourceManager.GetString("HttpSourceSchemaClient_InvalidRequestIndex", resourceCulture);
