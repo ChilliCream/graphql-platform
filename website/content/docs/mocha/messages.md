@@ -73,6 +73,70 @@ await bus.SendAsync(
 
 The bus merges your headers into the envelope's header collection before dispatching.
 
+## What a header value can hold
+
+A header value is weakly typed, but the set of types Mocha carries is closed: `null`, `bool`,
+`string`, `char`, the numeric types, `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`,
+`TimeSpan`, `Guid`, `Uri`, an enum, a byte payload (`byte[]`, `ArraySegment<byte>`,
+`ReadOnlyMemory<byte>`, `Memory<byte>`), a JSON value (`JsonElement`, `JsonDocument`, `JsonNode`),
+nested headers, a dictionary with string keys, or a sequence of any of these.
+
+The envelope serializer rejects any other type with an error naming the header. Setting a value always
+succeeds; a transport that encodes headers itself applies its own rules, described at the end of this
+section.
+
+A value keeps its representation across a hop but not always its CLR type, because neither JSON nor an
+AMQP field table carries a .NET type tag. Through the envelope serializer, which the outbox and the
+Entity Framework Core scheduled store use:
+
+| Written as                                                                                       | Read back as                                                      |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `null`, `bool`, `string`                                                                         | unchanged                                                         |
+| any integer type                                                                                 | `int`, `long` or `ulong`, the smallest of those holding the value |
+| `double`, `float`, `decimal`                                                                     | the same integer types when the value is whole, else `double`     |
+| `DateTime`, `DateTimeOffset`, `Guid`, `Uri`, `TimeSpan`, `DateOnly`, `TimeOnly`, `char`, an enum | the text that was written                                         |
+| a byte payload                                                                                   | base64 text                                                       |
+| a JSON object, nested headers, a dictionary                                                      | `Dictionary<string, object?>`                                     |
+| a JSON array, any sequence                                                                       | `object?[]`                                                       |
+
+A number is read by value, not by the type that wrote it, so `5L` and `2.0` both come back as `int`,
+and a `uint` above `int.MaxValue` as `long`. Two cases lose data: a whole number beyond
+`ulong.MaxValue` is read as a `double` and rewritten in scientific notation, and a `decimal` carrying
+more precision than a `double` holds loses the difference.
+
+A date-shaped string stays a string. Parse explicitly when you need a typed value:
+
+```csharp
+using System.Globalization;
+
+if (context.Headers.TryGetValue("x-processed-at", out var value)
+    && DateTimeOffset.TryParse(value as string, CultureInfo.InvariantCulture, out var processedAt))
+{
+    // ...
+}
+```
+
+A transport that defines its own header encoding differs in the details.
+
+**RabbitMQ** maps a header onto an AMQP field table. A date arrives back as a `DateTimeOffset`
+truncated to whole seconds, and a `DateTime` carrying no time zone is read as UTC. A byte payload
+arrives back as bytes, travelling as the table's own byte array type, and a JSON value arrives in the
+shapes listed above. The table has no unsigned 64-bit type and only a 32-bit decimal mantissa, so a
+number above `long.MaxValue` and a longer `decimal` travel as text. A long string from another
+publisher is decoded as text when it holds valid UTF-8.
+
+**Postgres** reads every number back as a `double`, and drops a header whose value is a dictionary, a
+sequence, or `null`. Messages scheduled on this transport are stored with the Postgres encoding rather
+than through the envelope serializer, so the table above does not describe them.
+
+Those typed arrivals hold for a message taken straight off the broker. One that passes through the
+outbox, or that the scheduled store redelivers, is rehydrated by the envelope serializer on the way,
+so the same date arrives as text and the same byte payload as base64.
+
+> Keep header values simple. Text and booleans behave the same everywhere, and whole numbers behave
+> the same anywhere except Postgres; everything else is worth a round-trip test on the transport you
+> actually deploy.
+
 ## Access envelope metadata in a handler
 
 `IEventHandler<T>` receives the deserialized message and a cancellation token - that is all. To read message IDs, correlation IDs, timestamps, or custom headers, implement `IConsumer<T>` instead. The `IConsumeContext<T>` parameter gives you both the deserialized message and all envelope fields:

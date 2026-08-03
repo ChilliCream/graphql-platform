@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
 using static System.StringSplitOptions;
@@ -223,18 +227,7 @@ public static class RabbitMQDispatchContextExtensions
         {
             foreach (var header in envelope.Headers)
             {
-                if (header.Value is DateTimeOffset dateTimeOffset)
-                {
-                    headers[header.Key] = new AmqpTimestamp(dateTimeOffset.ToUnixTimeSeconds());
-                }
-                else if (header.Value is DateTime dateTime)
-                {
-                    headers[header.Key] = new AmqpTimestamp(new DateTimeOffset(dateTime).ToUnixTimeSeconds());
-                }
-                else if (header.Value is not null)
-                {
-                    headers[header.Key] = header.Value;
-                }
+                headers[header.Key] = ToTableValue(header.Value, header.Key, 0);
             }
         }
 
@@ -274,5 +267,174 @@ public static class RabbitMQDispatchContextExtensions
         }
 
         return headers;
+    }
+
+    /// <summary>
+    /// The greatest depth to which a header value is mapped. A value nested deeper, or one that
+    /// contains itself, is rejected.
+    /// </summary>
+    private const int MaxTableDepth = 64;
+
+    /// <summary>
+    /// Maps a header value onto the CLR types an AMQP field table accepts, at every level of a nested
+    /// value. The inverse of the mapping the receive side applies.
+    /// </summary>
+    private static object? ToTableValue(object? value, string key, int depth)
+    {
+        if (depth > MaxTableDepth)
+        {
+            throw new InvalidOperationException(
+                $"The header '{key}' is nested more than {MaxTableDepth} levels deep, or holds a "
+                    + "value that contains itself, and cannot be written as an AMQP field table.");
+        }
+
+        switch (value)
+        {
+            // must precede the collection cases
+            case string:
+                return value;
+
+            case DateTimeOffset dateTimeOffset:
+                return new AmqpTimestamp(dateTimeOffset.ToUnixTimeSeconds());
+
+            case DateTime dateTime:
+                return ToTimestamp(dateTime);
+
+            // a field table has no unsigned 64 bit type
+            case ulong unsigned when unsigned > long.MaxValue:
+                return unsigned.ToString(CultureInfo.InvariantCulture);
+
+            case ulong unsigned:
+                return (long)unsigned;
+
+            // a field table decimal holds a 32 bit mantissa
+            case decimal number when !FitsTableDecimal(number):
+                return number.ToString(CultureInfo.InvariantCulture);
+
+            // the text forms every transport shares
+            case char character:
+                return character.ToString();
+
+            case Guid guid:
+                return guid.ToString();
+
+            case Uri uri:
+                return HeaderValueText.From(uri);
+
+            case TimeSpan timeSpan:
+                return HeaderValueText.From(timeSpan);
+
+            case DateOnly date:
+                return HeaderValueText.From(date);
+
+            case TimeOnly time:
+                return HeaderValueText.From(time);
+
+            case Enum enumeration:
+                return HeaderValueText.From(enumeration);
+
+            // the table's own shapes rather than JSON text
+            case JsonElement element:
+                return ToTableValue(HeadersJsonConverter.ReadHeaderValue(element), key, depth);
+
+            case JsonDocument document:
+                return ToTableValue(HeadersJsonConverter.ReadHeaderValue(document.RootElement), key, depth);
+
+            case JsonNode node:
+                using (var parsed = JsonDocument.Parse(node.ToJsonString()))
+                {
+                    return ToTableValue(HeadersJsonConverter.ReadHeaderValue(parsed.RootElement), key, depth);
+                }
+
+            // the field table's byte array type, not a long string
+            case byte[] bytes:
+                return new BinaryTableValue(bytes);
+
+            // an empty segment has no array to copy, and a whole one needs no copy
+            case ArraySegment<byte> { Array: null }:
+                return new BinaryTableValue([]);
+
+            case ArraySegment<byte> { Offset: 0 } whole when whole.Count == whole.Array!.Length:
+                return new BinaryTableValue(whole.Array);
+
+            case ArraySegment<byte> segment:
+                return new BinaryTableValue(segment.ToArray());
+
+            case ReadOnlyMemory<byte> memory:
+                return new BinaryTableValue(memory.ToArray());
+
+            case Memory<byte> writableMemory:
+                return new BinaryTableValue(writableMemory.ToArray());
+
+            case IReadOnlyHeaders nested:
+                var mappedHeaders = new Dictionary<string, object?>();
+                foreach (var header in nested)
+                {
+                    mappedHeaders[header.Key] = ToTableValue(header.Value, key, depth + 1);
+                }
+
+                return mappedHeaders;
+
+            case IDictionary table:
+                return ToTable(table, key, depth);
+
+            case IEnumerable sequence:
+                var mappedSequence = sequence is ICollection collection
+                    ? new List<object?>(collection.Count)
+                    : [];
+                foreach (var item in sequence)
+                {
+                    mappedSequence.Add(ToTableValue(item, key, depth + 1));
+                }
+
+                return mappedSequence;
+
+            default:
+                return value;
+        }
+    }
+
+    private static Dictionary<string, object?> ToTable(IDictionary table, string key, int depth)
+    {
+        var mapped = new Dictionary<string, object?>(table.Count);
+
+        foreach (DictionaryEntry entry in table)
+        {
+            // a field table names its entries with text; the client stringifies any other key
+            if (entry.Key is not { } entryKey)
+            {
+                continue;
+            }
+
+            var name = entryKey as string ?? entryKey.ToString();
+
+            if (name is null)
+            {
+                continue;
+            }
+
+            mapped[name] = ToTableValue(entry.Value, key, depth + 1);
+        }
+
+        return mapped;
+    }
+
+    /// <summary>
+    /// Converts a <see cref="DateTime"/> to the instant a field table carries. A local time is
+    /// converted from this host; a time with no zone is read as UTC.
+    /// </summary>
+    private static AmqpTimestamp ToTimestamp(DateTime value)
+    {
+        var utc = value.Kind == DateTimeKind.Local ? value.ToUniversalTime() : value;
+
+        return new AmqpTimestamp(new DateTimeOffset(utc, TimeSpan.Zero).ToUnixTimeSeconds());
+    }
+
+    private static bool FitsTableDecimal(decimal value)
+    {
+        Span<int> bits = stackalloc int[4];
+        decimal.GetBits(value, bits);
+
+        return bits[1] == 0 && bits[2] == 0 && (uint)bits[0] <= int.MaxValue;
     }
 }

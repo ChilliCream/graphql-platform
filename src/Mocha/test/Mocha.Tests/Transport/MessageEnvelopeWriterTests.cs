@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
+using CookieCrumble;
 using Mocha.Middlewares;
 
 namespace Mocha.Tests;
@@ -166,6 +167,60 @@ public class MessageEnvelopeWriterTests
 
         Assert.Equal(JsonValueKind.Object, headers.ValueKind);
         Assert.Empty(headers.EnumerateObject());
+    }
+
+    [Fact]
+    public void WriteMessage_Should_WriteBase64_When_HeaderIsByteArray()
+    {
+        // arrange
+        var envelope = new MessageEnvelope { MessageId = "msg-008", Headers = new Headers() };
+        envelope.Headers.Set("tenant_id", "tenant-123"u8.ToArray());
+
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        // act
+        var envelopeWriter = new MessageEnvelopeWriter(writer);
+        envelopeWriter.WriteMessage(envelope);
+        writer.Flush();
+
+        // assert
+        Encoding.UTF8.GetString(stream.ToArray())
+            .MatchInlineSnapshot("""{"messageId":"msg-008","headers":{"tenant_id":"dGVuYW50LTEyMw=="}}""");
+    }
+
+    [Fact]
+    public void WriteMessage_Should_WriteNestedValues_When_HeaderIsBrokerDeathTable()
+    {
+        // arrange
+        // the shape a broker-generated x-death header has once it reaches the envelope
+        var envelope = new MessageEnvelope { MessageId = "msg-009", Headers = new Headers() };
+        envelope.Headers.Set(
+            "x-death",
+            new List<object?>
+            {
+                new Dictionary<string, object?>
+                {
+                    ["queue"] = "product-queue",
+                    ["reason"] = "rejected"u8.ToArray(),
+                    ["count"] = 1L
+                }
+            });
+
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        // act
+        var envelopeWriter = new MessageEnvelopeWriter(writer);
+        envelopeWriter.WriteMessage(envelope);
+        writer.Flush();
+
+        // assert
+        Encoding.UTF8.GetString(stream.ToArray())
+            .MatchInlineSnapshot(
+                """
+                {"messageId":"msg-009","headers":{"x-death":[{"queue":"product-queue","reason":"cmVqZWN0ZWQ=","count":1}]}}
+                """);
     }
 
     [Fact]
@@ -499,6 +554,28 @@ public class MessageEnvelopeWriterTests
         Assert.Equal(original.MessageType, result.MessageType);
         Assert.Null(result.CorrelationId);
         Assert.Null(result.ResponseAddress);
+    }
+
+    [Fact]
+    public void Roundtrip_Should_PreserveHeaderText_When_HeaderHoldsATimestamp()
+    {
+        // arrange
+        const string timestamp = "2026-08-03T10:00:00.0000000+02:00";
+        var original = new MessageEnvelope { MessageId = "msg-018", Headers = new Headers() };
+        original.Headers.Set("fault-timestamp", timestamp);
+
+        // act - write
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+        new MessageEnvelopeWriter(writer).WriteMessage(original);
+        writer.Flush();
+
+        // act - read
+        var result = MessageEnvelopeReader.Parse(stream.ToArray());
+
+        // assert
+        result.Headers!.TryGetValue("fault-timestamp", out var value);
+        Assert.Equal(timestamp, Assert.IsType<string>(value));
     }
 
     [Fact]
