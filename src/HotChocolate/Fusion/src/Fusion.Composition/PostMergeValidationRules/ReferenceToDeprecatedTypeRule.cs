@@ -11,9 +11,6 @@ namespace HotChocolate.Fusion.PostMergeValidationRules;
 /// it, so the composed schema can pair a deprecated type with a field that no source schema
 /// deprecated.
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Reference-To-Deprecated-Type">
-/// Specification
-/// </seealso>
 internal sealed class ReferenceToDeprecatedTypeRule : IEventHandler<OutputFieldEvent>
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
