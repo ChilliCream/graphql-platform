@@ -4074,6 +4074,17 @@ public sealed partial class OperationPlanner
     /// connector of <paramref name="path"/> from <paramref name="startIndex"/> down to the
     /// requirement target, whose type is <paramref name="targetType"/>.
     /// </summary>
+    /// <remarks>
+    /// 1. When the planner wants to fold a requirement (like an entity key) into an already-planned fetch,
+    ///    it has to wrap that requirement in all the intermediate fields and fragments that lead down to it.
+    ///    This method checks that the chosen source schema actually declares every one of those intermediate steps.
+    /// 2. It walks the recorded path entry by entry: for each field connector,
+    ///    the field must exist on its declaring type in that specific schema (and not be @external);
+    ///    for each inline-fragment connector, the type condition must exist in that schema.
+    /// 3. If any link in the chain fails, the whole ancestor step is rejected,
+    ///    so the planner falls back to sourcing the requirement from a step that genuinely owns the path
+    ///    (instead of emitting a document the subgraph would reject).
+    /// </remarks>
     private static bool IsConnectorChainResolvable(
         List<(SelectionSetNode SelectionSet, ISelectionNode ConnectingNode, ITypeDefinition Type)> path,
         int startIndex,
