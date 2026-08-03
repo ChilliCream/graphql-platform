@@ -1334,6 +1334,25 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ReferenceToDeprecatedType(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToDeprecatedType,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToDeprecatedType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry ReferenceToInaccessibleTypeFromFieldArgument(
         MutableInputFieldDefinition argument,
         MutableOutputFieldDefinition field,

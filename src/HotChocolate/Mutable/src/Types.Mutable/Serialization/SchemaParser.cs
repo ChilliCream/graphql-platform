@@ -393,13 +393,27 @@ public static class SchemaParser
     {
         type.Description = node.Description?.Value;
         BuildComplexType(schema, type, node);
+
+        if (IsDeprecated(type.Directives, out var reason))
+        {
+            type.IsDeprecated = true;
+            type.DeprecationReason = reason;
+        }
     }
 
     private static void ExtendObjectType(
         MutableSchemaDefinition schema,
         MutableObjectTypeDefinition type,
         ObjectTypeExtensionNode node)
-        => BuildComplexType(schema, type, node);
+    {
+        BuildComplexType(schema, type, node);
+
+        if (IsDeprecated(type.Directives, out var reason))
+        {
+            type.IsDeprecated = true;
+            type.DeprecationReason = reason;
+        }
+    }
 
     private static void BuildInterfaceType(
         MutableSchemaDefinition schema,

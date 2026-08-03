@@ -10,9 +10,17 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL object type definition in a fusion schema.
 /// </summary>
+/// <param name="name">The name of the object type.</param>
+/// <param name="description">The description of the object type.</param>
+/// <param name="isDeprecated">A value indicating whether the object type is deprecated.</param>
+/// <param name="deprecationReason">The deprecation reason if the object type is deprecated.</param>
+/// <param name="isInaccessible">A value indicating whether the type is inaccessible.</param>
+/// <param name="fieldsDefinition">The collection of fields defined on this object type.</param>
 public sealed class FusionObjectTypeDefinition(
     string name,
     string? description,
+    bool isDeprecated,
+    string? deprecationReason,
     bool isInaccessible,
     FusionOutputFieldDefinitionCollection fieldsDefinition)
     : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
@@ -28,6 +36,16 @@ public sealed class FusionObjectTypeDefinition(
 
     /// <inheritdoc />
     public override bool IsEntityType => (_flags & FusionTypeFlags.Entity) != 0;
+
+    /// <summary>
+    /// Gets a value indicating whether this object type is deprecated.
+    /// </summary>
+    public bool IsDeprecated { get; } = isDeprecated;
+
+    /// <summary>
+    /// Gets the deprecation reason if this object type is deprecated.
+    /// </summary>
+    public string? DeprecationReason { get; } = deprecationReason;
 
     /// <summary>
     /// Gets metadata about this object type in its source schemas.

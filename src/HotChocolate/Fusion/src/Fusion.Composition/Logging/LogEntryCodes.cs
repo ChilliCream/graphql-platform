@@ -83,6 +83,7 @@ public static class LogEntryCodes
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
+    public const string ReferenceToDeprecatedType = "REFERENCE_TO_DEPRECATED_TYPE";
     public const string ReferenceToInaccessibleType = "REFERENCE_TO_INACCESSIBLE_TYPE";
     public const string ReferenceToInternalType = "REFERENCE_TO_INTERNAL_TYPE";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";

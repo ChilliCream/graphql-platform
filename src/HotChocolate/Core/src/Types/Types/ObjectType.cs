@@ -83,6 +83,12 @@ public partial class ObjectType
         => Fields.AsReadOnlyFieldDefinitionCollection();
 
     /// <inheritdoc />
+    public bool IsDeprecated { get; private set; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; private set; }
+
+    /// <inheritdoc />
     public virtual bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
         ArgumentNullException.ThrowIfNull(context);

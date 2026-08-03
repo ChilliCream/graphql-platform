@@ -121,6 +121,44 @@ public class SchemaParserTests
     }
 
     [Fact]
+    public void Parse_Object_Type_With_Deprecated_Directive()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo @deprecated(reason: "Use Bar.") { id: ID }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var fooType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Foo"]);
+        Assert.True(fooType.IsDeprecated);
+        Assert.Equal("Use Bar.", fooType.DeprecationReason);
+    }
+
+    [Fact]
+    public void Parse_Object_Type_Extension_With_Deprecated_Directive()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo { id: ID }
+
+            extend type Foo @deprecated(reason: "Use Bar.")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var fooType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Foo"]);
+        Assert.True(fooType.IsDeprecated);
+        Assert.Equal("Use Bar.", fooType.DeprecationReason);
+    }
+
+    [Fact]
     public void Parse_With_Custom_BuiltIn_Scalar_Type()
     {
         // arrange

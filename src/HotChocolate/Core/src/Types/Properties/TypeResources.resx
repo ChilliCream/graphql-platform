@@ -239,6 +239,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="ObjectFieldDescriptorBase_FieldType" xml:space="preserve">
     <value>The field-type must be an output-type.</value>
   </data>
+  <data name="ObjectTypeDescriptor_Deprecated_NotEnabled" xml:space="preserve">
+    <value>The object type `{0}` cannot be deprecated because `SchemaOptions.EnableObjectDeprecation` is not enabled.</value>
+  </data>
   <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
     <value>The interface base class cannot be used as interface implementation declaration.</value>
   </data>
@@ -899,6 +902,9 @@ Type: `{0}`</value>
   </data>
   <data name="ErrorHelper_RequiredFieldCannotBeDeprecated" xml:space="preserve">
     <value>Required input field {0} cannot be deprecated.</value>
+  </data>
+  <data name="ErrorHelper_InvalidObjectDeprecation" xml:space="preserve">
+    <value>The type of `{0}` is the deprecated type `{1}`. Either deprecate the field or change its return type.</value>
   </data>
   <data name="ErrorHelper_InterfaceHasNoImplementation" xml:space="preserve">
     <value>There is no object type implementing interface `{0}`.</value>
