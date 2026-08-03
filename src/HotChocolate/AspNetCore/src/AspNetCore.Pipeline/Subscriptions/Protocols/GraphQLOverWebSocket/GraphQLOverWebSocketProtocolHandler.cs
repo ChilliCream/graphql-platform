@@ -47,7 +47,20 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
         var connection = session.Connection;
 
         var connected = connection.IsConnected;
-        using var document = JsonDocument.Parse(message);
+
+        JsonDocument parsedDocument;
+
+        try
+        {
+            parsedDocument = JsonDocument.Parse(message);
+        }
+        catch (JsonException)
+        {
+            await connection.CloseInvalidMessageAsync(cancellationToken);
+            return;
+        }
+
+        using var document = parsedDocument;
         var root = document.RootElement;
         JsonElement idProp;
 
@@ -97,6 +110,10 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                 return;
             }
 
+            // signal that the client sent the connection init in time, even if accepting the
+            // connection (for example authentication) still needs to run.
+            ((WebSocketConnection)connection).ConnectionInitReceived = true;
+
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
                     ? new ConnectionInitMessage(payload)
@@ -118,7 +135,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
             }
             else
             {
-                await connection.CloseConnectionRefusedAsync(cancellationToken);
+                await connection.CloseConnectionRefusedAsync(
+                    connectionStatus.Message,
+                    cancellationToken);
             }
 
             return;
@@ -134,9 +153,14 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
         if (type.ValueEquals(Utf8Messages.Subscribe))
         {
+            // the parsed requests own pooled JSON buffers (variables and extensions). Ownership
+            // transfers to the operation session only when Enqueue/EnqueueBatch succeeds. On every
+            // rejection or error path we keep this reference non-null so the finally disposes them.
+            GraphQLRequest[]? requests = null;
+
             try
             {
-                if (!TryParseSubscribeMessage(root, out var subscribeId, out var requests))
+                if (!TryParseSubscribeMessage(root, out var subscribeId, out requests))
                 {
                     await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
                     return;
@@ -165,7 +189,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                     success = session.Operations.EnqueueBatch(subscribeId, requests);
                 }
 
-                if (!success)
+                if (success)
+                {
+                    // the operation session now owns the requests and disposes them.
+                    requests = null;
+                }
+                else
                 {
                     await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);
                 }
@@ -203,6 +232,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                     idProp.GetString()!,
                     [syntaxError],
                     cancellationToken);
+            }
+            finally
+            {
+                if (requests is not null)
+                {
+                    foreach (var request in requests)
+                    {
+                        request.Dispose();
+                    }
+                }
             }
 
             // the operation was excepted and we are done.
