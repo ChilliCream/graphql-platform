@@ -224,21 +224,11 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     /// </returns>
     public FusionOptions Clone()
     {
-        return new FusionOptions
-        {
-            EvictionTimeout = EvictionTimeout,
-            OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
-            OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
-            OperationDocumentCacheSize = OperationDocumentCacheSize,
-            PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
-            LazyInitialization = LazyInitialization,
-            NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
-            EnableDefer = EnableDefer,
-            EnableObjectDeprecation = EnableObjectDeprecation,
-            EnableOptInFeatures = EnableOptInFeatures,
-            EnableSemanticIntrospection = EnableSemanticIntrospection
-        };
+        var clone = (FusionOptions)MemberwiseClone();
+
+        clone._isReadOnly = false;
+
+        return clone;
     }
 
     object ICloneable.Clone() => Clone();
