@@ -138,7 +138,6 @@ internal static class OperationContextExtensions
                 + "Aggregate error are not allowed to be nested beyond 4 levels.");
         }
 
-
         var handled = errorHandler.Handle(error);
 
         if (handled is AggregateError aggregateError)
