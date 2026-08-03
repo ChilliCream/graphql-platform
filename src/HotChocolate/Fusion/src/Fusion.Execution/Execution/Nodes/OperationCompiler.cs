@@ -39,20 +39,6 @@ public sealed class OperationCompiler
     public Operation Compile(
         string id,
         string hash,
-        OperationDefinitionNode operationDefinition)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(hash);
-
-        return Compile(
-            id,
-            hash,
-            hash[..Math.Min(hash.Length, 8)],
-            operationDefinition);
-    }
-
-    public Operation Compile(
-        string id,
-        string hash,
         string shortHash,
         OperationDefinitionNode operationDefinition)
     {

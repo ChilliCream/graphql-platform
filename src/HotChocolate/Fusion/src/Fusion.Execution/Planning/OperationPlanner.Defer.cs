@@ -943,7 +943,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps

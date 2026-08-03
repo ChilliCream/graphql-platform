@@ -49,7 +49,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -500,6 +500,7 @@ public sealed partial class OperationPlanner
                         operationStep.EventStreamPlan is null
                             ? CreateOperationExecutionNode(
                                 operationStep,
+                                ctx,
                                 schema,
                                 requiresUpload,
                                 variableBuffer)
@@ -552,6 +553,7 @@ public sealed partial class OperationPlanner
 
     private static ExecutionNode CreateOperationExecutionNode(
         OperationPlanStep operationStep,
+        ExecutionPlanBuildContext ctx,
         FusionSchemaDefinition schema,
         bool requiresUpload,
         List<string>? variableBuffer)
@@ -653,6 +655,7 @@ public sealed partial class OperationPlanner
                 apolloNode.AddParentDependency(parentDependency.StepId);
             }
 
+            ctx.ApolloLookupOperationsByStepId.Add(operationStep.Id, operationSource);
             return apolloNode;
         }
 
@@ -719,7 +722,8 @@ public sealed partial class OperationPlanner
     private static void MergeAndBatchOperations(
         ExecutionPlanBuildContext ctx,
         bool enableRequestGrouping,
-        OperationMergePolicy mergePolicy)
+        OperationMergePolicy mergePolicy,
+        FusionSchemaDefinition schema)
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
         var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache, mergePolicy);
@@ -737,7 +741,7 @@ public sealed partial class OperationPlanner
             ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping);
 
         foreach (var (batchNode, memberDependencies) in GroupApolloLookupsIntoBatches(
-            ctx, nodeFieldBoundCache, originalDependencies, enableRequestGrouping))
+            ctx, nodeFieldBoundCache, originalDependencies, enableRequestGrouping, schema))
         {
             perOperationDependencies.Add(batchNode, memberDependencies);
         }
@@ -982,7 +986,8 @@ public sealed partial class OperationPlanner
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
         Dictionary<int, int[]> originalDependencies,
-        bool enableRequestGrouping)
+        bool enableRequestGrouping,
+        FusionSchemaDefinition schema)
     {
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
 
@@ -1035,16 +1040,17 @@ public sealed partial class OperationPlanner
             groupMembers.Sort((a, b) => a.Id.CompareTo(b.Id));
 
             var operations = new SingleOperationDefinition[groupMembers.Count];
-            var lookups = new ApolloEntityLookup[groupMembers.Count];
 
             for (var i = 0; i < groupMembers.Count; i++)
             {
-                operations[i] = CreateApolloSingleOperationDefinition(groupMembers[i]);
-                lookups[i] = groupMembers[i].Lookup;
+                operations[i] = CreateApolloSingleOperationDefinition(ctx, groupMembers[i]);
             }
 
             var lowestId = groupMembers[0].Id;
-            var batchNode = ApolloOperationBatchExecutionNode.Create(lowestId, operations, lookups);
+            var batchNode = ApolloOperationBatchExecutionNode.CreateFromLookup(
+                lowestId,
+                operations,
+                schema);
 
             // Save each member's dependencies before replacing the individual
             // nodes, because the replacement will remove them from the lookup.
@@ -1249,11 +1255,18 @@ public sealed partial class OperationPlanner
     }
 
     private static SingleOperationDefinition CreateApolloSingleOperationDefinition(
+        ExecutionPlanBuildContext ctx,
         ApolloOperationExecutionNode member)
     {
+        if (!ctx.ApolloLookupOperationsByStepId.TryGetValue(member.Id, out var lookupOperation))
+        {
+            throw new InvalidOperationException(
+                $"The original Apollo lookup operation for execution step {member.Id} is missing.");
+        }
+
         var definition = new SingleOperationDefinition(
             member.Id,
-            member.Operation,
+            lookupOperation,
             lookupTypeName: null,
             member.SchemaName,
             member.Target,
@@ -2542,6 +2555,7 @@ public sealed partial class OperationPlanner
     {
         public HashSet<int> ProcessedStepIds { get; } = [];
         public Dictionary<int, ExecutionNode> ExecutionNodes { get; } = [];
+        public Dictionary<int, OperationSourceText> ApolloLookupOperationsByStepId { get; } = [];
         public Dictionary<int, HashSet<int>> DependenciesByStepId { get; } = [];
         public Dictionary<int, Dictionary<string, int>> BranchesByNodeId { get; } = [];
         public Dictionary<int, int> FallbackByNodeId { get; } = [];

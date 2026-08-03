@@ -77,7 +77,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
         for (var i = 0; i < operations.Length; i++)
         {
-            lookups[i] = RewriteLookup(operations[i], schemaName, schema);
+            lookups[i] = RewriteLookup(operations[i].SourceText, schemaName, schema);
         }
 
         return new ApolloOperationBatchExecutionNode(
@@ -452,14 +452,11 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     }
 
     private static ApolloEntityLookup RewriteLookup(
-        SingleOperationDefinition operation,
+        OperationSourceText lookupOperation,
         string schemaName,
         FusionSchemaDefinition schema)
     {
-        var rewritten = LookupEntityQueryRewriter.Rewrite(
-            schema,
-            schemaName,
-            operation.SourceText);
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, schemaName, lookupOperation);
 
         return new ApolloEntityLookup(
             rewritten.SourceText,

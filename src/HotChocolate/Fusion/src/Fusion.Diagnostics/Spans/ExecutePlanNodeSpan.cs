@@ -53,10 +53,24 @@ internal sealed class ExecutePlanNodeSpan(
         activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);
         activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
 
+        SetSourceSchemaTags(activity, node, schemaName);
+
+        return new ExecutePlanNodeSpan(activity, context, node, schemaName, enricher);
+    }
+
+    internal static void SetSourceSchemaTags(
+        Activity activity,
+        ExecutionNode node,
+        string? schemaName)
+    {
         switch (node)
         {
             case OperationExecutionNode operationExecutionNode:
                 SetSourceSchemaTags(activity, operationExecutionNode.Operation, schemaName);
+                break;
+
+            case ApolloOperationExecutionNode apolloOperationExecutionNode:
+                SetSourceSchemaTags(activity, apolloOperationExecutionNode.Operation, schemaName);
                 break;
 
             case OperationBatchExecutionNode operationBatchExecutionNode:
@@ -73,8 +87,6 @@ internal sealed class ExecutePlanNodeSpan(
                     apolloOperationBatchExecutionNode.Operations.Length);
                 break;
         }
-
-        return new ExecutePlanNodeSpan(activity, context, node, schemaName, enricher);
     }
 
     protected override void OnComplete()
