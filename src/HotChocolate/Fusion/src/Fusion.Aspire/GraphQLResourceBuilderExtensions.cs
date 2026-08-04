@@ -10,6 +10,59 @@ namespace HotChocolate.Fusion.Aspire;
 public static class GraphQLResourceBuilderExtensions
 {
     /// <summary>
+    /// Marks a resource as exposing a GraphQL endpoint over HTTP.
+    /// </summary>
+    /// <param name="builder">The resource builder</param>
+    /// <param name="path">
+    /// The path of the GraphQL endpoint that the resource serves. It must start with '/'.
+    /// </param>
+    /// <param name="schemaPath">
+    /// The path the schema document is downloaded from. It must start with '/' and must not be
+    /// <c>null</c> unless the source schema uses Apollo Federation, which serves its schema
+    /// through the GraphQL endpoint at <paramref name="path"/> and ignores this path.
+    /// </param>
+    /// <param name="endpointName">The endpoint name to use (defaults to "http")</param>
+    /// <param name="sourceSchemaName">
+    /// An optional source schema name assertion. When specified, it must exactly match the
+    /// <c>name</c> in <c>schema-settings.json</c>.
+    /// </param>
+    /// <returns>The resource builder for chaining</returns>
+    public static IResourceBuilder<T> WithGraphQLHttpEndpoint<T>(
+        this IResourceBuilder<T> builder,
+        string path = "/graphql",
+        string? schemaPath = "/graphql/schema.graphql",
+        string endpointName = "http",
+        string? sourceSchemaName = null)
+        where T : IResourceWithEndpoints
+    {
+        if (!path.StartsWith('/'))
+        {
+            throw new ArgumentException(
+                "The GraphQL endpoint path must start with '/'.",
+                nameof(path));
+        }
+
+        if (schemaPath?.StartsWith('/') is false)
+        {
+            throw new ArgumentException(
+                "The GraphQL schema endpoint path must start with '/'.",
+                nameof(schemaPath));
+        }
+
+        builder.WithAnnotation(
+            new GraphQLSourceSchemaAnnotation
+            {
+                SourceSchemaName = sourceSchemaName,
+                EndpointName = endpointName,
+                SchemaPath = schemaPath,
+                GraphQLPath = path,
+                Location = SourceSchemaLocationType.SchemaEndpoint
+            });
+
+        return builder;
+    }
+
+    /// <summary>
     /// Marks a resource as having a GraphQL schema endpoint.
     /// </summary>
     /// <param name="builder">The resource builder</param>
@@ -24,6 +77,9 @@ public static class GraphQLResourceBuilderExtensions
     /// <c>name</c> in <c>schema-settings.json</c>.
     /// </param>
     /// <returns>The resource builder for chaining</returns>
+    [Obsolete(
+        "Use WithGraphQLHttpEndpoint instead, which declares the GraphQL route of the resource "
+        + "in addition to the schema download path.")]
     public static IResourceBuilder<T> WithGraphQLSchemaEndpoint<T>(
         this IResourceBuilder<T> builder,
         string? path = null,
@@ -57,6 +113,9 @@ public static class GraphQLResourceBuilderExtensions
     /// <param name="fileName">The schema file name (defaults to "schema.graphql")</param>
     /// <param name="sourceSchemaName">The source schema name (defaults to the resource name)</param>
     /// <returns>The resource builder for chaining</returns>
+    [Obsolete(
+        "File based source schemas are being retired. Use WithGraphQLHttpEndpoint instead, "
+        + "which fetches the source schema from the endpoint of the resource.")]
     public static IResourceBuilder<T> WithGraphQLSchemaFile<T>(
         this IResourceBuilder<T> builder,
         string fileName = "schema.graphqls",
@@ -156,8 +215,7 @@ public static class GraphQLResourceBuilderExtensions
 
     internal static string? GetGraphQLSchemaUrl(
         this IResourceWithEndpoints resource,
-        string defaultPath,
-        string? endpointName = null)
+        string path)
     {
         var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
         if (annotation is not { Location: SourceSchemaLocationType.SchemaEndpoint })
@@ -165,15 +223,13 @@ public static class GraphQLResourceBuilderExtensions
             return null;
         }
 
-        var targetEndpointName = endpointName ?? annotation.EndpointName;
-        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == targetEndpointName);
+        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == annotation.EndpointName);
         if (endpoint?.Url == null)
         {
             return null;
         }
 
-        var baseUrl = endpoint.Url.TrimEnd('/');
-        return baseUrl + resource.GetGraphQLSchemaPath(defaultPath);
+        return endpoint.Url.TrimEnd('/') + path;
     }
 
     internal static string? GetAllocatedHttpEndpointUrl(this IResourceWithEndpoints resource)
@@ -188,14 +244,6 @@ public static class GraphQLResourceBuilderExtensions
         }
 
         return endpoint.Url;
-    }
-
-    internal static string? GetGraphQLSchemaPath(
-        this IResource resource,
-        string? defaultPath = null)
-    {
-        var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
-        return annotation?.SchemaPath ?? defaultPath;
     }
 
     internal static bool HasGraphQLSchema(this IResource resource)

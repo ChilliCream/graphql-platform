@@ -13,7 +13,7 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
 
-internal sealed class SchemaComposition(
+internal class SchemaComposition(
     ResourceNotificationService resourceNotificationService,
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
@@ -426,10 +426,7 @@ internal sealed class SchemaComposition(
 
             try
             {
-                await resourceNotificationService.WaitForResourceHealthyAsync(
-                    referencedResource.Name,
-                    WaitBehavior.StopOnResourceUnavailable,
-                    cancellationToken);
+                await WaitForResourceHealthyAsync(referencedResource.Name, cancellationToken);
             }
             catch (DistributedApplicationException exception)
             {
@@ -440,6 +437,18 @@ internal sealed class SchemaComposition(
             }
         }
     }
+
+    /// <summary>
+    /// Waits until the resource with <paramref name="resourceName"/> is healthy. Throws
+    /// <see cref="DistributedApplicationException"/> when the resource becomes unavailable.
+    /// </summary>
+    protected internal virtual Task WaitForResourceHealthyAsync(
+        string resourceName,
+        CancellationToken cancellationToken)
+        => resourceNotificationService.WaitForResourceHealthyAsync(
+            resourceName,
+            WaitBehavior.StopOnResourceUnavailable,
+            cancellationToken);
 
     private List<GatewayRecompositionWorker> SubscribeToSourceSchemaRestarts(
         IDistributedApplicationEventing eventing,
@@ -1123,7 +1132,17 @@ internal sealed class SchemaComposition(
                 resource.Name,
                 annotation.SourceSchemaName,
                 schemaSettings);
-            var schemaUrl = resource.GetGraphQLSchemaUrl(endpointConfiguration.DefaultPath);
+
+            if (!TryGetSchemaFetchPath(
+                resource,
+                annotation,
+                endpointConfiguration,
+                out var schemaFetchPath))
+            {
+                return null;
+            }
+
+            var schemaUrl = resource.GetGraphQLSchemaUrl(schemaFetchPath);
 
             if (schemaUrl is null)
             {
@@ -1147,6 +1166,7 @@ internal sealed class SchemaComposition(
                 ResourceName = resource.Name,
                 HttpEndpointUrl = new Uri(schemaUrl),
                 AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
+                GraphQLPath = annotation.GraphQLPath,
                 Schema = new SourceSchemaText(endpointConfiguration.SourceSchemaName, schemaText),
                 SchemaSettings = schemaSettings
             };
@@ -1161,6 +1181,44 @@ internal sealed class SchemaComposition(
                 schemaSettings.Dispose();
             }
         }
+    }
+
+    private bool TryGetSchemaFetchPath(
+        IResourceWithEndpoints resource,
+        GraphQLSourceSchemaAnnotation annotation,
+        SchemaEndpointConfiguration endpointConfiguration,
+        [NotNullWhen(true)] out string? schemaFetchPath)
+    {
+        if (annotation.GraphQLPath is not { } graphQLPath)
+        {
+            AspireCompositionHelper.ReportMissingGraphQLPath(
+                endpointConfiguration.SourceSchemaName,
+                resource.Name,
+                logger);
+            schemaFetchPath = null;
+            return false;
+        }
+
+        if (endpointConfiguration.Protocol is SchemaEndpointProtocol.ApolloFederation)
+        {
+            schemaFetchPath = graphQLPath;
+            return true;
+        }
+
+        if (annotation.SchemaPath is not { } schemaPath)
+        {
+            logger.LogError(
+                "The source schema {Name} of the resource {ResourceName} does not use Apollo "
+                + "Federation and declares no schema document path. Pass a schemaPath to "
+                + "WithGraphQLHttpEndpoint.",
+                endpointConfiguration.SourceSchemaName,
+                resource.Name);
+            schemaFetchPath = null;
+            return false;
+        }
+
+        schemaFetchPath = schemaPath;
+        return true;
     }
 
     internal static SchemaEndpointConfiguration ReadEndpointConfiguration(
@@ -1253,6 +1311,7 @@ internal sealed class SchemaComposition(
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No schema download endpoint for file-based schemas
             AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
+            GraphQLPath = annotation.GraphQLPath,
             Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
             SchemaSettings = schemaSettings
         };
