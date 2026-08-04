@@ -7,9 +7,13 @@ schema {
   subscription: MySubscription
 }
 
+type Query {
+  a: String
+}
+
 type MyMutation {
-  writeBoolean(userId: String! message: Boolean!): Boolean!
-  writeMessage(userId: String! message: String!): String!
+  writeBoolean(userId: String!, message: Boolean!): Boolean!
+  writeMessage(userId: String!, message: String!): String!
   writeSysMessage(message: String!): String!
   writeFixedMessage(message: String!): String!
   writeOnInferTopic(message: String!): String!
@@ -26,9 +30,5 @@ type MySubscription {
   onExplicitNonGenericSync: String!
   onExplicitSync: String!
   onArguments(arg: String!): String!
-}
-
-type Query {
-  a: String
 }
 ```

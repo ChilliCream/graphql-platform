@@ -1,0 +1,348 @@
+using CookieCrumble;
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
+using Mocha.Sagas;
+using Mocha.Transport.RabbitMQ.Tests.Helpers;
+
+namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
+
+/// <summary>
+/// Verifies the identity, endpoint materialization, convergence, saga placement, and axis-A claim
+/// behavior of the unified <c>t.Queue(name)</c> API.
+/// </summary>
+public class RabbitMQUnifiedQueueTests
+{
+    [Fact]
+    public void Queue_Should_CreateEndpoint_When_ConsumerAttached()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .SingleOrDefault(e => e.Queue.Name == "orders");
+
+        // assert: the Queue() API materialized exactly one receive endpoint named "orders"
+        Assert.NotNull(endpoint);
+        Assert.Equal("orders", endpoint.Queue.Name);
+    }
+
+    [Fact]
+    public void Queue_Should_ResolveIdenticalDescriptor_When_CalledTwiceWithSameName()
+    {
+        // arrange
+        // Calling t.Queue("orders") a second time must return the same backing endpoint adapter,
+        // not create a second receive endpoint.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                var first = t.Queue("orders");
+                first.Consumer<OrderSpyConsumer>();
+                var second = t.Queue("orders");
+                second.BindExplicitly();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoints = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Where(e => e.Queue.Name == "orders")
+            .ToList();
+
+        // assert: only one endpoint exists for "orders"
+        Assert.Single(endpoints);
+    }
+
+    [Fact]
+    public void Queue_Should_SetQueueNameAsEndpointName_When_NoExplicitEndpointName()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("my-queue").Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .SingleOrDefault(e => e.Queue.Name == "my-queue");
+
+        // assert: the endpoint name equals the queue name when no explicit endpoint name is given
+        Assert.NotNull(endpoint);
+        Assert.Equal("my-queue", endpoint.Name);
+    }
+
+    [Fact]
+    public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("audit");
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .FirstOrDefault(e => e.Queue.Name == "audit");
+
+        // assert
+        Assert.NotNull(endpoint);
+    }
+
+    [Fact]
+    public void Queue_Should_MaterializeReceiveEndpoint_When_ReceivesAdded()
+    {
+        // arrange
+        // Adding Receives<T>() on a Queue() descriptor must produce a receive endpoint.
+        // A registered consumer is required so the
+        // lifecycle validation can connect the declared Receives route to a handler.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Receives<OrderCreated>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .SingleOrDefault(e => e.Queue.Name == "orders");
+
+        // assert: a receive endpoint was materialized because Receives<T> was declared
+        Assert.NotNull(endpoint);
+    }
+
+    [Fact]
+    public void QueueEndpointDeclareQueue_Should_ConvergeToOneEntity_When_SameName()
+    {
+        // arrange
+        // Two paths target the same queue name "orders":
+        //   1. t.Queue("orders") unified Queue() API (the primary surface, creates a builder)
+        //   2. t.DeclareQueue("orders") at transport level (declared origin)
+        // Descriptor-level deduplication must converge both into exactly one queue entity with no
+        // exception. The second DeclareQueue call below also verifies that path.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
+                t.DeclareQueue("orders").AutoProvision(true);
+                t.DeclareQueue("orders").AutoProvision(false);
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var description = transport.Describe();
+        var queues = topology.Queues.Where(q => q.Name == "orders").ToList();
+
+        // assert: exactly one "orders" queue entity, no duplicate or exception
+        Assert.Single(queues);
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void SagaEndpoint_Should_Describe_When_ConfiguredViaUnifiedQueue()
+    {
+        // arrange
+        // A saga that processes OrderStarted events and sends a request (with an OnReply route).
+        // When the saga is combined with t.Queue("order-processor"),
+        // the convention must not emit an exchange chain for the reply type (OrderResult). The start
+        // event exchange chain appears; the queue declared via Queue() also appears.
+        var services = new ServiceCollection();
+        services.AddInMemorySagas();
+        var builder = services.AddMessageBus();
+        builder.AddSaga<OrderProcessSaga>();
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                t.BindImplicitly();
+                // t.Queue("order-processor") creates a dispatch-target queue alongside
+                // the saga's auto-discovered consume endpoint.
+                t.Queue("order-processor");
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert: no exchange or binding chain for OrderResult (the reply type) appears; the
+        // "order-processor" queue and the saga's convention endpoint are both present.
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void BindExplicitly_Should_NotThrow_When_HandlerAttachedViaQueue()
+    {
+        // arrange
+        // Under BindExplicitly, a handler registered via t.Queue("q").Handler<T>() is an
+        // explicit axis-A claim (3.6) and must not require a separate t.Handler<T>() call. The build
+        // must succeed without any unconnected-route diagnostic.
+        var runtime = CreateRuntime(
+            b => b.AddEventHandler<OrderCreatedHandler>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Handler<OrderCreatedHandler>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        Assert.Contains(
+            transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>(),
+            e => e.Queue.Name == "orders");
+    }
+
+    [Fact]
+    public void BindExplicitly_Should_NotAutoDiscoverHandler_When_HandlerAttachedViaQueue()
+    {
+        // arrange
+        // Under BindExplicitly, a handler registered via the Queue() API must not also
+        // trigger auto-discovery on a separate convention-named endpoint. Exactly one receive
+        // endpoint should exist, holding the queue name specified via Queue().
+        var runtime = CreateRuntime(
+            b => b.AddEventHandler<OrderCreatedHandler>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("my-orders").Handler<OrderCreatedHandler>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var ordersEndpoints = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Where(e => e.Configuration.ConsumerIdentities.Contains(typeof(OrderCreatedHandler)))
+            .ToList();
+
+        // assert: handler lands on exactly one endpoint with the declared queue name
+        Assert.Single(ordersEndpoints);
+        Assert.Equal("my-orders", ordersEndpoints[0].Queue.Name);
+    }
+
+    [Fact]
+    public void Queue_Should_ApplyQueueShapeArguments_When_WithArgumentCalled()
+    {
+        // arrange
+        // WithArgument on the Queue() descriptor stores the argument on the backing queue configuration.
+        // The argument flows through the queue configuration's arguments.
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("audit").WithArgument("x-message-ttl", 30_000);
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.SingleOrDefault(q => q.Name == "audit");
+
+        // assert
+        Assert.NotNull(queue);
+        Assert.True(queue.Arguments.ContainsKey("x-message-ttl"));
+        Assert.Equal(30_000, queue.Arguments["x-message-ttl"]);
+    }
+
+    [Fact]
+    public void Queue_Should_ConfigureFaultEndpointViaQueueDescriptor_When_FaultEndpointConfigured()
+    {
+        // arrange
+        // The FaultEndpoint URI on the Queue() descriptor must configure routing with the
+        // verbatim queue name.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .FaultEndpoint(new Uri("queue:LEGACY.Orders.Error"));
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert: the error queue name is stored verbatim in the route
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.Equal("queue:LEGACY.Orders.Error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
+    }
+
+    private static MessagingRuntime CreateRuntime(
+        Action<IMessageBusHostBuilder> configureBuilder,
+        Action<IRabbitMQMessagingTransportDescriptor> configureTransport)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        configureBuilder(builder);
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                configureTransport(t);
+            })
+            .BuildRuntime();
+        return runtime;
+    }
+
+    public sealed class OrderSpyConsumer : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
+    }
+
+    // Saga types for the Queue() API test.
+
+    public sealed class OrderStarted;
+
+    public sealed class OrderResult;
+
+    public sealed class OrderProcessState : SagaStateBase;
+
+    public sealed class OrderProcessRequest : IEventRequest<OrderResult>;
+
+    public sealed class OrderProcessSaga : Saga<OrderProcessState>
+    {
+        protected override void Configure(ISagaDescriptor<OrderProcessState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnEvent<OrderStarted>()
+                .StateFactory(_ => new OrderProcessState())
+                .Send((_, _) => new OrderProcessRequest())
+                .TransitionTo("Awaiting");
+
+            descriptor.During("Awaiting").OnReply<OrderResult>().TransitionTo("Done");
+
+            descriptor.Finally("Done");
+        }
+    }
+}

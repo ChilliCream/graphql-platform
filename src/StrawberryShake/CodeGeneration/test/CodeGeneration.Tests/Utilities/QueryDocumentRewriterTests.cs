@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -18,7 +17,7 @@ public class QueryDocumentRewriterTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(

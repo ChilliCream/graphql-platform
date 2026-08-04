@@ -48,13 +48,14 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                     }
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -75,13 +76,14 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -102,13 +104,14 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -129,13 +132,14 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -150,13 +154,14 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                 foos {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

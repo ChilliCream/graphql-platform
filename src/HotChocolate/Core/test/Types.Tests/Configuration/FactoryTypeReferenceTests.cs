@@ -14,7 +14,7 @@ public class FactoryTypeReferenceTests
         var schema = await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<QueryType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

@@ -1,6 +1,10 @@
 using HotChocolate.Language;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
 namespace HotChocolate.Transport;
+#endif
 
 public interface IOperationRequest : IRequestBody
 {
@@ -9,10 +13,17 @@ public interface IOperationRequest : IRequestBody
     /// </summary>
     string? Id { get; }
 
+#if FUSION
+    /// <summary>
+    /// Gets the UTF-8 encoded query document containing the operation to execute.
+    /// </summary>
+    ReadOnlyMemory<byte> Query { get; }
+#else
     /// <summary>
     /// Gets the query string or document containing the operation to execute.
     /// </summary>
     string? Query { get; }
+#endif
 
     /// <summary>
     /// Gets the name of the operation to execute.
@@ -24,6 +35,13 @@ public interface IOperationRequest : IRequestBody
     /// </summary>
     ErrorHandlingMode? OnError { get; }
 
+#if FUSION
+    /// <summary>
+    /// Gets an <see cref="JsonSegment"/> representing the extension values to include with the
+    /// operation.
+    /// </summary>
+    JsonSegment Extensions { get; }
+#else
     /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.
     /// </summary>
@@ -34,4 +52,5 @@ public interface IOperationRequest : IRequestBody
     /// operation.
     /// </summary>
     ObjectValueNode? ExtensionsNode { get; }
+#endif
 }

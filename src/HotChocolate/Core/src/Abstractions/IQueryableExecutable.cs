@@ -3,7 +3,7 @@ namespace HotChocolate;
 /// <summary>
 /// Represents an executable that has a queryable as its source.
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">The element type.</typeparam>
 public interface IQueryableExecutable<T> : IExecutable<T>
 {
     /// <summary>

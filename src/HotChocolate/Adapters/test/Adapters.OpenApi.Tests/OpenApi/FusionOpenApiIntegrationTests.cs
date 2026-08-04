@@ -15,7 +15,7 @@ public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
 
     protected override string SnapshotSuffix => "Fusion";
 
-    protected override async Task InitializeAsync(TestServerSession serverSession)
+    protected override async ValueTask InitializeAsync(TestServerSession serverSession)
     {
         var server = CreateSourceSchema();
 
@@ -57,6 +57,7 @@ public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
     {
         services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);
     }
 }

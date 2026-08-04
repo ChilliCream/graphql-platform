@@ -42,7 +42,7 @@
     }
   },
   "extensions": {
-    "sql": "-- @__p_0='11'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nORDER BY b.\"Name\", b.\"Id\"\nLIMIT @__p_0"
+    "sql": "-- @p='11'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nORDER BY b.\"Name\", b.\"Id\"\nLIMIT @p"
   }
 }
 ```

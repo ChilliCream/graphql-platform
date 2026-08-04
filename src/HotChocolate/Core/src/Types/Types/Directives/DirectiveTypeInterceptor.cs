@@ -97,6 +97,8 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
                 break;
 
             case DirectiveType directiveType:
+                RegisterDirectiveUsage(directiveType);
+
                 foreach (var argument in directiveType.Arguments)
                 {
                     RegisterDirectiveUsage(argument);

@@ -24,8 +24,7 @@ public class GeoJsonPointTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ test }");
+        var result = await executor.ExecuteAsync("{ test }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -49,7 +48,8 @@ public class GeoJsonPointTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { type coordinates bbox crs }}");
+            "{ test { type coordinates bbox crs }}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -72,7 +72,8 @@ public class GeoJsonPointTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on Point { type coordinates bbox crs }}}");
+            "{ test { ... on Point { type coordinates bbox crs }}}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

@@ -1,12 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class FusionEnvironmentOption : Option<string?>
 {
     public FusionEnvironmentOption() : base("--environment")
     {
-        Description = "The name of the environment used for value substitution in the schema-settings.json files.";
+        Description = "The name of the environment used for value substitution in the schema-settings.json files";
 
-        AddAlias("--env");
-        AddAlias("-e");
+        Aliases.Add("--env");
+        Aliases.Add("-e");
     }
 }

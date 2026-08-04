@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -182,6 +184,16 @@ DISCOVER:
                 continue;
             }
 
+            if (unresolvedTypeRef is ExtendedTypeReference fallbackTypeRef
+                && _typeRegistry.TryGetNonInferredTypeRef(fallbackTypeRef, out var fallbackReference))
+            {
+                inferred = true;
+                _typeRegistry.TryRegister(fallbackTypeRef, fallbackReference);
+                _unregistered.Enqueue(fallbackReference, (TypeReferenceStrength.VeryWeak, _nextTypeRefIndex++));
+                _resolved.Add(unresolvedTypeRef);
+                continue;
+            }
+
             // if we do not have a type binding or if we have a directive we will try to infer the type.
             if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference
                 && _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
@@ -228,21 +240,45 @@ DISCOVER:
 
         if (_errors.Count == 0 && _typeRegistrar.Unresolved.Count > 0)
         {
-            foreach (var unresolvedReference in _typeRegistrar.Unresolved)
+            var message = new StringBuilder();
+
+            // the unresolved references are stored in an unordered set, so we order
+            // them deterministically to keep the produced error sequence stable.
+            foreach (var unresolvedReference in
+                _typeRegistrar.Unresolved.OrderBy(r => r.ToString(), StringComparer.Ordinal))
             {
                 var types = _typeRegistry.Types.Where(
                     t => t.Dependencies.Select(d => d.Type)
                         .Any(r => r.Equals(unresolvedReference))).ToList();
 
+                var path = TypeInferencePathBuilder.Build(_typeRegistry, unresolvedReference);
+
+                message.Clear();
+
+                message.AppendFormat(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.TypeRegistrar_TypesInconsistent,
+                    unresolvedReference);
+
+                if (path.HasValue)
+                {
+                    message.Append(Environment.NewLine);
+                    message.Append(Environment.NewLine);
+                    message.Append(path.Value.Short);
+                }
+
                 var builder =
                     SchemaErrorBuilder.New()
-                        .SetMessage(
-                            TypeResources.TypeRegistrar_TypesInconsistent,
-                            unresolvedReference)
+                        .SetMessage(message.ToString())
                         .SetExtension(
                             TypeErrorFields.Reference,
                             unresolvedReference)
                         .SetCode(ErrorCodes.Schema.UnresolvedTypes);
+
+                if (path.HasValue)
+                {
+                    builder.SetExtension(TypeErrorFields.Path, path.Value.Expanded);
+                }
 
                 if (types.Count == 1)
                 {

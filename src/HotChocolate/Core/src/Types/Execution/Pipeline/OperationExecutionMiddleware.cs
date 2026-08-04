@@ -264,6 +264,7 @@ internal sealed class OperationExecutionMiddleware
     {
         var queryType = context.Schema.QueryType;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (queryType is null)
         {
             return null;

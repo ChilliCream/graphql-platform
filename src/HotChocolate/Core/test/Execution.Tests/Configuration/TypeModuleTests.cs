@@ -15,7 +15,7 @@ public class TypeModuleTests
             .AddSingleton<DummyTypeModule>()
             .AddGraphQLServer()
             .AddTypeModule<DummyTypeModule>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -26,7 +26,9 @@ public class TypeModuleTests
             .AddSingleton<DummyTypeModule>()
             .AddGraphQLServer()
             .AddTypeModule<DummyTypeModule>()
-            .ExecuteRequestAsync("{ hello }")
+            .ExecuteRequestAsync(
+                "{ hello }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -38,7 +40,7 @@ public class TypeModuleTests
             .AddGraphQLServer()
             .AddTypeExtension<Query>()
             .AddTypeModule<DummyTypeModule>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -50,7 +52,9 @@ public class TypeModuleTests
             .AddGraphQLServer()
             .AddTypeExtension<Query>()
             .AddTypeModule<DummyTypeModule>()
-            .ExecuteRequestAsync("{ hello person { name dynamic } }")
+            .ExecuteRequestAsync(
+                "{ hello person { name dynamic } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -60,7 +64,7 @@ public class TypeModuleTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddTypeModule(_ => new DummyTypeModule())
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

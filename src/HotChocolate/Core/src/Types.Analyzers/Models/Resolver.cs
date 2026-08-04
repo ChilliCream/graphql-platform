@@ -18,7 +18,8 @@ public sealed class Resolver
         ImmutableArray<MemberBinding> bindings,
         SchemaTypeReference schemaTypeRef,
         ResolverKind kind = ResolverKind.Default,
-        FieldFlags flags = FieldFlags.None)
+        FieldFlags flags = FieldFlags.None,
+        string? subscribeWith = null)
     {
         TypeName = typeName;
         Member = member;
@@ -31,20 +32,26 @@ public sealed class Resolver
         Bindings = bindings;
         Kind = kind;
         Flags = flags;
+        SubscribeWith = subscribeWith;
 
         if (description is MethodDescription m && parameters.Length == m.ParameterDescriptions.Length)
         {
             for (var i = 0; i < parameters.Length; i++)
             {
-                parameters[i].Description ??= m.ParameterDescriptions[i];
+                if (parameters[i].Description is null)
+                {
+                    var (paramDesc, paramIsFromAttr) = m.ParameterDescriptions[i];
+                    parameters[i].Description = paramDesc;
+                    parameters[i].IsDescriptionFromAttribute = paramIsFromAttr;
+                }
             }
         }
 
-        Attributes = member.GetAttributes();
-        Shareable = Attributes.GetShareableScope();
-        Inaccessible = Attributes.GetInaccessibleScope();
-        IsNodeResolver = Attributes.IsNodeResolver();
-        DescriptorAttributes = Attributes.GetUserAttributes();
+        var attributes = member.GetAttributes();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        IsNodeResolver = attributes.IsNodeResolver();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string FieldName { get; }
@@ -52,6 +59,8 @@ public sealed class Resolver
     public string TypeName { get; }
 
     public string? Description => _description?.Description;
+
+    public bool IsDescriptionFromAttribute => _description?.IsDescriptionFromAttribute ?? false;
 
     public string? DeprecationReason { get; }
 
@@ -66,7 +75,7 @@ public sealed class Resolver
     public bool IsStatic => Member.IsStatic;
 
     public bool IsPure
-        => Kind is not ResolverKind.NodeResolver
+        => Kind is not (ResolverKind.NodeResolver or ResolverKind.BatchResolver)
             && ResultKind is ResolverResultKind.Pure
             && Parameters.All(t => t.IsPure);
 
@@ -88,9 +97,13 @@ public sealed class Resolver
 
     public DirectiveScope Inaccessible { get; }
 
-    public ImmutableArray<AttributeData> Attributes { get; }
-
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
+    /// <summary>
+    /// The name of the sibling method that produces the subscription event stream
+    /// when this resolver is annotated with <c>[Subscribe(With = nameof(...))]</c>.
+    /// </summary>
+    public string? SubscribeWith { get; }
 
     public Resolver WithSchemaTypeName(SchemaTypeReference schemaTypeRef)
         => new Resolver(
@@ -103,5 +116,6 @@ public sealed class Resolver
             Bindings,
             schemaTypeRef,
             Kind,
-            Flags);
+            Flags,
+            SubscribeWith);
 }

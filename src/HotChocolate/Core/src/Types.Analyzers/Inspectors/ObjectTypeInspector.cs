@@ -22,6 +22,7 @@ public class ObjectTypeInspector : ISyntaxInspector
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
         var isOperationType = false;
+        var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         OperationType? operationType = null;
         if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
@@ -43,7 +44,9 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(possibleType.SyntaxTree, possibleType.Span)));
         }
 
-        if (!possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
+        // Root types may be instance classes; the static requirement applies only to object type extensions.
+        if (!isOperationType
+            && !possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
         {
             diagnostics = diagnostics.Add(
                 Diagnostic.Create(
@@ -56,46 +59,76 @@ public class ObjectTypeInspector : ISyntaxInspector
         Resolver? nodeResolver = null;
         var i = 0;
 
+        CollectSubscribeWithNames(
+            members,
+            includeInternalMembers,
+            out var subscribeSourceNames,
+            out var subscribeWithLookup);
+
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is
-                Accessibility.Public or
-                Accessibility.Internal or
-                Accessibility.ProtectedAndInternal
-                && !member.IsIgnored())
+            if (member.IsIgnored())
             {
-                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
-                {
-                    if (methodSymbol.Skip())
-                    {
-                        continue;
-                    }
+                continue;
+            }
 
-                    if (!isOperationType && methodSymbol.IsNodeResolver())
-                    {
-                        nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
-                    }
-                    else
-                    {
-                        resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
-                        continue;
-                    }
+            if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
+            {
+                var hasNodeResolverAttribute = methodSymbol.IsNodeResolver();
+                var includeInternalNodeResolver = hasNodeResolverAttribute
+                    && methodSymbol.DeclaredAccessibility is
+                        Accessibility.Internal
+                        or Accessibility.ProtectedOrInternal
+                        or Accessibility.ProtectedAndInternal;
+
+                if (!IsVisibleResolverMember(member, includeInternalMembers) && !includeInternalNodeResolver)
+                {
+                    continue;
                 }
 
-                if (member is IPropertySymbol)
+                if (methodSymbol.Skip())
                 {
-                    var compilation = context.SemanticModel.Compilation;
-
-                    resolvers[i++] = new Resolver(
-                        classSymbol.Name,
-                        member,
-                        compilation.GetDescription(member, []),
-                        compilation.GetDeprecationReason(member),
-                        ResolverResultKind.Pure,
-                        [],
-                        member.GetMemberBindings(),
-                        compilation.CreateTypeReference(member));
+                    continue;
                 }
+
+                // Skip methods that are referenced by a sibling [Subscribe(With = nameof(...))] attribute.
+                // These methods produce the event stream and must not be exposed as their own GraphQL fields.
+                if (subscribeSourceNames?.Contains(methodSymbol.Name) == true)
+                {
+                    continue;
+                }
+
+                if (!isOperationType && hasNodeResolverAttribute)
+                {
+                    nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
+                    continue;
+                }
+
+                string? subscribeWith = null;
+                subscribeWithLookup?.TryGetValue(methodSymbol, out subscribeWith);
+
+                resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol, subscribeWith);
+                continue;
+            }
+
+            if (member is IPropertySymbol)
+            {
+                if (!IsVisibleResolverMember(member, includeInternalMembers))
+                {
+                    continue;
+                }
+
+                var compilation = context.SemanticModel.Compilation;
+
+                resolvers[i++] = new Resolver(
+                    classSymbol.Name,
+                    member,
+                    compilation.GetDescription(member),
+                    compilation.GetDeprecationReason(member),
+                    ResolverResultKind.Pure,
+                    [],
+                    member.GetMemberBindings(),
+                    compilation.CreateTypeReference(member));
             }
         }
 
@@ -107,6 +140,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         if (runtimeType is not null)
         {
             var objectTypeInfo = new ObjectTypeInfo(
+                context.SemanticModel.Compilation,
                 classSymbol,
                 runtimeType,
                 nodeResolver,
@@ -123,25 +157,26 @@ public class ObjectTypeInspector : ISyntaxInspector
             return true;
         }
 
-        var rooType = new RootTypeInfo(
+        var rootType = new RootTypeInfo(
+            context.SemanticModel.Compilation,
             classSymbol,
             operationType!.Value,
             possibleType,
             i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
             classSymbol.GetAttributes());
 
-        rooType.SourceSchemaDetected =
-            rooType.Shareable is not DirectiveScope.None
-                || rooType.Inaccessible is not DirectiveScope.None
-                || rooType.DescriptorAttributes.HasSourceSchemaAttribute()
-                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
+        rootType.SourceSchemaDetected =
+            rootType.Shareable is not DirectiveScope.None
+                || rootType.Inaccessible is not DirectiveScope.None
+                || rootType.DescriptorAttributes.HasSourceSchemaAttribute()
+                || rootType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
         {
-            rooType.AddDiagnosticRange(diagnostics);
+            rootType.AddDiagnosticRange(diagnostics);
         }
 
-        syntaxInfo = rooType;
+        syntaxInfo = rootType;
         return true;
     }
 
@@ -188,6 +223,16 @@ public class ObjectTypeInspector : ISyntaxInspector
         runtimeType = null;
         return false;
     }
+
+    private static bool IsVisibleResolverMember(ISymbol member, bool includeInternalMembers)
+        => member.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+            Accessibility.Internal => includeInternalMembers,
+            Accessibility.ProtectedOrInternal => includeInternalMembers,
+            Accessibility.ProtectedAndInternal => includeInternalMembers,
+            _ => false
+        };
 
     private static bool IsOperationType(
         GeneratorSyntaxContext context,
@@ -250,31 +295,36 @@ public class ObjectTypeInspector : ISyntaxInspector
     private static Resolver CreateResolver(
         GeneratorSyntaxContext context,
         INamedTypeSymbol resolverType,
-        IMethodSymbol resolverMethod)
-        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod);
+        IMethodSymbol resolverMethod,
+        string? subscribeWith = null)
+        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod, subscribeWith: subscribeWith);
 
     public static Resolver CreateResolver(
         Compilation compilation,
         INamedTypeSymbol resolverType,
         IMethodSymbol resolverMethod,
-        string? resolverTypeName = null)
+        string? resolverTypeName = null,
+        string? subscribeWith = null)
     {
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var isBatchResolver = resolverMethod.IsBatchResolver();
 
         for (var i = 0; i < parameters.Length; i++)
         {
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             buffer[i] = new ResolverParameter(
                 parameter,
                 parameterKind,
-                compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.CreateTypeReference(parameter, isBatchResolver),
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
         }
 
         resolverTypeName ??= resolverType.Name;
@@ -282,15 +332,90 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverTypeName,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,
             resolverMethod.GetMemberBindings(),
-            compilation.CreateTypeReference(resolverMethod),
-            kind: compilation.IsConnectionType(resolverMethod.ReturnType)
-                ? ResolverKind.ConnectionResolver
-                : ResolverKind.Default);
+            isBatchResolver
+                ? compilation.CreateTypeReference(resolverMethod, isBatchResolver: true)
+                : compilation.CreateTypeReference(resolverMethod),
+            kind: isBatchResolver
+                ? ResolverKind.BatchResolver
+                : compilation.IsConnectionType(resolverMethod.ReturnType)
+                    ? ResolverKind.ConnectionResolver
+                    : ResolverKind.Default,
+            subscribeWith: subscribeWith);
+    }
+
+    private static void CollectSubscribeWithNames(
+        ImmutableArray<ISymbol> members,
+        bool includeInternalMembers,
+        out HashSet<string>? subscribeSourceNames,
+        out Dictionary<IMethodSymbol, string>? subscribeWithLookup)
+    {
+        subscribeSourceNames = null;
+        subscribeWithLookup = null;
+
+        foreach (var member in members)
+        {
+            if (member.IsIgnored())
+            {
+                continue;
+            }
+
+            if (member is not IMethodSymbol { MethodKind: MethodKind.Ordinary } method)
+            {
+                continue;
+            }
+
+            if (!IsVisibleResolverMember(method, includeInternalMembers))
+            {
+                continue;
+            }
+
+            if (method.Skip())
+            {
+                continue;
+            }
+
+            if (!TryGetSubscribeWith(method, out var with))
+            {
+                continue;
+            }
+
+            subscribeSourceNames ??= [];
+            subscribeWithLookup ??= new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
+            subscribeSourceNames.Add(with);
+            subscribeWithLookup[method] = with;
+        }
+    }
+
+    private static bool TryGetSubscribeWith(
+        IMethodSymbol methodSymbol,
+        [NotNullWhen(true)] out string? with)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() != SubscribeAttribute)
+            {
+                continue;
+            }
+
+            foreach (var namedArg in attribute.NamedArguments)
+            {
+                if (namedArg.Key == "With"
+                    && namedArg.Value.Value is string value
+                    && !string.IsNullOrEmpty(value))
+                {
+                    with = value;
+                    return true;
+                }
+            }
+        }
+
+        with = null;
+        return false;
     }
 
     private static Resolver CreateNodeResolver(
@@ -310,13 +435,15 @@ public class ObjectTypeInspector : ISyntaxInspector
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             var resolverParameter = new ResolverParameter(
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
 
             if (resolverParameter.Kind == ResolverParameterKind.Argument)
             {
@@ -338,9 +465,10 @@ public class ObjectTypeInspector : ISyntaxInspector
                     parameter,
                     ResolverParameterKind.Argument,
                     compilation.CreateTypeReference(parameter),
-                    parameter.GetDescriptionFromAttribute(),
+                    paramDesc?.Description,
                     compilation.GetDeprecationReason(parameter),
-                    key);
+                    key,
+                    paramDesc?.IsDescriptionFromAttribute ?? false);
             }
 
             buffer[i] = resolverParameter;
@@ -359,7 +487,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverType.Name,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,
@@ -449,6 +577,19 @@ file static class Extensions
         foreach (var attribute in methodSymbol.GetAttributes())
         {
             if (attribute.AttributeClass.IsOrInheritsFrom(NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsBatchResolver(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == BatchResolverAttribute)
             {
                 return true;
             }

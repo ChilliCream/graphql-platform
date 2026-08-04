@@ -1,0 +1,195 @@
+title: Planner_Should_Route_To_Owning_Source_When_Local_Field_Is_Orphan_External
+request:
+  document: |
+    {
+      reviews {
+        product {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "reviews": [
+          {
+            "product": {
+              "name": "Product: UHJvZHVjdDo0"
+            }
+          },
+          {
+            "product": {
+              "name": "Product: UHJvZHVjdDo1"
+            }
+          },
+          {
+            "product": {
+              "name": "Product: UHJvZHVjdDo2"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: reviews
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        reviews: [Review]
+        productByName(name: String!): Product @provides(fields: "name")
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String @external
+      }
+
+      type Review @key(fields: "id") {
+        id: ID!
+        body: String
+        product: Product
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_ba13c690_1 {
+              reviews {
+                product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "product": {
+                        "id": "UHJvZHVjdDo0"
+                      }
+                    },
+                    {
+                      "product": {
+                        "id": "UHJvZHVjdDo1"
+                      }
+                    },
+                    {
+                      "product": {
+                        "id": "UHJvZHVjdDo2"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: products
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID! @is(field: "id")): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_ba13c690_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDo0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDo1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDo2"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          reviews {
+            product {
+              name
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: ba13c690662a15c32dd1889fabb7dd37
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: reviews
+      operation: |
+        query Op_ba13c690_1 {
+          reviews {
+            product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: products
+      operation: |
+        query Op_ba13c690_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.reviews.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -32,12 +32,13 @@ public class MongoDbFilterCombinatorTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { }){ bar }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         await Snapshot
             .Create()
             .Add(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

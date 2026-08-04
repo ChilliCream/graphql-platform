@@ -1,0 +1,277 @@
+title: Mutation_Root_With_Batched_Node_Lookups_Executes_Followups
+request:
+  document: |
+    mutation createReview($input: CreateReviewInput!) {
+      createReview(input: $input) {
+        id
+        body
+        author {
+          id
+          name
+        }
+        product {
+          id
+          name
+        }
+      }
+    }
+  variables: |
+    {
+      "input": {
+        "id": "UmV2aWV3OjE="
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "createReview": {
+          "id": "UmV2aWV3OjE=",
+          "body": "Review: UmV2aWV3OjE=",
+          "author": {
+            "id": "QXV0aG9yOjI=",
+            "name": "Author: QXV0aG9yOjI="
+          },
+          "product": {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+
+      type Mutation {
+        createReview(input: CreateReviewInput!): Review
+      }
+
+      type Author implements Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String
+        author: Author
+        product: Product
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      input CreateReviewInput {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            mutation createReview_df7efcac_1($input: CreateReviewInput!) {
+              createReview(input: $input) {
+                id
+                body
+                author {
+                  id
+                }
+                product {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "input": {
+                "id": "UmV2aWV3OjE="
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "createReview": {
+                    "id": "UmV2aWV3OjE=",
+                    "body": "Review: UmV2aWV3OjE=",
+                    "author": {
+                      "id": "QXV0aG9yOjI="
+                    },
+                    "product": {
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+
+      type Author implements Node {
+        id: ID!
+        name: String
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query createReview_df7efcac_2($__fusion_1_id: ID!) {
+                  node(id: $__fusion_1_id) {
+                    __typename
+                    ... on Product {
+                      name
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "UHJvZHVjdDoz"
+                }
+            - document: |
+                query createReview_df7efcac_3($__fusion_2_id: ID!) {
+                  node(id: $__fusion_2_id) {
+                    __typename
+                    ... on Author {
+                      name
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "QXV0aG9yOjI="
+                }
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Author",
+                    "name": "Author: QXV0aG9yOjI="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        mutation createReview($input: CreateReviewInput!) {
+          createReview(input: $input) {
+            id
+            body
+            author {
+              id
+              id @fusion__requirement
+              name
+            }
+            product {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      name: createReview
+      hash: df7efcac5bc495273d4ff34bb964367c
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        mutation createReview_df7efcac_1($input: CreateReviewInput!) {
+          createReview(input: $input) {
+            id
+            body
+            author {
+              id
+            }
+            product {
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - input
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query createReview_df7efcac_2($__fusion_1_id: ID!) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.createReview.product
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query createReview_df7efcac_3($__fusion_2_id: ID!) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Author {
+              name
+            }
+          }
+        }
+      source: $.node<Author>
+      target: $.createReview.author
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

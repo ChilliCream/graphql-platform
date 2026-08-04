@@ -20,7 +20,15 @@ type Query {
   "name": "_Default",
   "transports": {
     "http": {
-      "url": "http://localhost:5000/graphql"
+      "url": "http://localhost:5000/graphql",
+      "capabilities": {
+        "batching": {
+          "variableBatching": true,
+          "requestBatching": true,
+          "aliasBatching": true
+        },
+        "onError": "propagate"
+      }
     }
   }
 }

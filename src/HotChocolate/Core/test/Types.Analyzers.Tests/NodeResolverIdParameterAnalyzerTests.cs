@@ -39,7 +39,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(int id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(string id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(int id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(int id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(string id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(Guid id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -279,7 +279,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -318,7 +318,7 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(int id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -358,6 +358,6 @@ public class NodeResolverIdParameterAnalyzerTests
                 public Task<Product?> GetProductByIdAsync(string id, QueryContext<Product> query, CancellationToken ct) => default!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

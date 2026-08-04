@@ -4,7 +4,9 @@ namespace StrawberryShake;
 /// A connection represents a transport connection to a GraphQL server and allows to execute
 /// requests against it.
 /// </summary>
-/// <typeparam name="TResponseBody"></typeparam>
+/// <typeparam name="TResponseBody">
+/// The type of the response body.
+/// </typeparam>
 public interface IConnection<TResponseBody> where TResponseBody : class
 {
     /// <summary>

@@ -78,7 +78,10 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         }
 
         MarkResolved(runtimeTypeRef);
-        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
+        _typeRegistry.TryRegister(
+            runtimeTypeRef,
+            registeredType.References[0],
+            explicitBinding: RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type));
     }
 
     private void RegisterTypeAndResolveReferences(RegisteredType registeredType)

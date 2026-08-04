@@ -91,10 +91,12 @@ public class ErrorBehaviorTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddErrorFilter(error => error.SetExtension("foo", "bar"))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ error14 }");
+        var result = await executor.ExecuteAsync(
+            "{ error14 }",
+            TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -114,10 +116,12 @@ public class ErrorBehaviorTests
                 .Extend()
                 // in the pure resolver we will return the wrong type
                 .Configuration.Resolver = _ => new ValueTask<object?>(new Baz()))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo { bar } }");
+        var result = await executor.ExecuteAsync(
+            "{ foo { bar } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -137,10 +141,12 @@ public class ErrorBehaviorTests
                 .Extend()
                 // in the pure resolver we will return the wrong type
                 .Configuration.PureResolver = _ => new Baz())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo { bar } }");
+        var result = await executor.ExecuteAsync(
+            "{ foo { bar } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -161,10 +167,12 @@ public class ErrorBehaviorTests
                 // in the pure resolver we will return the wrong type
                 .Configuration.PureResolver = _ => new Baz())
             .SetMaxAllowedValidationErrors(1)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ a b c d }");
+        var result = await executor.ExecuteAsync(
+            "{ a b c d }",
+            TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);

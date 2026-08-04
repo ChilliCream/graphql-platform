@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Subscriptions.Redis</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Subscriptions.Redis</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.Redis.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
+
+</Project>

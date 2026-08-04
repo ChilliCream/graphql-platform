@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Types.Mutations</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>This package provides helpers for creating GraphQL mutations.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

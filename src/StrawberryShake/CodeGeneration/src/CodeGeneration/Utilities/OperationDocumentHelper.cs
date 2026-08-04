@@ -21,7 +21,7 @@ internal static class OperationDocumentHelper
     /// <param name="schema">
     /// The schema to validate queries against.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The merged operation documents.</returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static OperationDocuments CreateOperationDocuments(
         IEnumerable<DocumentNode> documents,

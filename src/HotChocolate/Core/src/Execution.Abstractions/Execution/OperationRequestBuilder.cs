@@ -571,7 +571,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <summary>
     /// Creates a new instance of <see cref="OperationRequestBuilder" />.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    /// A new <see cref="OperationRequestBuilder"/>.
+    /// </returns>
     public static OperationRequestBuilder New() => new();
 
     /// <summary>
@@ -580,7 +582,10 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <param name="request">
     /// The existing request from which the new builder is created.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// A new <see cref="OperationRequestBuilder"/> initialized from
+    /// the request.
+    /// </returns>
     /// <exception cref="NotSupportedException">
     /// The request type is not supported.
     /// </exception>

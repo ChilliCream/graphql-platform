@@ -34,6 +34,12 @@ internal static class ThrowHelper
             ThrowHelper_InvalidOnErrorValue,
             tokenType));
 
+    public static InvalidGraphQLRequestException UnknownOnErrorValue(string? value)
+        => new(string.Format(
+            CultureInfo.InvariantCulture,
+            ThrowHelper_UnknownOnErrorValue,
+            value));
+
     public static InvalidGraphQLRequestException InvalidVariablesValue(JsonTokenType tokenType)
         => new(string.Format(
             CultureInfo.InvariantCulture,

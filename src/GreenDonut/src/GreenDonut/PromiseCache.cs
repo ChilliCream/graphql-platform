@@ -10,7 +10,11 @@ namespace GreenDonut;
 public sealed class PromiseCache : IPromiseCache
 {
     private const int MinimumSize = 10;
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly ConcurrentDictionary<PromiseCacheKey, Entry> _map = new();
     private readonly ConcurrentDictionary<Type, ImmutableArray<Subscription>> _subscriptions = new();
     private readonly List<IPromise> _promises = [];

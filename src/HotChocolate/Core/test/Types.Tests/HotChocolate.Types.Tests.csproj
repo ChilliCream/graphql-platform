@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
@@ -12,6 +14,10 @@
     <ProjectReference Include="..\..\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\Types.Tests.Documentation\HotChocolate.Types.Tests.Documentation.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

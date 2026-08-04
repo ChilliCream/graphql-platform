@@ -15,7 +15,7 @@
     <ProjectReference Include="..\..\..\Core\src\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Projections\HotChocolate.Execution.Projections.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination.Extensions\HotChocolate.Types.CursorPagination.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

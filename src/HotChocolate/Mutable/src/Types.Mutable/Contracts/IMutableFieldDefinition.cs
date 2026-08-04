@@ -24,7 +24,6 @@ public interface IMutableFieldDefinition : IFieldDefinition
     /// <summary>
     /// Gets or sets the type of the field.
     /// </summary>
-    /// <value></value>
     new IType Type { get; set; }
 
     /// <summary>

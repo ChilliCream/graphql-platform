@@ -15,7 +15,9 @@ public class WebSocketConnection : IWebSocketConnection
     /// <summary>
     /// Creates a new instance of a <see cref="WebSocketConnection"/>
     /// </summary>
-    /// <param name="sessionFactory"></param>
+    /// <param name="sessionFactory">
+    /// A factory delegate that creates a new <see cref="ISession"/> for the WebSocket connection.
+    /// </param>
     public WebSocketConnection(Func<CancellationToken, ValueTask<ISession>> sessionFactory)
     {
         _sessionFactory = sessionFactory ??

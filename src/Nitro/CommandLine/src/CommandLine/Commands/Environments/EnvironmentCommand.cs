@@ -12,12 +12,10 @@ internal sealed class EnvironmentCommand : Command
 {
     public EnvironmentCommand() : base("environment")
     {
-        Description = "Manage environments";
+        Description = "Manage environments.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateEnvironmentCommand());
-        AddCommand(new ListEnvironmentCommand());
-        AddCommand(new ShowEnvironmentCommand());
+        Subcommands.Add(new CreateEnvironmentCommand());
+        Subcommands.Add(new ListEnvironmentCommand());
+        Subcommands.Add(new ShowEnvironmentCommand());
     }
 }

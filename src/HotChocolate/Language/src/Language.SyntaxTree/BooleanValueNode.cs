@@ -5,7 +5,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents a boolean value literal.
 /// The two keywords true and false represent the two boolean values.
-/// https://spec.graphql.org/October2021/#sec-Boolean-Value
+/// https://spec.graphql.org/September2025/#sec-Boolean-Value
 /// </summary>
 public sealed class BooleanValueNode : IValueNode<bool>
 {

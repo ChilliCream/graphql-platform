@@ -8,7 +8,7 @@ internal sealed class LongCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<long>();
 
     public bool IsSupported(Type type)
-        => type == typeof(long);
+        => type == typeof(long) || type == typeof(long?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -77,6 +78,54 @@ internal sealed class TypeRegistry
 
         return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
     }
+
+    public bool TryGetNonInferredTypeRef(
+        ExtendedTypeReference runtimeTypeRef,
+        [NotNullWhen(true)] out TypeReference? typeRef)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
+
+        if (RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type)
+            || !IsKeyValuePair(runtimeTypeRef.Type))
+        {
+            typeRef = null;
+            return false;
+        }
+
+        foreach (var (candidateRef, candidateTypeRef) in _runtimeTypeRefs)
+        {
+            if (!candidateRef.Scope.EqualsOrdinal(runtimeTypeRef.Scope))
+            {
+                continue;
+            }
+
+            if (candidateRef.Context != runtimeTypeRef.Context
+                && candidateRef.Context != TypeContext.None
+                && runtimeTypeRef.Context != TypeContext.None)
+            {
+                continue;
+            }
+
+            if (candidateRef.Type.Type != runtimeTypeRef.Type.Type
+                || candidateRef.Type.Kind != runtimeTypeRef.Type.Kind)
+            {
+                continue;
+            }
+
+            if (_typeRegister.TryGetValue(candidateTypeRef, out var registeredType)
+                && !registeredType.IsInferred)
+            {
+                typeRef = candidateTypeRef;
+                return true;
+            }
+        }
+
+        typeRef = null;
+        return false;
+    }
+
+    private static bool IsKeyValuePair(IExtendedType type)
+        => type.IsGeneric && type.Definition == typeof(KeyValuePair<,>);
 
     public bool IsExplicitBinding(ExtendedTypeReference runtimeTypeRef)
     {

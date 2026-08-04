@@ -28,8 +28,7 @@ public sealed class WrongAuthorizationAttributeAnalyzer : DiagnosticAnalyzer
         var methodDeclaration = (MethodDeclarationSyntax)context.Node;
 
         // Get the containing type (class or record)
-        var containingType = methodDeclaration.Parent as TypeDeclarationSyntax;
-        if (containingType is null)
+        if (methodDeclaration.Parent is not TypeDeclarationSyntax containingType)
         {
             return;
         }
@@ -48,8 +47,7 @@ public sealed class WrongAuthorizationAttributeAnalyzer : DiagnosticAnalyzer
         var propertyDeclaration = (PropertyDeclarationSyntax)context.Node;
 
         // Get the containing type (class or record)
-        var containingType = propertyDeclaration.Parent as TypeDeclarationSyntax;
-        if (containingType is null)
+        if (propertyDeclaration.Parent is not TypeDeclarationSyntax containingType)
         {
             return;
         }

@@ -1,0 +1,127 @@
+title: Viewer_Null_With_Error_And_NonNull_Child_Propagates_To_Parent_On_Post_Process
+request:
+  document: |
+    {
+      viewer {
+        a
+        b
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "viewer",
+            "a"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer @shareable @error
+      }
+
+      type Viewer @shareable {
+        a: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12d223a8_1 {
+              viewer {
+                a
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "path": [
+                      "viewer"
+                    ]
+                  }
+                ],
+                "data": {
+                  "viewer": null
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer @shareable
+      }
+
+      type Viewer @shareable {
+        b: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12d223a8_2 {
+              viewer {
+                b
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "b": "Viewer"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            a
+            b
+          }
+        }
+      hash: 12d223a8df5f7a82a2908360ccf05953
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_12d223a8_1 {
+          viewer {
+            a
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_12d223a8_2 {
+          viewer {
+            b
+          }
+        }

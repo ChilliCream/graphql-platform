@@ -1,0 +1,94 @@
+title: SharedPath_Multiple_Skip_Levels_Around_Entry_Field
+request:
+  document: |
+    query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+      ... @skip(if: $skip1) {
+        ... @skip(if: $skip2) {
+          viewer {
+            fieldA
+            fieldB
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip1": true,
+      "skip2": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer @shareable
+      }
+
+      type Viewer {
+        fieldA: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer @shareable
+      }
+
+      type Viewer {
+        fieldB: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+          ... @skip(if: $skip1) {
+            viewer @skip(if: $skip2) {
+              fieldA
+              fieldB
+            }
+          }
+        }
+      name: testQuery
+      hash: 894a38a7caa6face77d599d86293ac6c
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_894a38a7_1 {
+          viewer {
+            fieldA
+          }
+        }
+      conditions:
+        - variable: $skip1
+          passingValue: false
+        - variable: $skip2
+          passingValue: false
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_894a38a7_2 {
+          viewer {
+            fieldB
+          }
+        }
+      conditions:
+        - variable: $skip1
+          passingValue: false
+        - variable: $skip2
+          passingValue: false

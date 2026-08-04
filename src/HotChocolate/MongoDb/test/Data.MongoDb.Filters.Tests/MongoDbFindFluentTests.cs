@@ -55,19 +55,21 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
             .Create()
             .AddResult(res1, "true")
             .AddResult(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -91,19 +93,21 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
             .Create()
             .AddResult(res1, "2020-01-11")
             .AddResult(res2, "2020-01-12")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -124,19 +128,21 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"2020-01-11T00:00:00Z\"}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"2020-01-12T00:00:00Z\"}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
             .Create()
             .AddResult(res1, "2020-01-11")
             .AddResult(res2, "2020-01-12")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
     public class Foo
     {

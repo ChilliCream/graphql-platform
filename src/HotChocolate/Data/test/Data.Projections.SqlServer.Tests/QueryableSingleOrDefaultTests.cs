@@ -114,13 +114,14 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "Currently not supported by SQLite")]
@@ -146,13 +147,14 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "Currently not supported by SQLite")]
@@ -179,13 +181,14 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "Currently not supported by SQLite")]
@@ -211,13 +214,14 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "Currently not supported by SQLite")]
@@ -244,13 +248,14 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)

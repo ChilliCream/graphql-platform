@@ -1,0 +1,253 @@
+title: Lookup_Should_Null_Field_When_Nullable_Entity_Not_Found
+request:
+  document: |
+    {
+      resources {
+        displayImage {
+          id
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "resources": [
+          {
+            "displayImage": null
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "resources",
+            0,
+            "displayImage",
+            "id"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        resources: [Resource!]!
+      }
+
+      type File @key(fields: "originId origin") {
+        originId: UUID!
+        origin: FileOrigin!
+      }
+
+      type Resource {
+        id: Int!
+        displayImage: File
+      }
+
+      enum FileOrigin {
+        INTERNAL
+        EXTERNAL
+      }
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562."
+      scalar UUID
+        @serializeAs(
+          type: STRING
+          pattern: "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$"
+        )
+        @specifiedBy(url: "https://scalars.graphql.org/chillicream/uuid.html")
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12ec73ed_1 {
+              resources {
+                displayImage {
+                  originId
+                  origin
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "resources": [
+                    {
+                      "displayImage": {
+                        "originId": "00000000-0000-0000-0000-000000000000",
+                        "origin": "EXTERNAL"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        fileByOriginIdAndOrigin(originId: UUID!, origin: FileOrigin!): File
+          @lookup
+          @internal
+      }
+
+      type File @key(fields: "originId origin") {
+        originId: UUID!
+        origin: FileOrigin!
+        id: String!
+      }
+
+      enum FileOrigin {
+        INTERNAL
+        EXTERNAL
+      }
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562."
+      scalar UUID
+        @serializeAs(
+          type: STRING
+          pattern: "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$"
+        )
+        @specifiedBy(url: "https://scalars.graphql.org/chillicream/uuid.html")
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12ec73ed_2(
+              $__fusion_1_origin: FileOrigin!
+              $__fusion_1_originId: UUID!
+            ) {
+              fileByOriginIdAndOrigin(
+                originId: $__fusion_1_originId
+                origin: $__fusion_1_origin
+              ) {
+                id
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_origin": "EXTERNAL",
+              "__fusion_1_originId": "00000000-0000-0000-0000-000000000000"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "fileByOriginIdAndOrigin": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          resources {
+            displayImage {
+              id
+              originId @fusion__requirement
+              origin @fusion__requirement
+            }
+          }
+        }
+      hash: 12ec73ed991207ae3bc5b78abf8091dc
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_12ec73ed_1 {
+          resources {
+            displayImage {
+              originId
+              origin
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_12ec73ed_2(
+          $__fusion_1_origin: FileOrigin!
+          $__fusion_1_originId: UUID!
+        ) {
+          fileByOriginIdAndOrigin(
+            originId: $__fusion_1_originId
+            origin: $__fusion_1_origin
+          ) {
+            id
+          }
+        }
+      source: $.fileByOriginIdAndOrigin
+      target: $.resources.displayImage
+      requirements:
+        - name: __fusion_1_origin
+          selectionMap: >-
+            origin
+        - name: __fusion_1_originId
+          selectionMap: >-
+            originId
+      dependencies:
+        - id: 1

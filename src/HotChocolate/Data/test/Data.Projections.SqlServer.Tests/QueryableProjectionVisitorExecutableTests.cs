@@ -22,13 +22,14 @@ public class QueryableProjectionVisitorExecutableTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable{ bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -41,13 +42,14 @@ public class QueryableProjectionVisitorExecutableTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable{ baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -66,13 +68,14 @@ public class QueryableProjectionVisitorExecutableTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable{ baz foo }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

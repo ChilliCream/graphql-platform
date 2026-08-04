@@ -36,6 +36,10 @@ internal sealed class QueryExecutor
         var scheduler = operationContext.Scheduler;
         var coordinator = operationContext.DeferExecutionCoordinator;
 
+        // capture the arena now: the request executor detaches it from the context once this
+        // method returns the stream, so the deferred closure below seals the captured arena.
+        var memory = operationContext.Memory;
+
         var execution = scheduler.ExecuteAsync1();
         await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
         var initialResult = operationContext.BuildResult();
@@ -47,6 +51,8 @@ internal sealed class QueryExecutor
                 await execution.ConfigureAwait(false);
             }
 
+            // there are no deferred parts, so this behaves like a buffered result: seal now.
+            memory.Seal();
             return initialResult;
         }
 
@@ -56,12 +62,19 @@ internal sealed class QueryExecutor
         async IAsyncEnumerable<OperationResult> CreateStream()
         {
             var requestAborted = operationContext.RequestAborted;
+
             await foreach (var result in coordinator.ReadResultsAsync(requestAborted))
             {
                 yield return result;
             }
 
+            // The stream was read to completion, so every deferred branch has been delivered and
+            // the scheduler has fully settled: no resolver or batch task can write into the arena
+            // anymore, so we seal it to allow its memory to be returned on dispose.
+            // On cancellation or early disposal we never reach here and the arena is abandoned,
+            // because in-flight parallel work (including the batch dispatcher) may still write to it.
             await execution.ConfigureAwait(false);
+            memory.Seal();
         }
     }
 
@@ -77,7 +90,13 @@ internal sealed class QueryExecutor
 
         await operationContext.Scheduler.ExecuteAsync1().ConfigureAwait(false);
 
-        return operationContext.BuildResult();
+        var result = operationContext.BuildResult();
+
+        // the result is complete and nothing else writes into the request memory,
+        // so we seal it to allow its pages to be returned to the pool on dispose.
+        operationContext.Memory.Seal();
+
+        return result;
     }
 
     public Task ExecuteBatchAsync(
@@ -114,6 +133,10 @@ internal sealed class QueryExecutor
         {
             results[i] = operationContexts[i].OperationContext.BuildResult();
         }
+
+        // all results in the batch share one request arena; every result has been built and
+        // nothing else writes into it, so we seal it once for the whole batch.
+        parentContext.Memory.Seal();
     }
 
     private async Task ExecuteBatchIncrementalAsync(
@@ -129,6 +152,10 @@ internal sealed class QueryExecutor
         FillSchedulerWithWork(parentContext, operationContexts, length);
 
         var execution = parentContext.Scheduler.ExecuteAsync1();
+
+        // capture the shared arena now: the request executor detaches it once we return the
+        // streams, so the completing closure below seals the captured arena.
+        var memory = parentContext.Memory;
 
         for (var i = 0; i < length; ++i)
         {
@@ -152,12 +179,18 @@ internal sealed class QueryExecutor
         async IAsyncEnumerable<OperationResult> CreateStreamAndComplete()
         {
             var requestAborted = parentContext.RequestAborted;
+
             await foreach (var result in parentContext.DeferExecutionCoordinator.ReadResultsAsync(requestAborted))
             {
                 yield return result;
             }
 
+            // The batch streams were read to completion, so the scheduler has fully settled and
+            // nothing can write into the shared arena anymore, so we seal it for reuse.
+            // On cancellation or early disposal we never reach here and the arena is abandoned,
+            // because in-flight parallel work (including the batch dispatcher) may still write to it.
             await execution.ConfigureAwait(false);
+            memory.Seal();
         }
 
         IAsyncEnumerable<OperationResult> CreateStream()

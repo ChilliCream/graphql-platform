@@ -1,9 +1,6 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
@@ -12,81 +9,79 @@ internal sealed class ListWorkspaceCommand : Command
 {
     public ListWorkspaceCommand() : base("list")
     {
-        Description = "Lists all workspaces";
+        Description = "List all workspaces.";
 
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("workspace list");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        INitroConsole console,
+        IWorkspacesClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create(
-                client.ListWorkspaceCommandQuery.ExecuteAsync,
-                static p => p.Me?.Workspaces?.PageInfo,
-                static p => p.Me?.Workspaces?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListWorkspacesAsync(after ?? cursor, first, token))
             .PageSize(10);
 
         var workspace = await PagedTable
             .From(container)
             .Title("Workspaces")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
-            .AddColumn("IsPersonal", x => x.Node.Personal.AsIcon())
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
+            .AddColumn("IsPersonal", x => x.Personal.AsIcon())
             .RenderAsync(console, ct);
 
-        if (workspace?.Node is IWorkspaceDetailPrompt_Workspace node)
+        if (workspace is not null)
         {
-            context.SetResult(WorkspaceDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(workspace).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        IWorkspacesClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListWorkspaceCommandQuery
-            .ExecuteAsync(cursor, 10, ct);
+        var data = await client.ListWorkspacesAsync(cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(WorkspaceDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.Me?.Workspaces?.PageInfo.EndCursor;
-
-        var items = result.Data?.Me?.Workspaces?.Edges?.Select(x =>
-                WorkspaceDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, endCursor));
+        resultHolder.SetResult(
+            new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

@@ -88,6 +88,90 @@ public class DeferAndStreamDirectiveLabelsAreUniqueTests()
     }
 
     [Fact]
+    public void Label_Should_Be_Valid_When_Defer_Is_In_Reused_Fragment()
+    {
+        ExpectValid(
+            """
+            query {
+              ...Repeated
+              ...Repeated
+            }
+
+            fragment Repeated on Query {
+              ... @defer(label: "details") {
+                __typename
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Label_Should_Be_Valid_When_Stream_Is_In_Reused_Fragment()
+    {
+        ExpectValid(
+            """
+            query {
+              ...Repeated
+              ...Repeated
+            }
+
+            fragment Repeated on Query {
+              __schema {
+                _types @stream(label: "types") {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Label_Should_Be_Valid_When_Fragment_Is_Spread_Across_Operations()
+    {
+        ExpectValid(
+            """
+            query A {
+              ...Repeated
+            }
+
+            query B {
+              ...Repeated
+            }
+
+            fragment Repeated on Query {
+              ... @defer(label: "details") {
+                __typename
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Label_Duplicate_When_Reused_Fragment_Label_Also_Used_Outside()
+    {
+        ExpectErrors(
+            """
+            query {
+              ...Repeated
+              ...Repeated
+              ... @defer(label: "details") {
+                __typename
+              }
+            }
+
+            fragment Repeated on Query {
+              ... @defer(label: "details") {
+                __typename
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "If a label is passed, it must be unique within all other @defer "
+                + "and @stream directives in the document.",
+                t.Message));
+    }
+
+    [Fact]
     public void Label_Can_Be_Null_And_Is_Optional_And_Can_Be_A_Unique_Name()
     {
         ExpectValid(

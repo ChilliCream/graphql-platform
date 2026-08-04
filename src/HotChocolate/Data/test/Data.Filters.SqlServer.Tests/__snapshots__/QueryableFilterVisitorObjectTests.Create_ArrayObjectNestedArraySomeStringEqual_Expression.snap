@@ -9,7 +9,7 @@ a Result:
 
 a SQL:
 ---------------
-.param set @__p_0 'a'
+.param set @p 'a'
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
@@ -18,7 +18,7 @@ WHERE EXISTS (
     SELECT 1
     FROM "Data" AS "d0"
     INNER JOIN "Foo" AS "f0" ON "d0"."FooId" = "f0"."Id"
-    WHERE "f"."Id" = "d0"."FooId" AND "f0"."BarString" = @__p_0)
+    WHERE "f"."Id" = "d0"."FooId" AND "f0"."BarString" = @p)
 ---------------
 
 b Result:
@@ -32,7 +32,7 @@ b Result:
 
 b SQL:
 ---------------
-.param set @__p_0 'd'
+.param set @p 'd'
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
@@ -41,7 +41,7 @@ WHERE EXISTS (
     SELECT 1
     FROM "Data" AS "d0"
     INNER JOIN "Foo" AS "f0" ON "d0"."FooId" = "f0"."Id"
-    WHERE "f"."Id" = "d0"."FooId" AND "f0"."BarString" = @__p_0)
+    WHERE "f"."Id" = "d0"."FooId" AND "f0"."BarString" = @p)
 ---------------
 
 null

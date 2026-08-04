@@ -24,7 +24,8 @@ public class Issue6203ReproTests
                     }
                   }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

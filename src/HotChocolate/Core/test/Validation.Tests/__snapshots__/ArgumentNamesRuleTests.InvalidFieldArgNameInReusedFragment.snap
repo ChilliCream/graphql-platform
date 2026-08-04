@@ -1,0 +1,41 @@
+---------------
+{
+  "message": "The argument \u0060command\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 9,
+      "column": 19
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "type": "Dog",
+    "field": "doesKnowCommand",
+    "argument": "command",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The argument \u0060dogCommand\u0060 is required.",
+  "locations": [
+    {
+      "line": 9,
+      "column": 3
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "type": "Dog",
+    "field": "doesKnowCommand",
+    "argument": "dogCommand",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+  }
+}
+---------------

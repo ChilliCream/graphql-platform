@@ -50,6 +50,7 @@ public static class SpatialSchemaBuilderExtensions
             .AddType<GeoJsonMultiPolygonType>()
             .AddType<GeoJsonGeometryEnumType>()
             .AddType<GeometryType>()
+            .BindRuntimeType<Geometry, GeometryType>()
             .BindRuntimeType<Coordinate, GeoJsonPositionType>();
     }
 

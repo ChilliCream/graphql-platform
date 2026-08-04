@@ -36,7 +36,7 @@ public class EnumTypeUnsafeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(queryType)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -68,7 +68,7 @@ public class EnumTypeUnsafeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(queryType)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 }

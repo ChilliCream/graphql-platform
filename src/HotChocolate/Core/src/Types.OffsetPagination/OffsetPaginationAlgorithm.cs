@@ -21,7 +21,7 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     /// <param name="arguments">The paging arguments.</param>
     /// <param name="requireTotalCount">Specifies if the total count is needed.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
+    /// <returns>The paginated collection segment.</returns>
     public ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
         TQuery query,
         OffsetPagingArguments arguments,
@@ -37,7 +37,7 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     /// <param name="totalCount">Specify the total amount of elements.</param>
     /// <param name="requireTotalCount">Specifies if the total count is needed.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
+    /// <returns>The paginated collection segment.</returns>
     public async ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
         TQuery query,
         OffsetPagingArguments arguments,

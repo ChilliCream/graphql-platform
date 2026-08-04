@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -8,27 +7,30 @@ internal sealed class CurrentWorkspaceCommand : Command
 {
     public CurrentWorkspaceCommand() : base("current")
     {
-        Description = "Shows the name of the currently selected workspace.";
+        Description = "Show the name of the currently selected workspace.";
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("workspace current");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
         if (sessionService.Session?.Workspace?.Name is { } name)
         {
-            console.OkLine($"Currently is {name.AsHighlight()} selected");
+            console.WriteLine($"The current workspace is: {name.AsHighlight()}");
             return Task.FromResult(ExitCodes.Success);
         }
 
-        console.ErrorLine(
+        console.Error.WriteErrorLine(
             $"No workspace selected. Run 'nitro workspace {SetDefaultWorkspaceCommand.Command}' to set a default.");
 
         return Task.FromResult(ExitCodes.Error);

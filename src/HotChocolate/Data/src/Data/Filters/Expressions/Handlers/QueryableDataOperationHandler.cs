@@ -17,5 +17,5 @@ public class QueryableDataOperationHandler
             && def.Id == Operation;
     }
 
-    public static QueryableDataOperationHandler Create(FilterProviderContext context) => new();
+    public static QueryableDataOperationHandler Create(FilterProviderContext _) => new();
 }

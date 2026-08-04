@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
   </ItemGroup>
 

@@ -9,13 +9,13 @@ internal static class ParsingHelper
         if (node is not ListValueNode list)
         {
             Assert.Fail("Expected ListValueNode result.");
-            return null!;
+            return null;
         }
 
         if (list.Items is not [ListValueNode innerList])
         {
             Assert.Fail("Expected inner ListValueNode result.");
-            return null!;
+            return null;
         }
 
         return innerList.Items
@@ -29,13 +29,13 @@ internal static class ParsingHelper
         if (node is not ListValueNode list)
         {
             Assert.Fail("Expected ListValueNode result.");
-            return null!;
+            return null;
         }
 
         if (list.Items is not [ListValueNode innerList])
         {
             Assert.Fail("Expected inner ListValueNode result.");
-            return null!;
+            return null;
         }
 
         return innerList.Items

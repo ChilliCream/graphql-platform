@@ -139,9 +139,9 @@ public sealed class Directive : IDirective
                     }
                 }
             }
-            else if (rewrittenArguments is not null)
+            else
             {
-                rewrittenArguments[index++] = arguments[i];
+                rewrittenArguments?[index++] = arguments[i];
             }
         }
 

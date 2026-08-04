@@ -1,0 +1,13 @@
+namespace HotChocolate.Fusion.Suites.KeysMashup.A;
+
+/// <summary>
+/// The <c>CompositeID</c> value type owned by the <c>a</c> subgraph.
+/// </summary>
+public sealed class CompositeID
+{
+    public string One { get; init; } = default!;
+
+    public string Two { get; init; } = default!;
+
+    public string Three { get; init; } = default!;
+}

@@ -52,14 +52,15 @@ public class ListTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ scalars(values: [1,2]) }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -72,14 +73,15 @@ public class ListTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ scalars(values: 1) }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -92,14 +94,15 @@ public class ListTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ objects(values: [{ bar: 1 }, { bar: 2 }]) { bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -112,14 +115,15 @@ public class ListTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ objects(values: { bar: 1 }) { bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

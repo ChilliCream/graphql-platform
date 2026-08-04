@@ -13,11 +13,12 @@ internal partial class MiddlewareContext
 
     public Path Path => _path ??= ResultValue.Path;
 
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = null!;
 
     public IImmutableDictionary<string, object?> LocalContextData { get; set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
-    // TODO : Remove?
     public IType? ValueType { get; set; }
 
     public ResultElement ResultValue { get; private set; }

@@ -11,7 +11,7 @@ public class BatchDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result = await dataLoader.LoadAsync("abc");
+        var result = await dataLoader.LoadAsync("abc", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Value:abc", result);
@@ -26,8 +26,8 @@ public class BatchDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result1 = dataLoader.LoadAsync("1abc");
-        var result2 = dataLoader.LoadAsync("0abc");
+        var result1 = dataLoader.LoadAsync("1abc", TestContext.Current.CancellationToken);
+        var result2 = dataLoader.LoadAsync("0abc", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Value:1abc", await result1);
@@ -43,8 +43,8 @@ public class BatchDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result1 = dataLoader.LoadAsync("1abc");
-        var result2 = dataLoader.LoadAsync("1abc");
+        var result1 = dataLoader.LoadAsync("1abc", TestContext.Current.CancellationToken);
+        var result2 = dataLoader.LoadAsync("1abc", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Same(result1, result2);
@@ -82,7 +82,7 @@ public class BatchDataLoaderTests
             });
 
         // act
-        var result = await dataLoader.LoadAsync("1");
+        var result = await dataLoader.LoadAsync("1", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(result);

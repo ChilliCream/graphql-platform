@@ -74,6 +74,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -157,7 +158,8 @@ namespace TestNamespace
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1_selection = context.Selection;
                 var args1_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);

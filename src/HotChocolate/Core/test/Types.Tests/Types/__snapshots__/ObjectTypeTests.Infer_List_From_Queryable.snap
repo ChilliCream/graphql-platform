@@ -2,10 +2,10 @@ schema {
   query: MyListQuery
 }
 
-type Bar {
-  baz: String!
-}
-
 type MyListQuery {
   list: [Bar]!
+}
+
+type Bar {
+  baz: String!
 }

@@ -24,14 +24,15 @@ public class QueryableSortingExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         res1.MatchSnapshot();
@@ -52,13 +53,14 @@ public class QueryableSortingExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -76,17 +78,68 @@ public class QueryableSortingExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Sorting_Should_Apply_OrderBy_When_Query_Is_Projected()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                      projectedWithExistingOrder(order: { someProperty: DESC }) {
+                        someProperty
+                      }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "projectedWithExistingOrder": [
+                  {
+                    "someProperty": "b"
+                  },
+                  {
+                    "someProperty": "a"
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     public class Query
     {
+        private static readonly Source[] s_source =
+        [
+            new() { SomeProperty = "a", CreateDate = new DateTime(2020, 1, 1) },
+            new() { SomeProperty = "b", CreateDate = new DateTime(2021, 1, 1) }
+        ];
+
         [UseSorting]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
@@ -106,6 +159,15 @@ public class QueryableSortingExtensionsTests
         {
             return s_fooEntities.Sort(context);
         }
+
+        [UseSorting]
+        public IQueryable<Projection> ProjectedWithExistingOrder()
+        {
+            return s_source
+                .AsQueryable()
+                .OrderBy(x => x.CreateDate)
+                .Select(x => new Projection { SomeProperty = x.SomeProperty });
+        }
     }
 
     public class Foo
@@ -119,6 +181,17 @@ public class QueryableSortingExtensionsTests
         public string Computed() => "Foo";
 
         public string? NotSettable { get; }
+    }
+
+    public class Source
+    {
+        public string SomeProperty { get; set; } = default!;
+        public DateTime CreateDate { get; set; }
+    }
+
+    public class Projection
+    {
+        public string SomeProperty { get; set; } = default!;
     }
 
     public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute

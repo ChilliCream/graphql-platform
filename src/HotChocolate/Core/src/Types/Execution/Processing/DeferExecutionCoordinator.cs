@@ -7,7 +7,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class DeferExecutionCoordinator
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly Dictionary<DeferredBranchKey, int> _branchIdLookup = [];
     private readonly Dictionary<int, DeferredBranch> _branchLookup = [];
     private HashSet<int>? _mainBranchChildren;

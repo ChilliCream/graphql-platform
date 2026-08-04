@@ -12,14 +12,12 @@ internal sealed class WorkspaceCommand : Command
 {
     public WorkspaceCommand() : base("workspace")
     {
-        Description = "Manage workspaces";
+        Description = "Manage workspaces.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateWorkspaceCommand());
-        AddCommand(new CurrentWorkspaceCommand());
-        AddCommand(new SetDefaultWorkspaceCommand());
-        AddCommand(new ListWorkspaceCommand());
-        AddCommand(new ShowWorkspaceCommand());
+        Subcommands.Add(new CreateWorkspaceCommand());
+        Subcommands.Add(new CurrentWorkspaceCommand());
+        Subcommands.Add(new SetDefaultWorkspaceCommand());
+        Subcommands.Add(new ListWorkspaceCommand());
+        Subcommands.Add(new ShowWorkspaceCommand());
     }
 }

@@ -29,10 +29,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -61,10 +62,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -93,10 +95,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -124,7 +127,8 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -155,10 +159,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -185,10 +190,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -209,10 +215,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -233,10 +240,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()

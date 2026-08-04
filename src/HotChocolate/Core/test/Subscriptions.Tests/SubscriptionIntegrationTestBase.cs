@@ -4,7 +4,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions;
 

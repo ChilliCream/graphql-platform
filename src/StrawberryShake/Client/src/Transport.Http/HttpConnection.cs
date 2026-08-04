@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using static StrawberryShake.Properties.Resources;
 using static StrawberryShake.Transport.Http.ResponseEnumerable;
@@ -151,10 +152,7 @@ public class HttpConnection : IHttpConnection
                 MapVariables(list);
             }
 
-            if (copy is not null)
-            {
-                copy[variable.Key] = value;
-            }
+            copy?[variable.Key] = value;
         }
 
         return copy ?? variables;

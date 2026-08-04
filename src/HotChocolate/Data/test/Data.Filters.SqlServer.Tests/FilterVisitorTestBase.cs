@@ -9,19 +9,13 @@ namespace HotChocolate.Data.Filters;
 
 public class FilterVisitorTestBase
 {
-    protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
-
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
         Action<ModelBuilder>? onModelCreating,
         params TResult[] results)
         where TResult : class
     {
-        if (FileName is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var dbContext = new DatabaseContext<TResult>(FileName, onModelCreating);
+        var fileName = Guid.NewGuid().ToString("N") + ".db";
+        var dbContext = new DatabaseContext<TResult>(fileName, onModelCreating);
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
 

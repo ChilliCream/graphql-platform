@@ -3,14 +3,14 @@
 ## SQL
 
 ```text
--- @__keys_0={ '1' } (DbType = Object)
+-- @keys={ '1' } (DbType = Object)
 SELECT b."Id", b."DisplayName", b."Name", b."Details_Country_Name"
 FROM "Brands" AS b
-WHERE b."Id" = ANY (@__keys_0)
--- @__keys_0={ '1' } (DbType = Object)
+WHERE b."Id" = ANY (@keys)
+-- @keys={ '1' } (DbType = Object)
 SELECT b."Name", b."Id"
 FROM "Brands" AS b
-WHERE b."Id" = ANY (@__keys_0)
+WHERE b."Id" = ANY (@keys)
 ```
 
 ## Result

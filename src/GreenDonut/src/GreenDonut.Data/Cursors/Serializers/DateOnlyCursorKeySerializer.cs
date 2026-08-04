@@ -12,7 +12,7 @@ internal sealed class DateOnlyCursorKeySerializer : ICursorKeySerializer
     private const string DateFormat = "yyyyMMdd";
 
     public bool IsSupported(Type type)
-        => type == typeof(DateOnly);
+        => type == typeof(DateOnly) || type == typeof(DateOnly?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

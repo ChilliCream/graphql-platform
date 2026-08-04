@@ -2,7 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace HotChocolate.PersistedOperations.FileSystem;
+namespace HotChocolate.PersistedOperations.InMemory;
 
 /// <summary>
 /// An implementation of <see cref="IOperationDocumentStorage"/> that uses an in-memory cache.

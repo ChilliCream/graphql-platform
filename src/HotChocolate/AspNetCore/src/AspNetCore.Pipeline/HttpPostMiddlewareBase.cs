@@ -11,18 +11,15 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 public abstract class HttpPostMiddlewareBase : MiddlewareBase
 {
     private const string BatchOperations = "batchOperations";
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
-        HttpRequestExecutorProxy executor)
-        : base(next, executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
     {
     }
 
@@ -49,6 +46,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
 
     protected async Task HandleRequestAsync(HttpContext context, ExecutorSession session, CancellationToken ct)
     {
+        var options = GetOptions(context);
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
 
@@ -99,10 +97,16 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             }
             catch (GraphQLRequestException ex)
             {
-                // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case we will return HTTP status code 400 and return a
-                // GraphQL error result.
-                statusCode = HttpStatusCode.BadRequest;
+                // request-interpretation failures (invalid JSON, missing query, etc.) propose
+                // 400 per graphql-over-http §6.4.1.1.1. GraphQL document syntax errors
+                // are document-parsing failures and leave the proposed status unset so the
+                // formatter applies the per-content-type rule (200 for application/json
+                // per §6.4.1.1.3, 400 for application/graphql-response+json).
+                //
+                // classification uses the original parser errors: error filters run by
+                // session.Handle can rewrite the error code and would otherwise misclassify
+                // the failure. the handled errors are used only for the response body.
+                statusCode = IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
                 result = OperationResult.FromError([.. errors]);
                 session.DiagnosticEvents.ParserErrors(context, errors);
@@ -147,7 +151,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
 
                     if (!string.IsNullOrEmpty(operationNames)
                         && TryParseOperations(operationNames, out var ops)
-                        && GetOptions(context).EnableBatching)
+                        && options.Batching.HasFlag(AllowedBatching.RequestBatching))
                     {
                         result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }
@@ -169,16 +173,16 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                    result = await session.ExecuteSingleAsync(context, requests[0], requestFlags);
+                    result = await session.ExecuteSingleAsync(context, requests[0], requestFlags, options);
                     break;
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple
                 // fully specified GraphQL requests at once.
                 default:
-                    if (GetOptions(context).EnableBatching)
+                    if (options.Batching.HasFlag(AllowedBatching.RequestBatching))
                     {
-                        result = await session.ExecuteBatchAsync(context, requests, requestFlags);
+                        result = await session.ExecuteBatchAsync(context, requests, requestFlags, options);
                     }
                     else
                     {
@@ -251,7 +255,7 @@ HANDLE_RESULT:
         ExecutorSession session)
     {
         var requests =
-            await session.RequestParser.ParseRequestAsync(
+            await session.ParseRequestAsync(
                 context.Request.BodyReader,
                 context.RequestAborted);
 
@@ -261,6 +265,24 @@ HANDLE_RESULT:
         }
 
         return requests;
+    }
+
+    private static bool IsDocumentSyntaxError(IReadOnlyList<IError> errors)
+    {
+        if (errors.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            if (!string.Equals(errors[i].Code, ErrorCodes.Server.SyntaxError, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool TryParseOperations(

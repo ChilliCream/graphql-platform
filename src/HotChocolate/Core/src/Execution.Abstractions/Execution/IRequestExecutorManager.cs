@@ -8,6 +8,6 @@ public interface IRequestExecutorManager : IRequestExecutorProvider
     /// <summary>
     /// Evict the request executor and schema with the given name.
     /// </summary>
-    /// <param name="schemaName"></param>
+    /// <param name="schemaName">The name of the schema whose executor shall be evicted.</param>
     void EvictExecutor(string? schemaName = null);
 }

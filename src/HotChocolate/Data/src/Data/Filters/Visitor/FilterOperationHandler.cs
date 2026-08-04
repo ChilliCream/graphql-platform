@@ -50,7 +50,7 @@ public abstract class FilterOperationHandler<TContext, T>
         ObjectFieldNode node,
         [NotNullWhen(true)] out T? result)
     {
-        result = default!;
+        result = default;
         return false;
     }
 }

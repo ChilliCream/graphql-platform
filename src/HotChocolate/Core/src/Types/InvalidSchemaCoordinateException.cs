@@ -21,6 +21,5 @@ public class InvalidSchemaCoordinateException : Exception
     /// <summary>
     /// The invalid schema coordinate.
     /// </summary>
-    /// <value></value>
     public SchemaCoordinate Coordinate { get; }
 }

@@ -24,7 +24,7 @@ public class ExtendObjectTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class ExtendObjectTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class ExtendObjectTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -125,6 +125,6 @@ public class ExtendObjectTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

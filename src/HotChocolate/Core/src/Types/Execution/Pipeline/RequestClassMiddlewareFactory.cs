@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Instrumentation;
@@ -24,7 +25,8 @@ internal static class RequestClassMiddlewareFactory
         typeof(IServiceProvider)
             .GetMethod(nameof(IServiceProvider.GetService))!;
 
-    internal static RequestMiddleware Create<TMiddleware>()
+    internal static RequestMiddleware Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         return (context, next) =>
@@ -48,6 +50,7 @@ internal static class RequestClassMiddlewareFactory
     private static List<IParameterHandler> CreateFactoryParameterHandlers(
         Expression context,
         IRequestExecutorOptionsAccessor options,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         Type middleware)
     {
         Expression services = Expression.Property(context, s_appServices);

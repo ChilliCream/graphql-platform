@@ -1,5 +1,4 @@
 using System.Reflection;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 

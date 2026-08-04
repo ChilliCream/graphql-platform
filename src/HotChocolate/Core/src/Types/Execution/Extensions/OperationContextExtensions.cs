@@ -22,7 +22,9 @@ internal static class OperationContextExtensions
             {
                 foreach (var error in ex.Errors)
                 {
-                    context.ReportError(error, resolverContext);
+                    context.ReportError(
+                        error.Path is null ? error.WithPath(path) : error,
+                        resolverContext);
                 }
             }
             else
@@ -98,6 +100,7 @@ internal static class OperationContextExtensions
             {
                 RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : null,
                 VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : null,
+                Document = context.Operation.Document,
                 ContextData = resultBuilder.ContextData
             };
 
@@ -139,14 +142,16 @@ internal static class OperationContextExtensions
 
         if (handled is AggregateError aggregateError)
         {
+            var nextDepth = depth + 1;
+
             foreach (var innerError in aggregateError.Errors)
             {
-                UnwrapError(errorHandler, innerError, errors, depth++);
+                UnwrapError(errorHandler, innerError, errors, nextDepth);
             }
         }
         else
         {
-            errors.Add(error);
+            errors.Add(handled);
         }
     }
 }

@@ -19,7 +19,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <typeparam name="TService">
     /// The type of the service that shall be initialized.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Subscriptions.NATS.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Subscriptions.NATS</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.NATS\HotChocolate.Fusion.Subscriptions.NATS.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate.Language\CookieCrumble.HotChocolate.Language.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="NATS.Client.Core" />
+    <PackageReference Include="NATS.Client.JetStream" />
+    <PackageReference Include="Squadron.Nats" />
+    <PackageReference Include="Testcontainers" />
+  </ItemGroup>
+
+</Project>

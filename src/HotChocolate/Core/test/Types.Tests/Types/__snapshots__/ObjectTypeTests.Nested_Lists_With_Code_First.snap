@@ -2,10 +2,10 @@ schema {
   query: QueryWithNestedList
 }
 
-type FooIgnore {
-  baz: String!
-}
-
 type QueryWithNestedList {
   fooMatrix: [[FooIgnore!]!]!
+}
+
+type FooIgnore {
+  baz: String!
 }

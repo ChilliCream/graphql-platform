@@ -2,8 +2,8 @@ schema {
   mutation: MutationWithUnionResult5
 }
 
-interface Error {
-  message: String!
+type MutationWithUnionResult5 {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
 
 type Custom2Error implements Error {
@@ -23,8 +23,8 @@ type DoSomethingPayload {
   errors: [DoSomethingError!]
 }
 
-type MutationWithUnionResult5 {
-  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+interface Error {
+  message: String!
 }
 
 union DoSomethingError = CustomError | Custom2Error | Custom4Error

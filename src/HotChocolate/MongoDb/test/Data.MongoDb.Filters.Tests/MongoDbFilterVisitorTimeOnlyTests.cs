@@ -38,19 +38,21 @@ public class MongoDbFilterVisitorTimeOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
             .Create()
             .AddResult(res1, "0630")
             .AddResult(res2, "1600")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -63,19 +65,21 @@ public class MongoDbFilterVisitorTimeOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
             .Create()
             .AddResult(res1, "0630")
             .AddResult(res2, "1600")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -88,17 +92,20 @@ public class MongoDbFilterVisitorTimeOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
@@ -106,7 +113,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
             .AddResult(res1, "0630")
             .AddResult(res2, "1600")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -119,17 +126,20 @@ public class MongoDbFilterVisitorTimeOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // arrange
         await Snapshot
@@ -137,7 +147,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
             .AddResult(res1, "0630")
             .AddResult(res2, "1600")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

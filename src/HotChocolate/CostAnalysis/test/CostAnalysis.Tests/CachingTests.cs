@@ -44,14 +44,14 @@ public sealed class CachingTests
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var cache = (FakeCostMetricsCache)requestExecutor.Schema.Services
             .GetRequiredService<ICostMetricsCache>();
 
         // act
-        await requestExecutor.ExecuteAsync(request);
-        await requestExecutor.ExecuteAsync(request);
+        await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, cache.Misses);

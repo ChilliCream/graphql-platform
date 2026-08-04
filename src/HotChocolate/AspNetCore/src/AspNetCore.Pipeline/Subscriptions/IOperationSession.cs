@@ -30,4 +30,11 @@ public interface IOperationSession : IDisposable
     /// <param name="request">The graphql request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Starts executing a batch of operations.
+    /// </summary>
+    /// <param name="requests">The graphql requests to execute as a batch.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    void BeginExecuteBatch(GraphQLRequest[] requests, CancellationToken cancellationToken);
 }

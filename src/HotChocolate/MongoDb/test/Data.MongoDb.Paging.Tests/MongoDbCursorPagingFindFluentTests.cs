@@ -54,13 +54,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -89,13 +90,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -126,13 +128,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -163,13 +166,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -198,13 +202,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -219,13 +224,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                 foos {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -243,13 +249,14 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

@@ -13,7 +13,7 @@ public class SortingContextParameterExpressionBuilderTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -24,7 +24,7 @@ public class SortingContextParameterExpressionBuilderTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(Query.Context);

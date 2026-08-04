@@ -30,7 +30,7 @@ public class CertificationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result
@@ -74,7 +74,7 @@ public class CertificationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -113,7 +113,7 @@ public class CertificationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -154,7 +154,7 @@ public class CertificationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -185,7 +185,7 @@ public class CertificationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -216,7 +216,7 @@ public class CertificationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

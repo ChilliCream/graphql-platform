@@ -1,0 +1,127 @@
+operation:
+  - document: |
+      {
+        products {
+          isExpensive
+          reducedPrice
+          price
+          upc @fusion__requirement
+          fusion__requirement_price_0: price(withDiscount: false) @fusion__requirement
+          fusion__requirement_price_1: price(withDiscount: true) @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 9
+nodes:
+  - id: 1
+    type: Operation
+    schema: inventory
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          upc
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: inventory
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_price: Int
+        $__fusion_2_upc: String!
+        $__fusion_5_price: Int
+      ) {
+        productByUpc(upc: $__fusion_2_upc) {
+          reducedPrice(price: $__fusion_1_price)
+          isExpensive(price: $__fusion_5_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    requirements:
+      - name: __fusion_1_price
+        internalAlias: fusion__requirement_price_0
+        selectionMap: >-
+          price(withDiscount: false)
+      - name: __fusion_2_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_5_price
+        internalAlias: fusion__requirement_price_1
+        selectionMap: >-
+          price(withDiscount: true)
+    dependencies:
+      - id: 3
+  - id: 3
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_3($__fusion_3_upc: String!) {
+        productByUpc(upc: $__fusion_3_upc) {
+          fusion__requirement_price_0: price(withDiscount: false)
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_3_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_4($__fusion_4_upc: String!) {
+        productByUpc(upc: $__fusion_4_upc) {
+          upc
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_4_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_5($__fusion_6_upc: String!) {
+        productByUpc(upc: $__fusion_6_upc) {
+          fusion__requirement_price_1: price(withDiscount: true)
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_6_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_6($__fusion_7_upc: String!) {
+        productByUpc(upc: $__fusion_7_upc) {
+          price
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_7_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 1

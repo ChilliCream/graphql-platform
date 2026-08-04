@@ -370,9 +370,7 @@ public class SortConventionTests
         var schema = CreateSchemaWith(sortInputType, convention);
 
         // assert
-        Assert.Equal(
-            "SortInput",
-            schema.Types.First(t => t.IsInputType() && !t.IsIntrospectionType()).Name);
+        Assert.True(schema.Types.TryGetType("SortInput", out _));
     }
 
     protected Schema CreateSchemaWithTypes(

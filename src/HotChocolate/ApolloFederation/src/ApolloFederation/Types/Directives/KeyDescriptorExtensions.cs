@@ -33,7 +33,7 @@ public static class KeyDescriptorExtensions
     /// <param name="resolvable">
     /// Boolean flag to indicate whether this entity is resolvable locally.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The entity resolver descriptor.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
@@ -74,7 +74,7 @@ public static class KeyDescriptorExtensions
     /// <param name="resolvable">
     /// Boolean flag to indicate whether this entity is resolvable locally.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The entity resolver descriptor.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
@@ -125,7 +125,7 @@ public static class KeyDescriptorExtensions
     /// <param name="resolvable">
     /// Boolean flag to indicate whether this entity is resolvable locally.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The entity resolver descriptor.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
@@ -166,7 +166,7 @@ public static class KeyDescriptorExtensions
     /// <param name="resolvable">
     /// Boolean flag to indicate whether this entity is resolvable locally.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The entity resolver descriptor.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>

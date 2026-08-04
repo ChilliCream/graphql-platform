@@ -99,9 +99,10 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
+        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         var memberInit = queryableScope.CreateMemberInit();
 
-        if (context.InMemory)
+        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
             parentScope.Level
                 .Peek()
@@ -119,5 +120,5 @@ public class QueryableProjectionFieldHandler
         return true;
     }
 
-    public static QueryableProjectionFieldHandler Create(ProjectionProviderContext context) => new();
+    public static QueryableProjectionFieldHandler Create(ProjectionProviderContext _) => new();
 }

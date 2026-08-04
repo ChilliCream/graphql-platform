@@ -1,8 +1,8 @@
-﻿schema {
+schema {
   query: Foo
 }
 
 type Foo {
-  description: String @deprecated
+  description: String @deprecated(reason: "No longer supported.")
   name(a: String): String
 }

@@ -33,18 +33,29 @@ public sealed class ParserOptions
     /// <param name="maxAllowedFields">
     /// The maximum number of fields allowed within a query document.
     /// </param>
+    /// <param name="maxAllowedDirectives">
+    /// The maximum number of directives allowed per location (e.g. per field, per operation).
+    /// </param>
+    /// <param name="maxAllowedRecursionDepth">
+    /// The maximum allowed recursion depth when parsing a document.
+    /// This prevents stack overflow from deeply nested queries.
+    /// </param>
     public ParserOptions(
         bool noLocations = false,
         bool allowFragmentVariables = false,
         int maxAllowedNodes = int.MaxValue,
         int maxAllowedTokens = int.MaxValue,
-        int maxAllowedFields = 2048)
+        int maxAllowedFields = 2048,
+        int maxAllowedDirectives = 4,
+        int maxAllowedRecursionDepth = 200)
     {
         NoLocations = noLocations;
         Experimental = new(allowFragmentVariables);
         MaxAllowedTokens = maxAllowedTokens;
         MaxAllowedNodes = maxAllowedNodes;
         MaxAllowedFields = maxAllowedFields;
+        MaxAllowedDirectives = maxAllowedDirectives;
+        MaxAllowedRecursionDepth = maxAllowedRecursionDepth;
     }
 
     /// <summary>
@@ -85,6 +96,18 @@ public sealed class ParserOptions
     /// as fields is an easier way to estimate query size for GraphQL requests.
     /// </summary>
     public int MaxAllowedFields { get; }
+
+    /// <summary>
+    /// The maximum number of directives allowed per location (e.g. per field,
+    /// per operation, per fragment definition). Repeatable directives can be used
+    /// to exhaust CPU and memory resources if not limited.
+    /// </summary>
+    public int MaxAllowedDirectives { get; }
+
+    /// <summary>
+    /// Gets the maximum allowed recursion depth of a parsed document.
+    /// </summary>
+    public int MaxAllowedRecursionDepth { get; }
 
     /// <summary>
     /// Gets the experimental parser options

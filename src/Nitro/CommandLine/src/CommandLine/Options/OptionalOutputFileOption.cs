@@ -1,11 +1,9 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class OptionalOutputFileOption : Option<FileInfo>
+internal sealed class OptionalOutputFileOption : OutputFileOption
 {
-    public OptionalOutputFileOption() : base("--output-file")
+    public OptionalOutputFileOption()
     {
-        Description = "The output file";
-        IsRequired = false;
-        this.DefaultFromEnvironmentValue("OUTPUT_FILE");
+        Required = false;
     }
 }

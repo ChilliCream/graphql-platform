@@ -1,0 +1,435 @@
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Sagas;
+using Mocha.TestHelpers;
+using Mocha.Transport.InMemory.Tests.Helpers;
+
+namespace Mocha.Transport.InMemory.Tests;
+
+public class ReceivesTests
+{
+    [Fact]
+    public void Receives_Should_BindHandlerToEndpoint_When_MessageTypeDeclared()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Receives<OrderCreated>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .SingleOrDefault(e => e.Name == "orders");
+
+        Assert.NotNull(endpoint);
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
+            .ToList();
+        var route = Assert.Single(routes);
+        Assert.Equal(endpoint, route.Endpoint);
+    }
+
+    [Fact]
+    public void Receives_Should_BindAllHandlers_When_MultipleHandlersForSameType()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddEventHandler<OrderCreatedHandler2>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Receives<OrderCreated>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
+            .ToList();
+        Assert.Equal(2, routes.Count);
+        Assert.All(routes, r => Assert.Equal(endpoint, r.Endpoint));
+    }
+
+    [Fact]
+    public void Receives_Should_FanOutToBothQueues_When_SameTypeDeclaredOnTwoEndpoints()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders-primary").Receives<OrderCreated>();
+                t.Queue("orders-backup").Receives<OrderCreated>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert
+        var primaryEndpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders-primary");
+        var backupEndpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders-backup");
+
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
+            .ToList();
+        Assert.Equal(2, routes.Count);
+        Assert.Contains(routes, r => r.Endpoint == primaryEndpoint);
+        Assert.Contains(routes, r => r.Endpoint == backupEndpoint);
+    }
+
+    [Fact]
+    public void Receives_Should_Throw_When_NoHandlerRegistered()
+    {
+        // arrange & act & assert
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            new ServiceCollection()
+                .AddMessageBus()
+                .AddInMemory(t =>
+                {
+                    t.BindExplicitly();
+                    t.Queue("orders").Receives<OrderCreated>();
+                })
+                .BuildRuntime());
+
+        Assert.Contains("No handler or consumer handles message type", exception.Message);
+        Assert.Contains(typeof(OrderCreated).FullName!, exception.Message);
+        Assert.Contains("orders", exception.Message);
+    }
+
+    [Fact]
+    public void Receives_Should_Throw_When_NoRouteExists()
+    {
+        // arrange
+        // No handler is registered for OrderCreated.
+        // The missing inbound route must raise NoHandlerForMessageType.
+
+        // act & assert
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            new ServiceCollection()
+                .AddMessageBus()
+                .AddInMemory(t =>
+                {
+                    t.BindExplicitly();
+                    t.Queue("orders").Receives<OrderCreated>();
+                })
+                .BuildRuntime());
+
+        Assert.Contains("No handler or consumer handles message type", exception.Message);
+        Assert.Contains(typeof(OrderCreated).FullName!, exception.Message);
+    }
+
+    [Fact]
+    public void Consumer_Should_BindToBothEndpoints_When_MappedToTwoEndpoints()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddConsumer<TestOrderConsumer>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders-a").Consumer<TestOrderConsumer>();
+                t.Queue("orders-b").Consumer<TestOrderConsumer>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert
+        var endpointA = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders-a");
+        var endpointB = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders-b");
+
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.Consumer?.Identity == typeof(TestOrderConsumer))
+            .ToList();
+        Assert.Equal(2, routes.Count);
+        Assert.Contains(routes, r => r.Endpoint == endpointA);
+        Assert.Contains(routes, r => r.Endpoint == endpointB);
+    }
+
+    [Fact]
+    public async Task Receives_Should_DeliverMessages_When_Published()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        var services = new ServiceCollection();
+        services.AddSingleton(recorder);
+        var provider = await services
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindImplicitly();
+                t.Queue("orders").Receives<OrderCreated>();
+            })
+            .BuildServiceProvider();
+
+        var bus = provider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "123" }, CancellationToken.None);
+        var received = await recorder.WaitAsync(TimeSpan.FromSeconds(5));
+
+        // assert
+        Assert.True(received);
+        Assert.Single(recorder.Messages);
+        var message = Assert.IsType<OrderCreated>(recorder.Messages.First());
+        Assert.Equal("123", message.OrderId);
+    }
+
+    [Fact]
+    public void Receives_Should_NotCreateDuplicateRoutes_When_SameTypeDeclaredOnThreeEndpoints()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders-1").Receives<OrderCreated>();
+                t.Queue("orders-2").Receives<OrderCreated>();
+                t.Queue("orders-3").Receives<OrderCreated>();
+            })
+            .BuildRuntime();
+
+        // assert
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
+            .ToList();
+        Assert.Equal(3, routes.Count);
+        Assert.Equal(3, routes.Select(r => r.Endpoint).Distinct().Count());
+    }
+
+    [Fact]
+    public void Receives_Should_PreserveCondition_When_FannedOut()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders-primary").Receives<OrderCreated>();
+                t.Queue("orders-backup").Receives<OrderCreated>();
+            })
+            .BuildRuntime();
+
+        // assert
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
+            .ToList();
+        Assert.Equal(2, routes.Count);
+        Assert.Same(routes[0].Condition, routes[1].Condition);
+    }
+
+    [Fact]
+    public async Task Receives_Should_DeliverToBothQueues_When_FannedOut()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        var services = new ServiceCollection();
+        services.AddSingleton(recorder);
+        var provider = await services
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindImplicitly();
+                t.Queue("orders-primary").Receives<OrderCreated>();
+                t.Queue("orders-backup").Receives<OrderCreated>();
+            })
+            .BuildServiceProvider();
+
+        var bus = provider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "123" }, CancellationToken.None);
+        var received = await recorder.WaitAsync(TimeSpan.FromSeconds(5), expectedCount: 2);
+
+        // assert
+        Assert.True(received);
+        Assert.Equal(2, recorder.Messages.Count);
+    }
+
+    [Fact]
+    public void Receives_Should_BindNormalRoute_When_TypeAlsoUsedAsRequestResponse()
+    {
+        // arrange
+        // OrderStatusResponse is used as the response type for GetOrderStatus and as a normal
+        // published message handled by OrderStatusResponseHandler.
+
+        // act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddEventHandler<OrderStatusResponseHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindImplicitly();
+                t.Queue("orders").Receives<OrderStatusResponse>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+        Assert.Contains(runtime.Router.InboundRoutes, r =>
+            r.Kind == InboundRouteKind.Subscribe
+            && r.MessageType?.RuntimeType == typeof(OrderStatusResponse)
+            && r.Endpoint == endpoint);
+    }
+
+    [Fact]
+    public void Receives_Should_BindNormalRoute_When_TypeAlsoHasReplyRoute()
+    {
+        // arrange
+        // A saga with OnReply<StockInfoResult> registers a Reply route for the same CLR type.
+        // Receives<StockInfoResult> should bind only the normal Subscribe route.
+        var services = new ServiceCollection();
+        services.AddInMemorySagas();
+        var builder = services.AddMessageBus();
+        builder.AddSaga<OrderStockCheckSaga>();
+
+        // act
+        var runtime = builder
+            .AddEventHandler<StockInfoResultHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindImplicitly();
+                t.Queue("orders").Receives<StockInfoResult>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+        Assert.Contains(runtime.Router.InboundRoutes, r =>
+            r.Kind == InboundRouteKind.Subscribe
+            && r.MessageType?.RuntimeType == typeof(StockInfoResult)
+            && r.Endpoint == endpoint);
+    }
+
+    [Fact]
+    public void Receives_Should_NotThrow_When_TypeHasNonReplyRoute()
+    {
+        // arrange
+        // OrderCreated has a normal Subscribe route via the event handler. Receives<OrderCreated>
+        // must succeed and bind the handler to the explicit endpoint.
+
+        // act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").Receives<OrderCreated>();
+            })
+            .BuildRuntime();
+
+        // assert
+        var routes = runtime.Router.InboundRoutes
+            .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
+            .ToList();
+        Assert.NotEmpty(routes);
+    }
+
+    [Fact]
+    public async Task BindExplicitly_Should_NotDeliver_When_QueueBindExplicit()
+    {
+        // arrange
+        // BindExplicitly at queue scope removes the convention binding from the send topic into the
+        // queue. Published messages never reach the queue even though the type-owned topics exist.
+        var recorder = new MessageRecorder();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Receives<OrderCreated>()
+                    .BindExplicitly();
+            })
+            .BuildServiceProvider();
+
+        var bus = provider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "NO-BIND" }, CancellationToken.None);
+
+        // assert
+        // A short wait confirms messages are not delivered: no queue binding was created.
+        var received = await recorder.WaitAsync(TimeSpan.FromMilliseconds(500));
+        Assert.False(received);
+        Assert.Empty(recorder.Messages);
+    }
+}
+
+public sealed class TestOrderConsumer : IConsumer<OrderCreated>
+{
+    public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
+}
+
+file sealed class StockCheckStarted;
+
+file sealed class StockInfoResult;
+
+file sealed class StockInfoResultHandler : IEventHandler<StockInfoResult>
+{
+    public ValueTask HandleAsync(StockInfoResult message, CancellationToken cancellationToken) => default;
+}
+
+file sealed class OrderStatusResponseHandler : IEventHandler<OrderStatusResponse>
+{
+    public ValueTask HandleAsync(OrderStatusResponse message, CancellationToken cancellationToken) => default;
+}
+
+file sealed class GetStockInfoRequest : IEventRequest<StockInfoResult>;
+
+file sealed class StockCheckState : SagaStateBase;
+
+file sealed class OrderStockCheckSaga : Saga<StockCheckState>
+{
+    protected override void Configure(ISagaDescriptor<StockCheckState> descriptor)
+    {
+        descriptor
+            .Initially()
+            .OnEvent<StockCheckStarted>()
+            .StateFactory(_ => new StockCheckState())
+            .Send((_, _) => new GetStockInfoRequest())
+            .TransitionTo("Awaiting");
+
+        descriptor.During("Awaiting").OnReply<StockInfoResult>().TransitionTo("Done");
+
+        descriptor.Finally("Done");
+    }
+}

@@ -48,7 +48,11 @@ public partial class EntityStore
 
     private sealed class EntityUpdateObservable : IObservable<EntityUpdate>
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private ImmutableList<IObserver<EntityUpdate>> _observers = [];
 
         public IDisposable Subscribe(IObserver<EntityUpdate> observer)

@@ -41,7 +41,8 @@ public class GeoJsonMultiLineStringTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { type coordinates bbox crs }}");
+            "{ test { type coordinates bbox crs }}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -64,7 +65,8 @@ public class GeoJsonMultiLineStringTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on MultiLineString { type coordinates bbox crs }}}");
+            "{ test { ... on MultiLineString { type coordinates bbox crs }}}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

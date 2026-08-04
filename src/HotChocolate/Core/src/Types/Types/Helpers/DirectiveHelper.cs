@@ -17,6 +17,7 @@ internal static class DirectiveHelper
             IOutputFieldDefinition => DirectiveLocation.FieldDefinition,
             InputField => DirectiveLocation.InputFieldDefinition,
             Argument => DirectiveLocation.ArgumentDefinition,
+            DirectiveType => DirectiveLocation.DirectiveDefinition,
             _ => throw new NotSupportedException()
         };
     }

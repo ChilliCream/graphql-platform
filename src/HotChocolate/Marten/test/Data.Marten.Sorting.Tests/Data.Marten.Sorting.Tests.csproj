@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Marten.Sorting.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>

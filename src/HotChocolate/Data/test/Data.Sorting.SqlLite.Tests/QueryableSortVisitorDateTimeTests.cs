@@ -18,7 +18,7 @@ public sealed class QueryableSortVisitorDateTimeTests
             .AddSorting()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -28,7 +28,8 @@ public sealed class QueryableSortVisitorDateTimeTests
                     timestamp
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var json = result.ToJson();

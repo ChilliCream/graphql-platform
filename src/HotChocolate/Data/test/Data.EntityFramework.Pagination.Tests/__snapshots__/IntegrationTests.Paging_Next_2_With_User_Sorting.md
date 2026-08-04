@@ -18,7 +18,7 @@
     }
   },
   "extensions": {
-    "sql": "-- @__value_0='Brand17'\n-- @__value_1='18'\n-- @__p_2='3'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nWHERE b.\"Name\" > @__value_0 OR (b.\"Name\" = @__value_0 AND b.\"Id\" > @__value_1)\nORDER BY b.\"Name\", b.\"Id\"\nLIMIT @__p_2"
+    "sql": "-- @value='Brand17'\n-- @value2='18'\n-- @p='3'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nWHERE b.\"Name\" > @value OR (b.\"Name\" = @value AND b.\"Id\" > @value2)\nORDER BY b.\"Name\", b.\"Id\"\nLIMIT @p"
   }
 }
 ```

@@ -32,5 +32,5 @@ public sealed class QueryableSortProjectionOptimizer : IProjectionOptimizer
         return selection;
     }
 
-    public static QueryableSortProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static QueryableSortProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

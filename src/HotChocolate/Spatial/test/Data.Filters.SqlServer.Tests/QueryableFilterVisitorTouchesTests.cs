@@ -2,6 +2,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Spatial.Filters;
 
@@ -72,7 +73,8 @@ public class QueryableFilterVisitorTouchesTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -99,17 +101,15 @@ public class QueryableFilterVisitorTouchesTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "true")
             .AddResult(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

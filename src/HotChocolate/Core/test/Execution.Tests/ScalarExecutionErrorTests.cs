@@ -20,7 +20,8 @@ public class ScalarExecutionErrorTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ stringToName(name: \"  \") }");
+            "{ stringToName(name: \"  \") }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -38,7 +39,8 @@ public class ScalarExecutionErrorTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ stringToFoo(name: \"  \") }");
+            "{ stringToFoo(name: \"  \") }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -56,7 +58,8 @@ public class ScalarExecutionErrorTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nameToString(name: \"  \") }");
+            "{ nameToString(name: \"  \") }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -142,7 +145,7 @@ public class ScalarExecutionErrorTests
         {
             if (inputValue.ValueKind is JsonValueKind.String)
             {
-                var value = inputValue.GetString()!;
+                var value = inputValue.GetString();
                 if (value is "a")
                 {
                     return value;

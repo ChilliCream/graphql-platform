@@ -33,21 +33,23 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { test: { prop: ASC}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { test: { prop: DESC}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "ASC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void Configure(ISchemaBuilder builder)

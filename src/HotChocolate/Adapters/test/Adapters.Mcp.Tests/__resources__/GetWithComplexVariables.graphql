@@ -16,8 +16,8 @@ query GetWithComplexVariables(
   $oneOfList: [OneOfInput!]! = [{ field1: 1 }, { field2: "default" }]
   "Object with OneOf field"
   $objectWithOneOfField: ObjectWithOneOfFieldInput! = { field: { field1: 1 } }
-  "TimeSpan with DotNet format"
-  $timeSpanDotNet: TimeSpan! = "00:05:00"
+  "Duration with DotNet format"
+  $durationDotNet: Duration! = "00:05:00"
 ) {
   withComplexVariables(
     list: $list
@@ -28,7 +28,7 @@ query GetWithComplexVariables(
     oneOf: $oneOf
     oneOfList: $oneOfList
     objectWithOneOfField: $objectWithOneOfField
-    timeSpanDotNet: $timeSpanDotNet
+    durationDotNet: $durationDotNet
   ) {
     list {
       field1A {
@@ -67,6 +67,6 @@ query GetWithComplexVariables(
         field2
       }
     }
-    timeSpanDotNet
+    durationDotNet
   }
 }

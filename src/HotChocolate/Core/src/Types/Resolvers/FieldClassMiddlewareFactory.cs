@@ -1,5 +1,6 @@
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
@@ -17,7 +18,7 @@ public static class FieldClassMiddlewareFactory
     private static readonly PropertyInfo s_services =
         typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
-    public static FieldMiddleware Create<TMiddleware>(
+    public static FieldMiddleware Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         params (Type Service, object Instance)[] services)
         where TMiddleware : class
     {
@@ -46,6 +47,17 @@ public static class FieldClassMiddlewareFactory
         };
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Create<TMiddleware> method's generic constraints are satisfied at runtime by the middleware type.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method uses MakeGenericMethod to instantiate a generic factory method and is only used in "
+            + "JIT-compatible environments.")]
     public static FieldMiddleware Create(
         Type middlewareType,
         params (Type Service, object Instance)[] services)
@@ -55,7 +67,7 @@ public static class FieldClassMiddlewareFactory
             .Invoke(null, [services]);
     }
 
-    public static FieldMiddleware Create<TMiddleware>(
+    public static FieldMiddleware Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
@@ -64,7 +76,7 @@ public static class FieldClassMiddlewareFactory
         return next => CreateDelegate(factory, next);
     }
 
-    private static FieldDelegate CreateDelegate<TMiddleware>(
+    private static FieldDelegate CreateDelegate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory,
         FieldDelegate next)
         where TMiddleware : class

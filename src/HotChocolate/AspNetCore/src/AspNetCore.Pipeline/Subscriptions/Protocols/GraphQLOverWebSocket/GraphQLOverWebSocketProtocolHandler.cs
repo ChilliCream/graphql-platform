@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Text.Json;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
@@ -15,7 +16,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal sealed class GraphQLOverWebSocketProtocolHandler(
     ISocketSessionInterceptor interceptor,
-    IWebSocketPayloadFormatter formatter)
+    IWebSocketPayloadFormatter formatter,
+    IDocumentCache documentCache,
+    IDocumentHashProvider documentHashProvider,
+    ParserOptions parserOptions)
     : IGraphQLOverWebSocketProtocolHandler
 {
     public string Name => GraphQL_Transport_WS;
@@ -43,7 +47,20 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
         var connection = session.Connection;
 
         var connected = connection.IsConnected;
-        using var document = JsonDocument.Parse(message);
+
+        JsonDocument parsedDocument;
+
+        try
+        {
+            parsedDocument = JsonDocument.Parse(message);
+        }
+        catch (JsonException)
+        {
+            await connection.CloseInvalidMessageAsync(cancellationToken);
+            return;
+        }
+
+        using var document = parsedDocument;
         var root = document.RootElement;
         JsonElement idProp;
 
@@ -93,6 +110,10 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                 return;
             }
 
+            // signal that the client sent the connection init in time, even if accepting the
+            // connection (for example authentication) still needs to run.
+            ((WebSocketConnection)connection).ConnectionInitReceived = true;
+
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
                     ? new ConnectionInitMessage(payload)
@@ -106,7 +127,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
             if (connectionStatus.Accepted)
             {
-                connection.IsConnected = true;
+                ((WebSocketConnection)connection).IsConnected = true;
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,
@@ -114,7 +135,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
             }
             else
             {
-                await connection.CloseConnectionRefusedAsync(cancellationToken);
+                await connection.CloseConnectionRefusedAsync(
+                    connectionStatus.Message,
+                    cancellationToken);
             }
 
             return;
@@ -130,15 +153,48 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
         if (type.ValueEquals(Utf8Messages.Subscribe))
         {
+            // the parsed requests own pooled JSON buffers (variables and extensions). Ownership
+            // transfers to the operation session only when Enqueue/EnqueueBatch succeeds. On every
+            // rejection or error path we keep this reference non-null so the finally disposes them.
+            GraphQLRequest[]? requests = null;
+
             try
             {
-                if (!TryParseSubscribeMessage(root, out var subscribeMessage))
+                if (!TryParseSubscribeMessage(root, out var subscribeId, out requests))
                 {
                     await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
                     return;
                 }
 
-                if (!session.Operations.Enqueue(subscribeMessage.Id, subscribeMessage.Payload))
+                bool success;
+
+                if (requests.Length == 1)
+                {
+                    success = session.Operations.Enqueue(subscribeId, requests[0]);
+                }
+                else
+                {
+                    var options = session.Connection.Features.Get<GraphQLServerOptions>();
+
+                    if (options?.Batching.HasFlag(AllowedBatching.RequestBatching) == false)
+                    {
+                        throw new GraphQLRequestException(ErrorHelper.InvalidRequest());
+                    }
+
+                    if (options?.MaxBatchSize > 0 && requests.Length > options.MaxBatchSize)
+                    {
+                        throw new GraphQLRequestException(ErrorHelper.BatchSizeExceeded(options.MaxBatchSize));
+                    }
+
+                    success = session.Operations.EnqueueBatch(subscribeId, requests);
+                }
+
+                if (success)
+                {
+                    // the operation session now owns the requests and disposes them.
+                    requests = null;
+                }
+                else
                 {
                     await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);
                 }
@@ -176,6 +232,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                     idProp.GetString()!,
                     [syntaxError],
                     cancellationToken);
+            }
+            finally
+            {
+                if (requests is not null)
+                {
+                    foreach (var request in requests)
+                    {
+                        request.Dispose();
+                    }
+                }
             }
 
             // the operation was excepted and we are done.
@@ -296,36 +362,43 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
         CancellationToken cancellationToken)
         => session.Connection.CloseConnectionInitTimeoutAsync(cancellationToken);
 
-    private static bool TryParseSubscribeMessage(
+    private bool TryParseSubscribeMessage(
         JsonElement messageElement,
-        [NotNullWhen(true)] out SubscribeMessage? message)
+        [NotNullWhen(true)] out string? id,
+        [NotNullWhen(true)] out GraphQLRequest[]? requests)
     {
         if (!messageElement.TryGetProperty(Id, out var idProp)
             || idProp.ValueKind is not JsonValueKind.String
             || string.IsNullOrEmpty(idProp.GetString()))
         {
-            message = null;
+            id = null;
+            requests = null;
             return false;
         }
 
         if (!messageElement.TryGetProperty(Payload, out var payloadProp)
-            || payloadProp.ValueKind is not JsonValueKind.Object)
+            || payloadProp.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
         {
-            message = null;
+            id = null;
+            requests = null;
             return false;
         }
 
-        var id = idProp.GetString()!;
+        id = idProp.GetString()!;
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
-        var request = Parse(requestData);
+        requests = Parse(
+            requestData,
+            parserOptions,
+            documentCache,
+            documentHashProvider);
 
-        if (request.Length == 0)
+        if (requests.Length == 0)
         {
-            message = null;
+            id = null;
+            requests = null;
             return false;
         }
 
-        message = new SubscribeMessage(id, request[0]);
         return true;
     }
 }

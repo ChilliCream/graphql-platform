@@ -119,19 +119,31 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
-                if (typeRef is null
-                    && d.Type is SyntaxTypeReference syntaxTypeRef
-                    && syntaxTypeRef.Type.IsListType())
+                if (typeRef is null)
                 {
-                    typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
-                }
+                    var currentTypeRef = d.Type;
 
-                if (typeRef is null
-                    && d.Type is ExtendedTypeReference extendedTypeRef
-                    && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
-                    && GetElementType(typeInfo) is { } elementType)
-                {
-                    typeRef = TypeReference.Create(elementType, TypeContext.Output);
+                    if (currentTypeRef is FactoryTypeReference factoryTypeRef
+                        && factoryTypeRef.TypeStructure.IsListType())
+                    {
+                        // Preserve list element nullability from the generated type structure.
+                        typeRef = factoryTypeRef.GetElementType();
+                    }
+
+                    if (typeRef is null
+                        && currentTypeRef is SyntaxTypeReference syntaxTypeRef
+                        && syntaxTypeRef.Type.IsListType())
+                    {
+                        typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                    }
+
+                    if (typeRef is null
+                        && currentTypeRef is ExtendedTypeReference extendedTypeRef
+                        && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                        && GetElementType(typeInfo) is { } elementType)
+                    {
+                        typeRef = TypeReference.Create(elementType, TypeContext.Output);
+                    }
                 }
 
                 var resolverMember = d.ResolverMember ?? d.Member;
@@ -247,12 +259,15 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                 {
                     var currentTypeRef = d.Type;
 
-                    if (currentTypeRef is FactoryTypeReference factoryTypeRef)
+                    if (currentTypeRef is FactoryTypeReference factoryTypeRef
+                        && factoryTypeRef.TypeStructure.IsListType())
                     {
-                        currentTypeRef = factoryTypeRef.GetElementType();
+                        // Preserve list element nullability from the generated type structure.
+                        typeRef = factoryTypeRef.GetElementType();
                     }
 
-                    if (currentTypeRef is ExtendedTypeReference extendedTypeRef
+                    if (typeRef is null
+                        && currentTypeRef is ExtendedTypeReference extendedTypeRef
                         && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
                         && GetElementType(typeInfo) is { } elementType)
                     {

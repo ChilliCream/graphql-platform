@@ -1,0 +1,9 @@
+### Service URLs - adjust these based on your Aspire dashboard ports
+@catalogUrl = http://localhost:5133
+@billingUrl = http://localhost:5042
+@shippingUrl = http://localhost:5145
+
+### Sample Product IDs (seeded in CatalogDbContext)
+@productHeadphones = aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+@productKeyboard = bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+@productBook = cccccccc-cccc-cccc-cccc-cccccccccccc

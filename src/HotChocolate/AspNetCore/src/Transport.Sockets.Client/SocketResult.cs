@@ -14,12 +14,13 @@ public sealed class SocketResult : IDisposable
     internal SocketResult(
         DataMessageObserver observer,
         IDisposable subscription,
-        IDataCompletion completion)
+        IDataCompletion completion,
+        CancellationTokenRegistration cancellationRegistration)
     {
         ArgumentNullException.ThrowIfNull(observer);
         ArgumentNullException.ThrowIfNull(subscription);
 
-        _enumerable = new ResultEnumerable(observer, subscription, completion);
+        _enumerable = new ResultEnumerable(observer, subscription, completion, cancellationRegistration);
     }
 
     /// <summary>
@@ -44,7 +45,8 @@ public sealed class SocketResult : IDisposable
     private sealed class ResultEnumerable(
         DataMessageObserver observer,
         IDisposable subscription,
-        IDataCompletion completion)
+        IDataCompletion completion,
+        CancellationTokenRegistration cancellationRegistration)
         : IAsyncEnumerable<OperationResult>, IDisposable
     {
         private bool _started;
@@ -60,35 +62,41 @@ public sealed class SocketResult : IDisposable
 
             IDataMessage? message;
 
-            do
+            try
             {
-                message = await observer.TryReadNextAsync(cancellationToken);
-
-                switch (message)
+                do
                 {
-                    case NextMessage next:
-                        yield return next.Payload;
-                        break;
+                    message = await observer.TryReadNextAsync(cancellationToken);
 
-                    case ErrorMessage error:
-                        yield return error.Payload;
-                        message = null;
-                        completion.MarkDataStreamCompleted();
-                        break;
+                    switch (message)
+                    {
+                        case NextMessage next:
+                            yield return next.Payload;
+                            break;
 
-                    case CompleteMessage:
-                        message = null;
-                        completion.MarkDataStreamCompleted();
-                        break;
-                }
-            } while (!cancellationToken.IsCancellationRequested && message is not null);
+                        case ErrorMessage error:
+                            yield return error.Payload;
+                            message = null;
+                            completion.MarkDataStreamCompleted();
+                            break;
 
-            completion.TrySendCompleteMessage();
+                        case CompleteMessage:
+                            message = null;
+                            completion.MarkDataStreamCompleted();
+                            break;
+                    }
+                } while (!cancellationToken.IsCancellationRequested && message is not null);
+            }
+            finally
+            {
+                completion.TrySendCompleteMessage();
+            }
         }
 
         public void Dispose()
         {
             completion.TrySendCompleteMessage();
+            cancellationRegistration.Dispose();
             subscription.Dispose();
             observer.Dispose();
         }

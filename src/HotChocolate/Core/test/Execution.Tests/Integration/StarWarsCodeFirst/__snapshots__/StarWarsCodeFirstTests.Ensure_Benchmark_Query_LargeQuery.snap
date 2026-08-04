@@ -5033,6 +5033,34 @@
               "deprecationReason": null
             },
             {
+              "name": "isDeprecated",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "deprecationReason",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "onOperation",
               "description": null,
               "args": [],
@@ -5205,6 +5233,12 @@
             {
               "name": "INPUT_FIELD_DEFINITION",
               "description": "Location adjacent to an input object field definition.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "DIRECTIVE_DEFINITION",
+              "description": "Location adjacent to a directive definition.",
               "isDeprecated": false,
               "deprecationReason": null
             }
@@ -5577,7 +5611,22 @@
             {
               "name": "directives",
               "description": "A list of all directives supported by this server.",
-              "args": [],
+              "args": [
+                {
+                  "name": "includeDeprecated",
+                  "description": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": "false"
+                }
+              ],
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -5892,6 +5941,156 @@
               "deprecationReason": null
             }
           ],
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "__SearchResult",
+          "description": "A search result representing a matched schema element.",
+          "fields": [
+            {
+              "name": "cursor",
+              "description": "An opaque cursor for pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "coordinate",
+              "description": "The schema coordinate of the matched element.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "definition",
+              "description": "The matched schema definition.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "UNION",
+                  "name": "__SchemaDefinition",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "pathsToRoot",
+              "description": "Paths from this element to a root type, each as a list of schema coordinates.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "LIST",
+                      "name": null
+                    }
+                  }
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "score",
+              "description": "The relevance score of the match, or null if scoring is not supported.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Float",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "UNION",
+          "name": "__SchemaDefinition",
+          "description": null,
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": [
+            {
+              "kind": "OBJECT",
+              "name": "__Type",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__Field",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__InputValue",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__EnumValue",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__Directive",
+              "ofType": null
+            }
+          ]
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Int",
+          "description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Float",
+          "description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
           "possibleTypes": null
         },
         {
@@ -6979,26 +7178,6 @@
           ],
           "inputFields": null,
           "interfaces": [],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Int",
-          "description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Float",
-          "description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
         },

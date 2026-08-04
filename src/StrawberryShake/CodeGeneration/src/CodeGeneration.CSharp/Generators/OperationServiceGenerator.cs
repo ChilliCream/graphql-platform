@@ -388,8 +388,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     }
 
     private static IEnumerable<MethodBuilder> CreateWitherMethods(
-       OperationDescriptor operationDescriptor,
-       string serializerAssignments)
+        OperationDescriptor operationDescriptor,
+        string serializerAssignments)
     {
         var withMethod = MethodBuilder
             .New()

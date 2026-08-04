@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="nitro" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
   </ItemGroup>
 

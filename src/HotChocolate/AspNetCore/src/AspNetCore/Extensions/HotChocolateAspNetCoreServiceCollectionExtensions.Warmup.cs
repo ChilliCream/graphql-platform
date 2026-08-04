@@ -371,6 +371,10 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="schemaFileName">
     /// The file name of the schema file.
     /// </param>
+    /// <param name="semanticNonNull">
+    /// If <c>true</c>, non-null wrappers on output fields are stripped and
+    /// replaced with the @semanticNonNull directive in the exported schema.
+    /// </param>
     /// <param name="skipIf">
     /// If <c>true</c>, the schema file will not be exported.
     /// </param>
@@ -383,6 +387,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder ExportSchemaOnStartup(
         this IRequestExecutorBuilder builder,
         string? schemaFileName = null,
+        bool semanticNonNull = false,
         bool skipIf = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -390,7 +395,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         if (!skipIf)
         {
             schemaFileName ??= System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls");
-            builder.AddWarmupTask(new SchemaFileExporterWarmupTask(schemaFileName));
+            builder.AddWarmupTask(new SchemaFileExporterWarmupTask(schemaFileName, semanticNonNull));
         }
 
         return builder;

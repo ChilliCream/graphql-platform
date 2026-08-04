@@ -137,7 +137,9 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// <summary>
     /// Gets the buffer as an <see cref="ArraySegment{T}"/>
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    /// The written data as an <see cref="ArraySegment{T}"/>.
+    /// </returns>
     public ArraySegment<byte> ToArraySegment() => new(_buffer, 0, _start);
 
     /// <summary>

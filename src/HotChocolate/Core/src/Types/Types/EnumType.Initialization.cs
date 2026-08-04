@@ -122,6 +122,11 @@ public partial class EnumType
                     .Build());
         }
 
+        if (context.DescriptorContext.Options.SortEnumValuesByName)
+        {
+            builder.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
+        }
+
         _values = new EnumValueCollection([.. builder], configuration.NameComparer);
         _valueLookup = valueLookupBuilder.ToFrozenDictionary(configuration.ValueComparer);
     }

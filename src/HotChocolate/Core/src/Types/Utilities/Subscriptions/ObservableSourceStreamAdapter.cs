@@ -42,7 +42,7 @@ internal sealed class ObservableSourceStreamAdapter<T>
                 {
                     _wait = new TaskCompletionSource<object>();
                 }
-                else if (_queue.Count == 0)
+                else if (_queue.IsEmpty)
                 {
                     await _wait.Task.ConfigureAwait(false);
                 }

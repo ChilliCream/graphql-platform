@@ -1,0 +1,34 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace HotChocolate.Fusion.Suites.PartialUnionComplex.A;
+
+public static class ASubgraph
+{
+    public const string Name = "a";
+
+    public static async Task<SubgraphHost> BuildAsync()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseTestServer();
+
+        builder.Services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddApolloFederation()
+            .AddQueryType<QueryType>()
+            .AddType<ContainerType>()
+            .AddType<WrapperType>()
+            .AddType<ActionUnionType>()
+            .AddType<CommonType>()
+            .AddType<OnlyAType>();
+
+        var app = builder.Build();
+        app.MapSubgraph();
+
+        await app.StartAsync();
+
+        return new SubgraphHost(Name, app);
+    }
+}

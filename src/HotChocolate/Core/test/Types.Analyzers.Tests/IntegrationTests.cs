@@ -12,7 +12,8 @@ public class IntegrationTests
         var services = CreateApplicationServices();
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -23,7 +24,8 @@ public class IntegrationTests
     {
         // arrange
         var services = CreateApplicationServices();
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -41,7 +43,8 @@ public class IntegrationTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -65,7 +68,8 @@ public class IntegrationTests
                     .UseDefaultPipeline();
             });
 
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -83,7 +87,8 @@ public class IntegrationTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -94,7 +99,8 @@ public class IntegrationTests
     {
         // arrange
         var services = CreateApplicationServices();
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -104,7 +110,8 @@ public class IntegrationTests
                     __typename
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -115,7 +122,8 @@ public class IntegrationTests
     {
         // arrange
         var services = CreateApplicationServices();
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -127,7 +135,8 @@ public class IntegrationTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -138,7 +147,8 @@ public class IntegrationTests
     {
         // arrange
         var services = CreateApplicationServices();
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -148,7 +158,8 @@ public class IntegrationTests
                     someInfo
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

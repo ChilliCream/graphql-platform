@@ -12,7 +12,7 @@ namespace HotChocolate.Language;
 /// They may serialize as a string: the name of the represented value.
 /// </para>
 /// <para>
-/// https://spec.graphql.org/October2021/#sec-Enums
+/// https://spec.graphql.org/September2025/#sec-Enums
 /// </para>
 /// </summary>
 public sealed class EnumTypeDefinitionNode : EnumTypeDefinitionNodeBase, ITypeDefinitionNode

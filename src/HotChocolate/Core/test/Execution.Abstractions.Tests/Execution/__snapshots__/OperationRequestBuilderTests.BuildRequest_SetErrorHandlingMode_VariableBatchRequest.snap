@@ -1,6 +1,6 @@
 {
   "document": "{ foo }",
-  "errorHandlingMode": "Halt",
+  "errorHandlingMode": "Null",
   "variableValues": [
     {
       "one": "foo"

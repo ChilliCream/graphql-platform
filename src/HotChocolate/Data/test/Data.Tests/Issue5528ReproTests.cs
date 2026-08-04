@@ -18,7 +18,7 @@ public class Issue5528ReproTests
             .AddType<FolderEntryType>()
             .AddType<FileOrFolderUnionType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -37,7 +37,8 @@ public class Issue5528ReproTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);
@@ -47,7 +48,7 @@ public class Issue5528ReproTests
     {
         [UseProjection]
         public IQueryable<Tenant> GetTenants()
-            => Data.AsQueryable();
+            => s_data.AsQueryable();
     }
 
     public class Tenant
@@ -94,7 +95,7 @@ public class Issue5528ReproTests
         }
     }
 
-    private static readonly Tenant[] Data =
+    private static readonly Tenant[] s_data =
     [
         new()
         {

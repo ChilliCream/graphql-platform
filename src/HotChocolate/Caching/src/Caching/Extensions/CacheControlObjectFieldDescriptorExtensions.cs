@@ -3,6 +3,10 @@ using HotChocolate.Caching;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides extension methods for <see cref="IObjectFieldDescriptor"/>
+/// to apply <c>@cacheControl</c> directives to object fields.
+/// </summary>
 public static class CacheControlObjectFieldDescriptorExtensions
 {
     /// <summary>

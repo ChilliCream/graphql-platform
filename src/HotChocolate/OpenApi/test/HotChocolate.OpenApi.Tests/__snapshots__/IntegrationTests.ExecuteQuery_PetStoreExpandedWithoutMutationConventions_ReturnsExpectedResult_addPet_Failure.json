@@ -1,8 +1,0 @@
-{
-  "data": {
-    "addPet": {
-      "code": 400,
-      "message": "Pet tag must not be empty."
-    }
-  }
-}

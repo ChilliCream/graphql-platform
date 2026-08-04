@@ -76,7 +76,7 @@ public class ProjectionConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Equal(2, convention.DefinitionAccessor!.ProviderExtensionsTypes.Count);
+        Assert.Equal(2, convention.DefinitionAccessor.ProviderExtensionsTypes.Count);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ProjectionConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.ProviderExtensions,
+            convention.DefinitionAccessor.ProviderExtensions,
             x => Assert.Equal(provider1, x),
             x => Assert.Equal(provider2, x));
     }

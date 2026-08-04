@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
@@ -205,7 +206,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <see langword="null"/>.
     /// </exception>
-    public static IRequestExecutorBuilder AddNodeIdValueSerializer<T>(
+    public static IRequestExecutorBuilder AddNodeIdValueSerializer<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, INodeIdValueSerializer
     {
@@ -243,5 +245,11 @@ public static partial class RequestExecutorBuilderExtensions
 
         builder.Services.AddSingleton<INodeIdValueSerializer>(serializer);
         return builder;
+    }
+
+    public static IRequestExecutorBuilder AddNodeIdValueSerializerFrom<TFrom>(
+        this IRequestExecutorBuilder builder)
+    {
+        throw new NotImplementedException("HotChocolate.Types.Analyzers is required to use this method.");
     }
 }

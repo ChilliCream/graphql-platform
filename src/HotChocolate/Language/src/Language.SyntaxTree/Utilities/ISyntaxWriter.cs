@@ -6,6 +6,11 @@ namespace HotChocolate.Language.Utilities;
 public interface ISyntaxWriter
 {
     /// <summary>
+    /// Gets the current column position in the output.
+    /// </summary>
+    int Column { get; }
+
+    /// <summary>
     /// Increase writer indentation.
     /// </summary>
     void Indent();

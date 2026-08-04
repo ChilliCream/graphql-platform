@@ -1,9 +1,9 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalDownstreamUrlOption : DownstreamUrlOption
 {
     public OptionalDownstreamUrlOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

@@ -38,7 +38,7 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Title { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Title { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Title { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -234,6 +234,6 @@ public class ShareableScopedOnMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

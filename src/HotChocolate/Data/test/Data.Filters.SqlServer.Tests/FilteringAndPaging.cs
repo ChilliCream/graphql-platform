@@ -22,19 +22,21 @@ public class FilteringAndPaging
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "true")
             .Add(res2, "false")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     public class Foo

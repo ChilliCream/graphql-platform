@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  asd(input: FlagsWithDescriptionFlagsInput!): FlagsWithDescriptionFlags!
 }
 
 "This is the type desc"
@@ -10,10 +14,6 @@ type FlagsWithDescriptionFlags {
   isBar: Boolean!
   "Baz has a desc"
   isBaz: Boolean!
-}
-
-type Query {
-  asd(input: FlagsWithDescriptionFlagsInput!): FlagsWithDescriptionFlags!
 }
 
 "This is the type desc"

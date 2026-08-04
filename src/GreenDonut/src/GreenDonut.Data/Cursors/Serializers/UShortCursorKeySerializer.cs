@@ -8,7 +8,7 @@ internal sealed class UShortCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<ushort>();
 
     public bool IsSupported(Type type)
-        => type == typeof(ushort);
+        => type == typeof(ushort) || type == typeof(ushort?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

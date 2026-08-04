@@ -1,0 +1,44 @@
+{
+  "data": {
+    "defaultDirectives": {
+      "directives": [
+        {
+          "name": "skip"
+        },
+        {
+          "name": "include"
+        },
+        {
+          "name": "deprecated"
+        },
+        {
+          "name": "current"
+        }
+      ]
+    },
+    "allDirectives": {
+      "directives": [
+        {
+          "name": "skip",
+          "deprecationReason": null
+        },
+        {
+          "name": "include",
+          "deprecationReason": null
+        },
+        {
+          "name": "deprecated",
+          "deprecationReason": null
+        },
+        {
+          "name": "old",
+          "deprecationReason": "Use @current."
+        },
+        {
+          "name": "current",
+          "deprecationReason": null
+        }
+      ]
+    }
+  }
+}

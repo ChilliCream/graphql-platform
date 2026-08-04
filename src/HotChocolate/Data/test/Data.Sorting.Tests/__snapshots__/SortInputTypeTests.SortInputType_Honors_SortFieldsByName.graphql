@@ -1,0 +1,20 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input SortTypeWithNonAlphabeticallyMembersSortInput {
+  a: SortEnumType
+  b: SortEnumType
+  x: SortEnumType
+  y: SortEnumType
+  z: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

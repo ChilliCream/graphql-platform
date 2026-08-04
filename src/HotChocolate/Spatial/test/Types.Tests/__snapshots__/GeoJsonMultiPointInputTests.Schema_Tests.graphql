@@ -2,12 +2,12 @@ schema {
   query: Query
 }
 
-type MockObjectType {
-  fieldResolver: Geometry
-}
-
 type Query {
   test(arg: GeoJSONMultiPointInput): String
+}
+
+type MockObjectType {
+  fieldResolver: Geometry
 }
 
 input GeoJSONMultiPointInput {

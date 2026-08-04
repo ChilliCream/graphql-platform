@@ -39,19 +39,21 @@ public class MongoDbFilterVisitorDateOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "2022-01-16")
             .AddResult(res2, "2022-01-15")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -64,19 +66,21 @@ public class MongoDbFilterVisitorDateOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "2022-01-16")
             .AddResult(res2, "2022-01-15")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -90,17 +94,20 @@ public class MongoDbFilterVisitorDateOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -108,7 +115,7 @@ public class MongoDbFilterVisitorDateOnlyTests
             .AddResult(res1, "2022-01-16")
             .AddResult(res2, "2022-01-15")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -123,17 +130,20 @@ public class MongoDbFilterVisitorDateOnlyTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null } }){ bar } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -141,7 +151,7 @@ public class MongoDbFilterVisitorDateOnlyTests
             .AddResult(res1, "2022-01-16")
             .AddResult(res2, "2022-01-15")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

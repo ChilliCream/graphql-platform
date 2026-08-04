@@ -1,0 +1,14 @@
+title: Skillz
+items:
+  - path: index
+    title: Introduction
+  - path: getting-started
+    title: Getting Started
+  - path: installing-skills
+    title: Installing Skills
+  - path: authoring-skills
+    title: Authoring Skills
+  - path: reference
+    title: Reference
+  - path: troubleshooting
+    title: Troubleshooting

@@ -20,6 +20,9 @@ namespace TestNamespace.DataAccess.Entities
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Entities.EntityDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.DataAccess.Entities.Entity>
         , IEntityByIdDataLoader
@@ -75,6 +78,9 @@ namespace TestNamespace.DataAccess.Products
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Products.ProductDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.DataAccess.Products.Product>
         , IEntityByIdDataLoader
@@ -194,7 +200,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Query),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -211,6 +217,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.DataAccess.Entities.Entity), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.DataAccess.Entities.Entity);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

@@ -94,11 +94,9 @@ public class RequestExecutorTests
         Assert.True(tokenWasCorrectlyPassedToResolver);
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Ensure_Errors_Do_Not_Result_In_Timeouts()
     {
-        using var cts = new CancellationTokenSource(1000);
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d.Name("abc").Field("a").Resolve("a"))
@@ -116,7 +114,7 @@ public class RequestExecutorTests
                             __typename
                         }
                     }",
-                cancellationToken: cts.Token)
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

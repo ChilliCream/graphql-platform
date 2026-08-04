@@ -100,8 +100,7 @@ public sealed class NameNode
     {
         unchecked
         {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
+            return (Kind.GetHashCode() * 397) ^ (Value.GetHashCode() * 97);
         }
     }
 

@@ -1,0 +1,16 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@external", "@extends", "@provides"]
+  )
+
+type Query {
+  randomUser: User
+  providedRandomUser: User @provides(fields: "name")
+}
+
+type User @key(fields: "id") @extends {
+  id: ID! @external
+  name: String! @external
+  rid: ID
+}

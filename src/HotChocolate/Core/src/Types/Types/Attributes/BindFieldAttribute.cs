@@ -7,6 +7,10 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Binds a member of a type extension to a field of the actual type.
 /// </summary>
+[AttributeUsage(
+    AttributeTargets.Property | AttributeTargets.Method,
+    Inherited = true,
+    AllowMultiple = false)]
 public sealed class BindFieldAttribute : ObjectFieldDescriptorAttribute
 {
     /// <summary>

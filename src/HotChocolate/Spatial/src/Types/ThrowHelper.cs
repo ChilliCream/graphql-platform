@@ -32,7 +32,7 @@ internal static class ThrowHelper
 
     public static LeafCoercionException Serializer_Parse_ValueKindInvalid(
         IType type,
-        SyntaxKind syntaxKind)
+        SyntaxKind _)
         => new("Resources.Serializer_Parse_TypeIsInvalid", type);
 
     public static LeafCoercionException Serializer_CoordinatesIsMissing(IType type)

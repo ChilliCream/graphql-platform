@@ -11,7 +11,7 @@
     "Kind": "Name",
     "Location": {
       "Start": 0,
-      "End": 7,
+      "End": 6,
       "Line": 1,
       "Column": 1
     },
@@ -21,7 +21,7 @@
     "Kind": "Name",
     "Location": {
       "Start": 7,
-      "End": 18,
+      "End": 17,
       "Line": 1,
       "Column": 8
     },
@@ -31,7 +31,7 @@
     "Kind": "Name",
     "Location": {
       "Start": 18,
-      "End": 22,
+      "End": 21,
       "Line": 1,
       "Column": 19
     },

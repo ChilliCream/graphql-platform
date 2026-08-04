@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Events;
 using HotChocolate.Events.Contracts;
 using HotChocolate.Logging;
@@ -38,13 +39,13 @@ public sealed class ValidImplementationsRule : IValidationEventHandler<ComplexTy
     private static bool IsValidImplementation(
         IComplexTypeDefinition type,
         IInterfaceTypeDefinition implementedType,
-        out List<LogEntry> logEntries)
+        [NotNullWhen(false)] out List<LogEntry>? logEntries)
     {
-        logEntries = [];
+        logEntries = null;
 
         if (!IsFullyImplementingInterface(type, implementedType))
         {
-            logEntries.Add(NotTransitivelyImplemented(type, implementedType));
+            (logEntries ??= []).Add(NotTransitivelyImplemented(type, implementedType));
         }
 
         foreach (var implementedField in implementedType.Fields)
@@ -53,17 +54,17 @@ public sealed class ValidImplementationsRule : IValidationEventHandler<ComplexTy
             {
                 if (!ValidateArguments(field, implementedField, out var argumentErrors))
                 {
-                    logEntries.AddRange(argumentErrors);
+                    (logEntries ??= []).AddRange(argumentErrors);
                 }
 
                 if (!IsValidImplementationFieldType(field.Type, implementedField.Type))
                 {
-                    logEntries.Add(InvalidFieldType(type, field, implementedField));
+                    (logEntries ??= []).Add(InvalidFieldType(type, field, implementedField));
                 }
 
                 if (field.IsDeprecated && !implementedField.IsDeprecated)
                 {
-                    logEntries.Add(InvalidFieldDeprecation(
+                    (logEntries ??= []).Add(InvalidFieldDeprecation(
                         implementedType.Name,
                         implementedField,
                         type,
@@ -72,11 +73,11 @@ public sealed class ValidImplementationsRule : IValidationEventHandler<ComplexTy
             }
             else
             {
-                logEntries.Add(FieldNotImplemented(type, implementedField));
+                (logEntries ??= []).Add(FieldNotImplemented(type, implementedField));
             }
         }
 
-        return logEntries.Count == 0;
+        return logEntries is null;
     }
 
     private static bool IsFullyImplementingInterface(
@@ -97,18 +98,17 @@ public sealed class ValidImplementationsRule : IValidationEventHandler<ComplexTy
     private static bool ValidateArguments(
         IOutputFieldDefinition field,
         IOutputFieldDefinition implementedField,
-        out List<LogEntry> logEntries)
+        [NotNullWhen(false)] out List<LogEntry>? logEntries)
     {
-        logEntries = [];
-        var implArgs = implementedField.Arguments.ToDictionary(t => t.Name);
+        logEntries = null;
 
         foreach (var argument in field.Arguments)
         {
-            if (implArgs.Remove(argument.Name, out var implementedArgument))
+            if (implementedField.Arguments.TryGetField(argument.Name, out var implementedArgument))
             {
                 if (!argument.Type.IsStructurallyEqual(implementedArgument.Type))
                 {
-                    logEntries.Add(
+                    (logEntries ??= []).Add(
                         InvalidArgumentType(
                             field,
                             implementedField,
@@ -118,7 +118,7 @@ public sealed class ValidImplementationsRule : IValidationEventHandler<ComplexTy
             }
             else if (argument.Type.IsNonNullType())
             {
-                logEntries.Add(
+                (logEntries ??= []).Add(
                     AdditionalArgumentNotNullable(
                         field,
                         implementedField,
@@ -126,16 +126,19 @@ public sealed class ValidImplementationsRule : IValidationEventHandler<ComplexTy
             }
         }
 
-        foreach (var missingArgument in implArgs.Values)
+        foreach (var implementedArgument in implementedField.Arguments)
         {
-            logEntries.Add(
-                ArgumentNotImplemented(
-                    field,
-                    implementedField,
-                    missingArgument));
+            if (!field.Arguments.ContainsName(implementedArgument.Name))
+            {
+                (logEntries ??= []).Add(
+                    ArgumentNotImplemented(
+                        field,
+                        implementedField,
+                        implementedArgument));
+            }
         }
 
-        return logEntries.Count == 0;
+        return logEntries is null;
     }
 
     // https://spec.graphql.org/September2025/#IsValidImplementationFieldType()

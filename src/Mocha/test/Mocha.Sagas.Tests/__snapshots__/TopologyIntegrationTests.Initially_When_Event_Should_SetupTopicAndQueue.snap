@@ -1,0 +1,27 @@
+﻿{
+  "Queues": [
+    {
+      "Name": "postgres://queue/TopologyIntegrationTests.TestMessage/service-name",
+      "HasConsumer": false
+    },
+    {
+      "Name": "postgres://queue/TopologyIntegrationTests.TestMessage/service-name/faults",
+      "HasConsumer": false
+    },
+    {
+      "Name": "postgres://queue/Saga.FluentSaga<TopologyIntegrationTests.TestState>",
+      "HasConsumer": false
+    }
+  ],
+  "Topics": [
+    {
+      "Name": "postgres://topic/TopologyIntegrationTests.TestMessage"
+    }
+  ],
+  "Subscriptions": [
+    {
+      "Queue": "postgres://queue/TopologyIntegrationTests.TestMessage/service-name",
+      "Topic": "postgres://topic/TopologyIntegrationTests.TestMessage"
+    }
+  ]
+}

@@ -14,7 +14,7 @@ public class CacheDataLoaderTests
             });
 
         // act
-        var result = await dataLoader.LoadAsync("abc");
+        var result = await dataLoader.LoadAsync("abc", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Value:abc", result);

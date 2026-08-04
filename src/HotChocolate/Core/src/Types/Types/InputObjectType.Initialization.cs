@@ -17,8 +17,10 @@ namespace HotChocolate.Types;
 public partial class InputObjectType
 {
     private Action<IInputObjectTypeDescriptor>? _configure;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private Func<object?[], object> _createInstance = null!;
     private Action<object, object?[]> _getFieldValues = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {

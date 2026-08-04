@@ -1,12 +1,12 @@
-﻿schema {
+schema {
   query: Query
   mutation: Mutation
 }
 
-type Mutation {
-  bar: Int
-}
-
 type Query {
   foo: String
+}
+
+type Mutation {
+  bar: Int
 }

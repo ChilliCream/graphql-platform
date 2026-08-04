@@ -15,6 +15,8 @@ public class MutableDirectiveDefinition
     , IFeatureProvider
 {
     private InputFieldDefinitionCollection? _arguments;
+    private bool _isDeprecated;
+    private DirectiveCollection? _directives;
 
     /// <summary>
     /// Represents a GraphQL directive definition.
@@ -44,6 +46,36 @@ public class MutableDirectiveDefinition
     /// </value>
     public string? Description { get; set; }
 
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
+    public bool IsDeprecated
+    {
+        get => _isDeprecated;
+        set
+        {
+            _isDeprecated = value;
+
+            if (!value)
+            {
+                DeprecationReason = null;
+            }
+        }
+    }
+
+    /// <inheritdoc cref="IDeprecationProvider.DeprecationReason" />
+    public string? DeprecationReason
+    {
+        get;
+        set
+        {
+            field = value;
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                _isDeprecated = true;
+            }
+        }
+    }
+
     /// <summary>
     /// Gets or sets a value indicating whether this directive type is a spec directive.
     /// </summary>
@@ -53,6 +85,13 @@ public class MutableDirectiveDefinition
     /// Defines if this directive is repeatable and can be applied multiple times.
     /// </summary>
     public bool IsRepeatable { get; set; }
+
+    /// <summary>
+    /// Defines if this directive is publicly visible through introspection
+    /// and external SDL output. Internal directives are part of the type system
+    /// but hidden from external observers.
+    /// </summary>
+    public bool IsPublic { get; set; } = true;
 
     /// <summary>
     /// Gets the arguments that are defined on this directive.
@@ -78,6 +117,12 @@ public class MutableDirectiveDefinition
 
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: true);
+
+    public DirectiveCollection Directives
+        => _directives ??= [];
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? EmptyCollections.Directives;
 
     public Type RuntimeType => typeof(object);
 
