@@ -128,9 +128,11 @@ public sealed class SchemaCompositionTests
         // arrange
         var harness = CreateHarness();
         var builder = DistributedApplication.CreateBuilder();
+#pragma warning disable CS0618 // The file based source schema API is under test.
         var source = builder
             .AddProject("products", GetTestProjectFile())
             .WithGraphQLSchemaFile("missing.graphql");
+#pragma warning restore CS0618
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -448,7 +450,7 @@ public sealed class SchemaCompositionTests
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", GetTestProjectFile())
-            .WithGraphQLSchemaEndpoint();
+            .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -506,9 +508,11 @@ public sealed class SchemaCompositionTests
 
             var harness = CreateHarness();
             var builder = DistributedApplication.CreateBuilder();
+#pragma warning disable CS0618 // The file based source schema API is under test.
             var products = builder
                 .AddProject("products", sourceProjectFile)
                 .WithGraphQLSchemaFile();
+#pragma warning restore CS0618
             builder
                 .AddProject("gateway", gatewayProjectFile)
                 .WithGraphQLSchemaComposition()
@@ -544,9 +548,11 @@ public sealed class SchemaCompositionTests
         // schema cannot be loaded and the gateway must not start with a partial schema.
         var harness = CreateHarness();
         var builder = DistributedApplication.CreateBuilder();
+#pragma warning disable CS0618 // The file based source schema API is under test.
         var products = builder
             .AddProject("products", GetTestProjectFile())
             .WithGraphQLSchemaFile();
+#pragma warning restore CS0618
         builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -668,7 +674,7 @@ public sealed class SchemaCompositionTests
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", GetTestProjectFile())
-            .WithGraphQLSchemaEndpoint();
+            .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -700,9 +706,11 @@ public sealed class SchemaCompositionTests
         // arrange
         var harness = CreateHarness();
         var builder = DistributedApplication.CreateBuilder();
+#pragma warning disable CS0618 // The file based source schema API is under test.
         var orders = builder
             .AddProject("orders", GetTestProjectFile())
             .WithGraphQLSchemaFile();
+#pragma warning restore CS0618
         builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -738,7 +746,7 @@ public sealed class SchemaCompositionTests
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", GetTestProjectFile())
-            .WithGraphQLSchemaEndpoint();
+            .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", GetTestProjectFile())
             .WithGraphQLSchemaComposition()
@@ -819,10 +827,12 @@ public sealed class SchemaCompositionTests
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", GetTestProjectFile())
-            .WithGraphQLSchemaEndpoint();
+            .WithGraphQLHttpEndpoint();
+#pragma warning disable CS0618 // The file based source schema API is under test.
         var orders = builder
             .AddProject("orders", GetTestProjectFile())
             .WithGraphQLSchemaFile();
+#pragma warning restore CS0618
         var telemetry = builder.AddProject("telemetry", GetTestProjectFile());
         builder
             .AddProject("gateway1", GetTestProjectFile())
@@ -855,12 +865,227 @@ public sealed class SchemaCompositionTests
             """);
     }
 
+    [Fact]
+    public async Task DiscoverReferencedSourceSchemasAsync_Should_DownloadSchemaThroughGraphQLRoute_When_SourceSchemaUsesApolloFederation()
+    {
+        // arrange
+        // an Apollo Federation source schema serves its schema through the GraphQL route, so the
+        // schema document path of the annotation never applies.
+        await using var server = await SchemaEndpointServer.StartAsync(
+            "/api/graphql",
+            """{"data":{"_service":{"sdl":"type Query { product: String }"}}}""");
+        using var project = new TempSourceSchemaProject(
+            """
+            {
+              "name": "products",
+              "extensions": {
+                "chillicream": {
+                  "apolloFederationSupport": { "version": "2.0" }
+                }
+              }
+            }
+            """);
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", project.ProjectFile)
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLHttpEndpoint(path: "/api/graphql");
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gatewayResource = model.GetGraphQLCompositionResources().Single();
+        products.Resource.AllocateHttpEndpoint(server.Port);
+
+        // act
+        var sourceSchemas = await harness.Composition.DiscoverReferencedSourceSchemasAsync(
+            gatewayResource,
+            model,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        try
+        {
+            var sourceSchema = Assert.Single(sourceSchemas);
+            Assert.Equal(
+                new Uri($"http://127.0.0.1:{server.Port}/api/graphql"),
+                sourceSchema.HttpEndpointUrl);
+            Assert.Equal("type Query { product: String }", sourceSchema.Schema.SourceText);
+            Assert.Equal(new[] { "/api/graphql" }, server.RequestedPaths);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task DiscoverReferencedSourceSchemasAsync_Should_DownloadSchemaFromSchemaPath_When_SourceSchemaDoesNotUseApolloFederation()
+    {
+        // arrange
+        await using var server = await SchemaEndpointServer.StartAsync(
+            "/api/schema.graphql",
+            "type Query { product: String }");
+        using var project = new TempSourceSchemaProject("""{ "name": "products" }""");
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", project.ProjectFile)
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLHttpEndpoint(path: "/api/graphql", schemaPath: "/api/schema.graphql");
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gatewayResource = model.GetGraphQLCompositionResources().Single();
+        products.Resource.AllocateHttpEndpoint(server.Port);
+
+        // act
+        var sourceSchemas = await harness.Composition.DiscoverReferencedSourceSchemasAsync(
+            gatewayResource,
+            model,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        try
+        {
+            var sourceSchema = Assert.Single(sourceSchemas);
+            Assert.Equal(
+                new Uri($"http://127.0.0.1:{server.Port}/api/schema.graphql"),
+                sourceSchema.HttpEndpointUrl);
+            Assert.Equal(new[] { "/api/schema.graphql" }, server.RequestedPaths);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task DiscoverReferencedSourceSchemasAsync_Should_Fail_When_ASourceSchemaWithoutFederationDeclaresNoSchemaPath()
+    {
+        // arrange
+        // no schema endpoint stands by, so the discovery must fail before it fetches anything.
+        using var project = new TempSourceSchemaProject("""{ "name": "products" }""");
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products", project.ProjectFile)
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLHttpEndpoint(path: "/api/graphql", schemaPath: null);
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gatewayResource = model.GetGraphQLCompositionResources().Single();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => harness.Composition.DiscoverReferencedSourceSchemasAsync(
+                gatewayResource,
+                model,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        $"""
+        Exception: {exception.Message}
+        Errors:
+        {DescribeErrors(harness)}
+        """.MatchInlineSnapshot(
+            """
+            Exception: The source schema for resource 'products' could not be loaded.
+            Errors:
+            The source schema products of the resource products does not use Apollo Federation and declares no schema document path. Pass a schemaPath to WithGraphQLHttpEndpoint.
+            """);
+    }
+
+    [Fact]
+    public async Task DiscoverReferencedSourceSchemasAsync_Should_Fail_When_TheAnnotationDeclaresNoGraphQLRoute()
+    {
+        // arrange
+        // a retired annotation declares no GraphQL route, so the resource has to be migrated.
+        using var project = new TempSourceSchemaProject("""{ "name": "products" }""");
+        var harness = CreateHarness();
+        var builder = DistributedApplication.CreateBuilder();
+#pragma warning disable CS0618 // The retired schema endpoint API is under test.
+        var products = builder
+            .AddProject("products", project.ProjectFile)
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLSchemaEndpoint();
+#pragma warning restore CS0618
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithGraphQLSchemaComposition()
+            .WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var gatewayResource = model.GetGraphQLCompositionResources().Single();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => harness.Composition.DiscoverReferencedSourceSchemasAsync(
+                gatewayResource,
+                model,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        $"""
+        Exception: {exception.Message}
+        Errors:
+        {DescribeErrors(harness)}
+        """.MatchInlineSnapshot(
+            """
+            Exception: The source schema for resource 'products' could not be loaded.
+            Errors:
+            The source schema products of the resource products does not declare the path of its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.
+            """);
+    }
+
+    private static string DescribeErrors(CompositionHarness harness)
+        => string.Join(
+            Environment.NewLine,
+            harness.Logger.Entries
+                .Where(entry => entry.Level is LogLevel.Error)
+                .Select(entry => entry.Message));
+
     private static CompositionHarness CreateHarness() => CompositionHarness.Create(coordinator: null);
 
     private static string GetTestProjectFile([CallerFilePath] string sourceFile = "")
         => IOPath.Combine(
             IOPath.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
+
+    /// <summary>
+    /// A project directory with a project file and a schema-settings.json, which is what an
+    /// endpoint-based source schema resource needs on disk.
+    /// </summary>
+    private sealed class TempSourceSchemaProject : IDisposable
+    {
+        private readonly DirectoryInfo _directory;
+
+        public TempSourceSchemaProject(string schemaSettingsJson)
+        {
+            _directory = Directory.CreateTempSubdirectory();
+            ProjectFile = IOPath.Combine(_directory.FullName, "products.csproj");
+            File.WriteAllText(ProjectFile, "<Project />");
+            File.WriteAllText(
+                IOPath.Combine(_directory.FullName, "schema-settings.json"),
+                schemaSettingsJson);
+        }
+
+        public string ProjectFile { get; }
+
+        public void Dispose() => _directory.Delete(recursive: true);
+    }
 
     private sealed class StubHttpMessageHandler(
         Func<HttpRequestMessage, HttpResponseMessage> responseFactory)

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
@@ -411,7 +410,7 @@ internal static class FusionPublishHelpers
         string apiId,
         string stageName,
         string? legacyArchiveFile,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        Dictionary<string, LocalSourceSchema> newSourceSchemas,
         IFusionConfigurationClient client,
         IFileSystem fileSystem,
         INitroConsole console,
@@ -422,8 +421,8 @@ internal static class FusionPublishHelpers
         CompositionSettings? compositionSettings;
 
         await using (var downloadActivity = activity.StartChildActivity(
-                         $"Downloading existing configuration from '{stageName}'",
-                         "Failed to download the existing Fusion configuration."))
+            $"Downloading existing configuration from '{stageName}'",
+            "Failed to download the existing Fusion configuration."))
         {
             try
             {
@@ -606,7 +605,7 @@ internal static class FusionPublishHelpers
         Stream archiveStream,
         Stream? existingArchiveStream,
         string environment,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        Dictionary<string, LocalSourceSchema> newSourceSchemas,
         CompositionSettings? compositionSettings,
         Stream? legacyArchive,
         CancellationToken cancellationToken)
@@ -646,7 +645,7 @@ internal static class FusionPublishHelpers
     public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
         FusionArchive archive,
         string environment,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        Dictionary<string, LocalSourceSchema> newSourceSchemas,
         CompositionSettings? compositionSettings,
         Stream? legacyArchive,
         CancellationToken cancellationToken)
@@ -658,7 +657,7 @@ internal static class FusionPublishHelpers
             newSourceSchemas,
             archive,
             environment,
-            SettingsComposerOptions.Default,
+            preferDevUrls: false,
             compositionSettings,
             legacyArchive,
             cancellationToken);

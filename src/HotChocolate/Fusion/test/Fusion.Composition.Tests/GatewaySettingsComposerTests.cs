@@ -555,7 +555,8 @@ public class SettingsComposerTests
             gatewaySettings,
             sourceSchemas,
             environment,
-            SettingsComposerOptions.Default,
+            new Dictionary<string, Uri>(),
+            preferDevUrls: false,
             new CompositionLog());
 
     private static JsonElement CreateSimpleSourceSchema(string name, string url)
