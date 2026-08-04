@@ -21,7 +21,7 @@ public class Issue6723Tests
             .BuildServiceProvider();
 
         // act
-        var schema = await services.GetSchemaAsync();
+        var schema = await services.GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var mutationField = schema.MutationType!.Fields["api_accessGroups"];
