@@ -794,7 +794,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -829,7 +829,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -869,7 +869,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ nullValues }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json

@@ -315,7 +315,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
                 .Build();
 
         // assert
@@ -330,7 +330,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
                 .SetVariableValues([new Dictionary<string, object?> { ["one"] = "foo" }])
                 .Build();
 

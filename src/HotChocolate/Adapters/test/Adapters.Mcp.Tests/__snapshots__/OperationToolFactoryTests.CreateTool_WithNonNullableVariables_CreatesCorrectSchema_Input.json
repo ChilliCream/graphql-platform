@@ -43,6 +43,12 @@
       "type": "number",
       "description": "Decimal description"
     },
+    "duration": {
+      "type": "string",
+      "format": "duration",
+      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+      "description": "Duration description"
+    },
     "enum": {
       "type": "string",
       "enum": [
@@ -100,35 +106,7 @@
       "description": "Long description"
     },
     "object": {
-      "type": "object",
-      "properties": {
-        "field1A": {
-          "type": "object",
-          "properties": {
-            "field1B": {
-              "type": "object",
-              "properties": {
-                "field1C": {
-                  "type": "string",
-                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
-                  "description": "field1C description"
-                }
-              },
-              "required": [
-                "field1C"
-              ],
-              "description": "field1B description"
-            }
-          },
-          "required": [
-            "field1B"
-          ],
-          "description": "field1A description"
-        }
-      },
-      "required": [
-        "field1A"
-      ],
+      "$ref": "#/$defs/Object1NonNullableInput",
       "description": "Object description"
     },
     "short": {
@@ -140,12 +118,6 @@
     "string": {
       "type": "string",
       "description": "String description"
-    },
-    "timeSpan": {
-      "type": "string",
-      "format": "duration",
-      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
-      "description": "TimeSpan description"
     },
     "unknown": {
       "type": "string",
@@ -200,6 +172,7 @@
     "date",
     "dateTime",
     "decimal",
+    "duration",
     "enum",
     "float",
     "id",
@@ -212,7 +185,6 @@
     "object",
     "short",
     "string",
-    "timeSpan",
     "unknown",
     "unsignedByte",
     "unsignedInt",
@@ -221,5 +193,44 @@
     "uri",
     "url",
     "uuid"
-  ]
+  ],
+  "$defs": {
+    "Object1NonNullableInput": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "$ref": "#/$defs/Object2NonNullableInput",
+          "description": "field1A description"
+        }
+      },
+      "required": [
+        "field1A"
+      ]
+    },
+    "Object2NonNullableInput": {
+      "type": "object",
+      "properties": {
+        "field1B": {
+          "$ref": "#/$defs/Object3NonNullableInput",
+          "description": "field1B description"
+        }
+      },
+      "required": [
+        "field1B"
+      ]
+    },
+    "Object3NonNullableInput": {
+      "type": "object",
+      "properties": {
+        "field1C": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+          "description": "field1C description"
+        }
+      },
+      "required": [
+        "field1C"
+      ]
+    }
+  }
 }

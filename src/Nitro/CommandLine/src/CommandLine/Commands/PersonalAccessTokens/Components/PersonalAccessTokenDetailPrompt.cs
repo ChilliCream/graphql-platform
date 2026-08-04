@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 
@@ -6,8 +6,7 @@ internal sealed class PersonalAccessTokenDetailPrompt
 {
     private readonly IPersonalAccessTokenDetailPrompt_PersonalAccessToken _data;
 
-    private PersonalAccessTokenDetailPrompt(
-        IPersonalAccessTokenDetailPrompt_PersonalAccessToken data)
+    private PersonalAccessTokenDetailPrompt(IPersonalAccessTokenDetailPrompt_PersonalAccessToken data)
     {
         _data = data;
     }
@@ -23,8 +22,7 @@ internal sealed class PersonalAccessTokenDetailPrompt
         };
     }
 
-    public static PersonalAccessTokenDetailPrompt From(
-        IPersonalAccessTokenDetailPrompt_PersonalAccessToken data)
+    public static PersonalAccessTokenDetailPrompt From(IPersonalAccessTokenDetailPrompt_PersonalAccessToken data)
         => new(data);
 
     public class PersonalAccessTokenDetailPromptResult

@@ -1,0 +1,3 @@
+query Test @http(method: GET, route: "/test") {
+  test
+}

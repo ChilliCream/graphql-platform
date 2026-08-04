@@ -2,8 +2,11 @@ schema {
   query: Query
 }
 
-interface IPet {
-  name: String
+type Query {
+  sayHello(name: String!): String!
+  greetings(greetings: GreetingsInput!): Greetings!
+  pet: IPet!
+  petOrNull: IPet
 }
 
 type Dog implements IPet {
@@ -15,11 +18,8 @@ type Greetings {
   name: String!
 }
 
-type Query {
-  sayHello(name: String!): String!
-  greetings(greetings: GreetingsInput!): Greetings!
-  pet: IPet!
-  petOrNull: IPet
+interface IPet {
+  name: String
 }
 
 input GreetingsInput {

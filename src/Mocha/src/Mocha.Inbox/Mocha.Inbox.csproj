@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Inbox</AssemblyName>
+    <RootNamespace>Mocha.Inbox</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+</Project>

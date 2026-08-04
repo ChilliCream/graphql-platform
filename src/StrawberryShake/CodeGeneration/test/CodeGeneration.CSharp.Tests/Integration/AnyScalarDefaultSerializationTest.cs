@@ -2,7 +2,6 @@ using HotChocolate;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization;

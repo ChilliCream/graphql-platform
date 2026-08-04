@@ -12,7 +12,7 @@
   "paths": {
     "/users": {
       "get": {
-        "operationId": "getUsersWithName",
+        "operationId": "getUsers",
         "responses": {
           "200": {
             "description": null,
@@ -22,23 +22,20 @@
                   "type": "array",
                   "items": {
                     "required": [
-                      "id",
-                      "name"
+                      "address"
                     ],
                     "type": "object",
                     "properties": {
-                      "id": {
-                        "oneOf": [
-                          {
+                      "address": {
+                        "required": [
+                          "street"
+                        ],
+                        "type": "object",
+                        "properties": {
+                          "street": {
                             "type": "string"
-                          },
-                          {
-                            "type": "integer"
                           }
-                        ]
-                      },
-                      "name": {
-                        "type": "string"
+                        }
                       }
                     }
                   }

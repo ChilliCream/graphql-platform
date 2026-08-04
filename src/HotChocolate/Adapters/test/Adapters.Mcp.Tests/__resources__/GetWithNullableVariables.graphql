@@ -7,6 +7,7 @@ query GetWithNullableVariables(
   "Date description" $date: Date
   "DateTime description" $dateTime: DateTime
   "Decimal description" $decimal: Decimal
+  "Duration description" $duration: Duration
   "Enum description" $enum: TestEnum
   "Float description" $float: Float
   "ID description" $id: ID
@@ -19,7 +20,6 @@ query GetWithNullableVariables(
   "Object description" $object: Object1NullableInput
   "Short description" $short: Short
   "String description" $string: String
-  "TimeSpan description" $timeSpan: TimeSpan
   "Unknown description" $unknown: Unknown
   "UnsignedByte description" $unsignedByte: UnsignedByte
   "UnsignedInt description" $unsignedInt: UnsignedInt
@@ -37,6 +37,7 @@ query GetWithNullableVariables(
     date: $date
     dateTime: $dateTime
     decimal: $decimal
+    duration: $duration
     enum: $enum
     float: $float
     id: $id
@@ -49,7 +50,6 @@ query GetWithNullableVariables(
     object: $object
     short: $short
     string: $string
-    timeSpan: $timeSpan
     unknown: $unknown
     unsignedByte: $unsignedByte
     unsignedInt: $unsignedInt
@@ -66,6 +66,7 @@ query GetWithNullableVariables(
     date
     dateTime
     decimal
+    duration
     enum
     float
     id
@@ -84,7 +85,6 @@ query GetWithNullableVariables(
     }
     short
     string
-    timeSpan
     unknown
     unsignedByte
     unsignedInt

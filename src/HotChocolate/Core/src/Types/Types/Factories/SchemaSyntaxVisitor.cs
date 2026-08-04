@@ -184,6 +184,21 @@ EXIT:
     }
 
     protected override ISyntaxVisitorAction VisitChildren(
+        DirectiveExtensionNode node,
+        SchemaSyntaxVisitorContext context)
+    {
+        var name = node.Name.Value;
+
+        context.DirectiveExtensions = context.DirectiveExtensions.SetItem(
+            name,
+            context.DirectiveExtensions.TryGetValue(name, out var directives)
+                ? [.. directives, .. node.Directives]
+                : node.Directives);
+
+        return base.VisitChildren(node, context);
+    }
+
+    protected override ISyntaxVisitorAction VisitChildren(
         SchemaDefinitionNode node,
         SchemaSyntaxVisitorContext context)
     {

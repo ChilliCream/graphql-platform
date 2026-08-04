@@ -1,0 +1,192 @@
+title: AnotherUsers_SelectsUserAge
+request:
+  document: |
+    query testQuery {
+      anotherUsers {
+        ... on User {
+          age
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "anotherUsers": [
+          {
+            "age": 123
+          },
+          {
+            "age": 123
+          },
+          {
+            "age": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [NodeWithName!]!
+        nodeById(id: ID!): NodeWithName @lookup
+      }
+
+      type User implements NodeWithName @key(fields: "id") {
+        id: ID!
+        name: String!
+        age: Int!
+      }
+
+      interface NodeWithName {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_d55b3c84_2($__fusion_1_id: ID!) {
+              nodeById(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  age
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjE="
+              },
+              {
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjI="
+              },
+              {
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjM="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "age": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "age": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "nodeById": {
+                    "__typename": "User",
+                    "age": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        anotherUsers: [NodeWithName!]!
+        nodeByKey(id: ID!): NodeWithName @lookup @internal
+      }
+
+      type NodeWithName @interfaceObject @key(fields: "id") {
+        id: ID!
+        name: String! @external
+        username(name: String @require(field: "name")): String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_d55b3c84_1 {
+              anotherUsers {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "anotherUsers": [
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjE="
+                    },
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjI="
+                    },
+                    {
+                      "id": "Tm9kZVdpdGhOYW1lOjM="
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          anotherUsers {
+            __typename @fusion__requirement
+            id @fusion__requirement
+            ... on User {
+              age
+            }
+          }
+        }
+      name: testQuery
+      hash: d55b3c8475af57a5d29e27bd9ff3c50a
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_d55b3c84_1 {
+          anotherUsers {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_d55b3c84_2($__fusion_1_id: ID!) {
+          nodeById(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              age
+            }
+          }
+        }
+      source: $.nodeById
+      target: $.anotherUsers
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

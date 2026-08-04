@@ -1,6 +1,9 @@
 using System.Text;
+using ChilliCream.Nitro.Adapters.OpenApi.Extensions;
+using ChilliCream.Nitro.Adapters.OpenApi.Packaging;
+using ChilliCream.Nitro.Adapters.OpenApi.Serialization;
+using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Adapters.OpenApi;
-using HotChocolate.Adapters.OpenApi.Packaging;
 using HotChocolate.Language;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
@@ -8,6 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 internal static class OpenApiCollectionHelpers
 {
     public static async Task<MemoryStream> BuildOpenApiCollectionArchive(
+        IFileSystem fileSystem,
         IEnumerable<string> files,
         CancellationToken cancellationToken)
     {
@@ -23,7 +27,7 @@ internal static class OpenApiCollectionHelpers
             IOpenApiDefinition definition;
             try
             {
-                var fileContent = await File.ReadAllBytesAsync(file, cancellationToken);
+                var fileContent = await fileSystem.ReadAllBytesAsync(file, cancellationToken);
                 var document = Utf8GraphQLParser.Parse(fileContent);
                 definition = OpenApiDefinitionParser.Parse(document);
             }
@@ -36,25 +40,25 @@ internal static class OpenApiCollectionHelpers
             {
                 var endpointKey = new OpenApiEndpointKey(endpoint.HttpMethod, endpoint.Route);
                 var documentBytes = Encoding.UTF8.GetBytes(endpoint.Document.ToString());
-                var settingsDto = endpoint.ToDto();
-                var settings = OpenApiEndpointSettingsSerializer.Format(settingsDto);
+                var settings = OpenApiEndpointSettings.From(endpoint);
+                var settingsJson = OpenApiEndpointSettingsSerializer.Format(settings);
 
                 await collectionArchive.AddOpenApiEndpointAsync(
                     endpointKey,
                     documentBytes,
-                    settings,
+                    settingsJson,
                     cancellationToken);
             }
             else if (definition is OpenApiModelDefinition model)
             {
                 var documentBytes = Encoding.UTF8.GetBytes(model.Document.ToString());
-                var settingsDto = model.ToDto();
-                var settings = OpenApiModelSettingsSerializer.Format(settingsDto);
+                var settings = OpenApiModelSettings.From(model);
+                var settingsJson = OpenApiModelSettingsSerializer.Format(settings);
 
                 await collectionArchive.AddOpenApiModelAsync(
                     model.Name,
                     documentBytes,
-                    settings,
+                    settingsJson,
                     cancellationToken);
             }
             else

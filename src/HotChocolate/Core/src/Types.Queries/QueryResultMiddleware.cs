@@ -24,7 +24,7 @@ internal sealed class QueryResultMiddleware(FieldDelegate next, IReadOnlyList<Cr
                 else
                 {
                     // TODO : this is not good ... it should be clear how errors have to be unwrapped
-                    context.Result = ((object[])fieldResult.Value!)[0];
+                    context.Result = ((object[])fieldResult.Value)[0];
                 }
             }
         }

@@ -194,11 +194,15 @@ public static class HotChocolateDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IProjectionConventionDescriptor> configure,
         string? name = null)
-        => builder.ConfigureSchema(s => s
+    {
+        builder.AddProjectionSelectorCache();
+
+        return builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention>(
                 _ => new ProjectionConvention(configure),
                 name));
+    }
 
     /// <summary>
     /// Adds projection support.
@@ -219,9 +223,13 @@ public static class HotChocolateDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? name = null)
         where TConvention : class, IProjectionConvention
-        => builder.ConfigureSchema(s => s
+    {
+        builder.AddProjectionSelectorCache();
+
+        return builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention, TConvention>(name));
+    }
 
     /// <summary>
     /// Adds data context support.
@@ -235,6 +243,7 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddQueryContext(
         this IRequestExecutorBuilder builder)
     {
+        builder.AddProjectionSelectorCache();
         builder.Services.TryAddParameterExpressionBuilder<QueryContextParameterExpressionBuilder>();
         return builder;
     }

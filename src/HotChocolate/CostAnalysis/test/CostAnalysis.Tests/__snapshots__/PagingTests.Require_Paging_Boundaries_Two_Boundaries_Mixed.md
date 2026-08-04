@@ -3,9 +3,7 @@
 ## Operation
 
 ```graphql
-query(
-  $first: Int
-) {
+query($first: Int) {
   books(first: $first, last: 1) {
     nodes {
       title

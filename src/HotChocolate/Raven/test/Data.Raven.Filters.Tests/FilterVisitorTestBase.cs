@@ -14,9 +14,9 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
     public RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
 
-    public Task InitializeAsync() => Resource.InitializeAsync();
+    public ValueTask InitializeAsync() => Resource.InitializeAsync();
 
-    public Task DisposeAsync() => Resource.DisposeAsync();
+    public ValueTask DisposeAsync() => Resource.DisposeAsync();
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 

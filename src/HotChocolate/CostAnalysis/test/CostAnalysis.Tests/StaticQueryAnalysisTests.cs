@@ -45,17 +45,17 @@ public sealed class StaticQueryAnalysisTests
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await requestExecutor.ExecuteAsync(request);
+        var result = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(Utf8GraphQLParser.Parse(operation), "Query")
             .AddResult(result.ExpectOperationResult(), "Result")
             .Add(schema, "Schema")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Theory]
@@ -130,17 +130,17 @@ public sealed class StaticQueryAnalysisTests
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await requestExecutor.ExecuteAsync(request);
+        var result = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(Utf8GraphQLParser.Parse(operation), "Query")
             .AddResult(result.ExpectOperationResult(), "Result")
             .Add(schema, "Schema")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     public static TheoryData<int, string, string> ListQueryData()
@@ -215,6 +215,21 @@ public sealed class StaticQueryAnalysisTests
                         slicingArguments: ["limit"],
                         assumedSize: 10,
                         requireOneSlicingArgument: false
+                    )
+                """,
+                "examples { field1, field2 }"
+            },
+            // @listSize directive with slicing arguments and slicing argument default value.
+            // (no limit in query, with assumedSize, slicingArgumentDefaultValue: 42 and requireOneSlicingArgument: false).
+            {
+                9,
+                """
+                examples(limit: Int): [Example!]!
+                    @listSize(
+                        slicingArguments: ["limit"],
+                        assumedSize: 10,
+                        requireOneSlicingArgument: false,
+                        slicingArgumentDefaultValue: 42
                     )
                 """,
                 "examples { field1, field2 }"

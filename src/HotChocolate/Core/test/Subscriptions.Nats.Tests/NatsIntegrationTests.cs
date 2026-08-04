@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Extensions.Microsoft.DependencyInjection;
 using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Nats;
 

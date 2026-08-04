@@ -1,0 +1,11 @@
+schema {
+  query: Query
+}
+
+type Query {
+  duration: Duration!
+}
+
+"The `Duration` scalar type represents a duration of time."
+scalar Duration
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/duration.html")

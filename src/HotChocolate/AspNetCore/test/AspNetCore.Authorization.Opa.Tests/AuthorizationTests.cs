@@ -28,7 +28,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         connection.RemotePort = 7777;
     }
 
-    public async Task InitializeAsync() => _opaHandle = await OpaProcess.StartServerAsync();
+    public async ValueTask InitializeAsync() => _opaHandle = await OpaProcess.StartServerAsync();
 
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
@@ -73,12 +73,15 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     + "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync(
+            "Policies/has_age_defined.rego",
+            TestContext.Current.CancellationToken);
         using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
-            new StringContent(hasAgeDefinedPolicy));
+            new StringContent(hasAgeDefinedPolicy),
+            TestContext.Current.CancellationToken);
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
@@ -110,12 +113,15 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     + "jXBglnxac";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync(
+            "Policies/has_age_defined.rego",
+            TestContext.Current.CancellationToken);
         using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
-            new StringContent(hasAgeDefinedPolicy));
+            new StringContent(hasAgeDefinedPolicy),
+            TestContext.Current.CancellationToken);
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
@@ -154,12 +160,15 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     + "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync(
+            "Policies/has_age_defined.rego",
+            TestContext.Current.CancellationToken);
         using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
-            new StringContent(hasAgeDefinedPolicy));
+            new StringContent(hasAgeDefinedPolicy),
+            TestContext.Current.CancellationToken);
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
@@ -194,7 +203,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             });
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_opaHandle is not null)
         {

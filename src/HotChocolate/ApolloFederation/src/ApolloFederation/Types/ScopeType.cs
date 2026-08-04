@@ -7,7 +7,7 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
-/// The <code>Scope</code> scalar representing a JWT scope. Serializes as a string.
+/// The <c>Scope</c> scalar representing a JWT scope. Serializes as a string.
 /// </summary>
 public sealed class ScopeType : ScalarType<Scope, StringValueNode>
 {

@@ -1,0 +1,4 @@
+root = true
+
+[*.cs]
+generated_code = true

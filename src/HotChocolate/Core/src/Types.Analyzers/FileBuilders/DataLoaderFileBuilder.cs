@@ -4,12 +4,24 @@ using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using static HotChocolate.Types.Analyzers.Helpers.GeneratorUtils;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class DataLoaderFileBuilder : IDisposable
 {
+    private static readonly SymbolDisplayFormat s_crefTypeFormat =
+        new(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
+                | SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+                | SymbolDisplayMiscellaneousOptions.ExpandNullable
+                | SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
+
     private StringBuilder _sb;
     private CodeWriter _writer;
     private bool _disposed;
@@ -79,12 +91,14 @@ public sealed class DataLoaderFileBuilder : IDisposable
     public void WriteBeginDataLoaderClass(
         string name,
         string interfaceName,
+        IMethodSymbol method,
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
         ITypeSymbol value,
         bool withInterface)
     {
+        WriteDataLoaderDocumentation(method);
         _writer.WriteIndentedLine(
             "{0} sealed partial class {1}",
             isPublic
@@ -113,15 +127,75 @@ public sealed class DataLoaderFileBuilder : IDisposable
         _writer.WriteIndentedLine("}");
     }
 
+    private void WriteDataLoaderDocumentation(IMethodSymbol method)
+    {
+        _writer.WriteIndentedLine("/// <summary>");
+        _writer.WriteIndentedLine(
+            "/// A DataLoader generated from <see cref=\"{0}\"/>.",
+            CreateCref(method));
+        _writer.WriteIndentedLine("/// </summary>");
+    }
+
+    private static string CreateCref(IMethodSymbol method)
+    {
+        if (method.Parameters.Any(p => p.Type is IFunctionPointerTypeSymbol))
+        {
+            return EscapeXmlAttribute(DocumentationCommentId.CreateDeclarationId(method)!);
+        }
+
+        var builder = new StringBuilder();
+        builder.Append(method.ContainingType.ToDisplayString(s_crefTypeFormat));
+        builder.Append('.');
+        builder.Append(EscapeIdentifier(method.Name));
+        builder.Append('(');
+
+        for (var i = 0; i < method.Parameters.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(method.Parameters[i].RefKind switch
+            {
+                RefKind.Ref => "ref ",
+                RefKind.Out => "out ",
+                RefKind.In => "in ",
+                RefKind.RefReadOnlyParameter => "ref readonly ",
+                _ => string.Empty
+            });
+            builder.Append(method.Parameters[i].Type.ToDisplayString(s_crefTypeFormat));
+        }
+
+        builder.Append(')');
+        return EscapeXmlAttribute(builder.ToString());
+    }
+
+    private static string EscapeIdentifier(string identifier)
+        => SyntaxFacts.GetKeywordKind(identifier) is not SyntaxKind.None
+            || SyntaxFacts.GetContextualKeywordKind(identifier) is not SyntaxKind.None
+                ? "@" + identifier
+                : identifier;
+
+    private static string EscapeXmlAttribute(string value)
+        => value
+            .Replace("&", "&amp;")
+            .Replace("\"", "&quot;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;");
+
     public void WriteDataLoaderConstructor(
         string name,
         DataLoaderKind kind,
         ITypeSymbol keyType,
         ITypeSymbol valueType,
-        ImmutableArray<CacheLookup> lookupMethods)
+        ImmutableArray<CacheLookup> lookupMethods,
+        int? maxBatchSize)
     {
         _writer.WriteIndentedLine("private readonly global::System.IServiceProvider _services;");
         _writer.WriteLine();
+
+        var optionsArgument = maxBatchSize is null ? "options" : "CreateOptions(options)";
 
         if (kind is DataLoaderKind.Batch or DataLoaderKind.Group)
         {
@@ -132,7 +206,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.IBatchScheduler batchScheduler,");
                 _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
-                _writer.WriteIndentedLine(": base(batchScheduler, options)");
+                _writer.WriteIndentedLine(": base(batchScheduler, {0})", optionsArgument);
             }
         }
         else
@@ -143,7 +217,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
-                _writer.WriteIndentedLine(": base(AutoBatchScheduler.Default, options)");
+                _writer.WriteIndentedLine(": base(AutoBatchScheduler.Default, {0})", optionsArgument);
             }
         }
 
@@ -197,6 +271,24 @@ public sealed class DataLoaderFileBuilder : IDisposable
         }
 
         _writer.WriteIndentedLine("}");
+
+        if (maxBatchSize is not null)
+        {
+            _writer.WriteLine();
+            _writer.WriteIndentedLine("private static global::GreenDonut.DataLoaderOptions CreateOptions(");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
+            }
+            _writer.WriteIndentedLine("{");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("var local = options.Copy();");
+                _writer.WriteIndentedLine("local.MaxBatchSize = {0};", maxBatchSize.Value);
+                _writer.WriteIndentedLine("return local;");
+            }
+            _writer.WriteIndentedLine("}");
+        }
     }
 
     public void WriteDataLoaderLoadMethod(

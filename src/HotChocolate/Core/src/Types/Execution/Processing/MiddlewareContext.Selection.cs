@@ -8,7 +8,9 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext
 {
     private readonly PureResolverContext _childContext;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private Selection _selection = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     public ObjectType ObjectType => _selection.DeclaringType;
 

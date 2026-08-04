@@ -35,6 +35,11 @@ public class FilterFieldDescriptor
         Configuration.Description = convention.GetFieldDescription(member);
         Configuration.Type = convention.GetFieldType(member);
         Configuration.Scope = scope;
+
+        if (context.Naming.IsDeprecated(member, out var reason))
+        {
+            Deprecated(reason);
+        }
     }
 
     protected FilterFieldDescriptor(

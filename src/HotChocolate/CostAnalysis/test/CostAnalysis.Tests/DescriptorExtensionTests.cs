@@ -143,7 +143,8 @@ public sealed class DescriptorExtensionTests
                     assumedSize: 10,
                     slicingArguments: ["first", "last"],
                     sizedFields: ["edges", "nodes"],
-                    requireOneSlicingArgument: false))
+                    requireOneSlicingArgument: false,
+                    slicingArgumentDefaultValue: 42))
             .AddDirectiveType<ListSizeDirectiveType>()
             .Use(next => next)
             .Create();
@@ -154,6 +155,7 @@ public sealed class DescriptorExtensionTests
 
         // assert
         Assert.Equal(10, listSizeDirective.AssumedSize);
+        Assert.Equal(42, listSizeDirective.SlicingArgumentDefaultValue);
         Assert.Equal(["first", "last"], listSizeDirective.SlicingArguments, StringComparer.Ordinal);
         Assert.Equal(["edges", "nodes"], listSizeDirective.SizedFields, StringComparer.Ordinal);
         Assert.False(listSizeDirective.RequireOneSlicingArgument);

@@ -44,7 +44,8 @@ public class GeoJsonMultiPolygonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { type coordinates bbox crs }}");
+            "{ test { type coordinates bbox crs }}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -68,7 +69,8 @@ public class GeoJsonMultiPolygonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on MultiPolygon { type coordinates bbox crs }}}");
+            "{ test { ... on MultiPolygon { type coordinates bbox crs }}}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

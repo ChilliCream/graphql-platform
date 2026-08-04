@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Execution.Options;
@@ -67,4 +68,17 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
             field = value;
         }
     } = new();
+
+    /// <summary>
+    /// Gets or sets the default error handling mode for null propagation.
+    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
+    /// </summary>
+    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
+
+    /// <summary>
+    /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overridden
+    /// on a per-request basis.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool AllowErrorHandlingModeOverride { get; set; }
 }

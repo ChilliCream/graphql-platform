@@ -5,5 +5,5 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 /// </summary>
 public sealed class ScalarTypeConfiguration : TypeConfiguration
 {
-    public Uri? SpecifiedBy { get; set; }
+    public string? SpecifiedBy { get; set; }
 }

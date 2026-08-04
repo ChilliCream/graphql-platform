@@ -34,7 +34,8 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
             .With(query, x => x.AddAscending(y => y.Id))
             .ToBatchPageAsync(
                 keySelector: x => x.Parent!.Id,
-                arguments: new PagingArguments(10));
+                arguments: new PagingArguments(10),
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(result);
@@ -64,7 +65,8 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
             .With(query, x => x.AddAscending(y => y.Id))
             .ToBatchPageAsync(
                 keySelector: x => x.ParentId!.Value,
-                arguments: new PagingArguments(10));
+                arguments: new PagingArguments(10),
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(result);
@@ -94,15 +96,17 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
         // act
         var firstPage = await context.Pets
             .With(query, sort => sort.AddDescending(e => e.Name))
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         var secondPage = await context.Pets
             .With(query, sort => sort.AddDescending(e => e.Name))
-            .ToPageAsync(arguments with { After = firstPage.CreateCursor(firstPage.Last!) });
+            .ToPageAsync(
+                arguments with { After = firstPage.CreateEndCursor() },
+                Xunit.TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(secondPage);
-        Assert.Equal(2, secondPage.Items.Length);
+        Assert.Equal(2, secondPage.Count);
     }
 
     [Fact]
@@ -127,7 +131,7 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
         // act
         var firstMap = await context.Pets
             .With(query, sort => sort.AddDescending(e => e.Name))
-            .ToBatchPageAsync(e => e.OwnerId, arguments);
+            .ToBatchPageAsync(e => e.OwnerId, arguments, Xunit.TestContext.Current.CancellationToken);
 
         var firstPage = Assert.Single(firstMap).Value;
 
@@ -135,13 +139,14 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
             .With(query, sort => sort.AddDescending(e => e.Name))
             .ToBatchPageAsync(
                 e => e.OwnerId,
-                arguments with { After = firstPage.CreateCursor(firstPage.Last!) });
+                arguments with { After = firstPage.CreateEndCursor() },
+                Xunit.TestContext.Current.CancellationToken);
 
         var secondPage = Assert.Single(secondMap).Value;
 
         // assert
         Assert.NotNull(secondPage);
-        Assert.Equal(2, secondPage.Items.Length);
+        Assert.Equal(2, secondPage.Count);
     }
 
     private static async Task SeedFileSystemAsync(string connectionString)

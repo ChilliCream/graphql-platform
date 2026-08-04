@@ -55,7 +55,7 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -111,7 +111,7 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -168,7 +168,7 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -225,7 +225,7 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -280,7 +280,7 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 }

@@ -104,6 +104,12 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("ThrowHelper_InvalidOnErrorValue", resourceCulture);
             }
         }
+
+        internal static string ThrowHelper_UnknownOnErrorValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnknownOnErrorValue", resourceCulture);
+            }
+        }
         
         internal static string Utf8GraphQLRequestParser_Parse_EmptyJSONDocument {
             get {

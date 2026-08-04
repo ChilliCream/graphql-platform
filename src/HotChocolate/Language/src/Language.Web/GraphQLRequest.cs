@@ -34,6 +34,10 @@ public sealed record GraphQLRequest : IDisposable
     /// <param name="extensions">
     /// The GraphQL request extensions map.
     /// </param>
+    /// <param name="hasDocumentBody">
+    /// Indicates whether the request contained a document body that was skipped
+    /// because the server is in strict trusted documents mode.
+    /// </param>
     /// <exception cref="ArgumentNullException">
     /// Thrown when <paramref name="document"/> is <c>null</c> and <paramref name="documentId"/> is <c>null</c>.
     /// </exception>
@@ -44,9 +48,10 @@ public sealed record GraphQLRequest : IDisposable
         string? operationName = null,
         ErrorHandlingMode? errorHandlingMode = null,
         JsonDocument? variables = null,
-        JsonDocument? extensions = null)
+        JsonDocument? extensions = null,
+        bool hasDocumentBody = false)
     {
-        if (document is null && documentId?.IsEmpty is not false)
+        if (document is null && documentId?.IsEmpty is not false && !hasDocumentBody)
         {
             throw new ArgumentNullException(nameof(document));
         }
@@ -58,6 +63,7 @@ public sealed record GraphQLRequest : IDisposable
         ErrorHandlingMode = errorHandlingMode;
         Variables = variables;
         Extensions = extensions;
+        HasDocumentBody = hasDocumentBody || document is not null;
     }
 
     /// <summary>
@@ -97,6 +103,13 @@ public sealed record GraphQLRequest : IDisposable
     /// Gets the GraphQL request extensions map.
     /// </summary>
     public JsonDocument? Extensions { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the request contained a document body
+    /// that was skipped during parsing because the server is in strict
+    /// trusted documents mode.
+    /// </summary>
+    public bool HasDocumentBody { get; init; }
 
     /// <summary>
     /// Gets the memory owner for the variables JSON document buffer.

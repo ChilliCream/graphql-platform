@@ -9,6 +9,7 @@
     <AssemblyName>HotChocolate.Types.Json</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>This package provides extensions to deal with Json data.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

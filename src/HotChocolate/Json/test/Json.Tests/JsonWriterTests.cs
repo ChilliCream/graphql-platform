@@ -880,4 +880,81 @@ public class JsonWriterTests
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
         Assert.Equal("[\"line1\\nline2\"]", result);
     }
+
+    [Fact]
+    public void WriteStringValue_Should_FrameBareContent_When_SkipEscapingAndNoQuotes()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - bare pre-escaped content without surrounding quotes (like Utf8JsonReader.ValueSpan)
+        writer.WriteStartArray();
+        writer.WriteStringValue("already\\nescaped"u8, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert - quotes are added and the backslash-n is preserved, not double-escaped
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("[\"already\\nescaped\"]", result);
+    }
+
+    [Fact]
+    public void WriteStringValue_Should_NotDoubleFrame_When_SkipEscapingAndAlreadyQuoted()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - already-quoted literal must not gain a second pair of quotes
+        writer.WriteStartArray();
+        writer.WriteStringValue("\"already\\nescaped\""u8, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("[\"already\\nescaped\"]", result);
+    }
+
+    [Fact]
+    public void WriteStringValue_Should_FrameToEmptyString_When_SkipEscapingAndEmpty()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - empty span frames to an empty JSON string
+        writer.WriteStartArray();
+        writer.WriteStringValue(ReadOnlySpan<byte>.Empty, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("[\"\"]", result);
+    }
+
+    [Fact]
+    public void WriteStringValue_Should_FrameBareContent_When_SkipEscapingAndIndented()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - bare pre-escaped content under an indented writer must be quoted correctly
+        writer.WriteStartArray();
+        writer.WriteStringValue("already\\nescaped"u8, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        const string expected = """
+            [
+              "already\nescaped"
+            ]
+            """;
+        Assert.Equal(expected, result);
+    }
 }

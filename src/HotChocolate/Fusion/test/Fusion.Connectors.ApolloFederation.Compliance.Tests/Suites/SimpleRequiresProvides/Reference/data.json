@@ -1,0 +1,43 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "username": "u-username-1",
+      "name": "u-name-1"
+    },
+    {
+      "id": "u2",
+      "username": "u-username-2",
+      "name": "u-name-2"
+    }
+  ],
+  "products": [
+    {
+      "upc": "p1",
+      "name": "p-name-1",
+      "price": 11,
+      "weight": 1
+    },
+    {
+      "upc": "p2",
+      "name": "p-name-2",
+      "price": 22,
+      "weight": 2
+    }
+  ],
+  "inStock": ["p1"],
+  "reviews": [
+    {
+      "id": "r1",
+      "body": "r-body-1",
+      "authorId": "u1",
+      "productUpc": "p1"
+    },
+    {
+      "id": "r2",
+      "body": "r-body-2",
+      "authorId": "u1",
+      "productUpc": "p2"
+    }
+  ]
+}

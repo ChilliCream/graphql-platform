@@ -6,6 +6,6 @@ fragment UserFields on User @custom(value: "test") {
 
 {
   user {
-    ... UserFields @defer
+    ...UserFields @defer
   }
 }

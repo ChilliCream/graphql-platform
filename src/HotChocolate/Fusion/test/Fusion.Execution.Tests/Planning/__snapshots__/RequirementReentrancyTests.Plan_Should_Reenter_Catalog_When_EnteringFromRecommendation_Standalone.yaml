@@ -1,0 +1,43 @@
+operation:
+  - document: |
+      query getProducts {
+        recommendations {
+          product {
+            category
+            id @fusion__requirement
+          }
+        }
+      }
+    name: getProducts
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: RECOMMENDATION
+    operation: |
+      query getProducts_123456789101112_1 {
+        recommendations {
+          product {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: CATALOG
+    operation: |
+      query getProducts_123456789101112_2($__fusion_1_id: ID!) {
+        productById(id: $__fusion_1_id) {
+          category
+        }
+      }
+    source: $.productById
+    target: $.recommendations.product
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

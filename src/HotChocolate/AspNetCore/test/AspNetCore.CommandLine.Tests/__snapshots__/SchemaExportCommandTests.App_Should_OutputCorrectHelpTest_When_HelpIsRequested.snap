@@ -7,5 +7,6 @@ Usage:
 Options:
   --output <output>            The path to the file where the schema should be exported to. If no output path is specified the schema will be printed to the console.
   --schema-name <schema-name>  The name of the schema that should be exported. If no schema name is specified the default schema will be exported.
+  --semantic-non-null          Rewrite the exported schema to strip non-null wrappers from output fields and apply the @semanticNonNull directive instead.
   -?, -h, --help               Show help and usage information
 

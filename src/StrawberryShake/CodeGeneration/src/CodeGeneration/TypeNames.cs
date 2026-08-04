@@ -301,8 +301,8 @@ public static class TypeNames
     public const string ByteArraySerializer =
         StrawberryShakeNamespace + "Serialization.ByteArraySerializer";
 
-    public const string TimeSpanSerializer =
-        StrawberryShakeNamespace + "Serialization.TimeSpanSerializer";
+    public const string DurationSerializer =
+        StrawberryShakeNamespace + "Serialization.DurationSerializer";
 
     public const string UnsignedByteSerializer =
         StrawberryShakeNamespace + "Serialization.UnsignedByteSerializer";

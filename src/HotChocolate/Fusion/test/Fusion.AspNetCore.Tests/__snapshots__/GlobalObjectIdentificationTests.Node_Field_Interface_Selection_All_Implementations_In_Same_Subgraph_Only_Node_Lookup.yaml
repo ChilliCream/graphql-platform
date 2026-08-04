@@ -1,0 +1,135 @@
+title: Node_Field_Interface_Selection_All_Implementations_In_Same_Subgraph_Only_Node_Lookup
+request:
+  document: |
+    {
+      node(id: "T3JkZXIxOjE=") {
+        ... on IOrder {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "name": "Order1: T3JkZXIxOjE="
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+
+      type Order1 implements Node & IOrder {
+        id: ID!
+        name: String!
+      }
+
+      type Order2 implements Node & IOrder {
+        id: ID!
+        name: String!
+      }
+
+      interface IOrder {
+        id: ID!
+        name: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a088b140_4 {
+              node(id: "T3JkZXIxOjE=") {
+                __typename
+                ... on Order1 {
+                  __typename
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Order1",
+                    "name": "Order1: T3JkZXIxOjE="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "T3JkZXIxOjE=") {
+            __typename @fusion__requirement
+            ... on IOrder {
+              name
+            }
+          }
+        }
+      hash: a088b140315a0c889324bbc829bbc277
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "T3JkZXIxOjE="
+      responseName: node
+      branches:
+        - Order1: 4
+        - Order2: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_a088b140_2 {
+          node(id: "T3JkZXIxOjE=") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_a088b140_3 {
+          node(id: "T3JkZXIxOjE=") {
+            __typename
+            ... on Order2 {
+              __typename
+              name
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query Op_a088b140_4 {
+          node(id: "T3JkZXIxOjE=") {
+            __typename
+            ... on Order1 {
+              __typename
+              name
+            }
+          }
+        }
+      dependencies:
+        - id: 1

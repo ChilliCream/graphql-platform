@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Composite;
 /// an entity across different source schemas.
 /// </para>
 /// <para>
-/// directive @key(fields: FieldSelectionSet!) on OBJECT | INTERFACE
+/// directive @key(fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
 /// </para>
 /// <para>
 /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--key"/>
@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Composite;
     DirectiveNames.Key.Name,
     DirectiveLocation.Object
     | DirectiveLocation.Interface,
-    IsRepeatable = false)]
+    IsRepeatable = true)]
 [GraphQLDescription(
     """
     The @key directive is used to designate an entity's unique key,
@@ -58,8 +58,7 @@ public sealed class EntityKey
     public EntityKey(string fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
-        fields = $"{{ {fields.Trim('{', '}')} }}";
-        Fields = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
+        Fields = FieldSelectionSetType.ParseSelectionSet(fields);
     }
 
     /// <summary>

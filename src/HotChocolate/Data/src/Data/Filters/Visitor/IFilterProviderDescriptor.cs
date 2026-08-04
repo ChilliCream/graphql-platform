@@ -18,7 +18,9 @@ public interface IFilterProviderDescriptor<out TContext> : IFluent
     /// Adds an instance of a  <see cref="IFilterFieldHandler{TContext,T}"/> to the provider
     /// This instance is directly used by the visitor for executing filters
     /// </summary>
-    /// <param name="fieldHandler"></param>
+    /// <param name="fieldHandler">
+    /// The field handler instance.
+    /// </param>
     /// <typeparam name="TFieldHandler">The type of the field handler</typeparam>
     /// <returns>The descriptor that this methods was called on</returns>
     IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(

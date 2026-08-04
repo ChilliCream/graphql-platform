@@ -1,19 +1,17 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class FusionArchiveFileOption : Option<string>
+internal class FusionArchiveFileOption : Option<string>
 {
-    public FusionArchiveFileOption() : this(true)
-    {
-    }
+    public const string OptionName = "--archive";
 
-    public FusionArchiveFileOption(bool isRequired) : base("--archive")
+    public FusionArchiveFileOption() : base(OptionName)
     {
-        Description = "The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version)";
-        IsRequired = isRequired;
-        AddAlias("-a");
+        Description = "The path to a Fusion archive file (the '--configuration' alias is deprecated)";
+        Required = true;
+        Aliases.Add("-a");
         // This is only here to not break existing scripts
-        AddAlias("--configuration");
-        this.DefaultFromEnvironmentValue("FUSION_CONFIG_FILE");
+        Aliases.Add("--configuration");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.FusionConfigFile);
         this.LegalFilePathsOnly();
     }
 }

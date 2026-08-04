@@ -79,7 +79,8 @@ public class RequestExecutorBuilderExtensionsValidationTests
                 OperationRequestBuilder
                     .New()
                     .SetDocument("{ __schema { description } }")
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -95,7 +96,8 @@ public class RequestExecutorBuilderExtensionsValidationTests
                     .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Bar")
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -110,7 +112,8 @@ public class RequestExecutorBuilderExtensionsValidationTests
                 OperationRequestBuilder
                     .New()
                     .SetDocument("{ __schema { description } }")
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -125,7 +128,8 @@ public class RequestExecutorBuilderExtensionsValidationTests
                 OperationRequestBuilder
                     .New()
                     .SetDocument("{ __schema { description } }")
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -137,7 +141,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
                 .AddGraphQLServer()
                 .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
                 .DisableIntrospection()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var results = new List<string>();
 
@@ -147,7 +151,8 @@ public class RequestExecutorBuilderExtensionsValidationTests
                     .New()
                     .SetDocument("{ __schema { description } }")
                     .AllowIntrospection()
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         results.Add(result.ToJson());
 
         result =
@@ -155,7 +160,8 @@ public class RequestExecutorBuilderExtensionsValidationTests
                 OperationRequestBuilder
                     .New()
                     .SetDocument("{ __schema { description } }")
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         results.Add(result.ToJson());
 
         results.MatchSnapshot();

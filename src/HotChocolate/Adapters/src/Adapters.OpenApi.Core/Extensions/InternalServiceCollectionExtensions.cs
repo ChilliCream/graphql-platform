@@ -1,8 +1,6 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using HotChocolate.AspNetCore;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -14,24 +12,10 @@ namespace HotChocolate.Adapters.OpenApi;
 #endif
 internal static class InternalServiceCollectionExtensions
 {
-    public static IServiceCollection AddOpenApiServices(
-        this IServiceCollection applicationServices,
-        string schemaName)
+    public static IServiceCollection TryAddOpenApiServices(this IServiceCollection applicationServices)
     {
-        applicationServices.TryAddKeyedSingleton(
-            schemaName,
-            static (sp, name) => new OpenApiDefinitionRegistry(
-                sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
-                sp.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(name),
-                sp.GetRequiredKeyedService<IDynamicEndpointDataSource>(name)));
-
-        applicationServices.TryAddKeyedSingleton(
-            schemaName,
-            static (sp, name) => new HttpRequestExecutorProxy(
-                sp.GetRequiredService<IRequestExecutorProvider>(),
-                sp.GetRequiredService<IRequestExecutorEvents>(),
-                (string)name));
-
+        applicationServices.AddOptions();
+        applicationServices.TryAddSingleton<OpenApiManager>();
         return applicationServices;
     }
 

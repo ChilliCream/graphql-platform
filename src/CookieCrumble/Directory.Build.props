@@ -1,0 +1,9 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <Product>Cookie Crumble</Product>
+    <PackageIcon>cookiecrumble-icon.png</PackageIcon>
+    <PackageTags>Snapshot Testing ChilliCream</PackageTags>
+  </PropertyGroup>
+</Project>

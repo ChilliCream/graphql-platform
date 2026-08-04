@@ -18,7 +18,7 @@ public class FieldCollectorTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -56,7 +56,7 @@ public class FieldCollectorTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var character = schema.Types.GetType<InterfaceType>("Character");
 

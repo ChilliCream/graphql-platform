@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -285,6 +286,27 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     /// <inheritdoc />
+    public BatchFieldDelegate CompileBatchResolve(
+        MethodInfo method,
+        Type? sourceType = null,
+        Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+
+        argumentNames ??= _emptyLookup;
+        parameterExpressionBuilders ??= s_empty;
+
+        return BatchResolverCompiler.Compile(
+            method,
+            sourceType,
+            resolverType,
+            argumentNames,
+            p => GetParameterExpressionBuilder(p, parameterExpressionBuilders));
+    }
+
+    /// <inheritdoc />
     public IEnumerable<ParameterInfo> GetArgumentParameters(
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
@@ -437,6 +459,16 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
             if (!builder.IsPure)
             {
+                // We allow scoped state getters to be considered pure because
+                // PureResolverContext can read ScopedContextData (it delegates
+                // to its parent). Setters and local state remain not pure.
+                if (builder is ScopedStateParameterExpressionBuilder
+                    and not LocalStateParameterExpressionBuilder
+                    && !ParameterExpressionBuilderHelpers.IsStateSetter(parameter.ParameterType))
+                {
+                    continue;
+                }
+
                 return false;
             }
         }
@@ -473,6 +505,17 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     // Create an expression to get the resolver class instance.
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Parent<T> and Resolver<T> methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     private static Expression CreateResolverOwner(
         ParameterExpression context,
         Type source,

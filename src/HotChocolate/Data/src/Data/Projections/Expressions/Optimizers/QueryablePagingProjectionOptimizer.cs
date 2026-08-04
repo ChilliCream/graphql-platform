@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -65,9 +66,11 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         return new Selection(
             context.NewSelectionId(),
             CombinedEdgeField,
+            SelectionPath.Root,
             nodesField,
             [new FieldSelectionNode(combinedField, 0)],
             [],
+            isProjectionRequirement: false,
             isInternal: true,
             arguments: selection.Arguments,
             resolverPipeline: nodesPipeline);
@@ -168,5 +171,5 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 ? new SelectionSetNode(((SelectionSetNode)n).Selections)
                 : n);
 
-    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

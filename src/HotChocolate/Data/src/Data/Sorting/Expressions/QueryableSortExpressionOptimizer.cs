@@ -186,7 +186,7 @@ internal static class QueryableSortExpressionOptimizer
         // against the constructor parameters.
         if (source is NewExpression { Members: not null } newExpression)
         {
-            for (var i = 0; i < newExpression.Members!.Count; i++)
+            for (var i = 0; i < newExpression.Members.Count; i++)
             {
                 if (newExpression.Members[i].Name.Equals(member.Name, StringComparison.Ordinal))
                 {

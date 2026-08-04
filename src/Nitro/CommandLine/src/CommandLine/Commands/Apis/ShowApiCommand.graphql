@@ -1,5 +1,0 @@
-query ShowApiCommandQuery($workspaceId: ID!) {
-  node(id: $workspaceId) {
-    ...ApiDetailPrompt_Api
-  }
-}

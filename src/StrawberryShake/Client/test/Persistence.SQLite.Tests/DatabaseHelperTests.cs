@@ -9,7 +9,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -24,7 +24,8 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Type = "def",
                 Value = "ghi"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         Assert.True(await helper.SaveOperationAsync(
             connection,
@@ -34,7 +35,8 @@ public class DatabaseHelperTests
                 Variables = "def",
                 ResultType = "ghi",
                 DataInfo = "jkl"
-            }));
+            },
+            TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -42,7 +44,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -56,11 +58,12 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Type = "def",
                 Value = "ghi"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection, TestContext.Current.CancellationToken))
         {
             entities.Add(entityDto);
         }
@@ -80,7 +83,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -93,7 +96,8 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Type = "def",
                 Value = "ghi"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // act
         Assert.True(await helper.SaveEntityAsync(
@@ -103,11 +107,12 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Type = "def1",
                 Value = "ghi1"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection, TestContext.Current.CancellationToken))
         {
             entities.Add(entityDto);
         }
@@ -127,7 +132,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -140,14 +145,15 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Type = "def",
                 Value = "ghi"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // act
-        Assert.True(await helper.DeleteEntityAsync(connection, "abc"));
+        Assert.True(await helper.DeleteEntityAsync(connection, "abc", TestContext.Current.CancellationToken));
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection, TestContext.Current.CancellationToken))
         {
             entities.Add(entityDto);
         }
@@ -160,7 +166,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -175,11 +181,14 @@ public class DatabaseHelperTests
                 Variables = "def",
                 ResultType = "ghi",
                 DataInfo = "jkl"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(
+            connection,
+            TestContext.Current.CancellationToken))
         {
             collections.Add(operationDto);
         }
@@ -200,7 +209,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -214,7 +223,8 @@ public class DatabaseHelperTests
                 Variables = "def",
                 ResultType = "ghi",
                 DataInfo = "jkl"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // act
         Assert.True(await helper.SaveOperationAsync(
@@ -225,11 +235,14 @@ public class DatabaseHelperTests
                 Variables = "def1",
                 ResultType = "ghi1",
                 DataInfo = "jkl1"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(
+            connection,
+            TestContext.Current.CancellationToken))
         {
             collections.Add(operationDto);
         }
@@ -250,7 +263,7 @@ public class DatabaseHelperTests
     {
         // arrange
         await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var helper = new DatabaseHelper();
 
@@ -264,14 +277,17 @@ public class DatabaseHelperTests
                 Variables = "def",
                 ResultType = "ghi",
                 DataInfo = "jkl"
-            }));
+            },
+            TestContext.Current.CancellationToken));
 
         // act
-        Assert.True(await helper.DeleteOperationAsync(connection, "abc"));
+        Assert.True(await helper.DeleteOperationAsync(connection, "abc", TestContext.Current.CancellationToken));
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(
+            connection,
+            TestContext.Current.CancellationToken))
         {
             collections.Add(operationDto);
         }

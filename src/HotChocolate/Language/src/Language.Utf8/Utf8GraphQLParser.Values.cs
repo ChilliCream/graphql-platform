@@ -29,32 +29,37 @@ public ref partial struct Utf8GraphQLParser
     /// </param>
     private IValueNode ParseValueLiteral(bool isConstant)
     {
+        IncreaseDepth();
+
+        IValueNode node;
+
         if (_reader.Kind == TokenKind.LeftBracket)
         {
-            return ParseList(isConstant);
+            node = ParseList(isConstant);
         }
-
-        if (_reader.Kind == TokenKind.LeftBrace)
+        else if (_reader.Kind == TokenKind.LeftBrace)
         {
-            return ParseObject(isConstant);
+            node = ParseObject(isConstant);
         }
-
-        if (TokenHelper.IsScalarValue(ref _reader))
+        else if (TokenHelper.IsScalarValue(ref _reader))
         {
-            return ParseScalarValue();
+            node = ParseScalarValue();
         }
-
-        if (_reader.Kind == TokenKind.Name)
+        else if (_reader.Kind == TokenKind.Name)
         {
-            return ParseEnumValue();
+            node = ParseEnumValue();
         }
-
-        if (_reader.Kind == TokenKind.Dollar && !isConstant)
+        else if (_reader.Kind == TokenKind.Dollar && !isConstant)
         {
-            return ParseVariable();
+            node = ParseVariable();
+        }
+        else
+        {
+            throw Unexpected(_reader.Kind);
         }
 
-        throw Unexpected(_reader.Kind);
+        DecreaseDepth();
+        return node;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

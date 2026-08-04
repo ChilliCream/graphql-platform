@@ -27,6 +27,7 @@ public static class FilterConventionDescriptorExtensions
         descriptor
             .AddDefaultOperations()
             .BindDefaultTypes(compatibilityMode)
+            .MaxAllowedFilterOperations(FilterConventionConfiguration.DefaultMaxAllowedFilterOperations)
             .UseQueryableProvider();
 
     /// <summary>
@@ -144,8 +145,8 @@ public static class FilterConventionDescriptorExtensions
                 .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<TimeOnly, LocalTimeOperationFilterInputType>()
                 .BindRuntimeType<TimeOnly?, LocalTimeOperationFilterInputType>()
-                .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
-                .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<TimeSpan, DurationOperationFilterInputType>()
+                .BindRuntimeType<TimeSpan?, DurationOperationFilterInputType>()
                 .BindRuntimeType<uint, UnsignedIntOperationFilterInputType>()
                 .BindRuntimeType<uint?, UnsignedIntOperationFilterInputType>()
                 .BindRuntimeType<ulong, UnsignedLongOperationFilterInputType>()

@@ -14,7 +14,7 @@ public class Issue_4811
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -23,20 +23,20 @@ public class Issue_4811
               mutation: Mutation
             }
 
-            type ADDBookResponse {
-              title: String!
-            }
-
-            type Book {
-              title: String!
+            type Query {
+              book: Book!
             }
 
             type Mutation {
               addBook(input: CreateCnaeInput!): ADDBookResponse!
             }
 
-            type Query {
-              book: Book!
+            type ADDBookResponse {
+              title: String!
+            }
+
+            type Book {
+              title: String!
             }
 
             input CNAEMutationInput {

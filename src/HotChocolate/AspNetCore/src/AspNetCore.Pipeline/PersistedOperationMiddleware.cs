@@ -6,6 +6,8 @@ using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore;
 
@@ -21,14 +23,13 @@ internal static class PersistedOperationMiddleware
         string schemaName,
         bool requireOperationName)
     {
-        var optionsHolder = new OptionsHolder();
         var executorProxy = HttpRequestExecutorProxy.Create(services, schemaName);
+        var serverOptions = services.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
 
         groupBuilder.MapGet(
             "/{operationId}",
             async context =>
             {
-                var options = optionsHolder.GetOptions(context);
                 var operationId = context.Request.RouteValues["operationId"] as string;
 
                 if (string.IsNullOrEmpty(operationId))
@@ -41,7 +42,7 @@ internal static class PersistedOperationMiddleware
                 await ExecuteGetRequestAsync(
                     context,
                     executorProxy,
-                    options,
+                    serverOptions,
                     operationId,
                     operationName: null,
                     requireOperationName);
@@ -52,7 +53,6 @@ internal static class PersistedOperationMiddleware
                 "/{operationId}/{operationName}",
                 async context =>
                 {
-                    var options = optionsHolder.GetOptions(context);
                     var operationId = context.Request.RouteValues["operationId"] as string;
                     var operationName = context.Request.RouteValues["operationName"] as string;
 
@@ -73,7 +73,7 @@ internal static class PersistedOperationMiddleware
                     await ExecuteGetRequestAsync(
                         context,
                         executorProxy,
-                        options,
+                        serverOptions,
                         operationId,
                         operationName,
                         requireOperationName);
@@ -269,21 +269,5 @@ HANDLE_RESULT:
             statusCode,
             context,
             executorSession);
-    }
-
-    private sealed class OptionsHolder
-    {
-        private GraphQLServerOptions? _options;
-
-        public GraphQLServerOptions GetOptions(HttpContext context)
-        {
-            if (_options is not null)
-            {
-                return _options;
-            }
-
-            _options = context.GetGraphQLServerOptions() ?? new GraphQLServerOptions();
-            return _options;
-        }
     }
 }

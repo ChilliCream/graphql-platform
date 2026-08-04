@@ -19,7 +19,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -32,7 +32,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -51,7 +52,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -64,7 +65,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -82,7 +84,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -95,7 +97,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("{ sayHelloInferred }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -113,7 +116,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -126,7 +129,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("{ sayHelloRequest }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -146,7 +150,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -159,7 +163,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -178,7 +183,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -191,7 +196,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -211,7 +217,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -224,7 +230,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -243,7 +250,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -256,7 +263,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("mutation { doSomethingInferred }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -275,7 +283,7 @@ public class ResolverServiceTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         IExecutionResult result;
@@ -288,7 +296,8 @@ public class ResolverServiceTests
                     .New()
                     .SetDocument("mutation { doSomethingResolver }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
         }
 
         result.MatchMarkdownSnapshot();
@@ -304,9 +313,9 @@ public class ResolverServiceTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -319,9 +328,9 @@ public class ResolverServiceTests
                 .AddGraphQL()
                 .AddQueryType<QueryOptional>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -336,9 +345,9 @@ public class ResolverServiceTests
                 .AddGraphQL()
                 .AddQueryType<QueryOptional>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }

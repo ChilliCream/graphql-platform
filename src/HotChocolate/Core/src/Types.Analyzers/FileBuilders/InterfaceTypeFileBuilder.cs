@@ -19,14 +19,14 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
         Writer.WriteIndentedLine(
             "internal static void Initialize(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IInterfaceTypeDescriptor,
-            interfaceType.RuntimeTypeFullName);
+            interfaceType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
             WriteInitializationBase(
-                interfaceType.SchemaTypeFullName,
+                interfaceType.SchemaTypeName.FullName,
                 interfaceType.Resolvers.Length > 0,
                 interfaceType.Resolvers.Any(t => t.RequiresParameterBindings),
                 interfaceType.DescriptorAttributes,
@@ -53,7 +53,7 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
         Writer.WriteIndentedLine(
             "static partial void Configure(global::{0}<global::{1}> descriptor);",
             WellKnownTypes.IInterfaceTypeDescriptor,
-            interfaceType.RuntimeTypeFullName);
+            interfaceType.RuntimeTypeName.FullName);
         Writer.WriteLine();
     }
 }

@@ -26,7 +26,7 @@ internal class PagedSelectionPrompt<TEdge>
     }
 
     public async Task<TEdge?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         TEdge? selectedEdge = default;

@@ -1,0 +1,26 @@
+mutation PublishMcpFeatureCollectionCommandMutation($input: PublishMcpFeatureCollectionInput!) {
+  publishMcpFeatureCollection(input: $input) {
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
+      ...StageNotFoundError
+      ...McpFeatureCollectionNotFoundError
+      ...McpFeatureCollectionVersionNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription PublishMcpFeatureCollectionCommandSubscription($requestId: ID!) {
+  onMcpFeatureCollectionVersionPublishingUpdate(requestId: $requestId) {
+    __typename
+    ...McpFeatureCollectionVersionPublishFailed
+    ...McpFeatureCollectionVersionPublishSuccess
+    ...OperationInProgress
+    ...WaitForApproval
+    ...ProcessingTaskApproved
+    ...ProcessingTaskIsReady
+    ...ProcessingTaskIsQueued
+  }
+}

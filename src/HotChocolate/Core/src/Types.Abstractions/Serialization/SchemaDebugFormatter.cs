@@ -6,15 +6,30 @@ namespace HotChocolate.Serialization;
 public static class SchemaDebugFormatter
 {
     public static ObjectTypeDefinitionNode Format(IObjectTypeDefinition type)
-        => new ObjectTypeDefinitionNode(
+    {
+        var directives = type.Directives.Select(Format).ToList();
+
+        if (type.IsDeprecated)
+        {
+            var deprecatedDirective = new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    type.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+
+            directives.Insert(0, deprecatedDirective);
+        }
+
+        return new ObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(Format).ToArray(),
+            directives,
             type.Implements.Select(FormatTypeRef).Cast<NamedTypeNode>().ToArray(),
             type.Fields.Where(t => !t.IsIntrospectionField).Select(Format).ToArray());
+    }
 
     public static InterfaceTypeDefinitionNode Format(IInterfaceTypeDefinition type)
         => new InterfaceTypeDefinitionNode(
@@ -67,7 +82,22 @@ public static class SchemaDebugFormatter
             type.Directives.Select(Format).ToArray());
 
     public static DirectiveDefinitionNode Format(IDirectiveDefinition directiveDefinition)
-        => new DirectiveDefinitionNode(
+    {
+        var directives = directiveDefinition.Directives.Select(Format).ToList();
+
+        if (directiveDefinition.IsDeprecated)
+        {
+            var deprecatedDirective = new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    directiveDefinition.DeprecationReason
+                        ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+
+            directives.Insert(0, deprecatedDirective);
+        }
+
+        return new DirectiveDefinitionNode(
             null,
             new NameNode(directiveDefinition.Name),
             directiveDefinition.Description is null
@@ -75,7 +105,9 @@ public static class SchemaDebugFormatter
                 : new StringValueNode(directiveDefinition.Description),
             directiveDefinition.IsRepeatable,
             directiveDefinition.Arguments.Select(Format).ToArray(),
+            directives,
             DirectiveLocationUtils.AsEnumerable(directiveDefinition.Locations).Select(Format).ToArray());
+    }
 
     public static FieldDefinitionNode Format(IOutputFieldDefinition field)
     {

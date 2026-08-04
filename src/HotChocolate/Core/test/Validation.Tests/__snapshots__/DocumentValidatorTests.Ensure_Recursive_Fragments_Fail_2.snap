@@ -51,3 +51,24 @@
   }
 }
 ---------------
+
+---------------
+{
+  "message": "The parent type does not match the type condition on the fragment.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 9
+    }
+  ],
+  "path": [
+    "f"
+  ],
+  "extensions": {
+    "typeCondition": "Query",
+    "selectionSetType": "String",
+    "fragment": "f",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Is-Possible"
+  }
+}
+---------------

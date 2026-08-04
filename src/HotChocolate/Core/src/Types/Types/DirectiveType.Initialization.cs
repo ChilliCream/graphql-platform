@@ -48,7 +48,9 @@ public partial class DirectiveType
 
         if (RuntimeType != typeof(object))
         {
+#pragma warning disable IL3050
             TypeIdentity = typeof(DirectiveType<>).MakeGenericType(RuntimeType);
+#pragma warning restore IL3050
         }
 
         IsRepeatable = configuration.IsRepeatable;
@@ -65,8 +67,11 @@ public partial class DirectiveType
         _inputParser = context.DescriptorContext.InputParser;
 
         Locations = configuration.Locations;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
         Arguments = OnCompleteFields(context, configuration);
-        IsPublic = configuration.IsPublic;
+        IsPublic = configuration.IsPublic
+            || context.DescriptorContext.Options.DisableInternalDirectives;
         Middleware = OnCompleteMiddleware(context, configuration);
 
         _createInstance = OnCompleteCreateInstance(context, configuration);
@@ -93,6 +98,11 @@ public partial class DirectiveType
         {
             field.CompleteMetadata(context, this);
         }
+
+        Directives = DirectiveCollection.CreateAndComplete(
+            context,
+            this,
+            configuration.GetDirectives());
     }
 
     protected override void OnMakeExecutable(

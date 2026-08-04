@@ -154,7 +154,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
         CreateConventions<T>(scope, out convention, out var extensions);
 
         convention ??= convention as T;
-        convention ??= _serviceHelper.GetService<T>();
         convention ??= factory();
 
         if (convention is Convention init)

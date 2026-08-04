@@ -106,19 +106,25 @@ RESTART:
     {
         while (true)
         {
+            // the completion check and the signal reset must happen in the same
+            // lock section. `Complete()` adds the task id under this lock before
+            // it calls `_signal.Set()`, so a completion that is not yet visible
+            // to the check can only signal after the reset. The wakeup cannot be
+            // lost.
             lock (_sync)
             {
                 if (_completed.Contains(taskId))
                 {
                     return;
                 }
+
+                // we are waiting for completion of the current task
+                // so we force the `TryDispatchOrCompleteUnsafe` to seek completion
+                // even though the _work backlog might still have unprocessed
+                // tasks.
+                TryDispatchOrCompleteUnsafe(isWaitingForTaskCompletion: true);
             }
 
-            // we are waiting for completion of the current task
-            // so we force the `TryDispatchOrComplete` to seek completion
-            // even though the _work backlog might still have unprocessed
-            // tasks.
-            TryDispatchOrComplete(isWaitingForTaskCompletion: true);
             await TryPauseAsync().ConfigureAwait(false);
         }
     }
@@ -187,7 +193,7 @@ RESTART:
         }
     }
 
-    private void TryDispatchOrComplete(bool isWaitingForTaskCompletion = false)
+    private void TryDispatchOrComplete()
     {
         if (_isCompleted)
         {
@@ -196,33 +202,38 @@ RESTART:
 
         lock (_sync)
         {
-            if (_isCompleted)
+            TryDispatchOrCompleteUnsafe(isWaitingForTaskCompletion: false);
+        }
+    }
+
+    private void TryDispatchOrCompleteUnsafe(bool isWaitingForTaskCompletion)
+    {
+        if (_isCompleted)
+        {
+            return;
+        }
+
+        if (!isWaitingForTaskCompletion)
+        {
+            isWaitingForTaskCompletion = _work is { HasRunningTasks: true, IsEmpty: true };
+        }
+
+        var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+
+        if (isWaitingForTaskCompletion)
+        {
+            _signal.Reset();
+
+            if (Interlocked.CompareExchange(ref _hasBatches, 0, 1) == 1)
             {
-                return;
+                _batchDispatcher.BeginDispatch(_ct);
             }
-
-            if (!isWaitingForTaskCompletion)
+        }
+        else
+        {
+            if (!hasWork && _pendingBatches.Count == 0)
             {
-                isWaitingForTaskCompletion = _work is { HasRunningTasks: true, IsEmpty: true };
-            }
-
-            var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
-
-            if (isWaitingForTaskCompletion)
-            {
-                _signal.Reset();
-
-                if (Interlocked.CompareExchange(ref _hasBatches, 0, 1) == 1)
-                {
-                    _batchDispatcher.BeginDispatch(_ct);
-                }
-            }
-            else
-            {
-                if (!hasWork)
-                {
-                    _isCompleted = true;
-                }
+                _isCompleted = true;
             }
         }
     }

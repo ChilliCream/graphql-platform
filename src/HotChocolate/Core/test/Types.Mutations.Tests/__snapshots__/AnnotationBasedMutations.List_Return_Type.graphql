@@ -3,16 +3,16 @@ schema {
   mutation: ListReturnMutation
 }
 
-type AddItemPayload {
-  resultItem: [ResultItem!]
+type Query {
+  abc: String
 }
 
 type ListReturnMutation {
   addItem(input: AddItemInput!): AddItemPayload!
 }
 
-type Query {
-  abc: String
+type AddItemPayload {
+  resultItem: [ResultItem!]
 }
 
 type ResultItem {

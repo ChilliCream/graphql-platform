@@ -84,7 +84,7 @@ public class BackgroundTaskTests
         handlerCalled = false;
 
         // Act
-        await Task.Delay(100); // Give some time to start the background task
+        await Task.Delay(100, TestContext.Current.CancellationToken); // Give some time to start the background task
 
         // Assert
         Assert.False(handlerCalled);

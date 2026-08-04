@@ -1,0 +1,56 @@
+using HotChocolate.Properties;
+using HotChocolate.Utilities;
+
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Represents the opt-in feature stability directive that allows
+/// specifying the stability level of a feature in the GraphQL schema.
+/// </summary>
+public sealed class OptInFeatureStability
+{
+    /// <summary>
+    /// Creates a new instance of <see cref="OptInFeatureStability"/>.
+    /// </summary>
+    /// <param name="feature">
+    /// The name of the feature for which to set the stability.
+    /// </param>
+    /// <param name="stability">
+    /// The stability level of the feature.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="feature"/> is not a valid name.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="stability"/> is not a valid name.
+    /// </exception>
+    public OptInFeatureStability(string feature, string stability)
+    {
+        if (!feature.IsValidGraphQLName())
+        {
+            throw new ArgumentException(
+                TypeResources.OptInFeatureStabilityDirective_FeatureName_NotValid,
+                nameof(feature));
+        }
+
+        if (!stability.IsValidGraphQLName())
+        {
+            throw new ArgumentException(
+                TypeResources.OptInFeatureStabilityDirective_Stability_NotValid,
+                nameof(stability));
+        }
+
+        Feature = feature;
+        Stability = stability;
+    }
+
+    /// <summary>
+    /// The name of the feature for which to set the stability.
+    /// </summary>
+    public string Feature { get; }
+
+    /// <summary>
+    /// The stability level of the feature.
+    /// </summary>
+    public string Stability { get; }
+}

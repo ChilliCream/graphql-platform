@@ -45,7 +45,7 @@ public sealed class OperationDocumentInfo : RequestFeature
     /// <inheritdoc />
     protected internal override void Reset()
     {
-        Document = null!;
+        Document = null;
         Id = default;
         Hash = default;
         IsCached = false;

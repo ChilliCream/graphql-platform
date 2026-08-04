@@ -81,7 +81,7 @@ public class SyntaxRewriterTests
         // arrange
         var schema = Parse(@"
             type Foo {
-               abc : String
+                abc : String
             }
             ");
 
@@ -102,5 +102,23 @@ public class SyntaxRewriterTests
         // assert
         DocumentNode? Fail() => (DocumentNode?)rewriter.Rewrite(schema, new NavigatorContext());
         Assert.Throws<SyntaxNodeCannotBeNullException>(Fail);
+    }
+
+    [Fact]
+    public void Rewrite_DirectiveExtension_Directives()
+    {
+        // arrange
+        var document = Parse("extend directive @foo @a");
+
+        var rewriter = SyntaxRewriter.Create(
+            node => node is DirectiveNode directive
+                ? directive.WithName(directive.Name.WithValue("b"))
+                : node);
+
+        // act
+        document = (DocumentNode?)rewriter.Rewrite(document, null);
+
+        // assert
+        Assert.Equal("extend directive @foo @b", document?.ToString(indented: false));
     }
 }

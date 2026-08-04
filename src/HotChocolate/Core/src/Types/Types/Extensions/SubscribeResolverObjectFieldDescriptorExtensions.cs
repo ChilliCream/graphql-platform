@@ -161,7 +161,7 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
         string argumentName)
         => SubscribeToTopic<TMessage>(
             descriptor,
-            ctx => ctx.ArgumentValue<object>(argumentName).ToString()!);
+            ctx => ctx.ArgumentValue<object>(argumentName).ToString());
 
     /// <summary>
     /// Subscribes to a topic that is resolved by executing <paramref name="resolveTopic" />.

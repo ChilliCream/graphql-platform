@@ -8,7 +8,7 @@ internal sealed class FloatCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<float>();
 
     public bool IsSupported(Type type)
-        => type == typeof(float);
+        => type == typeof(float) || type == typeof(float?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

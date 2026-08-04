@@ -3,11 +3,11 @@
 ## SQL
 
 ```text
--- @__keys_0={ '1', '2' } (DbType = Object)
+-- @keys={ '1', '2' } (DbType = Object)
 SELECT b."Id", p."Name", p."Id"
 FROM "Brands" AS b
 LEFT JOIN "Products" AS p ON b."Id" = p."BrandId"
-WHERE b."Id" = ANY (@__keys_0)
+WHERE b."Id" = ANY (@keys)
 ORDER BY b."Id"
 ```
 

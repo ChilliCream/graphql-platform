@@ -21,10 +21,10 @@ public class ErrorHandlerTests
             .UseField(_ => _ => throw new Exception("Foo"))
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -55,10 +55,12 @@ public class ErrorHandlerTests
                 })
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo bar }");
+        var result = await executor.ExecuteAsync(
+            "{ foo bar }",
+            TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -81,10 +83,10 @@ public class ErrorHandlerTests
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = false)
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -105,10 +107,10 @@ public class ErrorHandlerTests
             .AddErrorFilter<DummyErrorFilter>()
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -133,10 +135,10 @@ public class ErrorHandlerTests
             .AddErrorFilter<DummyErrorFilterWithDependency>()
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -157,10 +159,10 @@ public class ErrorHandlerTests
             .AddErrorFilter(_ => new DummyErrorFilter())
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -182,10 +184,10 @@ public class ErrorHandlerTests
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -207,10 +209,10 @@ public class ErrorHandlerTests
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -239,13 +241,137 @@ public class ErrorHandlerTests
                 })
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
+    }
+
+    [Fact]
+    public async Task ErrorFilter_Should_BeApplied_When_PureSubFieldResolverThrows()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            // general graphql configuration
+            .AddGraphQL()
+            .AddQueryType<BookQuery>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = false)
+
+            // error filter configuration
+            .AddErrorFilter(
+                error => error.Exception is null ? error : error.WithCode("EXPECTED"))
+
+            // build graphql executor
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              book { id }
+              books { id author }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "book"
+                  ],
+                  "extensions": {
+                    "code": "EXPECTED"
+                  }
+                },
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "books",
+                    0,
+                    "author"
+                  ],
+                  "extensions": {
+                    "code": "EXPECTED"
+                  }
+                }
+              ],
+              "data": {
+                "book": null,
+                "books": [
+                  {
+                    "id": "1",
+                    "author": null
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ErrorFilter_Should_TransformNonNullSubFieldError_When_ErrorHandlingModeIsNull()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            // general graphql configuration
+            .AddGraphQL()
+            .AddQueryType<BookStoreQuery>()
+            .ModifyRequestOptions(
+                o =>
+                {
+                    o.DefaultErrorHandlingMode = ErrorHandlingMode.Null;
+                    o.IncludeExceptionDetails = false;
+                })
+
+            // error filter configuration
+            .AddErrorFilter(
+                error =>
+                {
+                    if (error.Exception is null)
+                    {
+                        return error;
+                    }
+
+                    return error
+                        .WithMessage(
+                            $"Unexpected Execution Error: {error.Exception.GetType().FullName}")
+                        .SetExtension("stackTrace", error.Exception.ToString());
+                })
+
+            // build graphql executor
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              book(id: "test") { id }
+              books { id author }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Collection(
+            result.ExpectOperationResult().Errors!,
+            error =>
+            {
+                Assert.Equal("Unexpected Execution Error: System.ArgumentException", error.Message);
+                Assert.Contains("GetBook", (string)error.Extensions!["stackTrace"]!);
+            },
+            error =>
+            {
+                Assert.Equal("Unexpected Execution Error: System.ArgumentException", error.Message);
+                Assert.Contains("get_Author", (string)error.Extensions!["stackTrace"]!);
+            });
     }
 
     public class DummyErrorFilter : IErrorFilter
@@ -281,5 +407,34 @@ public class ErrorHandlerTests
     public class Query
     {
         public string GetFoo() => throw new Exception("FooError");
+    }
+
+    public class BookQuery
+    {
+        public Book? GetBook() => throw new ArgumentException("BookError");
+
+        public List<Book> GetBooks() => [new Book()];
+    }
+
+    public class Book
+    {
+        public string Id => "1";
+
+        public string? Author => throw new ArgumentException("AuthorError");
+    }
+
+    public class BookStoreQuery
+    {
+        public StoreBook? GetBook(string id)
+            => throw new ArgumentException($"Unknown book '{id}'!");
+
+        public IEnumerable<StoreBook> GetBooks() => [new StoreBook("GraphQL: The Super Guide")];
+    }
+
+    public record StoreBook(string Id)
+    {
+        public string Title => $"{Id}";
+
+        public string Author => throw new ArgumentException($"Missing author for book '{Id}'!");
     }
 }

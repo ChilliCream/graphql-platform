@@ -13,10 +13,10 @@ true Result:
 
 true SQL:
 ---------------
--- @__p_0='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
+-- @p='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE ST_Intersects(d."Bar", @__p_0)
+WHERE ST_Intersects(d."Bar", @p)
 ---------------
 
 false Result:
@@ -34,8 +34,8 @@ false Result:
 
 false SQL:
 ---------------
--- @__p_0='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
+-- @p='POLYGON ((10 10, 10 90, 90 90, 90 10, 10 10))' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE NOT (ST_Intersects(d."Bar", @__p_0))
+WHERE NOT (ST_Intersects(d."Bar", @p))
 ---------------

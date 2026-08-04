@@ -1,0 +1,25 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "foo",
+        "nullable_list_nullable_element",
+        0,
+        "b"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    }
+  ],
+  "data": {
+    "foo": {
+      "nullable_list_nullable_element": [
+        {
+          "b": null
+        }
+      ]
+    }
+  }
+}

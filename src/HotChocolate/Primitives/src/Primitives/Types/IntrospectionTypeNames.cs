@@ -10,6 +10,8 @@ public static class IntrospectionTypeNames
     public const string __Field = nameof(__Field);
     public const string __InputValue = nameof(__InputValue);
     public const string __Schema = nameof(__Schema);
+    public const string __SchemaDefinition = nameof(__SchemaDefinition);
+    public const string __SearchResult = nameof(__SearchResult);
     public const string __Type = nameof(__Type);
     public const string __TypeKind = nameof(__TypeKind);
     // ReSharper restore InconsistentNaming

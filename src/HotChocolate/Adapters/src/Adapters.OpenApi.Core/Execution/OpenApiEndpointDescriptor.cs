@@ -11,7 +11,7 @@ internal sealed record OpenApiEndpointDescriptor(
     RoutePattern Route,
     VariableValueInsertionTrie ParameterTrie,
     string? VariableFilledThroughBody,
-    string ResponseNameToExtract);
+    OpenApiResponseBodySelection ResponseBodySelection);
 
 internal interface IVariableValueInsertionTrieSegment;
 
@@ -21,9 +21,10 @@ internal sealed class VariableValueInsertionTrie
 
 internal sealed record VariableValueInsertionTrieLeaf(
     string ParameterKey,
-    ITypeDefinition Type,
+    ITypeDefinition NamedType,
     OpenApiEndpointParameterType ParameterType,
-    bool HasDefaultValue) : IVariableValueInsertionTrieSegment;
+    bool HasDefaultValue,
+    bool IsNonNullType) : IVariableValueInsertionTrieSegment;
 
 internal enum OpenApiEndpointParameterType
 {

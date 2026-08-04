@@ -7,6 +7,7 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.FieldBindingFlags;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -16,14 +17,20 @@ public class ObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = [];
 
-    protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+    protected ObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
-        ArgumentNullException.ThrowIfNull(clrType);
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
-        Configuration.RuntimeType = clrType;
-        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
-        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
+        Configuration.RuntimeType = runtimeType;
+        Configuration.Name = context.Naming.GetTypeName(runtimeType, TypeKind.Object);
+        Configuration.Description = context.Naming.GetTypeDescription(runtimeType, TypeKind.Object);
+
+        if (context.Options.EnableObjectDeprecation
+            && runtimeType.GetCustomAttribute<GraphQLDeprecatedAttribute>() is { } deprecated)
+        {
+            Configuration.DeprecationReason = deprecated.DeprecationReason;
+        }
     }
 
     protected ObjectTypeDescriptor(IDescriptorContext context)
@@ -251,6 +258,23 @@ public class ObjectTypeDescriptor
         return this;
     }
 
+    public IObjectTypeDescriptor Deprecated(string? reason)
+    {
+        if (!Context.Options.EnableObjectDeprecation)
+        {
+            throw ThrowHelper.ObjectDeprecationNotEnabled(Configuration.Name);
+        }
+
+        Configuration.DeprecationReason = string.IsNullOrEmpty(reason)
+            ? DirectiveNames.Deprecated.Arguments.DefaultReason
+            : reason;
+
+        return this;
+    }
+
+    public IObjectTypeDescriptor Deprecated()
+        => Deprecated(DirectiveNames.Deprecated.Arguments.DefaultReason);
+
     public IObjectTypeDescriptor Implements<T>()
         where T : InterfaceType
     {
@@ -339,6 +363,17 @@ public class ObjectTypeDescriptor
     {
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
+        if (propertyOrMethod.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var fieldDescriptor = ObjectFieldDescriptor.New(
+                Context,
+                propertyOrMethod,
+                Configuration.RuntimeType,
+                typeof(TResolver));
+            _fields.Add(fieldDescriptor);
+            return fieldDescriptor;
+        }
+
         var member = propertyOrMethod.TryExtractMember();
 
         if (member is PropertyInfo or MethodInfo)
@@ -413,8 +448,8 @@ public class ObjectTypeDescriptor
 
     public static ObjectTypeDescriptor New(
         IDescriptorContext context,
-        Type clrType) =>
-        new(context, clrType);
+        Type runtimeType) =>
+        new(context, runtimeType);
 
     public static ObjectTypeDescriptor<T> New<T>(
         IDescriptorContext context) =>

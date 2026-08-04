@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+import { spawn } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { familySync, GLIBC, MUSL } from "detect-libc";
+
+function resolveCandidates(): string[] {
+  const { platform, arch } = process;
+
+  if (platform === "linux" && arch === "x64") {
+    const libc = familySync();
+    if (libc === MUSL) {
+      return ["@chillicream/nitro-linux-musl-x64"];
+    }
+    if (libc === GLIBC) {
+      return ["@chillicream/nitro-linux-x64"];
+    }
+    return [
+      "@chillicream/nitro-linux-x64",
+      "@chillicream/nitro-linux-musl-x64",
+    ];
+  }
+
+  const map: Record<string, string> = {
+    "darwin-arm64": "@chillicream/nitro-osx-arm64",
+    "darwin-x64": "@chillicream/nitro-osx-x64",
+    "linux-arm64": "@chillicream/nitro-linux-arm64",
+    "win32-ia32": "@chillicream/nitro-win-x86",
+    "win32-x64": "@chillicream/nitro-win-x64",
+  };
+  const pkg = map[`${platform}-${arch}`];
+  return pkg ? [pkg] : [];
+}
+
+function resolveBinary(): string | null {
+  const binaryName = process.platform === "win32" ? "nitro.exe" : "nitro";
+
+  for (const pkg of resolveCandidates()) {
+    try {
+      const pkgJson = fileURLToPath(import.meta.resolve(`${pkg}/package.json`));
+      return join(dirname(pkgJson), binaryName);
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
+
+function describePlatform(): string {
+  const { platform, arch } = process;
+  if (platform === "linux") {
+    const libc = familySync();
+    return libc ? `linux-${arch} (${libc})` : `linux-${arch}`;
+  }
+  return `${platform}-${arch}`;
+}
+
+const bin = resolveBinary();
+
+if (bin === null) {
+  console.error(
+    `Platform "${describePlatform()}" is not supported by @chillicream/nitro.`,
+  );
+  process.exit(1);
+}
+
+const child = spawn(bin, process.argv.slice(2), { stdio: "inherit" });
+
+child.on("error", (error) => {
+  console.error(
+    `Failed to start @chillicream/nitro binary "${bin}": ${error.message}`,
+  );
+  process.exit(1);
+});
+
+child.on("exit", (code, signal) => {
+  if (signal !== null) {
+    try {
+      process.kill(process.pid, signal);
+      return;
+    } catch {
+      process.exit(1);
+    }
+  }
+
+  process.exit(code ?? 1);
+});

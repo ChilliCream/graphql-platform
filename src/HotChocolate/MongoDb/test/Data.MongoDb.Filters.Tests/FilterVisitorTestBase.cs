@@ -52,7 +52,7 @@ public class FilterVisitorTestBase
                             }
                         })
                     .UseFiltering<T>())
-            .AddType(new TimeSpanType(TimeSpanFormat.DotNet))
+            .AddType(new DurationType(DurationFormat.DotNet))
             .UseRequest(
                 (_, next) => async context =>
                 {

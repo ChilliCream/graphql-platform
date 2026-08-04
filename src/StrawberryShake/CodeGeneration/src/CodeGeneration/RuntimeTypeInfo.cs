@@ -1,5 +1,3 @@
-using StrawberryShake.CodeGeneration.CSharp;
-
 namespace StrawberryShake.CodeGeneration;
 
 public class RuntimeTypeInfo : IEquatable<RuntimeTypeInfo>

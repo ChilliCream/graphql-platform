@@ -109,7 +109,10 @@ public sealed class ModuleFileBuilder : IDisposable
     }
 
     public void WriteAddSourceSchemaDefaults()
-        => _writer.WriteIndentedLine("builder.AddSourceSchemaDefaults();");
+    {
+        _writer.WriteIndentedLine(
+            "builder.AddSourceSchemaDefaults();");
+    }
 
     public void WriteRegisterDataLoader(string typeName)
         => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}>();", typeName);

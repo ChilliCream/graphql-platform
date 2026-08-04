@@ -17,6 +17,13 @@ public ref partial struct Utf8GraphQLParser
         {
             switch (_reader.Value[0])
             {
+                case (byte)'d':
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Directive))
+                    {
+                        return ParseDirectiveExtension(in start);
+                    }
+                    break;
+
                 case (byte)'s':
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
                     {
@@ -63,6 +70,33 @@ public ref partial struct Utf8GraphQLParser
         }
 
         throw Unexpected(_reader.Kind);
+    }
+
+    /// <summary>
+    /// Parse directive extension.
+    /// <see cref="DirectiveExtensionNode" />:
+    /// * - extend directive @ Name Directives[Const]
+    /// </summary>
+    private DirectiveExtensionNode ParseDirectiveExtension(
+        in TokenInfo start)
+    {
+        MoveNext();
+
+        ExpectAt();
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        if (directives.Count == 0)
+        {
+            throw Unexpected(_reader.Kind);
+        }
+        var location = CreateLocation(in start);
+
+        return new DirectiveExtensionNode
+        (
+            location,
+            name,
+            directives
+        );
     }
 
     /// <summary>

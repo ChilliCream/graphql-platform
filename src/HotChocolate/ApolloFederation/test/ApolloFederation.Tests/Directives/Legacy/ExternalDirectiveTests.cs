@@ -31,10 +31,10 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                         .Resolve(_ => 1);
                     o.Field("idCode")
                         .Type<StringType>()
-                        .Resolve(_ => default!)
+                        .Resolve(_ => default)
                         .External();
                 })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var query = schema.Types.GetType<ObjectType>("User");
@@ -54,7 +54,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation10)
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var query = schema.Types.GetType<ObjectType>("User");

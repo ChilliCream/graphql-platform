@@ -1,5 +1,3 @@
-#nullable disable
-
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 
@@ -26,7 +24,7 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    IArgumentDescriptor Deprecated(string reason);
+    IArgumentDescriptor Deprecated(string? reason);
 
     /// <summary>
     /// Marks the argument as deprecated
@@ -65,7 +63,7 @@ public interface IArgumentDescriptor
     /// </example>
     /// </summary>
     /// <param name="value">The description</param>
-    IArgumentDescriptor Description(string value);
+    IArgumentDescriptor Description(string? value);
 
     /// <summary>
     /// Sets the type of the argument
@@ -81,7 +79,7 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <typeparam name="TInputType"></typeparam>
+    /// <typeparam name="TInputType">The input type.</typeparam>
     IArgumentDescriptor Type<TInputType>()
         where TInputType : IInputType;
 
@@ -148,8 +146,10 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <param name="value"></param>
-    IArgumentDescriptor DefaultValue(IValueNode value);
+    /// <param name="value">
+    /// The GraphQL value literal representing the default value.
+    /// </param>
+    IArgumentDescriptor DefaultValue(IValueNode? value);
 
     /// <summary>
     /// Sets the default value of this argument
@@ -165,8 +165,10 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <param name="value"></param>
-    IArgumentDescriptor DefaultValue(object value);
+    /// <param name="value">
+    /// The runtime default value.
+    /// </param>
+    IArgumentDescriptor DefaultValue(object? value);
 
     /// <summary>
     /// Sets a directive on the argument

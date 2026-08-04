@@ -160,6 +160,9 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             case SyntaxKind.SchemaCoordinate:
                 return Equals((SchemaCoordinateNode)x, (SchemaCoordinateNode)y);
 
+            case SyntaxKind.DirectiveExtension:
+                return Equals((DirectiveExtensionNode)x, (DirectiveExtensionNode)y);
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -176,7 +179,12 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && x.IsRepeatable.Equals(y.IsRepeatable)
             && Equals(x.Arguments, y.Arguments)
+            && Equals(x.Directives, y.Directives)
             && Equals(x.Locations, y.Locations);
+
+    private bool Equals(DirectiveExtensionNode x, DirectiveExtensionNode y)
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(DirectiveNode x, DirectiveNode y)
         => Equals(x.Name, y.Name) && Equals(x.Arguments, y.Arguments);
@@ -620,6 +628,9 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             case SyntaxKind.SchemaCoordinate:
                 return GetHashCode((SchemaCoordinateNode)obj);
 
+            case SyntaxKind.DirectiveExtension:
+                return GetHashCode((DirectiveExtensionNode)obj);
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -648,10 +659,31 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             hashCode.Add(GetHashCode(argument));
         }
 
+        for (var i = 0; i < node.Directives.Count; i++)
+        {
+            var directive = node.Directives[i];
+            hashCode.Add(GetHashCode(directive));
+        }
+
         for (var i = 0; i < node.Locations.Count; i++)
         {
             var location = node.Locations[i];
             hashCode.Add(GetHashCode(location));
+        }
+
+        return hashCode.ToHashCode();
+    }
+
+    private int GetHashCode(DirectiveExtensionNode node)
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(node.Kind);
+        hashCode.Add(GetHashCode(node.Name));
+
+        for (var i = 0; i < node.Directives.Count; i++)
+        {
+            var directive = node.Directives[i];
+            hashCode.Add(GetHashCode(directive));
         }
 
         return hashCode.ToHashCode();

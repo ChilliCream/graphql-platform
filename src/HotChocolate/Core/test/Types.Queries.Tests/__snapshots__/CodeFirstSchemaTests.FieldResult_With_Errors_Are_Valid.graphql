@@ -2,8 +2,8 @@ schema {
   query: ValidQueryValueTask
 }
 
-interface Error {
-  message: String!
+type ValidQueryValueTask {
+  foo: FooResult!
 }
 
 type ArgumentError implements Error {
@@ -15,8 +15,8 @@ type Foo {
   bar: String!
 }
 
-type ValidQueryValueTask {
-  foo: FooResult!
+interface Error {
+  message: String!
 }
 
 union FooResult = Foo | ArgumentError

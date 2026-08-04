@@ -10,6 +10,7 @@ public class ValidationTests : ValidationTestBase
         OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLServer()
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
 

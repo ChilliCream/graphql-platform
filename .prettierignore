@@ -1,0 +1,4 @@
+# Snapshot markdown files are generated and compared byte-for-byte in tests.
+# Prettier rewrites JSON-in-markdown formatting and can break snapshot tests.
+src/**/__snapshots__/*.md
+src/**/__snapshots__/**/*.md

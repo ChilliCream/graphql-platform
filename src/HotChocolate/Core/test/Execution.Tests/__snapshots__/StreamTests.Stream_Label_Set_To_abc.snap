@@ -5,15 +5,34 @@
         "id": "UGVyc29uOjE="
       },
       {
-        "id": "UGVyc29uCmky"
+        "id": "UGVyc29uOjI="
       },
       {
-        "id": "UGVyc29uCmkz"
+        "id": "UGVyc29uOjM="
       },
       {
-        "id": "UGVyc29uCmk0"
+        "id": "UGVyc29uOjQ="
       }
-    ],
-    "wait": true
-  }
+    ]
+  },
+  "pending": [
+    {
+      "id": "2",
+      "path": []
+    }
+  ],
+  "incremental": [
+    {
+      "id": "2",
+      "data": {
+        "wait": true
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": "2"
+    }
+  ],
+  "hasNext": false
 }

@@ -112,7 +112,7 @@ public abstract class QueryableListOperationHandlerBase
     /// <param name="node">The object field node</param>
     /// <param name="closureType">The runtime type of the scope</param>
     /// <param name="lambda">The expression of the nested operations</param>
-    /// <returns></returns>
+    /// <returns>The filter expression for the list operation.</returns>
     protected abstract Expression HandleListOperation(
         QueryableFilterContext context,
         IFilterField field,

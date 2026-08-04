@@ -2,8 +2,8 @@ schema {
   mutation: SimpleMutationWithErrorObj
 }
 
-interface Error {
-  message: String!
+type SimpleMutationWithErrorObj {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
 
 type DoSomethingPayload {
@@ -11,11 +11,11 @@ type DoSomethingPayload {
   errors: [DoSomethingError!]
 }
 
-type SimpleMutationWithErrorObj {
-  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+type SomeNewError implements Error {
+  message: String!
 }
 
-type SomeNewError implements Error {
+interface Error {
   message: String!
 }
 

@@ -35,6 +35,11 @@ public class ObjectTypeConfiguration
     }
 
     /// <summary>
+    /// Gets or sets the deprecation reason of this object type.
+    /// </summary>
+    public string? DeprecationReason { get; set; }
+
+    /// <summary>
     /// Gets or sets the .net type representation of this type.
     /// </summary>
     public override Type RuntimeType
@@ -242,13 +247,10 @@ public class ObjectTypeConfiguration
             var removeField = field.Ignore;
 
             // we skip fields that have an incompatible parent.
-            if (field.Member is MethodInfo p
-                && p.GetParameters() is { Length: > 0 } parameters)
+            if (field.Member is MethodInfo p && p.GetParameters() is { Length: > 0 } parameters)
             {
-                var parent = parameters.FirstOrDefault(
-                    t => t.IsDefined(typeof(ParentAttribute), true));
-                if (parent?.ParameterType.IsAssignableFrom(target.RuntimeType) == false
-                    && !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
+                var parent = parameters.FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute), true));
+                if (parent is not null && !IsParentCompatible(parent.ParameterType, target.RuntimeType, field.Flags))
                 {
                     continue;
                 }
@@ -282,6 +284,7 @@ public class ObjectTypeConfiguration
             }
         }
 
+        target.DeprecationReason ??= DeprecationReason;
         target.IsOfType ??= IsOfType;
     }
 
@@ -298,5 +301,28 @@ public class ObjectTypeConfiguration
             sourceField.ResolverMember = sourceField.Member;
             sourceField.Member = targetField?.Member;
         }
+    }
+
+    private static bool IsParentCompatible(Type parentType, Type targetType, CoreFieldFlags flags)
+    {
+        if (parentType.IsAssignableFrom(targetType)
+            || targetType.IsAssignableFrom(parentType))
+        {
+            return true;
+        }
+
+        // For batch resolvers, the parent parameter is a list of the target type.
+        if ((flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver)
+        {
+            var elementType = Resolvers.BatchResolverCompiler.GetListElementType(parentType);
+            if (elementType is not null
+                && (elementType.IsAssignableFrom(targetType)
+                    || targetType.IsAssignableFrom(elementType)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

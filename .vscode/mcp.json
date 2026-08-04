@@ -6,13 +6,24 @@
     },
     "nuget": {
       "type": "stdio",
-      "command": "dnx",
+      "command": "dotnet",
       "args": [
+        "dnx",
         "NuGet.Mcp.Server",
         "--source",
         "https://api.nuget.org/v3/index.json",
         "--yes"
       ]
-    }
+    },
+    "lighthouse": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
   }
 }

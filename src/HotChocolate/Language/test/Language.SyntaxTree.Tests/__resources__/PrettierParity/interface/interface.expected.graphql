@@ -1,0 +1,34 @@
+interface Actor {
+  id: ID
+  name: String
+}
+
+interface Resource implements Node {
+  id: ID!
+  url: String
+}
+
+interface Resource implements Node {
+  id: ID!
+  url: String
+}
+
+interface Image implements Resource & Node {
+  id: ID!
+  url: String
+  thumbnail: String
+}
+
+interface Node implements Named & Node {
+  id: ID!
+  name: String
+}
+
+interface Named implements Node & Named {
+  id: ID!
+  name: String
+}
+
+extend interface Bar implements A & B & C {
+  two(argument: InputType!): Type
+}

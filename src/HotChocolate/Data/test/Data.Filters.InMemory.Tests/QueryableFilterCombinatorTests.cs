@@ -33,7 +33,8 @@ public class QueryableFilterCombinatorTests
                 bar
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         res1.MatchSnapshot();
     }

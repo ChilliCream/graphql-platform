@@ -12,15 +12,13 @@ internal sealed class OpenApiCommand : Command
 {
     public OpenApiCommand() : base("openapi")
     {
-        Description = "Manage OpenAPI collections";
+        Description = "Manage OpenAPI collections.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateOpenApiCollectionCommand());
-        AddCommand(new DeleteOpenApiCollectionCommand());
-        AddCommand(new ListOpenApiCollectionCommand());
-        AddCommand(new UploadOpenApiCollectionCommand());
-        AddCommand(new PublishOpenApiCollectionCommand());
-        AddCommand(new ValidateOpenApiCollectionCommand());
+        Subcommands.Add(new CreateOpenApiCollectionCommand());
+        Subcommands.Add(new DeleteOpenApiCollectionCommand());
+        Subcommands.Add(new ListOpenApiCollectionCommand());
+        Subcommands.Add(new UploadOpenApiCollectionCommand());
+        Subcommands.Add(new PublishOpenApiCollectionCommand());
+        Subcommands.Add(new ValidateOpenApiCollectionCommand());
     }
 }

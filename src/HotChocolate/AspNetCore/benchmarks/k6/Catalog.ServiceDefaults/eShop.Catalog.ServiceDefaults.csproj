@@ -12,11 +12,11 @@
 
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" VersionOverride="9.7.0" />
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" VersionOverride="9.4.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" VersionOverride="1.12.0" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" VersionOverride="1.12.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" VersionOverride="1.12.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" VersionOverride="1.12.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" VersionOverride="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" VersionOverride="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" VersionOverride="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" VersionOverride="1.15.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" VersionOverride="1.15.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" VersionOverride="1.15.1" />
     <PackageReference Include="Npgsql.OpenTelemetry"  VersionOverride="9.0.4" />
   </ItemGroup>
 

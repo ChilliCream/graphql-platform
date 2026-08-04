@@ -16,7 +16,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -57,7 +57,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -101,7 +101,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -144,7 +144,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -197,7 +197,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(

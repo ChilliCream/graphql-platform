@@ -12,12 +12,12 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
+    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
     private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     internal OperationCompiler(
         Schema schema,
@@ -73,7 +73,9 @@ public sealed partial class OperationCompiler
         string hash,
         string? operationName,
         DocumentNode document,
+#pragma warning disable RCS1163 // Unused parameter
         IFeatureProvider context)
+#pragma warning restore RCS1163 // Unused parameter
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
@@ -112,6 +114,8 @@ public sealed partial class OperationCompiler
                 rootType,
                 compilationContext,
                 _optimizers.SelectionSetOptimizers,
+                parentIsInternal: false,
+                parentIsProjectionRequirement: false,
                 ref lastId);
 
             compilationContext.Register(selectionSet, selectionSet.Id);
@@ -197,8 +201,15 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            var path = selection.DeclaringSelectionSet.Path.Append(selection.ResponseName);
-            var selectionSet = BuildSelectionSet(path, fields, objectType, compilationContext, optimizers, ref lastId);
+            var selectionSet = BuildSelectionSet(
+                selection.FieldSelectionPath,
+                fields,
+                objectType,
+                compilationContext,
+                optimizers,
+                selection.IsInternal,
+                selection.IsProjectionRequirement,
+                ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
             selectionSet.Complete(operation);
@@ -281,6 +292,8 @@ public sealed partial class OperationCompiler
         ObjectType typeContext,
         CompilationContext compilationContext,
         ImmutableArray<ISelectionSetOptimizer> optimizers,
+        bool parentIsInternal,
+        bool parentIsProjectionRequirement,
         ref int lastId)
     {
         var i = 0;
@@ -290,15 +303,18 @@ public sealed partial class OperationCompiler
         var includeFlags = new List<ulong>();
         var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
-        var alwaysIncluded = false;
-
         foreach (var (responseName, nodes) in fieldMap)
         {
             includeFlags.Clear();
             deferUsages.Clear();
 
+            var alwaysIncluded = false;
             var first = nodes[0];
-            var isInternal = IsInternal(first.Node);
+            // A selection nested inside an internal selection is itself internal: the
+            // whole subtree exists only for engine-internal purposes (for example the
+            // projection optimizers) and is never part of the client-facing result.
+            var isInternal = parentIsInternal || IsInternal(first.Node);
+            var isProjectionRequirement = parentIsProjectionRequirement;
             var hasNonDeferredNode = first.DeferUsage is null;
 
             if (first.PathIncludeFlags == 0)
@@ -351,7 +367,7 @@ public sealed partial class OperationCompiler
 
                     if (isInternal)
                     {
-                        isInternal = IsInternal(next.Node);
+                        isInternal = parentIsInternal || IsInternal(next.Node);
                     }
                 }
             }
@@ -407,18 +423,23 @@ public sealed partial class OperationCompiler
                 arguments = CoerceArgumentValues(field, first.Node);
             }
 
+            var selectionPath = path.AppendField(field.Name);
+
             var selection = new Selection(
                 ++lastId,
                 responseName,
+                selectionPath,
                 field,
                 nodes.ToArray(),
                 includeFlags.Count > 0 ? includeFlags.ToArray() : [],
+                isProjectionRequirement,
                 deferUsage: finalDeferUsage,
                 deferMask: deferMask,
                 isInternal: isInternal,
                 arguments: arguments,
                 resolverPipeline: fieldDelegate,
-                pureResolver: pureFieldDelegate);
+                pureResolver: pureFieldDelegate,
+                batchResolverPipeline: field.BatchResolver);
 
             if (optimizers.Length > 0)
             {

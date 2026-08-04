@@ -39,7 +39,7 @@ public abstract class MongoDbSortOperationHandlerBase(
             context.ReportError(
                 ErrorHelper.CreateNonNullError(field, node, context));
 
-            action = null!;
+            action = null;
             return false;
         }
 

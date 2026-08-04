@@ -23,13 +23,13 @@ public static class TypeExtensionHelper
         IList<InputFieldConfiguration> typeFields)
     {
         MergeFields(context, extensionFields, typeFields,
-             (_, extensionField, typeField) =>
-             {
-                 if (extensionField.IsDeprecated)
-                 {
-                     typeField.DeprecationReason = extensionField.DeprecationReason;
-                 }
-             });
+            (_, extensionField, typeField) =>
+            {
+                if (extensionField.IsDeprecated)
+                {
+                    typeField.DeprecationReason = extensionField.DeprecationReason;
+                }
+            });
     }
 
     private static void MergeOutputFields<T>(

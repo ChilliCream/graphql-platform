@@ -33,7 +33,7 @@ public abstract class PagingQueryInterceptor : IDisposable
     {
         if (!_disposed)
         {
-            PagingQueryableExtensions.ClearQueryInterceptor(this);
+            PagingQueryableExtensions.ClearQueryInterceptor();
             _disposed = true;
         }
     }

@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 
@@ -11,7 +11,7 @@ internal sealed class McpFeatureCollectionDetailPrompt
         _data = data;
     }
 
-    public McpFeatureCollectionDetailPromptResult ToObject(string[] formats)
+    public McpFeatureCollectionDetailPromptResult ToObject()
     {
         return new McpFeatureCollectionDetailPromptResult
         {
@@ -20,7 +20,8 @@ internal sealed class McpFeatureCollectionDetailPrompt
         };
     }
 
-    public static McpFeatureCollectionDetailPrompt From(IMcpFeatureCollectionDetailPrompt_McpFeatureCollection data) => new(data);
+    public static McpFeatureCollectionDetailPrompt From(IMcpFeatureCollectionDetailPrompt_McpFeatureCollection data)
+        => new(data);
 
     public class McpFeatureCollectionDetailPromptResult
     {

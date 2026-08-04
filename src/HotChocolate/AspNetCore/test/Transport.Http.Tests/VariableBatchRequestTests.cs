@@ -34,7 +34,7 @@ public class VariableBatchRequestTests(TestServerFactory serverFactory) : Server
 
         // act
         request.WriteTo(writer);
-        await writer.FlushAsync();
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
 
         // assert
         var result = JsonDocument.Parse(Encoding.UTF8.GetString(memory.ToArray())).RootElement;

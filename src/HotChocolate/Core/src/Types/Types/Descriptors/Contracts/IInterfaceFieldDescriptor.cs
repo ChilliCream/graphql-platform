@@ -141,7 +141,7 @@ public interface IInterfaceFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>The descriptor</returns>
     IInterfaceFieldDescriptor Resolve(FieldResolverDelegate fieldResolver);
 
     /// <summary>
@@ -161,7 +161,7 @@ public interface IInterfaceFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>The descriptor</returns>
     IInterfaceFieldDescriptor Resolve(
         FieldResolverDelegate fieldResolver,
         Type? resultType);
@@ -195,7 +195,7 @@ public interface IInterfaceFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>The descriptor</returns>
     IInterfaceFieldDescriptor ResolveWith<TResolver>(
         Expression<Func<TResolver, object>> propertyOrMethod);
 
@@ -228,8 +228,26 @@ public interface IInterfaceFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>The descriptor</returns>
     IInterfaceFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
+
+    /// <summary>
+    /// Adds a batch resolver based on a method to the field.
+    /// The method must return a list type whose element type becomes the GraphQL field type.
+    /// </summary>
+    /// <typeparam name="TResolver">The type that contains the batch resolver method.</typeparam>
+    /// <param name="propertyOrMethod">An expression selecting the batch resolver method.</param>
+    /// <returns>The descriptor</returns>
+    IInterfaceFieldDescriptor ResolveBatchWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod);
+
+    /// <summary>
+    /// Adds a batch resolver based on a method to the field.
+    /// The method must return a list type whose element type becomes the GraphQL field type.
+    /// </summary>
+    /// <param name="propertyOrMethod">The batch resolver member.</param>
+    /// <returns>The descriptor</returns>
+    IInterfaceFieldDescriptor ResolveBatchWith(MemberInfo propertyOrMethod);
 
     /// <summary>
     /// Registers a middleware on the field. The middleware is integrated in the resolver
@@ -312,4 +330,37 @@ public interface IInterfaceFieldDescriptor
     IInterfaceFieldDescriptor Directive(
         string name,
         params ArgumentNode[] arguments);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="selector">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IInterfaceFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IInterfaceFieldDescriptor ParentRequires<TParent>(string? requires);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IInterfaceFieldDescriptor ParentRequires(string? requires);
 }

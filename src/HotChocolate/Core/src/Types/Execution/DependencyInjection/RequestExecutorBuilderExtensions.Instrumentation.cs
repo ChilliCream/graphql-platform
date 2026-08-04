@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
@@ -29,7 +30,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
+    public static IRequestExecutorBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class
     {
@@ -103,7 +105,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
     /// to access the application services from within the schema service provider.
     /// </remarks>
-    public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
+    public static IRequestExecutorBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, T> factory)
         where T : class

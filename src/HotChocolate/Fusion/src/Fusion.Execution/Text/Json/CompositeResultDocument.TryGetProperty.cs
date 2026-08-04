@@ -1,0 +1,431 @@
+using System.Buffers;
+using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Text.Json;
+
+namespace HotChocolate.Fusion.Text.Json;
+
+public sealed partial class CompositeResultDocument
+{
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        string propertyName,
+        out CompositeResultElement value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        if (maxBytes < JsonConstants.StackallocByteThreshold)
+        {
+            Span<byte> utf8Name = stackalloc byte[JsonConstants.StackallocByteThreshold];
+            var len = s_utf8Encoding.GetBytes(propertyName, utf8Name);
+            utf8Name = utf8Name[..len];
+
+            return TryGetNamedPropertyValue(
+                startCursor + 1,
+                endCursor,
+                utf8Name,
+                out value);
+        }
+
+        // Unescaping the property name will make the string shorter (or the same)
+        // So the first viable candidate is one whose length in bytes matches, or
+        // exceeds, our length in chars.
+        //
+        // The maximal escaping seems to be 6 -> 1 ("\u0030" => "0"), but just transcode
+        // and switch once one viable long property is found.
+
+        var minBytes = propertyName.Length;
+        var candidate = endCursor;
+
+        while (candidate > startCursor)
+        {
+            var passed = candidate;
+
+            row = _metaDb.Get(candidate);
+            Debug.Assert(row.TokenType != ElementTokenType.PropertyName);
+
+            candidate--;
+            row = _metaDb.Get(candidate);
+            Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
+
+            if (row.SizeOrLength >= minBytes)
+            {
+                var tmpUtf8 = ArrayPool<byte>.Shared.Rent(maxBytes);
+                Span<byte> utf8Name = default;
+
+                try
+                {
+                    var len = s_utf8Encoding.GetBytes(propertyName, tmpUtf8);
+                    utf8Name = tmpUtf8.AsSpan(0, len);
+
+                    return TryGetNamedPropertyValue(
+                        startCursor,
+                        passed + 1,
+                        utf8Name,
+                        out value);
+                }
+                finally
+                {
+                    // While property names aren't usually a secret, they also usually
+                    // aren't long enough to end up in the rented buffer transcode path.
+                    //
+                    // On the basis that this is user data, go ahead and clear it.
+                    utf8Name.Clear();
+                    ArrayPool<byte>.Shared.Return(tmpUtf8);
+                }
+            }
+
+            // Move to the previous value
+            candidate--;
+        }
+
+        // None of the property names were within the range that the UTF-8 encoding would have been.
+        value = default;
+        return false;
+    }
+
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        string propertyName,
+        ref PropertyLookupMemo memo,
+        out CompositeResultElement value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSetId = row.OperationReferenceId;
+
+            if (memo.Valid && memo.LastSelectionSetId == selectionSetId)
+            {
+                if (!memo.Hit)
+                {
+                    value = default;
+                    return false;
+                }
+
+                var memoizedPropertyCursor = startCursor + memo.PropertyRowIndex;
+                Debug.Assert(
+                    _metaDb.GetElementTokenType(memoizedPropertyCursor)
+                        is ElementTokenType.PropertyName);
+                Debug.Assert(
+                    _metaDb.Get(memoizedPropertyCursor).OperationReferenceId
+                        == selectionSetId + ((memo.PropertyRowIndex + 1) / 2));
+                value = new CompositeResultElement(this, memoizedPropertyCursor + 1);
+                return true;
+            }
+
+            var selectionSet = _operation.GetSelectionSetById(selectionSetId);
+            memo.LastSelectionSetId = selectionSetId;
+            memo.Valid = true;
+
+            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+
+                memo.PropertyRowIndex = propertyRowIndex;
+                memo.Hit = true;
+
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            memo.PropertyRowIndex = 0;
+            memo.Hit = false;
+            value = default;
+            return false;
+        }
+
+        // Raw objects keep the existing linear lookup and do not participate in the memo.
+        return TryGetNamedPropertyValue(startCursor, propertyName, out value);
+    }
+
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        return TryGetNamedPropertyValue(
+            startCursor + 1,
+            endCursor,
+            propertyName,
+            out value);
+    }
+
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var found))
+            {
+                selection = found;
+                var propertyIndex = found.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == found.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        if (TryGetNamedPropertyValue(startCursor + 1, endCursor, propertyName, out value))
+        {
+            selection = value.AssertSelection();
+            return true;
+        }
+
+        selection = null!;
+        return false;
+    }
+
+    private bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        Cursor endCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+    {
+        Span<byte> utf8UnescapedStack = stackalloc byte[JsonConstants.StackallocByteThreshold];
+        var cursor = endCursor;
+
+        while (cursor > startCursor)
+        {
+            var row = _metaDb.Get(cursor);
+            Debug.Assert(row.TokenType != ElementTokenType.PropertyName);
+            cursor--;
+
+            row = _metaDb.Get(cursor);
+            Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
+            var currentPropertyName = ReadRawValue(row);
+
+            if (row.HasComplexChildren)
+            {
+                // An escaped property name will be longer than an unescaped candidate, so only unescape
+                // when the lengths are compatible.
+                if (currentPropertyName.Length > propertyName.Length)
+                {
+                    var idx = currentPropertyName.IndexOf(JsonConstants.BackSlash);
+                    Debug.Assert(idx >= 0);
+
+                    // If everything up to where the property name has a backslash matches, keep going.
+                    if (propertyName.Length > idx
+                        && currentPropertyName[..idx].SequenceEqual(propertyName[..idx]))
+                    {
+                        var remaining = currentPropertyName.Length - idx;
+                        var written = 0;
+                        byte[]? rented = null;
+
+                        try
+                        {
+                            var utf8Unescaped = remaining <= utf8UnescapedStack.Length
+                                ? utf8UnescapedStack
+                                : (rented = ArrayPool<byte>.Shared.Rent(remaining));
+
+                            // Only unescape the part we haven't processed.
+                            JsonReaderHelper.Unescape(currentPropertyName[idx..], utf8Unescaped, 0, out written);
+
+                            // If the unescaped remainder matches the input remainder, it's a match.
+                            if (utf8Unescaped[..written].SequenceEqual(propertyName[idx..]))
+                            {
+                                // If the property name is a match, the answer is the next element.
+                                value = new CompositeResultElement(this, cursor + 1);
+                                return true;
+                            }
+                        }
+                        finally
+                        {
+                            if (rented != null)
+                            {
+                                rented.AsSpan(0, written).Clear();
+                                ArrayPool<byte>.Shared.Return(rented);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (currentPropertyName.SequenceEqual(propertyName))
+            {
+                // If the property name is a match, the answer is the next element.
+                value = new CompositeResultElement(this, cursor + 1);
+                return true;
+            }
+
+            // Move to the previous value
+            cursor--;
+        }
+
+        value = default;
+        return false;
+    }
+
+    internal CompositeObjectContext GetObjectContext(Cursor startCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // Resolves the target object once (StartObject row, type check, selection-set
+        // metadata) so each property lookup only joins the name and computes the cursor.
+        // This is safe because the StartObject row does not change while its child values
+        // are written and the document cannot be disposed while an object is completed.
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+        SelectionSet? selectionSet = null;
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        }
+
+        return new CompositeObjectContext(this, startCursor, selectionSet, numberOfRows);
+    }
+
+    internal bool TryFindPropertyLinear(
+        Cursor startCursor,
+        Cursor endCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+        => TryGetNamedPropertyValue(startCursor, endCursor, propertyName, out value);
+
+    internal CompositeResultElement GetPropertyBySelectionId(
+        Cursor startCursor,
+        int selectionId)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        Debug.Assert(row.TokenType is ElementTokenType.StartObject);
+        Debug.Assert(row.OperationReferenceType is OperationReferenceType.SelectionSet);
+
+        var selectionSetId = row.OperationReferenceId;
+        var propertyIndex = selectionId - selectionSetId - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+        Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+        Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selectionId);
+
+        return new CompositeResultElement(this, propertyCursor + 1);
+    }
+
+    internal Cursor GetStartCursor(Cursor cursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        (cursor, _) = _metaDb.GetStartCursor(cursor);
+        return cursor;
+    }
+
+    internal Cursor GetEndCursor(Cursor cursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        return cursor + _metaDb.GetNumberOfRows(cursor);
+    }
+}

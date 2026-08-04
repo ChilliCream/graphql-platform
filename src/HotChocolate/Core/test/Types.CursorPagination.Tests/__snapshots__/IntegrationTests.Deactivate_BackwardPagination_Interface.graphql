@@ -2,8 +2,25 @@ schema {
   query: QueryAttr
 }
 
-interface ISome {
-  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExplicitTypeConnection
+type QueryAttr {
+  nestedObjectList(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): NestedObjectListConnection
+  letters(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): LettersConnection
+  explicitType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): ExplicitTypeConnection
 }
 
 "A connection to a list of items."
@@ -78,8 +95,11 @@ type PageInfo {
   endCursor: String
 }
 
-type QueryAttr {
-  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): NestedObjectListConnection
-  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): LettersConnection
-  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExplicitTypeConnection
+interface ISome {
+  explicitType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): ExplicitTypeConnection
 }

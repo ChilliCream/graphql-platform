@@ -17,6 +17,13 @@ internal partial class MiddlewareContext
         _childContext = new PureResolverContext(this);
     }
 
+    /// <summary>
+    /// Gets the execution branch identifier this context belongs to.
+    /// Set by the owning task (ResolverTask or BatchResolverTask) so that
+    /// value completion can read it without requiring it to be passed down.
+    /// </summary>
+    public int BranchId { get; set; }
+
     public void Initialize(
         object? parent,
         Selection selection,
@@ -61,6 +68,7 @@ internal partial class MiddlewareContext
         ResultValue = default;
         HasErrors = false;
         Arguments = null!;
+        BranchId = 0;
         RequestAborted = CancellationToken.None;
     }
 }

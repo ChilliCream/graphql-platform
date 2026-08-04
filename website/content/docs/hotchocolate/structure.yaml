@@ -1,0 +1,20 @@
+title: Hot Chocolate
+items:
+  - path: index
+    title: Introduction
+  - path: get-started-with-graphql-in-net-core
+    title: Getting Started
+  - path: defining-a-schema
+    title: Building a Schema
+  - path: resolvers
+    title: Resolvers
+  - path: fetching-data
+    title: Fetching Data
+  - path: server
+    title: Server
+  - path: performance
+    title: Performance
+  - path: security
+    title: Securing Your API
+  - path: migrating
+    title: Migrating

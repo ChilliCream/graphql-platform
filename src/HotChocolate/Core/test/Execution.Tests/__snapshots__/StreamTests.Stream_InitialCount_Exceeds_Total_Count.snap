@@ -13,7 +13,26 @@
       {
         "id": "UGVyc29uOjQ="
       }
-    ],
-    "wait": true
-  }
+    ]
+  },
+  "pending": [
+    {
+      "id": "2",
+      "path": []
+    }
+  ],
+  "incremental": [
+    {
+      "id": "2",
+      "data": {
+        "wait": true
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": "2"
+    }
+  ],
+  "hasNext": false
 }

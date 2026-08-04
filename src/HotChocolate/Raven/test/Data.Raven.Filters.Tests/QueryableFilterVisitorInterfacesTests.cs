@@ -36,21 +36,24 @@ public class QueryableFilterVisitorInterfacesTests
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) "
                     + "{ test{ prop}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -58,7 +61,7 @@ public class QueryableFilterVisitorInterfacesTests
             .AddResult(res1, "a")
             .AddResult(res2, "ba")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void Configure(IRequestExecutorBuilder builder)

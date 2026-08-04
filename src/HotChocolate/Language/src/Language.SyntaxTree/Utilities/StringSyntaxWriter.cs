@@ -6,6 +6,7 @@ public class StringSyntaxWriter : ISyntaxWriter
 {
     private static readonly StringSyntaxWriterPool s_pool = new();
     private int _indent;
+    private int _column;
 
     public static StringSyntaxWriter Rent()
     {
@@ -18,6 +19,9 @@ public class StringSyntaxWriter : ISyntaxWriter
     }
 
     internal StringBuilder StringBuilder { get; } = new();
+
+    /// <inheritdoc />
+    public int Column => _column;
 
     public void Indent()
     {
@@ -35,18 +39,40 @@ public class StringSyntaxWriter : ISyntaxWriter
     public void Write(char c)
     {
         StringBuilder.Append(c);
+
+        if (c == '\n')
+        {
+            _column = 0;
+        }
+        else
+        {
+            _column++;
+        }
     }
 
     public void Write(string s)
     {
         StringBuilder.Append(s);
+
+        var lastNewLine = s.LastIndexOf('\n');
+
+        if (lastNewLine >= 0)
+        {
+            _column = s.Length - lastNewLine - 1;
+        }
+        else
+        {
+            _column += s.Length;
+        }
     }
 
     public void WriteIndent(bool condition = true)
     {
         if (condition && _indent > 0)
         {
-            StringBuilder.Append(' ', 2 * _indent);
+            var spaces = 2 * _indent;
+            StringBuilder.Append(' ', spaces);
+            _column += spaces;
         }
     }
 
@@ -55,6 +81,7 @@ public class StringSyntaxWriter : ISyntaxWriter
         if (condition)
         {
             StringBuilder.AppendLine();
+            _column = 0;
         }
     }
 
@@ -63,12 +90,14 @@ public class StringSyntaxWriter : ISyntaxWriter
         if (condition)
         {
             StringBuilder.Append(' ');
+            _column++;
         }
     }
 
     public void Clear()
     {
         StringBuilder.Clear();
+        _column = 0;
     }
 
     public override string ToString()

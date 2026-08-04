@@ -1,11 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class WaitForApprovalOption : Option<bool>
 {
-    public WaitForApprovalOption() : base("--wait-for-approval", "Wait for approval")
+    public WaitForApprovalOption() : base("--wait-for-approval")
     {
-        IsRequired = true;
-        this.DefaultFromEnvironmentValue("SUBGRAPH_NAME");
+        Required = false;
+        Description = "Wait for the deployment to be approved before completing";
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.WaitForApproval);
     }
 }
 
@@ -13,6 +14,6 @@ internal sealed class OptionalWaitForApprovalOption : WaitForApprovalOption
 {
     public OptionalWaitForApprovalOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

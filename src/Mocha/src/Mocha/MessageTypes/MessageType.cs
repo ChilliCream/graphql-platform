@@ -1,0 +1,299 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
+
+namespace Mocha;
+
+/// <summary>
+/// Represents a registered message type in the messaging system, holding identity, serialization, and type hierarchy metadata.
+/// </summary>
+public class MessageType
+{
+    /// <summary>
+    /// Gets a value indicating whether the message type has been fully initialized with its type hierarchy and enclosed types.
+    /// </summary>
+    public bool IsCompleted { get; private set; }
+
+    private ImmutableArray<Type> _enclosedTypes;
+
+    private IMessageSerializerRegistry _serializerRegistry = null!;
+
+    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer = ImmutableDictionary<
+        MessageContentType,
+        IMessageSerializer
+    >.Empty;
+
+    /// <summary>
+    /// Gets the URN-based identity string that uniquely identifies this message type on the wire.
+    /// </summary>
+    public string Identity { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the stable URN identity of this message type.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the CLR type represented by this message type.
+    /// </summary>
+    public Type RuntimeType { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the message types in the type hierarchy (base types and interfaces) that are also registered as message types.
+    /// </summary>
+    public ImmutableArray<MessageType> EnclosedMessageTypes { get; private set; } = [];
+
+    /// <summary>
+    /// Gets the identity strings of all types in the hierarchy, used for wire-level message matching.
+    /// </summary>
+    public ImmutableArray<string> EnclosedMessageIdentities { get; private set; } = [];
+
+    /// <summary>
+    /// Gets the default content type used for serialization, or <c>null</c> to use the system default.
+    /// </summary>
+    public MessageContentType? DefaultContentType { get; private set; }
+
+    /// <summary>
+    /// Gets the feature collection associated with this message type, providing transport-specific extensibility.
+    /// </summary>
+    public IFeatureCollection Features { get; private set; } = FeatureCollection.Empty;
+
+    /// <summary>
+    /// Gets a value indicating whether the underlying CLR type is an interface.
+    /// </summary>
+    public bool IsInterface { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether this message type is marked as internal (not exposed for external routing).
+    /// </summary>
+    public bool IsInternal { get; private set; }
+
+    /// <summary>
+    /// Source metadata captured from the message declaration.
+    /// </summary>
+    public SourceMetadata? Source { get; private set; }
+
+    public MessageType()
+    {
+    }
+
+    internal MessageType(Type runtimeType)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+
+        RuntimeType = runtimeType;
+    }
+
+    internal void Initialize(IMessagingConfigurationContext context)
+    {
+        if (RuntimeType is null)
+        {
+            throw new InvalidOperationException(
+                "Message type requires a runtime type to create configuration from a descriptor.");
+        }
+
+        var descriptor = new MessageTypeDescriptor(context, RuntimeType);
+
+        context.ApplyConfigurations<IMessageTypeDescriptor>(RuntimeType, descriptor);
+
+        var configuration = descriptor.CreateConfiguration();
+
+        context.Conventions.Configure(context, configuration);
+
+        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires an identity");
+        Urn = MochaUrn.MessageType(Identity);
+        RuntimeType = configuration.RuntimeType ?? RuntimeType
+            ?? throw new InvalidOperationException("Message requires a runtime type");
+        IsInterface = RuntimeType.IsInterface;
+        IsInternal = configuration.IsInternal;
+        DefaultContentType = configuration.DefaultContentType;
+        Source = configuration.Source;
+
+        Features = configuration.GetFeatures().ToReadOnly();
+
+        _serializerRegistry =
+            context.Messages.Serializers ?? throw new InvalidOperationException("Serializer registry is required");
+
+        _serializer = configuration.MessageSerializer.ToImmutableDictionary(k => k.Key, v => v.Value);
+
+        _enclosedTypes = configuration.EnclosedTypes;
+
+        foreach (var routeConfiguration in configuration.Routes)
+        {
+            var outboundRoute = new OutboundRoute();
+            routeConfiguration.MessageType = this;
+            outboundRoute.Initialize(context, routeConfiguration);
+            context.Router.AddOrUpdate(outboundRoute);
+        }
+    }
+
+    /// <summary>
+    /// Gets a serializer for the specified content type, caching the result for subsequent calls.
+    /// </summary>
+    /// <param name="contentType">The content type to get a serializer for.</param>
+    /// <returns>A serializer for the content type, or <c>null</c> if none is available.</returns>
+    public IMessageSerializer? GetSerializer(MessageContentType contentType)
+    {
+        if (_serializer.TryGetValue(contentType, out var serializer))
+        {
+            return serializer;
+        }
+
+        serializer = _serializerRegistry.GetSerializer(contentType, RuntimeType);
+        if (serializer is null)
+        {
+            return null;
+        }
+
+        return ImmutableInterlocked.GetOrAdd(ref _serializer, contentType, serializer);
+    }
+
+    /// <summary>
+    /// Completes initialization by resolving the full type hierarchy and registering enclosed message types.
+    /// </summary>
+    /// <param name="context">The messaging configuration context.</param>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback is guarded by IsAotCompatible. AOT uses source-generated enclosed types.")]
+    public void Complete(IMessagingConfigurationContext context)
+    {
+        var enclosedMessageTypes = ImmutableArray.CreateBuilder<MessageType>();
+        var enclosedMessageIdentities = ImmutableArray.CreateBuilder<string>();
+
+        if (!_enclosedTypes.IsDefaultOrEmpty)
+        {
+            foreach (var type in _enclosedTypes)
+            {
+                DispatchEnclosedType(context, type, enclosedMessageTypes, enclosedMessageIdentities);
+            }
+        }
+        else
+        {
+            var options = context.Services.GetRequiredService<IReadOnlyMessagingOptions>();
+
+            if (options.IsAotCompatible)
+            {
+                throw new InvalidOperationException(
+                    $"No enclosed types provided for message type '{Identity}'. "
+                    + "Register enclosed types via the source generator. "
+                    + "Set IsAotCompatible = false to allow reflection-based type discovery.");
+            }
+
+            CompleteViaReflection(context, enclosedMessageTypes, enclosedMessageIdentities);
+        }
+
+        EnclosedMessageTypes = enclosedMessageTypes.ToImmutableArray();
+        EnclosedMessageIdentities = enclosedMessageIdentities.ToImmutableArray();
+
+        IsCompleted = true;
+    }
+
+    [RequiresUnreferencedCode(
+        "Walks GetInterfaces / BaseType and registers discovered types. Use the source generator for AOT.")]
+    private void CompleteViaReflection(
+        IMessagingConfigurationContext context,
+        ImmutableArray<MessageType>.Builder enclosedMessageTypes,
+        ImmutableArray<string>.Builder enclosedMessageIdentities)
+    {
+        var allTypes = GetAllTypesInHierarchy(RuntimeType, context);
+
+        // Sort by specificity (most specific first)
+        var sortedTypes = allTypes
+            .OrderByDescending(t => allTypes.Count(other => t != other && t.IsAssignableTo(other)))
+            .ToList();
+
+        foreach (var type in sortedTypes)
+        {
+            DispatchEnclosedType(context, type, enclosedMessageTypes, enclosedMessageIdentities);
+        }
+
+        foreach (var interfaceType in RuntimeType.GetInterfaces())
+        {
+            if (interfaceType.IsGenericType
+                && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
+            {
+                var responseType = interfaceType.GetGenericArguments()[0];
+                context.Messages.GetOrAdd(context, responseType);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a description of this message type for visualization and diagnostic purposes.
+    /// </summary>
+    /// <returns>A <see cref="MessageTypeDescription"/> representing this message type.</returns>
+    public MessageTypeDescription Describe()
+    {
+        return new MessageTypeDescription(
+            Urn,
+            Identity,
+            DescriptionHelpers.GetTypeName(RuntimeType),
+            RuntimeType.FullName,
+            IsInterface,
+            IsInternal,
+            DefaultContentType?.Value,
+            EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities,
+            Source);
+    }
+
+    [RequiresUnreferencedCode("Uses GetInterfaces and BaseType traversal which may reference trimmed types.")]
+    private static List<Type> GetAllTypesInHierarchy(Type type, IMessagingConfigurationContext context)
+    {
+        var interfaces = type.GetInterfaces();
+
+        var types = new List<Type>(interfaces.Length + 1);
+
+        var currentType = type;
+
+        while (currentType is not null && currentType != typeof(object))
+        {
+            if (IsRelevantType(currentType, context) && !types.Contains(currentType))
+            {
+                types.Add(currentType);
+            }
+
+            currentType = currentType.BaseType;
+        }
+
+        foreach (var interfaceType in type.GetInterfaces())
+        {
+            if (IsRelevantType(interfaceType, context) && !types.Contains(interfaceType))
+            {
+                types.Add(interfaceType);
+            }
+        }
+
+        return types;
+    }
+
+    private static bool IsRelevantType(Type type, IMessagingConfigurationContext context)
+    {
+        return context.Messages.IsRegistered(type) || IsFrameworkBaseType(type);
+    }
+
+    private static bool IsFrameworkBaseType(Type type)
+    {
+        return type == typeof(IEventRequest)
+            || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEventRequest<>));
+    }
+
+    private static void DispatchEnclosedType(
+        IMessagingConfigurationContext context,
+        Type type,
+        ImmutableArray<MessageType>.Builder enclosedMessageTypes,
+        ImmutableArray<string>.Builder enclosedMessageIdentities)
+    {
+        if (IsFrameworkBaseType(type))
+        {
+            enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
+        }
+        else
+        {
+            var mt = context.Messages.GetOrAdd(context, type);
+            enclosedMessageTypes.Add(mt);
+            enclosedMessageIdentities.Add(mt.Identity);
+        }
+    }
+}

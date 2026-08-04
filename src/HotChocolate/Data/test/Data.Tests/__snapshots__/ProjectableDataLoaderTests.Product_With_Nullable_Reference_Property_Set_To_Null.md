@@ -3,10 +3,10 @@
 ## SQL
 
 ```text
--- @__id_0='1'
+-- @id='1'
 SELECT p."Name"
 FROM "Products" AS p
-WHERE p."Id" = @__id_0
+WHERE p."Id" = @id
 ```
 
 ## Result

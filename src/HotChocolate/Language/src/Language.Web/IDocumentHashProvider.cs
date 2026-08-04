@@ -13,6 +13,11 @@ public interface IDocumentHashProvider
     string Name { get; }
 
     /// <summary>
+    /// The name of the algorithm used for hashing.
+    /// </summary>
+    string AlgorithmName { get; }
+
+    /// <summary>
     /// Gets the format of the document hash.
     /// </summary>
     HashFormat Format { get; }

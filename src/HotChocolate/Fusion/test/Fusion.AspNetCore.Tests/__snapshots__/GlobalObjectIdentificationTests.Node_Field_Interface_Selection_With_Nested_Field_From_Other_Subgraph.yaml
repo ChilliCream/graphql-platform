@@ -1,0 +1,286 @@
+title: Node_Field_Interface_Selection_With_Nested_Field_From_Other_Subgraph
+request:
+  document: |
+    {
+      node(id: "T3JkZXIxOjE=") {
+        ... on IOrder {
+          name
+          product {
+            name
+            comments {
+              content
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "name": "Order1: T3JkZXIxOjE=",
+          "product": {
+            "name": "Product: UHJvZHVjdDox",
+            "comments": [
+              {
+                "content": "Comment: Q29tbWVudDox"
+              },
+              {
+                "content": "Comment: Q29tbWVudDoy"
+              },
+              {
+                "content": "Comment: Q29tbWVudDoz"
+              }
+            ]
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        order1ById(id: ID!): Order1 @lookup
+        order2ById(id: ID!): Order2 @lookup
+        orders: [IOrder!]!
+      }
+
+      type Order1 implements Node & IOrder {
+        id: ID!
+        name: String!
+        product: Product!
+      }
+
+      type Order2 implements Node & IOrder {
+        id: ID!
+        name: String!
+        product: Product!
+      }
+
+      type Product {
+        id: ID! @shareable
+      }
+
+      interface IOrder {
+        id: ID!
+        name: String!
+        product: Product!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_474fbd54_5 {
+              node(id: "T3JkZXIxOjE=") {
+                __typename
+                ... on Order1 {
+                  __typename
+                  name
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Order1",
+                    "name": "Order1: T3JkZXIxOjE=",
+                    "product": {
+                      "id": "UHJvZHVjdDox"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        products: [Product!]!
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Comment {
+        content: String!
+      }
+
+      type Product implements Node {
+        id: ID! @shareable
+        name: String!
+        comments: [Comment!]!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_474fbd54_6($__fusion_2_id: ID!) {
+              productById(id: $__fusion_2_id) {
+                name
+                comments {
+                  content
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDox",
+                    "comments": [
+                      {
+                        "content": "Comment: Q29tbWVudDox"
+                      },
+                      {
+                        "content": "Comment: Q29tbWVudDoy"
+                      },
+                      {
+                        "content": "Comment: Q29tbWVudDoz"
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "T3JkZXIxOjE=") {
+            __typename @fusion__requirement
+            ... on IOrder {
+              name
+              product {
+                name
+                comments {
+                  content
+                }
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      hash: 474fbd5433d9692c31cb4a27248b49a2
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "T3JkZXIxOjE="
+      responseName: node
+      branches:
+        - Order1: 5
+        - Order2: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_474fbd54_2 {
+          node(id: "T3JkZXIxOjE=") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_474fbd54_3 {
+          node(id: "T3JkZXIxOjE=") {
+            __typename
+            ... on Order2 {
+              __typename
+              name
+              product {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query Op_474fbd54_4($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            name
+            comments {
+              content
+            }
+          }
+        }
+      source: $.productById
+      target: $.node<Order2>.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: A
+      operation: |
+        query Op_474fbd54_5 {
+          node(id: "T3JkZXIxOjE=") {
+            __typename
+            ... on Order1 {
+              __typename
+              name
+              product {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 6
+      type: Operation
+      schema: B
+      operation: |
+        query Op_474fbd54_6($__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            name
+            comments {
+              content
+            }
+          }
+        }
+      source: $.productById
+      target: $.node<Order1>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 5

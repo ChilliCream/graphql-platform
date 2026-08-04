@@ -21,6 +21,13 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     public MutableScalarTypeDefinition(string name)
     {
         Name = name.EnsureGraphQLName();
+
+        // Spec scalars have fixed serialization types resolved by name. Any other scalar's type
+        // is set from its @serializeAs directive, or left undefined (which accepts any literal).
+        if (SpecScalarNames.IsSpecScalar(Name))
+        {
+            SerializationType = this.GetScalarSerializationType();
+        }
     }
 
     /// <inheritdoc />
@@ -89,7 +96,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
         return false;
     }
 
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get
         {
@@ -102,12 +109,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
 
             var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
 
-            if (url.Value is not StringValueNode urlValue)
-            {
-                throw new InvalidOperationException("The specified URL is not a valid URI.");
-            }
-
-            return new Uri(urlValue.Value);
+            return url.Value is StringValueNode urlValue ? urlValue.Value : null;
         }
     }
 
@@ -116,13 +118,6 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
 
     /// <inheritdoc />
     public string? Pattern { get; set; }
-
-    /// <inheritdoc />
-    public bool IsValueCompatible(IValueNode valueLiteral)
-    {
-        ArgumentNullException.ThrowIfNull(valueLiteral);
-        return true;
-    }
 
     /// <summary>
     /// Gets the string representation of this instance.

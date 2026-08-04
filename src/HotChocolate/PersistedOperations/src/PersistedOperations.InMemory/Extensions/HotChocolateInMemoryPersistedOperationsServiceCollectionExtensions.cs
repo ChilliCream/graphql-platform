@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using HotChocolate.PersistedOperations;
-using HotChocolate.PersistedOperations.FileSystem;
+using HotChocolate.PersistedOperations.InMemory;
 using HotChocolate.Utilities;
 
 namespace HotChocolate;

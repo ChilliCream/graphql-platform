@@ -1,11 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class MockSchemaNameOption : Option<string>
 {
     public MockSchemaNameOption() : base("--name")
     {
         Description = "The name of the mock schema";
-        IsRequired = true;
-        this.DefaultFromEnvironmentValue("MOCK_SCHEMA_NAME");
+        Required = true;
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.MockSchemaName);
+        this.NonEmptyStringsOnly();
     }
 }

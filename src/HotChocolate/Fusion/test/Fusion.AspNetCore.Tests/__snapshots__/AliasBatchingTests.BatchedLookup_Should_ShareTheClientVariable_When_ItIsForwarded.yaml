@@ -1,0 +1,200 @@
+title: BatchedLookup_Should_ShareTheClientVariable_When_ItIsForwarded
+request:
+  document: |
+    query($postFix: String) {
+      books {
+        author {
+          name(postFix: $postFix)
+        }
+      }
+    }
+  variables: |
+    {
+      "postFix": "x"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "author": {
+              "name": "Author 1 - x"
+            }
+          },
+          {
+            "author": {
+              "name": "Author 2 - x"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        author: Author
+        id: ID!
+        title: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_2fede843_1 {
+              books {
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "author": {
+                        "id": "1"
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": "2"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        name(postFix: String): String!
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        rating: String!
+        errorRating: String
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_2fede843_Batch_af64ebbf6213e7bd(
+              $postFix: String
+              $_0___fusion_1_id: ID!
+              $_1___fusion_1_id: ID!
+            ) {
+              _0_authorById: authorById(id: $_0___fusion_1_id) {
+                ..._fusion_body_1
+              }
+              _1_authorById: authorById(id: $_1___fusion_1_id) {
+                ..._fusion_body_1
+              }
+            }
+
+            fragment _fusion_body_1 on Author {
+              name(postFix: $postFix)
+            }
+          variables: |
+            {
+              "postFix": "x",
+              "_0___fusion_1_id": "1",
+              "_1___fusion_1_id": "2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_0_authorById": {
+                    "name": "Author 1 - x"
+                  },
+                  "_1_authorById": {
+                    "name": "Author 2 - x"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "_0_authorById": {
+                    "name": "Author 1 - x"
+                  },
+                  "_1_authorById": {
+                    "name": "Author 2 - x"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query($postFix: String) {
+          books {
+            author {
+              name(postFix: $postFix)
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 2fede843d6d376a00b9017bc9910abd3
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_2fede843_1 {
+          books {
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_2fede843_2($postFix: String, $__fusion_1_id: ID!) {
+          authorById(id: $__fusion_1_id) {
+            name(postFix: $postFix)
+          }
+        }
+      source: $.authorById
+      target: $.books.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - postFix
+      dependencies:
+        - id: 1

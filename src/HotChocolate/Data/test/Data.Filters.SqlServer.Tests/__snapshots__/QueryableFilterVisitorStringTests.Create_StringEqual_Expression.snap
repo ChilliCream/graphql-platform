@@ -13,11 +13,11 @@ testatest Result:
 
 testatest SQL:
 ---------------
-.param set @__p_0 'testatest'
+.param set @p 'testatest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" = @__p_0
+WHERE "d"."Bar" = @p
 ---------------
 
 testbtest Result:
@@ -35,11 +35,11 @@ testbtest Result:
 
 testbtest SQL:
 ---------------
-.param set @__p_0 'testbtest'
+.param set @p 'testbtest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" = @__p_0
+WHERE "d"."Bar" = @p
 ---------------
 
 null

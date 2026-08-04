@@ -1,5 +1,5 @@
 using System.Globalization;
-using HotChocolate.Execution.Processing;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -13,7 +13,7 @@ internal static class ErrorHelper
     private const string InterfaceTypeValidation = "sec-Interfaces.Type-Validation";
     private const string ObjectTypeValidation = "sec-Objects.Type-Validation";
     private const string InputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
-    private const string DirectiveValidation = "sec-Type-System.Directives.Validation";
+    private const string DirectiveValidation = "sec-Type-System.Directives.Type-Validation";
 
     public static ISchemaError NeedsOneAtLeastField(ITypeDefinition type)
         => SchemaErrorBuilder.New()
@@ -63,6 +63,13 @@ internal static class ErrorHelper
     public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(IDirectiveDefinition directiveDefinition)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName)
+            .SetDirective(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+
+    public static ISchemaError DirectiveDefinitionSelfApplication(IDirectiveDefinition directiveDefinition)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_DirectiveDefinitionSelfApplication, directiveDefinition.Name)
             .SetDirective(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
@@ -240,6 +247,152 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.InputObject, rfc: 805)
             .Build();
 
+    public static ISchemaError InvalidObjectDeprecation(
+        IOutputFieldDefinition field,
+        IObjectTypeDefinition objectType)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_InvalidObjectDeprecation,
+                field.Coordinate.ToString(),
+                objectType.Name)
+            .SetType(field.DeclaringType)
+            .SetField(field)
+            .SetSpecifiedBy(field.DeclaringType.Kind, rfc: 997)
+            .Build();
+
+    public static ISchemaError IncompatibleDefaultValueType(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string typeName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            formattedPath is null
+                ? isInputField
+                    ? ErrorHelper_InputFieldDefaultValueIncompatibleType
+                    : ErrorHelper_ArgumentDefaultValueIncompatibleType
+                : isInputField
+                    ? ErrorHelper_InputFieldDefaultValueIncompatibleTypeAtPath
+                    : ErrorHelper_ArgumentDefaultValueIncompatibleTypeAtPath,
+            root.Coordinate.ToString(),
+            typeName,
+            formattedPath);
+    }
+
+    public static ISchemaError DuplicateFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            formattedPath is null
+                ? isInputField
+                    ? ErrorHelper_InputFieldDefaultValueDuplicateField
+                    : ErrorHelper_ArgumentDefaultValueDuplicateField
+                : isInputField
+                    ? ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath
+                    : ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
+    public static ISchemaError UnknownFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            formattedPath is null
+                ? isInputField
+                    ? ErrorHelper_InputFieldDefaultValueUnknownField
+                    : ErrorHelper_ArgumentDefaultValueUnknownField
+                : isInputField
+                    ? ErrorHelper_InputFieldDefaultValueUnknownFieldAtPath
+                    : ErrorHelper_ArgumentDefaultValueUnknownFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
+    public static ISchemaError MissingRequiredFieldInDefaultValue(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string fieldName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            formattedPath is null
+                ? isInputField
+                    ? ErrorHelper_InputFieldDefaultValueMissingField
+                    : ErrorHelper_ArgumentDefaultValueMissingField
+                : isInputField
+                    ? ErrorHelper_InputFieldDefaultValueMissingFieldAtPath
+                    : ErrorHelper_ArgumentDefaultValueMissingFieldAtPath,
+            root.Coordinate.ToString(),
+            fieldName,
+            formattedPath);
+    }
+
+    public static ISchemaError OneOfDefaultValueMustHaveExactlyOneField(
+        IInputValueDefinition root,
+        IReadOnlyList<object> path,
+        string inputObjectName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+        var formattedPath = path.Count > 0 ? FormatPath(path) : null;
+
+        return DefaultValueError(
+            root,
+            formattedPath,
+            formattedPath is null
+                ? isInputField
+                    ? ErrorHelper_InputFieldDefaultValueOneOf
+                    : ErrorHelper_ArgumentDefaultValueOneOf
+                : isInputField
+                    ? ErrorHelper_InputFieldDefaultValueOneOfAtPath
+                    : ErrorHelper_ArgumentDefaultValueOneOfAtPath,
+            root.Coordinate.ToString(),
+            inputObjectName,
+            formattedPath);
+    }
+
+    public static ISchemaError UndefinedDefaultEnumValue(
+        IInputValueDefinition root,
+        string enumValue,
+        string enumTypeName)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+
+        return DefaultValueError(
+            root,
+            formattedPath: null,
+            isInputField
+                ? ErrorHelper_UndefinedInputFieldDefaultEnumValue
+                : ErrorHelper_UndefinedArgumentDefaultEnumValue,
+            enumValue,
+            root.Coordinate.ToString(),
+            enumTypeName);
+    }
+
     public static ISchemaError DirectiveType_NoLocations(string name, DirectiveType type)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -307,6 +460,71 @@ internal static class ErrorHelper
         }
 
         return errorBuilder;
+    }
+
+    private static ISchemaError DefaultValueError(
+        IInputValueDefinition root,
+        string? formattedPath,
+        string format,
+        params object?[] args)
+    {
+        var isInputField = root.DeclaringMember is IInputObjectTypeDefinition;
+
+        var builder = SchemaErrorBuilder.New()
+            .SetMessage(format, args)
+            .SetTypeSystemObject(GetDeclaringTypeSystemObject(root))
+            .SetSpecifiedBy(GetSpecifiedByKind(root));
+
+        builder = isInputField ? builder.SetField(root) : builder.SetArgument(root);
+
+        if (formattedPath is not null)
+        {
+            builder.SetExtension("path", formattedPath);
+        }
+
+        return builder.Build();
+    }
+
+    private static TypeSystemObject GetDeclaringTypeSystemObject(IInputValueDefinition root)
+        => root.DeclaringMember switch
+        {
+            IOutputFieldDefinition field => (TypeSystemObject)field.DeclaringType,
+            IInputObjectTypeDefinition type => (TypeSystemObject)type,
+            IDirectiveDefinition directive => (TypeSystemObject)directive,
+            _ => throw new InvalidOperationException()
+        };
+
+    private static TypeKind GetSpecifiedByKind(IInputValueDefinition root)
+        => root.DeclaringMember switch
+        {
+            IOutputFieldDefinition field => field.DeclaringType.Kind,
+            IInputObjectTypeDefinition type => type.Kind,
+            IDirectiveDefinition => TypeKind.Directive,
+            _ => throw new InvalidOperationException()
+        };
+
+    private static string FormatPath(IReadOnlyList<object> path)
+    {
+        var builder = new StringBuilder();
+
+        for (var i = 0; i < path.Count; i++)
+        {
+            if (path[i] is int index)
+            {
+                builder.Append('[').Append(index).Append(']');
+            }
+            else
+            {
+                if (builder.Length > 0)
+                {
+                    builder.Append('.');
+                }
+
+                builder.Append(path[i]);
+            }
+        }
+
+        return builder.ToString();
     }
 
     public static ISchemaError InterfaceHasNoImplementation(
@@ -453,7 +671,7 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
+    public static IError Relay_NoNodeResolver(string typeName, Path path)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
@@ -494,7 +712,6 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
@@ -553,4 +770,33 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
     }
+
+    public static ISchemaError RequiresOptInOnRequiredInputField(
+        IInputObjectTypeDefinition type,
+        IInputValueDefinition field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredInputField)
+            .SetType(type)
+            .SetField(field)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredArgument(
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredDirectiveArgument(
+        IDirectiveDefinition directive,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetDirective(directive)
+            .SetArgument(argument)
+            .Build();
 }

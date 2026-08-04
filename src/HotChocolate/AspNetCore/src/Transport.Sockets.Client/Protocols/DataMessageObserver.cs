@@ -1,54 +1,42 @@
-using System.Collections.Concurrent;
+using System.Threading.Channels;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class DataMessageObserver(string id) : IObserver<IOperationMessage>, IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new(0);
-    private readonly ConcurrentQueue<IDataMessage> _messages = new();
-    private Exception? _error;
-    private bool _disposed;
+    private readonly Channel<IDataMessage> _channel = Channel.CreateUnbounded<IDataMessage>();
 
     public async ValueTask<IDataMessage?> TryReadNextAsync(CancellationToken ct)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        await _semaphore.WaitAsync(ct);
-
-        if (_error is not null)
+        // WaitToReadAsync rethrows the error the channel was completed with (for example a
+        // SocketClosedException) so it surfaces to the consumer, and returns false on a
+        // clean completion.
+        while (await _channel.Reader.WaitToReadAsync(ct))
         {
-            throw _error;
+            if (_channel.Reader.TryRead(out var message))
+            {
+                return message;
+            }
         }
 
-        _messages.TryDequeue(out var message);
-        return message;
+        return null;
     }
 
     public void OnNext(IOperationMessage value)
     {
         if (value is IDataMessage message && message.Id.EqualsOrdinal(id))
         {
-            _messages.Enqueue(message);
-            _semaphore.Release();
+            _channel.Writer.TryWrite(message);
         }
     }
 
     public void OnError(Exception error)
-    {
-        _error = error;
-        _semaphore.Release();
-    }
+        => _channel.Writer.TryComplete(error);
 
     public void OnCompleted()
-        => _semaphore.Release();
+        => _channel.Writer.TryComplete();
 
     public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _semaphore.Dispose();
-            _disposed = true;
-        }
-    }
+        => _channel.Writer.TryComplete();
 }

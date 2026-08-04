@@ -98,12 +98,26 @@ public sealed class SocketClient : ISocket
         => _pipeline.RunAsync(_ct).FireAndForget();
 
     public ValueTask<SocketResult> ExecuteAsync(
-        OperationRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         return _protocol.ExecuteAsync(_context, request, cancellationToken);
+    }
+
+    public ValueTask<SocketResult> ExecuteBatchAsync(
+        OperationBatchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Requests.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException(
+                "The batch request must contain at least one operation.",
+                nameof(request));
+        }
+
+        return _protocol.ExecuteBatchAsync(_context, request, cancellationToken);
     }
 
     async Task<bool> ISocket.ReadMessageAsync(
@@ -140,16 +154,15 @@ public sealed class SocketClient : ISocket
 
             return read > 0;
         }
-        catch
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // swallow exception, there's nothing we can reasonably do.
             return false;
         }
     }
 
     public ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed)
         {
             _cts.Cancel();
             _cts.Dispose();
@@ -164,21 +177,9 @@ public sealed class SocketClient : ISocket
         IProtocolHandler protocolHandler)
         : IMessageHandler
     {
-        public async ValueTask OnReceiveAsync(
+        public ValueTask OnReceiveAsync(
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await protocolHandler.OnReceiveAsync(context, message, cancellationToken);
-            }
-            finally
-            {
-                if (context.Socket.IsClosed())
-                {
-                    context.Messages.OnCompleted();
-                }
-            }
-        }
+            => protocolHandler.OnReceiveAsync(context, message, cancellationToken);
     }
 }

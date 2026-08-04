@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "message": "No schema member was found for the coordinate 'NonExistentType'.",
+      "path": [
+        "__definitions"
+      ]
+    }
+  ],
+  "data": null
+}

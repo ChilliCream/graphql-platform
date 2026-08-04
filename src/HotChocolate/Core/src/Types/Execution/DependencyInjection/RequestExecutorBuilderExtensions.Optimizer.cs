@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Processing;
 
@@ -23,7 +24,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddOperationCompilerOptimizer<T>(
+    public static IRequestExecutorBuilder AddOperationCompilerOptimizer<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IOperationCompilerOptimizer
     {

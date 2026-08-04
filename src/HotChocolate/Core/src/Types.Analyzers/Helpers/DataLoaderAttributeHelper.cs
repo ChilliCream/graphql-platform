@@ -148,6 +148,19 @@ public static class DataLoaderAttributeHelper
         return [];
     }
 
+    public static int? GetMaxBatchSize(this AttributeData attribute)
+    {
+        var maxBatchSize = attribute.NamedArguments.FirstOrDefault(
+            t => t.Key.Equals("MaxBatchSize", StringComparison.Ordinal));
+
+        if (maxBatchSize.Value.Value is int value)
+        {
+            return value;
+        }
+
+        return null;
+    }
+
     public static bool? IsScoped(this AttributeData attribute)
     {
         var scoped = attribute.NamedArguments.FirstOrDefault(

@@ -1,0 +1,8 @@
+input InputWithEnumIntDefaultInput {
+  enum: Issue7040Enum! = VALUE1
+}
+
+enum Issue7040Enum {
+  VALUE1
+  VALUE2
+}

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -8,6 +9,7 @@ using HotChocolate.Execution.Requirements;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -53,6 +55,7 @@ public static class RequestExecutorServiceCollectionExtensions
         // pools
         services
             .TryAddResolverTaskPool()
+            .TryAddBatchResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddSingleton<ObjectPool<DocumentValidatorContext>>(new DocumentValidatorContextPool());
 
@@ -83,7 +86,9 @@ public static class RequestExecutorServiceCollectionExtensions
                     noLocations: !options.IncludeLocations,
                     maxAllowedNodes: options.MaxAllowedNodes,
                     maxAllowedTokens: options.MaxAllowedTokens,
-                    maxAllowedFields: options.MaxAllowedFields);
+                    maxAllowedFields: options.MaxAllowedFields,
+                    maxAllowedDirectives: options.MaxAllowedDirectives,
+                    maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
             });
 
         return services;
@@ -140,6 +145,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
+        builder.TryAddTypeInterceptor<SourceSchemaKeyInferenceTypeInterceptor>();
 
         builder.AddDocumentCache();
 
@@ -156,7 +162,9 @@ public static class RequestExecutorServiceCollectionExtensions
         return builder;
     }
 
-    public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
+    public static IServiceCollection AddBatchDispatcher<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IServiceCollection services)
         where T : class, IBatchDispatcher
     {
         services.RemoveAll<IBatchDispatcher>();
@@ -164,7 +172,9 @@ public static class RequestExecutorServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
+    public static IServiceCollection AddBatchScheduler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IServiceCollection services)
         where T : class, IBatchScheduler
     {
         services.RemoveAll<IBatchScheduler>();

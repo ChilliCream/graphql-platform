@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities;
 
@@ -115,7 +116,7 @@ internal class ObjectToDictionaryConverter
                 {
                     if (item is DictionaryEntry entry)
                     {
-                        void SetField(object v) => current[entry.Key.ToString()!] = v;
+                        void SetField(object v) => current[entry.Key.ToString()] = v;
                         VisitValue(entry.Value, SetField, processed);
                     }
                     else if (item is KeyValuePair<string, object> pair)

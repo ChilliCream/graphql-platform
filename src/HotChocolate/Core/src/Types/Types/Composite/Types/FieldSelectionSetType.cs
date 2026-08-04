@@ -89,7 +89,11 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
     /// </exception>
     internal static SelectionSetNode ParseSelectionSet(string s)
     {
-        s = $"{{ {s.Trim('{', '}')} }}";
+        s = s.Trim();
+        if (s.Length < 2 || s[0] != '{' || s[^1] != '}')
+        {
+            s = $"{{ {s} }}";
+        }
         return Utf8GraphQLParser.Syntax.ParseSelectionSet(s);
     }
 

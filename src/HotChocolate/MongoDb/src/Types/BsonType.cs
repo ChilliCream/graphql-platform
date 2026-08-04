@@ -26,7 +26,7 @@ public class BsonType : ScalarType
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
-        SpecifiedBy = new Uri("https://bsonspec.org/spec.html");
+        SpecifiedBy = "https://bsonspec.org/spec.html";
         Description = description;
     }
 

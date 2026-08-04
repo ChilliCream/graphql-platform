@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -88,20 +87,13 @@ public class LongitudeType : ScalarType<double, StringValueNode>
         private const double Max = 180.0;
         private const int MaxPrecision = 8;
 
-        private const string SexagesimalRegex =
-            @"^([0-9]{1,3})°\s*([0-9]{1,3}(?:\.(?:[0-9]{1,}))?)['′]\s*(([0-9]{1,3}"
-            + @"(\.([0-9]{1,}))?)[""″]\s*)?([NEOSW]?)\z";
-
-        private static readonly Regex s_validationPattern =
-            new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         public static bool IsValid(double value) => value is > Min and < Max;
 
         public static bool TryDeserialize(
             string serialized,
             [NotNullWhen(true)] out double? value)
         {
-            var coords = s_validationPattern.Matches(serialized);
+            var coords = LatitudeType.ValidationPattern.Matches(serialized);
             if (coords.Count > 0)
             {
                 var minute = double.TryParse(coords[0].Groups[2].Value, out var min)

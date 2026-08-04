@@ -19,7 +19,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: "abc", b: 123 })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -35,7 +36,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: null, b: 123 })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -51,7 +53,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: null, b: null })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -67,7 +70,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: null })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -82,7 +86,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { b: 123 })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -98,7 +103,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -123,7 +129,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "a": null
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -142,7 +149,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             example(input: { a: $a, b: 123 })
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -167,7 +175,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "a": "abc"
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -191,7 +200,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "b": 123
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -215,7 +225,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": { "b": 123 }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -240,7 +251,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": { "a": "abc", "b": 123 }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -265,7 +277,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": { "a": "abc", "b": null }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -291,7 +304,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                           "var": { "a": null }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -316,7 +330,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                           "var": { }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -335,7 +350,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             example(input: "abc123")
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -360,7 +376,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": "abc123"
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -376,7 +393,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: "abc", b: "123" })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -392,7 +410,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { b: "123" })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -417,7 +436,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": { "b": "abc" }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -432,7 +452,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: "abc" })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -451,7 +472,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             example(input: { b: $b })
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -475,7 +497,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": { "a": "abc" }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -491,7 +514,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { a: "abc", b: null })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -516,7 +540,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "b": null
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -532,7 +557,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 {
                     example(input: { b: 123, c: "xyz" })
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -557,7 +583,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                             "var": { "b": 123, "c": "xyz" }
                         }
                         """)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -658,7 +685,8 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                         isOneOf
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -675,7 +703,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -693,7 +721,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

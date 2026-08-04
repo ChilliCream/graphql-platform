@@ -1,11 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class DownstreamUrlOption : Option<string>
 {
     public DownstreamUrlOption() : base("--url")
     {
-        Description = "The url of the downstream service";
-        IsRequired = true;
-        this.DefaultFromEnvironmentValue("DOWNSTREAM_URL");
+        Description = "The URL of the downstream service";
+        Required = true;
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.DownstreamUrl);
+        this.NonEmptyStringsOnly();
     }
 }

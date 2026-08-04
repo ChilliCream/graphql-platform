@@ -192,7 +192,7 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Equal("/foo", error.Path?.Print());
+        Assert.Equal("foo", error.Path?.Print());
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Equal("/foo", error.Path?.Print());
+        Assert.Equal("foo", error.Path?.Print());
     }
 
     [Fact]

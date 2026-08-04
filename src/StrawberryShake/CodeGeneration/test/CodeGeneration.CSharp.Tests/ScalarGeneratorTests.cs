@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using Xunit.Sdk;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -164,7 +163,7 @@ public class ScalarGeneratorTests
     }
 
     [Fact]
-    public void TimeSpan_Not_Detected()
+    public void Duration_Not_Detected()
     {
         AssertResult(
             strictValidation: false,
@@ -192,8 +191,8 @@ public class ScalarGeneratorTests
                   }
                 }
                 fragment Offer on Offer {
-                   numberFloat
-                   numberInt
+                  numberFloat
+                  numberInt
                 }",
             @"
                 schema {
@@ -230,6 +229,15 @@ public class ScalarGeneratorTests
             "type Person { uri:Uri URI:URI }",
             "scalar Uri",
             "scalar URI",
+            "extend schema @key(fields: \"id\")");
+
+    [Fact]
+    public void TimeSpan_Type() =>
+        AssertResult(
+            "query GetPerson { person { timeSpan } }",
+            "type Query { person: Person }",
+            "type Person { timeSpan:TimeSpan }",
+            "scalar TimeSpan",
             "extend schema @key(fields: \"id\")");
 }
 

@@ -11,7 +11,7 @@
   ],
   "extensions": {
     "argument": "booleanListArg",
-    "argumentValue": "[ true, \u0022false\u0022 ]",
+    "argumentValue": "[true, \u0022false\u0022]",
     "locationType": "[Boolean!]",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }

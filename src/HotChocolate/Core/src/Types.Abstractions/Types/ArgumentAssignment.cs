@@ -101,7 +101,9 @@ public sealed class ArgumentAssignment : INameProvider, ISyntaxNodeProvider
     /// <summary>
     /// Returns a string representation of the current argument assignment.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    /// A string representation of this argument assignment.
+    /// </returns>
     public override string ToString()
         => ToSyntaxNode().ToString(indented: true);
 

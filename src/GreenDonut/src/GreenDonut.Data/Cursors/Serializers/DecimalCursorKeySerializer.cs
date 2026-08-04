@@ -8,7 +8,7 @@ internal sealed class DecimalCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<decimal>();
 
     public bool IsSupported(Type type)
-        => type == typeof(decimal);
+        => type == typeof(decimal) || type == typeof(decimal?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

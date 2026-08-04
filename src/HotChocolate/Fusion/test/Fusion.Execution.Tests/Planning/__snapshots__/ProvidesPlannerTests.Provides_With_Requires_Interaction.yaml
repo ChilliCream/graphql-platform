@@ -1,0 +1,59 @@
+operation:
+  - document: |
+      {
+        orders {
+          item {
+            shippingCost
+            sku @fusion__requirement
+            weight @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 6
+nodes:
+  - id: 1
+    type: Operation
+    schema: orders
+    operation: |
+      query Op_123456789101112_1 {
+        orders {
+          item {
+            sku
+          }
+        }
+      }
+    batchingGroupId: 1
+  - id: 4
+    type: Operation
+    schema: orders
+    operation: |
+      query Op_123456789101112_4 {
+        orders {
+          item {
+            weight
+          }
+        }
+      }
+    batchingGroupId: 1
+  - id: 3
+    type: Operation
+    schema: shipping
+    operation: |
+      query Op_123456789101112_3($__fusion_2_weight: Int, $__fusion_3_sku: String!) {
+        itemBySku(sku: $__fusion_3_sku) {
+          shippingCost(weight: $__fusion_2_weight)
+        }
+      }
+    source: $.itemBySku
+    target: $.orders.item
+    requirements:
+      - name: __fusion_2_weight
+        selectionMap: >-
+          weight
+      - name: __fusion_3_sku
+        selectionMap: >-
+          sku
+    dependencies:
+      - id: 1

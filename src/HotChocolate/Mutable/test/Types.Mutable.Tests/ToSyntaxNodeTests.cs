@@ -178,6 +178,50 @@ public class ToSyntaxNodeTests
     }
 
     [Fact]
+    public void DirectiveType_With_Directives_ToSyntaxNode()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            directive @foo @meta(value: "a") on FIELD
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var syntaxNode = schema.DirectiveDefinitions["foo"].ToSyntaxNode();
+
+        // assert
+        Assert.IsType<DirectiveDefinitionNode>(syntaxNode);
+        syntaxNode.ToString().MatchInlineSnapshot(
+            """
+            directive @foo @meta(value: "a") on FIELD
+            """);
+    }
+
+    [Fact]
+    public void DirectiveType_Deprecated_ToSyntaxNode()
+    {
+        // arrange
+        // the deprecation state is set programmatically, so the formatter synthesizes @deprecated
+        var directiveDefinition = new MutableDirectiveDefinition("foo")
+        {
+            Locations = DirectiveLocation.Object,
+            DeprecationReason = "Use bar"
+        };
+
+        // act
+        var syntaxNode = directiveDefinition.ToSyntaxNode();
+
+        // assert
+        syntaxNode.ToString().MatchInlineSnapshot(
+            """
+            directive @foo @deprecated(reason: "Use bar") on OBJECT
+            """);
+    }
+
+    [Fact]
     public void ArgumentAssignment_ToSyntaxNode()
     {
         // arrange

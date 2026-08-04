@@ -1,5 +1,21 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  oneGenericType: TupleOfInt32!
+  twoGenericsType: TupleOfInt32AndInt32!
+  threeGenericsType: TupleOfInt32AndInt32AndInt32!
+  fourGenericsType: TupleOfInt32AndInt32AndInt32AndInt32!
+  fiveGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32!
+  sixGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  sevenGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  eightGenericTypes: EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  nineGenericTypes: NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  tenGenericTypes: TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  intBar: BarOfInt32!
+  stringBar: BarOfString!
+  customNameBar: BarOfMyType!
 }
 
 type BarOfInt32 {
@@ -39,22 +55,6 @@ type NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32And
   item5: Int!
   item6: Int!
   item7: Int!
-}
-
-type Query {
-  oneGenericType: TupleOfInt32!
-  twoGenericsType: TupleOfInt32AndInt32!
-  threeGenericsType: TupleOfInt32AndInt32AndInt32!
-  fourGenericsType: TupleOfInt32AndInt32AndInt32AndInt32!
-  fiveGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32!
-  sixGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
-  sevenGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
-  eightGenericTypes: EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
-  nineGenericTypes: NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
-  tenGenericTypes: TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
-  intBar: BarOfInt32!
-  stringBar: BarOfString!
-  customNameBar: BarOfMyType!
 }
 
 type TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {

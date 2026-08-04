@@ -6,6 +6,6 @@ type Query {
   sayHello: Custom!
 }
 
-directive @custom on SCALAR
-
 scalar Custom @custom
+
+directive @custom on SCALAR

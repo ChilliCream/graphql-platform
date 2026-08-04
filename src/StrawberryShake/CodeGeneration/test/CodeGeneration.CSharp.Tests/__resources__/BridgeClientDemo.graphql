@@ -286,7 +286,7 @@ input LocationFilter {
 }
 
 input EstateTypeFilter {
-  main: [EstateType!]! = [ APARTMENT, HOUSE, COMMERCIAL, LAND, GARAGE ]
+  main: [EstateType!]! = [APARTMENT, HOUSE, COMMERCIAL, LAND, GARAGE]
   apartmentTypes: [ApartmentType!]
   houseTypes: [HouseType!]
   landTypes: [LandType!]

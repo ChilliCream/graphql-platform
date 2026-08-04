@@ -29,7 +29,7 @@ public static class SchemaErrorBuilderExtensions
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                $"https://spec.graphql.org/{(isDraft ? "draft" : "October2021")}/#{section}");
+                $"https://spec.graphql.org/{(isDraft ? "draft" : "September2025")}/#{section}");
         }
 
         return errorBuilder;

@@ -1,0 +1,124 @@
+namespace Mocha.Transport.Postgres;
+
+/// <summary>
+/// Fluent interface for configuring a PostgreSQL messaging transport, including endpoints,
+/// topology resources, middleware pipelines, conventions, and handler binding strategies.
+/// </summary>
+public interface IPostgresMessagingTransportDescriptor
+    : IMessagingTransportDescriptor
+    , IMessagingDescriptor<PostgresTransportConfiguration>
+{
+    /// <inheritdoc cref="IMessagingTransportDescriptor.ModifyOptions(Action{TransportOptions})"/>
+    new IPostgresMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.Schema(string)"/>
+    new IPostgresMessagingTransportDescriptor Schema(string schema);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindImplicitly"/>
+    new IPostgresMessagingTransportDescriptor BindImplicitly();
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly"/>
+    new IPostgresMessagingTransportDescriptor BindExplicitly();
+
+    /// <summary>
+    /// Declares or retrieves a receive endpoint with the specified name.
+    /// </summary>
+    /// <param name="name">The endpoint name, which also defaults as the queue name.</param>
+    /// <returns>A descriptor for further configuring the receive endpoint.</returns>
+    IPostgresReceiveEndpointDescriptor Endpoint(string name);
+
+    /// <summary>
+    /// Declares or retrieves a dispatch endpoint with the specified name.
+    /// </summary>
+    /// <param name="name">The endpoint name, which also defaults as the topic name.</param>
+    /// <returns>A descriptor for further configuring the dispatch endpoint.</returns>
+    IPostgresDispatchEndpointDescriptor DispatchEndpoint(string name);
+
+    /// <summary>
+    /// Declares a topic in the PostgreSQL topology.
+    /// </summary>
+    /// <param name="name">The topic name.</param>
+    /// <returns>A descriptor for further configuring the topic.</returns>
+    IPostgresTopicTopologyDescriptor DeclareTopic(string name);
+
+    /// <summary>
+    /// Declares a queue in the PostgreSQL topology.
+    /// </summary>
+    /// <param name="name">The queue name.</param>
+    /// <returns>A queue topology descriptor for further configuring the queue.</returns>
+    IPostgresQueueTopologyDescriptor DeclareQueue(string name);
+
+    /// <summary>
+    /// Declares a subscription that routes messages from a topic to a queue in the PostgreSQL topology.
+    /// </summary>
+    /// <param name="topic">The source topic name.</param>
+    /// <param name="queue">The destination queue name.</param>
+    /// <returns>A descriptor for further configuring the subscription.</returns>
+    IPostgresSubscriptionTopologyDescriptor DeclareSubscription(string topic, string queue);
+
+    /// <summary>
+    /// Sets the PostgreSQL connection string for this transport.
+    /// </summary>
+    /// <param name="connectionString">The connection string.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresMessagingTransportDescriptor ConnectionString(string connectionString);
+
+    /// <summary>
+    /// Configures bus-level defaults that are applied to all auto-provisioned queues and topics.
+    /// </summary>
+    /// <param name="configure">A delegate that configures the bus defaults.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresMessagingTransportDescriptor ConfigureDefaults(Action<PostgresBusDefaults> configure);
+
+    /// <summary>
+    /// Sets whether topology resources should be automatically provisioned in the database.
+    /// When disabled, topics, queues, and subscriptions must exist before the transport starts.
+    /// Individual resources can override this setting via their own <c>AutoProvision</c> method.
+    /// </summary>
+    /// <param name="autoProvision">
+    /// <c>true</c> to enable auto-provisioning (default); <c>false</c> to disable it globally.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresMessagingTransportDescriptor AutoProvision(bool autoProvision = true);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.Name(string)"/>
+    new IPostgresMessagingTransportDescriptor Name(string name);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.AddConvention(IConvention)"/>
+    new IPostgresMessagingTransportDescriptor AddConvention(IConvention convention);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.IsDefaultTransport()"/>
+    new IPostgresMessagingTransportDescriptor IsDefaultTransport();
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})"/>
+    new IPostgresMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch(DispatchMiddlewareConfiguration, string?, string?)"/>
+    new IPostgresMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseReceive(ReceiveMiddlewareConfiguration, string?, string?)"/>
+    new IPostgresMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
+
+    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportHandlerDescriptor<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler;
+
+    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates a queue descriptor whose identity is the given queue name. The queue is
+    /// declared in the topology and has a receive endpoint using the same identity. Calling this
+    /// method multiple times with the same name returns the same descriptor.
+    /// </summary>
+    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IPostgresQueueDescriptor Queue(string name);
+}

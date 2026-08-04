@@ -31,7 +31,8 @@ public class GeoJsonLineStringTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { type coordinates bbox crs }}");
+            "{ test { type coordinates bbox crs }}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -54,7 +55,8 @@ public class GeoJsonLineStringTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on LineString { type coordinates bbox crs }}}");
+            "{ test { ... on LineString { type coordinates bbox crs }}}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -89,7 +91,7 @@ public class GeoJsonLineStringTypeTests
 
         // act
         var executor = schema.MakeExecutable();
-        var result = await executor.ExecuteAsync("{ test { crs }}");
+        var result = await executor.ExecuteAsync("{ test { crs }}", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

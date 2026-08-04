@@ -1,0 +1,18 @@
+mutation UploadMcpFeatureCollectionCommandMutation(
+  $input: UploadMcpFeatureCollectionInput!
+) {
+  uploadMcpFeatureCollection(input: $input) {
+    mcpFeatureCollectionVersion {
+      id
+    }
+    errors {
+      ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
+      ...McpFeatureCollectionNotFoundError
+      ...InvalidMcpFeatureCollectionArchiveError
+      ...DuplicatedTagError
+      ...ConcurrentOperationError
+      ...Error
+    }
+  }
+}

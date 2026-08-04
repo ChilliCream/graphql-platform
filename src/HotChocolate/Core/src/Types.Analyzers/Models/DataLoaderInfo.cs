@@ -35,6 +35,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
         IsScoped = attributeData.IsScoped();
         IsPublic = attributeData.IsPublic();
         IsInterfacePublic = attributeData.IsInterfacePublic();
+        MaxBatchSize = attributeData.GetMaxBatchSize();
         MethodName = methodSymbol.Name;
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
@@ -65,6 +66,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public bool? IsPublic { get; }
 
     public bool? IsInterfacePublic { get; }
+
+    public int? MaxBatchSize { get; }
 
     public AttributeSyntax AttributeSyntax { get; }
 
