@@ -13,6 +13,11 @@ namespace Mocha.Transport.RabbitMQ;
 internal sealed class RabbitMQMessageEnvelopeParser
 {
     /// <summary>
+    /// The greatest depth to which a header value is read. A value nested deeper is rejected.
+    /// </summary>
+    private const int MaxHeaderDepth = 64;
+
+    /// <summary>
     /// The range a <see cref="DateTimeOffset"/> can express, which bounds the timestamps mapped to one.
     /// </summary>
     private static readonly long s_minTimestampSeconds = DateTimeOffset.MinValue.ToUnixTimeSeconds();
@@ -94,7 +99,7 @@ internal sealed class RabbitMQMessageEnvelopeParser
         var result = new Headers(headers.Count);
         foreach (var (key, value) in headers)
         {
-            result.Set(key, NormalizeValue(value));
+            result.Set(key, NormalizeValue(value, key, 0));
         }
 
         return result;
@@ -102,10 +107,17 @@ internal sealed class RabbitMQMessageEnvelopeParser
 
     /// <summary>
     /// Maps AMQP wire types onto the CLR types the envelope serializer understands, at every level of
-    /// a nested value.
+    /// a nested value. Throws when a value is nested deeper than <see cref="MaxHeaderDepth"/>.
     /// </summary>
-    private static object? NormalizeValue(object? value)
+    private static object? NormalizeValue(object? value, string key, int depth)
     {
+        if (depth > MaxHeaderDepth)
+        {
+            throw new InvalidOperationException(
+                $"The header '{key}' is nested more than {MaxHeaderDepth} levels deep and cannot be "
+                    + "read as a message header.");
+        }
+
         switch (value)
         {
             // a binary field is kept as bytes without being tested for text
@@ -125,9 +137,9 @@ internal sealed class RabbitMQMessageEnvelopeParser
 
             case IDictionary<string, object?> table:
                 var mappedTable = new Dictionary<string, object?>(table.Count);
-                foreach (var (key, item) in table)
+                foreach (var (entryKey, item) in table)
                 {
-                    mappedTable[key] = NormalizeValue(item);
+                    mappedTable[entryKey] = NormalizeValue(item, key, depth + 1);
                 }
 
                 return mappedTable;
@@ -136,7 +148,7 @@ internal sealed class RabbitMQMessageEnvelopeParser
                 var mappedArray = new object?[array.Count];
                 for (var i = 0; i < array.Count; i++)
                 {
-                    mappedArray[i] = NormalizeValue(array[i]);
+                    mappedArray[i] = NormalizeValue(array[i], key, depth + 1);
                 }
 
                 return mappedArray;

@@ -220,6 +220,31 @@ public class RabbitMQMessageEnvelopeParserTests
     }
 
     [Fact]
+    public void Parse_Should_ThrowNamingTheHeader_When_HeaderIsNestedTooDeeply()
+    {
+        // a crafted delivery, nested past the depth a legitimate broker header reaches
+        object value = "leaf";
+        for (var i = 0; i < 200; i++)
+        {
+            value = new List<object?> { value };
+        }
+
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-deep"] = value
+        });
+
+        // act
+        var exception = Record.Exception(() => _parser.Parse(args));
+
+        // assert
+        Assert.Equal(
+            "The header 'x-deep' is nested more than 64 levels deep and cannot be read as a message "
+                + "header.",
+            Assert.IsType<InvalidOperationException>(exception).Message);
+    }
+
+    [Fact]
     public void Parse_Should_ConvertAmqpTimestamp_When_HeaderIsTimestamp()
     {
         // arrange
