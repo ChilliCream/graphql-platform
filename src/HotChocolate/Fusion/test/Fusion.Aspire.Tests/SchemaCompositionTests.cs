@@ -2,9 +2,6 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using IOPath = System.IO.Path;
 
