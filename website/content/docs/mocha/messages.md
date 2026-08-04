@@ -120,7 +120,7 @@ A transport that defines its own header encoding differs in the details.
 
 **RabbitMQ** maps a header onto an AMQP field table. A date arrives back as a `DateTimeOffset`
 truncated to whole seconds, and a `DateTime` carrying no time zone is read as UTC. A byte payload
-arrives back as bytes, travelling as the table's own byte array type, and a JSON value arrives in the
+arrives back as bytes, carried by the table's own byte array type, and a JSON value arrives in the
 shapes listed above. The table has no unsigned 64-bit type and only a 32-bit decimal mantissa, so a
 number above `long.MaxValue` and a longer `decimal` travel as text. A long string from another
 publisher is decoded as text when it holds valid UTF-8.
