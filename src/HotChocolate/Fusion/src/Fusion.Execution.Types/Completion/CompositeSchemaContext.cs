@@ -265,14 +265,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             DirectiveNames.Skip.Arguments.If,
             "Skips this field or fragment when the condition is true.",
             defaultValue: null,
-            isDeprecated: false,
             deprecationReason: null,
             isInaccessible: false);
 
         var skipDirective = new FusionDirectiveDefinition(
             DirectiveNames.Skip.Name,
             "Directs the executor to skip this field or fragment when the `if` argument is true.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([ifField]),
@@ -311,14 +309,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             DirectiveNames.Include.Arguments.If,
             "Includes this field or fragment when the condition is true.",
             defaultValue: null,
-            isDeprecated: false,
             deprecationReason: null,
             isInaccessible: false);
 
         var includeDirective = new FusionDirectiveDefinition(
             DirectiveNames.Include.Name,
             "Directs the executor to include this field or fragment when the `if` argument is true.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([ifField]),
@@ -357,14 +353,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             DirectiveNames.SpecifiedBy.Arguments.Url,
             "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
             defaultValue: null,
-            isDeprecated: false,
             deprecationReason: null,
             isInaccessible: false);
 
         var specifiedByDirective = new FusionDirectiveDefinition(
             DirectiveNames.SpecifiedBy.Name,
             "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([urlField]),
@@ -399,7 +393,6 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var oneOfDirective = new FusionDirectiveDefinition(
             DirectiveNames.OneOf.Name,
             "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([]),

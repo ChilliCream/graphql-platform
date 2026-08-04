@@ -396,7 +396,6 @@ public static class SchemaParser
 
         if (IsDeprecated(type.Directives, out var reason))
         {
-            type.IsDeprecated = true;
             type.DeprecationReason = reason;
         }
     }
@@ -410,7 +409,6 @@ public static class SchemaParser
 
         if (IsDeprecated(type.Directives, out var reason))
         {
-            type.IsDeprecated = true;
             type.DeprecationReason = reason;
         }
     }
@@ -494,7 +492,6 @@ public static class SchemaParser
 
             if (IsDeprecated(field.Directives, out var reason))
             {
-                field.IsDeprecated = true;
                 field.DeprecationReason = reason;
             }
 
@@ -545,7 +542,6 @@ public static class SchemaParser
 
         if (IsDeprecated(argument.Directives, out var reason))
         {
-            argument.IsDeprecated = true;
             argument.DeprecationReason = reason;
         }
 
@@ -600,7 +596,6 @@ public static class SchemaParser
 
         if (IsDeprecated(existingField.Directives, out var reason))
         {
-            existingField.IsDeprecated = true;
             existingField.DeprecationReason = reason;
         }
 
@@ -686,7 +681,6 @@ public static class SchemaParser
 
         if (IsDeprecated(existingArg.Directives, out var reason))
         {
-            existingArg.IsDeprecated = true;
             existingArg.DeprecationReason = reason;
         }
     }
@@ -743,7 +737,6 @@ public static class SchemaParser
 
             if (IsDeprecated(field.Directives, out var reason))
             {
-                field.IsDeprecated = true;
                 field.DeprecationReason = reason;
             }
 
@@ -784,7 +777,6 @@ public static class SchemaParser
 
             if (IsDeprecated(value.Directives, out var reason))
             {
-                value.IsDeprecated = true;
                 value.DeprecationReason = reason;
             }
 
@@ -922,7 +914,6 @@ public static class SchemaParser
 
         if (IsDeprecated(type.Directives, out var deprecationReason))
         {
-            type.IsDeprecated = true;
             type.DeprecationReason = deprecationReason;
         }
 
@@ -952,7 +943,6 @@ public static class SchemaParser
 
             if (IsDeprecated(argument.Directives, out var reason))
             {
-                argument.IsDeprecated = true;
                 argument.DeprecationReason = reason;
             }
 
@@ -1001,7 +991,6 @@ public static class SchemaParser
 
         if (IsDeprecated(type.Directives, out var reason))
         {
-            type.IsDeprecated = true;
             type.DeprecationReason = reason;
         }
     }
@@ -1120,7 +1109,7 @@ public static class SchemaParser
         return directiveType;
     }
 
-    private static bool IsDeprecated(DirectiveCollection directives, out string? reason)
+    private static bool IsDeprecated(DirectiveCollection directives, [NotNullWhen(true)] out string? reason)
     {
         reason = null;
 
@@ -1131,9 +1120,13 @@ public static class SchemaParser
             var reasonArg = deprecated.Arguments.FirstOrDefault(
                 t => t.Name.Equals(DirectiveNames.Deprecated.Arguments.Reason, StringComparison.Ordinal));
 
-            if (reasonArg?.Value is StringValueNode reasonVal)
+            if (reasonArg?.Value is StringValueNode reasonVal && !string.IsNullOrWhiteSpace(reasonVal.Value))
             {
                 reason = reasonVal.Value;
+            }
+            else
+            {
+                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
 
             return true;

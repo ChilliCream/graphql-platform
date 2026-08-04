@@ -327,11 +327,9 @@ internal static class IntrospectionFormatter
         bool isDeprecated,
         string deprecationReason)
     {
-        const string defaultReason = "No longer supported.";
-
-        if (string.IsNullOrEmpty(deprecationReason))
+        if (string.IsNullOrWhiteSpace(deprecationReason))
         {
-            deprecationReason = defaultReason;
+            deprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
         }
 
         if (isDeprecated)

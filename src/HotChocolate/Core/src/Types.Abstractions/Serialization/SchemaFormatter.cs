@@ -631,17 +631,10 @@ public static class SchemaFormatter
             return directives;
         }
 
-        private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
-        {
-            if (string.IsNullOrEmpty(reason))
-            {
-                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
-            }
-
-            return new DirectiveNode(
+        private static DirectiveNode CreateDeprecatedDirective(string reason)
+            => new(
                 new NameNode(DirectiveNames.Deprecated.Name),
                 [new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason)]);
-        }
 
         private static StringValueNode? CreateDescription(string? description)
         {

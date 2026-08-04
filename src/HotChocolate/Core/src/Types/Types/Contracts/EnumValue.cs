@@ -38,12 +38,14 @@ public abstract class EnumValue
 
     /// <summary>
     /// Defines if this enum value is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
-    public abstract bool IsDeprecated { get; }
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
-    /// Gets the deprecation reason for this enum value.
+    /// Gets the deprecation reason for this enum value,
+    /// or <c>null</c> if this enum value is not deprecated.
     /// </summary>
     public abstract string? DeprecationReason { get; }
 

@@ -85,7 +85,7 @@ public partial class ObjectType
 
     /// <inheritdoc />
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
-    public bool IsDeprecated { get; private set; }
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <inheritdoc />
     public string? DeprecationReason { get; private set; }

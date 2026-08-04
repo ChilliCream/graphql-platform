@@ -13,7 +13,6 @@ public class MutableEnumValue
     : INamedTypeSystemMemberDefinition<MutableEnumValue>
         , IEnumValue
 {
-    private bool _isDeprecated;
     private DirectiveCollection? _directives;
 
     /// <summary>
@@ -44,33 +43,17 @@ public class MutableEnumValue
     public string? Description { get; set; }
 
     /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
-    public bool IsDeprecated
-    {
-        get => _isDeprecated;
-        set
-        {
-            _isDeprecated = value;
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
-            if (!value)
-            {
-                DeprecationReason = null;
-            }
-        }
-    }
-
-    /// <inheritdoc cref="IDeprecationProvider.DeprecationReason" />
+    /// <summary>
+    /// Gets or sets the deprecation reason of this enum value, or <c>null</c> if this enum value
+    /// is not deprecated. Setting an empty or white-space value is equivalent to setting <c>null</c>.
+    /// </summary>
     public string? DeprecationReason
     {
         get;
-        set
-        {
-            field = value;
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                _isDeprecated = true;
-            }
-        }
+        set => field = string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     public SchemaCoordinate Coordinate

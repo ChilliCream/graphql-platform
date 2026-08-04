@@ -38,8 +38,9 @@ public abstract class FieldBase
 
         Name = configuration.Name.EnsureGraphQLName();
         Description = configuration.Description;
-        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
-        DeprecationReason = configuration.DeprecationReason;
+        DeprecationReason = string.IsNullOrWhiteSpace(configuration.DeprecationReason)
+            ? null
+            : configuration.DeprecationReason;
         Flags = configuration.Flags;
         DeclaringType = null!;
         DeclaringMember = null!;
@@ -67,7 +68,6 @@ public abstract class FieldBase
         Index = original.Index;
         Name = original.Name;
         Description = original.Description;
-        IsDeprecated = original.IsDeprecated;
         DeprecationReason = original.DeprecationReason;
         DeclaringType = original.DeclaringType;
         DeclaringMember = original.DeclaringMember;
@@ -108,7 +108,7 @@ public abstract class FieldBase
 
     /// <inheritdoc />
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
-    public bool IsDeprecated { get; }
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <inheritdoc />
     public string? DeprecationReason { get; }

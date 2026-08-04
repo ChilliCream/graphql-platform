@@ -92,12 +92,14 @@ public partial class DirectiveType
 
     /// <summary>
     /// Defines if this directive is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
-    public bool IsDeprecated { get; private set; }
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
-    /// Gets the deprecation reason of this directive.
+    /// Gets the deprecation reason of this directive,
+    /// or <c>null</c> if this directive is not deprecated.
     /// </summary>
     public string? DeprecationReason { get; private set; }
 

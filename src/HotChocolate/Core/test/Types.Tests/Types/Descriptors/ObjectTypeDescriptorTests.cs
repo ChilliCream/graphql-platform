@@ -250,6 +250,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData("   ")]
     public void Deprecated_EmptyReason_SetsDefaultReason(string? reason)
     {
         // arrange
