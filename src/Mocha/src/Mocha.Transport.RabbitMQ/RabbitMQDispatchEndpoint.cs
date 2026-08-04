@@ -341,7 +341,7 @@ public static class RabbitMQDispatchContextExtensions
                 return ToTableValue(HeadersJsonConverter.ReadHeaderValue(document.RootElement), key, depth);
 
             case JsonNode node:
-                using (var parsed = JsonDocument.Parse(node.ToJsonString()))
+                using (var parsed = JsonSerializer.SerializeToDocument(node))
                 {
                     return ToTableValue(HeadersJsonConverter.ReadHeaderValue(parsed.RootElement), key, depth);
                 }
