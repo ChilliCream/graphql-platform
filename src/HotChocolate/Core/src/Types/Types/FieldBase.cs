@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -106,6 +107,7 @@ public abstract class FieldBase
         => Directives.AsReadOnlyDirectiveCollection();
 
     /// <inheritdoc />
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
     public bool IsDeprecated { get; }
 
     /// <inheritdoc />

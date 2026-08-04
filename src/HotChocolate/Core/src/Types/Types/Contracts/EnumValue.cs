@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -38,6 +39,7 @@ public abstract class EnumValue
     /// <summary>
     /// Defines if this enum value is deprecated.
     /// </summary>
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
     public abstract bool IsDeprecated { get; }
 
     /// <summary>

@@ -15,7 +15,7 @@ public static class SchemaDebugFormatter
                 DirectiveNames.Deprecated.Name,
                 new ArgumentNode(
                     DirectiveNames.Deprecated.Arguments.Reason,
-                    type.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+                    type.DeprecationReason));
 
             directives.Insert(0, deprecatedDirective);
         }
@@ -91,8 +91,7 @@ public static class SchemaDebugFormatter
                 DirectiveNames.Deprecated.Name,
                 new ArgumentNode(
                     DirectiveNames.Deprecated.Arguments.Reason,
-                    directiveDefinition.DeprecationReason
-                        ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+                    directiveDefinition.DeprecationReason));
 
             directives.Insert(0, deprecatedDirective);
         }
@@ -119,7 +118,7 @@ public static class SchemaDebugFormatter
                 DirectiveNames.Deprecated.Name,
                 new ArgumentNode(
                     DirectiveNames.Deprecated.Arguments.Reason,
-                    field.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+                    field.DeprecationReason));
 
             directives.Insert(0, deprecatedDirective);
         }
@@ -145,7 +144,7 @@ public static class SchemaDebugFormatter
                 DirectiveNames.Deprecated.Name,
                 new ArgumentNode(
                     DirectiveNames.Deprecated.Arguments.Reason,
-                    field.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+                    field.DeprecationReason));
 
             directives.Insert(0, deprecatedDirective);
         }
@@ -171,7 +170,7 @@ public static class SchemaDebugFormatter
                 DirectiveNames.Deprecated.Name,
                 new ArgumentNode(
                     DirectiveNames.Deprecated.Arguments.Reason,
-                    value.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+                    value.DeprecationReason));
 
             directives.Insert(0, deprecatedDirective);
         }
