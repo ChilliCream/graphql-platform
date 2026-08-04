@@ -189,14 +189,14 @@ public static class CompilationExtensions
         return null;
     }
 
-    public static INamedTypeSymbol? GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
-        => context.SemanticModel.Compilation.GetConnectionBaseSymbol();
-
     public static INamedTypeSymbol? GetFieldResultInterface(this Compilation compilation)
         => compilation.GetTypeByMetadataName("HotChocolate.IFieldResult");
 
-    public static INamedTypeSymbol? GetConnectionBaseSymbol(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionBase`3");
+    public static INamedTypeSymbol? GetConnectionInterfaceSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.IConnection`1");
+
+    public static INamedTypeSymbol? GetConnectionClassSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.Connection`1");
 
     public static INamedTypeSymbol? GetEdgeInterfaceSymbol(this Compilation compilation)
         => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.IEdge`1");
@@ -250,7 +250,7 @@ public static class CompilationExtensions
             return false;
         }
 
-        return IsDerivedFromGenericBase(namedType, compilation.GetConnectionBaseSymbol());
+        return IsDerivedFromGenericBase(namedType, compilation.GetConnectionInterfaceSymbol());
     }
 
     public static bool IsEdgeType(this Compilation compilation, ITypeSymbol possibleEdgeType)

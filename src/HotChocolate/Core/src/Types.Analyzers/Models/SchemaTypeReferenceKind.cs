@@ -4,5 +4,6 @@ public enum SchemaTypeReferenceKind
 {
     ExtendedTypeReference = 0,
     SyntaxTypeReference = 1,
-    FactoryTypeReference = 2
+    FactoryTypeReference = 2,
+    ConnectionTypeReference = 3
 }
