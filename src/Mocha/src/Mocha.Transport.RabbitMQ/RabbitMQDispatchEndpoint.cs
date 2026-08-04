@@ -354,7 +354,7 @@ public static class RabbitMQDispatchContextExtensions
             case ArraySegment<byte> { Array: null }:
                 return new BinaryTableValue([]);
 
-            case ArraySegment<byte> { Offset: 0 } whole when whole.Count == whole.Array!.Length:
+            case ArraySegment<byte> { Offset: 0 } whole when whole.Count == whole.Array.Length:
                 return new BinaryTableValue(whole.Array);
 
             case ArraySegment<byte> segment:
