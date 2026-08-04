@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution.ApolloFederation;
 /// Represents a Fusion planner lookup query that has been rewritten into an
 /// Apollo Federation <c>_entities</c> query.
 /// </summary>
-/// <param name="Operation">
+/// <param name="SourceText">
 /// The rewritten <c>_entities(representations: $representations)</c> operation
 /// with all key and <c>@require</c> arguments stripped.
 /// </param>
@@ -21,6 +21,6 @@ namespace HotChocolate.Fusion.Execution.ApolloFederation;
 /// execution pipeline needs to build representations.
 /// </param>
 internal readonly record struct RewrittenOperation(
-    OperationSourceText Operation,
+    OperationSourceText SourceText,
     string EntityTypeName,
     FieldNode LookupField);

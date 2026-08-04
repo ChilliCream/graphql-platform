@@ -56,6 +56,9 @@ internal static class CompositeSchemaBuilder
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
+        var hasPublicTagDefinition = schemaDocument.Definitions
+            .OfType<DirectiveDefinitionNode>()
+            .Any(static t => t.Name.Value.Equals(Tag.Name, StringComparison.Ordinal));
 
         var schemaDefinition = schemaDocument.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
         if (schemaDefinition is not null)
@@ -82,20 +85,18 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        var baseIntrospectionDocument = options.EnableOptInFeatures
-            ? IntrospectionSchema.OptInDocument
-            : IntrospectionSchema.Document;
-
-        var introspectionDefinitions = options.EnableSemanticIntrospection
-            ? baseIntrospectionDocument.Definitions
-                .Concat(SemanticIntrospectionSchema.Document.Definitions)
-            : baseIntrospectionDocument.Definitions.AsEnumerable();
+        var introspectionDefinitions = IntrospectionSchema.GetDocument(options).Definitions;
 
         foreach (var definition in introspectionDefinitions.Concat(schemaDocument.Definitions))
         {
             if (definition is IHasName namedSyntaxNode
                 && (FusionBuiltIns.IsBuiltInType(namedSyntaxNode.Name.Value)
-                    || FusionBuiltIns.IsBuiltInDirective(namedSyntaxNode.Name.Value)))
+                    || FusionBuiltIns.IsBuiltInDirective(namedSyntaxNode.Name.Value))
+                && !(definition is DirectiveDefinitionNode
+                    && !hasPublicTagDefinition
+                    && namedSyntaxNode.Name.Value.Equals(
+                        FusionBuiltIns.Tag,
+                        StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -106,7 +107,8 @@ internal static class CompositeSchemaBuilder
                     var type = CreateObjectType(
                         objectType,
                         objectType.Name.Value.Equals(queryType, StringComparison.Ordinal),
-                        options.EnableSemanticIntrospection);
+                        options.EnableSemanticIntrospection,
+                        options.EnableObjectDeprecation);
                     types.Add(type);
                     typeDefinitions.Add(objectType.Name.Value, objectType);
                     break;
@@ -139,6 +141,14 @@ internal static class CompositeSchemaBuilder
                 case DirectiveDefinitionNode directiveType:
                     if (IsSpecDirective(directiveType.Name.Value))
                     {
+                        break;
+                    }
+
+                    if (directiveType.Name.Value.Equals(FusionBuiltIns.Tag, StringComparison.Ordinal))
+                    {
+                        var normalizedTagDefinition = RenameDirectiveDefinition(directiveType, Tag.Name);
+                        directiveTypes.Add(CreateDirectiveType(normalizedTagDefinition));
+                        directiveDefinitions.Add(normalizedTagDefinition.Name.Value, normalizedTagDefinition);
                         break;
                     }
 
@@ -221,13 +231,26 @@ internal static class CompositeSchemaBuilder
     private static FusionObjectTypeDefinition CreateObjectType(
         ObjectTypeDefinitionNode definition,
         bool isQuery,
-        bool enableSemanticIntrospection)
+        bool enableSemanticIntrospection,
+        bool enableObjectDeprecation)
     {
+        var isDeprecated = false;
+        DeprecatedDirective? deprecated = null;
+
+        if (enableObjectDeprecation)
+        {
+            isDeprecated = DeprecatedDirectiveParser.TryParse(
+                definition.Directives,
+                out deprecated);
+        }
+
         var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
 
         return new FusionObjectTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            isDeprecated,
+            deprecated?.Reason,
             isInaccessible,
             CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection));
     }
@@ -304,6 +327,18 @@ internal static class CompositeSchemaBuilder
             CreateInputFields(definition.Arguments),
             DirectiveLocationUtils.Parse(definition.Locations));
     }
+
+    private static DirectiveDefinitionNode RenameDirectiveDefinition(
+        DirectiveDefinitionNode definition,
+        string name)
+        => new(
+            definition.Location,
+            new HotChocolate.Language.NameNode(name),
+            definition.Description,
+            definition.IsRepeatable,
+            definition.Arguments,
+            definition.Directives,
+            definition.Locations);
 
     private static FusionOutputFieldDefinitionCollection CreateOutputFields(
         IReadOnlyList<FieldDefinitionNode> fields,
@@ -1178,7 +1213,6 @@ internal static class CompositeSchemaBuilder
 
         typeDefinition.Complete(
             new CompositeScalarTypeCompletionContext(
-                default,
                 directives,
                 specifiedBy,
                 type,
@@ -1198,6 +1232,11 @@ internal static class CompositeSchemaBuilder
                 argumentDef,
                 context);
         }
+
+        directiveDefinition.Complete(
+            CompletionTools.CreateDirectiveCollection(
+                directiveDefinitionNode.Directives,
+                context));
     }
 
     private static OperationType? GetOperationType(

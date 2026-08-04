@@ -419,7 +419,7 @@ internal static class FusionPublishHelpers
     {
         Stream? existingArchiveStream;
         MemoryStream? legacyBuffer = null;
-        CompositionSettings? compositionSettings = null;
+        CompositionSettings? compositionSettings;
 
         await using (var downloadActivity = activity.StartChildActivity(
                          $"Downloading existing configuration from '{stageName}'",
@@ -506,6 +506,33 @@ internal static class FusionPublishHelpers
 
         try
         {
+            CompositionSettings? stageCompositionSettings;
+
+            try
+            {
+                stageCompositionSettings = ToCompositionSettings(
+                    await client.GetStageCompositionSettingsAsync(apiId, stageName, cancellationToken));
+            }
+            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0020")
+            {
+                stageCompositionSettings = null;
+                composeActivity.Update(
+                    Messages.FailedToDownloadCompositionSettings(
+                        stageName.EscapeMarkup(),
+                        Messages.SelfHostLatestVersionReminder),
+                    ActivityUpdateKind.Warning);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                composeActivity.Fail(
+                    Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup()));
+
+                throw new ExitException(
+                    Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup(), ex.Message.EscapeMarkup()));
+            }
+
+            compositionSettings = stageCompositionSettings;
+
             if (legacyBuffer is not null && existingArchiveStream is null)
             {
                 try
@@ -516,8 +543,8 @@ internal static class FusionPublishHelpers
                         newSourceSchemas.Keys,
                         cancellationToken);
 
-                    compositionSettings = new CompositionSettings().MergeInto(
-                        migratedSettings ?? new CompositionSettings());
+                    var migrated = migratedSettings ?? new CompositionSettings();
+                    compositionSettings = stageCompositionSettings?.MergeInto(migrated) ?? migrated;
                 }
                 catch (FusionGraphPackageException ex) when (legacyArchiveFile is not null)
                 {
@@ -563,6 +590,11 @@ internal static class FusionPublishHelpers
         }
         finally
         {
+            if (existingArchiveStream is not null)
+            {
+                await existingArchiveStream.DisposeAsync();
+            }
+
             if (legacyBuffer is not null)
             {
                 await legacyBuffer.DisposeAsync();
@@ -626,10 +658,60 @@ internal static class FusionPublishHelpers
             newSourceSchemas,
             archive,
             environment,
+            SettingsComposerOptions.Default,
             compositionSettings,
             legacyArchive,
             cancellationToken);
 
         return (result, compositionLog);
     }
+
+    private static CompositionSettings? ToCompositionSettings(StageCompositionSettings? settings)
+    {
+        if (settings is null)
+        {
+            return null;
+        }
+
+        return new CompositionSettings
+        {
+            Preprocessor = new CompositionSettings.PreprocessorSettings
+            {
+                ExcludeByTag = settings.ExcludeByTag is null
+                    ? null
+                    : [.. settings.ExcludeByTag]
+            },
+            Merger = new CompositionSettings.MergerSettings
+            {
+                CacheControlMergeBehavior = ToDirectiveMergeBehavior(settings.CacheControlMergeBehavior),
+                EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
+                RemoveUnreferencedDefinitions = settings.RemoveUnreferencedDefinitions,
+                TagMergeBehavior = ToDirectiveMergeBehavior(settings.TagMergeBehavior),
+                NodeResolution = ToNodeResultion(settings.NodeResolution)
+            }
+        };
+    }
+
+    private static HotChocolate.Fusion.Options.DirectiveMergeBehavior? ToDirectiveMergeBehavior(
+        CompositionDirectiveMergeBehavior? behavior)
+        => behavior switch
+        {
+            null => null,
+            CompositionDirectiveMergeBehavior.Ignore
+                => HotChocolate.Fusion.Options.DirectiveMergeBehavior.Ignore,
+            CompositionDirectiveMergeBehavior.Include
+                => HotChocolate.Fusion.Options.DirectiveMergeBehavior.Include,
+            CompositionDirectiveMergeBehavior.IncludePrivate
+                => HotChocolate.Fusion.Options.DirectiveMergeBehavior.IncludePrivate,
+            _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null)
+        };
+
+    private static NodeResolution? ToNodeResultion(CompositionNodeResolution? nodeResolution)
+        => nodeResolution switch
+        {
+            null => null,
+            CompositionNodeResolution.Gateway => NodeResolution.Gateway,
+            CompositionNodeResolution.SourceSchema => NodeResolution.SourceSchema,
+            _ => throw new ArgumentOutOfRangeException(nameof(nodeResolution), nodeResolution, null)
+        };
 }

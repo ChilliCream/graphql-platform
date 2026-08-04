@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -17,7 +18,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
-    private readonly ulong _operationHash;
+    private readonly Utf8OperationDocument _operationDocument;
+    private readonly string? _lookupTypeName;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -25,6 +27,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     internal OperationExecutionNode(
         int id,
         OperationSourceText operation,
+        string? lookupTypeName,
         string? schemaName,
         SelectionPath target,
         SelectionPath source,
@@ -36,7 +39,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         Id = id;
         _operation = operation;
-        _operationHash = operation.SourceText.ComputeHash();
+        _operationDocument = Utf8GraphQLOperationParser.Parse(operation.Value);
+        _lookupTypeName = lookupTypeName;
         _schemaName = schemaName;
         _target = target;
         _source = source;
@@ -60,6 +64,17 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the operation definition that this execution node represents.
     /// </summary>
     public OperationSourceText Operation => _operation;
+
+    /// <summary>
+    /// Gets the parsed syntax tree of the operation source text.
+    /// </summary>
+    internal Utf8OperationDocument OperationDocument => _operationDocument;
+
+    /// <summary>
+    /// Gets the name of the type that the body of the operation's single root selection is
+    /// selected on, or <c>null</c> when the operation is not a lookup.
+    /// </summary>
+    internal string? LookupTypeName => _lookupTypeName;
 
     /// <summary>
     /// Gets the result selection set fulfilled by this operation.
@@ -93,6 +108,9 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
+    internal ImmutableArray<string> GetForwardedVariablesArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_forwardedVariables);
+
     /// <summary>
     /// Gets whether this operation contains one or more variables
     /// that contain the Upload scalar.
@@ -119,10 +137,12 @@ public sealed class OperationExecutionNode : ExecutionNode
             Node = this,
             SchemaName = schemaName,
             OperationType = _operation.Type,
-            OperationSourceText = _operation.SourceText,
+            OperationSourceText = _operation,
             Variables = variables,
             RequiresFileUpload = _requiresFileUpload,
-            OperationHash = _operationHash
+            OperationDocument = _operationDocument,
+            LookupTypeName = _lookupTypeName,
+            ForwardedVariables = GetForwardedVariablesArray()
         };
 
         var index = 0;
@@ -301,9 +321,9 @@ public sealed class OperationExecutionNode : ExecutionNode
             Node = this,
             SchemaName = schemaName,
             OperationType = _operation.Type,
-            OperationSourceText = _operation.SourceText,
+            OperationSourceText = _operation,
             Variables = variables,
-            OperationHash = _operationHash
+            OperationDocument = _operationDocument
         };
 
         var subscriptionId = SubscriptionId.Next();
@@ -468,6 +488,18 @@ public sealed class OperationExecutionNode : ExecutionNode
                 if (!ReferenceEquals(_eventArenaSource.Arena, arenaBefore))
                 {
                     ((IDisposable)_eventArenaSource.Arena).Dispose();
+                }
+
+                // A cancellation signalled on the subscription token while the transport read
+                // was in flight (client abort or shutdown) is the same graceful teardown as
+                // observing the token before the read, not a subscription event error.
+                if (exception is OperationCanceledException
+                    && _cancellationToken.IsCancellationRequested)
+                {
+                    scope?.Dispose();
+                    _completed = true;
+                    Current = null!;
+                    return false;
                 }
 
                 Current = new EventMessageResult(

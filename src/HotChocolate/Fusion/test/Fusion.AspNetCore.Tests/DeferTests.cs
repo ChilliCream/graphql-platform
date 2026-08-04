@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -1154,6 +1156,125 @@ public class DeferTests : FusionTestBase
         // assert
         // The deferred subgraph call expands across all imported user entries. Each
         // outbound variable set carries the forwarded $limit alongside the parent key.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_Return_Patches_When_Path_Crosses_Intermediate_Lists()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: UserConnection!
+            }
+
+            interface UserConnection {
+                nodes: [User!]!
+            }
+
+            type DefaultUserConnection implements UserConnection {
+                nodes: [User!]!
+            }
+
+            type User {
+                reviews: [Review!]!
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product {
+                name: String!
+                dimension: Dimension!
+            }
+
+            type Dimension {
+                height: Float!
+            }
+            """,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        {
+                          "data": {
+                            "users": {
+                              "__typename": "DefaultUserConnection",
+                              "nodes": [
+                                {
+                                  "reviews": [
+                                    {
+                                      "product": {
+                                        "name": "Table",
+                                        "dimension": {
+                                          "height": 30.0
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "product": {
+                                        "name": "Chair",
+                                        "dimension": {
+                                          "height": 40.0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "reviews": [
+                                    {
+                                      "product": {
+                                        "name": "Couch",
+                                        "dimension": {
+                                          "height": 50.0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                        """,
+                        Encoding.UTF8,
+                        "application/json")
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query {
+                users {
+                    nodes {
+                        reviews {
+                            product {
+                                name
+                                ... @defer(label: "dimension") {
+                                    dimension {
+                                        height
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 

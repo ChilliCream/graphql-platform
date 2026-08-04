@@ -192,6 +192,42 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Equal($"{{\"field\":\"final-{count - 1}\"}}", RenderData(store));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResults_Should_MergeCorrectValue_When_SourcePathHasMultipleSegments(bool containsErrors)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+        var sourcePath = SelectionPath.Root.AppendField("wrapper").AppendField("nested");
+
+        var results = new SourceSchemaResult[3];
+        for (var i = 0; i < results.Length; i++)
+        {
+            results[i] = CreateSourceSchemaResult(
+                sourceArena,
+                CompactPath.Root,
+                $"{{\"data\":{{\"wrapper\":{{\"nested\":{{\"field\":\"value-{i}\"}}}}}}}}");
+        }
+
+        // act
+        var added = store.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);
+
+        // assert
+        Assert.True(added);
+        Assert.Equal("{\"field\":\"value-2\"}", RenderData(store));
+    }
+
     [Fact]
     public void AddPartialResults_Should_ClearRetainedStaging_When_DataReadThrows()
     {
@@ -555,6 +591,159 @@ public sealed class FetchResultStoreTests : FusionTestBase
 
         // assert
         Assert.Equal(expected, RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_MaskUnknownEnumValue_When_EnumValueIsListElement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              colors: [Color]
+            }
+
+            enum Color {
+              RED
+              GREEN
+              BLUE
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ colors }",
+            """{"data":{"colors":["RED","YELLOW","BLUE"]}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"colors":["RED",null,"BLUE"]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_MaskEnumValue_When_PayloadContainsEscapeSequence()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              color: Color
+              sibling: String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // the payload spells RED with a JSON escape sequence, which can never match an enum name
+        using var store = CreateLiveStore(
+            schema,
+            "{ color sibling }",
+            """{"data":{"color":"R\u0045D","sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"color":null,"sibling":"visible"}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_ResolveRuntimeTypes_When_AbstractTypeExceedsTypeNameLookupLimit()
+    {
+        // arrange
+        // Node has five implementers, which exceeds the type name lookup limit,
+        // so runtime type resolution goes through the schema lookup fallback.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              nodes: [Node]
+            }
+
+            interface Node {
+              common: String
+            }
+
+            type A implements Node {
+              common: String
+              a: String
+            }
+
+            type B implements Node {
+              common: String
+              b: String
+            }
+
+            type C implements Node {
+              common: String
+              c: String
+            }
+
+            type D implements Node {
+              common: String
+              d: String
+            }
+
+            type E implements Node {
+              common: String
+              e: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // repeated and alternating type names cover repeat, alternation, and first-seen elements
+        using var store = CreateLiveStore(
+            schema,
+            """
+            {
+              nodes {
+                __typename
+                common
+                ... on A { a }
+                ... on B { b }
+                ... on C { c }
+              }
+            }
+            """,
+            """
+            {"data":{"nodes":[
+              {"__typename":"A","common":"1","a":"a-1"},
+              {"__typename":"A","common":"2","a":"a-2"},
+              {"__typename":"B","common":"3","b":"b-3"},
+              {"__typename":"A","common":"4","a":"a-4"},
+              {"__typename":"C","common":"5","c":"c-5"}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"nodes":[{"__typename":"A","common":"1","a":"a-1"},{"__typename":"A","common":"2","a":"a-2"},{"__typename":"B","common":"3","b":"b-3"},{"__typename":"A","common":"4","a":"a-4"},{"__typename":"C","common":"5","c":"c-5"}]}
+            """);
         Assert.Null(store.Errors);
     }
 

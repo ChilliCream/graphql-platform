@@ -73,6 +73,11 @@ type TypographyProps = {
    * for static page titles.
    */
   anchor?: boolean;
+  /**
+   * Trailing content for heading variants, rendered after the permalink
+   * anchor. Excluded from the heading text, so ids and the TOC stay stable.
+   */
+  adornment?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<"div">, "children">;
 
 export function Typography({
@@ -82,6 +87,7 @@ export function Typography({
   className = "",
   children,
   anchor = false,
+  adornment,
   ...rest
 }: TypographyProps) {
   const config = variantConfig[variant];
@@ -106,6 +112,7 @@ export function Typography({
           #
         </a>
       ) : null}
+      {isHeading ? adornment : null}
     </Tag>
   );
 }

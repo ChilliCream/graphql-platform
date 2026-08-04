@@ -38,6 +38,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             EnsureFieldNamesAreValid(inputType, errors);
             EnsureOneOfFieldsAreValid(inputType, errors, ref names);
             EnsureFieldDeprecationIsValid(inputType, errors);
+            EnsureDefaultValuesAreValid(inputType, errors);
             TryReachCycleRecursively(ref cycleValidationContext, inputType);
 
             cycleValidationContext.CycleStartIndex.Clear();

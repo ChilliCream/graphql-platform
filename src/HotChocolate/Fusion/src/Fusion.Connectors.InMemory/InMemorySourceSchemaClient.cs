@@ -386,12 +386,13 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
             features.Set(fileLookup);
         }
 
+        // The operation executes in-process, so the source text is parsed here directly
+        // instead of routing the request through a source-text document that would parse again.
+        var document = new OperationDocument(Utf8GraphQLParser.Parse(request.OperationSourceText.Value.Span));
+
         if (request.Variables.Length == 0)
         {
-            return OperationRequest.FromSourceText(
-                request.OperationSourceText,
-                errorHandlingMode: onError,
-                features: features);
+            return CreateOperationRequest(document, onError, features: features);
         }
 
         if (request.Variables.Length == 1)
@@ -400,17 +401,17 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
             if (!request.RequiresFileUpload)
             {
-                return OperationRequest.FromSourceText(
-                    request.OperationSourceText,
-                    errorHandlingMode: onError,
+                return CreateOperationRequest(
+                    document,
+                    onError,
                     variableValues: JsonDocument.Parse(sequence));
             }
 
             buffer ??= new ChunkedArrayWriter();
             var cleanedJson = StripFileMarkers(buffer, sequence);
-            return OperationRequest.FromSourceText(
-                request.OperationSourceText,
-                errorHandlingMode: onError,
+            return CreateOperationRequest(
+                document,
+                onError,
                 variableValues: JsonDocument.Parse(cleanedJson.AsSequence()),
                 features: features);
         }
@@ -433,12 +434,37 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
             ? StripFileMarkers(buffer, variables.AsSequence()).AsSequence()
             : variables.AsSequence();
 
-        return VariableBatchRequest.FromSourceText(
-            request.OperationSourceText,
-            variableValues: JsonDocument.Parse(variableSequence),
+        return new VariableBatchRequest(
+            document,
+            documentId: null,
+            documentHash: null,
+            operationName: null,
             errorHandlingMode: onError,
-            features: features);
+            variableValues: new JsonDocumentOwner(JsonDocument.Parse(variableSequence)),
+            extensions: null,
+            contextData: null,
+            features: features,
+            services: null,
+            flags: RequestFlags.AllowAll);
     }
+
+    private static OperationRequest CreateOperationRequest(
+        IOperationDocument document,
+        ErrorHandlingMode? onError,
+        JsonDocument? variableValues = null,
+        IFeatureCollection? features = null)
+        => new(
+            document,
+            documentId: null,
+            documentHash: null,
+            operationName: null,
+            errorHandlingMode: onError,
+            variableValues: variableValues is null ? null : new JsonDocumentOwner(variableValues),
+            extensions: null,
+            contextData: null,
+            features: features,
+            services: null,
+            flags: RequestFlags.AllowAll);
 
     /// <summary>
     /// Scans JSON for <c>$.file(key)</c> string markers and replaces them with just <c>key</c>.

@@ -9,6 +9,7 @@ internal sealed class BatchOperationDefinition : OperationDefinition
     internal BatchOperationDefinition(
         int id,
         OperationSourceText operation,
+        string? lookupTypeName,
         string? schemaName,
         SelectionPath[] targets,
         SelectionPath source,
@@ -20,6 +21,7 @@ internal sealed class BatchOperationDefinition : OperationDefinition
         : base(
             id,
             operation,
+            lookupTypeName,
             schemaName,
             source,
             requirements,

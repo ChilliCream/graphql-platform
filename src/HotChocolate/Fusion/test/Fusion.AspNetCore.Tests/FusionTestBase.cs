@@ -345,7 +345,7 @@ public abstract partial class FusionTestBase : IDisposable
 
         public Func<HttpRequestMessage, Task<HttpResponseMessage>>? MockHttpResponse { get; set; }
 
-        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.All;
+        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.Default;
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? DefaultAcceptHeaderValues { get; set; }
 

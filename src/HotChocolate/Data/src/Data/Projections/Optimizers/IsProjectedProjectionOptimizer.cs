@@ -65,6 +65,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 field,
                 [new FieldSelectionNode(fieldNode, 0)],
                 [],
+                isProjectionRequirement: false,
                 isInternal: true,
                 resolverPipeline: nodesPipeline);
 

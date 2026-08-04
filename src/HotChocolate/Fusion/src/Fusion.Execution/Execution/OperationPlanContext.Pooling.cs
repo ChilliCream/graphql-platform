@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -75,7 +76,7 @@ public sealed partial class OperationPlanContext
 
         _resultStore.Initialize(
             Memory,
-            requestContext.Schema,
+            (FusionSchemaDefinition)requestContext.Schema,
             _errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),

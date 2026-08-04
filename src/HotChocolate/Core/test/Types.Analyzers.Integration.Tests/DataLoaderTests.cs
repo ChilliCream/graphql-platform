@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Xml.Linq;
 using GreenDonut;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,6 +7,44 @@ namespace HotChocolate.Types;
 
 public class DataLoaderTests
 {
+    [Fact]
+    public void GeneratedDataLoaders_Should_DocumentOnlyImplementation_When_XmlDocumentationIsGenerated()
+    {
+        // arrange
+        var documentationPath = System.IO.Path.ChangeExtension(
+            typeof(DataLoaderTests).Assembly.Location,
+            ".xml");
+        var document = XDocument.Load(documentationPath);
+        var generatedTypeNames = new[]
+        {
+            "T:HotChocolate.Types.IValueByKeyDataLoader",
+            "T:HotChocolate.Types.ValueByKeyDataLoader"
+        };
+
+        // act
+        var documentation = document
+            .Descendants("member")
+            .Where(m => generatedTypeNames.Contains(m.Attribute("name")?.Value))
+            .OrderBy(m => m.Attribute("name")?.Value, StringComparer.Ordinal)
+            .Select(m =>
+            {
+                var summary = m.Element("summary")!;
+                return $"""
+                    {m.Attribute("name")!.Value}
+                    Summary: {summary.Value.Trim()}
+                    Cref: {summary.Element("see")!.Attribute("cref")!.Value}
+                    """;
+            });
+
+        // assert
+        string.Join(Environment.NewLine, documentation).MatchInlineSnapshot(
+            """
+            T:HotChocolate.Types.ValueByKeyDataLoader
+            Summary: A DataLoader generated from .
+            Cref: M:HotChocolate.Types.DataLoaders.GetValueByKeyAsync(System.Collections.Generic.IReadOnlyList{System.Int32},System.Threading.CancellationToken)
+            """);
+    }
+
     [Fact]
     public async Task DataLoader_Should_Split_Keys_Into_Batches_When_MaxBatchSize_Is_Set()
     {

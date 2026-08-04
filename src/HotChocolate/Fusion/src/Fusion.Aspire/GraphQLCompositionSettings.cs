@@ -8,6 +8,11 @@ namespace HotChocolate.Fusion.Aspire;
 public struct GraphQLCompositionSettings
 {
     /// <summary>
+    /// Gets or sets a value indicating whether Nitro schema validation shall be disabled.
+    /// </summary>
+    public bool DisableSchemaValidation { get; set; }
+
+    /// <summary>
     /// Gets or sets how <c>@cacheControl</c> directives are merged.
     /// </summary>
     public DirectiveMergeBehavior? CacheControlMergeBehavior { get; set; }

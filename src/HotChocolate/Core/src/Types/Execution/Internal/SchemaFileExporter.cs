@@ -124,6 +124,20 @@ internal static class SchemaFileExporter
 
         jsonWriter.WriteString("url", "http://localhost:5000/graphql");
 
+        // A Hot Chocolate source schema knows which transport extensions it implements, so the
+        // exported template declares them instead of leaving the gateway on the defaults.
+        jsonWriter.WriteStartObject("capabilities");
+
+        jsonWriter.WriteStartObject("batching");
+        jsonWriter.WriteBoolean("variableBatching", true);
+        jsonWriter.WriteBoolean("requestBatching", true);
+        jsonWriter.WriteBoolean("aliasBatching", true);
+        jsonWriter.WriteEndObject();
+
+        jsonWriter.WriteString("onError", "propagate");
+
+        jsonWriter.WriteEndObject();
+
         jsonWriter.WriteEndObject();
 
         jsonWriter.WriteEndObject();

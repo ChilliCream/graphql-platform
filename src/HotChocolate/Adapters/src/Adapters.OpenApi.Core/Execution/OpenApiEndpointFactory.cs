@@ -58,43 +58,10 @@ internal static class OpenApiEndpointFactory
         IDictionary<string, OpenApiModelDefinition> modelsByName,
         ISchemaDefinition schema)
     {
-        List<IExecutableDefinitionNode> definitions = [
-            ..endpointDefinition.Document.Definitions.OfType<IExecutableDefinitionNode>()
-        ];
+        var responseBodySelection = endpointDefinition.GetResponseBodySelection(schema);
+        var document = ComposeExecutionDocument(endpointDefinition, modelsByName);
 
-        var externalFragmentReferencesQueue = new Queue<string>(endpointDefinition.ExternalFragmentReferences);
-        var processedFragmentReferences = new HashSet<string>();
-
-        while (externalFragmentReferencesQueue.TryDequeue(out var referencedFragmentName))
-        {
-            if (!processedFragmentReferences.Add(referencedFragmentName))
-            {
-                continue;
-            }
-
-            if (!modelsByName.TryGetValue(referencedFragmentName, out var model))
-            {
-                continue;
-            }
-
-            foreach (var definition in model.Document.Definitions.OfType<IExecutableDefinitionNode>())
-            {
-                definitions.Add(definition);
-            }
-
-            foreach (var externalFragmentReference in model.ExternalFragmentReferences)
-            {
-                externalFragmentReferencesQueue.Enqueue(externalFragmentReference);
-            }
-        }
-
-        var document = new DocumentNode(definitions);
-
-        var rootField = endpointDefinition.OperationDefinition.SelectionSet.Selections
-            .OfType<FieldNode>()
-            .First();
-
-        var responseNameToExtract = rootField.Alias?.Value ?? rootField.Name.Value;
+        document = ResponseBodyDirectiveRewriter.Instance.Rewrite(document);
 
         var route = RoutePatternFactory.Parse(endpointDefinition.Route);
 
@@ -115,7 +82,7 @@ internal static class OpenApiEndpointFactory
             route,
             parameterTrie,
             endpointDefinition.BodyVariableName,
-            responseNameToExtract);
+            responseBodySelection);
 
         void InsertParametersIntoTrie(
             IEnumerable<OpenApiEndpointDefinitionParameter> parameters,
@@ -184,6 +151,36 @@ internal static class OpenApiEndpointFactory
                 }
             }
         }
+    }
+
+    private static DocumentNode ComposeExecutionDocument(
+        OpenApiEndpointDefinition endpoint,
+        IDictionary<string, OpenApiModelDefinition> modelsByName)
+    {
+        List<IExecutableDefinitionNode> definitions =
+        [
+            .. endpoint.Document.Definitions.OfType<IExecutableDefinitionNode>()
+        ];
+        var pendingFragments = new Queue<string>(endpoint.ExternalFragmentReferences);
+        var processedFragments = new HashSet<string>();
+
+        while (pendingFragments.TryDequeue(out var fragmentName))
+        {
+            if (!processedFragments.Add(fragmentName)
+                || !modelsByName.TryGetValue(fragmentName, out var model))
+            {
+                continue;
+            }
+
+            definitions.AddRange(model.Document.Definitions.OfType<IExecutableDefinitionNode>());
+
+            foreach (var externalFragmentReference in model.ExternalFragmentReferences)
+            {
+                pendingFragments.Enqueue(externalFragmentReference);
+            }
+        }
+
+        return new DocumentNode(definitions);
     }
 
     private static (ITypeDefinition Type, bool HasDefaultValue, bool IsNonNullType) GetParameterDetails(
