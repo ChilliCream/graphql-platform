@@ -127,7 +127,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
             if (connectionStatus.Accepted)
             {
-                connection.IsConnected = true;
+                ((WebSocketConnection)connection).IsConnected = true;
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,

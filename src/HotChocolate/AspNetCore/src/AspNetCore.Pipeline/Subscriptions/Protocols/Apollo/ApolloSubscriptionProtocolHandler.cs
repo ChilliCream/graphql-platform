@@ -97,7 +97,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
             // signal that the client sent the connection init in time, even if accepting the
             // connection (for example authentication) still needs to run.
-            connection.ConnectionInitReceived = true;
+            ((WebSocketConnection)connection).ConnectionInitReceived = true;
 
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
@@ -112,7 +112,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
             if (connectionStatus.Accepted)
             {
-                connection.IsConnected = true;
+                ((WebSocketConnection)connection).IsConnected = true;
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,
