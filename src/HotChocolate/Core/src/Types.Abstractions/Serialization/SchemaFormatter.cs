@@ -611,30 +611,29 @@ public static class SchemaFormatter
             IDeprecationProvider canBeDeprecated,
             List<DirectiveNode> directives)
         {
-            if (canBeDeprecated.IsDeprecated
-                && !directives.Any(d => d.Name.Value == DirectiveNames.Deprecated.Name))
+            if (!canBeDeprecated.IsDeprecated)
             {
-                var deprecateDirective = CreateDeprecatedDirective(canBeDeprecated.DeprecationReason);
+                return directives;
+            }
 
-                if (directives.Count == 0)
-                {
-                    directives = [deprecateDirective];
-                }
-                else
-                {
-                    var temp = directives.ToList();
-                    temp.Add(deprecateDirective);
-                    directives = temp;
-                }
+            var index = directives.FindIndex(t => t.Name.Value == DirectiveNames.Deprecated.Name);
+
+            if (index == -1)
+            {
+                var temp = directives.ToList();
+                temp.Add(SchemaDebugFormatter.CreateDeprecatedDirective(canBeDeprecated));
+                return temp;
+            }
+
+            if (canBeDeprecated.HasDefaultDeprecationReason && directives[index].Arguments.Count > 0)
+            {
+                var temp = directives.ToList();
+                temp[index] = SchemaDebugFormatter.CreateDeprecatedDirective(canBeDeprecated);
+                return temp;
             }
 
             return directives;
         }
-
-        private static DirectiveNode CreateDeprecatedDirective(string reason)
-            => new(
-                new NameNode(DirectiveNames.Deprecated.Name),
-                [new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason)]);
 
         private static StringValueNode? CreateDescription(string? description)
         {

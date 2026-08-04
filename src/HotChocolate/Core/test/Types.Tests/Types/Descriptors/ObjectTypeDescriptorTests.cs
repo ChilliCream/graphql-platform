@@ -244,7 +244,9 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         descriptor.Deprecated();
 
         // assert
-        Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
+        Assert.Equal(
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
+            descriptor.CreateConfiguration().DeprecationReason);
     }
 
     [Theory]
@@ -262,7 +264,9 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         descriptor.Deprecated(reason);
 
         // assert
-        Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
+        Assert.Equal(
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
+            descriptor.CreateConfiguration().DeprecationReason);
     }
 
     [Fact]

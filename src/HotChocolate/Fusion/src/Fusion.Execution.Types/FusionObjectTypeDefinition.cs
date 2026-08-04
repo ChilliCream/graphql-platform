@@ -40,8 +40,8 @@ public sealed class FusionObjectTypeDefinition(
     public override bool IsEntityType => (_flags & FusionTypeFlags.Entity) != 0;
 
     /// <summary>
-    /// Gets a value indicating whether this object type is deprecated.
-    /// This is <c>true</c> if and only if <see cref="DeprecationReason"/> is not <c>null</c>.
+    /// Defines if this object type is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
     public bool IsDeprecated => DeprecationReason is not null;

@@ -334,6 +334,14 @@ internal static class IntrospectionFormatter
 
         if (isDeprecated)
         {
+            if (string.Equals(
+                deprecationReason,
+                DirectiveNames.Deprecated.Arguments.DefaultReason,
+                StringComparison.Ordinal))
+            {
+                return new List<DirectiveNode> { new(DirectiveNames.Deprecated.Name) };
+            }
+
             return new List<DirectiveNode>
             {
                 new DirectiveNode

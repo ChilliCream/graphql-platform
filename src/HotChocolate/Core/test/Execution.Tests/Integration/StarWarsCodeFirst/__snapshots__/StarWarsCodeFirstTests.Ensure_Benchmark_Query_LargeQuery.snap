@@ -7450,7 +7450,7 @@
                 "name": "String",
                 "ofType": null
               },
-              "defaultValue": "\"No longer supported.\""
+              "defaultValue": "\"No longer supported\""
             }
           ],
           "onOperation": false,

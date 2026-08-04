@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableEnumValue
     : INamedTypeSystemMemberDefinition<MutableEnumValue>
-        , IEnumValue
+    , IEnumValue
 {
     private DirectiveCollection? _directives;
 

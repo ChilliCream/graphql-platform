@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Types;
 
@@ -21,7 +22,7 @@ public sealed class FusionSchemaDefinitionDeprecationTests : FusionTestBase
         // assert
         var field = schema.QueryType.Fields["dragon"];
         Assert.True(field.IsDeprecated);
-        Assert.Equal("No longer supported.", field.DeprecationReason);
+        Assert.Equal(DirectiveNames.Deprecated.Arguments.DefaultReason, field.DeprecationReason);
     }
 
     [Fact]

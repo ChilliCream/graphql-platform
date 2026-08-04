@@ -2611,7 +2611,7 @@
                 "Name": "String",
                 "OfType": null
               },
-              "DefaultValue": "\"No longer supported.\""
+              "DefaultValue": "\"No longer supported\""
             }
           ],
           "OnOperation": false,
@@ -7370,7 +7370,7 @@
                 "PossibleTypes": null,
                 "OfType": null
               },
-              "DefaultValue": "\"No longer supported.\""
+              "DefaultValue": "\"No longer supported\""
             }
           ],
           "OnOperation": false,

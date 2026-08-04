@@ -86,7 +86,7 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 
     /// <summary>
     /// Defines if this directive is deprecated.
-    /// This is <c>true</c> if and only if <see cref="DeprecationReason"/> is not <c>null</c>.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
     public bool IsDeprecated => DeprecationReason is not null;

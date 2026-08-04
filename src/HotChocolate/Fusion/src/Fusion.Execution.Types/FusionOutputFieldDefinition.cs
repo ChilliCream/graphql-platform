@@ -49,11 +49,6 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
 
         var flags = FieldDefinitionFlags.None;
 
-        if (DeprecationReason is not null)
-        {
-            flags |= FieldDefinitionFlags.Deprecated;
-        }
-
         if (name.StartsWith("__"))
         {
             flags |= FieldDefinitionFlags.Introspection;
@@ -113,11 +108,11 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public SchemaCoordinate Coordinate => new(DeclaringType.Name, Name, ofDirective: false);
 
     /// <summary>
-    /// Gets a value indicating whether this field is deprecated.
-    /// This is <c>true</c> if and only if <see cref="DeprecationReason"/> is not <c>null</c>.
+    /// Defines if this field is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
     [MemberNotNullWhen(true, nameof(DeprecationReason))]
-    public bool IsDeprecated => (_flags & FieldDefinitionFlags.Deprecated) == FieldDefinitionFlags.Deprecated;
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
     /// Gets a value indicating whether this field is an introspection field.
@@ -275,9 +270,8 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     private enum FieldDefinitionFlags : byte
     {
         None = 0,
-        Deprecated = 1,
-        Introspection = 2,
-        Inaccessible = 4,
-        GatewayField = 8
+        Introspection = 1,
+        Inaccessible = 2,
+        GatewayField = 4
     }
 }

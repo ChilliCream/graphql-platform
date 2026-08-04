@@ -9,16 +9,7 @@ public static class SchemaDebugFormatter
     {
         var directives = type.Directives.Select(Format).ToList();
 
-        if (type.IsDeprecated)
-        {
-            var deprecatedDirective = new DirectiveNode(
-                DirectiveNames.Deprecated.Name,
-                new ArgumentNode(
-                    DirectiveNames.Deprecated.Arguments.Reason,
-                    type.DeprecationReason));
-
-            directives.Insert(0, deprecatedDirective);
-        }
+        ApplyDeprecatedDirective(type, directives);
 
         return new ObjectTypeDefinitionNode(
             null,
@@ -85,16 +76,7 @@ public static class SchemaDebugFormatter
     {
         var directives = directiveDefinition.Directives.Select(Format).ToList();
 
-        if (directiveDefinition.IsDeprecated)
-        {
-            var deprecatedDirective = new DirectiveNode(
-                DirectiveNames.Deprecated.Name,
-                new ArgumentNode(
-                    DirectiveNames.Deprecated.Arguments.Reason,
-                    directiveDefinition.DeprecationReason));
-
-            directives.Insert(0, deprecatedDirective);
-        }
+        ApplyDeprecatedDirective(directiveDefinition, directives);
 
         return new DirectiveDefinitionNode(
             null,
@@ -112,16 +94,7 @@ public static class SchemaDebugFormatter
     {
         var directives = field.Directives.Select(Format).ToList();
 
-        if (field.IsDeprecated)
-        {
-            var deprecatedDirective = new DirectiveNode(
-                DirectiveNames.Deprecated.Name,
-                new ArgumentNode(
-                    DirectiveNames.Deprecated.Arguments.Reason,
-                    field.DeprecationReason));
-
-            directives.Insert(0, deprecatedDirective);
-        }
+        ApplyDeprecatedDirective(field, directives);
 
         return new FieldDefinitionNode(
             null,
@@ -138,16 +111,7 @@ public static class SchemaDebugFormatter
     {
         var directives = field.Directives.Select(Format).ToList();
 
-        if (field.IsDeprecated)
-        {
-            var deprecatedDirective = new DirectiveNode(
-                DirectiveNames.Deprecated.Name,
-                new ArgumentNode(
-                    DirectiveNames.Deprecated.Arguments.Reason,
-                    field.DeprecationReason));
-
-            directives.Insert(0, deprecatedDirective);
-        }
+        ApplyDeprecatedDirective(field, directives);
 
         return new InputValueDefinitionNode(
             null,
@@ -164,16 +128,7 @@ public static class SchemaDebugFormatter
     {
         var directives = value.Directives.Select(Format).ToList();
 
-        if (value.IsDeprecated)
-        {
-            var deprecatedDirective = new DirectiveNode(
-                DirectiveNames.Deprecated.Name,
-                new ArgumentNode(
-                    DirectiveNames.Deprecated.Arguments.Reason,
-                    value.DeprecationReason));
-
-            directives.Insert(0, deprecatedDirective);
-        }
+        ApplyDeprecatedDirective(value, directives);
 
         return new EnumValueDefinitionNode(
             null,
@@ -193,8 +148,40 @@ public static class SchemaDebugFormatter
     public static ArgumentNode Format(ArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
+    private static void ApplyDeprecatedDirective(
+        IDeprecationProvider canBeDeprecated,
+        List<DirectiveNode> directives)
+    {
+        if (!canBeDeprecated.IsDeprecated)
+        {
+            return;
+        }
+
+        var index = directives.FindIndex(t => t.Name.Value == DirectiveNames.Deprecated.Name);
+
+        if (index == -1)
+        {
+            directives.Insert(0, CreateDeprecatedDirective(canBeDeprecated));
+            return;
+        }
+
+        if (canBeDeprecated.HasDefaultDeprecationReason && directives[index].Arguments.Count > 0)
+        {
+            directives[index] = CreateDeprecatedDirective(canBeDeprecated);
+        }
+    }
+
+    internal static DirectiveNode CreateDeprecatedDirective(IDeprecationProvider canBeDeprecated)
+        => canBeDeprecated.HasDefaultDeprecationReason
+            ? new DirectiveNode(DirectiveNames.Deprecated.Name)
+            : new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    canBeDeprecated.DeprecationReason!));
+
     private static NameNode Format(Types.DirectiveLocation location)
-        => new NameNode(location.Format().ToString());
+        => new(location.Format().ToString());
 
     public static ITypeNode FormatTypeRef(IType type)
     {

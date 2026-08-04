@@ -159,7 +159,7 @@ public class SchemaParserTests
         var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
         var field = queryType.Fields["id"];
         Assert.True(field.IsDeprecated);
-        Assert.Equal("No longer supported.", field.DeprecationReason);
+        Assert.Equal(DirectiveNames.Deprecated.Arguments.DefaultReason, field.DeprecationReason);
     }
 
     [Fact]
@@ -187,6 +187,33 @@ public class SchemaParserTests
             type Query {
               id: String @deprecated
               name: String @deprecated(reason: "Use id.")
+            }
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_PrintDeprecatedDirectiveWithoutArguments_When_ReasonIsTheDefault()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              id: String @deprecated(reason: "No longer supported")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              id: String @deprecated
             }
             """);
     }
