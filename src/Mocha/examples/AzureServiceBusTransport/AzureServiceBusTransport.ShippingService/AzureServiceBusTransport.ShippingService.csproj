@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>AzureServiceBusTransport.ShippingService</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AzureServiceBusTransport.ServiceDefaults\AzureServiceBusTransport.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\AzureServiceBusTransport.Contracts\AzureServiceBusTransport.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Transport.AzureServiceBus\Mocha.Transport.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Hosting\Mocha.Hosting.csproj" />
+  </ItemGroup>
+</Project>
