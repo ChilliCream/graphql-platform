@@ -1,21 +1,11 @@
-import type { ComponentType, SVGProps } from "react";
-import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { RobotIcon } from "@/src/icons/RobotIcon";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
-import {
-  BuildingIcon,
-  CloudIcon,
-  HandshakeAngleIcon,
-  NewspaperIcon,
-  RocketIcon,
-  ServerIcon,
-  SparklesIcon,
-  WavePulseIcon,
-} from "@/src/icons/NavIcons";
+import { IconName } from "@awesome.me/kit-04be88f754/icons";
+import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {
   blog: "/blog",
@@ -39,7 +29,7 @@ export interface SubLink {
   href: string;
   label: string;
   description?: string;
-  icon?: Icon;
+  icon?: Icon | IconName;
 }
 
 export interface SubGroup {
@@ -69,19 +59,19 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/platform/analytics",
             label: "Analytics",
             description: "Instant Insights. Enhanced Performance.",
-            icon: WavePulseIcon,
+            icon: "chart-line-up",
           },
           {
             href: "/platform/continuous-integration",
             label: "Continuous Integration",
             description: "Innovate with Confidence. Deliver with Quality.",
-            icon: SparklesIcon,
+            icon: "star",
           },
           {
             href: "/platform/ecosystem",
             label: "Ecosystem",
             description: "An Ecosystem You Trust and Love.",
-            icon: CloudIcon,
+            icon: "cloud",
           },
           {
             href: "/platform/agentic-coding",
@@ -98,7 +88,7 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/products/nitro",
             label: "Nitro",
             description: "Observability, Governance, Delivery",
-            icon: RocketIcon,
+            icon: "rocket",
           },
         ],
       },
@@ -117,19 +107,19 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/services/advisory",
             label: "Advisory",
             description: "Consulting / Contracting",
-            icon: HandshakeAngleIcon,
+            icon: "handshake-angle",
           },
           {
             href: "/services/support",
             label: "Support",
             description: "Get Help from Experts",
-            icon: ServerIcon,
+            icon: "server",
           },
           {
             href: "/services/training",
             label: "Training",
             description: "Increase Your Team's Productivity",
-            icon: BuildingIcon,
+            icon: "building",
           },
         ],
       },
@@ -147,23 +137,23 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/docs/hotchocolate",
             label: "Hot Chocolate",
-            icon: RocketIcon,
+            icon: "rocket",
           },
           {
             href: "/docs/strawberryshake",
             label: "Strawberry Shake",
-            icon: RocketIcon,
+            icon: "rocket",
           },
-          { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
-          { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
-          { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skillz", label: "Skillz", icon: RocketIcon },
+          { href: "/docs/mocha", label: "Mocha", icon: "rocket" },
+          { href: "/docs/fusion", label: "Fusion", icon: "rocket" },
+          { href: "/docs/nitro", label: "Nitro", icon: "rocket" },
+          { href: "/docs/skillz", label: "Skillz", icon: "rocket" },
         ],
       },
       {
         title: "Additional Resources",
         links: [
-          { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          { href: TOOLS.blog, label: "Blog", icon: "blog" },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },
@@ -185,33 +175,33 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/services/support/contact",
             label: "Contact",
-            icon: NewspaperIcon,
+            icon: "message",
           },
-          { href: TOOLS.shop, label: "Shop", icon: NewspaperIcon },
+          { href: TOOLS.shop, label: "Shop", icon: "shirt" },
           {
             href: "/legal/acceptable-use-policy",
             label: "Acceptable Use Policy",
-            icon: NewspaperIcon,
+            icon: "clipboard-check",
           },
           {
             href: "/legal/cookie-policy",
             label: "Cookie Policy",
-            icon: NewspaperIcon,
+            icon: "cookie-bite",
           },
           {
             href: "/legal/privacy-policy",
             label: "Privacy Policy",
-            icon: NewspaperIcon,
+            icon: "building-lock",
           },
           {
             href: "/legal/terms-of-service",
             label: "Terms of Service",
-            icon: NewspaperIcon,
+            icon: "file-contract",
           },
           {
             href: "/licensing/chillicream-license",
             label: "ChilliCream License",
-            icon: NewspaperIcon,
+            icon: "file-certificate",
           },
         ],
       },
