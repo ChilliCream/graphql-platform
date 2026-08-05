@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class SchemaCompositionTests
 {
     [Fact]
-    public void WithGraphQLSchemaComposition_Should_UseValidationAndOutput_WhenArgumentsAreProvided()
+    public void WithNitroComposition_Should_UseValidationAndOutput_WhenArgumentsAreProvided()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -18,7 +18,7 @@ public sealed class SchemaCompositionTests
         // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition(
+            .WithNitroComposition(
                 disableValidation: true,
                 outputFileName: "custom.far");
 
@@ -36,7 +36,7 @@ public sealed class SchemaCompositionTests
     }
 
     [Fact]
-    public void WithGraphQLSchemaComposition_Should_UseDefaultOutput_WhenSettingsAreProvided()
+    public void WithNitroComposition_Should_UseDefaultOutput_WhenSettingsAreProvided()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -48,7 +48,7 @@ public sealed class SchemaCompositionTests
         // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition(settings);
+            .WithNitroComposition(settings);
 
         // assert
         var annotation = Assert.Single(
@@ -71,7 +71,7 @@ public sealed class SchemaCompositionTests
         var builder = DistributedApplication.CreateBuilder();
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var model = new DistributedApplicationModel(builder.Resources);
         using var gate = new SemaphoreSlim(0, 1);
 
@@ -96,7 +96,7 @@ public sealed class SchemaCompositionTests
         var builder = DistributedApplication.CreateBuilder();
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var model = new DistributedApplicationModel(builder.Resources);
         using var gate = new SemaphoreSlim(1, 1);
         using var cancellation = new CancellationTokenSource();
@@ -135,7 +135,7 @@ public sealed class SchemaCompositionTests
 #pragma warning restore CS0618
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(source);
         var model = new DistributedApplicationModel(builder.Resources);
         using var gate = new SemaphoreSlim(1, 1);
@@ -453,7 +453,7 @@ public sealed class SchemaCompositionTests
             .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateway = model.GetGraphQLCompositionResources().Single();
@@ -515,7 +515,7 @@ public sealed class SchemaCompositionTests
 #pragma warning restore CS0618
             builder
                 .AddProject("gateway", gatewayProjectFile)
-                .WithGraphQLSchemaComposition()
+                .WithNitroComposition()
                 .WithReference(products);
             var model = new DistributedApplicationModel(builder.Resources);
             var gateway = model.GetGraphQLCompositionResources().Single();
@@ -555,7 +555,7 @@ public sealed class SchemaCompositionTests
 #pragma warning restore CS0618
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateway = model.GetGraphQLCompositionResources().Single();
@@ -677,7 +677,7 @@ public sealed class SchemaCompositionTests
             .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateway = model.GetGraphQLCompositionResources().Single();
@@ -713,7 +713,7 @@ public sealed class SchemaCompositionTests
 #pragma warning restore CS0618
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(orders);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateway = model.GetGraphQLCompositionResources().Single();
@@ -749,7 +749,7 @@ public sealed class SchemaCompositionTests
             .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gatewayResource = model.GetGraphQLCompositionResources().Single();
@@ -836,13 +836,13 @@ public sealed class SchemaCompositionTests
         var telemetry = builder.AddProject("telemetry", GetTestProjectFile());
         builder
             .AddProject("gateway1", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products)
             .WithReference(orders)
             .WithReference(telemetry);
         builder
             .AddProject("gateway2", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(orders);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateways = model.GetGraphQLCompositionResources().ToList();
@@ -893,7 +893,7 @@ public sealed class SchemaCompositionTests
             .WithGraphQLHttpEndpoint(path: "/api/graphql");
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gatewayResource = model.GetGraphQLCompositionResources().Single();
@@ -940,7 +940,7 @@ public sealed class SchemaCompositionTests
             .WithGraphQLHttpEndpoint(path: "/api/graphql", schemaPath: "/api/schema.graphql");
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gatewayResource = model.GetGraphQLCompositionResources().Single();
@@ -984,7 +984,7 @@ public sealed class SchemaCompositionTests
             .WithGraphQLHttpEndpoint(path: "/api/graphql", schemaPath: null);
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gatewayResource = model.GetGraphQLCompositionResources().Single();
@@ -1025,7 +1025,7 @@ public sealed class SchemaCompositionTests
 #pragma warning restore CS0618
         builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gatewayResource = model.GetGraphQLCompositionResources().Single();
