@@ -47,6 +47,7 @@ public sealed class SchemaValidator
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
+        _rules.Add(new DirectiveIsUniqueRule());
         _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
@@ -89,6 +90,8 @@ public sealed class SchemaValidator
         var schema = context.Schema;
 
         PublishEvent(new InputObjectTypesEvent(schema.Types.OfType<IInputObjectTypeDefinition>()), context);
+
+        PublishDirectiveEvents(schema, context);
 
         foreach (var type in schema.Types)
         {
