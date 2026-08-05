@@ -90,35 +90,28 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (configuration is null && Transport.Topology.Address.IsBaseOf(address))
+        if (configuration is null
+            && Transport.Topology.Address.IsBaseOf(address)
+            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName))
         {
-            var topologyPath = GetTopologyRelativePath(address);
-            Span<Range> topologyRanges = stackalloc Range[2];
-            var topologySegmentCount =
-                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
+            var resourceName = new string(topologyName);
 
-            if (topologySegmentCount == 2)
+            if (topologyKind is "e")
             {
-                var kind = topologyPath[topologyRanges[0]];
-                var name = new string(topologyPath[topologyRanges[1]]);
-
-                if (kind is "e")
+                configuration = new RabbitMQDispatchEndpointConfiguration
                 {
-                    configuration = new RabbitMQDispatchEndpointConfiguration
-                    {
-                        ExchangeName = name,
-                        Name = "e/" + name
-                    };
-                }
-                else if (kind is "q")
+                    ExchangeName = resourceName,
+                    Name = "e/" + resourceName
+                };
+            }
+            else if (topologyKind is "q")
+            {
+                configuration = new RabbitMQDispatchEndpointConfiguration
                 {
-                    configuration = new RabbitMQDispatchEndpointConfiguration
-                    {
-                        QueueName = name,
-                        Name = "q/" + name,
-                        AutoProvision = GetQueueAutoProvision(name)
-                    };
-                }
+                    QueueName = resourceName,
+                    Name = "q/" + resourceName,
+                    AutoProvision = GetQueueAutoProvision(resourceName)
+                };
             }
         }
 
@@ -512,18 +505,12 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address))
+        if (Transport.Topology.Address.IsBaseOf(address)
+            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName)
+            && topologyKind is "q")
         {
-            var topologyPath = GetTopologyRelativePath(address);
-            Span<Range> topologyRanges = stackalloc Range[2];
-            var topologySegmentCount =
-                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
-
-            if (topologySegmentCount == 2 && topologyPath[topologyRanges[0]] is "q")
-            {
-                queueName = new string(topologyPath[topologyRanges[1]]);
-                return true;
-            }
+            queueName = new string(topologyName);
+            return true;
         }
 
         if (address is { Scheme: "queue" } && segmentCount == 1)
@@ -534,6 +521,30 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         queueName = string.Empty;
         return false;
+    }
+
+    /// <summary>
+    /// Splits a topology relative path into the leading kind segment and the resource name that
+    /// follows it. Everything after the first segment is the name, because a queue or exchange
+    /// name may contain a slash.
+    /// </summary>
+    private static bool TryGetKindAndName(
+        ReadOnlySpan<char> path,
+        out ReadOnlySpan<char> kind,
+        out ReadOnlySpan<char> name)
+    {
+        var separator = path.IndexOf('/');
+
+        if (separator <= 0 || separator == path.Length - 1)
+        {
+            kind = default;
+            name = default;
+            return false;
+        }
+
+        kind = path[..separator];
+        name = path[(separator + 1)..];
+        return true;
     }
 
     /// <summary>

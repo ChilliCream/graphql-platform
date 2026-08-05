@@ -88,34 +88,27 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (configuration is null && Transport.Topology.Address.IsBaseOf(address))
+        if (configuration is null
+            && Transport.Topology.Address.IsBaseOf(address)
+            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName))
         {
-            var topologyPath = GetTopologyRelativePath(address);
-            Span<Range> topologyRanges = stackalloc Range[2];
-            var topologySegmentCount =
-                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
+            var resourceName = new string(topologyName);
 
-            if (topologySegmentCount == 2)
+            if (topologyKind is "t")
             {
-                var kind = topologyPath[topologyRanges[0]];
-                var name = new string(topologyPath[topologyRanges[1]]);
-
-                if (kind is "t")
+                configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    configuration = new PostgresDispatchEndpointConfiguration
-                    {
-                        TopicName = name,
-                        Name = "t/" + name
-                    };
-                }
-                else if (kind is "q")
+                    TopicName = resourceName,
+                    Name = "t/" + resourceName
+                };
+            }
+            else if (topologyKind is "q")
+            {
+                configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    configuration = new PostgresDispatchEndpointConfiguration
-                    {
-                        QueueName = name,
-                        Name = "q/" + name
-                    };
-                }
+                    QueueName = resourceName,
+                    Name = "q/" + resourceName
+                };
             }
         }
 
@@ -460,18 +453,12 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address))
+        if (Transport.Topology.Address.IsBaseOf(address)
+            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName)
+            && topologyKind is "q")
         {
-            var topologyPath = GetTopologyRelativePath(address);
-            Span<Range> topologyRanges = stackalloc Range[2];
-            var topologySegmentCount =
-                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
-
-            if (topologySegmentCount == 2 && topologyPath[topologyRanges[0]] is "q")
-            {
-                queueName = new string(topologyPath[topologyRanges[1]]);
-                return true;
-            }
+            queueName = new string(topologyName);
+            return true;
         }
 
         if (address is { Scheme: "queue" })
@@ -485,6 +472,30 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         queueName = string.Empty;
         return false;
+    }
+
+    /// <summary>
+    /// Splits a topology relative path into the leading kind segment and the resource name that
+    /// follows it. Everything after the first segment is the name, because a queue or topic name
+    /// may contain a slash.
+    /// </summary>
+    private static bool TryGetKindAndName(
+        ReadOnlySpan<char> path,
+        out ReadOnlySpan<char> kind,
+        out ReadOnlySpan<char> name)
+    {
+        var separator = path.IndexOf('/');
+
+        if (separator <= 0 || separator == path.Length - 1)
+        {
+            kind = default;
+            name = default;
+            return false;
+        }
+
+        kind = path[..separator];
+        name = path[(separator + 1)..];
+        return true;
     }
 
     /// <summary>

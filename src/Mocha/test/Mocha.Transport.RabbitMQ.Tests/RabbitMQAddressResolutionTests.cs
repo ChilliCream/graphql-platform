@@ -38,6 +38,23 @@ public class RabbitMQAddressResolutionTests
         Assert.Equal("e/events", endpoint.Name);
     }
 
+    [Theory]
+    [InlineData("/")]
+    [InlineData("tenant-a")]
+    public void GetDispatchEndpoint_Should_ResolveQueue_When_QueueNameContainsSlash(string virtualHost)
+    {
+        // arrange
+        // a broker accepts a slash in a queue name, so everything after the kind segment is the name
+        var (runtime, topology) = CreateRuntime(virtualHost, t => t.DeclareQueue("nested/queue"));
+        var queue = topology.Queues.Single(q => q.Name == "nested/queue");
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(queue.Address);
+
+        // assert
+        Assert.Equal("q/nested/queue", endpoint.Name);
+    }
+
     [Fact]
     public void GetDispatchEndpoint_Should_ResolveQueue_When_AddressOmitsHostAndVirtualHost()
     {

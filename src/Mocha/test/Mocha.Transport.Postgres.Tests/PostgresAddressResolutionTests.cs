@@ -50,6 +50,22 @@ public class PostgresAddressResolutionTests
     }
 
     [Fact]
+    public void GetDispatchEndpoint_Should_ResolveQueue_When_QueueNameContainsSlash()
+    {
+        // arrange
+        // everything after the kind segment is the name, so a slash in a queue name still resolves
+        var runtime = CreateRuntime(t => t.DeclareQueue("nested/queue"));
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+        var queue = ((PostgresMessagingTopology)transport.Topology).Queues.Single(q => q.Name == "nested/queue");
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(queue.Address);
+
+        // assert
+        Assert.Equal("q/nested/queue", endpoint.Name);
+    }
+
+    [Fact]
     public void GetDispatchEndpoint_Should_ResolveTopic_When_AddressIsTopologyAddress()
     {
         // arrange
