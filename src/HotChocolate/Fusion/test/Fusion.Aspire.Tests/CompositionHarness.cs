@@ -36,9 +36,9 @@ internal sealed record CompositionHarness(
         var options = new NitroCompositionOptions
         {
             Coordinator = coordinator,
-            PortalUrl = portalUrl
+            PortalUrl = portalUrl,
+            SeedUpdates = new NitroSeedUpdateOptions { Enabled = false }
         };
-        options.SeedUpdates.Enabled = false;
         var validationCoordinator = new NitroSchemaValidationCoordinator(
             options,
             resourceLoggerService,
