@@ -34,8 +34,8 @@ items:
     title: Batching
   - path: performance-tuning
     title: Performance Tuning
-  - path: aspire-integration
-    title: Aspire Integration
+  - path: local-development
+    title: Local Development
   - path: deployment-and-ci-cd
     title: Deployment and CI/CD
   - path: cli

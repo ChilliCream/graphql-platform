@@ -13,14 +13,14 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class NitroExtensionsTests
 {
     [Fact]
-    public void AddNitro_Should_RegisterOneComposition_When_ItIsCalledTwice()
+    public void AddNitroComposition_Should_RegisterOneComposition_When_ItIsCalledTwice()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro();
-        builder.AddNitro();
+        builder.AddNitroComposition();
+        builder.AddNitroComposition();
 
         // assert
         DescribeCompositionRegistrations(builder).MatchInlineSnapshot(
@@ -28,48 +28,48 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void AddNitro_Should_LeaveTheCoordinatorOut_When_TheStageIsNotProvided()
+    public void AddNitroComposition_Should_LeaveTheCoordinatorOut_When_TheStageIsNotProvided()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro();
+        builder.AddNitroComposition();
 
         // assert
         Assert.Null(GetNitroCompositionOptions(builder).Coordinator);
     }
 
     [Fact]
-    public void AddNitro_Should_ConnectTheComposition_When_LocalCompositionWasAddedFirst()
+    public void AddNitroComposition_Should_ConnectTheComposition_When_LocalCompositionWasAddedFirst()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro();
-        builder.AddNitro("production");
+        builder.AddNitroComposition();
+        builder.AddNitroComposition("production");
 
         // assert
         Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
     }
 
     [Fact]
-    public void AddNitro_Should_KeepTheCoordinator_When_LocalCompositionIsAddedAfterTheStage()
+    public void AddNitroComposition_Should_KeepTheCoordinator_When_LocalCompositionIsAddedAfterTheStage()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro("production");
-        builder.AddNitro();
+        builder.AddNitroComposition("production");
+        builder.AddNitroComposition();
 
         // assert
         Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
     }
 
     [Fact]
-    public void AddGraphQLOrchestrator_Should_DelegateToAddNitro()
+    public void AddGraphQLOrchestrator_Should_DelegateToAddNitroComposition()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -87,14 +87,14 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void AddNitro_Should_KeepTheStage_When_ItIsCalledTwiceForTheSameStage()
+    public void AddNitroComposition_Should_KeepTheStage_When_ItIsCalledTwiceForTheSameStage()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro("production");
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
+        builder.AddNitroComposition("production");
 
         // assert
         $"""
@@ -108,37 +108,70 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void AddNitro_Should_Throw_When_ItIsCalledTwiceForDifferentStages()
+    public void AddNitroComposition_Should_Throw_When_ItIsCalledTwiceForDifferentStages()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(() => builder.AddNitro("staging"));
+        var exception = Assert.Throws<InvalidOperationException>(() => builder.AddNitroComposition("staging"));
 
         // assert
         Assert.Equal(
             "Nitro is already added for the stage 'production'. A distributed application "
-            + "composes against a single stage, so AddNitro cannot be called again for the stage "
-            + "'staging'.",
+            + "composes against a single stage, so AddNitroComposition cannot be called again "
+            + "for the stage 'staging'.",
             exception.Message);
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("  ")]
-    public void AddNitro_Should_Throw_When_TheStageIsNotAName(string? stage)
+    public void AddNitroComposition_Should_Throw_When_TheStageIsNotAName(string stage)
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        var exception = Record.Exception(() => builder.AddNitro(stage!));
+        var exception = Record.Exception(() => builder.AddNitroComposition(stage));
 
         // assert
         Assert.Equal("stage", Assert.IsAssignableFrom<ArgumentException>(exception).ParamName);
+    }
+
+    [Fact]
+    public void AddNitroComposition_Should_Throw_When_ThePortalUrlIsGivenWithoutAStage()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        var exception = Record.Exception(
+            () => builder.AddNitroComposition(portalUrl: new Uri("https://portal.example.test")));
+
+        // assert
+        Assert.Equal(
+            "portalUrl|The Nitro portal URL can only be set together with a stage. "
+            + "(Parameter 'portalUrl')",
+            $"{Assert.IsType<ArgumentException>(exception).ParamName}|{exception.Message}");
+    }
+
+    [Fact]
+    public void AddNitroComposition_Should_Throw_When_TheSeedUpdatesAreGivenWithoutAStage()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        var exception = Record.Exception(
+            () => builder.AddNitroComposition(seedUpdates: new NitroSeedUpdateOptions { Enabled = false }));
+
+        // assert
+        Assert.Equal(
+            "seedUpdates|The Nitro seed update settings can only be set together with a stage. "
+            + "(Parameter 'seedUpdates')",
+            $"{Assert.IsType<ArgumentException>(exception).ParamName}|{exception.Message}");
     }
 
     [Fact]
@@ -150,7 +183,7 @@ public sealed class NitroExtensionsTests
         // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroApiId("QXBpCmdhdGV3YXk");
 
         // assert
@@ -195,7 +228,7 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void WithGraphQLSchemaComposition_Should_RegisterTheRecomposeCommand()
+    public void WithNitroComposition_Should_RegisterTheRecomposeCommand()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -203,7 +236,7 @@ public sealed class NitroExtensionsTests
         // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
 
         // assert
         var command = Assert.Single(
@@ -220,7 +253,7 @@ public sealed class NitroExtensionsTests
         var builder = DistributedApplication.CreateBuilder();
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var command = Assert.Single(
             gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
             annotation => annotation.Name == "recompose");
@@ -250,13 +283,13 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public async Task WithGraphQLSchemaComposition_Should_ReturnControlledFailure_When_CompositionIsNotRegistered()
+    public async Task WithNitroComposition_Should_ReturnControlledFailure_When_CompositionIsNotRegistered()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var command = Assert.Single(
             gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
             annotation => annotation.Name == "recompose");
@@ -280,34 +313,29 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void AddNitro_Should_StoreTheCallerSuppliedPortalUrl()
+    public void AddNitroComposition_Should_StoreTheCallerSuppliedPortalUrl()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
         var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
 
         // act
-        builder.AddNitro("production", portalUrl);
+        builder.AddNitroComposition("production", portalUrl);
 
         // assert
         Assert.Same(portalUrl, GetNitroCompositionOptions(builder).PortalUrl);
     }
 
     [Fact]
-    public void AddNitro_Should_ConfigureSeedUpdates()
+    public void AddNitroComposition_Should_ConfigureSeedUpdates()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro(
+        builder.AddNitroComposition(
             "production",
-            portalUrl: null,
-            configureSeedUpdates: options =>
-            {
-                options.Enabled = false;
-                options.AutoUpdate = false;
-            });
+            seedUpdates: new NitroSeedUpdateOptions { Enabled = false, AutoUpdate = false });
 
         // assert
         var options = GetNitroCompositionOptions(builder).SeedUpdates;
@@ -315,30 +343,29 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void AddNitro_Should_AcceptAnExplicitNullPortalUrl()
+    public void AddNitroComposition_Should_AcceptAnExplicitNullPortalUrl()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
 
         // act
-        builder.AddNitro("production", null);
+        builder.AddNitroComposition("production", null);
 
         // assert
         Assert.Equal("production", GetNitroCompositionOptions(builder).Coordinator?.Stage);
     }
 
     [Fact]
-    public void AddNitro_Should_UpdateAutoUpdateDefault_WhenCalledAgain()
+    public void AddNitroComposition_Should_UpdateAutoUpdateDefault_WhenCalledAgain()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
 
         // act
-        builder.AddNitro(
+        builder.AddNitroComposition(
             "production",
-            portalUrl: null,
-            configureSeedUpdates: options => options.AutoUpdate = false);
+            seedUpdates: new NitroSeedUpdateOptions { AutoUpdate = false });
 
         // assert
         var options = GetNitroCompositionOptions(builder);
@@ -353,12 +380,12 @@ public sealed class NitroExtensionsTests
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
 
         // act
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroApiId("QXBpCmdhdGV3YXk");
 
         // assert
@@ -383,11 +410,11 @@ public sealed class NitroExtensionsTests
         var builder = DistributedApplication.CreateBuilder();
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroApiId("QXBpCmdhdGV3YXk");
 
         // act
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
 
         // assert
         Assert.Equal(
@@ -402,13 +429,12 @@ public sealed class NitroExtensionsTests
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro(
+        builder.AddNitroComposition(
             "production",
-            portalUrl: null,
-            configureSeedUpdates: options => options.Enabled = false);
+            seedUpdates: new NitroSeedUpdateOptions { Enabled = false });
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroApiId("QXBpCmdhdGV3YXk");
         var lifetime = new TestHostApplicationLifetime();
         var resourceLoggerService = new ResourceLoggerService();
@@ -437,10 +463,10 @@ public sealed class NitroExtensionsTests
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroApiId("QXBpCmdhdGV3YXk");
         var lifetime = new TestHostApplicationLifetime();
         var service = new NitroSeedUpdateService(
@@ -489,10 +515,10 @@ public sealed class NitroExtensionsTests
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
-        builder.AddNitro("production");
+        builder.AddNitroComposition("production");
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroApiId("QXBpCmdhdGV3YXk");
         var lifetime = new TestHostApplicationLifetime();
         var service = new NitroSeedUpdateService(

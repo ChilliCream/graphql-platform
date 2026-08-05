@@ -214,7 +214,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             .WithGraphQLHttpEndpoint();
         var configuredGateway = builder
             .AddProject("gateway", _gatewayProjectFile)
-            .WithGraphQLSchemaComposition(
+            .WithNitroComposition(
                 new GraphQLCompositionSettings
                 {
                     DisableSchemaValidation = true,
@@ -567,8 +567,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // assert
         DescribeEntries(harness, LogLevel.Warning).MatchInlineSnapshot(
             """
-            The resource products selects the Nitro api QXBpCnByb2R1Y3Rz, but the distributed application does not add Nitro. Call AddNitro on the distributed application builder so the api id takes effect.
-            The resource gateway selects the Nitro api QXBpCmdhdGV3YXk, but the distributed application does not add Nitro. Call AddNitro on the distributed application builder so the api id takes effect.
+            The resource products selects the Nitro api QXBpCnByb2R1Y3Rz, but the distributed application does not add Nitro. Call AddNitroComposition on the distributed application builder so the api id takes effect.
+            The resource gateway selects the Nitro api QXBpCmdhdGV3YXk, but the distributed application does not add Nitro. Call AddNitroComposition on the distributed application builder so the api id takes effect.
             """);
     }
 
@@ -1019,7 +1019,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         var gateway = builder
             .AddProject("gateway", _gatewayProjectFile)
-            .WithGraphQLSchemaComposition(
+            .WithNitroComposition(
                 disableValidation: disableSchemaValidation)
             .WithReference(products);
 
