@@ -190,9 +190,9 @@ internal class SchemaComposition(
                 }
 
                 CreateGatewayLogger(resource).LogWarning(
-                    "The resource {ResourceName} selects the Nitro api {ApiId}, but the "
-                    + "distributed application does not add Nitro. Call AddNitroComposition on "
-                    + "the distributed application builder so the api id takes effect.",
+                    "The resource {ResourceName} selects the Nitro api {ApiId}, but no Nitro "
+                    + "stage is configured. Call AddNitroComposition(stage: ...) on the "
+                    + "distributed application builder so the api id takes effect.",
                     resource.Name,
                     apiId);
             }
