@@ -11,12 +11,12 @@ public sealed class CompositionHelperTests
     {
         // arrange
         using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
-        var products = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var products = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText("Products", "type Query { product: String }"),
-                productsSettings)
+                productsSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
 
@@ -27,7 +27,7 @@ public sealed class CompositionHelperTests
                 products,
                 archive,
                 "Development",
-                SettingsComposerOptions.Default,
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -37,12 +37,12 @@ public sealed class CompositionHelperTests
 
         stream.Position = 0;
         using var reviewsSettings = JsonDocument.Parse("""{ "name": "Reviews" }""");
-        var reviews = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var reviews = new Dictionary<string, LocalSourceSchema>
         {
-            ["Reviews"] =
-            (
+            ["Reviews"] = new(
                 new SourceSchemaText("Reviews", "type Query { review: String }"),
-                reviewsSettings)
+                reviewsSettings,
+                urlOverride: null)
         };
 
         // act
@@ -56,7 +56,7 @@ public sealed class CompositionHelperTests
                 reviews,
                 archive,
                 "Development",
-                SettingsComposerOptions.Default,
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -95,10 +95,9 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText(
                     "Products",
                     """
@@ -113,7 +112,8 @@ public sealed class CompositionHelperTests
                       id: ID!
                     }
                     """),
-                sourceSettings)
+                sourceSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -126,7 +126,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
-                SettingsComposerOptions.Default,
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -171,10 +171,9 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText(
                     "Products",
                     """
@@ -197,7 +196,8 @@ public sealed class CompositionHelperTests
                       id: ID! @external
                     }
                     """),
-                sourceSettings)
+                sourceSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -209,7 +209,7 @@ public sealed class CompositionHelperTests
             sourceSchemas,
             archive,
             "Development",
-            SettingsComposerOptions.Default,
+            preferDevUrls: false,
             compositionSettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
@@ -244,10 +244,9 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText(
                     "Products",
                     """
@@ -270,7 +269,8 @@ public sealed class CompositionHelperTests
                       id: ID!
                     }
                     """),
-                sourceSettings)
+                sourceSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -283,7 +283,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
-                SettingsComposerOptions.Default,
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -360,7 +360,7 @@ public sealed class CompositionHelperTests
     }
 
     [Fact]
-    public async Task ComposeAsync_Should_ComposeLocalUrl_When_OptionsCarryLocalUrlOverride()
+    public async Task ComposeAsync_Should_ComposeLocalUrl_When_LocalSchemaCarriesUrlOverride()
     {
         // arrange
         using var sourceSettings = JsonDocument.Parse(
@@ -375,20 +375,12 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText("Products", "type Query { product: String }"),
-                sourceSettings)
-        };
-        var settingsComposerOptions = new SettingsComposerOptions
-        {
-            LocalUrlOverrides = new Dictionary<string, string>
-            {
-                ["Products"] = "http://localhost:5001/graphql"
-            },
-            PreferDevUrls = true
+                sourceSettings,
+                urlOverride: new Uri("http://localhost:5001/graphql"))
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -401,7 +393,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
-                settingsComposerOptions,
+                preferDevUrls: true,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);

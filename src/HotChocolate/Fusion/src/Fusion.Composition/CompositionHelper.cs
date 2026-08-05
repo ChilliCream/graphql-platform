@@ -16,10 +16,10 @@ internal static class CompositionHelper
 {
     public static async Task<CompositionResult<MutableSchemaDefinition>> ComposeAsync(
         ICompositionLog compositionLog,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
+        Dictionary<string, LocalSourceSchema> localSourceSchemas,
         FusionArchive archive,
         string environment,
-        SettingsComposerOptions settingsComposerOptions,
+        bool preferDevUrls,
         CompositionSettings? compositionSettings,
         Stream? legacyArchive,
         CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ internal static class CompositionHelper
         // could be uppercased to a conflicting SOME_SERVICE.
         // To avoid weird errors for the user down the line,
         // we already validate for collisions here.
-        foreach (var (newSourceSchemaName, _) in sourceSchemas)
+        foreach (var (newSourceSchemaName, _) in localSourceSchemas)
         {
             var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchemaName);
 
@@ -58,9 +58,15 @@ internal static class CompositionHelper
             }
         }
 
-        var allSourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>(
-            sourceSchemas,
-            sourceSchemas.Comparer);
+        var allSourceSchemas = new Dictionary<string, (SourceSchemaText Schema, JsonDocument Settings)>(
+            localSourceSchemas.Count,
+            localSourceSchemas.Comparer);
+
+        foreach (var (schemaName, localSourceSchema) in localSourceSchemas)
+        {
+            allSourceSchemas[schemaName] = (localSourceSchema.Schema, localSourceSchema.Settings);
+        }
+
         using var carriedSourceSchemaConfigurations =
             new CarriedSourceSchemaConfigurationCollection();
 
@@ -143,7 +149,7 @@ internal static class CompositionHelper
             };
 
             var schemaComposer = new SchemaComposer(
-                allSourceSchemas.Select(s => s.Value.Item1),
+                allSourceSchemas.Select(s => s.Value.Schema),
                 schemaComposerOptions,
                 compositionLog);
 
@@ -154,11 +160,22 @@ internal static class CompositionHelper
                 return result;
             }
 
+            var urlOverrides = new Dictionary<string, Uri>(localSourceSchemas.Comparer);
+
+            foreach (var (schemaName, localSourceSchema) in localSourceSchemas)
+            {
+                if (localSourceSchema.UrlOverride is { } urlOverride)
+                {
+                    urlOverrides[schemaName] = urlOverride;
+                }
+            }
+
             new SettingsComposer().Compose(
                 bufferWriter,
                 [.. runtimeSourceSchemaSettings],
                 environment,
-                settingsComposerOptions,
+                urlOverrides,
+                preferDevUrls,
                 compositionLog);
         }
         finally

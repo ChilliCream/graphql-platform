@@ -205,7 +205,7 @@ nitro fusion settings set shareable-field-runtime-type-routing common-runtime-ty
   --archive gateway.far
 ```
 
-Nitro reports `Composed new configuration.` after it recomposes the archive. With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../aspire-integration.md#composition-settings).
+Nitro reports `Composed new configuration.` after it recomposes the archive. With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../local-development.md#composition-settings).
 
 Composition records the policy in the execution schema. For example, `common-runtime-types` produces:
 
@@ -280,7 +280,7 @@ With Aspire composition, set the equivalent property:
 ```csharp
 builder
     .AddProject<Projects.Gateway>("gateway-api")
-    .WithGraphQLSchemaComposition(
+    .WithNitroComposition(
         settings: new GraphQLCompositionSettings
         {
             AllowNonResolvableInterfaceObjects = true
@@ -323,7 +323,7 @@ nitro fusion settings set node-resolution source-schema \
   --archive gateway.far
 ```
 
-For the settings command reference, see [nitro fusion settings set](../cli.md#nitro-fusion-settings-set). If you compose through Aspire, set `EnableGlobalObjectIdentification` to `true` and `NodeResolution` to `NodeResolution.SourceSchema` in `GraphQLCompositionSettings`. See [Composition settings](../aspire-integration.md#composition-settings).
+For the settings command reference, see [nitro fusion settings set](../cli.md#nitro-fusion-settings-set). If you compose through Aspire, set `EnableGlobalObjectIdentification` to `true` and `NodeResolution` to `NodeResolution.SourceSchema` in `GraphQLCompositionSettings`. See [Composition settings](../local-development.md#composition-settings).
 
 ## Verify node resolution
 

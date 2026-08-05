@@ -19,6 +19,11 @@ import {
   Implementation,
   Schema,
 } from "@/src/components/ExampleTabs";
+import {
+  CSharp,
+  LanguageTabs,
+  TypeScript,
+} from "@/src/components/LanguageTabs";
 import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
 import { FusionSubscriptionsDiagram } from "@/src/components/FusionSubscriptionsDiagram";
 import { DocHeading } from "@/src/components/DocHeading";
@@ -102,6 +107,11 @@ const components: MDXComponents = {
   Code: (props) => <Code {...props} exampleTab="code" />,
   ExampleCode: (props) => <ExampleCode {...props} exampleTab="code" />,
   Schema: (props) => <Schema {...props} exampleTab="schema" />,
+  LanguageTabs,
+  // Same RSC/client identity caveat as above: give the language marker
+  // elements a serializable discriminator for LanguageTabs to inspect.
+  CSharp: (props) => <CSharp {...props} languageTab="csharp" />,
+  TypeScript: (props) => <TypeScript {...props} languageTab="typescript" />,
   PackageInstallation,
 };
 

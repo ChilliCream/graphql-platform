@@ -14,15 +14,13 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
 /// Drives the start gate and the recomposition of a gateway that composes against a fusion
-/// configuration of Nitro, with file-based source schemas and a Nitro stand-in on a loopback port.
+/// configuration of Nitro, with a source schema resource and a Nitro stand-in on loopback ports.
 /// </summary>
 /// <remarks>
-/// Two behaviors cannot be observed without an application host and are covered at their seams
-/// instead: the URL that an allocated endpoint injects into the composed configuration (the
-/// resources of this harness never allocate an endpoint, which is what
-/// <c>AspireCompositionHelperTests.BuildLocalUrlOverrides_*</c> covers) and the fact that the
-/// download and the wait for the source schema resources run at the same time (the wait needs
-/// resource health that this harness cannot report).
+/// The source schema resource serves its schema from a loopback endpoint and reports that it runs,
+/// which is what the composition waits for. Aspire only fires the resource ready event that the
+/// health wait waits for from its orchestrator, so the harness composes with a wait on the
+/// reported resource state, see <c>CompositionHarness.Create</c>.
 /// </remarks>
 public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 {
@@ -39,11 +37,15 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     private string _gatewayProjectFile = null!;
     private string _gatewayArchivePath = null!;
     private FakeNitroServer _server = null!;
+    private SchemaEndpointServer _productsServer = null!;
 
     public async ValueTask InitializeAsync()
     {
         _server = await FakeNitroServer.StartAsync();
         _server.GraphQLHandler = _ => CreateEmptyCompositionSettingsResponse();
+        _productsServer = await SchemaEndpointServer.StartAsync(
+            "/graphql/schema.graphql",
+            ProductsSchema);
 
         var productsDirectory = Directory.CreateDirectory(_directory.GetPath("products"));
         var gatewayDirectory = Directory.CreateDirectory(_directory.GetPath("gateway"));
@@ -54,9 +56,6 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         await File.WriteAllTextAsync(_productsProjectFile, "<Project />");
         await File.WriteAllTextAsync(_gatewayProjectFile, "<Project />");
-        await File.WriteAllTextAsync(
-            IOPath.Combine(productsDirectory.FullName, "schema.graphqls"),
-            ProductsSchema);
         await File.WriteAllTextAsync(
             IOPath.Combine(productsDirectory.FullName, "schema-settings.json"),
             """
@@ -84,6 +83,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         _httpClient.Dispose();
         _directory.Dispose();
+        await _productsServer.DisposeAsync();
         await _server.DisposeAsync();
     }
 
@@ -94,8 +94,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // the seed carries an outdated products schema, so the local products schema has to
         // replace it, and it carries two schemas that only exist in Nitro.
         await ServeSeedAsync();
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -116,7 +116,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                 "products": {
                   "transports": {
                     "http": {
-                      "url": "http://localhost:5001/graphql"
+                      "url": "<products>/graphql"
                     }
                   }
                 },
@@ -149,8 +149,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             StringComparison.Ordinal)
                 ? FakeNitroResponse.Json("""{"data":{"node":{"name":"Gateway"}}}""")
                 : CreateCompositionSettingsResponse();
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId, disableSchemaValidation: true);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId, disableSchemaValidation: true);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -206,14 +206,15 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         await ServeSeedAsync();
         _server.GraphQLHandler = _ => CreateCompositionSettingsResponse();
-        var harness = CompositionHarness.Create(CreateCoordinator());
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", _productsProjectFile)
-            .WithGraphQLSchemaFile();
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLHttpEndpoint();
         var configuredGateway = builder
             .AddProject("gateway", _gatewayProjectFile)
-            .WithGraphQLSchemaComposition(
+            .WithNitroComposition(
                 new GraphQLCompositionSettings
                 {
                     DisableSchemaValidation = true,
@@ -223,6 +224,10 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateway = configuredGateway.Resource;
+        products.Resource.AllocateHttpEndpoint(_productsServer.Port);
+        await harness.Notifications.PublishUpdateAsync(
+            products.Resource,
+            snapshot => snapshot with { State = KnownResourceStates.Running });
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -272,8 +277,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                     "type Query { legacy: String }",
                     CreateSettings("legacy", "https://legacy.example.com/graphql"))),
             TestContext.Current.CancellationToken);
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -296,8 +301,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         await ServeSeedAsync();
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(gatewayApiId: null);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, gatewayApiId: null);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -325,8 +330,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         await PrimeTheCacheAsync();
         _server.DownloadHandler = _ =>
             FakeNitroResponse.Status(StatusCodes.Status503ServiceUnavailable);
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -361,8 +366,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var notifier = new RecordingCompositionNotifier();
         var harness = CompositionHarness.Create(
             CreateCoordinator(),
-            compositionNotifier: notifier);
-        var (model, gateway) = CreateModel(GatewayApiId);
+            compositionNotifier: notifier,
+            waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -395,8 +401,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         await ServeSeedAsync();
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await harness.Composition.ComposeOnGatewayStartAsync(
             gateway,
@@ -430,8 +436,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var notifier = new RecordingCompositionNotifier();
         var harness = CompositionHarness.Create(
             CreateCoordinator(),
-            compositionNotifier: notifier);
-        var (model, gateway) = CreateModel(GatewayApiId);
+            compositionNotifier: notifier,
+            waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -464,8 +471,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         await PrimeTheCacheAsync();
         WriteExpiredSession();
-        var harness = CompositionHarness.Create(CreateCoordinator(new TestNitroEnvironment()));
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(new TestNitroEnvironment()), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         var requestsBeforeTheStartGate = _server.Requests.Count;
 
@@ -494,8 +501,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         WriteExpiredSession();
-        var harness = CompositionHarness.Create(CreateCoordinator(new TestNitroEnvironment()));
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(new TestNitroEnvironment()), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -526,8 +533,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         await ServeSeedAsync();
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId, SubgraphApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId, SubgraphApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -548,11 +555,11 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
-    public void ReportNitroConfigurationDiagnostics_Should_Warn_When_AnApiIdCannotTakeEffect()
+    public async Task ReportNitroConfigurationDiagnostics_Should_Warn_When_AnApiIdCannotTakeEffect()
     {
         // arrange
-        var harness = CompositionHarness.Create(coordinator: null);
-        var (model, gateway) = CreateModel(GatewayApiId, SubgraphApiId);
+        var harness = CompositionHarness.Create(coordinator: null, waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId, SubgraphApiId);
 
         // act
         harness.Composition.ReportNitroConfigurationDiagnostics(model, [gateway]);
@@ -560,17 +567,17 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // assert
         DescribeEntries(harness, LogLevel.Warning).MatchInlineSnapshot(
             """
-            The resource products selects the Nitro api QXBpCnByb2R1Y3Rz, but the distributed application does not add Nitro. Call AddNitro on the distributed application builder so the api id takes effect.
-            The resource gateway selects the Nitro api QXBpCmdhdGV3YXk, but the distributed application does not add Nitro. Call AddNitro on the distributed application builder so the api id takes effect.
+            The resource products selects the Nitro api QXBpCnByb2R1Y3Rz, but no Nitro stage is configured. Call AddNitroComposition(stage: ...) on the distributed application builder so the api id takes effect.
+            The resource gateway selects the Nitro api QXBpCmdhdGV3YXk, but no Nitro stage is configured. Call AddNitroComposition(stage: ...) on the distributed application builder so the api id takes effect.
             """);
     }
 
     [Fact]
-    public void ReportNitroConfigurationDiagnostics_Should_Warn_When_NoGatewaySelectsAnApi()
+    public async Task ReportNitroConfigurationDiagnostics_Should_Warn_When_NoGatewaySelectsAnApi()
     {
         // arrange
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(gatewayApiId: null);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, gatewayApiId: null);
 
         // act
         harness.Composition.ReportNitroConfigurationDiagnostics(model, [gateway]);
@@ -583,11 +590,11 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
-    public void ReportNitroConfigurationDiagnostics_Should_StaySilent_When_TheGatewaySelectsAnApi()
+    public async Task ReportNitroConfigurationDiagnostics_Should_StaySilent_When_TheGatewaySelectsAnApi()
     {
         // arrange
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
 
         // act
         harness.Composition.ReportNitroConfigurationDiagnostics(model, [gateway]);
@@ -600,8 +607,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     public async Task AddNitroPortalUrlsAsync_Should_AttachDerivedPortal_When_GatewayUsesNitro()
     {
         // arrange
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (_, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (_, gateway) = await CreateModelAsync(harness, GatewayApiId);
 
         // act
         await harness.Composition.AddNitroPortalUrlsAsync(
@@ -632,7 +639,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
         var harness = CompositionHarness.Create(CreateCoordinator(), portalUrl);
-        var (_, gateway) = CreateModel(GatewayApiId);
+        var (_, gateway) = await CreateModelAsync(harness, GatewayApiId);
 
         // act
         await harness.Composition.AddNitroPortalUrlsAsync(
@@ -651,8 +658,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         var harness = CompositionHarness.Create(
-            CreateCoordinator(new ThrowingNitroEnvironment()));
-        var (_, gateway) = CreateModel(GatewayApiId);
+            CreateCoordinator(new ThrowingNitroEnvironment()),
+            waitForRunningState: true);
+        var (_, gateway) = await CreateModelAsync(harness, GatewayApiId);
 
         // act
         await harness.Composition.AddNitroPortalUrlsAsync(
@@ -669,8 +677,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     public async Task AddNitroPortalUrlsAsync_Should_NotAttachPortal_When_GatewayIsLocal()
     {
         // arrange
-        var harness = CompositionHarness.Create(CreateCoordinator());
-        var (_, gateway) = CreateModel(gatewayApiId: null);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (_, gateway) = await CreateModelAsync(harness, gatewayApiId: null);
 
         // act
         await harness.Composition.AddNitroPortalUrlsAsync(
@@ -689,8 +697,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var validator = new RecordingSchemaValidator(blockUntilReleased: true);
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
-            notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId);
+            notifier: new NoopValidationNotifier(),
+            waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -738,8 +747,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var validator = new RecordingSchemaValidator(blockUntilReleased: false);
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
-            notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(
+            notifier: new NoopValidationNotifier(),
+            waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, 
             GatewayApiId,
             disableSchemaValidation: true);
         using var compositionGate = new SemaphoreSlim(1, 1);
@@ -773,8 +783,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var validator = new RecordingSchemaValidator(blockUntilReleased: false);
         var harness = CompositionHarness.Create(
             CreateCoordinator(validator),
-            notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId);
+            notifier: new NoopValidationNotifier(),
+            waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
 
         // act
@@ -816,8 +827,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var coordinator = CreateCoordinator(validator);
         var harness = CompositionHarness.Create(
             coordinator,
-            notifier: new NoopValidationNotifier());
-        var (model, gateway) = CreateModel(GatewayApiId);
+            notifier: new NoopValidationNotifier(),
+            waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await coordinator.AcquireSeedAsync(
             gateway.Name,
@@ -844,12 +856,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             TestContext.Current.CancellationToken);
         var validationsAfterUnchanged = validator.SchemaHashes.Count;
 
-        await File.WriteAllTextAsync(
-            IOPath.Combine(
-                IOPath.GetDirectoryName(_productsProjectFile)!,
-                "schema.graphqls"),
-            "type Query { product: String @deprecated }",
-            TestContext.Current.CancellationToken);
+        _productsServer.SchemaDocument = "type Query { product: String @deprecated }";
         var changed = await harness.Composition.ExecuteRecomposeCommandAsync(
             gateway,
             model,
@@ -891,8 +898,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         await ServeSeedAsync();
         var coordinator = CreateCoordinator();
-        var harness = CompositionHarness.Create(coordinator);
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(coordinator, waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await coordinator.AcquireSeedAsync(
             gateway.Name,
@@ -930,8 +937,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         await ServeSeedAsync();
         var coordinator = CreateCoordinator();
-        var harness = CompositionHarness.Create(coordinator);
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(coordinator, waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await coordinator.AcquireSeedAsync(
             gateway.Name,
@@ -960,8 +967,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // arrange
         await ServeSeedAsync();
         var coordinator = CreateCoordinator();
-        var harness = CompositionHarness.Create(coordinator);
-        var (model, gateway) = CreateModel(GatewayApiId);
+        var harness = CompositionHarness.Create(coordinator, waitForRunningState: true);
+        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId);
         using var compositionGate = new SemaphoreSlim(1, 1);
         await coordinator.AcquireSeedAsync(
             gateway.Name,
@@ -993,7 +1000,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             + $"{coordinator.GetStagedCandidate(gateway.Name) is not null}");
     }
 
-    private (DistributedApplicationModel Model, IResourceWithEndpoints Gateway) CreateModel(
+    private async Task<(DistributedApplicationModel Model, IResourceWithEndpoints Gateway)> CreateModelAsync(
+        CompositionHarness harness,
         string? gatewayApiId,
         string? productsApiId = null,
         bool disableSchemaValidation = false)
@@ -1001,7 +1009,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products", _productsProjectFile)
-            .WithGraphQLSchemaFile();
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLHttpEndpoint();
 
         if (productsApiId is not null)
         {
@@ -1010,7 +1019,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         var gateway = builder
             .AddProject("gateway", _gatewayProjectFile)
-            .WithGraphQLSchemaComposition(
+            .WithNitroComposition(
                 disableValidation: disableSchemaValidation)
             .WithReference(products);
 
@@ -1020,6 +1029,10 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         }
 
         var model = new DistributedApplicationModel(builder.Resources);
+        products.Resource.AllocateHttpEndpoint(_productsServer.Port);
+        await harness.Notifications.PublishUpdateAsync(
+            products.Resource,
+            snapshot => snapshot with { State = KnownResourceStates.Running });
 
         return (model, model.GetGraphQLCompositionResources().Single());
     }
@@ -1298,12 +1311,13 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             gatewayConfiguration!.Settings.RootElement,
             new JsonSerializerOptions { WriteIndented = true });
 
-        return $"""
+        return Normalize(
+            $"""
             Source schemas: {string.Join(", ", sourceSchemaNames)}
             products document: {await ReadSchemaAsync(products!, cancellationToken)}
             Gateway settings:
             {settings}
-            """;
+            """);
     }
 
     private async Task<string> ReadSourceSchemaNamesAsync()
@@ -1348,6 +1362,10 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     private string Normalize(string value)
         => value
             .Replace(_server.BaseAddress.AbsoluteUri, "https://nitro.test/", StringComparison.Ordinal)
+            .Replace(
+                $"http://127.0.0.1:{_productsServer.Port}",
+                "<products>",
+                StringComparison.Ordinal)
             .Replace(_directory.Path, "<temp>", StringComparison.Ordinal);
 
     private sealed class RecordingSchemaValidator(bool blockUntilReleased)
