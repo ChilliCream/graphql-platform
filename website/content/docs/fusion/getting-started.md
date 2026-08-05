@@ -1,6 +1,6 @@
 ---
-title: "Getting Started"
-description: "Build your first Hot Chocolate Fusion setup: two subgraphs and a gateway composed into one GraphQL API, with entities, lookups, and composition basics."
+title: "Getting Started with GraphQL Federation"
+description: "Follow a practical GraphQL federation tutorial to build two subgraphs, compose a unified schema, and query the unified API with ChilliCream's Fusion gateway."
 ---
 
 In this tutorial, you will build and run a small Fusion setup locally.
