@@ -1,6 +1,6 @@
 ---
 title: "Getting Started with GraphQL Federation"
-description: "Follow a practical GraphQL federation tutorial to build two subgraphs, compose a unified schema, and query the unified API with ChilliCream's Fusion gateway."
+description: "Follow a practical GraphQL Federation tutorial to build two subgraphs, compose a unified schema, and query the unified API with ChilliCream's Fusion gateway."
 ---
 
 In this tutorial, you will build and run a small Fusion setup locally.
