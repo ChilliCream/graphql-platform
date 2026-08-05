@@ -80,7 +80,7 @@ Composition settings normally come from Nitro. Settings passed to the `GraphQLCo
 
 Composition now requires every composed source schema to declare the path of its GraphQL endpoint. `WithGraphQLSchemaEndpoint` and `WithGraphQLSchemaFile` do not declare it. Both are marked `[Obsolete]`, and a resource registered through them still compiles but fails composition with an error like:
 
-```
+```text
 The source schema Products of the resource products does not declare the path of its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.
 ```
 
