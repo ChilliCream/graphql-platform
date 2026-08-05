@@ -88,29 +88,34 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (configuration is null
-            && Transport.Topology.Address.IsBaseOf(address)
-            && segmentCount == 2)
+        if (configuration is null && Transport.Topology.Address.IsBaseOf(address))
         {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
+            var topologyPath = GetTopologyRelativePath(address);
+            Span<Range> topologyRanges = stackalloc Range[2];
+            var topologySegmentCount =
+                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
 
-            if (kind is "t" && name is var topicName)
+            if (topologySegmentCount == 2)
             {
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    TopicName = new string(topicName),
-                    Name = "t/" + new string(topicName)
-                };
-            }
+                var kind = topologyPath[topologyRanges[0]];
+                var name = new string(topologyPath[topologyRanges[1]]);
 
-            if (kind is "q" && name is var queueName)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration
+                if (kind is "t")
                 {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
-                };
+                    configuration = new PostgresDispatchEndpointConfiguration
+                    {
+                        TopicName = name,
+                        Name = "t/" + name
+                    };
+                }
+                else if (kind is "q")
+                {
+                    configuration = new PostgresDispatchEndpointConfiguration
+                    {
+                        QueueName = name,
+                        Name = "q/" + name
+                    };
+                }
             }
         }
 
@@ -455,9 +460,18 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        if (Transport.Topology.Address.IsBaseOf(address))
         {
-            return true;
+            var topologyPath = GetTopologyRelativePath(address);
+            Span<Range> topologyRanges = stackalloc Range[2];
+            var topologySegmentCount =
+                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
+
+            if (topologySegmentCount == 2 && topologyPath[topologyRanges[0]] is "q")
+            {
+                queueName = new string(topologyPath[topologyRanges[1]]);
+                return true;
+            }
         }
 
         if (address is { Scheme: "queue" })
@@ -473,27 +487,24 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         return false;
     }
 
-    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    /// <summary>
+    /// Returns the path of the address relative to the transport topology address, so that
+    /// addresses under a topology base path expose the same <c>t/{name}</c> and <c>q/{name}</c>
+    /// segments as addresses at the root.
+    /// </summary>
+    private ReadOnlySpan<char> GetTopologyRelativePath(Uri address)
     {
-        var relative = Transport.Topology.Address.MakeRelativeUri(address);
-        if (relative.IsAbsoluteUri)
+        var basePath = Transport.Topology.Address.AbsolutePath.AsSpan().Trim('/');
+        var path = address.AbsolutePath.AsSpan().Trim('/');
+
+        if (basePath.IsEmpty
+            || path.Length <= basePath.Length
+            || !path.StartsWith(basePath, StringComparison.Ordinal)
+            || path[basePath.Length] is not '/')
         {
-            queueName = string.Empty;
-            return false;
+            return path;
         }
 
-        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
-        var path = relativePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        if (segmentCount == 2 && path[ranges[0]] is "q")
-        {
-            queueName = new string(path[ranges[1]]);
-            return true;
-        }
-
-        queueName = string.Empty;
-        return false;
+        return path[(basePath.Length + 1)..];
     }
 }

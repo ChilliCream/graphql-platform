@@ -90,42 +90,36 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (configuration is null && Transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
+        if (configuration is null && Transport.Topology.Address.IsBaseOf(address))
         {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
+            var topologyPath = GetTopologyRelativePath(address);
+            Span<Range> topologyRanges = stackalloc Range[2];
+            var topologySegmentCount =
+                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
 
-            if (kind is "e" && name is var exchangeName)
+            if (topologySegmentCount == 2)
             {
-                configuration = new RabbitMQDispatchEndpointConfiguration
+                var kind = topologyPath[topologyRanges[0]];
+                var name = new string(topologyPath[topologyRanges[1]]);
+
+                if (kind is "e")
                 {
-                    ExchangeName = new string(exchangeName),
-                    Name = "e/" + new string(exchangeName)
-                };
-            }
-
-            if (kind is "q" && name is var queueName)
-            {
-                var queueNameValue = new string(queueName);
-                configuration = new RabbitMQDispatchEndpointConfiguration
+                    configuration = new RabbitMQDispatchEndpointConfiguration
+                    {
+                        ExchangeName = name,
+                        Name = "e/" + name
+                    };
+                }
+                else if (kind is "q")
                 {
-                    QueueName = queueNameValue,
-                    Name = "q/" + queueNameValue,
-                    AutoProvision = GetQueueAutoProvision(queueNameValue)
-                };
+                    configuration = new RabbitMQDispatchEndpointConfiguration
+                    {
+                        QueueName = name,
+                        Name = "q/" + name,
+                        AutoProvision = GetQueueAutoProvision(name)
+                    };
+                }
             }
-        }
-
-        if (configuration is null
-            && Transport.Topology.Address.IsBaseOf(address)
-            && TryGetBaseQueueName(address, out var baseQueueName))
-        {
-            configuration = new RabbitMQDispatchEndpointConfiguration
-            {
-                QueueName = baseQueueName,
-                Name = "q/" + baseQueueName,
-                AutoProvision = GetQueueAutoProvision(baseQueueName)
-            };
         }
 
         if (configuration is null && address is { Scheme: "queue" } && segmentCount == 1)
@@ -518,9 +512,18 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        if (Transport.Topology.Address.IsBaseOf(address))
         {
-            return true;
+            var topologyPath = GetTopologyRelativePath(address);
+            Span<Range> topologyRanges = stackalloc Range[2];
+            var topologySegmentCount =
+                topologyPath.Split(topologyRanges, '/', RemoveEmptyEntries | TrimEntries);
+
+            if (topologySegmentCount == 2 && topologyPath[topologyRanges[0]] is "q")
+            {
+                queueName = new string(topologyPath[topologyRanges[1]]);
+                return true;
+            }
         }
 
         if (address is { Scheme: "queue" } && segmentCount == 1)
@@ -533,28 +536,25 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         return false;
     }
 
-    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    /// <summary>
+    /// Returns the path of the address relative to the transport topology address, so that
+    /// addresses on a named virtual host expose the same <c>e/{name}</c> and <c>q/{name}</c>
+    /// segments as addresses on the default virtual host.
+    /// </summary>
+    private ReadOnlySpan<char> GetTopologyRelativePath(Uri address)
     {
-        var relative = Transport.Topology.Address.MakeRelativeUri(address);
-        if (relative.IsAbsoluteUri)
+        var basePath = Transport.Topology.Address.AbsolutePath.AsSpan().Trim('/');
+        var path = address.AbsolutePath.AsSpan().Trim('/');
+
+        if (basePath.IsEmpty
+            || path.Length <= basePath.Length
+            || !path.StartsWith(basePath, StringComparison.Ordinal)
+            || path[basePath.Length] is not '/')
         {
-            queueName = string.Empty;
-            return false;
+            return path;
         }
 
-        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
-        var path = relativePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        if (segmentCount == 2 && path[ranges[0]] is "q")
-        {
-            queueName = new string(path[ranges[1]]);
-            return true;
-        }
-
-        queueName = string.Empty;
-        return false;
+        return path[(basePath.Length + 1)..];
     }
 }
 
