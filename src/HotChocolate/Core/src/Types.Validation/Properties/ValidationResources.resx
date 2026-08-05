@@ -60,6 +60,9 @@
   <data name="LogEntryHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
     <value>The directive definition '@{0}' must not reference itself.</value>
   </data>
+  <data name="LogEntryHelper_DirectiveNotUnique" xml:space="preserve">
+    <value>The non-repeatable directive '@{0}' on '{1}' is applied more than once.</value>
+  </data>
   <data name="LogEntryHelper_EmptyEnumType" xml:space="preserve">
     <value>The Enum type '{0}' must define one or more values.</value>
   </data>

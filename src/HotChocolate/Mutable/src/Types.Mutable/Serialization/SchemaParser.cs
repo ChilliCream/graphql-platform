@@ -592,11 +592,7 @@ public static class SchemaParser
                     type.Name));
         }
 
-        MergeDirectives(
-            schema,
-            existingField.Directives,
-            fieldNode.Directives,
-            $"{type.Name}.{existingField.Name}");
+        BuildDirectiveCollection(schema, existingField.Directives, fieldNode.Directives);
 
         if (IsDeprecated(existingField.Directives, out var reason))
         {
@@ -678,11 +674,7 @@ public static class SchemaParser
                     $"{field.DeclaringMember?.Name}.{field.Name}"));
         }
 
-        MergeDirectives(
-            schema,
-            existingArg.Directives,
-            argumentNode.Directives,
-            $"{field.DeclaringMember?.Name}.{field.Name}({existingArg.Name}:)");
+        BuildDirectiveCollection(schema, existingArg.Directives, argumentNode.Directives);
 
         if (IsDeprecated(existingArg.Directives, out var reason))
         {
@@ -997,7 +989,7 @@ public static class SchemaParser
         MutableDirectiveDefinition type,
         DirectiveExtensionNode node)
     {
-        MergeDirectives(schema, type.Directives, node.Directives, $"@{type.Name}");
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
 
         if (IsDeprecated(type.Directives, out var reason))
         {
@@ -1057,32 +1049,6 @@ public static class SchemaParser
                 directiveType,
                 directiveNode.Arguments.Select(t => new ArgumentAssignment(t.Name.Value, t.Value)).ToList());
             directives.Add(directive);
-        }
-    }
-
-    private static void MergeDirectives(
-        MutableSchemaDefinition schema,
-        DirectiveCollection target,
-        IReadOnlyList<DirectiveNode> nodes,
-        string targetName)
-    {
-        foreach (var directiveNode in nodes)
-        {
-            var directiveType = ResolveDirectiveDefinition(schema, directiveNode);
-
-            if (!directiveType.IsRepeatable && target.ContainsName(directiveType.Name))
-            {
-                throw new SchemaInitializationException(
-                    string.Format(
-                        SchemaParser_NonRepeatableDirectiveAlreadyApplied,
-                        directiveType.Name,
-                        targetName));
-            }
-
-            var directive = new Directive(
-                directiveType,
-                directiveNode.Arguments.Select(t => new ArgumentAssignment(t.Name.Value, t.Value)).ToList());
-            target.Add(directive);
         }
     }
 
