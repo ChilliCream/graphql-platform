@@ -805,4 +805,120 @@ public sealed class SchemaComposerTests
             }
             """);
     }
+
+    [Fact]
+    public void SourceSchemaRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.SourceSchemaRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "DisallowedInaccessibleElementsRule",
+                "ExternalOnInterfaceRule",
+                "ExternalOverrideCollisionRule",
+                "ExternalProvidesCollisionRule",
+                "ExternalRequireCollisionRule",
+                "ExternalUnusedRule",
+                "EventCursorMarkerRule",
+                "InterfaceObjectKeyMissingRule",
+                "InvalidShareableUsageRule",
+                "IsInvalidFieldTypeRule",
+                "IsInvalidSyntaxRule",
+                "IsInvalidUsageRule",
+                "KeyDirectiveInFieldsArgumentRule",
+                "KeyFieldsSelectInvalidTypeRule",
+                "KeyInvalidArgumentsRule",
+                "KeyInvalidFieldsTypeRule",
+                "KeyInvalidSyntaxRule",
+                "LookupMustHaveArgumentsRule",
+                "LookupReturnsListRule",
+                "LookupReturnsNonNullableTypeRule",
+                "OverrideFromSelfRule",
+                "OverrideOnInterfaceRule",
+                "ProvidesDirectiveInFieldsArgumentRule",
+                "ProvidesFieldsHasArgumentsRule",
+                "ProvidesFieldsMissingExternalRule",
+                "ProvidesInvalidFieldsRule",
+                "ProvidesInvalidFieldsTypeRule",
+                "ProvidesInvalidSyntaxRule",
+                "ProvidesOnNonCompositeFieldRule",
+                "QueryRootTypeInaccessibleRule",
+                "RequireInvalidFieldTypeRule",
+                "RequireInvalidSyntaxRule",
+                "RootMutationUsedRule",
+                "RootQueryUsedRule",
+                "RootSubscriptionUsedRule",
+                "EventStreamMessageInvalidFieldsRule",
+                "EventStreamTopicsEmptyRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void PreMergeRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.PreMergeRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "EnumValuesMismatchRule",
+                "ExternalArgumentDefaultMismatchRule",
+                "ExternalArgumentMissingRule",
+                "ExternalArgumentTypeMismatchRule",
+                "ExternalMissingOnBaseRule",
+                "ExternalTypeMismatchRule",
+                "FieldArgumentTypesMergeableRule",
+                "FieldWithMissingRequiredArgumentRule",
+                "InputFieldDefaultMismatchRule",
+                "InputFieldTypesMergeableRule",
+                "InputWithMissingRequiredFieldsRule",
+                "InputWithMissingOneOfRule",
+                "InterfaceObjectKeyMismatchRule",
+                "InterfaceObjectNoInterfaceRule",
+                "InvalidFieldSharingRule",
+                "MultipleEventStreamSourcesRule",
+                "OptInFeatureStabilityMismatchRule",
+                "OutputFieldTypesMergeableRule",
+                "SpecifiedByUrlMismatchRule",
+                "TypeKindMismatchRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void PostMergeRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.PostMergeRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "EmptyMergedEnumTypeRule",
+                "EmptyMergedInputObjectTypeRule",
+                "EmptyMergedInterfaceTypeRule",
+                "EmptyMergedObjectTypeRule",
+                "EmptyMergedUnionTypeRule",
+                "EnumTypeDefaultValueInaccessibleRule",
+                "EventStreamMessageAbstractTypeRequiresTypeNameRule",
+                "ImplementedByInaccessibleRule",
+                "ImplementWithoutDefaultRule",
+                "InterfaceFieldNoImplementationRule",
+                "InterfaceObjectFieldRequiresImplementRule",
+                "InvalidProjectedFieldSharingRule",
+                "IsInvalidFieldsRule",
+                "KeyInvalidFieldsRule",
+                "NonNullInputFieldIsInaccessibleRule",
+                "NoQueriesRule",
+                "ReferenceToDeprecatedTypeRule",
+                "ReferenceToInaccessibleTypeRule",
+                "ReferenceToInternalTypeRule",
+                "RequireInvalidFieldsRule"
+            ],
+            rules);
+    }
 }

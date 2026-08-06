@@ -1,9 +1,9 @@
 ---
-title: "Local Development"
-description: "Develop Fusion locally with a .NET Aspire AppHost, written in C# or TypeScript, that composes subgraph schemas into a gateway archive at startup."
+title: "Local GraphQL Federation Development with Aspire"
+description: "Develop GraphQL subgraphs locally in isolation, then compose them into your full graph and test changes with Aspire and ChilliCream's Fusion gateway."
 ---
 
-Fusion's local development experience is built on .NET Aspire: an AppHost, written in C# or TypeScript, starts your subgraphs and composes them into a running gateway. Without it, every change to a type, a field, or a resolver means re-exporting the schema, re-composing with the Nitro CLI, and restarting the gateway.
+Fusion's local development experience is built on [Aspire](https://aspire.dev): an AppHost, written in C# or TypeScript, starts your subgraphs and composes them into a running gateway. Without it, every change to a type, a field, or a resolver means re-exporting the schema, re-composing with the Nitro CLI, and restarting the gateway.
 
 The `HotChocolate.Fusion.Aspire` package integrates composition into the Aspire AppHost. When you run the AppHost, the orchestrator starts your subgraphs, fetches their source schemas from live endpoints, composes them into a Fusion archive, and writes it to the gateway project directory. This startup flow replaces the manual export-compose-restart cycle. Mark each local subgraph with `WithGraphQLHttpEndpoint()` so composition uses the schema exposed by the running service. The examples on this page show both AppHost languages.
 

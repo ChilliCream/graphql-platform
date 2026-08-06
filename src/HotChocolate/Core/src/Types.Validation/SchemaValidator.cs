@@ -38,6 +38,11 @@ public sealed class SchemaValidator
     }
 
     /// <summary>
+    /// Gets the rules that this validator will run, in the order they were added.
+    /// </summary>
+    internal IReadOnlyList<object> Rules => _rules;
+
+    /// <summary>
     /// Adds the default validation rules to the schema validator.
     /// </summary>
     public void AddDefaultRules()
@@ -47,6 +52,7 @@ public sealed class SchemaValidator
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
+        _rules.Add(new DirectiveIsUniqueRule());
         _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
@@ -89,6 +95,8 @@ public sealed class SchemaValidator
         var schema = context.Schema;
 
         PublishEvent(new InputObjectTypesEvent(schema.Types.OfType<IInputObjectTypeDefinition>()), context);
+
+        PublishDirectiveEvents(schema, context);
 
         foreach (var type in schema.Types)
         {

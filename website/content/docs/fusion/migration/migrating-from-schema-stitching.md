@@ -21,7 +21,7 @@ If you have worked with Schema Stitching, you already understand the core idea: 
 | Delegating resolvers (`@delegate` directive)                   | Lookups (`[Lookup]` attribute)                     | The gateway handles cross-subgraph resolution automatically. You declare a lookup field in each subgraph; composition wires them together. |
 | `@delegate(path: "...")` field references                      | `[Require]` attribute                              | When a field needs data from another subgraph, you declare the dependency as a method parameter with `[Require]`.                          |
 | Auto-stitching / runtime schema merging                        | Build-time composition (`nitro fusion compose`)    | Schemas are merged offline by the Nitro CLI, producing a static configuration file. Conflicts are caught before deployment.                |
-| `PublishSchemaDefinition()` + Redis                            | `schema export` + `nitro fusion upload`            | Schema distribution uses the Nitro CLI or .NET Aspire instead of Redis pub/sub.                                                            |
+| `PublishSchemaDefinition()` + Redis                            | `schema export` + `nitro fusion upload`            | Schema distribution uses the Nitro CLI or Aspire instead of Redis pub/sub.                                                                 |
 | `RenameType()` / `RenameField()` / `IgnoreType()`              | Composition rules + `[Internal]` / `@inaccessible` | Type conflicts are resolved by composition rules. Fields you want to hide use `[Internal]` on lookups or `@inaccessible` on types.         |
 | `SchemaDefinition` / `SchemaExtension`                         | `schema.graphqls` + `schema-settings.json`         | Exported automatically by the subgraph on startup. You do not write these by hand.                                                         |
 
@@ -445,7 +445,7 @@ After migrating, several things that required manual work in stitching become au
 
 - **No gateway code changes when adding subgraphs.** In stitching, adding a remote schema meant updating the gateway's `Program.cs` (adding `AddRemoteSchema()`, HTTP clients, and extension files). In Fusion, you add the new subgraph's schema to the composition step and redeploy the gateway with the updated `.far` file. No gateway code changes.
 
-- **No Redis dependency for schema distribution.** If you used `PublishToRedis()` for schema federation, Fusion replaces that with the Nitro CLI or .NET Aspire orchestration.
+- **No Redis dependency for schema distribution.** If you used `PublishToRedis()` for schema federation, Fusion replaces that with the Nitro CLI or Aspire orchestration.
 
 ## Common Pitfalls
 

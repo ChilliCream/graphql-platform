@@ -10,6 +10,43 @@ public sealed class SchemaValidatorTests
     private readonly ValidationLog _log = new();
 
     [Fact]
+    public void AddDefaultRules_Should_RegisterTheDefaultRuleSet()
+    {
+        // arrange
+        var validator = new SchemaValidator([]);
+        validator.AddDefaultRules();
+
+        // act
+        var rules = validator.Rules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "DirectiveDefinitionIncludesLocationRule",
+                "DirectiveDefinitionNoSelfReferenceRule",
+                "DirectiveIsDefinedRule",
+                "DirectiveIsUniqueRule",
+                "EnumValueIsDefinedRule",
+                "NoInputObjectCycleRule",
+                "NoInputObjectDefaultValueCycleRule",
+                "NonEmptyEnumTypeRule",
+                "NonEmptyInputObjectTypeRule",
+                "NonEmptyInterfaceTypeRule",
+                "NonEmptyObjectTypeRule",
+                "NonEmptyUnionTypeRule",
+                "NoSelfImplementationRule",
+                "TypeIsDefinedRule",
+                "ValidDefaultValueRule",
+                "ValidDeprecationRule",
+                "ValidImplementationsRule",
+                "ValidNameRule",
+                "ValidObjectDeprecationRule",
+                "ValidOneOfFieldRule"
+            ],
+            rules);
+    }
+
+    [Fact]
     public void Validate_WithDefaultRules()
     {
         // arrange

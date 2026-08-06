@@ -180,7 +180,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 | Extension declares a field that already exists on the base type | Directives merge onto the existing field. Return type and any provided arguments must match the base. |
 | Same field appears twice in one `extend` block                  | Parsing fails with a duplicate field error.                                                           |
 | Extension applies a directive the schema does not define        | Implicit at parse time. Fusion's built-ins compose as-is; other custom directives must be declared.   |
-| Extension re-applies a non-repeatable directive to the target   | Parsing fails when the extension's directives are merged onto the target.                             |
+| Extension re-applies a non-repeatable directive to the target   | The parser keeps both applications. Composition then fails validation.                                |
 
 # Troubleshooting
 
