@@ -7,7 +7,8 @@ public sealed class EnumTypeDescriptor : ILeafTypeDescriptor
         RuntimeTypeInfo runtimeType,
         RuntimeTypeInfo? underlyingType,
         IReadOnlyList<EnumValueDescriptor> values,
-        string? documentation)
+        string? documentation,
+        bool optionalEnum)
     {
         Name = name;
         RuntimeType = runtimeType;
@@ -15,6 +16,7 @@ public sealed class EnumTypeDescriptor : ILeafTypeDescriptor
         UnderlyingType = underlyingType;
         Values = values;
         Documentation = documentation;
+        OptionalEnum = optionalEnum;
     }
 
     /// <summary>
@@ -52,4 +54,6 @@ public sealed class EnumTypeDescriptor : ILeafTypeDescriptor
     /// The documentation of this enum
     /// </summary>
     public string? Documentation { get; }
+
+    public bool OptionalEnum { get; }
 }
