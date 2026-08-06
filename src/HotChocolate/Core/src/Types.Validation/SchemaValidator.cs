@@ -38,6 +38,11 @@ public sealed class SchemaValidator
     }
 
     /// <summary>
+    /// Gets the rules that this validator will run, in the order they were added.
+    /// </summary>
+    internal IReadOnlyList<object> Rules => _rules;
+
+    /// <summary>
     /// Adds the default validation rules to the schema validator.
     /// </summary>
     public void AddDefaultRules()
