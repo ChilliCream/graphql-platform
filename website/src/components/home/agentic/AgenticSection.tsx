@@ -66,7 +66,7 @@ function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
  * marks plus the "and many more" link fill the 3x3 grid completely. */
 function AgentGroup() {
   return (
-    <div>
+    <div className="min-w-0">
       <ul className="grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">
         {AGENTS.map((agent) => (
           <li key={agent.slug} className="flex items-center gap-2.5">
@@ -157,7 +157,7 @@ function ReviewFacet() {
             key={hunk.file}
             className="border-cc-ink-faint bg-cc-surface/40 rounded-lg border px-3 py-2 font-mono text-[0.6rem] leading-[1.6]"
           >
-            <div className="text-cc-nav-label truncate">{hunk.file}</div>
+            <div className="text-cc-ink-dim truncate">{hunk.file}</div>
             {hunk.lines.map((runs, lineIndex) => (
               <div key={lineIndex} className="flex gap-1.5">
                 <span className="text-cc-ink-dim shrink-0 select-none">+</span>
@@ -183,7 +183,7 @@ function ReviewFacet() {
       >
         {TIME_BARS.map((bar) => (
           <div key={bar.label} className="flex items-center gap-2">
-            <span className="text-cc-nav-label w-20 shrink-0 font-mono text-[0.55rem] tracking-[0.06em] uppercase">
+            <span className="text-cc-ink-dim w-20 shrink-0 font-mono text-[0.55rem] tracking-[0.06em] uppercase">
               {bar.label}
             </span>
             <span
@@ -350,7 +350,7 @@ function SkillFacet() {
         ),
       }}
       headerRight={
-        <span className="text-cc-nav-label font-mono text-[0.6rem] whitespace-nowrap">
+        <span className="text-cc-ink-dim font-mono text-[0.6rem] whitespace-nowrap">
           skills/
         </span>
       }
@@ -358,11 +358,11 @@ function SkillFacet() {
       footer={
         <>
           <span className="inline-flex items-center gap-3">
-            <span className="text-cc-nav-label inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
+            <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
               <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
               main
             </span>
-            <span className="text-cc-nav-label font-mono text-[0.6rem]">
+            <span className="text-cc-ink-dim font-mono text-[0.6rem]">
               markdown
             </span>
           </span>
@@ -377,7 +377,7 @@ function SkillFacet() {
       <div className="py-2">
         {SKILL_LINES.map((tokens, i) => (
           <div key={`skill-line-${i}`} className="flex items-stretch">
-            <span className="text-cc-nav-label border-cc-ink-faint w-7 shrink-0 border-r pr-2 text-right font-mono text-[0.6rem] leading-[19px]">
+            <span className="text-cc-ink-dim border-cc-ink-faint w-7 shrink-0 border-r pr-2 text-right font-mono text-[0.6rem] leading-[19px]">
               {i + 1}
             </span>
             <span className="pl-3 font-mono text-[0.7rem] leading-[19px] whitespace-pre">
@@ -402,7 +402,7 @@ function SkillFacet() {
 /** "Start now": the single command that checks the skills into your agent. */
 function StartNowPanel() {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-cc-heading font-heading text-lg font-semibold sm:text-xl">
         Add the skills to your agent.
       </p>
@@ -433,12 +433,12 @@ const FACETS: readonly Facet[] = [
     illustration: <ReviewFacet />,
   },
   {
-    heading: "Best practices your agent follows.",
+    heading: "Reviewed patterns your agent can follow.",
     href: "/platform/agentic-coding#patterns",
     illustration: <PatternsFacet />,
   },
   {
-    heading: "One reviewed skill teaches every agent.",
+    heading: "One reviewed skill for every supported agent.",
     href: "/platform/agentic-coding#skills",
     illustration: <SkillFacet />,
   },
@@ -473,9 +473,10 @@ export function AgenticSection() {
             Built for <FlipSlot activeIndex={activeIndex} />
           </h2>
           <p className="text-cc-ink mt-6 text-base text-pretty sm:text-lg">
-            Use Claude, Codex, Copilot, Cursor, Windsurf, or whatever you reach
-            for. They all produce the same structured, best-practice code here,
-            so the tool is your choice and the quality is not.
+            Use Claude, Codex, Copilot, Cursor, Windsurf, or another supported
+            agent. Checked-in skills give them the same reviewed patterns and
+            conventions; generated results still depend on the model, prompt,
+            and review.
           </p>
         </div>
 

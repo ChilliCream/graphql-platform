@@ -59,6 +59,7 @@ export default function Footer() {
               <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
               <NavLink href="/platform/agentic-coding">Agentic Coding</NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
+              <NavLink href="/products/mocha">Mocha</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">
               <NavLink href="/services/advisory">Advisory</NavLink>

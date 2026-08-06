@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Band } from "@/src/components/Band";
+import { Band, type BandSkin } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -14,6 +14,10 @@ interface NextStepsProps {
   secondaryLinkText: string;
   /** Optional fine-print line under the buttons (e.g. a contact address). */
   note?: ReactNode;
+  /** Band skin behind the content. Defaults to the bare, panel-less band. */
+  skin?: BandSkin;
+  /** Outer section spacing utilities on the band. Defaults to "py-20". */
+  className?: string;
 }
 
 export function NextStepsSection({
@@ -24,9 +28,11 @@ export function NextStepsSection({
   secondaryLink,
   secondaryLinkText,
   note,
+  skin = "bare",
+  className = "py-20",
 }: NextStepsProps) {
   return (
-    <Band skin="bare" layout="centered" className="py-20">
+    <Band skin={skin} layout="centered" className={className}>
       <SectionHeading align="center" title={title} description={text} />
       <ButtonRow align="center" className="mt-8">
         <SolidButton href={primaryLink}>{primaryLinkText}</SolidButton>

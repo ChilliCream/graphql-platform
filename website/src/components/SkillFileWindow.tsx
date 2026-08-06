@@ -72,7 +72,7 @@ export function SkillFileWindow({
         ),
       }}
       headerRight={
-        <span className="text-cc-nav-label font-mono text-[0.6rem] whitespace-nowrap">
+        <span className="text-cc-ink-dim font-mono text-[0.6rem] whitespace-nowrap">
           skills/
         </span>
       }
@@ -80,11 +80,11 @@ export function SkillFileWindow({
       footer={
         <>
           <span className="inline-flex items-center gap-3">
-            <span className="text-cc-nav-label inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
+            <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
               <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
               main
             </span>
-            <span className="text-cc-nav-label font-mono text-[0.6rem]">
+            <span className="text-cc-ink-dim font-mono text-[0.6rem]">
               markdown
             </span>
           </span>
@@ -98,7 +98,7 @@ export function SkillFileWindow({
       <div className="flex flex-1 flex-col py-2">
         {frontmatter.map((tokens, i) => (
           <div key={`skill-line-${i}`} className="flex items-stretch">
-            <span className="text-cc-nav-label border-cc-ink-faint w-7 shrink-0 border-r pr-2 text-right font-mono text-[0.6rem] leading-[19px]">
+            <span className="text-cc-ink-dim border-cc-ink-faint w-7 shrink-0 border-r pr-2 text-right font-mono text-[0.6rem] leading-[19px]">
               {i + 1}
             </span>
             <span className="pl-3 font-mono text-[0.7rem] leading-[19px] whitespace-pre">
@@ -114,7 +114,7 @@ export function SkillFileWindow({
           </div>
         ))}
         <div className="flex flex-1 items-stretch">
-          <span className="text-cc-nav-label border-cc-ink-faint w-7 shrink-0 border-r pr-2 text-right font-mono text-[0.6rem] leading-[19px]">
+          <span className="text-cc-ink-dim border-cc-ink-faint w-7 shrink-0 border-r pr-2 text-right font-mono text-[0.6rem] leading-[19px]">
             {frontmatter.length + 1}
           </span>
           <span className="text-cc-ink min-w-0 flex-1 pr-3 pl-3 font-mono text-[0.7rem] leading-[19px] break-words">

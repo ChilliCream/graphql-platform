@@ -19,7 +19,10 @@ const CONTENT_PAGES_ROOT = path.join(process.cwd(), "app", "(content)");
 const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 
 // Pages that exist for a user flow but should not be indexed.
-const EXCLUDED_PATHS = new Set(["/services/support/thank-you"]);
+const EXCLUDED_PATHS = new Set([
+  "/platform/continuous-integration",
+  "/services/support/thank-you",
+]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [

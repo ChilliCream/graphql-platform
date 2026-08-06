@@ -172,13 +172,16 @@ function BlockedPublishCard() {
             <span className="bg-cc-ink-faint size-2 rounded-full" />
             <span className="bg-cc-ink-faint size-2 rounded-full" />
           </span>
-          <span className="text-cc-nav-label ml-auto font-mono text-[0.6rem]">
+          <span className="text-cc-ink-dim ml-auto font-mono text-[0.6rem]">
             schema publish
           </span>
         </>
       }
     >
       <div className="flex flex-1 flex-col justify-center space-y-2 p-3 font-mono text-[0.7rem] leading-relaxed">
+        <p className="text-cc-ink-dim text-[0.58rem] tracking-[0.12em] uppercase">
+          Illustrative configured check
+        </p>
         <div className="flex items-center gap-1.5">
           <span aria-hidden="true" className="text-cc-nav-label select-none">
             $
@@ -287,7 +290,7 @@ function RegistryTraceCard() {
           <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
             schema.graphql
           </span>
-          <span className="text-cc-nav-label font-mono text-[0.7rem]">
+          <span className="text-cc-ink-dim font-mono text-[0.7rem]">
             history
           </span>
           <span className="border-cc-accent/40 text-cc-accent ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[0.55rem] tracking-[0.06em] uppercase">
@@ -306,7 +309,7 @@ function RegistryTraceCard() {
             key={entry.version}
             className="flex items-baseline gap-2 px-1 py-1.5 font-mono text-[0.7rem]"
           >
-            <span className="text-cc-nav-label w-6 shrink-0">
+            <span className="text-cc-ink-dim w-6 shrink-0">
               {entry.version}
             </span>
             <span
@@ -321,7 +324,7 @@ function RegistryTraceCard() {
             >
               {entry.author}
             </span>
-            <span className="text-cc-nav-label w-6 shrink-0 text-right">
+            <span className="text-cc-ink-dim w-6 shrink-0 text-right">
               {entry.time}
             </span>
           </li>
@@ -339,8 +342,8 @@ interface Facet {
 
 const FACETS: readonly Facet[] = [
   {
-    title: "Break the build, not the client.",
-    line: "Checked against every published client.",
+    title: "Use validation as a required CI check.",
+    line: "Check operations registered by published client versions.",
     card: <BlockedPublishCard />,
   },
   {
@@ -349,8 +352,8 @@ const FACETS: readonly Facet[] = [
     card: <SchemaLintCard />,
   },
   {
-    title: "Nothing changes without a trace.",
-    line: "Every version, who changed it, and when.",
+    title: "Keep published version history.",
+    line: "See what changed, who changed it, and when.",
     card: <RegistryTraceCard />,
   },
 ];
@@ -366,15 +369,16 @@ const FACETS: readonly Facet[] = [
 export function CombinedGovernance() {
   return (
     <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
-      <RevealOnScroll threshold={0} rootMargin="0px 0px 15% 0px">
+      <RevealOnScroll>
         {/* Shared header. */}
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             Change contracts with a safety net.
           </h2>
           <p className="text-cc-ink mt-5 max-w-3xl text-base text-pretty sm:text-lg">
-            Schema registry, client registry, validation, linting, and rules:
-            stop bad changes, enforce one style, and trace every change.
+            Classify schema changes, validate them against operations registered
+            by published client versions, apply lint rules, and keep version
+            history.
           </p>
           <ArrowLink href="/platform/release-safety" className="mt-6">
             Learn more

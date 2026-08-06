@@ -1,9 +1,14 @@
+import dynamic from "next/dynamic";
+
 import { HelpClosing } from "@/src/components/help/HelpClosing";
-import { HelpFaq } from "@/src/components/help/HelpFaq";
 import { HelpHero } from "@/src/components/help/HelpHero";
 import { HelpTiers } from "@/src/components/help/HelpTiers";
 import { SelfServeGrid } from "@/src/components/help/SelfServeGrid";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+
+const HelpFaq = dynamic(() =>
+  import("@/src/components/help/HelpFaq").then((m) => m.HelpFaq),
+);
 
 export const metadata = pageMetadata({
   title: "Get GraphQL help fast",

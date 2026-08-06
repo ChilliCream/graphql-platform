@@ -1,35 +1,44 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import Link from "next/link";
+import dynamic from "next/dynamic";
 
-import { ArrowLink } from "@/src/components/ArrowLink";
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CheckList } from "@/src/components/CheckList";
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PatternBand } from "@/src/components/PatternBand";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { StatStrip } from "@/src/components/StatStrip";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
+import { CodeBlock } from "@/src/design-system/CodeBlock";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Tag } from "@/src/design-system/Tag";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-import { ArrowRightIcon } from "@/src/icons/ArrowRight";
-import {
-  HBarSeries,
-  InsightsTable,
-  LineAreaChart,
-  NitroDiagnose,
-  NitroTheme,
-  NitroTrace,
-  TraceWaterfall,
-} from "@/src/nitro";
+import { SITE_URL } from "@/src/helpers/siteUrl";
+import { NitroTheme, TraceWaterfall } from "@/src/nitro";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
 
+const HBarSeries = dynamic(() =>
+  import("@/src/nitro").then((m) => m.HBarSeries),
+);
+const InsightsTable = dynamic(() =>
+  import("@/src/nitro").then((m) => m.InsightsTable),
+);
+const LineAreaChart = dynamic(() =>
+  import("@/src/nitro").then((m) => m.LineAreaChart),
+);
+const NitroDiagnose = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroDiagnose),
+);
+const NitroTrace = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroTrace),
+);
+
 export const metadata = pageMetadata({
-  title: "Analytics",
+  title: "API Analytics and OpenTelemetry Observability",
   description:
-    "OpenTelemetry-native analytics for your whole backend: operation insights, impact score, per-client usage, distributed traces, and service monitoring across GraphQL, REST, gRPC, and background jobs.",
+    "Analyze your APIs with OpenTelemetry: distributed traces, latency and error monitoring, impact scores, and per-client usage across GraphQL, REST, gRPC, and background jobs.",
   path: "/platform/analytics",
   keywords: [
     "API analytics",
@@ -165,18 +174,30 @@ function NitroFrame({
 interface ChartTileProps {
   readonly title: string;
   readonly hint?: string;
+  readonly disclosure?: string;
   readonly glow?: boolean;
   readonly children: ReactNode;
 }
 
 /** House Card tile with a title/hint header row, wrapping a product chart. */
-function ChartTile({ title, hint, glow = false, children }: ChartTileProps) {
+function ChartTile({
+  title,
+  hint,
+  disclosure,
+  glow = false,
+  children,
+}: ChartTileProps) {
   return (
     <Card variant="tile" glow={glow}>
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-cc-heading font-heading text-h6">{title}</h3>
         {hint && <Eyebrow size="2xs">{hint}</Eyebrow>}
       </div>
+      {disclosure && (
+        <p className="text-cc-ink-dim mt-2 font-mono text-[0.62rem] tracking-[0.12em] uppercase">
+          {disclosure}
+        </p>
+      )}
       <div className="mt-4">{children}</div>
     </Card>
   );
@@ -227,34 +248,17 @@ interface ChapterBandProps {
 }
 
 /**
- * Full-bleed "chapter" opener: the hero's faint grid backdrop plus a soft teal
- * glow, breaking out of the centered content column to punctuate the page
- * between the graphic-heavy feature rows. Wraps a centered SectionHeading.
+ * Full-bleed "chapter" opener: PatternBand's grid backdrop (the hero's
+ * texture) punctuating the page between the graphic-heavy feature rows,
+ * wrapping a centered SectionHeading.
  */
 function ChapterBand({ title, description, className = "" }: ChapterBandProps) {
   return (
-    <div
-      className={`border-cc-card-border/50 bg-cc-surface/25 relative left-1/2 w-screen -translate-x-1/2 overflow-x-clip border-y py-16 text-center sm:py-24 ${className}`}
+    <PatternBand
+      pattern="grid"
+      contain={false}
+      className={`border-y py-16 text-center sm:py-24 ${className}`}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(245,241,234,1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,241,234,1) 1px, transparent 1px)",
-          backgroundSize: "46px 46px",
-          maskImage:
-            "radial-gradient(80% 130% at 50% 45%, #000 35%, transparent 82%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(60% 90% at 50% 40%, rgba(94,234,212,0.08), transparent 65%)",
-        }}
-      />
       <div className="mx-auto max-w-3xl px-5 sm:px-12">
         <SectionHeading
           align="center"
@@ -263,31 +267,7 @@ function ChapterBand({ title, description, className = "" }: ChapterBandProps) {
           description={description}
         />
       </div>
-    </div>
-  );
-}
-
-interface StepPathProps {
-  readonly steps: readonly string[];
-  readonly className?: string;
-}
-
-/** A mono "a → b → c" path joined by the ArrowRight icon; the final step is the
- *  destination, tinted coral. */
-function StepPath({ steps, className = "" }: StepPathProps) {
-  return (
-    <p
-      className={`text-cc-ink-dim flex flex-wrap items-center gap-2 font-mono text-[0.66rem] tracking-wide ${className}`}
-    >
-      {steps.map((step, i) => (
-        <span key={step} className="flex items-center gap-2">
-          {i > 0 && <ArrowRightIcon className="text-cc-nav-label size-3" />}
-          <span style={i === steps.length - 1 ? { color: CORAL } : undefined}>
-            {step}
-          </span>
-        </span>
-      ))}
-    </p>
+    </PatternBand>
   );
 }
 
@@ -428,7 +408,7 @@ interface MiniMetricProps {
 function MiniMetric({ label, value, tone }: MiniMetricProps) {
   return (
     <div>
-      <p className="text-cc-nav-label font-mono text-[0.56rem] tracking-[0.1em] uppercase">
+      <p className="text-cc-ink-dim font-mono text-[0.56rem] tracking-[0.1em] uppercase">
         {label}
       </p>
       <p
@@ -455,17 +435,26 @@ function IncidentArtifact() {
       />
 
       {/* Floating dashboard tile, mid-incident */}
-      <div className="border-cc-card-border bg-cc-surface/95 relative z-20 mx-auto max-w-md rounded-2xl border shadow-[0_30px_70px_-30px_rgba(0,0,0,0.8)] backdrop-blur">
-        <div className="border-cc-card-border flex items-center justify-between border-b px-5 py-2.5">
-          <span className="text-cc-nav-label font-mono text-[0.62rem] tracking-[0.12em] uppercase">
-            operation · checkout
-          </span>
-          <StatusBadge status="warning" label="Warning" />
-        </div>
+      <MockWindowChrome
+        className="z-20 mx-auto max-w-md"
+        header={{
+          variant: "custom",
+          content: (
+            <span className="text-cc-ink-dim font-mono text-[0.62rem] tracking-[0.12em] uppercase">
+              operation · checkout
+            </span>
+          ),
+        }}
+        headerRight={<StatusBadge status="warning" label="Warning" />}
+        headerClassName="flex items-center justify-between px-5 py-2.5"
+        shadow="none"
+        rounded="rounded-2xl"
+        surfaceClassName="bg-cc-surface/95 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.8)] backdrop-blur"
+      >
         <div className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-cc-nav-label font-mono text-[0.6rem] tracking-[0.12em] uppercase">
+              <p className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">
                 operation
               </p>
               <p className="text-cc-heading mt-0.5 font-mono text-sm">
@@ -473,7 +462,7 @@ function IncidentArtifact() {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-cc-nav-label font-mono text-[0.6rem] tracking-[0.12em] uppercase">
+              <p className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">
                 p99
               </p>
               <p
@@ -494,7 +483,7 @@ function IncidentArtifact() {
               fill={CORAL}
               id="hero-spike"
             />
-            <span className="text-cc-nav-label absolute top-0 left-0 font-mono text-[0.56rem]">
+            <span className="text-cc-ink-dim absolute top-0 left-0 font-mono text-[0.56rem]">
               latency / 5m
             </span>
           </div>
@@ -504,20 +493,41 @@ function IncidentArtifact() {
             <MiniMetric label="errors" value="0.3%" tone={AMBER} />
           </div>
         </div>
-      </div>
+      </MockWindowChrome>
 
       {/* Distributed-trace waterfall below the operation card. The trace id
           lives in this header — it identifies this trace, so it belongs here
           rather than floating between the two cards. */}
-      <div className="border-cc-card-border bg-cc-card-bg relative z-0 mt-4 rounded-2xl border shadow-[0_30px_70px_-34px_rgba(0,0,0,0.8)] backdrop-blur">
-        <div className="border-cc-card-border flex items-center justify-between border-b px-5 py-2.5">
-          <span className="text-cc-nav-label font-mono text-[0.6rem] tracking-[0.12em] uppercase">
-            distributed trace · checkout
-          </span>
+      <MockWindowChrome
+        className="z-0 mt-4"
+        header={{
+          variant: "custom",
+          content: (
+            <span className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">
+              distributed trace · checkout
+            </span>
+          ),
+        }}
+        headerRight={
           <span className="text-cc-ink-dim font-mono text-[0.6rem] tabular-nums">
             {TRACE_ID} · 318ms
           </span>
-        </div>
+        }
+        headerClassName="flex items-center justify-between px-5 py-2.5"
+        footer={
+          <>
+            <StatusDot status="error" />
+            <span className="text-cc-ink-dim font-mono text-[0.6rem]">
+              <span style={{ color: CORAL }}>204ms</span> of this 318ms request
+              were spent in the billing service.
+            </span>
+          </>
+        }
+        footerClassName="bg-cc-surface/40 flex items-center gap-2 px-5 py-2.5"
+        shadow="none"
+        rounded="rounded-2xl"
+        surfaceClassName="bg-cc-card-bg shadow-[0_30px_70px_-34px_rgba(0,0,0,0.8)] backdrop-blur"
+      >
         <div className="px-5 pt-4 pb-2">
           <NitroFrame>
             {/* Draw the trace in the first ~30% of the loop, then hold the
@@ -530,14 +540,7 @@ function IncidentArtifact() {
             />
           </NitroFrame>
         </div>
-        <div className="border-cc-card-border bg-cc-surface/40 flex items-center gap-2 border-t px-5 py-2.5">
-          <StatusDot status="error" />
-          <span className="text-cc-ink-dim font-mono text-[0.6rem]">
-            <span style={{ color: CORAL }}>204ms</span> of this 318ms request
-            were spent in the billing service.
-          </span>
-        </div>
-      </div>
+      </MockWindowChrome>
     </div>
   );
 }
@@ -551,15 +554,10 @@ function Hero() {
             See what the <span style={{ color: TEAL }}>API</span> is doing.
           </h1>
           <p className="lead text-cc-prose !font-body !text-lead mt-6 max-w-xl !font-normal">
-            Latency, errors, and throughput for every operation in production.
-            And when something gets slow, open the trace and see exactly which
-            call took the time.
+            Track latency, errors, and throughput for the operations your
+            services report. When something slows down, open the related traces
+            and inspect which calls took the time.
           </p>
-          <p className="text-cc-ink-dim mt-4 max-w-xl text-sm leading-relaxed">
-            Nitro is OpenTelemetry-native: it collects traces, metrics, and logs
-            from every service you run, not just your GraphQL API.
-          </p>
-
           <ButtonRow align="start" className="mt-9">
             <SolidButton href="https://nitro.chillicream.com">
               Start for Free
@@ -621,32 +619,25 @@ function FullOtelBand() {
                 </span>
               </>
             }
-            description="Your services export traces, metrics, and logs over plain OTLP, and Nitro turns them into one picture — a single trace that follows each request from the GraphQL edge all the way down to the database."
+            description="Configured services export supported traces, metrics, and logs over plain OTLP. Nitro links reported operation signals to the related distributed traces for investigation."
           />
           <div className="mt-6 flex flex-wrap gap-2">
             {STATEMENT_KINDS.map((kind) => (
               <Tag key={kind}>{KIND_LABEL[kind]}</Tag>
             ))}
           </div>
+          <CheckList items={OTEL_CHECKS} className="mt-7" />
         </div>
       }
       aside={
-        <div>
-          <Eyebrow size="2xs">Program.cs</Eyebrow>
-          <pre className="border-cc-card-border/60 text-cc-ink mt-3 overflow-x-auto rounded-xl border bg-black/20 p-4 font-mono text-[0.72rem] leading-relaxed">
-            <code>
-              {"builder.Services\n    ."}
-              <span className="text-cc-accent">AddNitro</span>
-              {"()\n    ."}
-              <span className="text-cc-accent">AddOpenTelemetry</span>
-              {"();\n\nbuilder.Services\n    ."}
-              <span className="text-cc-accent">AddGraphQLServer</span>
-              {"()\n    ."}
-              <span className="text-cc-accent">AddInstrumentation</span>
-              {"();"}
+        <div className="[&>figure]:my-0">
+          <CodeBlock theme="poimandres">
+            <code className="language-csharp" data-meta='filename="Program.cs"'>
+              {
+                "builder.Services\n    .AddNitro()\n    .AddOpenTelemetry();\n\nbuilder.Services\n    .AddGraphQLServer()\n    .AddInstrumentation();"
+              }
             </code>
-          </pre>
-          <CheckList items={OTEL_CHECKS} className="mt-5" />
+          </CodeBlock>
         </div>
       }
     />
@@ -742,18 +733,17 @@ function ThreeQuestions() {
             And for whom.
           </>
         }
-        description="Three questions decide every production investigation. The dashboards answer each one directly — shown here with one example incident: a slow checkout request."
+        description={undefined}
       />
 
       <section className="py-12 sm:py-16">
         <div className="flex flex-col gap-16 sm:gap-20">
           <FeatureRow
-            title="Fix what hurts most, with the impact score."
+            title="Rank operations to investigate with the impact score."
             body={
               <>
-                Every operation is ranked by an impact score that combines
-                traffic, latency, and error rate, so the list reads top to
-                bottom as your to-do list.
+                The impact score combines traffic, latency, and error rate to
+                help you decide which reported operations to investigate first.
               </>
             }
             visual={
@@ -783,9 +773,9 @@ function ThreeQuestions() {
             title="The whole latency picture, not an average."
             body={
               <>
-                Averages hide your slowest requests. Here p95 held flat at 42ms
-                while p99 spiked to 318ms — most users were fine, the slowest
-                few were not. Only percentiles show it.
+                An average can look healthy while a small number of requests are
+                much slower. Percentiles show you where the tail starts, so you
+                can find and fix those slow paths before they affect more users.
               </>
             }
             visual={
@@ -848,12 +838,12 @@ function ThreeQuestions() {
           />
 
           <FeatureRow
-            title={<>Know who&rsquo;s affected — before they report it.</>}
+            title="Know which identified clients are affected."
             body={
               <>
-                Latency and errors are attributed to the client that felt them,
-                by name and version. &ldquo;Is it everyone, or just the web
-                app?&rdquo; becomes a lookup, not a debate.
+                See which client apps and versions are behind an operation. When
+                one starts causing trouble, you can tell whether it affects
+                everyone or only a particular client.
               </>
             }
             visual={
@@ -866,10 +856,6 @@ function ThreeQuestions() {
                     barHeight={14}
                   />
                 </NitroFrame>
-                <p className="text-caption text-cc-ink-dim mt-3">
-                  The web storefront drives the impact; both mobile apps are
-                  barely affected.
-                </p>
               </ChartTile>
             }
           />
@@ -891,19 +877,20 @@ interface FramedVisualProps {
 /** Frames a chrome-less Nitro product screen like an embedded screenshot. */
 function FramedVisual({ children }: FramedVisualProps) {
   return (
-    <div className="relative">
-      <div
-        aria-hidden="true"
-        className="absolute -inset-x-6 -inset-y-4 -z-10 rounded-[2rem] opacity-40 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(60% 60% at 50% 40%, rgba(94,234,212,0.16), transparent 70%)",
-        }}
-      />
-      <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-xl border shadow-2xl shadow-black/40">
-        {children}
-      </div>
-    </div>
+    <MockWindowChrome
+      glow={{
+        background:
+          "radial-gradient(60% 60% at 50% 40%, rgba(94,234,212,0.16), transparent 70%)",
+        inset: "-inset-x-6 -inset-y-4",
+        blur: "blur-3xl",
+        rounded: "rounded-[2rem]",
+      }}
+      shadow="none"
+      rounded="rounded-xl"
+      surfaceClassName="bg-cc-surface shadow-2xl shadow-black/40"
+    >
+      {children}
+    </MockWindowChrome>
   );
 }
 
@@ -912,36 +899,26 @@ function FindTheCause() {
     <>
       <ChapterBand
         className="mt-12 sm:mt-16"
-        title={
-          <>
-            From symptom to cause in{" "}
-            <span className="text-cc-accent whitespace-nowrap">one click.</span>
-          </>
-        }
-        description="Metrics and traces are linked. When a chart shows a spike, the slow requests behind it are one click away — and each trace shows which service, query, or job took the time. No second tool, no correlating timestamps by hand."
+        title={<>Move from a metric spike to the related traces.</>}
+        description={undefined}
       />
 
       <section className="py-12 sm:py-16">
         <div className="flex flex-col gap-16 sm:gap-20">
           <FeatureRow
-            title="Follow one request across your whole backend."
-            body="Distributed tracing follows a single request across every service it touches. Open the waterfall to see how long each call took, and which one made the request slow."
+            title="Follow one request through its reported trace."
+            body="Open the trace waterfall to inspect the services and spans that reported timing for one request, including which calls contributed the most latency."
             visual={
               <FramedVisual>
                 <NitroTrace className="w-full" />
               </FramedVisual>
             }
-          >
-            <StepPath
-              className="mt-6"
-              steps={["dashboard", "operation", "slow span"]}
-            />
-          </FeatureRow>
+          />
 
           <FeatureRow
             reverse
-            title="From an error spike to the line that threw it."
-            body="When errors spike, click through to the failing operation and read the server-side stack trace behind it — without searching through logs."
+            title="Inspect the trace behind a failed operation."
+            body="When errors spike, open the failing operation and inspect its traces, spans, and captured exception details without correlating logs by hand."
             visual={
               <FramedVisual>
                 <NitroDiagnose className="w-full" />
@@ -955,45 +932,6 @@ function FindTheCause() {
 }
 
 /* ============================================================================
-   HONESTY BAND — keep the real dashboards and the setup step two distinct
-   facts.
-============================================================================ */
-
-const HONESTY_POINTS: readonly string[] = [
-  "Telemetry is plain OpenTelemetry: it flows to Nitro and to any OTel backend you already run.",
-  "Dashboards do not light up until your services export OTLP to a Nitro project.",
-  "Hot Chocolate ships with the instrumentation that powers these views; your other services instrument with the standard OTel SDK.",
-  "It's the same OpenTelemetry you would set up anyway — Nitro is just where it lands.",
-];
-
-function HonestySection() {
-  return (
-    <Band
-      className="mt-12"
-      skin="card"
-      layout="split"
-      labelledBy="setup-title"
-      main={
-        <div>
-          <SectionHeading
-            titleId="setup-title"
-            title="Built on standards, honest about setup."
-            description="These dashboards need your telemetry before they light up. No surprises: here is exactly what that takes."
-          />
-          <ArrowLink
-            href="/docs/nitro/open-telemetry/operation-monitoring"
-            className="mt-6"
-          >
-            See the setup guide
-          </ArrowLink>
-        </div>
-      }
-      aside={<CheckList items={HONESTY_POINTS} />}
-    />
-  );
-}
-
-/* ============================================================================
    CLOSING CTA
 ============================================================================ */
 
@@ -1002,8 +940,8 @@ function ClosingCta() {
     <Band className="mt-12" skin="accent" layout="centered">
       <SectionHeading
         align="center"
-        title="Know what the API is doing — before your users do."
-        description="One trace, end to end — latency, errors, throughput, and impact for every operation, service, and client, with the trace behind every number."
+        title="The whole story, from spike to span."
+        description="Follow an incident from the latency chart to the failing operation to the exact span that caused it, without leaving Nitro."
       />
       <ButtonRow align="center" className="mt-9">
         <SolidButton href="https://nitro.chillicream.com">
@@ -1013,30 +951,6 @@ function ClosingCta() {
           Read the Docs
         </OutlineButton>
       </ButtonRow>
-      <p className="text-cc-ink-dim mx-auto mt-6 max-w-xl text-sm leading-relaxed">
-        Learn more about{" "}
-        <Link
-          href="/platform/release-safety"
-          className="text-cc-accent hover:text-cc-accent-hover"
-        >
-          release safety
-        </Link>
-        , the{" "}
-        <Link
-          href="/platform/ecosystem"
-          className="text-cc-accent hover:text-cc-accent-hover"
-        >
-          ecosystem
-        </Link>
-        , or the wider{" "}
-        <Link
-          href="/platform"
-          className="text-cc-accent hover:text-cc-accent-hover"
-        >
-          platform
-        </Link>
-        .
-      </p>
     </Band>
   );
 }
@@ -1045,14 +959,41 @@ function ClosingCta() {
    PAGE
 ============================================================================ */
 
+const BREADCRUMB_DATA = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: `${SITE_URL}/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Platform",
+      item: `${SITE_URL}/platform`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Analytics",
+    },
+  ],
+};
+
 export default function AnalyticsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }}
+      />
       <Hero />
       <FullOtelBand />
       <ThreeQuestions />
       <FindTheCause />
-      <HonestySection />
       <ClosingCta />
     </>
   );

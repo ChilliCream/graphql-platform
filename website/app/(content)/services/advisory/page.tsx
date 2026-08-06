@@ -1,10 +1,15 @@
-import { AdvisoryFaq } from "@/src/components/advisory/AdvisoryFaq";
+import dynamic from "next/dynamic";
+
 import { AdvisoryHero } from "@/src/components/advisory/AdvisoryHero";
 import { ContactBand } from "@/src/components/advisory/ContactBand";
 import { EngagementStrip } from "@/src/components/advisory/EngagementStrip";
 import { TeamSection } from "@/src/components/advisory/TeamSection";
 import { TierGrid } from "@/src/components/advisory/TierGrid";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+
+const AdvisoryFaq = dynamic(() =>
+  import("@/src/components/advisory/AdvisoryFaq").then((m) => m.AdvisoryFaq),
+);
 
 export const metadata = pageMetadata({
   title: "GraphQL Advisory",

@@ -1,3 +1,5 @@
+import dynamic from "next/dynamic";
+
 import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
@@ -9,12 +11,14 @@ import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-import { ReviewSection } from "./ReviewSection";
+const ReviewSection = dynamic(() =>
+  import("./ReviewSection").then((m) => m.ReviewSection),
+);
 
 export const metadata = pageMetadata({
   title: "Agentic Coding",
   description:
-    "Build with AI on a platform designed for it. Any coding agent installs the same skills, fills the same Hot Chocolate and Mocha patterns, and gets feedback before the merge.",
+    "Install checked-in skills for supported coding agents, use GraphQL MCP tools at runtime, and apply compiler and configured registry feedback during review.",
   path: "/platform/agentic-coding",
   keywords: [
     "agentic coding platform",
@@ -160,9 +164,9 @@ function Hero() {
       eyebrow="Agentic coding"
       title={
         <>
-          Consistently good code,
+          Give every coding agent
           <br />
-          from any agent.
+          the same playbook.
         </>
       }
       teaser={
@@ -170,12 +174,12 @@ function Hero() {
           Agents are strong at filling a known pattern and weak at inventing
           architecture. The platform gives your agent the pattern to fill, your
           conventions as checked-in skills, and feedback it can act on before
-          the merge, so what comes back is{" "}
+          the merge, so what comes back is shaped by{" "}
           <span
             className="mx-auto mt-2 block w-fit bg-clip-text text-xl font-semibold text-transparent sm:text-2xl"
             style={{ backgroundImage: SPECTRUM }}
           >
-            best-practice code.
+            reviewed patterns and your conventions.
           </span>
         </>
       }
@@ -185,7 +189,7 @@ function Hero() {
         className="bg-cc-surface/80 mx-auto mt-10 max-w-md text-left backdrop-blur-sm"
       />
       <p className="text-cc-ink-dim mt-4 text-sm">
-        One command teaches your agent the platform.
+        One command installs ChilliCream&rsquo;s agent skills.
       </p>
     </PageHero>
   );
@@ -204,7 +208,7 @@ function AgentDirectory() {
         align="center"
         eyebrow="Agent directory"
         title="Bring the agent you already use."
-        description="Every agent plugs into the platform the same two ways: skills teach it your conventions, MCP lets it call your API. Which agent you run is a preference; the quality of the code that comes back is the same."
+        description="Supported agents can consume the same checked-in skills. Separately, any MCP client can connect to your API tools at runtime. Generated results still depend on the agent, model, prompt, and review."
       />
 
       <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -348,9 +352,8 @@ const FEEDBACK_ROWS = [
 ] as const;
 
 /**
- * FEEDBACK TILE: the strongly typed stack catches most bad edits at compile
- * time; the client registry catches the rest in CI while the agent can still
- * fix them.
+ * FEEDBACK TILE: strong typing and a configured registry check return concrete
+ * feedback while the agent can still revise the patch.
  */
 function FeedbackTile() {
   return (
@@ -360,10 +363,10 @@ function FeedbackTile() {
         Feedback before the merge.
       </h2>
       <p className="text-cc-ink-dim mt-3 text-sm/relaxed">
-        A schema-first, strongly typed stack turns most bad edits into compile
-        errors. <code className="text-cc-accent">nitro</code> checks the rest in
-        CI against the client registry, so a risky change comes back as feedback
-        while the agent can still fix it.
+        Strong typing catches supported type errors at compile time. A
+        configured <code className="text-cc-accent">nitro</code> client-registry
+        check can report schema changes that affect registered operations while
+        the agent can still revise the patch.
       </p>
 
       <div className="mt-5 space-y-2">
@@ -455,9 +458,8 @@ function ClosingCta() {
         Point your agent at the platform.
       </h2>
       <p className="text-cc-ink-dim mx-auto mt-5 max-w-2xl text-base/relaxed">
-        The patterns, the feedback, and the checks are already in place;
-        whatever agent your team uses writes against them. One command installs
-        the helpers, and your conventions ride along the same way.
+        Check in reviewed skills, configure registry validation, and give
+        whichever supported agent your team uses the same project playbook.
       </p>
       <CopyCommand
         command="dnx skillz add chillicream/agent-skills"

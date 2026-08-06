@@ -1,21 +1,25 @@
 import type { ReactNode } from "react";
 
-import { Band } from "@/src/components/Band";
+import NextLink from "next/link";
+
+import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CheckIcon } from "@/src/components/CheckIcon";
-import { CheckList } from "@/src/components/CheckList";
 import { DotGridSurface } from "@/src/components/DotGridSurface";
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
+import { NextStepsSection } from "@/src/components/NextStepsSection";
+import { PageSection } from "@/src/components/PageSection";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { StatStrip } from "@/src/components/StatStrip";
+import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
-import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { SITE_URL } from "@/src/helpers/siteUrl";
 
 export const metadata = pageMetadata({
-  title: "Release Safety",
+  title: "GraphQL Schema Checks and Release Safety",
   description:
-    "Ship GraphQL schema changes without breaking published clients. Every change is classified safe, dangerous, or breaking, validated against the clients you have published, and gated in CI before a consumer is affected.",
+    "Catch breaking GraphQL schema changes before they ship. Nitro's schema checks validate proposed schemas against the operations your clients use in each environment.",
   path: "/platform/release-safety",
   keywords: [
     "GraphQL schema release safety",
@@ -25,7 +29,7 @@ export const metadata = pageMetadata({
     "schema validation CI",
     "safe schema evolution",
     "Nitro schema checks",
-    "published client impact",
+    "published operation impact",
     "schema linting",
     "GraphQL governance",
   ],
@@ -38,7 +42,6 @@ export const metadata = pageMetadata({
 /* ------------------------------------------------------------------ */
 
 const GUARDRAIL = "#0a1426";
-const GUARDRAIL_RAISED = "rgba(13, 27, 48, 0.78)";
 const GUARDRAIL_LINE = "rgba(124, 146, 198, 0.16)";
 
 type ChangeStatus = "safe" | "dangerous" | "breaking";
@@ -91,70 +94,62 @@ function StatusChip({ status, className = "" }: StatusChipProps) {
   );
 }
 
-interface SafeWordProps {
-  readonly status: ChangeStatus;
-  readonly children: ReactNode;
-}
-
-function SafeWord({ status, children }: SafeWordProps) {
-  return (
-    <span className={`font-medium ${STATUS_META[status].text}`}>
-      {children}
-    </span>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 /* Window chrome wrapper                                               */
 /* ------------------------------------------------------------------ */
 
 interface AppWindowProps {
   readonly title: ReactNode;
-  readonly tab?: string;
+  readonly disclosure?: string;
   readonly children: ReactNode;
   readonly footer?: ReactNode;
   readonly className?: string;
 }
 
+/*
+ * Thin adapter over the shared MockWindowChrome: this page's windows sit on
+ * the guardrail-blue scene, use status-colored traffic lights, and carry an
+ * optional disclosure eyebrow above the frame.
+ */
 function AppWindow({
   title,
-  tab,
+  disclosure,
   children,
   footer,
   className = "",
 }: AppWindowProps) {
   return (
-    <div
-      className={`border-cc-card-border overflow-hidden rounded-xl border shadow-[0_24px_70px_-30px_rgba(0,0,0,0.85)] backdrop-blur-md ${className}`}
-      style={{ backgroundColor: GUARDRAIL }}
-    >
-      <div
-        className="border-cc-card-border flex items-center gap-2 border-b px-4 py-2.5"
-        style={{ backgroundColor: "#0d1b30" }}
-      >
-        <span className="flex gap-1.5" aria-hidden>
-          <span className="bg-cc-danger/60 h-2.5 w-2.5 rounded-full" />
-          <span className="bg-cc-warning/60 h-2.5 w-2.5 rounded-full" />
-          <span className="bg-cc-success/60 h-2.5 w-2.5 rounded-full" />
-        </span>
-        <div className="text-cc-ink-dim ml-2 flex items-center gap-2 font-mono text-[0.72rem]">
-          {title}
-        </div>
-        {tab !== undefined && (
-          <span className="bg-cc-hover text-cc-ink-dim ml-auto rounded-md px-2 py-1 font-mono text-[0.66rem]">
-            {tab}
-          </span>
-        )}
-      </div>
-      <div>{children}</div>
-      {footer !== undefined && (
-        <div
-          className="border-cc-card-border border-t px-4 py-2.5"
-          style={{ backgroundColor: "#0d1b30" }}
-        >
-          {footer}
-        </div>
+    <div className="min-w-0">
+      {disclosure !== undefined && (
+        <Eyebrow color="ink-dim" size="2xs" className="mb-3">
+          {disclosure}
+        </Eyebrow>
       )}
+      <MockWindowChrome
+        header={{
+          variant: "custom",
+          content: (
+            <>
+              <span className="flex gap-1.5" aria-hidden>
+                <span className="bg-cc-danger/60 h-2.5 w-2.5 rounded-full" />
+                <span className="bg-cc-warning/60 h-2.5 w-2.5 rounded-full" />
+                <span className="bg-cc-success/60 h-2.5 w-2.5 rounded-full" />
+              </span>
+              <div className="text-cc-ink-dim ml-2 flex items-center gap-2 font-mono text-[0.72rem]">
+                {title}
+              </div>
+            </>
+          ),
+        }}
+        headerClassName="flex items-center gap-2 bg-[#0d1b30] px-4 py-2.5"
+        footer={footer}
+        footerClassName="bg-[#0d1b30] px-4 py-2.5"
+        shadow="none"
+        rounded="rounded-xl"
+        surfaceClassName={`bg-[#0a1426] shadow-[0_24px_70px_-30px_rgba(0,0,0,0.85)] backdrop-blur-md ${className}`}
+      >
+        {children}
+      </MockWindowChrome>
     </div>
   );
 }
@@ -209,10 +204,10 @@ interface DiffRowProps {
 function DiffRow({ line }: DiffRowProps) {
   return (
     <div className={`flex items-stretch ${diffRowColor(line.sign)}`}>
-      <span className="border-cc-card-border text-cc-nav-label/70 w-9 shrink-0 border-r py-1 pr-2 text-right font-mono text-[0.66rem] select-none">
+      <span className="border-cc-card-border text-cc-ink-dim w-9 shrink-0 border-r py-1 pr-2 text-right font-mono text-[0.66rem] select-none">
         {line.old ?? ""}
       </span>
-      <span className="border-cc-card-border text-cc-nav-label/70 w-9 shrink-0 border-r py-1 pr-2 text-right font-mono text-[0.66rem] select-none">
+      <span className="border-cc-card-border text-cc-ink-dim w-9 shrink-0 border-r py-1 pr-2 text-right font-mono text-[0.66rem] select-none">
         {line.nw ?? ""}
       </span>
       <span
@@ -327,7 +322,7 @@ function PinnedThread() {
             Registry
           </span>
           <StatusChip status="breaking" />
-          <span className="text-cc-nav-label ml-auto font-mono text-[0.62rem]">
+          <span className="text-cc-ink-dim ml-auto font-mono text-[0.62rem]">
             line 43
           </span>
         </div>
@@ -337,8 +332,12 @@ function PinnedThread() {
             Order.total
           </code>{" "}
           breaks queries that still select it.{" "}
-          <span className="text-cc-prose">3 published clients affected.</span>{" "}
-          Deprecate it for one release, then drop it once usage clears.
+          <span className="text-cc-prose">
+            Queries and mutations from 3 client versions published to this stage
+            are affected.
+          </span>{" "}
+          Deprecate it, then remove it after those versions are retired or
+          unpublished from the stage.
         </p>
       </div>
     </div>
@@ -348,36 +347,38 @@ function PinnedThread() {
 function HeroDiffMock() {
   return (
     <AppWindow
-      title={
-        <>
-          <span className="text-cc-prose">schema.graphql</span>
-          <span className="text-cc-nav-label">·</span>
-          <span>orders-api</span>
-        </>
-      }
-      tab="diff · main…release"
+      title={<span className="text-cc-prose">schema.graphql</span>}
       footer={
         <div className="flex items-center justify-between">
           <span className="text-cc-ink-dim flex items-center gap-2 font-mono text-[0.66rem]">
             <span className="bg-cc-danger h-2 w-2 rounded-full" />
             registry check failed
           </span>
-          <span className="text-cc-nav-label font-mono text-[0.66rem]">
+          <span className="text-cc-ink-dim font-mono text-[0.66rem]">
             1 breaking · 1 dangerous · 1 safe
           </span>
         </div>
       }
     >
-      <div className="bg-cc-success/[0.04] text-cc-ink-dim px-4 py-1.5 font-mono text-[0.64rem]">
-        @@ type Order @@
-      </div>
-      <div>
-        {HERO_DIFF.map((line, i) => (
-          <div key={i}>
-            <DiffRow line={line} />
-            {line.pinned === true && <PinnedThread />}
+      <div
+        role="region"
+        aria-label="Illustrative schema diff"
+        tabIndex={0}
+        className="focus-visible:ring-cc-accent/40 overflow-x-auto focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <div className="min-w-[30rem]">
+          <div className="bg-cc-success/[0.04] text-cc-ink-dim px-4 py-1.5 font-mono text-[0.64rem]">
+            @@ type Order @@
           </div>
-        ))}
+          <div>
+            {HERO_DIFF.map((line, i) => (
+              <div key={i}>
+                <DiffRow line={line} />
+                {line.pinned === true && <PinnedThread />}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </AppWindow>
   );
@@ -386,34 +387,29 @@ function HeroDiffMock() {
 function HeroSection() {
   return (
     <DotGridSurface className="border-cc-card-border/50 bg-cc-surface/25 relative left-1/2 -mt-14 w-screen -translate-x-1/2 border-b py-16 sm:py-24">
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-        <div>
+      <PageSection className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <div className="min-w-0">
           <h1 className="font-heading text-h2 text-cc-heading font-bold tracking-tight">
-            Change contracts
+            Ship GraphQL schema changes
             <br />
-            with a safety net.
+            with confidence.
           </h1>
-          <p className="lead text-cc-ink-dim mt-6 max-w-xl">
-            Ship schema changes without breaking the apps that depend on them.
-          </p>
           <p className="text-body text-cc-prose mt-5 max-w-xl leading-relaxed">
-            Every edit is classified <SafeWord status="safe">safe</SafeWord>,{" "}
-            <SafeWord status="dangerous">dangerous</SafeWord>, or{" "}
-            <SafeWord status="breaking">breaking</SafeWord>, validated against
-            the clients you have actually published, and only then promoted.
-            Unsafe releases stop at the gate, before a consumer ever discovers
-            them.
+            Nitro&apos;s schema checks test a proposed change against the
+            operations your clients rely on in production. Breaking change
+            detection shows what would break, so you can fix it before it
+            reaches users.
           </p>
           <ButtonRow align="start" className="mt-9">
             <SolidButton href="https://nitro.chillicream.com">
-              Start for Free
+              Start for free
             </SolidButton>
             <OutlineButton href="/docs/nitro/apis/client-registry">
-              Read the Docs
+              Read client registry docs
             </OutlineButton>
           </ButtonRow>
         </div>
-        <div className="relative">
+        <div className="relative min-w-0">
           <div
             aria-hidden
             className="absolute -inset-6 -z-10 rounded-3xl opacity-60 blur-2xl"
@@ -424,19 +420,18 @@ function HeroSection() {
           />
           <HeroDiffMock />
         </div>
-      </section>
+      </PageSection>
     </DotGridSurface>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Reusable two-column section shell (house SectionHeading + CheckList) */
+/* Reusable two-column section shell (house SectionHeading)            */
 /* ------------------------------------------------------------------ */
 
 interface SectionShellProps {
   readonly title: string;
   readonly lead: string;
-  readonly bullets: readonly string[];
   readonly artifact: ReactNode;
   readonly flip?: boolean;
 }
@@ -444,17 +439,15 @@ interface SectionShellProps {
 function SectionShell({
   title,
   lead,
-  bullets,
   artifact,
   flip = false,
 }: SectionShellProps) {
   return (
     <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-      <div className={flip ? "lg:order-2" : ""}>
+      <div className={`min-w-0 ${flip ? "lg:order-2" : ""}`}>
         <SectionHeading title={title} description={lead} />
-        <CheckList items={bullets} className="mt-6" />
       </div>
-      <div className={flip ? "lg:order-1" : ""}>{artifact}</div>
+      <div className={`min-w-0 ${flip ? "lg:order-1" : ""}`}>{artifact}</div>
     </section>
   );
 }
@@ -479,7 +472,13 @@ function CrossGlyph() {
 
 function SpinnerGlyph() {
   return (
-    <svg viewBox="0 0 16 16" width={12} height={12} aria-hidden>
+    <svg
+      viewBox="0 0 16 16"
+      width={12}
+      height={12}
+      aria-hidden
+      className="animate-spin motion-reduce:animate-none"
+    >
       <circle
         cx="8"
         cy="8"
@@ -500,13 +499,31 @@ function SpinnerGlyph() {
   );
 }
 
+function ValidatingDots() {
+  return (
+    <span>
+      validating
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="animate-[ellipsis-blink_1.2s_ease-in-out_infinite] motion-reduce:animate-none"
+          style={{ animationDelay: `${i * 0.2}s` }}
+        >
+          .
+        </span>
+      ))}
+    </span>
+  );
+}
+
 interface CheckRowProps {
   readonly icon: "fail" | "pass" | "run";
   readonly name: string;
-  readonly detail: string;
+  readonly detail: ReactNode;
+  readonly delayClassName: string;
 }
 
-function CheckRow({ icon, name, detail }: CheckRowProps) {
+function CheckRow({ icon, name, detail, delayClassName }: CheckRowProps) {
   const map = {
     fail: { node: <CrossGlyph />, color: "text-cc-danger" },
     pass: { node: <CheckIcon size={12} />, color: "text-cc-success" },
@@ -516,7 +533,13 @@ function CheckRow({ icon, name, detail }: CheckRowProps) {
   return (
     <div className="border-cc-card-border flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
       <span className={`flex h-5 w-5 items-center justify-center ${m.color}`}>
-        {m.node}
+        <RevealOnScroll
+          className={`flex ${delayClassName}`}
+          hiddenClassName="scale-50 opacity-0 motion-reduce:scale-100"
+          shownClassName="scale-100 opacity-100"
+        >
+          {m.node}
+        </RevealOnScroll>
       </span>
       <span className="text-cc-heading text-[0.82rem] font-medium">{name}</span>
       <span className="text-cc-ink-dim ml-auto font-mono text-[0.7rem]">
@@ -529,18 +552,11 @@ function CheckRow({ icon, name, detail }: CheckRowProps) {
 function CheckCard() {
   return (
     <AppWindow
-      title={
-        <>
-          <span>orders-api</span>
-          <span className="text-cc-nav-label">·</span>
-          <span className="text-cc-prose">#482 Add Money type</span>
-        </>
-      }
-      tab="checks"
+      title={<span className="text-cc-prose">#482 Add Money type</span>}
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-cc-ink-dim font-mono text-[0.66rem]">
-            Merging is blocked until checks pass.
+            Required CI policy blocks merge until checks pass.
           </span>
           <span className="bg-cc-hover text-cc-prose ring-cc-card-border rounded-md px-2.5 py-1 font-mono text-[0.64rem] ring-1 ring-inset">
             Re-run check
@@ -563,16 +579,19 @@ function CheckCard() {
         icon="fail"
         name="Schema validation — breaking change"
         detail="Order.total removed"
+        delayClassName="delay-0"
       />
       <CheckRow
         icon="pass"
         name="Schema validation — additive"
         detail="Money, totalAmount added"
+        delayClassName="delay-150"
       />
       <CheckRow
         icon="run"
         name="Client compatibility — partner app"
-        detail="validating…"
+        detail={<ValidatingDots />}
+        delayClassName="delay-300"
       />
     </AppWindow>
   );
@@ -581,13 +600,8 @@ function CheckCard() {
 function CheckCardSection() {
   return (
     <SectionShell
-      title="A failing check is the whole point."
-      lead="The registry check runs on every pull request. If a change would break a published client, the check fails and merge is blocked, so the conversation happens in review instead of in production."
-      bullets={[
-        "Breaking changes fail the check and block the merge.",
-        "Additive, safe changes pass without ceremony.",
-        "Re-run after a fix; the gate re-validates against published clients.",
-      ]}
+      title="Breaking changes fail the pull request."
+      lead="Nitro fails the pull request when a proposed change would break an operation your clients have published. The problem shows up as a red status on the PR, not as an incident after release. Mark it as required and the merge button stays locked until the schema is safe."
       artifact={<CheckCard />}
       flip
     />
@@ -603,13 +617,13 @@ interface ClientRow {
   readonly env: string;
   readonly ok: number;
   readonly total: number;
-  readonly status: "ok" | "risk" | "queued";
+  readonly status: "ok" | "risk" | "outside";
 }
 
 const CLIENT_ROWS: readonly ClientRow[] = [
   { name: "web", env: "production", ok: 5, total: 5, status: "ok" },
   { name: "mobile", env: "production", ok: 3, total: 5, status: "risk" },
-  { name: "partner", env: "sandbox", ok: 0, total: 4, status: "queued" },
+  { name: "partner", env: "sandbox", ok: 0, total: 0, status: "outside" },
   { name: "internal-admin", env: "staging", ok: 6, total: 6, status: "ok" },
 ];
 
@@ -626,7 +640,7 @@ function ImpactBar({ ok, total, status }: ImpactBarProps) {
       ? "bg-cc-success"
       : status === "risk"
         ? "bg-cc-warning"
-        : "bg-cc-nav-label/50";
+        : "bg-cc-ink-dim/50";
   return (
     <span className="flex gap-1">
       {cells.map((_, i) => (
@@ -646,7 +660,7 @@ function ClientImpactMatrix() {
   > = {
     ok: { text: "OK", cls: "text-cc-success" },
     risk: { text: "at risk", cls: "text-cc-warning" },
-    queued: { text: "queued", cls: "text-cc-nav-label" },
+    outside: { text: "outside result", cls: "text-cc-ink-dim" },
   };
   return (
     <AppWindow
@@ -657,9 +671,8 @@ function ClientImpactMatrix() {
           <span className="text-cc-prose">impact of #482</span>
         </>
       }
-      tab="published clients affected"
     >
-      <div className="border-cc-card-border text-cc-nav-label grid grid-cols-[1.3fr_1fr_0.8fr] gap-3 border-b px-4 py-2 font-mono text-[0.6rem] tracking-[0.14em] uppercase">
+      <div className="border-cc-card-border text-cc-ink-dim grid grid-cols-[1.3fr_1fr_0.8fr] gap-3 border-b px-4 py-2 font-mono text-[0.6rem] tracking-[0.14em] uppercase">
         <span>client</span>
         <span>operations passing</span>
         <span className="text-right">status</span>
@@ -675,15 +688,23 @@ function ClientImpactMatrix() {
               <div className="text-cc-heading truncate font-mono text-[0.78rem]">
                 {c.name}
               </div>
-              <div className="text-cc-nav-label font-mono text-[0.62rem]">
+              <div className="text-cc-ink-dim font-mono text-[0.62rem]">
                 {c.env}
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <ImpactBar ok={c.ok} total={c.total} status={c.status} />
-              <span className="text-cc-ink-dim font-mono text-[0.68rem]">
-                {c.ok}/{c.total}
-              </span>
+              {c.total === 0 ? (
+                <span className="text-cc-heading font-mono text-[0.68rem]">
+                  none published
+                </span>
+              ) : (
+                <>
+                  <ImpactBar ok={c.ok} total={c.total} status={c.status} />
+                  <span className="text-cc-ink-dim font-mono text-[0.68rem]">
+                    {c.ok}/{c.total}
+                  </span>
+                </>
+              )}
             </div>
             <div
               className={`text-right font-mono text-[0.72rem] font-semibold ${s.cls}`}
@@ -700,110 +721,114 @@ function ClientImpactMatrix() {
 function ImpactSection() {
   return (
     <SectionShell
-      title="Know who a change touches."
-      lead="The client registry tracks the operations your published clients actually run. Before a change ships, you can see which clients are clear and which would have operations break, by name and by environment."
-      bullets={[
-        "Validation runs against the operations published clients send.",
-        "Each client reports passing operations, not a vague global verdict.",
-        "Queued clients are validated as soon as their operations are registered.",
-      ]}
+      title="See which clients a change would break."
+      lead="Validation runs against the set of operations your client versions have published to that environment. Each client gets its own result: a change that is safe for web can still break mobile, and you see that before you merge."
       artifact={<ClientImpactMatrix />}
     />
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* SECTION: validate -> publish gate schematic on blueprint grid       */
+/* SECTION: environment validation workflow                            */
 /* ------------------------------------------------------------------ */
 
 interface GateNodeProps {
-  readonly kicker: string;
   readonly label: string;
-  readonly sub: string;
-  readonly tone: "neutral" | "warning" | "success" | "danger";
-  readonly compact?: boolean;
+  readonly state: string;
+  readonly stateClassName?: string;
+  readonly icon?: ReactNode;
+  readonly tone: "passed" | "future";
 }
 
 function GateNode({
-  kicker,
   label,
-  sub,
+  state,
+  stateClassName = "",
+  icon,
   tone,
-  compact = false,
 }: GateNodeProps) {
   const tones = {
-    neutral: "border-cc-card-border text-cc-heading",
-    warning: "border-cc-warning/40 text-cc-warning",
-    success: "border-cc-success/40 text-cc-success",
-    danger: "border-cc-danger/40 text-cc-danger",
+    passed: "border-cc-success/40 bg-cc-success/[0.06] text-cc-success",
+    future: "border-cc-card-border bg-cc-hover/40 text-cc-ink-dim opacity-70",
   } as const;
   return (
-    <div
-      className={`flex-1 rounded-lg border ${tones[tone]} px-4 ${compact ? "py-2.5" : "py-4"}`}
-      style={{ backgroundColor: GUARDRAIL_RAISED }}
-    >
-      <div className="text-cc-nav-label font-mono text-[0.58rem] tracking-[0.18em] uppercase">
-        {kicker}
+    <div className={`flex-1 rounded-lg border ${tones[tone]} px-4 py-4`}>
+      <div className="flex items-center gap-2 font-mono text-[0.85rem] font-semibold">
+        {icon !== undefined && (
+          <span className="flex h-4 w-4 items-center justify-center">
+            {icon}
+          </span>
+        )}
+        {label}
       </div>
-      <div className="mt-1 font-mono text-[0.85rem] font-semibold">{label}</div>
-      <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">
-        {sub}
+      <div
+        className={`text-cc-ink-dim mt-0.5 font-mono text-[0.64rem] ${stateClassName}`}
+      >
+        {state}
       </div>
     </div>
   );
 }
 
 interface ConnectorProps {
-  readonly branch?: boolean;
+  readonly muted?: boolean;
 }
 
-function Connector({ branch = false }: ConnectorProps) {
+function Connector({ muted = false }: ConnectorProps) {
   return (
     <div className="flex items-center justify-center" aria-hidden>
       <svg
         viewBox="0 0 40 24"
         width={40}
         height={24}
-        className="text-cc-nav-label/60 rotate-90 sm:rotate-0"
+        className={`rotate-90 sm:rotate-0 ${muted ? "text-cc-nav-label/30" : "text-cc-nav-label/60"}`}
       >
-        {branch ? (
-          <>
-            <path
-              d="M2 12 H20"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="none"
-            />
-            <path
-              d="M20 12 C30 12 28 4 38 4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="none"
-            />
-            <path
-              d="M20 12 C30 12 28 20 38 20"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="none"
-            />
-          </>
-        ) : (
-          <>
-            <path
-              d="M2 12 H32"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="none"
-            />
-            <path
-              d="M30 7 L38 12 L30 17"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="none"
-            />
-          </>
-        )}
+        <path
+          d="M2 12 H32"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
+          strokeDasharray={muted ? "3 3" : undefined}
+        />
+        <path
+          d="M30 7 L38 12 L30 17"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
+        />
       </svg>
+    </div>
+  );
+}
+
+function StagingGateNode() {
+  return (
+    <div className="relative flex-1">
+      <div
+        className="border-cc-warning/40 bg-cc-warning/[0.06] text-cc-warning rounded-lg border px-4 py-4 motion-safe:animate-[staging-validating_6s_ease-in-out_infinite] motion-reduce:hidden"
+        aria-hidden="true"
+      >
+        <div className="flex items-center gap-2 font-mono text-[0.85rem] font-semibold">
+          <span className="flex h-4 w-4 items-center justify-center">
+            <SpinnerGlyph />
+          </span>
+          Staging
+        </div>
+        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">
+          Validating
+        </div>
+      </div>
+      <div className="border-cc-danger/40 bg-cc-danger/[0.06] text-cc-danger absolute inset-0 rounded-lg border px-4 py-4 opacity-0 motion-safe:animate-[staging-failed_6s_ease-in-out_infinite] motion-reduce:opacity-100">
+        <div className="flex items-center gap-2 font-mono text-[0.85rem] font-semibold">
+          <span className="flex h-4 w-4 items-center justify-center">
+            <CrossGlyph />
+          </span>
+          Staging
+        </div>
+        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">
+          Failed
+        </div>
+      </div>
     </div>
   );
 }
@@ -818,43 +843,33 @@ function GateSchematic() {
         backgroundSize: "26px 26px",
       }}
     >
+      <style>{`
+        @keyframes staging-validating {
+          0%, 45% { opacity: 1; }
+          55%, 100% { opacity: 0; }
+        }
+        @keyframes staging-failed {
+          0%, 45% { opacity: 0; }
+          55%, 100% { opacity: 1; }
+        }
+      `}</style>
       <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
         <GateNode
-          kicker="01"
-          label="schema change"
-          sub="pull request"
-          tone="neutral"
+          label="Development"
+          state="Passed"
+          icon={<CheckIcon size={14} />}
+          tone="passed"
         />
         <Connector />
+        <StagingGateNode />
+        <Connector muted />
         <GateNode
-          kicker="02"
-          label="validate"
-          sub="classify + check clients"
-          tone="warning"
+          label="Production"
+          state="Future"
+          stateClassName="invisible"
+          tone="future"
         />
-        <Connector branch />
-        <div className="flex flex-1 flex-col gap-3">
-          <GateNode
-            kicker="03a"
-            label="publish"
-            sub="safe → promoted"
-            tone="success"
-            compact
-          />
-          <GateNode
-            kicker="03b"
-            label="blocked"
-            sub="breaking → stop"
-            tone="danger"
-            compact
-          />
-        </div>
       </div>
-      <p className="text-cc-ink-dim mt-6 max-w-2xl font-mono text-[0.72rem] leading-relaxed">
-        Nothing reaches <span className="text-cc-prose">publish</span> until it
-        clears <span className="text-cc-warning">validate</span>. A breaking
-        change never advances; it stops at the gate with the reason attached.
-      </p>
     </div>
   );
 }
@@ -862,16 +877,203 @@ function GateSchematic() {
 function GateSection() {
   return (
     <SectionShell
-      title="Validate, then publish. Never the other way around."
-      lead="Release safety is a two-stage gate. A change is classified and checked against published clients first; only changes that clear validation are promoted. The order is the guarantee."
-      bullets={[
-        "Validate classifies the change and tests it against real clients.",
-        "Publish only ever runs on a change that already cleared validation.",
-        "A blocked change carries its reason, not just a red X.",
-      ]}
+      title="Every environment is its own gate."
+      lead="Development, staging, and production each hold their own published operations, so the same change is validated against what actually runs in each of them. A change that passes staging can still fail production, because different client versions are published there."
       artifact={<GateSchematic />}
       flip
     />
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* SECTION: CI marketplace integrations                                */
+/* ------------------------------------------------------------------ */
+
+/** House focus ring (design-system Dropdown idiom). */
+const CARD_FOCUS_CLASSES =
+  "focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden";
+
+interface PipelineCardSpec {
+  readonly kicker: string;
+  readonly file: string;
+  readonly code: ReactNode;
+  readonly status: string;
+  readonly href: string;
+  readonly action: string;
+}
+
+const PIPELINE_CARDS: readonly PipelineCardSpec[] = [
+  {
+    kicker: "GitHub Actions",
+    file: ".github/workflows/ci.yml",
+    code: (
+      <>
+        {tk.punc("- ")}
+        {tk.kw("uses")}
+        {tk.punc(": ")}ChilliCream/nitro-schema-validate{tk.ty("@v16")}
+        {"\n"}
+        {"  "}
+        {tk.kw("with")}
+        {tk.punc(":")}
+        {"\n"}
+        {"    "}
+        {tk.kw("api-id")}
+        {tk.punc(": ")}
+        {tk.dir("${{ vars.NITRO_API_ID }}")}
+        {"\n"}
+        {"    "}
+        {tk.kw("api-key")}
+        {tk.punc(": ")}
+        {tk.dir("${{ secrets.NITRO_API_KEY }}")}
+        {"\n"}
+        {"    "}
+        {tk.kw("schema-file")}
+        {tk.punc(": ")}./schema.graphql
+        {"\n"}
+        {"    "}
+        {tk.kw("stage")}
+        {tk.punc(": ")}
+        {tk.ty("production")}
+        {"\n"}
+        {"    "}
+        {tk.kw("comment-mode")}
+        {tk.punc(": ")}review
+      </>
+    ),
+    status: "✓ check passed",
+    href: "https://github.com/marketplace?query=nitro",
+    action: "GitHub Marketplace",
+  },
+  {
+    kicker: "Azure Pipelines",
+    file: "azure-pipelines.yml",
+    code: (
+      <>
+        {tk.punc("- ")}
+        {tk.kw("task")}
+        {tk.punc(": ")}NitroSchemaValidate{tk.ty("@16")}
+        {"\n"}
+        {"  "}
+        {tk.kw("inputs")}
+        {tk.punc(":")}
+        {"\n"}
+        {"    "}
+        {tk.kw("authenticationType")}
+        {tk.punc(": ")}serviceConnection
+        {"\n"}
+        {"    "}
+        {tk.kw("nitroServiceConnection")}
+        {tk.punc(": ")}nitro-prod
+        {"\n"}
+        {"    "}
+        {tk.kw("apiId")}
+        {tk.punc(": ")}
+        {tk.dir("$(NITRO_API_ID)")}
+        {"\n"}
+        {"    "}
+        {tk.kw("schemaFile")}
+        {tk.punc(": ")}./schema.graphql
+        {"\n"}
+        {"    "}
+        {tk.kw("stage")}
+        {tk.punc(": ")}
+        {tk.ty("production")}
+      </>
+    ),
+    status: "✓ task succeeded",
+    href: "https://marketplace.visualstudio.com/items?itemName=ChilliCream.nitro-azure-pipelines-tasks",
+    action: "Visual Studio Marketplace",
+  },
+  {
+    kicker: "Any other CI",
+    file: "shell",
+    code: (
+      <>
+        {tk.punc("$ ")}
+        {tk.fld("nitro schema validate")} {tk.punc("\\")}
+        {"\n"}
+        {"    "}
+        {tk.kw("--api-id")} {tk.dir("$NITRO_API_ID")} {tk.punc("\\")}
+        {"\n"}
+        {"    "}
+        {tk.kw("--schema-file")} schema.graphql {tk.punc("\\")}
+        {"\n"}
+        {"    "}
+        {tk.kw("--stage")} {tk.ty("production")}
+        {"\n"}
+        {"\n"}
+        {tk.punc("validating against production…")}
+        {"\n"}
+        <span className="text-cc-success">✓ no breaking changes</span>
+      </>
+    ),
+    status: "✓ exit 0",
+    href: "/docs/nitro/cli/schema",
+    action: "CLI reference",
+  },
+];
+
+function PipelineCard({
+  kicker,
+  file,
+  code,
+  status,
+  href,
+  action,
+}: PipelineCardSpec) {
+  const external = !href.startsWith("/");
+  const linkClassName = `group block min-w-0 rounded-xl no-underline transition-transform duration-200 hover:-translate-y-1 ${CARD_FOCUS_CLASSES}`;
+  const card = (
+    <AppWindow
+      disclosure={kicker}
+      title={<span className="text-cc-prose">{file}</span>}
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-cc-success font-mono text-[0.66rem]">
+            {status}
+          </span>
+          <span className="text-cc-accent group-hover:text-cc-accent-hover inline-flex items-center gap-1.5 text-sm font-medium transition-colors">
+            {action}
+            <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      }
+    >
+      <div className="text-cc-prose overflow-x-auto px-4 py-4 font-mono text-[0.7rem] leading-relaxed whitespace-pre">
+        {code}
+      </div>
+    </AppWindow>
+  );
+  return external ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={linkClassName}
+    >
+      {card}
+    </a>
+  ) : (
+    <NextLink href={href} className={linkClassName}>
+      {card}
+    </NextLink>
+  );
+}
+
+function PipelineSection() {
+  return (
+    <section aria-labelledby="pipelines-title">
+      <SectionHeading
+        titleId="pipelines-title"
+        title="Run the checks in the CI you already have."
+        description="The validate, upload, and publish steps ship as ready-made GitHub Actions and Azure Pipelines tasks, both wrapping the Nitro CLI."
+      />
+      <div className="mt-10 grid items-start gap-5 lg:grid-cols-3">
+        {PIPELINE_CARDS.map((card) => (
+          <PipelineCard key={card.kicker} {...card} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -895,16 +1097,7 @@ const VERSIONS: readonly VersionPoint[] = [
 
 function VersionTimeline() {
   return (
-    <AppWindow
-      title={
-        <>
-          <span>orders-api</span>
-          <span className="text-cc-nav-label">·</span>
-          <span className="text-cc-prose">schema history</span>
-        </>
-      }
-      tab="registry"
-    >
+    <AppWindow title={<span className="text-cc-prose">schema history</span>}>
       <div className="px-5 py-6">
         <div className="relative">
           <span
@@ -933,12 +1126,6 @@ function VersionTimeline() {
             })}
           </ol>
         </div>
-        <p className="text-cc-ink-dim mt-6 font-mono text-[0.7rem] leading-relaxed">
-          The breaking removal at <span className="text-cc-danger">v14</span>{" "}
-          never shipped. It was re-shaped as an additive change, deprecated, and
-          only dropped at <span className="text-cc-warning">v15</span> once
-          client usage cleared.
-        </p>
       </div>
     </AppWindow>
   );
@@ -947,112 +1134,10 @@ function VersionTimeline() {
 function TimelineSection() {
   return (
     <SectionShell
-      title="Every version, every classification, kept."
-      lead="The registry keeps the full history of your schema with each change classified in place. You can see exactly when a contract shifted, why it was safe, and how a risky change was reshaped before it shipped."
-      bullets={[
-        "Each published version records its classification.",
-        "Deprecations buy time; removals wait for usage to clear.",
-        "Drift between code and the published contract shows up as build feedback.",
-      ]}
+      title="Keep the full history of your schema."
+      lead="Every upload and publish adds a version to the registry, giving you a browsable record of how the API evolved: what changed in each version, how severe it was, and when a blocked removal finally cleared. Answering 'when did this field change and why' no longer means digging through merge commits."
       artifact={<VersionTimeline />}
     />
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SECTION: big-number reliability band (house StatStrip)              */
-/* ------------------------------------------------------------------ */
-
-function ReliabilityBand() {
-  return (
-    <StatStrip
-      items={[
-        { label: "breaking changes shipped", value: "0" },
-        { label: "published clients guarded", value: "12" },
-        { label: "of releases checked", value: "100%" },
-      ]}
-    />
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SECTION: honesty / credibility beat                                 */
-/* ------------------------------------------------------------------ */
-
-interface HonestyItem {
-  readonly tone: "success" | "warning";
-  readonly head: string;
-  readonly body: ReactNode;
-}
-
-const HONESTY_ITEMS: readonly HonestyItem[] = [
-  {
-    tone: "success",
-    head: "What it stops",
-    body: "Releases that would break a published client are blocked before merge, with the breaking line and reason in hand.",
-  },
-  {
-    tone: "warning",
-    head: "What it needs",
-    body: "A client is only guarded once its operations are registered. Unregistered traffic is outside the net.",
-  },
-  {
-    tone: "success",
-    head: "What it surfaces",
-    body: "Strawberry Shake regenerates clients via MSBuild codegen, so contract drift shows up as build feedback you cannot miss.",
-  },
-  {
-    tone: "warning",
-    head: "What it will not pretend",
-    body: "It reports published clients affected. It does not claim certainty about consumers it has never seen.",
-  },
-];
-
-function HonestyCard({ tone, head, body }: HonestyItem) {
-  const bar = tone === "success" ? "bg-cc-success" : "bg-cc-warning";
-  return (
-    <Card variant="panel" className="px-5 py-5">
-      <span
-        aria-hidden
-        className={`absolute top-5 bottom-5 left-0 w-[3px] rounded-full ${bar}`}
-      />
-      <div className="pl-3">
-        <Eyebrow size="2xs">{head}</Eyebrow>
-        <p className="text-cc-ink-dim mt-2 text-[0.86rem] leading-relaxed">
-          {body}
-        </p>
-      </div>
-    </Card>
-  );
-}
-
-function HonestySection() {
-  return (
-    <section
-      aria-labelledby="honesty-title"
-      className="border-cc-card-border rounded-2xl border px-6 py-9 sm:px-10 sm:py-11"
-      style={{ backgroundColor: "rgba(13, 27, 48, 0.6)" }}
-    >
-      <div className="max-w-3xl">
-        <SectionHeading
-          titleId="honesty-title"
-          title="A safety net, not a blindfold."
-          description={
-            <>
-              A check is only useful if you can trust what it claims. Release
-              safety tells you which <em>published</em> clients are affected by
-              a change, based on the operations they have registered. It is
-              honest about its edges.
-            </>
-          }
-        />
-        <div className="mt-7 grid gap-4 sm:grid-cols-2">
-          {HONESTY_ITEMS.map((item) => (
-            <HonestyCard key={item.head} {...item} />
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -1063,21 +1148,16 @@ function HonestySection() {
 function ClosingCta() {
   return (
     <DotGridSurface className="rounded-3xl">
-      <Band skin="accent" layout="centered">
-        <SectionHeading
-          align="center"
-          title="Put a safety net under every schema change."
-          description="Classify, validate, and gate your releases so breaking changes stop at the door, not in your users’ hands."
-        />
-        <ButtonRow align="center" className="mt-9">
-          <SolidButton href="https://nitro.chillicream.com">
-            Start for Free
-          </SolidButton>
-          <OutlineButton href="/docs/nitro/apis/client-registry">
-            Read the Docs
-          </OutlineButton>
-        </ButtonRow>
-      </Band>
+      <NextStepsSection
+        skin="accent"
+        className=""
+        title="Know what breaks before your users do."
+        text="Publish the operations each client uses, validate proposed schemas against the environment you plan to update, and merge with the answer in hand."
+        primaryLink="https://nitro.chillicream.com"
+        primaryLinkText="Start for free"
+        secondaryLink="/docs/nitro/apis/client-registry"
+        secondaryLinkText="Read client registry docs"
+      />
     </DotGridSurface>
   );
 }
@@ -1086,16 +1166,43 @@ function ClosingCta() {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+const BREADCRUMB_DATA = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: `${SITE_URL}/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Platform",
+      item: `${SITE_URL}/platform`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Release Safety",
+    },
+  ],
+};
+
 export default function ReleaseSafetyPage() {
   return (
     <div className="flex flex-col gap-24 py-6 sm:gap-28">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }}
+      />
       <HeroSection />
       <CheckCardSection />
       <ImpactSection />
       <GateSection />
+      <PipelineSection />
       <TimelineSection />
-      <ReliabilityBand />
-      <HonestySection />
       <ClosingCta />
     </div>
   );

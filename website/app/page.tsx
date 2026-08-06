@@ -1,18 +1,48 @@
+import dynamic from "next/dynamic";
 import { FromOurBlog } from "@/src/components/FromOurBlog";
-import { AgenticSection } from "@/src/components/home/agentic/AgenticSection";
 import { BuildYourWay } from "@/src/components/home/BuildYourWay";
-import { CombinedGovernance } from "@/src/components/home/combined/CombinedGovernance";
-import { CombinedObservability } from "@/src/components/home/combined/CombinedObservability";
 import { FusionFlow } from "@/src/components/home/FusionFlow";
 import { GrabADrink } from "@/src/components/home/GrabADrink";
 import { HomeHero } from "@/src/components/home/HomeHero";
-import { LogoCloud } from "@/src/components/home/LogoCloud";
 import { NitroPricing } from "@/src/components/home/NitroPricing";
-import { NitroSection } from "@/src/components/home/nitro/NitroSection";
 import { ProtocolCards } from "@/src/components/home/ProtocolCards";
-import { PatternBand } from "@/src/components/PatternBand";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_TITLE } from "@/src/helpers/site";
+
+const LogoCloud = dynamic(() =>
+  import("@/src/components/home/LogoCloud").then((m) => m.LogoCloud),
+);
+const NitroSection = dynamic(() =>
+  import("@/src/components/home/nitro/NitroSection").then(
+    (m) => m.NitroSection,
+  ),
+);
+const AgenticSection = dynamic(() =>
+  import("@/src/components/home/agentic/AgenticSection").then(
+    (m) => m.AgenticSection,
+  ),
+);
+const CombinedObservability = dynamic(() =>
+  import("@/src/components/home/combined/CombinedObservability").then(
+    (m) => m.CombinedObservability,
+  ),
+);
+const CombinedMessaging = dynamic(() =>
+  import("@/src/components/home/combined/CombinedMessaging").then(
+    (m) => m.CombinedMessaging,
+  ),
+);
+const CombinedGovernance = dynamic(() =>
+  import("@/src/components/home/combined/CombinedGovernance").then(
+    (m) => m.CombinedGovernance,
+  ),
+);
+const PatternBand = dynamic(() =>
+  import("@/src/components/PatternBand").then((m) => m.PatternBand),
+);
+const PcbBand = dynamic(() =>
+  import("@/src/components/PcbBand").then((m) => m.PcbBand),
+);
 
 export const metadata = pageMetadata({
   title: SITE_TITLE,
@@ -34,7 +64,7 @@ export default function Home() {
       <PatternBand
         pattern="lines"
         contain={false}
-        blend
+        recessed
         className="pb-16 sm:pb-24"
       >
         <AgenticSection />
@@ -47,10 +77,14 @@ export default function Home() {
       >
         <CombinedObservability />
       </PatternBand>
+      <PcbBand className="pb-16 sm:pb-24">
+        <CombinedMessaging />
+      </PcbBand>
       <PatternBand
         pattern="dots"
         contain={false}
         blend
+        recessedBottom
         className="pb-16 sm:pb-24"
       >
         <CombinedGovernance />

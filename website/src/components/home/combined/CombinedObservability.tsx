@@ -7,15 +7,15 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
  * Combined Observability section: one compacted take that merges three landing
  * facets under a single header.
  *
- * Facet 1 "Fix the right thing first." shrinks the operations-ranked-by-impact
+ * Facet 1 "Rank operations by impact." shrinks the operations-ranked-by-impact
  * table to three rows (the firing #1, a degrading #2, a calm #3). Facet 2 "See
  * where time is lost." shows the distributed-trace waterfall as six spans over a
  * faint ms grid, keeping the coral slow hop. Facet 3 "From symptom to cause."
  * pairs a small p99
  * sparkline breaching its SLO with the degrading billing hop in the same trace.
  *
- * The facets span GraphQL, gRPC, REST, and a job to read as OpenTelemetry-native
- * for any service in any language. Static server component: no
+ * The facets span GraphQL, gRPC, REST, and a job to show supported
+ * OpenTelemetry data from configured services. Static server component: no
  * hooks, no client APIs. Dark cc-* palette; teal is the signature, status colors
  * are used as data and rationed. Every inline SVG is decorative; figures are
  * present as text. Svg ids are prefixed "cmb-obs-".
@@ -53,27 +53,28 @@ const STATUS_TEXT: Record<Status, string> = {
 export function CombinedObservability() {
   return (
     <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
-      {/* Reveal as the section approaches (threshold 0 + a positive bottom
-          rootMargin) rather than after it is well into view — otherwise, on a
-          tall section, it fades in late and reads like the end of the page. */}
-      <RevealOnScroll threshold={0} rootMargin="0px 0px 15% 0px">
+      <RevealOnScroll>
         {/* shared header */}
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             See what the API is doing.
           </h2>
           <p className="text-cc-ink mt-6 max-w-3xl text-base text-pretty sm:text-lg">
-            OpenTelemetry-native across any service, in any language: rank by
-            impact, trace where the time is lost, and follow a symptom to its
-            cause.
+            Rank reported GraphQL operations by impact and inspect traces from
+            services configured to export supported OpenTelemetry data. The
+            documented .NET setup covers REST, gRPC, and background jobs.
           </p>
           <ArrowLink href="/platform/analytics" className="mt-6">
             Learn more
           </ArrowLink>
         </div>
 
+        <p className="text-cc-ink-dim mt-10 text-center font-mono text-[0.65rem] tracking-[0.14em] uppercase sm:mt-12">
+          Illustrative incident data
+        </p>
+
         {/* three compact facets */}
-        <div className="mt-10 grid gap-4 sm:mt-12 sm:gap-5 lg:grid-cols-3">
+        <div className="mt-3 grid gap-4 sm:gap-5 lg:grid-cols-3">
           <ImpactFacet />
           <TraceFacet />
           <SymptomCauseFacet />
@@ -147,7 +148,7 @@ const OPERATIONS: readonly ImpactRow[] = [
 
 function ImpactFacet() {
   return (
-    <FacetCard href="/platform/analytics" title="Fix the right thing first.">
+    <FacetCard href="/platform/analytics" title="Rank operations by impact.">
       <div className="mt-5 space-y-2.5">
         {OPERATIONS.map((row) => {
           // Rows are no longer highlighted by rank — the pinned #1 box read as odd.
@@ -442,7 +443,7 @@ const CAUSE_SPANS: readonly CauseSpan[] = [
 
 function SymptomCauseFacet() {
   return (
-    <FacetCard href="/platform/analytics" title="From symptom to cause.">
+    <FacetCard href="/platform/analytics" title="Inspect the slow spans.">
       {/* symptom: p99 breaching its SLO */}
       <div className="mt-5">
         <div className="flex items-baseline justify-between gap-3">

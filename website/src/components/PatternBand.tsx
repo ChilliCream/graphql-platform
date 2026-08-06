@@ -24,6 +24,19 @@ const HALO_MASK =
 const EDGE_FADE =
   "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)";
 
+/** Blend variant for a band that is recessed at the bottom: fade the top edge
+ *  only and run solid to the hard-cut bottom. */
+const EDGE_FADE_TOP =
+  "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)";
+
+/** Inner shadows cast by the page surface onto a recessed band, so its texture
+ *  reads as a layer sitting a bit behind the page (see the `recessed` prop).
+ *  Kept identical to PcbBand's shadows so stacked bands match. */
+const SHADOW_TOP =
+  "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const SHADOW_BOTTOM =
+  "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+
 /** Soft teal wash under the grid texture. */
 const TEAL_GLOW =
   "radial-gradient(60% 90% at 50% 40%, rgba(94,234,212,0.08), transparent 65%)";
@@ -109,6 +122,19 @@ interface PatternBandProps {
    * borderless className.
    */
   readonly blend?: boolean;
+  /**
+   * Meet the page on hard edges instead of fading: hairline top/bottom borders
+   * plus inner shadows cast by the page surface, so the texture reads as a
+   * layer sitting a bit behind the page. Mutually exclusive with `blend`.
+   */
+  readonly recessed?: boolean;
+  /**
+   * Hard-cut bottom edge that sits in FRONT of what follows: hairline bottom
+   * border plus a drop shadow projected downward onto the next section. The
+   * top edge keeps its treatment (pair with `blend` to keep the top
+   * feathered).
+   */
+  readonly recessedBottom?: boolean;
 }
 
 /**
@@ -126,6 +152,8 @@ export function PatternBand({
   flush = false,
   contain = true,
   blend = false,
+  recessed = false,
+  recessedBottom = false,
 }: PatternBandProps) {
   const reduced = useReducedMotion();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -155,15 +183,18 @@ export function PatternBand({
 
   const bandClass = [
     "border-cc-card-border/50 relative left-1/2 isolate w-screen -translate-x-1/2 overflow-hidden",
+    recessed ? "border-y" : "",
+    recessedBottom
+      ? "border-b shadow-[0_20px_30px_-18px_rgba(2,6,16,0.9)]"
+      : "",
     flush ? "-mt-8" : "",
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
-  const bgMask = blend
-    ? { WebkitMaskImage: EDGE_FADE, maskImage: EDGE_FADE }
-    : undefined;
+  const fade = recessedBottom ? EDGE_FADE_TOP : EDGE_FADE;
+  const bgMask = blend ? { WebkitMaskImage: fade, maskImage: fade } : undefined;
 
   return (
     <div
@@ -252,6 +283,19 @@ export function PatternBand({
                 background:
                   "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
               }}
+            />
+          </>
+        )}
+
+        {recessed && (
+          <>
+            <div
+              className="absolute inset-x-0 top-0 h-10"
+              style={{ background: SHADOW_TOP }}
+            />
+            <div
+              className="absolute inset-x-0 bottom-0 h-10"
+              style={{ background: SHADOW_BOTTOM }}
             />
           </>
         )}

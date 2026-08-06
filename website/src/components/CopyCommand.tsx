@@ -79,7 +79,7 @@ export function CopyCommand({
   return (
     <div
       className={[
-        "border-cc-card-border relative border font-mono",
+        "border-cc-card-border relative min-w-0 border font-mono",
         size === "md" ? "rounded-xl p-4" : "rounded-lg px-3 py-2.5",
         className,
       ]
@@ -91,11 +91,9 @@ export function CopyCommand({
         onClick={handleCopy}
         aria-label={copied ? "Copied" : "Copy command"}
         className={[
-          "absolute top-1/2 -translate-y-1/2 transition-colors",
+          "focus-visible:ring-cc-accent/40 absolute top-1/2 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:outline-none",
           size === "md" ? "right-3" : "right-2.5",
-          copied
-            ? "text-cc-accent"
-            : "text-cc-ink-faint hover:text-cc-ink cursor-pointer",
+          copied ? "text-cc-accent" : "text-cc-ink-faint hover:text-cc-ink",
         ].join(" ")}
       >
         {copied ? (
@@ -105,8 +103,10 @@ export function CopyCommand({
         )}
       </button>
       <code
+        tabIndex={0}
+        aria-label={`Shell command: ${command}`}
         className={[
-          "block [scrollbar-width:none]! overflow-x-auto pr-7 leading-relaxed whitespace-nowrap [&::-webkit-scrollbar]:hidden!",
+          "focus-visible:ring-cc-accent/40 block [scrollbar-width:none]! overflow-x-auto pr-8 leading-relaxed whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none [&::-webkit-scrollbar]:hidden!",
           size === "md" ? "text-sm" : "text-[0.65rem]",
         ].join(" ")}
       >

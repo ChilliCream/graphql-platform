@@ -1,10 +1,14 @@
+import dynamic from "next/dynamic";
 import { ClosingCta } from "@/src/components/support/ClosingCta";
 import { ComparisonMatrix } from "@/src/components/support/ComparisonMatrix";
 import { EnterpriseBand } from "@/src/components/support/EnterpriseBand";
 import { PlanGrid } from "@/src/components/support/PlanGrid";
-import { SupportFaq } from "@/src/components/support/SupportFaq";
 import { SupportHero } from "@/src/components/support/SupportHero";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+
+const SupportFaq = dynamic(() =>
+  import("@/src/components/support/SupportFaq").then((m) => m.SupportFaq),
+);
 
 export const metadata = pageMetadata({
   title: "GraphQL Support Plans",

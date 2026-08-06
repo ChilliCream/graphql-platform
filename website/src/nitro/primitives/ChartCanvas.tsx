@@ -30,7 +30,7 @@ export function ChartCanvas({
       ref={ref}
       className={className}
       style={{ ...SIZING_STYLE[sizing], ...style }}
-      role="img"
+      role={label ? "img" : undefined}
       aria-label={label}
     >
       {children}

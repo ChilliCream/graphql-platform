@@ -12,9 +12,11 @@ interface RevealOnScrollProps {
   readonly threshold?: number;
 }
 
-const DEFAULT_HIDDEN_CLASS_NAME = "translate-y-6 opacity-0";
+const DEFAULT_HIDDEN_CLASS_NAME = "translate-y-4 opacity-0";
 const DEFAULT_SHOWN_CLASS_NAME = "translate-y-0 opacity-100";
-const DEFAULT_TRANSITION_CLASS_NAME = "transition-all duration-700 ease-out";
+const DEFAULT_TRANSITION_CLASS_NAME = "transition-all duration-500 ease-out";
+const REDUCED_MOTION_CLASS_NAME =
+  "motion-reduce:translate-y-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none";
 
 /** Reveals its content once when it first scrolls into view. */
 export function RevealOnScroll({
@@ -22,8 +24,8 @@ export function RevealOnScroll({
   className,
   hiddenClassName = DEFAULT_HIDDEN_CLASS_NAME,
   shownClassName = DEFAULT_SHOWN_CLASS_NAME,
-  rootMargin = "0px 0px -10% 0px",
-  threshold = 0.2,
+  rootMargin = "0px 0px 15% 0px",
+  threshold = 0,
 }: RevealOnScrollProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
@@ -53,7 +55,20 @@ export function RevealOnScroll({
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+
+    // Rescue content the observer should already have revealed, in case it
+    // missed or never fired. Anything still genuinely below the extended root
+    // stays hidden so it can animate in on scroll.
+    const fallbackId = window.setTimeout(() => {
+      if (node.getBoundingClientRect().top < window.innerHeight * 1.15) {
+        setShown(true);
+      }
+    }, 1200);
+
+    return () => {
+      window.clearTimeout(fallbackId);
+      observer.disconnect();
+    };
   }, [rootMargin, threshold]);
 
   return (
@@ -62,6 +77,7 @@ export function RevealOnScroll({
       className={[
         className,
         DEFAULT_TRANSITION_CLASS_NAME,
+        REDUCED_MOTION_CLASS_NAME,
         shown ? shownClassName : hiddenClassName,
       ]
         .filter(Boolean)
