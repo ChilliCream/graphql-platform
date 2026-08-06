@@ -13,7 +13,8 @@ public sealed class SchemaValidatorTests
     public void AddDefaultRules_Should_RegisterTheDefaultRuleSet()
     {
         // arrange
-        var validator = new SchemaValidator();
+        var validator = new SchemaValidator([]);
+        validator.AddDefaultRules();
 
         // act
         var rules = validator.Rules.Select(r => r.GetType().Name);
