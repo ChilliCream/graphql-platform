@@ -138,6 +138,86 @@ public class SchemaParserTests
         Assert.Equal("Use Bar.", fooType.DeprecationReason);
     }
 
+    [Theory]
+    [InlineData("@deprecated")]
+    [InlineData("@deprecated(reason: \"\")")]
+    [InlineData("@deprecated(reason: \"   \")")]
+    public void Parse_Should_UseDefaultReason_When_DeprecatedDirectiveHasNoReason(string directive)
+    {
+        // arrange
+        var sdl =
+            $$"""
+            type Query {
+              id: String {{directive}}
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = queryType.Fields["id"];
+        Assert.True(field.IsDeprecated);
+        Assert.Equal(DirectiveNames.Deprecated.Arguments.DefaultReason, field.DeprecationReason);
+    }
+
+    [Fact]
+    public void Parse_Should_PreserveDeprecatedDirective_When_SchemaIsPrinted()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              id: String @deprecated
+              name: String @deprecated(reason: "Use id.")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              id: String @deprecated
+              name: String @deprecated(reason: "Use id.")
+            }
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_PrintDeprecatedDirectiveWithoutArguments_When_ReasonIsTheDefault()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              id: String @deprecated(reason: "No longer supported")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              id: String @deprecated
+            }
+            """);
+    }
+
     [Fact]
     public void Parse_Object_Type_Extension_With_Deprecated_Directive()
     {

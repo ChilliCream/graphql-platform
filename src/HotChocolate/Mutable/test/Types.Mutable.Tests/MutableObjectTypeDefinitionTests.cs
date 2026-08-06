@@ -17,7 +17,7 @@ public class MutableObjectTypeDefinitionTests
     }
 
     [Fact]
-    public void IsDeprecated_Should_ClearDeprecationReason_When_SetToFalse()
+    public void IsDeprecated_Should_BeFalse_When_DeprecationReasonIsCleared()
     {
         // arrange
         var objectType = new MutableObjectTypeDefinition("Foo")
@@ -26,7 +26,22 @@ public class MutableObjectTypeDefinitionTests
         };
 
         // act
-        objectType.IsDeprecated = false;
+        objectType.DeprecationReason = null;
+
+        // assert
+        Assert.False(objectType.IsDeprecated);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SetDeprecationReason_Should_ClearDeprecation_When_ValueIsEmptyOrWhiteSpace(string reason)
+    {
+        // arrange
+        var objectType = new MutableObjectTypeDefinition("Foo");
+
+        // act
+        objectType.DeprecationReason = reason;
 
         // assert
         Assert.False(objectType.IsDeprecated);

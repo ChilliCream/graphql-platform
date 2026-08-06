@@ -36,31 +36,4 @@ public class SchemaDebugFormatterTests
             }
             """);
     }
-
-    [Fact]
-    public void Format_Should_UseDefaultReason_When_ObjectTypeHasNoDeprecationReason()
-    {
-        // arrange
-        // the deprecation state is set programmatically, so the formatter synthesizes @deprecated
-        const string sdl =
-            """
-            type Foo {
-              id: ID
-            }
-            """;
-        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        var fooType = (MutableObjectTypeDefinition)schema.Types["Foo"];
-        fooType.IsDeprecated = true;
-
-        // act
-        var syntaxNode = SchemaDebugFormatter.Format(fooType);
-
-        // assert
-        syntaxNode.ToString().MatchInlineSnapshot(
-            """
-            type Foo @deprecated(reason: "No longer supported.") {
-              id: ID
-            }
-            """);
-    }
 }

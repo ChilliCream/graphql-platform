@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -12,14 +13,15 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 /// <param name="name">The name of the object type.</param>
 /// <param name="description">The description of the object type.</param>
-/// <param name="isDeprecated">A value indicating whether the object type is deprecated.</param>
-/// <param name="deprecationReason">The deprecation reason if the object type is deprecated.</param>
+/// <param name="deprecationReason">
+/// The deprecation reason, or <c>null</c> if the object type is not deprecated.
+/// An empty or white-space value is treated as <c>null</c>.
+/// </param>
 /// <param name="isInaccessible">A value indicating whether the type is inaccessible.</param>
 /// <param name="fieldsDefinition">The collection of fields defined on this object type.</param>
 public sealed class FusionObjectTypeDefinition(
     string name,
     string? description,
-    bool isDeprecated,
     string? deprecationReason,
     bool isInaccessible,
     FusionOutputFieldDefinitionCollection fieldsDefinition)
@@ -38,14 +40,17 @@ public sealed class FusionObjectTypeDefinition(
     public override bool IsEntityType => (_flags & FusionTypeFlags.Entity) != 0;
 
     /// <summary>
-    /// Gets a value indicating whether this object type is deprecated.
+    /// Defines if this object type is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
-    public bool IsDeprecated { get; } = isDeprecated;
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
-    /// Gets the deprecation reason if this object type is deprecated.
+    /// Gets the deprecation reason, or <c>null</c> if this object type is not deprecated.
     /// </summary>
-    public string? DeprecationReason { get; } = deprecationReason;
+    public string? DeprecationReason { get; } =
+        string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
 
     /// <summary>
     /// Gets metadata about this object type in its source schemas.

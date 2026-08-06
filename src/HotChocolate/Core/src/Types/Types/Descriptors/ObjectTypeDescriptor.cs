@@ -265,7 +265,7 @@ public class ObjectTypeDescriptor
             throw ThrowHelper.ObjectDeprecationNotEnabled(Configuration.Name);
         }
 
-        Configuration.DeprecationReason = string.IsNullOrEmpty(reason)
+        Configuration.DeprecationReason = string.IsNullOrWhiteSpace(reason)
             ? DirectiveNames.Deprecated.Arguments.DefaultReason
             : reason;
 

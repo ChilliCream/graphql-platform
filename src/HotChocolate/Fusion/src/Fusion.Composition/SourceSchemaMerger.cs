@@ -396,16 +396,12 @@ internal sealed partial class SourceSchemaMerger
         var type = MostRestrictiveType(typeA, typeB);
         var description = argumentA.Description ?? argumentB.Description;
         var defaultValue = argumentA.DefaultValue ?? argumentB.DefaultValue;
-        var isDeprecated = argumentA.IsDeprecated || argumentB.IsDeprecated;
-        var deprecationReason = isDeprecated
-            ? argumentA.DeprecationReason ?? argumentB.DeprecationReason
-            : null;
+        var deprecationReason = argumentA.DeprecationReason ?? argumentB.DeprecationReason;
 
         return new MutableInputFieldDefinition(argumentA.Name, type.ExpectInputType())
         {
             DefaultValue = defaultValue,
             Description = description,
-            IsDeprecated = isDeprecated,
             DeprecationReason = deprecationReason
         };
     }
@@ -532,7 +528,6 @@ internal sealed partial class SourceSchemaMerger
         var firstValue = enumValueGroup[0].EnumValue;
         var valueName = firstValue.Name;
         var description = firstValue.Description;
-        var isDeprecated = firstValue.IsDeprecated;
         var deprecationReason = firstValue.DeprecationReason;
 
         for (var i = 1; i < enumValueGroup.Length; i++)
@@ -540,12 +535,7 @@ internal sealed partial class SourceSchemaMerger
             var enumValueInfo = enumValueGroup[i];
             description ??= enumValueInfo.EnumValue.Description;
 
-            if (enumValueInfo.EnumValue.IsDeprecated && !isDeprecated)
-            {
-                isDeprecated = true;
-            }
-
-            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            if (deprecationReason is null)
             {
                 deprecationReason = enumValueInfo.EnumValue.DeprecationReason;
             }
@@ -554,7 +544,6 @@ internal sealed partial class SourceSchemaMerger
         var enumValue = new MutableEnumValue(valueName)
         {
             Description = description,
-            IsDeprecated = isDeprecated,
             DeprecationReason = deprecationReason
         };
 
@@ -661,7 +650,6 @@ internal sealed partial class SourceSchemaMerger
         var fieldType = firstField.Type;
         var description = firstField.Description;
         var defaultValue = firstField.DefaultValue;
-        var isDeprecated = firstField.IsDeprecated;
         var deprecationReason = firstField.DeprecationReason;
 
         for (var i = 1; i < inputFieldGroup.Length; i++)
@@ -671,12 +659,7 @@ internal sealed partial class SourceSchemaMerger
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
 
-            if (inputFieldInfo.Field.IsDeprecated && !isDeprecated)
-            {
-                isDeprecated = true;
-            }
-
-            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            if (deprecationReason is null)
             {
                 deprecationReason = inputFieldInfo.Field.DeprecationReason;
             }
@@ -686,7 +669,6 @@ internal sealed partial class SourceSchemaMerger
         {
             DefaultValue = defaultValue,
             Description = description,
-            IsDeprecated = isDeprecated,
             DeprecationReason = deprecationReason,
             Type = fieldType
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
@@ -823,7 +805,6 @@ internal sealed partial class SourceSchemaMerger
         var firstType = (MutableObjectTypeDefinition)typeGroup[0].Type;
         var typeName = firstType.Name;
         var description = firstType.Description;
-        var isDeprecated = firstType.IsDeprecated;
         var deprecationReason = firstType.DeprecationReason;
         var objectType = GetOrCreateType<MutableObjectTypeDefinition>(mergedSchema, typeName);
 
@@ -832,19 +813,13 @@ internal sealed partial class SourceSchemaMerger
             var currentType = (MutableObjectTypeDefinition)typeGroup[i].Type;
             description ??= currentType.Description;
 
-            if (currentType.IsDeprecated && !isDeprecated)
-            {
-                isDeprecated = true;
-            }
-
-            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            if (deprecationReason is null)
             {
                 deprecationReason = currentType.DeprecationReason;
             }
         }
 
         objectType.Description = description;
-        objectType.IsDeprecated = isDeprecated;
         objectType.DeprecationReason = deprecationReason;
 
         // [InterfaceName: [{InterfaceType, Schema}, ...], ...].
@@ -935,7 +910,6 @@ internal sealed partial class SourceSchemaMerger
         var firstField = fieldGroup[0].Field;
         var fieldName = firstField.Name;
         var description = firstField.Description;
-        var isDeprecated = firstField.IsDeprecated;
         var deprecationReason = firstField.DeprecationReason;
 
         // The return type is computed from all field types together so that the result is
@@ -958,12 +932,7 @@ internal sealed partial class SourceSchemaMerger
             var fieldInfo = fieldGroup[i];
             description ??= fieldInfo.Field.Description;
 
-            if (fieldInfo.Field.IsDeprecated && !isDeprecated)
-            {
-                isDeprecated = true;
-            }
-
-            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            if (deprecationReason is null)
             {
                 deprecationReason = fieldInfo.Field.DeprecationReason;
             }
@@ -972,7 +941,6 @@ internal sealed partial class SourceSchemaMerger
         var outputField = new MutableOutputFieldDefinition(fieldName)
         {
             Description = description,
-            IsDeprecated = isDeprecated,
             DeprecationReason = deprecationReason,
             Type = fieldType
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))

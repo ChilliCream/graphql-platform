@@ -7,5 +7,5 @@ type Query {
 }
 
 type Foo {
-  bar: String @deprecated(reason: "No longer supported.")
+  bar: String @deprecated
 }
