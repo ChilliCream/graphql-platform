@@ -90,26 +90,24 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         if (configuration is null
             && Transport.Topology.Address.IsBaseOf(address)
-            && segmentCount == 2)
+            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName))
         {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
+            var resourceName = new string(topologyName);
 
-            if (kind is "t" && name is var topicName)
+            if (topologyKind is "t")
             {
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    TopicName = new string(topicName),
-                    Name = "t/" + new string(topicName)
+                    TopicName = resourceName,
+                    Name = "t/" + resourceName
                 };
             }
-
-            if (kind is "q" && name is var queueName)
+            else if (topologyKind is "q")
             {
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
+                    QueueName = resourceName,
+                    Name = "q/" + resourceName
                 };
             }
         }
@@ -455,8 +453,11 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        if (Transport.Topology.Address.IsBaseOf(address)
+            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName)
+            && topologyKind is "q")
         {
+            queueName = new string(topologyName);
             return true;
         }
 
@@ -473,27 +474,48 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         return false;
     }
 
-    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    /// <summary>
+    /// Splits a topology relative path into the leading kind segment and the resource name that
+    /// follows it. Everything after the first segment is the name, because a queue or topic name
+    /// may contain a slash.
+    /// </summary>
+    private static bool TryGetKindAndName(
+        ReadOnlySpan<char> path,
+        out ReadOnlySpan<char> kind,
+        out ReadOnlySpan<char> name)
     {
-        var relative = Transport.Topology.Address.MakeRelativeUri(address);
-        if (relative.IsAbsoluteUri)
+        var separator = path.IndexOf('/');
+
+        if (separator <= 0 || separator == path.Length - 1)
         {
-            queueName = string.Empty;
+            kind = default;
+            name = default;
             return false;
         }
 
-        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
-        var path = relativePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+        kind = path[..separator];
+        name = path[(separator + 1)..];
+        return true;
+    }
 
-        if (segmentCount == 2 && path[ranges[0]] is "q")
+    /// <summary>
+    /// Returns the path of the address relative to the transport topology address, so that
+    /// addresses under a topology base path expose the same <c>t/{name}</c> and <c>q/{name}</c>
+    /// segments as addresses at the root.
+    /// </summary>
+    private ReadOnlySpan<char> GetTopologyRelativePath(Uri address)
+    {
+        var basePath = Transport.Topology.Address.AbsolutePath.AsSpan().Trim('/');
+        var path = address.AbsolutePath.AsSpan().Trim('/');
+
+        if (basePath.IsEmpty
+            || path.Length <= basePath.Length
+            || !path.StartsWith(basePath, StringComparison.Ordinal)
+            || path[basePath.Length] is not '/')
         {
-            queueName = new string(path[ranges[1]]);
-            return true;
+            return path;
         }
 
-        queueName = string.Empty;
-        return false;
+        return path[(basePath.Length + 1)..];
     }
 }
