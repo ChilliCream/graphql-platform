@@ -587,7 +587,6 @@ jobs:
           stage: Dev
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
       - name: 🚀 Publish Nitro CLI client (Prod)
         uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
@@ -596,7 +595,6 @@ jobs:
           stage: Prod
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
   publish-aspire-nitro-ops:
     name: 🚀 Publish Fusion Aspire Nitro operations
@@ -640,7 +638,6 @@ jobs:
           stage: Dev
           client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
       - name: 🚀 Publish Fusion Aspire client (Prod)
         uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
@@ -649,7 +646,6 @@ jobs:
           stage: Prod
           client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
   publish-release:
     name: 🚀 Publish Release
