@@ -1,109 +1,68 @@
-import { CardGrid } from "@/src/components/CardGrid";
-import { ContentSection } from "@/src/components/ContentSection";
+import { FromOurBlog } from "@/src/components/FromOurBlog";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
-import { PageHero } from "@/src/components/PageHero";
-import { Section } from "@/src/components/Section";
-import { Card } from "@/src/design-system/Card";
+import { RevealOnScroll } from "@/src/components/RevealOnScroll";
+import { TOOLS } from "@/src/components/header/navData";
+import { getGitHubCommitActivity } from "@/src/helpers/githubCommitActivity";
+import { getGitHubContributors } from "@/src/helpers/githubContributors";
+import { getGitHubStarCount } from "@/src/helpers/githubStars";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
+import { CommunityGrid } from "./CommunityGrid";
+import { Hero } from "./Hero";
+import { ProofBand } from "./ProofBand";
+import { StandardsBand } from "./StandardsBand";
+
 export const metadata = pageMetadata({
-  title: "Ecosystem",
+  title: ".NET GraphQL Ecosystem",
   description:
-    "Explore the ChilliCream ecosystem: GraphQL tooling with authentication flows, document sync, subscriptions, and a fast IDE built for your API journey.",
+    "Explore ChilliCream's open-source .NET GraphQL platform, public development, standards participation, and community channels.",
   path: "/platform/ecosystem",
+  keywords: [
+    "GraphQL ecosystem",
+    "open source .NET GraphQL",
+    "HotChocolate GraphQL server",
+    "GraphQL standards",
+    "GraphQL Foundation",
+    "GitHub contributors",
+    "public roadmap",
+    "community channels",
+    "Fusion GraphQL",
+    "Strawberry Shake",
+  ],
 });
 
-interface FeatureCard {
-  title: string;
-  description: string;
-}
+const HIDDEN_CONTRIBUTOR_LOGINS = new Set(["artola"]);
 
-const FEATURES: FeatureCard[] = [
-  {
-    title: "Authentication Flows",
-    description:
-      "Choose between various authentication flows like basic, bearer or OAuth 2.",
-  },
-  {
-    title: "Organization Workspaces",
-    description:
-      "Organize your GraphQL APIs and collaborate with colleagues across your organization with ease.",
-  },
-  {
-    title: "Document Synchronization",
-    description:
-      "Keep your documents safe across all your devices and your teams.",
-  },
-  {
-    title: "PWA Support",
-    description:
-      "Use your favorite Browser to install Nitro as a PWA on your Device without requiring administrative privileges.",
-  },
-  {
-    title: "Beautiful Themes",
-    description:
-      "Choose your single preferred theme or let the system automatically switch between dark and light theme.",
-  },
-  {
-    title: "GraphQL File Upload",
-    description:
-      "Implements the latest version of the GraphQL multipart request spec.",
-  },
-  {
-    title: "Subscriptions over SSE",
-    description: "Supports GraphQL subscriptions over Server-Sent Events.",
-  },
-  {
-    title: "Performant GraphQL IDE",
-    description:
-      "Lagging apps can be frustrating. We do not accept that and keep always an eye on performance so that you can get your task done fast.",
-  },
-  {
-    title: "Subscriptions over WS",
-    description:
-      "Supports GraphQL subscriptions over WebSocket as well as the Apollo subscription protocol.",
-  },
-];
+export default async function EcosystemPage() {
+  const [starCount, contributors, commitActivity] = await Promise.all([
+    getGitHubStarCount(),
+    getGitHubContributors(),
+    getGitHubCommitActivity(),
+  ]);
+  const heroContributors =
+    contributors?.filter(
+      (contributor) => !HIDDEN_CONTRIBUTOR_LOGINS.has(contributor.login),
+    ) ?? null;
 
-export default function EcosystemPage() {
   return (
     <>
-      <PageHero
-        title="An Ecosystem You Love"
-        teaser="A harmonious blend of tools and community, dedicated to enhancing your API journey. Experience simplicity, efficiency, and collaborative innovation."
-      />
-      <NextStepsSection
-        title="Lead by Intuition"
-        text="A framework built by developers for developers. Combining ease of use with high-speed performance, it's designed to elevate your projects effortlessly."
-        primaryLink="/docs/hotchocolate"
-        primaryLinkText="Get Started"
-        secondaryLink="https://nitro.chillicream.com"
-        secondaryLinkText="Launch"
-      />
-      <Section title="Batteries Included">
-        <p className="text-cc-ink-dim -mt-4 mb-8 text-center text-base sm:text-lg">
-          Everything you need to build great APIs &mdash; and more
-        </p>
-        <CardGrid cols={3} step="progressive" gap={6}>
-          {FEATURES.map((feature) => (
-            <Card key={feature.title} variant="tile">
-              <h3 className="text-cc-ink text-lg font-semibold">
-                {feature.title}
-              </h3>
-              <p className="text-cc-ink-dim mt-2 text-sm">
-                {feature.description}
-              </p>
-            </Card>
-          ))}
-        </CardGrid>
-      </Section>
-      <ContentSection
-        title="Continuous Evolution"
-        text="Embracing the latest GraphQL specification drafts and future updates, this platform ensures users are always at the cutting edge. Experience an evolving GraphQL journey, where innovation and up-to-date features converge seamlessly."
-        imageSrc="/images/ecosystem/continuous-evolution.png"
-        imageAlt="Continuous Evolution"
-        imageMaxWidth={1200}
-      />
+      <Hero starCount={starCount} contributors={heroContributors} />
+      <ProofBand commitActivity={commitActivity} />
+      <StandardsBand />
+      <CommunityGrid starCount={starCount} />
+      <RevealOnScroll>
+        <FromOurBlog limit={3} className="py-10 sm:py-14" />
+      </RevealOnScroll>
+      <RevealOnScroll>
+        <NextStepsSection
+          title="See whether it fits your architecture."
+          text="Read the docs, run a focused evaluation, and talk to a maintainer about your architecture. Then decide."
+          primaryLink="/docs"
+          primaryLinkText="Read the docs"
+          secondaryLink={TOOLS.slack}
+          secondaryLinkText="Talk to a maintainer"
+        />
+      </RevealOnScroll>
     </>
   );
 }
