@@ -4,7 +4,6 @@ import { CopyCommand } from "@/src/components/CopyCommand";
 import { KeyValueChip } from "@/src/components/KeyValueChip";
 import { PageHero } from "@/src/components/PageHero";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { SkillFileWindow } from "@/src/components/SkillFileWindow";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -14,7 +13,7 @@ import { ReviewSection } from "./ReviewSection";
 export const metadata = pageMetadata({
   title: "Agentic Coding",
   description:
-    "Install checked-in skills for supported coding agents, use GraphQL MCP tools at runtime, and apply compiler and configured registry feedback during review.",
+    "Build with AI on a platform designed for it. Any coding agent installs the same skills, fills the same Hot Chocolate and Mocha patterns, and gets feedback before the merge.",
   path: "/platform/agentic-coding",
   keywords: [
     "agentic coding platform",
@@ -160,9 +159,9 @@ function Hero() {
       eyebrow="Agentic coding"
       title={
         <>
-          Give every coding agent
+          Consistently good code,
           <br />
-          the same playbook.
+          from any agent.
         </>
       }
       teaser={
@@ -170,12 +169,12 @@ function Hero() {
           Agents are strong at filling a known pattern and weak at inventing
           architecture. The platform gives your agent the pattern to fill, your
           conventions as checked-in skills, and feedback it can act on before
-          the merge, so what comes back is shaped by{" "}
+          the merge, so what comes back is{" "}
           <span
             className="mx-auto mt-2 block w-fit bg-clip-text text-xl font-semibold text-transparent sm:text-2xl"
             style={{ backgroundImage: SPECTRUM }}
           >
-            reviewed patterns and your conventions.
+            best-practice code.
           </span>
         </>
       }
@@ -185,7 +184,7 @@ function Hero() {
         className="bg-cc-surface/80 mx-auto mt-10 max-w-md text-left backdrop-blur-sm"
       />
       <p className="text-cc-ink-dim mt-4 text-sm">
-        One command installs ChilliCream&rsquo;s agent skills.
+        One command teaches your agent the platform.
       </p>
     </PageHero>
   );
@@ -204,7 +203,7 @@ function AgentDirectory() {
         align="center"
         eyebrow="Agent directory"
         title="Bring the agent you already use."
-        description="Supported agents can consume the same checked-in skills. Separately, any MCP client can connect to your API tools at runtime. Generated results still depend on the agent, model, prompt, and review."
+        description="Every agent plugs into the platform the same two ways: skills teach it your conventions, MCP lets it call your API. Which agent you run is a preference; the quality of the code that comes back is the same."
       />
 
       <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -230,19 +229,23 @@ function AgentDirectory() {
   );
 }
 
+/** The current starting set in chillicream/agent-skills, one card each. */
 const SKILLS = [
   {
     name: "graphql-schema-design",
+    title: "Schema design and review.",
     description:
       "Proposes SDL in design mode and audits schema diffs in review mode, following the team's conventions.",
   },
   {
     name: "prototype-feature",
+    title: "Frontend prototype with mock data.",
     description:
       "Builds a clickable, local-only prototype with realistic mock data before any schema or backend work.",
   },
   {
     name: "prototype-to-contract",
+    title: "Prototype to backend contract.",
     description:
       "Turns an accepted prototype into colocated GraphQL fragments and a contract for the backend.",
   },
@@ -265,19 +268,34 @@ function SkillsSection() {
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
         {SKILLS.map((skill) => (
-          <div key={skill.name} className="flex flex-col gap-3">
-            <SkillFileWindow
-              name={skill.name}
-              description={skill.description}
-              className="flex-1"
-            />
+          <Card
+            key={skill.name}
+            as="article"
+            variant="panel"
+            hoverBorder
+            className="flex flex-col"
+          >
+            <Eyebrow size="xs" className="text-[0.58rem]">
+              SKILL.md
+            </Eyebrow>
+            <h3 className="text-cc-accent mt-3 font-mono text-sm break-words">
+              {skill.name}
+            </h3>
+            <p className="text-cc-heading font-heading mt-3 text-base font-semibold">
+              {skill.title}
+            </p>
+            <p className="text-cc-ink-dim mt-2 text-sm/relaxed">
+              {skill.description}
+            </p>
             {/* Try it: install just this skill. */}
-            <CopyCommand
-              size="sm"
-              command={`dnx skillz add chillicream/agent-skills --skill ${skill.name}`}
-              className="bg-cc-surface"
-            />
-          </div>
+            <div className="mt-auto pt-5">
+              <CopyCommand
+                size="sm"
+                command={`dnx skillz add chillicream/agent-skills --skill ${skill.name}`}
+                className="bg-cc-surface"
+              />
+            </div>
+          </Card>
         ))}
       </div>
 
@@ -346,8 +364,9 @@ const FEEDBACK_ROWS = [
 ] as const;
 
 /**
- * FEEDBACK TILE: strong typing and a configured registry check return concrete
- * feedback while the agent can still revise the patch.
+ * FEEDBACK TILE: the strongly typed stack catches most bad edits at compile
+ * time; the client registry catches the rest in CI while the agent can still
+ * fix them.
  */
 function FeedbackTile() {
   return (
@@ -357,10 +376,10 @@ function FeedbackTile() {
         Feedback before the merge.
       </h2>
       <p className="text-cc-ink-dim mt-3 text-sm/relaxed">
-        Strong typing catches supported type errors at compile time. A
-        configured <code className="text-cc-accent">nitro</code> client-registry
-        check can report schema changes that affect registered operations while
-        the agent can still revise the patch.
+        A schema-first, strongly typed stack turns most bad edits into compile
+        errors. <code className="text-cc-accent">nitro</code> checks the rest in
+        CI against the client registry, so a risky change comes back as feedback
+        while the agent can still fix it.
       </p>
 
       <div className="mt-5 space-y-2">
@@ -452,8 +471,9 @@ function ClosingCta() {
         Point your agent at the platform.
       </h2>
       <p className="text-cc-ink-dim mx-auto mt-5 max-w-2xl text-base/relaxed">
-        Check in reviewed skills, configure registry validation, and give
-        whichever supported agent your team uses the same project playbook.
+        The patterns, the feedback, and the checks are already in place;
+        whatever agent your team uses writes against them. One command installs
+        the helpers, and your conventions ride along the same way.
       </p>
       <CopyCommand
         command="dnx skillz add chillicream/agent-skills"
