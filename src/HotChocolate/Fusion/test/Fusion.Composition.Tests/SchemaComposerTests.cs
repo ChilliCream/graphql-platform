@@ -241,6 +241,63 @@ public sealed class SchemaComposerTests
     }
 
     [Fact]
+    public void Compose_Should_Fail_When_MergedDeprecatedTypeIsReferencedByNonDeprecatedField()
+    {
+        // arrange
+        // Both source schemas are valid on their own. The first one deprecates 'Product' and
+        // deprecates the field returning it, the second one neither deprecates 'Product' nor the
+        // field returning it.
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query {
+                        productById(id: ID!): Product @deprecated(reason: "Use item.")
+                    }
+
+                    type Product @deprecated(reason: "Use Item.") {
+                        id: ID! @shareable
+                    }
+                    """),
+                new SourceSchemaText(
+                    "B",
+                    """
+                    type Query {
+                        product: Product
+                    }
+
+                    type Product {
+                        id: ID! @shareable
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The merged field 'product' in type 'Query' cannot reference the deprecated type 'Product'. Either deprecate the field or change its return type.",
+                "code": "REFERENCE_TO_DEPRECATED_TYPE",
+                "severity": "Error",
+                "coordinate": "Query.product",
+                "member": "product",
+                "schema": "default",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_CursorFieldAndArgumentAreValid()
     {
         // arrange
@@ -747,5 +804,121 @@ public sealed class SchemaComposerTests
                 sku: String! @fusion__field(schema: A)
             }
             """);
+    }
+
+    [Fact]
+    public void SourceSchemaRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.SourceSchemaRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "DisallowedInaccessibleElementsRule",
+                "ExternalOnInterfaceRule",
+                "ExternalOverrideCollisionRule",
+                "ExternalProvidesCollisionRule",
+                "ExternalRequireCollisionRule",
+                "ExternalUnusedRule",
+                "EventCursorMarkerRule",
+                "InterfaceObjectKeyMissingRule",
+                "InvalidShareableUsageRule",
+                "IsInvalidFieldTypeRule",
+                "IsInvalidSyntaxRule",
+                "IsInvalidUsageRule",
+                "KeyDirectiveInFieldsArgumentRule",
+                "KeyFieldsSelectInvalidTypeRule",
+                "KeyInvalidArgumentsRule",
+                "KeyInvalidFieldsTypeRule",
+                "KeyInvalidSyntaxRule",
+                "LookupMustHaveArgumentsRule",
+                "LookupReturnsListRule",
+                "LookupReturnsNonNullableTypeRule",
+                "OverrideFromSelfRule",
+                "OverrideOnInterfaceRule",
+                "ProvidesDirectiveInFieldsArgumentRule",
+                "ProvidesFieldsHasArgumentsRule",
+                "ProvidesFieldsMissingExternalRule",
+                "ProvidesInvalidFieldsRule",
+                "ProvidesInvalidFieldsTypeRule",
+                "ProvidesInvalidSyntaxRule",
+                "ProvidesOnNonCompositeFieldRule",
+                "QueryRootTypeInaccessibleRule",
+                "RequireInvalidFieldTypeRule",
+                "RequireInvalidSyntaxRule",
+                "RootMutationUsedRule",
+                "RootQueryUsedRule",
+                "RootSubscriptionUsedRule",
+                "EventStreamMessageInvalidFieldsRule",
+                "EventStreamTopicsEmptyRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void PreMergeRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.PreMergeRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "EnumValuesMismatchRule",
+                "ExternalArgumentDefaultMismatchRule",
+                "ExternalArgumentMissingRule",
+                "ExternalArgumentTypeMismatchRule",
+                "ExternalMissingOnBaseRule",
+                "ExternalTypeMismatchRule",
+                "FieldArgumentTypesMergeableRule",
+                "FieldWithMissingRequiredArgumentRule",
+                "InputFieldDefaultMismatchRule",
+                "InputFieldTypesMergeableRule",
+                "InputWithMissingRequiredFieldsRule",
+                "InputWithMissingOneOfRule",
+                "InterfaceObjectKeyMismatchRule",
+                "InterfaceObjectNoInterfaceRule",
+                "InvalidFieldSharingRule",
+                "MultipleEventStreamSourcesRule",
+                "OptInFeatureStabilityMismatchRule",
+                "OutputFieldTypesMergeableRule",
+                "SpecifiedByUrlMismatchRule",
+                "TypeKindMismatchRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void PostMergeRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.PostMergeRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "EmptyMergedEnumTypeRule",
+                "EmptyMergedInputObjectTypeRule",
+                "EmptyMergedInterfaceTypeRule",
+                "EmptyMergedObjectTypeRule",
+                "EmptyMergedUnionTypeRule",
+                "EnumTypeDefaultValueInaccessibleRule",
+                "EventStreamMessageAbstractTypeRequiresTypeNameRule",
+                "ImplementedByInaccessibleRule",
+                "ImplementWithoutDefaultRule",
+                "InterfaceFieldNoImplementationRule",
+                "InterfaceObjectFieldRequiresImplementRule",
+                "InvalidProjectedFieldSharingRule",
+                "IsInvalidFieldsRule",
+                "KeyInvalidFieldsRule",
+                "NonNullInputFieldIsInaccessibleRule",
+                "NoQueriesRule",
+                "ReferenceToDeprecatedTypeRule",
+                "ReferenceToInaccessibleTypeRule",
+                "ReferenceToInternalTypeRule",
+                "RequireInvalidFieldsRule"
+            ],
+            rules);
     }
 }

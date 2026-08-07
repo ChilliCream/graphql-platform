@@ -28,6 +28,7 @@ internal sealed class __Type : ObjectType
         var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
 
         var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+        var objectDeprecationEnabled = context.DescriptorContext.Options.EnableObjectDeprecation;
 
         var def = new ObjectTypeConfiguration(
             Names.__Type,
@@ -56,7 +57,12 @@ internal sealed class __Type : ObjectType
                     }
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
-                new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
+                new(
+                    Names.PossibleTypes,
+                    type: typeListType,
+                    pureResolver: objectDeprecationEnabled
+                        ? Resolvers.PossibleTypesWithDeprecation
+                        : Resolvers.PossibleTypes),
                 new(
                     Names.EnumValues,
                     type: enumValueListType,
@@ -120,6 +126,27 @@ internal sealed class __Type : ObjectType
                 .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
         }
 
+        if (objectDeprecationEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.PossibleTypes)
+                .Arguments
+                .Add(new(Names.IncludeDeprecated, type: nonNullBooleanType)
+                {
+                    DefaultValue = BooleanValueNode.False,
+                    RuntimeDefaultValue = false
+                });
+
+            def.Fields.Add(new(
+                Names.IsDeprecated,
+                type: booleanType,
+                pureResolver: Resolvers.IsDeprecated));
+
+            def.Fields.Add(new(
+                Names.DeprecationReason,
+                type: stringType,
+                pureResolver: Resolvers.DeprecationReason));
+        }
+
         return def;
     }
 
@@ -175,6 +202,21 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>() is IComplexTypeDefinition complexType
                 ? complexType.Implements
                 : null;
+
+        public static object? PossibleTypesWithDeprecation(IResolverContext context)
+        {
+            if (context.Parent<IType>() is not ITypeDefinition typeDefinition
+                || !typeDefinition.IsAbstractType())
+            {
+                return null;
+            }
+
+            var possibleTypes = context.Schema.GetPossibleTypes(typeDefinition);
+
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? possibleTypes
+                : possibleTypes.Where(t => !t.IsDeprecated);
+        }
 
         public static object? PossibleTypes(IResolverContext context)
             => context.Parent<IType>() is ITypeDefinition nt
@@ -254,6 +296,16 @@ internal sealed class __Type : ObjectType
                 ? iot.Directives.ContainsName(DirectiveNames.OneOf.Name)
                 : null;
 
+        public static object? IsDeprecated(IResolverContext context)
+            => context.Parent<IType>() is IObjectTypeDefinition objectType
+                ? objectType.IsDeprecated
+                : null;
+
+        public static object? DeprecationReason(IResolverContext context)
+            => context.Parent<IType>() is IObjectTypeDefinition objectType
+                ? objectType.DeprecationReason
+                : null;
+
         public static object? SpecifiedBy(IResolverContext context)
             => context.Parent<IType>() is ScalarType scalar
                 ? scalar.SpecifiedBy
@@ -285,6 +337,8 @@ internal sealed class __Type : ObjectType
         public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";
         public const string IncludeOptIn = "includeOptIn";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

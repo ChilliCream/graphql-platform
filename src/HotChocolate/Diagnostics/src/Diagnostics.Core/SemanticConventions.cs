@@ -126,6 +126,12 @@ internal static class SemanticConventions
                 public const string Name = "graphql.source_schema.operation.name";
                 public const string Hash = "graphql.source_schema.operation.hash";
             }
+
+            public static class Batch
+            {
+                // The number of planned operations represented by a batch execution node.
+                public const string OperationCount = "graphql.source_schema.batch.operation_count";
+            }
         }
 
         public static class Error

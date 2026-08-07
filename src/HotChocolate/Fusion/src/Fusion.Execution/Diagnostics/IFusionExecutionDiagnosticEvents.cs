@@ -388,4 +388,27 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId);
+
+    /// <summary>
+    /// Called when a subscription event result has been fully written to the client.
+    /// A client disconnect that happens after this call must not change the recorded
+    /// outcome of the event.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The execution node.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema.
+    /// </param>
+    /// <param name="subscriptionId">
+    /// An internal identifier for the subscription instance.
+    /// </param>
+    void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId);
 }

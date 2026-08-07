@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -50,7 +49,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
-        MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -501,6 +500,7 @@ public sealed partial class OperationPlanner
                         operationStep.EventStreamPlan is null
                             ? CreateOperationExecutionNode(
                                 operationStep,
+                                ctx,
                                 schema,
                                 requiresUpload,
                                 variableBuffer)
@@ -553,6 +553,7 @@ public sealed partial class OperationPlanner
 
     private static ExecutionNode CreateOperationExecutionNode(
         OperationPlanStep operationStep,
+        ExecutionPlanBuildContext ctx,
         FusionSchemaDefinition schema,
         bool requiresUpload,
         List<string>? variableBuffer)
@@ -600,6 +601,10 @@ public sealed partial class OperationPlanner
         var operation = RemoveInternalDirectives(sourceRewrite.Operation);
         var operationSource = operation.ToSourceText();
 
+        // A lookup operation reads its data from the single root selection that the planner
+        // emitted for the lookup, so the step's type is the type its body is selected on.
+        var lookupTypeName = operationStep.Lookup is null ? null : operationStep.Type.Name;
+
         var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
         var sourceAliasSelectionSets = CreateSourceAliasSelectionSetLookup(
             selectionSetNode,
@@ -633,7 +638,7 @@ public sealed partial class OperationPlanner
                     + "schema name. Apollo Federation lookups cannot be resolved dynamically.");
             }
 
-            var apolloNode = ApolloOperationExecutionNode.Create(
+            var apolloNode = ApolloOperationExecutionNode.CreateFromLookup(
                 operationStep.Id,
                 operationSource,
                 operationStep.SchemaName,
@@ -650,12 +655,14 @@ public sealed partial class OperationPlanner
                 apolloNode.AddParentDependency(parentDependency.StepId);
             }
 
+            ctx.ApolloLookupOperationsByStepId.Add(operationStep.Id, operationSource);
             return apolloNode;
         }
 
         var node = new OperationExecutionNode(
             operationStep.Id,
             operationSource,
+            lookupTypeName,
             operationStep.SchemaName,
             operationStep.Target,
             operationStep.Source,
@@ -714,9 +721,9 @@ public sealed partial class OperationPlanner
 
     private static void MergeAndBatchOperations(
         ExecutionPlanBuildContext ctx,
-        FusionSchemaDefinition schema,
         bool enableRequestGrouping,
-        OperationMergePolicy mergePolicy)
+        OperationMergePolicy mergePolicy,
+        FusionSchemaDefinition schema)
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
         var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache, mergePolicy);
@@ -734,7 +741,7 @@ public sealed partial class OperationPlanner
             ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping);
 
         foreach (var (batchNode, memberDependencies) in GroupApolloLookupsIntoBatches(
-            ctx, schema, nodeFieldBoundCache, originalDependencies, enableRequestGrouping))
+            ctx, nodeFieldBoundCache, originalDependencies, enableRequestGrouping, schema))
         {
             perOperationDependencies.Add(batchNode, memberDependencies);
         }
@@ -868,13 +875,12 @@ public sealed partial class OperationPlanner
     /// source schema are independent of each other, so the executor can
     /// send them together in a single batched network request.
     /// </summary>
-    private static Dictionary<ExecutionNode, Dictionary<int, int[]>>
-        GroupBySchemaAndDepthIntoBatches(
-            ExecutionPlanBuildContext ctx,
-            Dictionary<int, bool> nodeFieldBoundCache,
-            Dictionary<int, MergeResult> mergeResults,
-            Dictionary<int, int[]> originalDependencies,
-            bool enableRequestGrouping)
+    private static Dictionary<ExecutionNode, Dictionary<int, int[]>> GroupBySchemaAndDepthIntoBatches(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, bool> nodeFieldBoundCache,
+        Dictionary<int, MergeResult> mergeResults,
+        Dictionary<int, int[]> originalDependencies,
+        bool enableRequestGrouping)
     {
         var consumedMergeIds = new HashSet<int>();
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
@@ -976,13 +982,12 @@ public sealed partial class OperationPlanner
     /// targeting the same source schema are independent of each other, so the
     /// executor can send them together in a single batched network request.
     /// </summary>
-    private static Dictionary<ExecutionNode, Dictionary<int, int[]>>
-        GroupApolloLookupsIntoBatches(
-            ExecutionPlanBuildContext ctx,
-            FusionSchemaDefinition schema,
-            Dictionary<int, bool> nodeFieldBoundCache,
-            Dictionary<int, int[]> originalDependencies,
-            bool enableRequestGrouping)
+    private static Dictionary<ExecutionNode, Dictionary<int, int[]>> GroupApolloLookupsIntoBatches(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, bool> nodeFieldBoundCache,
+        Dictionary<int, int[]> originalDependencies,
+        bool enableRequestGrouping,
+        FusionSchemaDefinition schema)
     {
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
 
@@ -1038,11 +1043,14 @@ public sealed partial class OperationPlanner
 
             for (var i = 0; i < groupMembers.Count; i++)
             {
-                operations[i] = CreateApolloSingleOperationDefinition(groupMembers[i]);
+                operations[i] = CreateApolloSingleOperationDefinition(ctx, groupMembers[i]);
             }
 
             var lowestId = groupMembers[0].Id;
-            var batchNode = ApolloOperationBatchExecutionNode.Create(lowestId, operations, schema);
+            var batchNode = ApolloOperationBatchExecutionNode.CreateFromLookup(
+                lowestId,
+                operations,
+                schema);
 
             // Save each member's dependencies before replacing the individual
             // nodes, because the replacement will remove them from the lookup.
@@ -1205,6 +1213,7 @@ public sealed partial class OperationPlanner
         var definition = new BatchOperationDefinition(
             primary.Id,
             merge.CanonicalOp,
+            primary.LookupTypeName,
             primary.SchemaName,
             merge.Targets,
             primary.Source,
@@ -1227,6 +1236,7 @@ public sealed partial class OperationPlanner
         var definition = new SingleOperationDefinition(
             member.Id,
             member.Operation,
+            member.LookupTypeName,
             member.SchemaName,
             member.Target,
             member.Source,
@@ -1245,14 +1255,19 @@ public sealed partial class OperationPlanner
     }
 
     private static SingleOperationDefinition CreateApolloSingleOperationDefinition(
+        ExecutionPlanBuildContext ctx,
         ApolloOperationExecutionNode member)
     {
-        // The definition carries the lookup operation rather than the rewritten
-        // _entities operation because the batch node rewrites each definition
-        // itself when it is created.
+        if (!ctx.ApolloLookupOperationsByStepId.TryGetValue(member.Id, out var lookupOperation))
+        {
+            throw new InvalidOperationException(
+                $"The original Apollo lookup operation for execution step {member.Id} is missing.");
+        }
+
         var definition = new SingleOperationDefinition(
             member.Id,
-            member.LookupOperation,
+            lookupOperation,
+            lookupTypeName: null,
             member.SchemaName,
             member.Target,
             member.Source,
@@ -1629,13 +1644,16 @@ public sealed partial class OperationPlanner
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
     {
         var replacements = BuildPrefixReplacements(node.Requirements);
-        var normalizedText = ApplyPrefixReplacements(node.Operation.SourceText, replacements);
+        var normalized = ApplyPrefixReplacements(node.Operation.Value.Span, replacements);
 
         // The first line contains the operation name, which embeds a
         // step-specific identifier. We skip it so that two operations
-        // with the same structure produce the same signature.
-        var firstNewline = normalizedText.IndexOf('\n');
-        var bodyText = firstNewline >= 0 ? normalizedText[(firstNewline + 1)..] : normalizedText;
+        // with the same structure produce the same signature. '\n' is a
+        // single ASCII byte in UTF-8, so the byte scan matches the text scan.
+        var normalizedSpan = normalized.AsSpan();
+        var firstNewline = normalizedSpan.IndexOf((byte)'\n');
+        var bodySpan = firstNewline >= 0 ? normalizedSpan[(firstNewline + 1)..] : normalizedSpan;
+        var bodyText = Encoding.UTF8.GetString(bodySpan);
 
         var conditions = string.Join(",", node.Conditions.ToArray()
             .OrderBy(c => c.VariableName)
@@ -1655,7 +1673,7 @@ public sealed partial class OperationPlanner
     /// <c>__fusion_{N}_</c> variable name prefixes into a canonical
     /// form, so structurally identical operations produce matching text.
     /// </summary>
-    private static (string original, string canonical)[] BuildPrefixReplacements(
+    private static (byte[] Original, byte[] Canonical)[] BuildPrefixReplacements(
         ReadOnlySpan<OperationRequirement> requirements)
     {
         var prefixToArgs = new Dictionary<string, SortedSet<string>>(StringComparer.Ordinal);
@@ -1687,26 +1705,79 @@ public sealed partial class OperationPlanner
             .Select(kvp => kvp.Key)
             .ToList();
 
-        var result = new (string original, string canonical)[sortedPrefixes.Count];
+        var result = new (byte[] Original, byte[] Canonical)[sortedPrefixes.Count];
 
         for (var i = 0; i < sortedPrefixes.Count; i++)
         {
-            result[i] = ($"{sortedPrefixes[i]}_", $"__fusion_{i}_");
+            // Variable name prefixes and the canonical form are ASCII, so their
+            // UTF-8 encoding matches the source text byte-for-byte.
+            result[i] = (
+                Encoding.UTF8.GetBytes($"{sortedPrefixes[i]}_"),
+                Encoding.UTF8.GetBytes($"__fusion_{i}_"));
         }
 
         return result;
     }
 
-    private static string ApplyPrefixReplacements(
-        string text,
-        ReadOnlySpan<(string original, string canonical)> replacements)
+    private static byte[] ApplyPrefixReplacements(
+        ReadOnlySpan<byte> text,
+        ReadOnlySpan<(byte[] Original, byte[] Canonical)> replacements)
     {
+        var current = text.ToArray();
+
         foreach (var (original, canonical) in replacements)
         {
-            text = text.Replace(original, canonical);
+            current = ReplaceBytes(current, original, canonical);
         }
 
-        return text;
+        return current;
+    }
+
+    /// <summary>
+    /// Replaces every non-overlapping occurrence of <paramref name="original"/>
+    /// with <paramref name="replacement"/>, scanning left to right without
+    /// re-scanning the emitted replacement. This mirrors <see cref="string.Replace(string, string)"/>.
+    /// </summary>
+    private static byte[] ReplaceBytes(
+        ReadOnlySpan<byte> source,
+        ReadOnlySpan<byte> original,
+        ReadOnlySpan<byte> replacement)
+    {
+        var first = source.IndexOf(original);
+
+        if (first < 0)
+        {
+            return source.ToArray();
+        }
+
+        // Count the occurrences so the destination buffer can be sized exactly.
+        var count = 1;
+        var rest = source[(first + original.Length)..];
+        int next;
+
+        while ((next = rest.IndexOf(original)) >= 0)
+        {
+            count++;
+            rest = rest[(next + original.Length)..];
+        }
+
+        var result = new byte[source.Length + (count * (replacement.Length - original.Length))];
+        var destination = result.AsSpan();
+        var remaining = source;
+        int index;
+
+        while ((index = remaining.IndexOf(original)) >= 0)
+        {
+            remaining[..index].CopyTo(destination);
+            destination = destination[index..];
+            replacement.CopyTo(destination);
+            destination = destination[replacement.Length..];
+            remaining = remaining[(index + original.Length)..];
+        }
+
+        remaining.CopyTo(destination);
+
+        return result;
     }
 
     /// <summary>
@@ -2484,6 +2555,7 @@ public sealed partial class OperationPlanner
     {
         public HashSet<int> ProcessedStepIds { get; } = [];
         public Dictionary<int, ExecutionNode> ExecutionNodes { get; } = [];
+        public Dictionary<int, OperationSourceText> ApolloLookupOperationsByStepId { get; } = [];
         public Dictionary<int, HashSet<int>> DependenciesByStepId { get; } = [];
         public Dictionary<int, Dictionary<string, int>> BranchesByNodeId { get; } = [];
         public Dictionary<int, int> FallbackByNodeId { get; } = [];
@@ -2620,11 +2692,11 @@ file static class Extensions
     {
         var sourceText = operation.ToString(indented: true);
         var sourceTextUtf8 = s_encoding.GetBytes(sourceText);
-#if NET9_0_OR_GREATER
-        var operationHash = Convert.ToHexStringLower(SHA256.HashData(sourceTextUtf8));
-#else
-        var operationHash = Convert.ToHexString(SHA256.HashData(sourceTextUtf8)).ToLowerInvariant();
-#endif
-        return new OperationSourceText(operation.Name!.Value, operation.Operation, sourceText, operationHash);
+
+        return new OperationSourceText(
+            operation.Name!.Value,
+            operation.Operation,
+            sourceTextUtf8,
+            OperationSourceTextHash.Compute(sourceTextUtf8));
     }
 }

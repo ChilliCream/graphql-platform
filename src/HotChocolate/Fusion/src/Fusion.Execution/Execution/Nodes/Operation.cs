@@ -30,6 +30,7 @@ public sealed class Operation : IOperation
     internal Operation(
         string id,
         string hash,
+        string shortHash,
         OperationDefinitionNode definition,
         IObjectTypeDefinition rootType,
         ISchemaDefinition schema,
@@ -44,6 +45,7 @@ public sealed class Operation : IOperation
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+        ArgumentException.ThrowIfNullOrWhiteSpace(shortHash);
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(rootType);
         ArgumentNullException.ThrowIfNull(schema);
@@ -56,6 +58,7 @@ public sealed class Operation : IOperation
 
         Id = id;
         Hash = hash;
+        ShortHash = shortHash;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
@@ -81,6 +84,11 @@ public sealed class Operation : IOperation
     /// Gets the hash of the original operation document.
     /// </summary>
     public string Hash { get; }
+
+    /// <summary>
+    /// Gets the short hash of the original operation document.
+    /// </summary>
+    public string ShortHash { get; }
 
     /// <summary>
     /// Gets the name of the operation.

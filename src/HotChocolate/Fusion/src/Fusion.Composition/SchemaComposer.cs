@@ -150,7 +150,7 @@ internal sealed class SchemaComposer
 
         // Validate Source Schemas
         var validationResult =
-            new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
+            new SourceSchemaValidator(schemas, SourceSchemaRules, _log).Validate();
 
         if (validationResult.IsFailure)
         {
@@ -159,7 +159,7 @@ internal sealed class SchemaComposer
 
         // Pre Merge Validation
         var preMergeValidationResult =
-            new PreMergeValidator(schemas, s_preMergeRules, _log).Validate();
+            new PreMergeValidator(schemas, PreMergeRules, _log).Validate();
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -182,7 +182,7 @@ internal sealed class SchemaComposer
 
         // Post Merge Validation
         var postMergeValidationResult =
-            new PostMergeValidator(mergedSchema, s_postMergeRules, schemas, _log).Validate();
+            new PostMergeValidator(mergedSchema, PostMergeRules, schemas, _log).Validate();
 
         if (postMergeValidationResult.IsFailure)
         {
@@ -231,7 +231,10 @@ internal sealed class SchemaComposer
         return new CompositionError(message);
     }
 
-    private static readonly ImmutableArray<object> s_sourceSchemaRules =
+    /// <summary>
+    /// Gets the rules that run against each source schema, in the order they are applied.
+    /// </summary>
+    internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -272,7 +275,11 @@ internal sealed class SchemaComposer
         new EventStreamTopicsEmptyRule()
     ];
 
-    private static readonly ImmutableArray<object> s_preMergeRules =
+    /// <summary>
+    /// Gets the rules that run across the source schemas before the merge, in the order they are
+    /// applied.
+    /// </summary>
+    internal static ImmutableArray<object> PreMergeRules { get; } =
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
@@ -296,7 +303,10 @@ internal sealed class SchemaComposer
         new TypeKindMismatchRule()
     ];
 
-    private static readonly ImmutableArray<object> s_postMergeRules =
+    /// <summary>
+    /// Gets the rules that run against the merged schema, in the order they are applied.
+    /// </summary>
+    internal static ImmutableArray<object> PostMergeRules { get; } =
     [
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInputObjectTypeRule(),
@@ -314,6 +324,7 @@ internal sealed class SchemaComposer
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToDeprecatedTypeRule(),
         new ReferenceToInaccessibleTypeRule(),
         new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()

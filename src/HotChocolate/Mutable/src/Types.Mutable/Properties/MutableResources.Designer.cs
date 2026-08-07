@@ -193,14 +193,5 @@ namespace HotChocolate.Types.Mutable.Properties {
                 return ResourceManager.GetString("SchemaParser_InvalidUnionMemberType", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The non-repeatable directive &apos;@{0}&apos; was already applied to &apos;{1}&apos; and cannot be applied again by an extension..
-        /// </summary>
-        internal static string SchemaParser_NonRepeatableDirectiveAlreadyApplied {
-            get {
-                return ResourceManager.GetString("SchemaParser_NonRepeatableDirectiveAlreadyApplied", resourceCulture);
-            }
-        }
     }
 }

@@ -540,7 +540,7 @@ internal sealed class FusionComposeCommand : Command
                 workingDirectory,
                 sourceSchemaFiles,
                 cancellationToken);
-            ownedSettings.AddRange(sourceSchemas.Values.Select(value => value.Item2));
+            ownedSettings.AddRange(sourceSchemas.Values.Select(value => value.Settings));
 
             if (watchedSourceSchemaNames is { Count: > 0 })
             {
@@ -568,7 +568,7 @@ internal sealed class FusionComposeCommand : Command
                         httpClient!,
                         cancellationToken);
                 ownedSettings.AddRange(
-                    remoteSourceSchemas.Values.Select(value => value.Item2));
+                    remoteSourceSchemas.Values.Select(value => value.Settings));
 
                 foreach (var (sourceSchemaName, sourceSchema) in remoteSourceSchemas)
                 {
@@ -624,6 +624,7 @@ internal sealed class FusionComposeCommand : Command
                 sourceSchemas,
                 archive,
                 environment,
+                preferDevUrls: false,
                 compositionSettings,
                 legacyArchive: null,
                 cancellationToken);

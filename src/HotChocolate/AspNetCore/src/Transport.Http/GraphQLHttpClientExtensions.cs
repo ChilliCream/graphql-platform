@@ -1,4 +1,5 @@
 #if FUSION
+using System.Text;
 using HotChocolate.Fusion.Execution;
 #endif
 
@@ -35,7 +36,7 @@ public static class GraphQLHttpClientExtensions
     {
 #if FUSION
         var operation = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,
@@ -171,7 +172,7 @@ public static class GraphQLHttpClientExtensions
     {
 #if FUSION
         var operation = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,
@@ -211,7 +212,7 @@ public static class GraphQLHttpClientExtensions
     {
 #if FUSION
         var operation = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,
@@ -347,7 +348,7 @@ public static class GraphQLHttpClientExtensions
     {
 #if FUSION
         var operation = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,
@@ -415,7 +416,7 @@ public static class GraphQLHttpClientExtensions
     {
 #if FUSION
         var operation = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,
@@ -455,7 +456,7 @@ public static class GraphQLHttpClientExtensions
     {
 #if FUSION
         var operation = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,

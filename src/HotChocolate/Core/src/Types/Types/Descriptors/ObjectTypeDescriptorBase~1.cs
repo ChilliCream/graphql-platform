@@ -50,6 +50,18 @@ public abstract class ObjectTypeDescriptorBase<T>
         return this;
     }
 
+    public new IObjectTypeDescriptor<T> Deprecated(string reason)
+    {
+        base.Deprecated(reason);
+        return this;
+    }
+
+    public new IObjectTypeDescriptor<T> Deprecated()
+    {
+        base.Deprecated();
+        return this;
+    }
+
     public IObjectTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {

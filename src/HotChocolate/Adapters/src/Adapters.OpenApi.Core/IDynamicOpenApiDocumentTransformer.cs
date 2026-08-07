@@ -1,6 +1,6 @@
 namespace HotChocolate.Adapters.OpenApi;
 
-public interface IDynamicOpenApiDocumentTransformer
+internal interface IDynamicOpenApiDocumentTransformer
 {
     void AddDefinitions(
         OpenApiEndpointDefinition[] endpoints,

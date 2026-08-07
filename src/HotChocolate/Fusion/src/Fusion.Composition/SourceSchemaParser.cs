@@ -43,13 +43,19 @@ internal sealed class SourceSchemaParser(
         // of a missing one; preprocessing then rewrites it to @require and removes the
         // definition. A non-federation schema does not get the definition, so an applied
         // @requires is reported as an unknown directive, steering authors to @require.
-        if (!isApolloFederationV1
-            && IsFederationSourceText(sourceSchemaText)
-            && schema.Types.TryGetType<MutableScalarTypeDefinition>(
-                WellKnownTypeNames.FieldSelectionSet, out var fieldSelectionSetType))
+        if (!isApolloFederationV1 && IsFederationSourceText(sourceSchemaText))
         {
-            schema.DirectiveDefinitions.Add(
-                new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
+            if (schema.Types.TryGetType<MutableScalarTypeDefinition>(
+                WellKnownTypeNames.FieldSelectionSet, out var fieldSelectionSetType))
+            {
+                schema.DirectiveDefinitions.Add(
+                    new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
+            }
+
+            // @link carries the federation vocabulary a subgraph imports and is applied to the
+            // schema itself. RemoveFederationInfrastructure drops the definition and every
+            // application during preprocessing.
+            schema.DirectiveDefinitions.Add(LinkMutableDirectiveDefinition.Create(schema));
         }
 
         // Parse source schema.

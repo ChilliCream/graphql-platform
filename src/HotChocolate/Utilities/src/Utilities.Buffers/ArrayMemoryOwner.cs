@@ -1,63 +1,35 @@
 using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Buffers;
 
 /// <summary>
-/// A memory owner for a byte array.
+/// An <see cref="IMemoryOwner{T}"/> over memory whose lifetime the caller manages.
 /// </summary>
 public sealed class ArrayMemoryOwner : IMemoryOwner<byte>
 {
-    private readonly byte[] _buffer;
-    private readonly int _start;
-    private readonly int _length;
+    private readonly ReadOnlyMemory<byte> _memory;
 
-    public ArrayMemoryOwner(byte[] buffer)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArrayMemoryOwner"/>.
+    /// </summary>
+    /// <param name="memory">
+    /// The memory this owner exposes, which must stay valid for as long as this owner is used.
+    /// </param>
+    public ArrayMemoryOwner(ReadOnlyMemory<byte> memory)
     {
-#if NET8_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(buffer);
-#else
-        if (buffer is null)
-        {
-            throw new ArgumentNullException(nameof(buffer));
-        }
-#endif
-
-        _buffer = buffer;
-        _start = 0;
-        _length = buffer.Length;
+        _memory = memory;
     }
 
-    public ArrayMemoryOwner(byte[] buffer, int start, int length)
-    {
-#if NET8_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(buffer);
-        ArgumentOutOfRangeException.ThrowIfLessThan(start, 0);
-        ArgumentOutOfRangeException.ThrowIfLessThan(length, 0);
-#else
-        if (buffer is null)
-        {
-            throw new ArgumentNullException(nameof(buffer));
-        }
-        if (start < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(start));
-        }
+    /// <summary>
+    /// Gets the memory this owner exposes.
+    /// </summary>
+    public Memory<byte> Memory => MemoryMarshal.AsMemory(_memory);
 
-        if (length < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(length));
-        }
-#endif
-
-        _buffer = buffer;
-        _start = start;
-        _length = length;
-    }
-
-    public Memory<byte> Memory => _buffer.AsMemory().Slice(_start, _length);
-
+    /// <summary>
+    /// Does nothing. The memory is not released by this owner.
+    /// </summary>
     public void Dispose()
     {
-        // do nothing
     }
 }

@@ -83,6 +83,7 @@ public static class LogEntryCodes
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
+    public const string ReferenceToDeprecatedType = "REFERENCE_TO_DEPRECATED_TYPE";
     public const string ReferenceToInaccessibleType = "REFERENCE_TO_INACCESSIBLE_TYPE";
     public const string ReferenceToInternalType = "REFERENCE_TO_INTERNAL_TYPE";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";
@@ -91,6 +92,8 @@ public static class LogEntryCodes
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
+    public const string SourceSchemaDevUrlMissing = "SOURCE_SCHEMA_DEV_URL_MISSING";
+    public const string SourceSchemaUrlVariableUnresolved = "SOURCE_SCHEMA_URL_VARIABLE_UNRESOLVED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
     public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
     public const string EventStreamMessageAbstractTypeRequiresTypeName =
