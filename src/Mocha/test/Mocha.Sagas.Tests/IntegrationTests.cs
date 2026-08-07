@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Middlewares;
-using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
@@ -108,12 +106,6 @@ public class IntegrationTests
         await using var provider = await CreateBusAsync(b =>
         {
             b.Services.AddSingleton(recorder);
-            b.Services.AddSingleton<TestScheduledMessageStore>();
-            b.Services.AddSingleton(new ScheduledMessageStoreRegistration(
-                transportType: null,
-                tokenPrefix: "test:",
-                storeType: typeof(TestScheduledMessageStore),
-                isFallback: true));
             b.AddEventHandler<TriggerEventRecorder>();
             b.AddSaga<TimeoutWithResponseSaga>();
         });
@@ -387,17 +379,6 @@ public class IntegrationTests
 
             descriptor.Finally("TimedOut");
         }
-    }
-
-    private sealed class TestScheduledMessageStore : IScheduledMessageStore
-    {
-        private int _tokens;
-
-        public ValueTask<string> PersistAsync(IDispatchContext context, CancellationToken cancellationToken)
-            => ValueTask.FromResult($"test:{Interlocked.Increment(ref _tokens)}");
-
-        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
-            => ValueTask.FromResult(true);
     }
 
     /// <summary>
