@@ -1,3 +1,4 @@
+using Mocha.Middlewares;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -160,6 +161,90 @@ public class RabbitMQMessageEnvelopeParserTests
     }
 
     [Fact]
+    public void Parse_Should_KeepBytes_When_HeaderIsBinaryTableValue()
+    {
+        // arrange
+        // the shape a client that maps a byte array onto the binary field type sends
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-signature"] = new BinaryTableValue("signature-123"u8.ToArray())
+        });
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        Assert.True(envelope.Headers!.TryGetValue("x-signature", out var signature));
+        Assert.Equal("signature-123"u8.ToArray(), signature);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_BinaryTableValueIsNestedInHeader()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-origin"] = new Dictionary<string, object?>
+            {
+                ["signature"] = new BinaryTableValue("signature-123"u8.ToArray())
+            }
+        });
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-origin", out var origin);
+        Assert.Equal(
+            new Dictionary<string, object?> { ["signature"] = "signature-123"u8.ToArray() },
+            Assert.IsType<Dictionary<string, object?>>(origin));
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_AByteHeaderIsPublishedAndReadBack()
+    {
+        // arrange
+        var payload = "COM1"u8.ToArray();
+        var published = new MessageEnvelope
+        {
+            Headers = new Headers([new HeaderValue { Key = "x-signature", Value = payload }])
+        };
+        var args = CreateDeliverEventArgs(props => props.Headers = published.BuildHeaders());
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-signature", out var signature);
+        Assert.Equal(payload, Assert.IsType<byte[]>(signature));
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowNamingTheHeader_When_HeaderIsNestedTooDeeply()
+    {
+        // a crafted delivery, nested past the depth a legitimate broker header reaches
+        object value = "leaf";
+        for (var i = 0; i < 200; i++)
+        {
+            value = new List<object?> { value };
+        }
+
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-deep"] = value
+        });
+
+        // act
+        var exception = Record.Exception(() => _parser.Parse(args));
+
+        // assert
+        Assert.Equal(
+            "The header 'x-deep' is nested more than 64 levels deep and cannot be read as a message "
+                + "header.",
+            Assert.IsType<InvalidOperationException>(exception).Message);
+    }
+
+    [Fact]
     public void Parse_Should_ConvertAmqpTimestamp_When_HeaderIsTimestamp()
     {
         // arrange
@@ -171,6 +256,80 @@ public class RabbitMQMessageEnvelopeParserTests
         // assert
         Assert.True(envelope.Headers!.TryGetValue("x-timestamp", out var ts));
         Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1700000000), ts);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepTheNumber_When_TimestampIsOutOfRange()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-millis"] = new AmqpTimestamp(1700000000000),
+            ["x-extreme"] = new AmqpTimestamp(long.MaxValue)
+        });
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-millis", out var millis);
+        envelope.Headers.TryGetValue("x-extreme", out var extreme);
+        Assert.Equal(1700000000000L, millis);
+        Assert.Equal(long.MaxValue, extreme);
+    }
+
+    [Fact]
+    public void Parse_Should_DecodeNestedByteArrays_When_HeaderIsDeathTable()
+    {
+        // arrange
+        // the shape the broker uses for x-death: an array of field tables
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-death"] = new List<object?>
+            {
+                new Dictionary<string, object?>
+                {
+                    ["queue"] = "product-queue"u8.ToArray(),
+                    ["reason"] = "rejected"u8.ToArray(),
+                    ["time"] = new AmqpTimestamp(1700000000),
+                    ["count"] = 1L
+                }
+            }
+        });
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-death", out var death);
+        var entry = Assert.IsType<Dictionary<string, object?>>(Assert.Single(Assert.IsType<object?[]>(death)));
+        Assert.Equal(
+            new Dictionary<string, object?>
+            {
+                ["queue"] = "product-queue",
+                ["reason"] = "rejected",
+                ["time"] = DateTimeOffset.FromUnixTimeSeconds(1700000000),
+                ["count"] = 1L
+            },
+            entry);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_HeaderValueIsNotValidUtf8()
+    {
+        // arrange
+        var value = new byte[] { 0x00, 0xFF, 0xFE, 0x41 };
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-binary"] = value
+        });
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        Assert.True(envelope.Headers!.TryGetValue("x-binary", out var parsed));
+        Assert.Equal(value, parsed);
     }
 
     [Fact]

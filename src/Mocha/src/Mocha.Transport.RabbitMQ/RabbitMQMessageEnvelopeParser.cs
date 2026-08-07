@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Unicode;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -11,6 +12,18 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 internal sealed class RabbitMQMessageEnvelopeParser
 {
+    /// <summary>
+    /// The greatest depth to which a header value is read. A value nested deeper is rejected.
+    /// </summary>
+    private const int MaxHeaderDepth = 64;
+
+    /// <summary>
+    /// The range a <see cref="DateTimeOffset"/> can express, which bounds the timestamps mapped to one.
+    /// </summary>
+    private static readonly long s_minTimestampSeconds = DateTimeOffset.MinValue.ToUnixTimeSeconds();
+
+    private static readonly long s_maxTimestampSeconds = DateTimeOffset.MaxValue.ToUnixTimeSeconds();
+
     /// <summary>
     /// Converts a RabbitMQ delivery into a <see cref="MessageEnvelope"/> by mapping AMQP basic properties
     /// and custom headers to envelope fields.
@@ -86,17 +99,63 @@ internal sealed class RabbitMQMessageEnvelopeParser
         var result = new Headers(headers.Count);
         foreach (var (key, value) in headers)
         {
-            var strValue = value switch
-            {
-                byte[] bytes => Encoding.UTF8.GetString(bytes),
-                AmqpTimestamp timestamp => DateTimeOffset.FromUnixTimeSeconds(timestamp.UnixTime),
-                _ => value
-            };
-
-            result.Set(key, strValue);
+            result.Set(key, NormalizeValue(value, key, 0));
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Maps AMQP wire types onto the CLR types the envelope serializer understands, at every level of
+    /// a nested value. Throws when a value is nested deeper than <see cref="MaxHeaderDepth"/>.
+    /// </summary>
+    private static object? NormalizeValue(object? value, string key, int depth)
+    {
+        if (depth > MaxHeaderDepth)
+        {
+            throw new InvalidOperationException(
+                $"The header '{key}' is nested more than {MaxHeaderDepth} levels deep and cannot be "
+                    + "read as a message header.");
+        }
+
+        switch (value)
+        {
+            // a binary field is kept as bytes without being tested for text
+            case BinaryTableValue binary:
+                return binary.Bytes;
+
+            // a long string carries text and binary alike, so content is the only signal
+            case byte[] bytes:
+                return Utf8.IsValid(bytes) ? Encoding.UTF8.GetString(bytes) : bytes;
+
+            // a value outside the range a date can express is kept as the number it is
+            case AmqpTimestamp timestamp:
+                return timestamp.UnixTime >= s_minTimestampSeconds
+                    && timestamp.UnixTime <= s_maxTimestampSeconds
+                        ? DateTimeOffset.FromUnixTimeSeconds(timestamp.UnixTime)
+                        : timestamp.UnixTime;
+
+            case IDictionary<string, object?> table:
+                var mappedTable = new Dictionary<string, object?>(table.Count);
+                foreach (var (entryKey, item) in table)
+                {
+                    mappedTable[entryKey] = NormalizeValue(item, key, depth + 1);
+                }
+
+                return mappedTable;
+
+            case IList<object?> array:
+                var mappedArray = new object?[array.Count];
+                for (var i = 0; i < array.Count; i++)
+                {
+                    mappedArray[i] = NormalizeValue(array[i], key, depth + 1);
+                }
+
+                return mappedArray;
+
+            default:
+                return value;
+        }
     }
 
     /// <summary>
