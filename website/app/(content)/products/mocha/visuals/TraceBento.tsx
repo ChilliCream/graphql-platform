@@ -1,22 +1,11 @@
 "use client";
 
-/**
- * TraceBento — two-tile bento for the "every hop is a span in Nitro" section.
- * Embeds the real Nitro chart primitives (TraceWaterfall, CountUp, Sparkline)
- * inside a NitroCanvas so their `--t-*` token vars resolve, proving the
- * cross-service messaging story with actual product UI, not an illustration.
- */
 import type { CSSProperties, ReactNode } from "react";
 
 import { CountUp, NitroTheme, Sparkline, TraceWaterfall } from "@/src/nitro";
 import type { Trace } from "@/src/nitro/lib/data/types";
 
 import { CORAL, GREEN } from "@/src/components/mocha/palette";
-
-/* ----------------------------------------------------------------------------
-   NitroCanvas — wraps chart primitives so their `--t-*` token vars resolve;
-   stays transparent so the card surface shows through (analytics-page idiom).
----------------------------------------------------------------------------- */
 
 interface NitroCanvasProps {
   readonly children: ReactNode;
@@ -36,12 +25,6 @@ function NitroCanvas({ children, className, style }: NitroCanvasProps) {
     </NitroTheme>
   );
 }
-
-/* ----------------------------------------------------------------------------
-   Trace fixture — one order being placed, followed across the broker gap:
-   the producing request, the rabbitmq delivery, and the consuming service all
-   hang off a single trace id.
----------------------------------------------------------------------------- */
 
 const TRACE: Trace = {
   totalMs: 210,
@@ -115,10 +98,6 @@ const TRACE: Trace = {
 
 const DELIVERY_LATENCY = [12, 14, 11, 18, 13, 22, 17, 14, 12, 15];
 
-/* ----------------------------------------------------------------------------
-   Tile scaffolding
----------------------------------------------------------------------------- */
-
 interface TileHeaderProps {
   readonly index: string;
   readonly title: string;
@@ -157,28 +136,22 @@ function Tile({ className, children }: TileProps) {
   );
 }
 
-/* ----------------------------------------------------------------------------
-   Component
----------------------------------------------------------------------------- */
-
 export function TraceBento() {
   return (
-    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-6" aria-hidden>
-      {/* Tile A — the full waterfall: producer, broker hop, consumer, one trace. */}
+    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-6">
       <Tile className="sm:col-span-4">
         <TileHeader
           index="a"
           title="One message, end to end"
           hint="TRACE · 7f3a·9b2e"
         />
-        <div className="px-5 pt-4 pb-3">
+        <div className="px-5 pt-4 pb-3" aria-hidden="true">
           <NitroCanvas>
             <TraceWaterfall trace={TRACE} />
           </NitroCanvas>
         </div>
       </Tile>
 
-      {/* Tile B — the numbers that prove the correlation survived the broker. */}
       <Tile className="sm:col-span-2">
         <TileHeader index="b" title="Correlated across the gap" hint="OTEL" />
         <div className="flex flex-1 flex-col justify-evenly gap-6 px-5 pt-5 pb-5">
@@ -196,9 +169,11 @@ export function TraceBento() {
           </div>
 
           <div>
-            <NitroCanvas className="h-10">
-              <Sparkline values={DELIVERY_LATENCY} stroke={CORAL} />
-            </NitroCanvas>
+            <div aria-hidden="true">
+              <NitroCanvas className="h-10">
+                <Sparkline values={DELIVERY_LATENCY} stroke={CORAL} />
+              </NitroCanvas>
+            </div>
             <p className="text-cc-ink-dim mt-2 font-mono text-[0.6rem] tracking-[0.14em] uppercase">
               delivery latency
             </p>

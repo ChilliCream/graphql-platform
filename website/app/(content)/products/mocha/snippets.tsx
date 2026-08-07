@@ -102,9 +102,10 @@ function CodeCard({ code, title }: CodeCardProps) {
         aria-label={title ? `${title} C# example` : "C# code example"}
         tabIndex={0}
         className="border-cc-card-border/60 focus-visible:ring-cc-accent/40 overflow-x-auto rounded-lg border bg-black/30 p-4 font-mono text-[12.5px] leading-[1.7] focus-visible:ring-2 focus-visible:outline-none"
-        style={{ scrollbarWidth: "none" }}
       >
-        <div className="whitespace-pre">{hl(code)}</div>
+        <pre className="whitespace-pre">
+          <code>{hl(code)}</code>
+        </pre>
       </div>
     </div>
   );
@@ -128,7 +129,11 @@ function WideGrid({ three, children }: WideGridProps) {
   );
 }
 
-function SpanLast({ children }: { readonly children: ReactNode }) {
+interface SpanLastProps {
+  readonly children: ReactNode;
+}
+
+function SpanLast({ children }: SpanLastProps) {
   return (
     <div className="min-[1900px]:col-span-1 xl:col-span-2">{children}</div>
   );
@@ -284,10 +289,10 @@ export function RequestCodeWide() {
    Batches
 ============================================================================ */
 
-const BATCH_REGISTRATION = `.AddBatchHandler<OrderPlacedHandler>(
+const BATCH_REGISTRATION = `.AddBatchHandler<OrderPlacedBatchHandler>(
     o => o.MaxBatchSize = 100);`;
 
-const BATCH_HANDLER = `public class OrderPlacedHandler(AppDbContext db)
+const BATCH_HANDLER = `public class OrderPlacedBatchHandler(AppDbContext db)
     : IBatchEventHandler<OrderPlaced>
 {
     public async ValueTask HandleAsync(
@@ -348,14 +353,17 @@ const TOPOLOGY_DEFAULT = `builder.Services
 // exchanges, queues, and bindings are derived
 // from your handlers, validated at startup`;
 
-const TOPOLOGY_OPT_OUT = `transport
-    .DeclareExchange("region-events")
-    .Type(RabbitMQExchangeType.Topic)
-    .Durable();
+const TOPOLOGY_OPT_OUT = `.AddRabbitMQ(transport =>
+{
+    transport
+        .DeclareExchange("region-events")
+        .Type(RabbitMQExchangeType.Topic)
+        .Durable();
 
-transport.Queue("orders")
-    .BindExplicitly()
-    .MaxConcurrency(10);`;
+    transport.Queue("orders")
+        .BindExplicitly()
+        .MaxConcurrency(10);
+});`;
 
 export function TopologySnippet() {
   return <CodeCard code={TOPOLOGY_DEFAULT} />;

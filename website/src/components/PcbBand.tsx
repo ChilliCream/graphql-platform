@@ -22,19 +22,11 @@ import {
 } from "@/src/components/mocha/board";
 import { MONO_FONT } from "@/src/components/mocha/palette";
 
-/** Inner shadows cast by the page surface onto the recessed board, so the PCB
- *  reads as a layer sitting a bit behind the page instead of fading into it. */
 const SHADOW_TOP =
   "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
 const SHADOW_BOTTOM =
   "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
 
-/** Shadow vignette in the HeroBoard overlay idiom: soft dark gradients laid
- *  over the canvas (below the silkscreen chips) so the board falls off into
- *  shadow toward the band's edges. The top/bottom fades are wider and gentler
- *  than the inner shadows layered above them, so the two blend into one
- *  falloff instead of doubling into a hard band; the side fade is faint
- *  enough that the edge chips' lamp pools still glow through. */
 const VIGNETTE_TOP =
   "linear-gradient(to bottom, rgba(2,6,16,0.35), rgba(2,6,16,0) 12%)";
 const VIGNETTE_BOTTOM =
@@ -42,57 +34,24 @@ const VIGNETTE_BOTTOM =
 const VIGNETTE_SIDES =
   "linear-gradient(to right, rgba(2,6,16,0.3), rgba(2,6,16,0) 8%, rgba(2,6,16,0) 92%, rgba(2,6,16,0.3))";
 
-/** Lighting model: the board sinks into shadow away from the lights. A faint
- *  BASE keeps copper texture perceptible everywhere, never fully black
- *  (extra-dimmed in the central text zone via a destination-out radial erase
- *  baked into the prerendered BASE canvas), while the light-source nodes
- *  carry the dominant read: wide, softly falling-off lamp pools of bright
- *  copper (the prerendered LIT canvas). CSS vignette overlays then shade the
- *  band's edges. Per frame the two canvases are simply composited, no
- *  gradients are built. */
-
-/** Strength of the shadowed base board: faint but visible everywhere, so the
- *  board between the lamp pools reads as copper in shadow (flanks at about
- *  0.3 effective, the erased center at about 0.1). */
 const BASE_ALPHA = 0.3;
-/** Strength of the dominant lamp-pool reveal, breathing with the halos
- *  (±10%). */
 const LIT_ALPHA = 0.85;
-/** Radius of each light source's copper lamp pool, in CSS pixels. */
 const LIT_RADIUS = 230;
-/** Mid stop of the pool's three-stop falloff (core 1, LIT_MID_ALPHA at
- *  LIT_MID_STOP of the radius, 0 at the edge), so copper fades gradually
- *  from each light into the surrounding shadow like a lamp pool. */
 const LIT_MID_STOP = 0.55;
 const LIT_MID_ALPHA = 0.45;
-/** Center/radius/strength of the central dim zone baked into the base:
- *  centered on the text column, erasing up to DIM_ALPHA of the board so the
- *  center keeps roughly a third of the base strength (never going fully
- *  invisible) while the flanks stay at full base strength. */
 const DIM_CX = 0.5;
 const DIM_CY = 0.3;
 const DIM_RADIUS = 0.45;
 const DIM_ALPHA = 0.65;
 
-/** A board service node: its seed position as width/height fractions plus an
- *  optional silkscreen chip printed at the same spot in the DOM layer. Every
- *  seed is a light source (halo plus copper reveal pool); only seeds on the
- *  band's flanks carry a printed label, so no chip text ever sits behind the
- *  centered heading or the facet cards. */
 interface BoardSeed {
   readonly fx: number;
   readonly fy: number;
   readonly label?: string;
   readonly designator?: string;
-  /** The least-central chips step aside on small screens to avoid clutter. */
   readonly hideOnSmall?: boolean;
 }
 
-/** The band's light sources: exactly five nodes. Four labeled chips on the
- *  flanks (the canvas nodes and DOM silkscreen chips derive from the same
- *  fractions, so the labels sit exactly on the lit nodes) plus one unlabeled
- *  node behind the center visualization panel, whose glow deliberately bleeds
- *  through it. No light sits around the heading text itself. */
 const SEEDS: readonly BoardSeed[] = [
   {
     fx: 0.12,
@@ -116,8 +75,6 @@ const SEEDS: readonly BoardSeed[] = [
     designator: "U9",
     hideOnSmall: true,
   },
-  // The single interior light: no printed label, it sits behind the
-  // visualization panel and its glow shines through.
   { fx: 0.5, fy: 0.58 },
 ];
 
@@ -125,13 +82,9 @@ interface NodeChipProps {
   readonly seed: BoardSeed;
 }
 
-/** Silkscreen service marker printed over a canvas node: a ring-and-dot plus
- *  a mono label with its reference designator, purely decorative. */
 function NodeChip({ seed }: NodeChipProps) {
   return (
     <div
-      // Center the ring-dot on the light source (half the 10px dot height);
-      // the label hangs below instead of pushing the dot off the node.
       className={`pointer-events-none absolute flex -translate-x-1/2 -translate-y-[5px] flex-col items-center gap-1.5 ${
         seed.hideOnSmall ? "max-md:hidden" : ""
       }`}
@@ -140,8 +93,6 @@ function NodeChip({ seed }: NodeChipProps) {
       <span className="relative block h-2.5 w-2.5 rounded-full border border-[rgba(205,216,232,0.55)]">
         <span className="absolute inset-[2.5px] rounded-full bg-[rgba(232,238,248,0.9)]" />
       </span>
-      {/* Printed like the board's silkscreen: silk paint tone, a reference
-          designator, no UI glow. */}
       <span
         className="font-mono text-[0.68rem] font-semibold tracking-[0.26em] whitespace-nowrap uppercase"
         style={{ color: "rgba(170,188,214,0.8)", fontFamily: MONO_FONT }}
@@ -160,29 +111,10 @@ function NodeChip({ seed }: NodeChipProps) {
 
 interface PcbBandProps {
   readonly children: ReactNode;
-  /** Border width and vertical padding are the caller's concern, e.g.
-   *  `"pb-16 sm:pb-24"` when wrapping a section that already carries its own
-   *  top padding. */
   readonly className?: string;
   readonly id?: string;
 }
 
-/**
- * Full-bleed "chapter" band that breaks out of the centered content column to
- * carry a procedural PCB (circuit board) texture. The board sits mostly in
- * shadow: a faint copper texture everywhere (dimmed further behind the
- * central text column, never fully black) with the light-source nodes
- * carrying the read, each revealing a bright, softly falling-off lamp pool of
- * copper around itself. Silkscreen chips label the flank nodes in the DOM so
- * they stay crisp. While the band is on screen (and motion is allowed) the
- * board runs the messaging animation: teal halos breathe at the service
- * nodes and coral message pulses travel the copper lanes, flashing a ring on
- * arrival. The band meets the page on hard edges, with a shadow vignette
- * (HeroBoard-style gradient overlays) plus inner shadows at the top and
- * bottom so the board reads as recessed behind the page surface and sinks
- * into darkness toward the edges. The children supply their own centered
- * column.
- */
 export function PcbBand({ children, className = "", id }: PcbBandProps) {
   const bandClass = [
     "border-cc-card-border/50 relative left-1/2 isolate w-screen -translate-x-1/2 overflow-hidden border-y",
@@ -228,15 +160,6 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
   );
 }
 
-/** The procedural circuit board with its messaging animation. The static
- *  board is pre-rendered once (and on resize) into two offscreen canvases:
- *  BASE (the full board kept faint, with the central text zone erased down
- *  to about a third of that base strength) and LIT (the board kept only
- *  inside a soft lamp pool around each light source, the dominant read). The
- *  animation loop composites the two with plain drawImage calls and draws
- *  node halos, message pulses, and arrival rings on top. With
- *  prefers-reduced-motion the base+lit composite renders once, statically,
- *  and nothing moves. */
 function PcbBoard() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -261,7 +184,6 @@ function PcbBoard() {
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    // Deterministic runtime stream for spawn timing and lane choice.
     const runtime = mulberry32(0x9c2b4d1);
 
     let board: Board | null = null;
@@ -291,9 +213,6 @@ function PcbBoard() {
       g.clearRect(0, 0, w, h);
       paintBoard(g, board, w, h);
 
-      // BASE: the full board, with the central text zone erased down so the
-      // center keeps roughly a third of the (already faint) base strength
-      // while the flanks stay at full base strength.
       base.width = dw;
       base.height = dh;
       const b = baseCtx!;
@@ -316,10 +235,6 @@ function PcbBoard() {
       b.fillRect(0, 0, w, h);
       b.globalCompositeOperation = "source-over";
 
-      // LIT: the board kept only inside a soft lamp pool around each light
-      // source. The pools are painted as a union of alpha gradients first,
-      // then the board is drawn through them (equivalent to a destination-in
-      // mask, but overlapping pools merge instead of intersecting).
       lit.width = dw;
       lit.height = dh;
       const l = litCtx!;
@@ -370,8 +285,6 @@ function PcbBoard() {
       c.setTransform(1, 0, 0, 1, 0, 0);
       c.globalCompositeOperation = "source-over";
       c.clearRect(0, 0, canvas!.width, canvas!.height);
-      // Composite the prerendered lighting: the dimmed base everywhere, then
-      // the light-pool reveal breathing in step with the halos.
       c.globalAlpha = BASE_ALPHA;
       c.drawImage(base, 0, 0);
       c.globalAlpha = LIT_ALPHA * (1 + 0.1 * Math.sin(time / 177));
@@ -383,8 +296,6 @@ function PcbBoard() {
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.globalCompositeOperation = "lighter";
 
-      // Breathing teal halos: the service nodes lighting up on the board.
-      // An arrival flash briefly lifts the node's light level.
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
         const breathe = 1 + 0.08 * Math.sin(time / 177 + i * 2.1);
@@ -405,7 +316,6 @@ function PcbBoard() {
         c.fill();
       }
 
-      // Coral messages: a fading trail and a soft glowing head.
       c.lineCap = "round";
       for (const pulse of pulses) {
         const alpha = envelope(pulse) * 0.8;
@@ -442,7 +352,6 @@ function PcbBoard() {
         c.fill();
       }
 
-      // Arrival flash rings at nodes and at loose trace endpoints.
       c.lineWidth = 1.4;
       for (let i = 0; i < nodes.length; i++) {
         if (flash[i] <= 0.02) {

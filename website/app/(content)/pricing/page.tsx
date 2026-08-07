@@ -1,16 +1,12 @@
-import dynamic from "next/dynamic";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { MarketingHero } from "@/src/components/MarketingHero";
 import { ClosingCta } from "@/src/components/pricing/ClosingCta";
 import { CompareTable } from "@/src/components/pricing/CompareTable";
 import { PlanSelector } from "@/src/components/pricing/PlanSelector";
+import { PricingFaq } from "@/src/components/pricing/PricingFaq";
 import { RegulatedBand } from "@/src/components/pricing/RegulatedBand";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-
-const PricingFaq = dynamic(() =>
-  import("@/src/components/pricing/PricingFaq").then((m) => m.PricingFaq),
-);
 
 export const metadata = pageMetadata({
   title: "Pricing",

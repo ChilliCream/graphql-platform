@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { easeOutCubic } from "@/src/components/mocha/geometry";
 import {
   AMBER,
   CORAL,
@@ -11,6 +12,9 @@ import {
   MONO_FONT,
   NAVY,
 } from "@/src/components/mocha/palette";
+import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
 interface Pt {
   readonly x: number;
@@ -35,9 +39,6 @@ interface Schedule {
   readonly total: number;
 }
 
-// Below MIN_W the rail is too short for the event names to clear the state
-// panels, so we lay out at MIN_W and scale the whole stage down via the
-// SVG viewBox.
 const MIN_W = 640;
 const H = 280;
 const RAIL_Y = 100;
@@ -48,13 +49,11 @@ const SURFACE = "#0c1322";
 const GRID_DOT = "rgba(150,166,194,0.10)";
 const PANEL_STROKE = "rgba(158,176,204,0.44)";
 const LANE_STROKE = "rgba(139,160,188,0.4)";
-const PAD_FILL = "rgba(158,176,204,0.34)";
 const VIA_STROKE = "rgba(164,180,208,0.55)";
 const SILK = "rgba(154,172,200,0.75)";
 const LABEL_DIM = "rgba(154,172,200,0.7)";
 const IDLE_TEXT = "#62748e";
 
-// Silkscreen title, border echo, and the top-right activity LED per state.
 const CHIP_STYLES = {
   idle: { text: IDLE_TEXT, edge: CYAN, edgeOp: 0, led: CYAN, ledOp: 0 },
   visited: { text: CYAN + "b3", edge: CYAN, edgeOp: 0.2, led: CYAN, ledOp: 0 },
@@ -74,12 +73,6 @@ interface Box {
 
 interface PanelBox extends Box {
   readonly title: string;
-}
-
-interface Pin {
-  readonly x: number;
-  readonly y: number;
-  readonly side: "left" | "right" | "top" | "bottom";
 }
 
 interface LabelSpec {
@@ -143,52 +136,10 @@ function easeInOut(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-interface PinRowProps {
-  readonly pin: Pin;
-}
-
-// A dock at a package edge: three surface pads at 5px pitch. The connected
-// middle pad carries the lane; its neighbours complete the pin row.
-function PinRow({ pin }: PinRowProps) {
-  const { x, y, side } = pin;
-  return (
-    <g>
-      {[-1, 0, 1].map((i) =>
-        side === "left" || side === "right" ? (
-          <rect
-            key={i}
-            x={side === "left" ? x - 3.5 : x}
-            y={y + i * 5 - 1}
-            width={3.5}
-            height={2}
-            fill={PAD_FILL}
-          />
-        ) : (
-          <rect
-            key={i}
-            x={x + i * 5 - 1}
-            y={side === "top" ? y - 3.5 : y}
-            width={2}
-            height={3.5}
-            fill={PAD_FILL}
-          />
-        ),
-      )}
-    </g>
-  );
-}
-
 function buildLayout(lw: number): Layout {
   const m = 8;
   const py = RAIL_Y - PANEL_H / 2;
 
-  // REQUESTED and REFUNDED hug the board edges; PROCESSING and COMPENSATE
-  // share the center column. That leaves two wide rail spans where the
-  // ProcessRefund / RefundCompleted silkscreen prints fully in the clear.
   const panels: readonly PanelBox[] = [
     { x: m, y: py, w: 108, h: PANEL_H, title: "REQUESTED" },
     {
@@ -213,9 +164,6 @@ function buildLayout(lw: number): Layout {
   const procR = proc.x + proc.w;
   const compR = comp.x + comp.w;
 
-  // The failure branch tees off the rail a fixed run right of PROCESSING:
-  // room below for the queue pill on the compensation approach, and the
-  // RefundFailed label prints in open board left of the drop.
   const jx = Math.round(lw / 2) + 132;
 
   const seg1: readonly Pt[] = [
@@ -247,16 +195,12 @@ function buildLayout(lw: number): Layout {
     panels,
     lanes: [toD(seg1), toD(seg2), toD(drop), toD(ret)],
     pts: { seg1, seg2, seg2a, drop, ret },
-    // the failed message rides through an anonymous queue slot on its way
-    // into COMPENSATE
     pill: {
       x: Math.round((compR + jx - 10) / 2) - 22,
       y: COMP_Y - 7,
       w: 44,
       h: 14,
     },
-    // tee via where the failure branch leaves the rail, plus two vias
-    // stitched along the long compensation return run
     vias: [
       { x: jx, y: RAIL_Y },
       { x: reqCx + 112, y: COMP_Y },
@@ -295,13 +239,30 @@ function buildLayout(lw: number): Layout {
   };
 }
 
+function buildPaths(L: Layout) {
+  return {
+    seg1: makePath(L.pts.seg1),
+    seg2: makePath(L.pts.seg2),
+    seg2a: makePath(L.pts.seg2a),
+    drop: makePath(L.pts.drop),
+    ret: makePath(L.pts.ret),
+  };
+}
+
 export function SagaVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
+  const layoutRef = useRef(layout);
+  const pathsRef = useRef(buildPaths(layout));
+
+  useEffect(() => {
+    layoutRef.current = layout;
+    pathsRef.current = buildPaths(layout);
+  }, [layout]);
 
   useEffect(() => {
     const node = wrapRef.current;
@@ -318,405 +279,345 @@ export function SagaVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
 
-    const E = els;
-    const L = layout;
+      const setChip = (i: number, state: ChipState) => {
+        const s = CHIP_STYLES[state];
+        const a = s.ledOp > 0 ? 1 : 0;
+        const title = E.get(`t${i}`);
+        if (title) {
+          title.style.fill = s.text;
+        }
+        const wash = E.get(`w${i}`);
+        if (wash) {
+          wash.style.fill = s.led;
+          wash.style.opacity = String(a * 0.07);
+        }
+        const edge = E.get(`e${i}`);
+        if (edge) {
+          edge.style.stroke = s.edge;
+          edge.style.opacity = String(s.edgeOp);
+        }
+        const led = E.get(`l${i}`);
+        if (led) {
+          led.style.fill = s.led;
+          led.style.opacity = String(s.ledOp);
+        }
+        const halo = E.get(`h${i}`);
+        if (halo) {
+          halo.style.stroke = s.led;
+          halo.style.opacity = String(a * 0.5);
+        }
+      };
 
-    const setChip = (i: number, state: ChipState) => {
-      const s = CHIP_STYLES[state];
-      // LED core, halo, and interior wash share one activity envelope
-      // (canonical a*0.9 core, a*0.5 halo, a*0.07 wash)
-      const a = s.ledOp > 0 ? 1 : 0;
-      const title = E.get(`t${i}`);
-      if (title) {
-        title.style.fill = s.text;
-      }
-      const wash = E.get(`w${i}`);
-      if (wash) {
-        wash.style.fill = s.led;
-        wash.style.opacity = String(a * 0.07);
-      }
-      const edge = E.get(`e${i}`);
-      if (edge) {
-        edge.style.stroke = s.edge;
-        edge.style.opacity = String(s.edgeOp);
-      }
-      const led = E.get(`l${i}`);
-      if (led) {
-        led.style.fill = s.led;
-        led.style.opacity = String(s.ledOp);
-      }
-      const halo = E.get(`h${i}`);
-      if (halo) {
-        halo.style.stroke = s.led;
-        halo.style.opacity = String(a * 0.5);
-      }
-    };
-
-    const setLabel = (i: number, fill: string) => {
-      const el = E.get(`lb${i}`);
-      if (el) {
-        el.style.fill = fill;
-      }
-    };
-
-    const setFinalTag = (on: boolean) => {
-      const el = E.get("fin");
-      if (el) {
-        el.style.opacity = on ? "1" : "0";
-      }
-    };
-
-    const hideToken = () => {
-      const g = E.get("tk");
-      if (g) {
-        g.style.opacity = "0";
-      }
-    };
-
-    const showToken = (color: string) => {
-      const g = E.get("tk");
-      if (!g) {
-        return;
-      }
-      g.style.opacity = "1";
-      E.get("tkcore")?.setAttribute("fill", color);
-      E.get("tkglow")?.setAttribute("fill", color);
-      E.get("tkt1")?.setAttribute("fill", color);
-      E.get("tkt2")?.setAttribute("fill", color);
-      E.get("tkin")?.setAttribute(
-        "fill",
-        color === AMBER ? "#fde68a" : CORAL_SOFT,
-      );
-    };
-
-    // arrival ring flash state
-    let ringOn = false;
-    let ringAge = 0;
-
-    const flash = (p: Pt, color: string) => {
-      const el = E.get("ring");
-      if (!el) {
-        return;
-      }
-      ringOn = true;
-      ringAge = 0;
-      el.setAttribute("cx", String(p.x));
-      el.setAttribute("cy", String(p.y));
-      el.setAttribute("stroke", color);
-    };
-
-    const moveToken = (path: Path, dist: number) => {
-      const head = path.at(dist);
-      for (const k of ["tkcore", "tkin", "tkglow"]) {
-        const el = E.get(k);
+      const setLabel = (i: number, fill: string) => {
+        const el = E.get(`lb${i}`);
         if (el) {
-          el.setAttribute("cx", head.x.toFixed(2));
-          el.setAttribute("cy", head.y.toFixed(2));
+          el.style.fill = fill;
         }
-      }
-      for (let k = 1; k <= 2; k++) {
-        const el = E.get(`tkt${k}`);
-        if (!el) {
-          continue;
+      };
+
+      const setFinalTag = (on: boolean) => {
+        const el = E.get("fin");
+        if (el) {
+          el.style.opacity = on ? "1" : "0";
         }
-        const dd = dist - 8 * k;
-        if (dd <= 0) {
-          el.setAttribute("opacity", "0");
-        } else {
-          const tp = path.at(dd);
-          el.setAttribute("cx", tp.x.toFixed(2));
-          el.setAttribute("cy", tp.y.toFixed(2));
-          el.setAttribute("opacity", k === 1 ? "0.3" : "0.15");
-        }
-      }
-    };
+      };
 
-    const resetCycle = () => {
-      setChip(0, "idle");
-      setChip(1, "idle");
-      setChip(2, "idle");
-      setChip(3, "idle");
-      setFinalTag(false);
-      setLabel(0, LABEL_DIM);
-      setLabel(1, LABEL_DIM);
-      setLabel(2, LABEL_DIM);
-      hideToken();
-    };
-
-    const paths = {
-      seg1: makePath(L.pts.seg1),
-      seg2: makePath(L.pts.seg2),
-      seg2a: makePath(L.pts.seg2a),
-      drop: makePath(L.pts.drop),
-      ret: makePath(L.pts.ret),
-    };
-
-    resetCycle();
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // static final frame: happy path completed
-      setChip(0, "visited");
-      setChip(1, "visited");
-      setChip(2, "final");
-      setFinalTag(true);
-      return;
-    }
-
-    const sched = (steps: readonly Step[]): Schedule => ({
-      steps,
-      total: steps.reduce((s, x) => s + x.dur, 0),
-    });
-
-    const happy = sched([
-      {
-        dur: 675,
-        enter: () => {
-          setChip(0, "active");
-          hideToken();
-        },
-      },
-      {
-        dur: 1200,
-        path: paths.seg1,
-        fadeIn: true,
-        fadeOut: true,
-        enter: () => {
-          setChip(0, "visited");
-          showToken(CORAL);
-          setLabel(0, CORAL);
-        },
-      },
-      {
-        dur: 675,
-        enter: () => {
-          setChip(1, "active");
-          flash(endOf(L.pts.seg1), CYAN);
-          hideToken();
-          setLabel(0, LABEL_DIM);
-        },
-      },
-      {
-        dur: 1200,
-        path: paths.seg2,
-        fadeIn: true,
-        fadeOut: true,
-        enter: () => {
-          setChip(1, "visited");
-          showToken(CORAL);
-          setLabel(1, CORAL);
-        },
-      },
-      {
-        dur: 1500,
-        enter: () => {
-          setChip(2, "final");
-          setFinalTag(true);
-          flash(endOf(L.pts.seg2), GREEN);
-          hideToken();
-          setLabel(1, LABEL_DIM);
-        },
-      },
-    ]);
-
-    const fail = sched([
-      {
-        dur: 675,
-        enter: () => {
-          setChip(0, "active");
-          hideToken();
-        },
-      },
-      {
-        dur: 1200,
-        path: paths.seg1,
-        fadeIn: true,
-        fadeOut: true,
-        enter: () => {
-          setChip(0, "visited");
-          showToken(CORAL);
-          setLabel(0, CORAL);
-        },
-      },
-      {
-        dur: 675,
-        enter: () => {
-          setChip(1, "active");
-          flash(endOf(L.pts.seg1), CYAN);
-          hideToken();
-          setLabel(0, LABEL_DIM);
-        },
-      },
-      {
-        dur: 390,
-        path: paths.seg2a,
-        // no fadeOut: the token rides straight through the rail tee
-        fadeIn: true,
-        enter: () => {
-          setChip(1, "visited");
-          showToken(CORAL);
-        },
-      },
-      {
-        dur: 780,
-        path: paths.drop,
-        // no fadeIn: continues in flight from the tee, absorbed at COMPENSATE
-        fadeOut: true,
-        enter: () => {
-          showToken(AMBER);
-          setLabel(2, AMBER);
-        },
-      },
-      {
-        dur: 780,
-        enter: () => {
-          setChip(3, "amber");
-          flash(endOf(L.pts.drop), AMBER);
-          hideToken();
-          setLabel(2, LABEL_DIM);
-        },
-      },
-      {
-        dur: 1125,
-        path: paths.ret,
-        fadeIn: true,
-        fadeOut: true,
-        enter: () => {
-          showToken(AMBER);
-        },
-      },
-      {
-        dur: 375,
-        enter: () => {
-          // the compensation lands back in REQUESTED, which re-activates
-          setChip(0, "active");
-          flash(endOf(L.pts.ret), CYAN);
-          hideToken();
-        },
-      },
-    ]);
-
-    let raf = 0;
-    let running = false;
-    let inView = false;
-    let last = 0;
-    let elapsed = 0;
-    let cycle = 0;
-    let prevStep = -1;
-
-    const scheduleFor = (c: number) => (c % 3 === 2 ? fail : happy);
-
-    const frame = (now: number) => {
-      if (!running) {
-        return;
-      }
-      const dt = Math.min(now - last, 100);
-      last = now;
-      elapsed += dt;
-
-      let sch = scheduleFor(cycle);
-      while (elapsed >= sch.total) {
-        elapsed -= sch.total;
-        cycle += 1;
-        prevStep = -1;
-        resetCycle();
-        sch = scheduleFor(cycle);
-      }
-
-      let t = elapsed;
-      let idx = 0;
-      while (idx < sch.steps.length - 1 && t >= sch.steps[idx].dur) {
-        t -= sch.steps[idx].dur;
-        idx++;
-      }
-      if (idx > prevStep) {
-        for (let i = prevStep + 1; i <= idx; i++) {
-          sch.steps[i].enter?.();
-        }
-        prevStep = idx;
-      }
-
-      const st = sch.steps[idx];
-      if (st.path) {
-        const f = easeInOut(Math.min(1, t / st.dur));
-        moveToken(st.path, f * st.path.total);
-        // canonical travel envelope: fade in over 150ms at departure and
-        // dissolve over the last 160ms so the pulse is absorbed exactly as
-        // it reaches the box edge, never bouncing
+      const hideToken = () => {
         const g = E.get("tk");
         if (g) {
-          let op = st.fadeIn ? Math.min(t / 150, 1) : 1;
-          if (st.fadeOut) {
-            const out = 1 - (t - (st.dur - 160)) / 160;
-            op = Math.min(op, Math.min(Math.max(out, 0), 1));
-          }
-          g.style.opacity = op.toFixed(3);
+          g.style.opacity = "0";
         }
-      }
+      };
 
-      if (ringOn) {
-        ringAge += dt;
-        const q = ringAge / 700;
+      const showToken = (color: string) => {
+        const g = E.get("tk");
+        if (!g) {
+          return;
+        }
+        g.style.opacity = "1";
+        E.get("tkcore")?.setAttribute("fill", color);
+        E.get("tkglow")?.setAttribute("fill", color);
+        E.get("tkt1")?.setAttribute("fill", color);
+        E.get("tkt2")?.setAttribute("fill", color);
+        E.get("tkin")?.setAttribute(
+          "fill",
+          color === AMBER ? "#fde68a" : CORAL_SOFT,
+        );
+      };
+
+      let ringOn = false;
+      let ringAge = 0;
+
+      const flash = (p: Pt, color: string) => {
         const el = E.get("ring");
-        if (el) {
-          if (q >= 1) {
-            ringOn = false;
+        if (!el) {
+          return;
+        }
+        ringOn = true;
+        ringAge = 0;
+        el.setAttribute("cx", String(p.x));
+        el.setAttribute("cy", String(p.y));
+        el.setAttribute("stroke", color);
+      };
+
+      const moveToken = (path: Path, dist: number) => {
+        const head = path.at(dist);
+        for (const k of ["tkcore", "tkin", "tkglow"]) {
+          const el = E.get(k);
+          if (el) {
+            el.setAttribute("cx", head.x.toFixed(2));
+            el.setAttribute("cy", head.y.toFixed(2));
+          }
+        }
+        for (let k = 1; k <= 2; k++) {
+          const el = E.get(`tkt${k}`);
+          if (!el) {
+            continue;
+          }
+          const dd = dist - 8 * k;
+          if (dd <= 0) {
             el.setAttribute("opacity", "0");
           } else {
-            el.setAttribute("r", (3 + 11 * easeOutCubic(q)).toFixed(2));
-            el.setAttribute("opacity", (0.5 * (1 - q)).toFixed(3));
+            const tp = path.at(dd);
+            el.setAttribute("cx", tp.x.toFixed(2));
+            el.setAttribute("cy", tp.y.toFixed(2));
+            el.setAttribute("opacity", k === 1 ? "0.3" : "0.15");
           }
         }
-      }
+      };
 
-      raf = requestAnimationFrame(frame);
-    };
+      const resetCycle = () => {
+        setChip(0, "idle");
+        setChip(1, "idle");
+        setChip(2, "idle");
+        setChip(3, "idle");
+        setFinalTag(false);
+        setLabel(0, LABEL_DIM);
+        setLabel(1, LABEL_DIM);
+        setLabel(2, LABEL_DIM);
+        hideToken();
+      };
 
-    const start = () => {
-      if (running) {
-        return;
-      }
-      running = true;
-      last = performance.now();
-      raf = requestAnimationFrame(frame);
-    };
-    const stop = () => {
-      running = false;
-      cancelAnimationFrame(raf);
-    };
-    const update = () => {
-      if (inView && !document.hidden) {
-        start();
-      } else {
-        stop();
-      }
-    };
+      const sched = (steps: readonly Step[]): Schedule => ({
+        steps,
+        total: steps.reduce((s, x) => s + x.dur, 0),
+      });
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1]?.isIntersecting ?? false;
-        update();
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", update);
+      const buildHappy = (): Schedule => {
+        const L = layoutRef.current;
+        const paths = pathsRef.current;
+        return sched([
+          {
+            dur: 675,
+            enter: () => {
+              setChip(0, "active");
+              hideToken();
+            },
+          },
+          {
+            dur: 1200,
+            path: paths.seg1,
+            fadeIn: true,
+            fadeOut: true,
+            enter: () => {
+              setChip(0, "visited");
+              showToken(CORAL);
+              setLabel(0, CORAL);
+            },
+          },
+          {
+            dur: 675,
+            enter: () => {
+              setChip(1, "active");
+              flash(endOf(L.pts.seg1), CYAN);
+              hideToken();
+              setLabel(0, LABEL_DIM);
+            },
+          },
+          {
+            dur: 1200,
+            path: paths.seg2,
+            fadeIn: true,
+            fadeOut: true,
+            enter: () => {
+              setChip(1, "visited");
+              showToken(CORAL);
+              setLabel(1, CORAL);
+            },
+          },
+          {
+            dur: 1500,
+            enter: () => {
+              setChip(2, "final");
+              setFinalTag(true);
+              flash(endOf(L.pts.seg2), GREEN);
+              hideToken();
+              setLabel(1, LABEL_DIM);
+            },
+          },
+        ]);
+      };
 
-    return () => {
-      stop();
-      io.disconnect();
-      document.removeEventListener("visibilitychange", update);
-    };
-  }, [els, layout]);
+      const buildFail = (): Schedule => {
+        const L = layoutRef.current;
+        const paths = pathsRef.current;
+        return sched([
+          {
+            dur: 675,
+            enter: () => {
+              setChip(0, "active");
+              hideToken();
+            },
+          },
+          {
+            dur: 1200,
+            path: paths.seg1,
+            fadeIn: true,
+            fadeOut: true,
+            enter: () => {
+              setChip(0, "visited");
+              showToken(CORAL);
+              setLabel(0, CORAL);
+            },
+          },
+          {
+            dur: 675,
+            enter: () => {
+              setChip(1, "active");
+              flash(endOf(L.pts.seg1), CYAN);
+              hideToken();
+              setLabel(0, LABEL_DIM);
+            },
+          },
+          {
+            dur: 390,
+            path: paths.seg2a,
+            fadeIn: true,
+            enter: () => {
+              setChip(1, "visited");
+              showToken(CORAL);
+            },
+          },
+          {
+            dur: 780,
+            path: paths.drop,
+            fadeOut: true,
+            enter: () => {
+              showToken(AMBER);
+              setLabel(2, AMBER);
+            },
+          },
+          {
+            dur: 780,
+            enter: () => {
+              setChip(3, "amber");
+              flash(endOf(L.pts.drop), AMBER);
+              hideToken();
+              setLabel(2, LABEL_DIM);
+            },
+          },
+          {
+            dur: 1125,
+            path: paths.ret,
+            fadeIn: true,
+            fadeOut: true,
+            enter: () => {
+              showToken(AMBER);
+            },
+          },
+          {
+            dur: 375,
+            enter: () => {
+              setChip(0, "active");
+              flash(endOf(L.pts.ret), CYAN);
+              hideToken();
+            },
+          },
+        ]);
+      };
 
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+      resetCycle();
+
+      let elapsed = 0;
+      let cycle = 0;
+      let prevStep = -1;
+
+      const scheduleFor = (c: number) =>
+        c % 3 === 2 ? buildFail() : buildHappy();
+
+      const apply = (_now: number, dt: number) => {
+        elapsed += dt;
+
+        let sch = scheduleFor(cycle);
+        while (elapsed >= sch.total) {
+          elapsed -= sch.total;
+          cycle += 1;
+          prevStep = -1;
+          resetCycle();
+          sch = scheduleFor(cycle);
+        }
+
+        let t = elapsed;
+        let idx = 0;
+        while (idx < sch.steps.length - 1 && t >= sch.steps[idx].dur) {
+          t -= sch.steps[idx].dur;
+          idx++;
+        }
+        if (idx > prevStep) {
+          for (let i = prevStep + 1; i <= idx; i++) {
+            sch.steps[i].enter?.();
+          }
+          prevStep = idx;
+        }
+
+        const st = sch.steps[idx];
+        if (st.path) {
+          const f = easeInOut(Math.min(1, t / st.dur));
+          moveToken(st.path, f * st.path.total);
+          const g = E.get("tk");
+          if (g) {
+            let op = st.fadeIn ? Math.min(t / 150, 1) : 1;
+            if (st.fadeOut) {
+              const out = 1 - (t - (st.dur - 160)) / 160;
+              op = Math.min(op, Math.min(Math.max(out, 0), 1));
+            }
+            g.style.opacity = op.toFixed(3);
+          }
+        }
+
+        if (ringOn) {
+          ringAge += dt;
+          const q = ringAge / 700;
+          const el = E.get("ring");
+          if (el) {
+            if (q >= 1) {
+              ringOn = false;
+              el.setAttribute("opacity", "0");
+            } else {
+              el.setAttribute("r", (3 + 11 * easeOutCubic(q)).toFixed(2));
+              el.setAttribute("opacity", (0.5 * (1 - q)).toFixed(3));
+            }
+          }
+        }
+      };
+
+      return {
+        frame: apply,
+        rest: () => {
+          setChip(0, "visited");
+          setChip(1, "visited");
+          setChip(2, "final");
+          setFinalTag(true);
+        },
+      };
+    },
+    { threshold: 0.15 },
+  );
 
   const L = layout;
 
@@ -749,10 +650,8 @@ export function SagaVisual() {
             </pattern>
           </defs>
 
-          {/* substrate: pad-dot grid */}
           <rect x={0} y={0} width={lw} height={H} fill="url(#saga-grid)" />
 
-          {/* copper lanes: rail, failure drop, compensation return */}
           {L.lanes.map((d, i) => (
             <path
               key={`lane${i}`}
@@ -764,7 +663,6 @@ export function SagaVisual() {
             />
           ))}
 
-          {/* unlabeled queue as a plated slot on the compensation approach */}
           <rect
             x={L.pill.x}
             y={L.pill.y}
@@ -776,7 +674,6 @@ export function SagaVisual() {
             strokeWidth={1}
           />
 
-          {/* vias at the rail tee and along the return run */}
           {L.vias.map((v, i) => (
             <circle
               key={`via${i}`}
@@ -789,12 +686,10 @@ export function SagaVisual() {
             />
           ))}
 
-          {/* pin rows where lanes dock at package edges */}
           {L.pins.map((pin, i) => (
             <PinRow key={`pin${i}`} pin={pin} />
           ))}
 
-          {/* transition silkscreen, each printed in clear board space */}
           {L.labels.map((l, i) => (
             <text
               key={l.text}
@@ -811,7 +706,6 @@ export function SagaVisual() {
             </text>
           ))}
 
-          {/* ── the four state panels ──────────────────────────────── */}
           {L.panels.map((p, i) => (
             <g key={p.title}>
               <rect
@@ -824,7 +718,6 @@ export function SagaVisual() {
                 stroke={PANEL_STROKE}
                 strokeWidth={1}
               />
-              {/* faint interior wash while the state is active */}
               <rect
                 ref={set(`w${i}`)}
                 x={p.x}
@@ -862,8 +755,6 @@ export function SagaVisual() {
               >
                 {p.title}
               </text>
-              {/* activity LED: dim silk dot at rest, lit while the state
-                  handles the message */}
               <circle
                 cx={p.x + p.w - 10}
                 cy={p.y + 10}
@@ -895,7 +786,6 @@ export function SagaVisual() {
             </g>
           ))}
 
-          {/* the message in flight: soft-blur head with a short comet tail */}
           <g ref={set("tk")} opacity={0}>
             <circle ref={set("tkt2")} r={1.6} fill={CORAL} opacity={0} />
             <circle ref={set("tkt1")} r={2} fill={CORAL} opacity={0} />
@@ -910,7 +800,6 @@ export function SagaVisual() {
             <circle ref={set("tkin")} r={1.1} fill={CORAL_SOFT} />
           </g>
 
-          {/* arrival ring */}
           <circle
             ref={set("ring")}
             r={0}
@@ -919,7 +808,6 @@ export function SagaVisual() {
             opacity={0}
           />
 
-          {/* FINAL silkscreen over the terminal state */}
           <text
             ref={set("fin")}
             x={L.finalX}

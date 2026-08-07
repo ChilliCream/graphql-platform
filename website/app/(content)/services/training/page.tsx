@@ -1,17 +1,12 @@
-import dynamic from "next/dynamic";
-
 import { DeliveryFormatsSection } from "@/src/components/training/DeliveryFormatsSection";
 import { FunBand } from "@/src/components/training/FunBand";
 import { LevelsSection } from "@/src/components/training/LevelsSection";
 import { OffersSection } from "@/src/components/training/OffersSection";
 import { OutcomesSection } from "@/src/components/training/OutcomesSection";
 import { TrainingClosingCta } from "@/src/components/training/TrainingClosingCta";
+import { TrainingFaq } from "@/src/components/training/TrainingFaq";
 import { TrainingHero } from "@/src/components/training/TrainingHero";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-
-const TrainingFaq = dynamic(() =>
-  import("@/src/components/training/TrainingFaq").then((m) => m.TrainingFaq),
-);
 
 const META_DESCRIPTION =
   "Book GraphQL training for your team. Hot Chocolate, ASP.NET Core, React, and Relay curriculum that flexes for beginner, mixed, and advanced engineering teams.";

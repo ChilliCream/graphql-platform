@@ -1,13 +1,4 @@
-/**
- * Mocha product page. The circuit-board hero is scoped to the hero and
- * always visible; below it the page opens with a "why messaging" orientation
- * map, then walks the model in docs-accurate sections. Code lives in
- * standalone snippet blocks: one compact card beside the prose below xl, and
- * a full-width multi-panel band (message / dispatch / handler) from xl up.
- * Every section links to its docs chapter, and the animated visuals share one
- * handler idiom (a service is a titled panel, a handler is a boxed row inside
- * it).
- */
+"use client";
 
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
@@ -84,9 +75,22 @@ const TransportsVisual = dynamic(() =>
   import("./visuals/TransportsVisual").then((m) => m.TransportsVisual),
 );
 
-/* ============================================================================
-   Section scaffolding
-============================================================================ */
+const DOC_LINK_LABELS: Record<string, string> = {
+  "/docs/mocha": "See how messaging works",
+  "/docs/mocha/quick-start": "Open the quickstart",
+  "/docs/mocha/routing-and-endpoints": "See routing and endpoints",
+  "/docs/mocha/mediator": "Read about the mediator",
+  "/docs/mocha/messaging-patterns": "See messaging patterns",
+  "/docs/mocha/handlers-and-consumers": "Read about batch handlers",
+  "/docs/mocha/scheduling": "Read about scheduling",
+  "/docs/mocha/reliability": "Read about reliability",
+  "/docs/mocha/sagas": "Read about sagas",
+  "/docs/mocha/observability": "Set up observability",
+  "/docs/mocha/transports": "Compare transports",
+};
+
+const SOLID_BUTTON_GRADIENT_CLASSNAME =
+  "bg-[image:linear-gradient(180deg,#f0786a,#d9604f)] !text-white shadow-[0_14px_20px_-12px_rgba(240,120,106,0.5)] ring-1 ring-white/15 ring-inset";
 
 interface SectionProps {
   readonly children: ReactNode;
@@ -116,7 +120,7 @@ function Intro({ title, docs, children, center }: IntroProps) {
         {title}
       </h2>
       {children && (
-        <div className="text-cc-ink mt-5 space-y-4 text-base">{children}</div>
+        <div className="text-cc-ink text-body mt-5 space-y-4">{children}</div>
       )}
       {docs && (
         <ArrowLink
@@ -128,21 +132,7 @@ function Intro({ title, docs, children, center }: IntroProps) {
           }
           className="mt-5"
         >
-          {(
-            {
-              "/docs/mocha": "See how messaging works",
-              "/docs/mocha/quick-start": "Open the quickstart",
-              "/docs/mocha/routing-and-endpoints": "See routing and endpoints",
-              "/docs/mocha/mediator": "Read about the mediator",
-              "/docs/mocha/messaging-patterns": "See messaging patterns",
-              "/docs/mocha/handlers-and-consumers": "Read about batch handlers",
-              "/docs/mocha/scheduling": "Read about scheduling",
-              "/docs/mocha/reliability": "Read about reliability",
-              "/docs/mocha/sagas": "Read about sagas",
-              "/docs/mocha/observability": "Set up observability",
-              "/docs/mocha/transports": "Compare transports",
-            } as Record<string, string>
-          )[docs] ?? "Read the Mocha docs"}
+          {DOC_LINK_LABELS[docs] ?? "Read the Mocha docs"}
         </ArrowLink>
       )}
     </div>
@@ -171,28 +161,25 @@ function Row({ copy, visual, reverse }: RowProps) {
   );
 }
 
-/** The compact snippet lives beside the prose below xl; from xl the section
- * shows the full multi-panel code band under the row instead. */
-function CompactCode({ children }: { readonly children: ReactNode }) {
+interface CompactCodeProps {
+  readonly children: ReactNode;
+}
+
+function CompactCode({ children }: CompactCodeProps) {
   return <div className="xl:hidden">{children}</div>;
 }
 
-function WideCode({ children }: { readonly children: ReactNode }) {
-  return <div className="mt-10 hidden xl:block">{children}</div>;
+interface WideCodeProps {
+  readonly children: ReactNode;
 }
 
-/* ============================================================================
-   Page
-============================================================================ */
+function WideCode({ children }: WideCodeProps) {
+  return <div className="mt-10 hidden xl:block">{children}</div>;
+}
 
 export function ClientPage() {
   return (
     <div className="bg-cc-bg relative left-1/2 isolate -mt-26 -mb-18 w-screen -translate-x-1/2 overflow-hidden">
-      {/* Hero — the circuit board lives here and only here, re-tinted to the
-          site's teal signature (coral stays the message accent). The wrapper's
-          -mt-26 pulls the board up behind the translucent sticky header
-          (header h-18 + the content layout's pt-8), so the header sits over
-          the hero atmosphere on load like the Nitro page. */}
       <section className="relative flex min-h-[92svh] items-center overflow-hidden">
         <HeroBoard />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-12">
@@ -218,7 +205,7 @@ export function ClientPage() {
             <ButtonRow align="start" className="mt-9">
               <SolidButton
                 href="/docs/mocha/quick-start"
-                className="bg-[image:linear-gradient(180deg,#f0786a,#d9604f)] !text-white shadow-[0_14px_20px_-12px_rgba(240,120,106,0.5)] ring-1 ring-white/15 ring-inset"
+                className={SOLID_BUTTON_GRADIENT_CLASSNAME}
               >
                 Publish your first message
               </SolidButton>
@@ -228,7 +215,6 @@ export function ClientPage() {
         </div>
       </section>
 
-      {/* 01 · Why messaging — the orientation map. */}
       <Section>
         <Intro
           title="Answer the caller now. Finish the rest in the background."
@@ -251,7 +237,6 @@ export function ClientPage() {
         </RevealOnScroll>
       </Section>
 
-      {/* 02 · Quick start */}
       <Section>
         <Row
           copy={
@@ -275,7 +260,6 @@ export function ClientPage() {
         />
       </Section>
 
-      {/* 03 · Topology */}
       <Section>
         <Row
           reverse
@@ -307,7 +291,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 04 · Mediator */}
       <Section>
         <Row
           copy={
@@ -334,7 +317,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 05 · Broadcast */}
       <Section>
         <Row
           reverse
@@ -363,7 +345,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 06 · Send */}
       <Section>
         <Row
           copy={
@@ -389,7 +370,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 07 · Request / reply */}
       <Section>
         <Row
           reverse
@@ -417,7 +397,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 08 · Batches */}
       <Section>
         <Row
           copy={
@@ -449,7 +428,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 09 · Schedule */}
       <Section>
         <Row
           reverse
@@ -481,7 +459,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 10 · Deliver */}
       <Section>
         <Row
           copy={
@@ -495,7 +472,7 @@ export function ClientPage() {
                 those redeliveries from repeating the same work by recording
                 which messages have already been processed.
               </p>
-              <p className="text-cc-ink-dim text-sm">
+              <p className="text-cc-ink-dim text-caption">
                 The inbox and the handler&apos;s changes are committed together,
                 while any outgoing messages are held until that transaction
                 succeeds. For database operations, this provides effectively
@@ -508,7 +485,6 @@ export function ClientPage() {
         />
       </Section>
 
-      {/* 11 · Orchestrate */}
       <Section>
         <Row
           reverse
@@ -538,7 +514,6 @@ export function ClientPage() {
         />
       </Section>
 
-      {/* 12 · Observe */}
       <Section>
         <Intro
           title="See where a message went and what handled it."
@@ -565,7 +540,6 @@ export function ClientPage() {
         </RevealOnScroll>
       </Section>
 
-      {/* 13 · Transports */}
       <Section>
         <Row
           copy={
@@ -597,7 +571,6 @@ export function ClientPage() {
         </WideCode>
       </Section>
 
-      {/* 14 · CTA */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
           <div
@@ -620,7 +593,7 @@ export function ClientPage() {
           <ButtonRow className="mt-9">
             <SolidButton
               href="/docs/mocha/quick-start"
-              className="bg-[image:linear-gradient(180deg,#f0786a,#d9604f)] !text-white shadow-[0_14px_20px_-12px_rgba(240,120,106,0.5)] ring-1 ring-white/15 ring-inset"
+              className={SOLID_BUTTON_GRADIENT_CLASSNAME}
             >
               Publish your first message
             </SolidButton>

@@ -1,5 +1,3 @@
-import dynamic from "next/dynamic";
-
 import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
@@ -11,9 +9,7 @@ import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-const ReviewSection = dynamic(() =>
-  import("./ReviewSection").then((m) => m.ReviewSection),
-);
+import { ReviewSection } from "./ReviewSection";
 
 export const metadata = pageMetadata({
   title: "Agentic Coding",
@@ -234,8 +230,6 @@ function AgentDirectory() {
   );
 }
 
-/** The current starting set in chillicream/agent-skills, one reviewed SKILL.md
- *  each, shown as the file the agent actually reads. */
 const SKILLS = [
   {
     name: "graphql-schema-design",

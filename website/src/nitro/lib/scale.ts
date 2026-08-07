@@ -28,7 +28,9 @@ export function logScale(
   const l0 = Math.log10(Math.max(d0, min));
   const l1 = Math.log10(Math.max(d1, min));
   const m = l1 === l0 ? 0 : (r1 - r0) / (l1 - l0);
-  return (x: number) => r0 + (Math.log10(Math.max(x, min)) - l0) * m;
+  // Bounds precision so SSR and client path coordinates match across runtimes.
+  return (x: number) =>
+    +(r0 + (Math.log10(Math.max(x, min)) - l0) * m).toFixed(6);
 }
 
 const f = (n: number) => (Number.isFinite(n) ? +n.toFixed(2) : 0);

@@ -56,9 +56,6 @@ export function RevealOnScroll({
 
     observer.observe(node);
 
-    // Rescue content the observer should already have revealed, in case it
-    // missed or never fired. Anything still genuinely below the extended root
-    // stays hidden so it can animate in on scroll.
     const fallbackId = window.setTimeout(() => {
       if (node.getBoundingClientRect().top < window.innerHeight * 1.15) {
         setShown(true);

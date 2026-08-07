@@ -16,11 +16,6 @@ interface DotGridSurfaceProps {
   readonly id?: string;
 }
 
-/**
- * A base dot-grid texture layer plus a teal hover-halo layer that follows the
- * pointer via `--x`/`--y` and a radial mask. The halo is gated on
- * `useReducedMotion`, so reduced-motion viewers only see the static grid.
- */
 export function DotGridSurface({
   children,
   className = "",
@@ -76,22 +71,20 @@ export function DotGridSurface({
           backgroundPosition: "0 0",
         }}
       />
-      {!reduced ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 transition-opacity duration-300"
-          style={{
-            backgroundImage: HALO_BG,
-            backgroundSize: "24px 24px",
-            backgroundPosition: "0 0",
-            opacity: active ? 1 : 0,
-            WebkitMaskImage:
-              "radial-gradient(circle 180px at var(--x) var(--y), #000 0%, rgba(0,0,0,0.6) 40%, transparent 75%)",
-            maskImage:
-              "radial-gradient(circle 180px at var(--x) var(--y), #000 0%, rgba(0,0,0,0.6) 40%, transparent 75%)",
-          }}
-        />
-      ) : null}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:hidden"
+        style={{
+          backgroundImage: HALO_BG,
+          backgroundSize: "24px 24px",
+          backgroundPosition: "0 0",
+          opacity: active ? 1 : 0,
+          WebkitMaskImage:
+            "radial-gradient(circle 180px at var(--x) var(--y), #000 0%, rgba(0,0,0,0.6) 40%, transparent 75%)",
+          maskImage:
+            "radial-gradient(circle 180px at var(--x) var(--y), #000 0%, rgba(0,0,0,0.6) 40%, transparent 75%)",
+        }}
+      />
       <div className="relative z-10">{children}</div>
     </div>
   );

@@ -34,7 +34,6 @@ const KIND_ICON: Record<SpanKindWf, string> = {
 const fmtDur = (d: number) =>
   d >= 1 ? `${d.toFixed(1)} ms` : `${Math.round(d * 1000)} µs`;
 
-/** Smallest 1/2/5×10ⁿ value ≥ raw, so tick steps land on round numbers. */
 const niceStep = (raw: number) => {
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   for (const m of [1, 2, 5]) {
@@ -58,12 +57,7 @@ export function TraceWaterfall({
 }: TraceWaterfallProps) {
   const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
   const total = trace.totalMs;
-  // ms ticks within [0, total); the total is shown as a right-anchored end label.
-  // Short traces keep the 1ms ruler; wider ones step by a nice 1/2/5×10ⁿ value
-  // targeting ~5 ticks so a 300ms trace doesn't emit hundreds of labels.
   const step = total <= 12 ? 1 : niceStep(total / 5);
-  // Stop at 90% so the last tick label cannot collide with the right-anchored
-  // total label (wide traces render wider tick labels like "300ms").
   const ticks: number[] = [];
   for (let tk = 0; tk / total < 0.9; tk += step) {
     ticks.push(tk);
@@ -181,8 +175,6 @@ function Span({
           scaleX: grow,
         }}
       />
-      {/* Late-starting spans anchor their label to the bar's right end so the
-          text extends leftward instead of clipping past the row's edge. */}
       <motion.div
         style={{
           position: "absolute",

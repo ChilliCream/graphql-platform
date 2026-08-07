@@ -7,19 +7,27 @@ export interface GitHubContributor {
 }
 
 /**
- * Fetches the top contributors of the ChilliCream/graphql-platform repository.
- * The result is cached and revalidated once per hour. Bot accounts are
- * filtered out and at most twenty-four contributors are returned. Returns
- * `null` when the request fails so callers can render a fallback.
+ * Fetches the top contributors for the ChilliCream/graphql-platform
+ * repository. The site is statically exported, so this data is fetched once
+ * at build time. Returns `null` when the request fails so callers can render
+ * a fallback.
  */
 export async function getGitHubContributors(): Promise<ReadonlyArray<GitHubContributor> | null> {
   try {
     const response = await fetch(GITHUB_CONTRIBUTORS_API, {
-      headers: { Accept: "application/vnd.github+json" },
-      next: { revalidate: 3600 },
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...(process.env.GITHUB_TOKEN
+          ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+          : {}),
+      },
+      signal: AbortSignal.timeout(10_000),
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
+      console.warn(
+        `getGitHubContributors: request failed with status ${response.status}`,
+      );
       return null;
     }
 
@@ -43,7 +51,8 @@ export async function getGitHubContributors(): Promise<ReadonlyArray<GitHubContr
           : [],
       )
       .slice(0, 24);
-  } catch {
+  } catch (error) {
+    console.warn("getGitHubContributors: request failed", error);
     return null;
   }
 }

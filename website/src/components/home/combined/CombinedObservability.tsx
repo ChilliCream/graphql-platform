@@ -1,36 +1,17 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 
-/**
- * Combined Observability section: one compacted take that merges three landing
- * facets under a single header.
- *
- * Facet 1 "Rank operations by impact." shrinks the operations-ranked-by-impact
- * table to three rows (the firing #1, a degrading #2, a calm #3). Facet 2 "See
- * where time is lost." shows the distributed-trace waterfall as six spans over a
- * faint ms grid, keeping the coral slow hop. Facet 3 "From symptom to cause."
- * pairs a small p99
- * sparkline breaching its SLO with the degrading billing hop in the same trace.
- *
- * The facets span GraphQL, gRPC, REST, and a job to show supported
- * OpenTelemetry data from configured services. Static server component: no
- * hooks, no client APIs. Dark cc-* palette; teal is the signature, status colors
- * are used as data and rationed. Every inline SVG is decorative; figures are
- * present as text. Svg ids are prefixed "cmb-obs-".
- */
-
-/** Locked status hues, used only for inline SVG fills and strokes. */
 const HEX = {
   accent: "#5eead4",
   coral: "#f0786a",
-  navLabel: "#62748e",
+  navLabel: "#94a3b8",
   page: "#0b0f1a",
   slo: "rgba(245, 241, 234, 0.30)",
 } as const;
 
-/** Faint track behind every impact bar. */
 const TRACK = "rgba(245, 241, 234, 0.1)";
 
 const MONO =
@@ -54,7 +35,6 @@ export function CombinedObservability() {
   return (
     <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
-        {/* shared header */}
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             See what the API is doing.
@@ -73,7 +53,6 @@ export function CombinedObservability() {
           Illustrative incident data
         </p>
 
-        {/* three compact facets */}
         <div className="mt-3 grid gap-4 sm:gap-5 lg:grid-cols-3">
           <ImpactFacet />
           <TraceFacet />
@@ -84,18 +63,13 @@ export function CombinedObservability() {
   );
 }
 
-/** Shared card chrome for one facet: a kept sub-headline, the illustration, and
- * one short line pinned to the bottom so captions align across the row. The
- * whole card is a link to the analytics page. */
-function FacetCard({
-  title,
-  href,
-  children,
-}: {
+interface FacetCardProps {
   readonly title: string;
   readonly href: string;
-  readonly children: React.ReactNode;
-}) {
+  readonly children: ReactNode;
+}
+
+function FacetCard({ title, href, children }: FacetCardProps) {
   return (
     <Link
       href={href}
@@ -109,8 +83,6 @@ function FacetCard({
   );
 }
 
-// Facet 1 ---------------------------------------------------------------------
-
 interface ImpactRow {
   readonly rank: number;
   readonly name: string;
@@ -119,9 +91,6 @@ interface ImpactRow {
   readonly status: Status;
 }
 
-// Top three by impact: the firing checkout op is pinned #1, then a degrading
-// gRPC call, then a calm REST route. Spanning graphql / grpc / rest keeps it
-// service-agnostic.
 const OPERATIONS: readonly ImpactRow[] = [
   {
     rank: 1,
@@ -151,8 +120,7 @@ function ImpactFacet() {
     <FacetCard href="/platform/analytics" title="Rank operations by impact.">
       <div className="mt-5 space-y-2.5">
         {OPERATIONS.map((row) => {
-          // Rows are no longer highlighted by rank — the pinned #1 box read as odd.
-          const pinned = false;
+          const pinned = row.status === "firing";
           return (
             <div
               key={row.name}
@@ -170,9 +138,7 @@ function ImpactFacet() {
               <div className="flex items-center gap-2">
                 <span
                   className={`shrink-0 font-mono text-[0.62rem] tabular-nums ${
-                    pinned
-                      ? "text-cc-heading font-semibold"
-                      : "text-cc-nav-label"
+                    pinned ? "text-cc-heading font-semibold" : "text-cc-ink-dim"
                   }`}
                 >
                   #{row.rank}
@@ -203,21 +169,15 @@ function ImpactFacet() {
   );
 }
 
-// Facet 2 ---------------------------------------------------------------------
-
 interface WaterfallSpan {
   readonly name: string;
   readonly kind: string;
-  /** Bar offset and width as a percentage of the 318 ms request timeline. */
   readonly left: number;
   readonly width: number;
   readonly dur: number;
   readonly tone: "root" | "healthy" | "slow";
 }
 
-// One checkout request, 318 ms end to end, across six spans (GraphQL root, REST,
-// gRPC, and a DB hop). Billing (gRPC) is the long pole and the only span flagged
-// slow; the nested payments hop and cache lookup stay calm.
 const SPANS: readonly WaterfallSpan[] = [
   {
     name: "checkout",
@@ -281,8 +241,6 @@ const DUR_TEXT: Record<WaterfallSpan["tone"], string> = {
   slow: "text-cc-status-firing font-semibold",
 };
 
-// Time grid for the 318 ms request: positions are the millisecond mark as a
-// percentage of the timeline, so gridlines and the ms scale stay aligned.
 const TIME_TICKS: readonly { readonly ms: number; readonly pct: number }[] = [
   { ms: 0, pct: 0 },
   { ms: 100, pct: 31.4 },
@@ -294,7 +252,6 @@ function TraceFacet() {
   return (
     <FacetCard href="/platform/analytics" title="See where time is lost.">
       <div className="relative mt-5">
-        {/* faint time grid behind the bars, aligned to the bar column */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex gap-2"
@@ -333,10 +290,9 @@ function TraceFacet() {
           ))}
         </div>
 
-        {/* ms scale aligned to the same bar column */}
         <div className="relative mt-2 flex gap-2">
           <span className="w-[4.5rem] shrink-0" />
-          <span className="text-cc-nav-label relative block h-3 flex-1 font-mono text-[0.5rem] tabular-nums">
+          <span className="text-cc-ink-dim relative block h-3 flex-1 font-mono text-[0.5rem] tabular-nums">
             {TIME_TICKS.map((tick) => (
               <span
                 key={tick.ms}
@@ -360,12 +316,8 @@ function TraceFacet() {
   );
 }
 
-// Facet 3 ---------------------------------------------------------------------
-
 const SPARK_ID = "cmb-obs-";
 
-// p99 latency sample (ms): a flat baseline near 155 ms that bends sharply up and
-// breaches the 250 ms SLO, peaking at 318 ms.
 const SERIES: readonly number[] = [
   152, 158, 150, 161, 155, 163, 157, 168, 162, 178, 205, 248, 292, 318,
 ];
@@ -377,7 +329,6 @@ const PLOT = { left: 10, right: 270, top: 8, bottom: 74 } as const;
 
 type Point = readonly [number, number];
 
-/** Builds the split sparkline geometry: calm baseline below the SLO, coral tail above. */
 function buildSloSparkline() {
   const n = SERIES.length;
   const round = (v: number) => Math.round(v * 10) / 10;
@@ -390,7 +341,26 @@ function buildSloSparkline() {
   const pts: Point[] = SERIES.map((v, i) => [xOf(i), yOf(v)]);
   const sloY = yOf(SLO_VALUE);
 
+  const toLine = (p: readonly Point[]) =>
+    p
+      .map(([x, y], i) => `${i === 0 ? "M" : "L"}${round(x)} ${round(y)}`)
+      .join(" ");
+  const toArea = (p: readonly Point[]) =>
+    `${toLine(p)} L${round(p[p.length - 1][0])} ${PLOT.bottom} L${round(p[0][0])} ${PLOT.bottom} Z`;
+
   const crossIndex = SERIES.findIndex((v) => v > SLO_VALUE);
+  if (crossIndex < 1) {
+    return {
+      belowLine: toLine(pts),
+      aboveLine: "",
+      belowArea: toArea(pts),
+      aboveArea: "",
+      sloY: round(sloY),
+      cross: [round(pts[0][0]), round(sloY)] as const,
+      last: [round(pts[n - 1][0]), round(pts[n - 1][1])] as const,
+    };
+  }
+
   const prev = crossIndex - 1;
   const t = (SLO_VALUE - SERIES[prev]) / (SERIES[crossIndex] - SERIES[prev]);
   const crossX = xOf(prev) + t * (xOf(crossIndex) - xOf(prev));
@@ -398,13 +368,6 @@ function buildSloSparkline() {
 
   const below: Point[] = [...pts.slice(0, crossIndex), cross];
   const above: Point[] = [cross, ...pts.slice(crossIndex)];
-
-  const toLine = (p: readonly Point[]) =>
-    p
-      .map(([x, y], i) => `${i === 0 ? "M" : "L"}${round(x)} ${round(y)}`)
-      .join(" ");
-  const toArea = (p: readonly Point[]) =>
-    `${toLine(p)} L${round(p[p.length - 1][0])} ${PLOT.bottom} L${round(p[0][0])} ${PLOT.bottom} Z`;
 
   return {
     belowLine: toLine(below),
@@ -428,7 +391,6 @@ interface CauseSpan {
   readonly delta?: string;
 }
 
-// The same checkout trace: the billing.Charge gRPC hop runs +180 ms and is the cause.
 const CAUSE_SPANS: readonly CauseSpan[] = [
   { name: "checkout", left: 0, width: 100, root: true },
   {
@@ -444,10 +406,9 @@ const CAUSE_SPANS: readonly CauseSpan[] = [
 function SymptomCauseFacet() {
   return (
     <FacetCard href="/platform/analytics" title="Inspect the slow spans.">
-      {/* symptom: p99 breaching its SLO */}
       <div className="mt-5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-cc-nav-label font-mono text-[0.58rem] tracking-[0.12em] uppercase">
+          <span className="text-cc-ink-dim font-mono text-[0.58rem] tracking-[0.12em] uppercase">
             checkout p99
           </span>
           <span className="text-cc-status-firing font-mono text-sm font-semibold tabular-nums">
@@ -556,7 +517,6 @@ function SymptomCauseFacet() {
         </div>
       </div>
 
-      {/* cause: the degrading hop in the same trace */}
       <div className="mt-5 space-y-2">
         {CAUSE_SPANS.map((span) => (
           <div key={span.name} className="flex items-center gap-2">
@@ -597,10 +557,11 @@ function SymptomCauseFacet() {
   );
 }
 
-// Shared primitives -----------------------------------------------------------
+interface StatusDotProps {
+  readonly status: Status;
+}
 
-/** Status dot: a thin ring around a solid core, in the row's status hue. */
-function StatusDot({ status }: { readonly status: Status }) {
+function StatusDot({ status }: StatusDotProps) {
   const color = STATUS_HEX[status];
   return (
     <svg
@@ -623,23 +584,24 @@ function StatusDot({ status }: { readonly status: Status }) {
   );
 }
 
-/** Transport tag (graphql / grpc / rest), so the table reads service-agnostic. */
-function KindTag({ kind }: { readonly kind: string }) {
+interface KindTagProps {
+  readonly kind: string;
+}
+
+function KindTag({ kind }: KindTagProps) {
   return (
-    <span className="border-cc-card-border text-cc-nav-label hidden shrink-0 rounded border px-1.5 py-0.5 font-mono text-[0.55rem] tracking-[0.04em] sm:inline">
+    <span className="border-cc-card-border text-cc-ink-dim hidden shrink-0 rounded border px-1.5 py-0.5 font-mono text-[0.55rem] tracking-[0.04em] sm:inline">
       {kind}
     </span>
   );
 }
 
-/** Horizontal impact bar: a faint track with a status-colored fill. */
-function ImpactBar({
-  status,
-  impact,
-}: {
+interface ImpactBarProps {
   readonly status: Status;
   readonly impact: number;
-}) {
+}
+
+function ImpactBar({ status, impact }: ImpactBarProps) {
   return (
     <svg
       viewBox="0 0 100 5"

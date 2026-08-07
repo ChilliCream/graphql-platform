@@ -3,6 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  type Polyline,
+  type Pt,
+  clamp01,
+  easeInOutCubic,
+  easeOutCubic,
+  laneD,
+  measure,
+  pointAt,
+  ramp,
+} from "@/src/components/mocha/geometry";
+import {
   CORAL,
   CORAL_SOFT,
   CYAN,
@@ -10,42 +21,27 @@ import {
   MONO_FONT,
   NAVY,
 } from "@/src/components/mocha/palette";
+import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
-type Pt = readonly [number, number];
-
-interface Polyline {
-  readonly pts: readonly Pt[];
-  readonly lens: readonly number[];
-  readonly total: number;
-}
-
-// Master loop. One request/response beat up front, then the fabric keeps
-// trading coral messages between service pairs for the rest of the loop.
 const T = 14400;
+const REST_T = 10700;
 const H = 360;
-// Below this width the four panels and the fabric get too cramped to read,
-// so we lay out at MIN_W and scale the whole stage down via the SVG viewBox.
 const MIN_W = 760;
 
 const SURFACE = "#0c1322";
 const GRID_DOT = "rgba(150,166,194,0.10)";
 const PANEL_STROKE = "rgba(158,176,204,0.44)";
 const LANE_STROKE = "rgba(139,160,188,0.4)";
-const PAD_FILL = "rgba(158,176,204,0.34)";
 const VIA_STROKE = "rgba(164,180,208,0.55)";
 const SILK = "rgba(154,172,200,0.75)";
 
-// ── the one visible request/response beat ──────────────────────────
-// The cyan request runs gateway → orders on the upper lane; the green
-// answer retraces the route on the lower one.
 const REQ_DEP = 300;
 const REQ_ARR = 1800;
 const RES_DEP = 2600;
 const RES_ARR = 4000;
 
-// ── gateway / orders anatomy ───────────────────────────────────────
-// One gateway chip on the left, wide enough for its horizontal
-// silkscreen title, centered on the request/response lane pair.
 const CHIP_X = 8;
 const CHIP_W = 76;
 const CHIP_Y = 146;
@@ -62,8 +58,6 @@ interface FlowTime {
   readonly dst: number;
 }
 
-// Panel indices: 0 ORDERS · 1 BILLING · 2 SHIPPING · 3 SEARCH. Staggered so
-// something is always in flight somewhere on the fabric.
 const FLOWS: readonly FlowTime[] = [
   { dep: 2000, legA: 1700, rest: 700, legB: 600, src: 0, dst: 1 },
   { dep: 4600, legA: 2000, rest: 0, legB: 0, src: 1, dst: 2 },
@@ -86,18 +80,11 @@ interface PanelBox extends Box {
   readonly title: string;
 }
 
-interface Pin {
-  readonly x: number;
-  readonly y: number;
-  readonly side: "left" | "right" | "top" | "bottom";
-}
-
 interface FlowGeo {
   readonly poly: Polyline;
   readonly d: string;
   readonly restU: number;
   readonly end: Pt;
-  // index into Layout.pills for routes that rest in a queue, -1 for direct
   readonly pill: number;
 }
 
@@ -116,114 +103,22 @@ interface Layout {
   readonly pins: readonly Pin[];
 }
 
-function measure(pts: readonly Pt[]): Polyline {
-  const lens: number[] = [];
-  let total = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const len = Math.hypot(
-      pts[i + 1][0] - pts[i][0],
-      pts[i + 1][1] - pts[i][1],
-    );
-    lens.push(len);
-    total += len;
-  }
-  return { pts, lens, total };
-}
-
-function pointAt(p: Polyline, u: number): Pt {
-  const target = clamp01(u) * p.total;
-  let acc = 0;
-  for (let i = 0; i < p.lens.length; i++) {
-    if (target <= acc + p.lens[i] || i === p.lens.length - 1) {
-      const t = p.lens[i] === 0 ? 0 : (target - acc) / p.lens[i];
-      const [ax, ay] = p.pts[i];
-      const [bx, by] = p.pts[i + 1];
-      return [ax + (bx - ax) * t, ay + (by - ay) * t];
-    }
-    acc += p.lens[i];
-  }
-  return p.pts[p.pts.length - 1];
-}
-
-function laneD(pts: readonly Pt[]): string {
-  return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
-}
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number): number {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-function easeInOutCubic(u: number): number {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
-// Flash that survives the loop wrap: elapsed time is taken modulo T, so a
-// glow that peaks near the end of the loop decays into the next one.
 function loopFlash(t: number, at: number, fall: number): number {
   const e = (t - at + T) % T;
   return e < 200 ? e / 200 : Math.max(0, 1 - (e - 200) / fall);
 }
 
-// Fraction of the polyline at horizontal position px on its final segment,
-// used to park a pulse in a queue pill that sits on the arrival run.
 function uAtLastSeg(poly: Polyline, px: number): number {
   const end = poly.pts[poly.pts.length - 1];
   return (poly.total - Math.abs(end[0] - px)) / poly.total;
 }
 
-interface PinRowProps {
-  readonly pin: Pin;
-}
-
-// A dock at a package edge: three surface pads at 5px pitch. The connected
-// middle pad carries the lane; its neighbours complete the pin row.
-function PinRow({ pin }: PinRowProps) {
-  const { x, y, side } = pin;
-  return (
-    <g>
-      {[-1, 0, 1].map((i) =>
-        side === "left" || side === "right" ? (
-          <rect
-            key={i}
-            x={side === "left" ? x - 3.5 : x}
-            y={y + i * 5 - 1}
-            width={3.5}
-            height={2}
-            fill={PAD_FILL}
-          />
-        ) : (
-          <rect
-            key={i}
-            x={x + i * 5 - 1}
-            y={side === "top" ? y - 3.5 : y}
-            width={2}
-            height={3.5}
-            fill={PAD_FILL}
-          />
-        ),
-      )}
-    </g>
-  );
-}
-
 function buildLayout(lw: number): Layout {
   const m = 8;
   const gwR = CHIP_X + CHIP_W;
-  // gateway → orders: one short run carrying the direct request and
-  // response lanes
   const run = Math.max(48, Math.min(88, Math.round(lw * 0.07)));
   const ox = gwR + run;
 
-  // Four panels of slightly varied size, arranged organically: orders
-  // center-left, billing top-right, shipping bottom-center, search far right.
   const ow = Math.max(150, Math.min(210, Math.round(lw * 0.18)));
   const oR = ox + ow;
   const bx = Math.round(lw * 0.58);
@@ -242,11 +137,8 @@ function buildLayout(lw: number): Layout {
     { x: qx, y: 138, w: qw, h: 96, title: "SEARCH" },
   ];
 
-  // Fabric attach points on the panel edges.
   const bBotX = bx + Math.round(bw * 0.4);
   const sTopX = sx + Math.round(sw * 0.55);
-  // capped so the shipping→orders approach (40px diagonal off a short
-  // horizontal run from SHIPPING's left edge) still clears sx at MIN_W
   const oBotX = Math.min(ox + Math.round(ow * 0.45), sx - 46);
   const qTopX = qx + Math.round(qw * 0.4);
   const qBotX = qx + Math.round(qw * 0.5);
@@ -257,7 +149,6 @@ function buildLayout(lw: number): Layout {
     { x: sR + 36, y: 291, w: 44, h: 14 },
   ];
 
-  // pill names the queue a resting route parks in; -1 means direct delivery.
   const mkFlow = (pts: readonly Pt[], pill = -1): FlowGeo => {
     const poly = measure(pts);
     return {
@@ -269,9 +160,6 @@ function buildLayout(lw: number): Layout {
     };
   };
 
-  // orders→billing, billing→shipping, orders→search, shipping→orders,
-  // billing→search, search→shipping. 45-degree bends throughout; three of
-  // the routes rest briefly in an anonymous queue pill before delivery.
   const flows: readonly FlowGeo[] = [
     mkFlow(
       [
@@ -317,7 +205,6 @@ function buildLayout(lw: number): Layout {
     ),
   ];
 
-  // Every dock at a package edge gets a pin row; sides name the panel edge.
   const pins: readonly Pin[] = [
     { x: gwR, y: REQ_Y, side: "right" },
     { x: gwR, y: RES_Y, side: "right" },
@@ -362,7 +249,7 @@ function buildLayout(lw: number): Layout {
 export function WhyMessagingVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
@@ -387,250 +274,191 @@ export function WhyMessagingVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful static frame: the whole mesh
-      // drawn, a few dots resting in the queue pills. Keep it.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const setPart = (k: string, x: number, y: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("cx", x.toFixed(2));
-        el.setAttribute("cy", y.toFixed(2));
-      }
-    };
-
-    const setRing = (k: string, s: number, r0: number, dr: number) => {
-      const el = E.get(k);
-      if (!el) {
-        return;
-      }
-      if (s < 0 || s >= 1) {
-        el.setAttribute("opacity", "0");
-        return;
-      }
-      el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
-      el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
-    };
-
-    const placePulse = (p: string, poly: Polyline, u: number, op: number) => {
-      const g = E.get(p);
-      if (!g) {
-        return;
-      }
-      if (op <= 0.01) {
-        g.setAttribute("opacity", "0");
-        return;
-      }
-      g.setAttribute("opacity", op.toFixed(3));
-      const d = clamp01(u) * poly.total;
-      const [x, y] = pointAt(poly, u);
-      setPart(p + "core", x, y);
-      setPart(p + "in", x, y);
-      setPart(p + "glow", x, y);
-      for (let k = 1; k <= 2; k++) {
-        const dk = d - 8 * k;
-        const el = E.get(p + "t" + k);
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
         if (el) {
-          if (dk <= 0) {
-            el.setAttribute("opacity", "0");
-          } else {
-            const [tx, ty] = pointAt(poly, dk / poly.total);
-            el.setAttribute("cx", tx.toFixed(2));
-            el.setAttribute("cy", ty.toFixed(2));
-            el.setAttribute("opacity", k === 1 ? "0.3" : "0.15");
-          }
+          el.setAttribute("opacity", v.toFixed(3));
         }
-      }
-    };
+      };
 
-    // per-pill park intensity, reused across frames (no per-frame allocation)
-    const park = [0, 0, 0];
+      const setPart = (k: string, x: number, y: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("cx", x.toFixed(2));
+          el.setAttribute("cy", y.toFixed(2));
+        }
+      };
 
-    const apply = (t: number) => {
-      const L = layoutRef.current;
+      const setRing = (k: string, s: number, r0: number, dr: number) => {
+        const el = E.get(k);
+        if (!el) {
+          return;
+        }
+        if (s < 0 || s >= 1) {
+          el.setAttribute("opacity", "0");
+          return;
+        }
+        el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
+        el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
+      };
 
-      // parked dots light while a flow rests in their pill (accumulated in
-      // the flow loop below, written after it)
-      park[0] = 0;
-      park[1] = 0;
-      park[2] = 0;
-
-      // beat 01: one cyan request from the gateway to orders, the green
-      // answer retraces the route on the lower lane
-      if (t >= REQ_DEP && t < REQ_ARR) {
-        placePulse(
-          "rq",
-          L.req,
-          easeInOutCubic(ramp(t, REQ_DEP, REQ_ARR)),
-          Math.min((t - REQ_DEP) / 150, 1) *
-            (1 - ramp(t, REQ_ARR - 120, REQ_ARR)),
-        );
-      } else {
-        placePulse("rq", L.req, 0, 0);
-      }
-      setRing("rgq", ((t - REQ_ARR + T) % T) / 700, 3, 11);
-      if (t >= RES_DEP && t < RES_ARR) {
-        placePulse(
-          "rs",
-          L.res,
-          easeInOutCubic(ramp(t, RES_DEP, RES_ARR)),
-          Math.min((t - RES_DEP) / 150, 1) *
-            (1 - ramp(t, RES_ARR - 120, RES_ARR)),
-        );
-      } else {
-        placePulse("rs", L.res, 0, 0);
-      }
-      setRing("rgc", ((t - RES_ARR + T) % T) / 700, 3, 11);
-      setO("gwEcho", loopFlash(t, RES_ARR, 1600) * 0.8);
-
-      // ORDERS handles the request: cyan busy shimmer, LED echoes it
-      const oc = loopFlash(t, REQ_ARR, 1400);
-      setO("ocw", oc * 0.07);
-      setO("oce", oc * 0.5);
-      setO("plc", oc * 0.9);
-      setO("phc", oc * 0.5);
-
-      // beat 02: the fabric trades coral messages on staggered schedules
-      let litA = 0;
-      let litB = 0;
-      let litC = 0;
-      const act = [0, 0, 0, 0];
-      for (let i = 0; i < FLOWS.length; i++) {
-        const f = FLOWS[i];
-        const g = L.flows[i];
-        const tA = f.dep + f.legA;
-        let u = 0;
-        let op = 0;
-        if (f.rest === 0) {
-          if (t >= f.dep && t < tA) {
-            u = easeInOutCubic(ramp(t, f.dep, tA));
-            op = Math.min((t - f.dep) / 150, 1) * (1 - ramp(t, tA - 140, tA));
-          }
-        } else {
-          const tR = tA + f.rest;
-          const tB = tR + f.legB;
-          if (t >= f.dep && t < tA) {
-            u = g.restU * easeInOutCubic(ramp(t, f.dep, tA));
-            op = Math.min((t - f.dep) / 150, 1);
-          } else if (t >= tA && t < tR) {
-            // resting in the queue pill
-            u = g.restU;
-            op = 0.95;
-          } else if (t >= tR && t < tB) {
-            u = g.restU + (1 - g.restU) * easeInOutCubic(ramp(t, tR, tB));
-            op = 1 - ramp(t, tR + f.legB * 0.55, tB);
-          }
-          // the parked dot makes the message visibly sit in its queue:
-          // quick ramp in at rest start, hold, fade as legB departs
-          if (g.pill >= 0) {
-            const pv = ramp(t, tA, tA + 120) * (1 - ramp(t, tR, tR + 180));
-            if (pv > park[g.pill]) {
-              park[g.pill] = pv;
+      const placePulse = (p: string, poly: Polyline, u: number, op: number) => {
+        const g = E.get(p);
+        if (!g) {
+          return;
+        }
+        if (op <= 0.01) {
+          g.setAttribute("opacity", "0");
+          return;
+        }
+        g.setAttribute("opacity", op.toFixed(3));
+        const d = clamp01(u) * poly.total;
+        const [x, y] = pointAt(poly, u);
+        setPart(p + "core", x, y);
+        setPart(p + "in", x, y);
+        setPart(p + "glow", x, y);
+        for (let k = 1; k <= 2; k++) {
+          const dk = d - 8 * k;
+          const el = E.get(p + "t" + k);
+          if (el) {
+            if (dk <= 0) {
+              el.setAttribute("opacity", "0");
+            } else {
+              const [tx, ty] = pointAt(poly, dk / poly.total);
+              el.setAttribute("cx", tx.toFixed(2));
+              el.setAttribute("cy", ty.toFixed(2));
+              el.setAttribute("opacity", k === 1 ? "0.3" : "0.15");
             }
           }
         }
-        placePulse(`f${i}`, g.poly, u, op);
+      };
 
-        // ring clusters light up as a pulse passes through them
-        if (op > 0.02) {
-          const [px, py] = pointAt(g.poly, u);
-          if (i === 2) {
-            litA = Math.max(litA, 1 - Math.abs(px - L.c1[0]) / 46);
-            litB = Math.max(litB, 1 - Math.abs(px - L.c1b[0]) / 40);
-          } else if (i === 1) {
-            litC = Math.max(
-              litC,
-              1 - Math.hypot(px - L.c3[0], py - L.c3[1]) / 46,
-            );
+      const park = [0, 0, 0];
+
+      const apply = (t: number) => {
+        const L = layoutRef.current;
+
+        park[0] = 0;
+        park[1] = 0;
+        park[2] = 0;
+
+        if (t >= REQ_DEP && t < REQ_ARR) {
+          placePulse(
+            "rq",
+            L.req,
+            easeInOutCubic(ramp(t, REQ_DEP, REQ_ARR)),
+            Math.min((t - REQ_DEP) / 150, 1) *
+              (1 - ramp(t, REQ_ARR - 120, REQ_ARR)),
+          );
+        } else {
+          placePulse("rq", L.req, 0, 0);
+        }
+        setRing("rgq", ((t - REQ_ARR + T) % T) / 700, 3, 11);
+        if (t >= RES_DEP && t < RES_ARR) {
+          placePulse(
+            "rs",
+            L.res,
+            easeInOutCubic(ramp(t, RES_DEP, RES_ARR)),
+            Math.min((t - RES_DEP) / 150, 1) *
+              (1 - ramp(t, RES_ARR - 120, RES_ARR)),
+          );
+        } else {
+          placePulse("rs", L.res, 0, 0);
+        }
+        setRing("rgc", ((t - RES_ARR + T) % T) / 700, 3, 11);
+        setO("gwEcho", loopFlash(t, RES_ARR, 1600) * 0.8);
+
+        const oc = loopFlash(t, REQ_ARR, 1400);
+        setO("ocw", oc * 0.07);
+        setO("oce", oc * 0.5);
+        setO("plc", oc * 0.9);
+        setO("phc", oc * 0.5);
+
+        let litA = 0;
+        let litB = 0;
+        let litC = 0;
+        const act = [0, 0, 0, 0];
+        for (let i = 0; i < FLOWS.length; i++) {
+          const f = FLOWS[i];
+          const g = L.flows[i];
+          const tA = f.dep + f.legA;
+          let u = 0;
+          let op = 0;
+          if (f.rest === 0) {
+            if (t >= f.dep && t < tA) {
+              u = easeInOutCubic(ramp(t, f.dep, tA));
+              op = Math.min((t - f.dep) / 150, 1) * (1 - ramp(t, tA - 140, tA));
+            }
+          } else {
+            const tR = tA + f.rest;
+            const tB = tR + f.legB;
+            if (t >= f.dep && t < tA) {
+              u = g.restU * easeInOutCubic(ramp(t, f.dep, tA));
+              op = Math.min((t - f.dep) / 150, 1);
+            } else if (t >= tA && t < tR) {
+              u = g.restU;
+              op = 0.95;
+            } else if (t >= tR && t < tB) {
+              u = g.restU + (1 - g.restU) * easeInOutCubic(ramp(t, tR, tB));
+              op = 1 - ramp(t, tR + f.legB * 0.55, tB);
+            }
+            if (g.pill >= 0) {
+              const pv = ramp(t, tA, tA + 120) * (1 - ramp(t, tR, tR + 180));
+              if (pv > park[g.pill]) {
+                park[g.pill] = pv;
+              }
+            }
+          }
+          placePulse(`f${i}`, g.poly, u, op);
+
+          if (op > 0.02) {
+            const [px, py] = pointAt(g.poly, u);
+            if (i === 2) {
+              litA = Math.max(litA, 1 - Math.abs(px - L.c1[0]) / 46);
+              litB = Math.max(litB, 1 - Math.abs(px - L.c1b[0]) / 40);
+            } else if (i === 1) {
+              litC = Math.max(
+                litC,
+                1 - Math.hypot(px - L.c3[0], py - L.c3[1]) / 46,
+              );
+            }
+          }
+
+          setRing(`ar${i}`, ((t - ARR[i] + T) % T) / 700, 2.5, 10);
+          const dv = loopFlash(t, ARR[i], 900);
+          if (dv > act[f.dst]) {
+            act[f.dst] = dv;
+          }
+          const sv = 0.35 * loopFlash(t, f.dep, 700);
+          if (sv > act[f.src]) {
+            act[f.src] = sv;
           }
         }
 
-        setRing(`ar${i}`, ((t - ARR[i] + T) % T) / 700, 2.5, 10);
-        const dv = loopFlash(t, ARR[i], 900);
-        if (dv > act[f.dst]) {
-          act[f.dst] = dv;
+        setO("pk0", park[0] * 0.95);
+        setO("pk1", park[1] * 0.95);
+        setO("pk2", park[2] * 0.95);
+
+        for (let p = 0; p < 4; p++) {
+          setO(`pw${p}`, act[p] * 0.07);
+          setO(`pe${p}`, act[p] * 0.55);
+          setO(`pl${p}`, act[p] * 0.9);
+          setO(`ph${p}`, act[p] * 0.5);
         }
-        const sv = 0.35 * loopFlash(t, f.dep, 700);
-        if (sv > act[f.src]) {
-          act[f.src] = sv;
-        }
-      }
+        setO("c1g", clamp01(litA) * 0.7);
+        setO("c1bg", clamp01(litB) * 0.7);
+        setO("c3g", clamp01(litC) * 0.7);
+      };
 
-      setO("pk0", park[0] * 0.95);
-      setO("pk1", park[1] * 0.95);
-      setO("pk2", park[2] * 0.95);
-
-      // faint activity shimmer on busy panels (interior wash + border + LED)
-      for (let p = 0; p < 4; p++) {
-        setO(`pw${p}`, act[p] * 0.07);
-        setO(`pe${p}`, act[p] * 0.55);
-        setO(`pl${p}`, act[p] * 0.9);
-        setO(`ph${p}`, act[p] * 0.5);
-      }
-      setO("c1g", clamp01(litA) * 0.7);
-      setO("c1bg", clamp01(litB) * 0.7);
-      setO("c3g", clamp01(litC) * 0.7);
-    };
-
-    let t = 0;
-    let last = 0;
-
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      apply(t);
-      raf = requestAnimationFrame(step);
-    };
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
-
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+      return { frame: apply, rest: () => apply(REST_T) };
+    },
+    { period: T },
+  );
 
   const pulseGlyph = (p: string, color: string, inner: string) => (
     <g key={p} ref={set(p)} opacity={0}>
@@ -679,10 +507,8 @@ export function WhyMessagingVisual() {
             </pattern>
           </defs>
 
-          {/* substrate: the same pad-dot grid as the hero board */}
           <rect x={0} y={0} width={lw} height={H} fill="url(#whym-grid)" />
 
-          {/* ── request / response lanes ───────────────────────────── */}
           <path
             d={`M${L.gwR} ${REQ_Y} H${L.ox}`}
             fill="none"
@@ -696,7 +522,6 @@ export function WhyMessagingVisual() {
             strokeWidth={1.5}
           />
 
-          {/* ── the messaging fabric: anonymous copper topology ────── */}
           {L.flows.map((f, i) => (
             <path
               key={`lane${i}`}
@@ -708,7 +533,6 @@ export function WhyMessagingVisual() {
             />
           ))}
 
-          {/* wide copper trace on the billing→shipping drop, via-capped */}
           <path
             d={`M${L.pipe.x + L.pipe.w / 2} ${L.pipe.y} V${L.pipe.y + L.pipe.h}`}
             fill="none"
@@ -732,7 +556,6 @@ export function WhyMessagingVisual() {
             strokeWidth={1.2}
           />
 
-          {/* unlabeled queues as plated slots */}
           {L.pills.map((p, i) => (
             <rect
               key={`pill${i}`}
@@ -747,7 +570,6 @@ export function WhyMessagingVisual() {
             />
           ))}
 
-          {/* via cluster stitched along the orders→search run */}
           <circle
             cx={L.c1[0]}
             cy={L.c1[1]}
@@ -785,7 +607,6 @@ export function WhyMessagingVisual() {
             opacity={0}
           />
 
-          {/* via ring at the fabric junction */}
           <circle
             cx={L.c3[0]}
             cy={L.c3[1]}
@@ -805,12 +626,10 @@ export function WhyMessagingVisual() {
             opacity={0}
           />
 
-          {/* pin rows where lanes dock at package edges */}
           {L.pins.map((pin, i) => (
             <PinRow key={`pin${i}`} pin={pin} />
           ))}
 
-          {/* ── the four service panels, interiors quiet ───────────── */}
           {L.panels.map((p, i) => (
             <g key={p.title}>
               <rect
@@ -824,8 +643,6 @@ export function WhyMessagingVisual() {
                 strokeWidth={1}
               />
               <circle cx={p.x + 6} cy={p.y + 6} r={1.2} fill={SILK} />
-              {/* faint PCB furniture in the lower-right: pad pair on even
-                  panels, hatch patch on odd ones */}
               {i % 2 === 0 ? (
                 <g>
                   <rect
@@ -883,8 +700,6 @@ export function WhyMessagingVisual() {
               >
                 {p.title}
               </text>
-              {/* activity LED: dim silk dot at rest, coral while the panel
-                  handles a message (same window as the pw/pe washes) */}
               <circle
                 cx={p.x + p.w - 10}
                 cy={p.y + 10}
@@ -914,7 +729,6 @@ export function WhyMessagingVisual() {
             </g>
           ))}
 
-          {/* ORDERS busy shimmer while it handles the one request */}
           <rect
             ref={set("ocw")}
             x={L.panels[0].x}
@@ -957,8 +771,6 @@ export function WhyMessagingVisual() {
             opacity={0}
           />
 
-          {/* dots parked in the pills: the reduced-motion frame shows them
-              at rest; while animating they light during a flow's rest beat */}
           {L.pills.map((p, i) => (
             <circle
               key={`pk${i}`}
@@ -971,12 +783,10 @@ export function WhyMessagingVisual() {
             />
           ))}
 
-          {/* ── pulses in flight ───────────────────────────────────── */}
           {pulseGlyph("rq", CYAN, "#c9eef9")}
           {pulseGlyph("rs", GREEN, "#a7f3d0")}
           {FLOWS.map((_, i) => pulseGlyph(`f${i}`, CORAL, CORAL_SOFT))}
 
-          {/* arrival rings */}
           <circle
             ref={set("rgq")}
             cx={L.ox}
@@ -1011,7 +821,6 @@ export function WhyMessagingVisual() {
             />
           ))}
 
-          {/* ── gateway chip ───────────────────────────────────────── */}
           <rect
             x={CHIP_X}
             y={CHIP_Y}

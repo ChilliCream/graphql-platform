@@ -150,6 +150,15 @@ export function InsightsTable({
   );
 }
 
+interface RowProps {
+  readonly row: InsightRow;
+  readonly t: MotionValue<number>;
+  readonly progress?: MotionValue<number>;
+  readonly window: [number, number];
+  readonly errorThreshold: number;
+  readonly once?: boolean;
+}
+
 function Row({
   row,
   t,
@@ -157,14 +166,7 @@ function Row({
   window: [w0, w1],
   errorThreshold,
   once,
-}: {
-  row: InsightRow;
-  t: MotionValue<number>;
-  progress?: MotionValue<number>;
-  window: [number, number];
-  errorThreshold: number;
-  once?: boolean;
-}) {
+}: RowProps) {
   const reveal = useTransform(t, [w0, w1], [0, 1], {
     ease: ease.out,
     clamp: true,

@@ -82,14 +82,27 @@ export function useChartClock({
       return;
     }
     if (!inView) return;
+    if (once) {
+      const remaining = (durationMs / 1000) * Math.max(0, 1 - own.get());
+      if (remaining === 0) {
+        own.set(1);
+        playedOnce.current = true;
+        return;
+      }
+      const resume = animate(own, 1, {
+        duration: remaining,
+        ease: "linear",
+        onComplete: () => {
+          playedOnce.current = true;
+        },
+      });
+      return () => resume.stop();
+    }
     const controls = animate(own, [0, 1], {
       duration: durationMs / 1000,
       ease: "linear",
-      repeat: once ? 0 : Infinity,
+      repeat: Infinity,
       repeatType: "loop",
-      onComplete: () => {
-        playedOnce.current = true;
-      },
     });
     return () => controls.stop();
   }, [standalone, reduced, inView, durationMs, once, own]);

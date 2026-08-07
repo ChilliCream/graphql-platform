@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  easeInOutCubic,
+  easeOutCubic,
+  ramp,
+} from "@/src/components/mocha/geometry";
+import {
   AMBER,
   CORAL,
   CORAL_SOFT,
@@ -10,23 +15,22 @@ import {
   MONO_FONT,
   NAVY,
 } from "@/src/components/mocha/palette";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
-// Two identical 7.5s fill -> flush cycles; the second one also flashes the
-// AMBER "or after 1s" timeout tag at flush time, so the loop is 15s total.
 const T = 15000;
+const REST_T = 7150;
 const CYCLE = 7500;
 const H = 160;
-// Below this width the accumulator slot and the service panel get too cramped
-// to read, so we lay out at MIN_W and scale the whole stage down via viewBox.
 const MIN_W = 520;
 
 const DOTS = 12;
-const EMIT0 = 150; // first dot leaves the left edge
-const STEP = 240; // steady stream: one event every ~240ms
-const FLIGHT = 1450; // left edge -> parked position in the slot
-const FLUSH = 4450; // counter reads 100 at ~4240; flush fires shortly after
-const COMPRESS = 450; // parked dots compress into one batch block
-const TRAVEL = 1500; // block travels into the handler row
+const EMIT0 = 150;
+const STEP = 240;
+const FLIGHT = 1450;
+const FLUSH = 4450;
+const COMPRESS = 450;
+const TRAVEL = 1500;
 const ARRIVE = FLUSH + COMPRESS + TRAVEL;
 
 const INK = "#a1a3af";
@@ -63,16 +67,10 @@ const ROW_SEGS: readonly Seg[] = [
   { t: "<OrderPlaced>", f: INK },
 ];
 
-// Animation pacing: only 12 dot slots are drawn, but the counter climbs about
-// +8 per landed dot (round(k * 100 / 12)), so it reads 100 on the 12th
-// arrival. The batch fills far faster than we could legibly draw 100
-// individual dots.
 const COUNT_AT = Array.from({ length: DOTS + 1 }, (_, k) =>
   Math.round((k * 100) / DOTS),
 );
 
-// Reduced-motion static frame: a half-full slot at "48 / 100" (6 dots at +8
-// per dot) next to the idle billing-service panel.
 const STATIC_FILL = 6;
 
 interface Layout {
@@ -100,26 +98,10 @@ function buildLayout(lw: number): Layout {
   };
 }
 
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number): number {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-function easeInOutCubic(u: number): number {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
 export function BatchVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(480);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
@@ -144,209 +126,153 @@ export function BatchVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful static frame; keep it.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
+      let cntCache = -1;
+      let atagCache = -1;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-    let cntCache = -1;
-    let atagCache = -1;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const apply = (t: number) => {
-      const L = layoutRef.current;
-      const cyc = t >= CYCLE ? 1 : 0;
-      const ct = t - cyc * CYCLE;
-
-      // stream dots in from the left edge, park them side by side in the slot
-      let landed = 0;
-      for (let j = 0; j < DOTS; j++) {
-        const e = EMIT0 + j * STEP;
-        const a = e + FLIGHT;
-        if (ct >= a) {
-          landed += 1;
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("opacity", v.toFixed(3));
         }
-        const el = E.get(`d${j}`);
-        if (!el) {
-          continue;
-        }
-        const target = L.front - Q_GAP * j;
-        let op = 0;
-        let x = 0;
-        if (ct >= e && ct < FLUSH + COMPRESS) {
-          if (ct < a) {
-            const u = (ct - e) / FLIGHT;
-            x = -4 + (target + 4) * u;
-            op = Math.min((ct - e) / 120, 1) * 0.95;
-          } else if (ct < FLUSH) {
-            x = target;
-            op = 0.95;
+      };
+
+      const apply = (t: number) => {
+        const L = layoutRef.current;
+        const cyc = t >= CYCLE ? 1 : 0;
+        const ct = t - cyc * CYCLE;
+
+        let landed = 0;
+        for (let j = 0; j < DOTS; j++) {
+          const e = EMIT0 + j * STEP;
+          const a = e + FLIGHT;
+          if (ct >= a) {
+            landed += 1;
+          }
+          const el = E.get(`d${j}`);
+          if (!el) {
+            continue;
+          }
+          const target = L.front - Q_GAP * j;
+          let op = 0;
+          let x = 0;
+          if (ct >= e && ct < FLUSH + COMPRESS) {
+            if (ct < a) {
+              const u = (ct - e) / FLIGHT;
+              x = -4 + (target + 4) * u;
+              op = Math.min((ct - e) / 120, 1) * 0.95;
+            } else if (ct < FLUSH) {
+              x = target;
+              op = 0.95;
+            } else {
+              const u = easeInOutCubic(ramp(ct, FLUSH, FLUSH + COMPRESS));
+              x = target + (L.front - target) * u;
+              op = 0.95 * (1 - ramp(ct, FLUSH + 190, FLUSH + COMPRESS - 65));
+            }
+          }
+          if (op <= 0.01) {
+            el.setAttribute("opacity", "0");
           } else {
-            // flush: dots slide to the front and dissolve into the block
-            const u = easeInOutCubic(ramp(ct, FLUSH, FLUSH + COMPRESS));
-            x = target + (L.front - target) * u;
-            op = 0.95 * (1 - ramp(ct, FLUSH + 190, FLUSH + COMPRESS - 65));
+            el.setAttribute("opacity", op.toFixed(3));
+            el.setAttribute("cx", x.toFixed(2));
           }
         }
-        if (op <= 0.01) {
-          el.setAttribute("opacity", "0");
-        } else {
-          el.setAttribute("opacity", op.toFixed(3));
-          el.setAttribute("cx", x.toFixed(2));
-        }
-      }
 
-      // counter ticks per landed dot, resets when the batch leaves the slot
-      const count = ct >= FLUSH + COMPRESS ? 0 : COUNT_AT[landed];
-      if (count !== cntCache) {
-        cntCache = count;
-        const el = E.get("cnt");
-        if (el) {
-          el.textContent = String(count);
+        const count = ct >= FLUSH + COMPRESS ? 0 : COUNT_AT[landed];
+        if (count !== cntCache) {
+          cntCache = count;
+          const el = E.get("cnt");
+          if (el) {
+            el.textContent = String(count);
+          }
         }
-      }
 
-      // batch block: compress in place, then travel into the handler row
-      let bop = 0;
-      let bx = 0;
-      let bw = BLOCK_W;
-      let bh = BLOCK_H;
-      if (ct >= FLUSH && ct < FLUSH + COMPRESS) {
-        const u = easeInOutCubic(ramp(ct, FLUSH, FLUSH + COMPRESS));
-        const spanL = L.front - Q_GAP * (DOTS - 1) - 6;
-        const right = L.slotR - 2;
-        bx = spanL + (right - BLOCK_W - spanL) * u;
-        bw = right - bx;
-        bh = 7 + 4 * u;
-        bop = ramp(ct, FLUSH + 65, FLUSH + 260);
-      } else if (ct >= FLUSH + COMPRESS && ct < ARRIVE) {
-        const u = easeInOutCubic(ramp(ct, FLUSH + COMPRESS, ARRIVE));
-        const startC = L.slotR - 2 - BLOCK_W / 2;
-        const c = startC + (L.blockEnd - startC) * u;
-        bx = c - BLOCK_W / 2;
-        bop = 1 - ramp(ct, FLUSH + COMPRESS + TRAVEL * 0.76, ARRIVE);
-      }
-      const blk = E.get("blk");
-      if (blk) {
-        if (bop <= 0.01) {
-          blk.setAttribute("opacity", "0");
-        } else {
-          blk.setAttribute("opacity", bop.toFixed(3));
-          for (const k of ["blkc", "blkg"]) {
-            const r = E.get(k);
-            if (r) {
-              r.setAttribute("x", bx.toFixed(2));
-              r.setAttribute("width", Math.max(0, bw).toFixed(2));
-              r.setAttribute("y", (MID_Y - bh / 2).toFixed(2));
-              r.setAttribute("height", bh.toFixed(2));
+        let bop = 0;
+        let bx = 0;
+        let bw = BLOCK_W;
+        let bh = BLOCK_H;
+        if (ct >= FLUSH && ct < FLUSH + COMPRESS) {
+          const u = easeInOutCubic(ramp(ct, FLUSH, FLUSH + COMPRESS));
+          const spanL = L.front - Q_GAP * (DOTS - 1) - 6;
+          const right = L.slotR - 2;
+          bx = spanL + (right - BLOCK_W - spanL) * u;
+          bw = right - bx;
+          bh = 7 + 4 * u;
+          bop = ramp(ct, FLUSH + 65, FLUSH + 260);
+        } else if (ct >= FLUSH + COMPRESS && ct < ARRIVE) {
+          const u = easeInOutCubic(ramp(ct, FLUSH + COMPRESS, ARRIVE));
+          const startC = L.slotR - 2 - BLOCK_W / 2;
+          const c = startC + (L.blockEnd - startC) * u;
+          bx = c - BLOCK_W / 2;
+          bop = 1 - ramp(ct, FLUSH + COMPRESS + TRAVEL * 0.76, ARRIVE);
+        }
+        const blk = E.get("blk");
+        if (blk) {
+          if (bop <= 0.01) {
+            blk.setAttribute("opacity", "0");
+          } else {
+            blk.setAttribute("opacity", bop.toFixed(3));
+            for (const k of ["blkc", "blkg"]) {
+              const r = E.get(k);
+              if (r) {
+                r.setAttribute("x", bx.toFixed(2));
+                r.setAttribute("width", Math.max(0, bw).toFixed(2));
+                r.setAttribute("y", (MID_Y - bh / 2).toFixed(2));
+                r.setAttribute("height", bh.toFixed(2));
+              }
             }
           }
         }
-      }
 
-      // arrival ring at the panel entry via: r 3 -> 14 over 700ms,
-      // alpha decaying linearly 0.5 -> 0
-      const rs = (ct - ARRIVE) / 700;
-      const ring = E.get("ring");
-      if (ring) {
-        if (rs < 0 || rs >= 1) {
-          ring.setAttribute("opacity", "0");
-        } else {
-          ring.setAttribute("r", (3 + 11 * easeOutCubic(rs)).toFixed(2));
-          ring.setAttribute("opacity", (0.5 * (1 - rs)).toFixed(3));
+        const rs = (ct - ARRIVE) / 700;
+        const ring = E.get("ring");
+        if (ring) {
+          if (rs < 0 || rs >= 1) {
+            ring.setAttribute("opacity", "0");
+          } else {
+            ring.setAttribute("r", (3 + 11 * easeOutCubic(rs)).toFixed(2));
+            ring.setAttribute("opacity", (0.5 * (1 - rs)).toFixed(3));
+          }
         }
-      }
 
-      // handler work window: attack starts 40ms before arrival, the panel
-      // holds hot through the HandleAsync beat, then cools over 650ms (the
-      // tail is evaluated one cycle back too, so it survives the wrap)
-      const hwAt = (x: number) =>
-        easeOutCubic(ramp(x, ARRIVE - 40, ARRIVE + 220)) *
-        (1 - easeInOutCubic(ramp(x, ARRIVE + 800, ARRIVE + 1450)));
-      const hw = Math.max(hwAt(ct), hwAt(ct + CYCLE));
-      setO("hEcho", hw * 0.9);
-      setO("pw", hw * 0.07);
-      setO("pe", hw * 0.55);
-      setO("pl", hw * 0.9);
-      setO("ph", hw * 0.5);
-      const hop =
-        ramp(ct, ARRIVE, ARRIVE + 220) *
-        (1 - ramp(ct, ARRIVE + 800, ARRIVE + 1050));
-      setO("htag", hop * 0.95);
+        const hwAt = (x: number) =>
+          easeOutCubic(ramp(x, ARRIVE - 40, ARRIVE + 220)) *
+          (1 - easeInOutCubic(ramp(x, ARRIVE + 800, ARRIVE + 1450)));
+        const hw = Math.max(hwAt(ct), hwAt(ct + CYCLE));
+        setO("hEcho", hw * 0.9);
+        setO("pw", hw * 0.07);
+        setO("pe", hw * 0.55);
+        setO("pl", hw * 0.9);
+        setO("ph", hw * 0.5);
+        const hop =
+          ramp(ct, ARRIVE, ARRIVE + 220) *
+          (1 - ramp(ct, ARRIVE + 800, ARRIVE + 1050));
+        setO("htag", hop * 0.95);
 
-      // "or after 1s" timeout tag blinks AMBER at flush on alternate cycles
-      let ast = 0;
-      if (cyc === 1 && ct >= FLUSH - 100 && ct < FLUSH + 740) {
-        ast = Math.floor((ct - (FLUSH - 100)) / 180) % 2 === 0 ? 1 : 2;
-      }
-      if (ast !== atagCache) {
-        atagCache = ast;
-        const el = E.get("atag");
-        if (el) {
-          el.setAttribute("fill", ast === 0 ? SILK_SOFT : AMBER);
-          el.setAttribute(
-            "opacity",
-            ast === 0 ? "0.35" : ast === 1 ? "0.95" : "0.4",
-          );
+        let ast = 0;
+        if (cyc === 1 && ct >= FLUSH - 100 && ct < FLUSH + 740) {
+          ast = Math.floor((ct - (FLUSH - 100)) / 180) % 2 === 0 ? 1 : 2;
         }
-      }
-    };
+        if (ast !== atagCache) {
+          atagCache = ast;
+          const el = E.get("atag");
+          if (el) {
+            el.setAttribute("fill", ast === 0 ? SILK_SOFT : AMBER);
+            el.setAttribute(
+              "opacity",
+              ast === 0 ? "0.35" : ast === 1 ? "0.95" : "0.4",
+            );
+          }
+        }
+      };
 
-    let t = 0;
-    let last = 0;
-
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      apply(t);
-      raf = requestAnimationFrame(step);
-    };
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
-
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+      return { frame: apply, rest: () => apply(REST_T) };
+    },
+    { period: T },
+  );
 
   const L = layout;
 
@@ -383,10 +309,8 @@ export function BatchVisual() {
             </pattern>
           </defs>
 
-          {/* substrate: faint pad-dot grid behind everything */}
           <rect x={0} y={0} width={lw} height={H} fill="url(#batch-pads)" />
 
-          {/* copper lanes: left edge -> slot, slot -> service panel */}
           <path
             d={`M6 ${MID_Y} H${L.slotL}`}
             fill="none"
@@ -400,7 +324,6 @@ export function BatchVisual() {
             strokeWidth={1.5}
           />
 
-          {/* vias at the stream origin, slot mouth and slot exit */}
           {[6, L.slotL, L.slotR].map((vx) => (
             <circle
               key={vx}
@@ -413,7 +336,6 @@ export function BatchVisual() {
             />
           ))}
 
-          {/* pin-row dock where the lane meets the panel edge */}
           {[-1, 0, 1].map((i) => (
             <rect
               key={i}
@@ -425,7 +347,6 @@ export function BatchVisual() {
             />
           ))}
 
-          {/* accumulator slot */}
           <rect
             x={L.slotL}
             y={MID_Y - SLOT_H / 2}
@@ -448,7 +369,6 @@ export function BatchVisual() {
             BATCH ACCUMULATOR
           </text>
 
-          {/* fill counter above the slot */}
           <text x={L.slotL} y={MID_Y - 20} fontFamily={MONO_FONT} fontSize={10}>
             <tspan ref={set("cnt")} fill={CORAL_SOFT}>
               48
@@ -456,7 +376,6 @@ export function BatchVisual() {
             <tspan fill={SILK_SOFT}>{" / 100"}</tspan>
           </text>
 
-          {/* timeout tag: flashes AMBER at flush on alternate cycles */}
           <text
             ref={set("atag")}
             x={L.slotR}
@@ -471,7 +390,6 @@ export function BatchVisual() {
             or after 1s
           </text>
 
-          {/* event dots: in flight on the lane, then parked in the slot */}
           {Array.from({ length: DOTS }, (_, j) => (
             <circle
               key={`d${j}`}
@@ -484,7 +402,6 @@ export function BatchVisual() {
             />
           ))}
 
-          {/* ── billing service panel ─────────────────────────────── */}
           <rect
             x={L.panelX}
             y={PANEL_TOP}
@@ -529,7 +446,6 @@ export function BatchVisual() {
             BILLING SERVICE
           </text>
 
-          {/* activity LED: resting silk dot, halo and lit core */}
           <circle
             cx={L.panelX + PANEL_W - 10}
             cy={PANEL_TOP + 10}
@@ -557,7 +473,6 @@ export function BatchVisual() {
             opacity={0}
           />
 
-          {/* handler row inside the panel */}
           <rect
             x={L.rowX}
             y={ROW_Y}
@@ -610,7 +525,6 @@ export function BatchVisual() {
             </text>
           </g>
 
-          {/* arrival ring at the panel entry via */}
           <circle
             ref={set("ring")}
             cx={L.panelX}
@@ -622,7 +536,6 @@ export function BatchVisual() {
             opacity={0}
           />
 
-          {/* batch block, drawn last so it rides over the lane and the row */}
           <g ref={set("blk")} opacity={0}>
             <rect
               ref={set("blkg")}
@@ -649,7 +562,6 @@ export function BatchVisual() {
             />
           </g>
 
-          {/* one call, whole batch */}
           <text
             ref={set("htag")}
             x={L.panelX + PANEL_W / 2}

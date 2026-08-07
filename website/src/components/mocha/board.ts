@@ -1,11 +1,3 @@
-/**
- * Pure board-generation and painting logic for the Mocha circuit-board hero.
- * Generates a deterministic PCB scene (traces, vias, footprints, passives,
- * pours, silkscreen) from a set of service-node anchor points and paints the
- * static board onto a canvas context. No React, no animation; the dynamic
- * pulse/halo rendering lives in HeroBoard.tsx and PcbBand consumers.
- */
-
 import { MONO_FONT, NAVY, TEAL } from "./palette";
 
 const GRID = 28;
@@ -36,34 +28,28 @@ export const GLOW_RGB = `${parseInt(TEAL.slice(1, 3), 16)}, ${parseInt(TEAL.slic
 export const BOARD_ALPHA = 0.6;
 export const PULSE_TRAIL = 128;
 
-// ---- Board generator tuning ----
-// Component placement.
-const MAJOR_CELL = 210; // coarse placement grid pitch for major ICs
-const MAJOR_PROB = 0.55; // chance a coarse cell hosts a major IC
-const PART_MARGIN = 10; // solder-mask margin between placed parts
-const PAD_LEN = 3.5; // drawn IC pad protrusion outside the package body
-const COURT_GAP = 3; // silkscreen courtyard offset outside a part body
-const CAN_R = 4.5; // electrolytic capacitor can radius
-const DECAP_MIN = 2; // decoupling passives per major IC (min..max)
+const MAJOR_CELL = 210;
+const MAJOR_PROB = 0.55;
+const PART_MARGIN = 10;
+const PAD_LEN = 3.5;
+const COURT_GAP = 3;
+const CAN_R = 4.5;
+const DECAP_MIN = 2;
 const DECAP_MAX = 4;
-// Netlist and bus routing.
-const NET_NODE_IC_MAX = 520; // a service node taps ICs within this radius
-const NET_IC_MIN = 150; // IC-to-IC bus distance band
+const NET_NODE_IC_MAX = 520;
+const NET_IC_MIN = 150;
 const NET_IC_MAX = 450;
-const NET_EDGE_MAX = 260; // rim ICs closer than this may leave the board
-// Pin pitch equals lane pitch, so the order-preserving fanout at a pad row
-// degenerates to dead-straight entries: zero transverse delta, no splay.
-const BUS_LANE_PITCH = 5; // spacing between parallel bus lanes AND IC pad pitch
-const BUS_CLEAR = 3; // extra clearance either side of a bus
-const BUS_STUB_MIN = 10; // perpendicular exit stub length range
+const NET_EDGE_MAX = 260;
+const BUS_LANE_PITCH = 5;
+const BUS_CLEAR = 3;
+const BUS_STUB_MIN = 10;
 const BUS_STUB_MAX = 20;
-const BUS_END_SKIP = 22; // px at bus ends exempt from clearance (fanout zone)
-// Fills.
-const STITCH_PITCH = 12; // via stitching row pitch
-const AMBIENT_DIV = 60000; // ambient walk count = area / this (~15% of v14)
-const POUR_MIN = 3; // ground pour region count bounds
+const BUS_END_SKIP = 22;
+const STITCH_PITCH = 12;
+const AMBIENT_DIV = 60000;
+const POUR_MIN = 3;
 const POUR_MAX = 6;
-const POUR_MAX_SPAN = 9; // pour max side length in GRID cells
+const POUR_MAX_SPAN = 9;
 
 export interface Point {
   readonly x: number;
@@ -76,14 +62,9 @@ interface Trace {
   readonly len: number;
   readonly to: number;
   readonly connector: boolean;
-  // Copper layer: 0 = top (bright), 1 = inner (dim, via-terminated). Random
-  // filler copper is demoted to layer 1 where it would cross top-layer copper,
-  // so every visible crossing reads as a deliberate two-layer board.
   layer: number;
 }
 
-/** A lead pad on a package edge, with its outward normal and whether copper
- * actually lands on it (a lane endpoint) or it escapes/stays NC. */
 interface Pad {
   readonly x: number;
   readonly y: number;
@@ -108,7 +89,6 @@ interface Footprint {
   escapes?: Point[][];
 }
 
-/** A via/pad plus the unit direction of the trace arriving at it (for teardrops). */
 interface Via {
   readonly x: number;
   readonly y: number;
@@ -118,26 +98,20 @@ interface Via {
 
 type PassiveKind = "res" | "cap";
 
-/** A small two-pad passive footprint: a chip resistor (bright end lands on a
- * lighter body) or a ceramic capacitor (squarer body between two lands). */
 interface Passive {
   readonly x: number;
   readonly y: number;
   readonly horiz: boolean;
   readonly kind: PassiveKind;
-  /** Part of a passive bank sharing one designator. */
   readonly bank?: boolean;
 }
 
-/** An electrolytic capacitor can: round body, silk ring, polarity stripe. */
 interface Can {
   readonly x: number;
   readonly y: number;
-  /** Angle the polarity crescent faces. */
   readonly ang: number;
 }
 
-/** A thin silkscreen body outline printed around a part; round for cans. */
 interface Courtyard {
   readonly x: number;
   readonly y: number;
@@ -146,8 +120,6 @@ interface Courtyard {
   readonly round?: boolean;
 }
 
-/** One end of a routed bus: a component pad row, or a bare point with an
- * explicit exit direction (a service node or a board-edge exit). */
 interface BusEnd {
   readonly foot?: Footprint;
   readonly pt: Point;
@@ -158,7 +130,6 @@ interface Silk {
   readonly x: number;
   readonly y: number;
   readonly text: string;
-  /** Rotated 90 degrees, printed along a vertical board edge. */
   readonly vert?: boolean;
 }
 
@@ -186,7 +157,6 @@ export interface Pulse {
   to: number;
 }
 
-/** An arrival flash ring at a trace endpoint that is not a service node. */
 export interface RingFlash {
   x: number;
   y: number;
@@ -215,11 +185,6 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/**
- * A private PRNG seeded by a part's position, so per-pin decisions are
- * deterministic and stable across sub-pixel re-measures without touching the
- * board's main PRNG stream.
- */
 function posRand(x: number, y: number): () => number {
   return mulberry32(
     (Math.imul(Math.round(x), 73856093) ^
@@ -228,9 +193,6 @@ function posRand(x: number, y: number): () => number {
   );
 }
 
-/** Lead pads on the two LONG edges of a package (top/bottom for a landscape
- * body, left/right for a portrait one), at exactly BUS_LANE_PITCH so a bus
- * meets a pad row dead straight with zero transverse fanout. */
 function footPads(foot: Footprint): Pad[] {
   const pads: Pad[] = [];
   if (foot.w >= foot.h) {
@@ -247,13 +209,6 @@ function footPads(foot: Footprint): Pad[] {
   return pads;
 }
 
-/**
- * Short escape traces off the unconnected pads: most pins escape perpendicular
- * to a via, some stay NC, so the package reads as soldered into the board.
- * `keep` vets the escape tip (where the via lands); a tip that would sit on
- * copper or inside other board furniture drops that escape. The PRNG is
- * consumed identically either way, so decisions stay deterministic.
- */
 function padEscapes(
   pads: Pad[],
   rand: () => number,
@@ -333,7 +288,6 @@ function connector(a: Point, b: Point, to: number): Trace {
   return traceFrom([a, mid, b], to, true);
 }
 
-/** Drop coincident points and merge collinear runs so offsetting stays exact. */
 function dedupPath(pts: Point[]): Point[] {
   const out: Point[] = [];
   for (const p of pts) {
@@ -360,7 +314,6 @@ function dedupPath(pts: Point[]): Point[] {
   return out;
 }
 
-/** One segment of a polyline, pre-shifted along its left normal. */
 interface OffsetSeg {
   readonly ax: number;
   readonly ay: number;
@@ -370,15 +323,6 @@ interface OffsetSeg {
   readonly dy: number;
 }
 
-/**
- * Exact parallel offset of an open polyline: EVERY segment is shifted along
- * its left normal by `o`, then consecutive offset segments are rejoined at
- * the intersection of their carrier lines (a true miter), so the offset
- * curve keeps a constant perpendicular distance through every bend. All
- * bends here are 45 or 90 degrees, so the intersections are
- * well-conditioned; collinear neighbours skip the join and keep the shared
- * offset endpoint.
- */
 function offsetPolyline(pts: Point[], o: number): Point[] {
   if (pts.length < 2) {
     return pts.map((p) => ({ x: p.x, y: p.y }));
@@ -415,11 +359,6 @@ function offsetPolyline(pts: Point[], o: number): Point[] {
   return out;
 }
 
-/**
- * Bus centerline: perpendicular stubs off both pad rows, then a straight /
- * one 45-degree diagonal / straight run between the stub ends. `midT` slides
- * the diagonal along the run so parallel buses do not echo one another.
- */
 function busPath(
   a: Point,
   adir: Point,
@@ -450,8 +389,6 @@ function busPath(
   return dedupPath(pts);
 }
 
-/** A run of `n` consecutive unconnected pads on one package edge, chosen
- * nearest the target's projection along that edge (the fanout window). */
 function padWindow(
   foot: Footprint,
   nx: number,
@@ -501,8 +438,12 @@ export function envelope(p: Pulse): number {
   );
 }
 
+const SEED_QUANTUM = 80;
+
 export function generateBoard(nodes: Point[], w: number, h: number): Board {
-  const rand = mulberry32(29 + Math.floor(w) * 7 + Math.floor(h));
+  const qw = Math.round(w / SEED_QUANTUM) * SEED_QUANTUM;
+  const qh = Math.round(h / SEED_QUANTUM) * SEED_QUANTUM;
+  const rand = mulberry32(29 + qw * 7 + qh);
   const traces: Trace[] = [];
   const connectors: Trace[] = [];
   const vias: Via[] = [];
@@ -520,12 +461,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     });
   };
 
-  // Single-layer routing discipline: a build-time occupancy grid so no two
-  // top-layer traces cross. Backbone lanes are laid first, in order, each one
-  // vetted against copper already placed and dropped when its run is
-  // occupied. Random filler that would cross top copper is demoted to a real
-  // inner layer (via-terminated, drawn dim) or dropped. Discs around every
-  // node are exempt so the radial fans do not reject one another.
   const CELL = GRID / 2;
   const gcols = Math.max(1, Math.ceil(w / CELL));
   const grows = Math.max(1, Math.ceil(h / CELL));
@@ -588,9 +523,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     });
     return hit;
   };
-  // Furniture occupancy: package bodies, banks, fiducials and mounting holes
-  // are stamped into their own grid (single cell, no inflation) so bus routing
-  // can refuse to run under parts without a part rejecting its own fanout.
   const occFurn = new Uint8Array(gcols * grows);
   const stampRect = (r: Rect, grid: Uint8Array) => {
     const x0 = Math.max(0, Math.floor(r.x / CELL));
@@ -603,9 +535,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
       }
     }
   };
-  // Bus clearance test: the centerline and its two extreme lane offsets are
-  // sampled against top copper and furniture, skipping BUS_END_SKIP px at
-  // both ends where the fanout legitimately hugs its own package.
   const busBlocked = (pts: Point[], half: number): boolean => {
     for (const o of [0, -half, half]) {
       const line = o === 0 ? pts : offsetPolyline(pts, o);
@@ -659,10 +588,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     });
   };
 
-  // Node backbone: each node connects to its nearest neighbours. Lanes are
-  // laid in order and each candidate is checked against copper already on the
-  // top layer, so no two backbone lanes cross; a blocked link is skipped (a
-  // node keeping fewer links is realistic).
   for (let i = 0; i < nodes.length; i++) {
     const others = nodes
       .map((n, j) => ({ j, d: Math.hypot(n.x - nodes[i].x, n.y - nodes[i].y) }))
@@ -683,16 +608,11 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Keep-outs so board furniture never lands on a service node.
   const keepOuts: Rect[] = [];
   for (const n of nodes) {
     keepOuts.push({ x: n.x - 52, y: n.y - 44, w: 104, h: 96 });
   }
 
-  // Furniture placement discipline: every placed rect (part body, silk text
-  // extent, pour, fiducial, hole) is recorded here. A candidate must stay on
-  // the board, clear the node keep-outs, clear all earlier furniture by a
-  // solder-mask margin, and sample copper-free on both layer grids.
   const furniture: Rect[] = [];
   const overlaps = (a: Rect, b: Rect, m: number) =>
     a.x < b.x + b.w + m &&
@@ -725,10 +645,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     furniture.some((f) => overlaps(r, f, PART_MARGIN)) ||
     rectOnCopper(r);
 
-  // Courtyard geometry: every part's furniture rect IS its silkscreen
-  // courtyard (COURT_GAP outside the body, widened to clear the pin rows on
-  // pad edges), so copper clearance and part-vs-part collision tests all
-  // respect the courtyard and nothing may cross it.
   const icCourt = (r: Rect): Rect =>
     r.w >= r.h
       ? {
@@ -743,7 +659,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
           w: r.w + (PAD_LEN + 2) * 2,
           h: r.h + COURT_GAP * 2,
         };
-  // Passive half-extents: along the part axis (body plus end lands), across.
   const passiveHalf = (kind: PassiveKind) =>
     kind === "res" ? { l: 5.5, c: 2 } : { l: 5.6, c: 2.8 };
   const passiveCourt = (p: Passive): Rect => {
@@ -759,10 +674,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     h: (CAN_R + COURT_GAP) * 2,
   });
 
-  // ---- Stage 1: component placement on a jittered coarse grid. ----
-  // Each coarse cell hosts one major IC with probability MAJOR_PROB, jittered
-  // inside the cell and snapped to GRID; grid sampling makes overlap nearly
-  // impossible but every body is still vetted against the placed-rect list.
   const majors: Footprint[] = [];
   const footprints: Footprint[] = [];
   const footCourts: Rect[] = [];
@@ -819,7 +730,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // A few medium ICs in leftover cells.
   const mediumCount = Math.min(leftovers.length, 2 + Math.floor(rand() * 3));
   for (let i = 0; i < mediumCount; i++) {
     const cell = leftovers[Math.floor(rand() * leftovers.length)];
@@ -846,8 +756,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Passive banks: short rows of identical resistors or capacitors sharing
-  // one designator and one courtyard around the whole row.
   const banks: { court: Rect; kind: PassiveKind }[] = [];
   const bankCount = 3 + Math.floor(rand() * 3);
   for (let i = 0; i < bankCount && leftovers.length > 0; i++) {
@@ -892,8 +800,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Board furniture: fiducials in three or four corners, a few mounting
-  // holes along the rim, and an edge legend.
   const fiducials: Point[] = [];
   const corners: Point[] = [
     { x: 24 + rand() * 20, y: 24 + rand() * 20 },
@@ -957,10 +863,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // ---- Stage 2 + 3: netlist-driven bus routing. ----
-  // Every routed bus goes somewhere deliberate: a netlist edge is realized as
-  // 2-6 parallel lanes fanning off consecutive pads, with a retry ladder of
-  // alternate diagonal positions, then fewer lanes, then a skip.
   const footCenter = (f: Footprint): Point => ({
     x: f.x + f.w / 2,
     y: f.y + f.h / 2,
@@ -980,8 +882,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     const aRef = src.foot ? footCenter(src.foot) : src.pt;
     const bRef = dst.foot ? footCenter(dst.foot) : dst.pt;
     for (let n = want; n >= 2; n--) {
-      // Preferred exit faces first, then the opposite long edge as fallback,
-      // so one blocked face does not kill the whole connection.
       for (const combo of [0, 1, 2, 3]) {
         const sFlip = combo & 1 ? -1 : 1;
         const dFlip = combo & 2 ? -1 : 1;
@@ -1034,10 +934,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
         }
         const halfLane = ((n - 1) / 2) * BUS_LANE_PITCH;
         const half = halfLane + BUS_CLEAR;
-        // A pad-row end keeps its first bend clear of the fanout zone: the
-        // shared parallel run starts BUS_END_SKIP out from the row, and an
-        // inner lane's miter can pull a corner back toward the row by up to
-        // halfLane, so the perpendicular stub covers both.
         const aStub = src.foot
           ? BUS_END_SKIP + halfLane + 2 + rand() * 6
           : BUS_STUB_MIN + rand() * (BUS_STUB_MAX - BUS_STUB_MIN);
@@ -1056,13 +952,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
               offsetPolyline(center, (k - (n - 1) / 2) * BUS_LANE_PITCH),
             );
           }
-          // Order-preserving fanout at each pad row: the shared parallel run
-          // stops at a boundary BUS_END_SKIP out from the row. Lanes (by
-          // their transverse coordinate at that boundary) and pads (by their
-          // coordinate along the row) are both sorted on the same world axis
-          // and paired in order, which makes crossings geometrically
-          // impossible; each pairing is realized as a straight perpendicular
-          // run off the pad plus one 45-degree jog onto the lane.
           const fanout = (pads: Pad[] | null, dir: Point, atStart: boolean) => {
             if (!pads) {
               return;
@@ -1081,8 +970,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
               const line = laneLines[order[r].k];
               const pad = sorted[r];
               pad.connected = true;
-              // The lane's straight stub crosses the row at its first/last
-              // point; the fanout boundary sits BUS_END_SKIP along the stub.
               const p0 = atStart ? line[0] : line[line.length - 1];
               const bx = p0.x + dir.x * BUS_END_SKIP;
               const by = p0.y + dir.y * BUS_END_SKIP;
@@ -1118,7 +1005,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     return false;
   };
 
-  // Service nodes tap into their one or two nearest major ICs.
   for (const node of nodes) {
     const near = majors
       .map((f) => {
@@ -1145,7 +1031,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Each major IC talks to one or two neighbours at bus-friendly distance.
   for (let i = 0; i < majors.length; i++) {
     const c1 = footCenter(majors[i]);
     const near = majors
@@ -1166,8 +1051,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Rim ICs: a few buses leave the board through the nearest edge, ending in
-  // a neat via row as if a connector or another board continues them.
   const rims = majors
     .map((f) => {
       const c = footCenter(f);
@@ -1200,10 +1083,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Decoupling ceramic caps: 2-4 hugging one long edge of each major IC,
-  // axis-parallel to the edge and aligned to pad columns (which now sit at
-  // the 5px lane pitch). The center offset clears the IC courtyard (5.5),
-  // the solder-mask margin (10) and the cap's own courtyard (5.8).
   for (const foot of majors) {
     const horiz = foot.w >= foot.h;
     const side = rand() < 0.5 ? -1 : 1;
@@ -1239,7 +1118,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Bulk electrolytic cans near some major ICs, plus a few scattered.
   const tryCan = (x: number, y: number): boolean => {
     const court = canCourt(x, y);
     if (rejected(court)) {
@@ -1259,7 +1137,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     const want = 1 + Math.floor(rand() * 2);
     let placed = 0;
     for (let attempt = 0; attempt < 6 && placed < want; attempt++) {
-      // Off a short (padless) edge: courtyard 3 + margin 10 + can court 7.5.
       const side = rand() < 0.5 ? -1 : 1;
       const off = 21 + rand() * 8;
       const x = horiz
@@ -1286,7 +1163,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Scattered discrete resistors and ceramic caps in open space.
   const looseParts = Math.min(10, Math.floor((w * h) / 150000));
   for (let i = 0; i < looseParts; i++) {
     for (let attempt = 0; attempt < 6; attempt++) {
@@ -1308,7 +1184,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Test points: a bare annular pad with an adjacent TP label, no courtyard.
   const tpCount = 3 + Math.floor(rand() * 3);
   for (let i = 0; i < tpCount; i++) {
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -1325,7 +1200,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // ---- Stage 4: via stitching rows in free space. ----
   const stitchDirs: Point[] = [
     { x: 1, y: 0 },
     { x: 0, y: 1 },
@@ -1376,8 +1250,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Ambient filler: same discipline. Demoted walks (inner layer) get a via at
-  // both ends so a dim trace reads as entering and leaving through plated holes.
   const ambient = Math.min(140, Math.floor((w * h) / AMBIENT_DIV));
   for (let i = 0; i < ambient; i++) {
     const start = {
@@ -1401,9 +1273,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Silkscreen reference designators, each anchored to its part's courtyard:
-  // preferred just above the top-left corner, nudged below / left / right
-  // when blocked, dropped when no side fits (the courtyard always prints).
   const silkRect = (x: number, y: number, text: string): Rect => ({
     x,
     y: y - 8,
@@ -1420,9 +1289,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     ];
     for (const s of spots) {
       const r = silkRect(s.x, s.y, text);
-      // Adjacency needs a tighter margin than parts use: 2px keeps the label
-      // clear of every courtyard (its own sits 3px away) without orphaning
-      // it PART_MARGIN away from the outline it names.
       if (
         r.x < 2 ||
         r.y < 2 ||
@@ -1466,10 +1332,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     placeSilkNear(`TP${tpIdx++}`, { x: tp.x - 4.5, y: tp.y - 4.5, w: 9, h: 9 });
   }
 
-  // ---- Stage 6: ground pour. ----
-  // A few large hatched regions grown greedily into free space by GRID steps,
-  // so the copper fill reads as filling the gaps between routing rather than
-  // as random stamps.
   const hatches: Rect[] = [];
   const pourCount = Math.min(
     POUR_MAX,
@@ -1516,8 +1378,6 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     }
   }
 
-  // Pin escapes resolve last, once all copper and furniture is known, so no
-  // escape tip (where its via lands) sits on a trace or inside another part.
   const escapeKeep = (x: number, y: number) =>
     !copperAt(x, y) &&
     !furniture.some(
@@ -1547,19 +1407,12 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
   };
 }
 
-/**
- * Paints the complete static board (pad-dot grid, hatch pours, traces, vias,
- * footprints, passives, cans, courtyards, silkscreen, fiducials) onto a
- * context whose transform is already set for the device pixel ratio. It does
- * not size or clear the canvas and runs no animation.
- */
 export function paintBoard(
   g: CanvasRenderingContext2D,
   board: Board,
   w: number,
   h: number,
 ): void {
-  // Pad-dot grid.
   g.fillStyle = PAD_COLOR;
   const pitch = GRID * 2;
   for (let y = 0; y <= h; y += pitch) {
@@ -1568,7 +1421,6 @@ export function paintBoard(
     }
   }
 
-  // Hatched ground-plane patches, under the traces.
   g.lineWidth = 1;
   for (const patch of board.hatches) {
     g.save();
@@ -1597,8 +1449,6 @@ export function paintBoard(
     }
     g.stroke();
   };
-  // Inner-layer copper first, dim and thin, so top-layer copper paints over
-  // it and each crossing reads as a genuine two-layer board.
   g.lineWidth = 1.1;
   g.strokeStyle = TRACE_ALT_COLOR;
   for (const t of board.traces) {
@@ -1607,7 +1457,6 @@ export function paintBoard(
     }
     strokeTrace(t);
   }
-  // Top-layer copper: signal lanes fatter than ambient filler.
   for (const t of board.traces) {
     if (!t.connector && t.layer === 1) {
       continue;
@@ -1622,9 +1471,7 @@ export function paintBoard(
     strokeTrace(t);
   }
 
-  // Scattered IC footprints populate the board.
   for (const foot of board.footprints) {
-    // Pin escapes + vias, drawn first so the package body tucks over them.
     g.strokeStyle = TRACE_COLOR;
     g.lineWidth = 1;
     for (const esc of foot.escapes ?? []) {
@@ -1671,11 +1518,9 @@ export function paintBoard(
     }
   }
 
-  // Two-pad passives. Chip resistors: a 7x3.5 lighter body with two
-  // brighter end lands. Ceramic caps: a squarer body between two lands.
   for (const p of board.passives) {
     const res = p.kind === "res";
-    const l = res ? 5.5 : 5.6; // half-length along the part axis
+    const l = res ? 5.5 : 5.6;
     const landW = res ? 2 : 3;
     const landH = res ? 4 : 5.6;
     const bodyL = res ? 7 : 5.2;
@@ -1696,8 +1541,6 @@ export function paintBoard(
     }
   }
 
-  // Electrolytic cans: filled round body, a crisp silk ring, and a
-  // polarity stripe (a chord crescent on one side).
   for (const can of board.cans) {
     g.fillStyle = CAN_BODY;
     g.beginPath();
@@ -1715,7 +1558,6 @@ export function paintBoard(
     g.stroke();
   }
 
-  // Test points: a single bare annular pad.
   for (const tp of board.testpoints) {
     g.fillStyle = VIA_COLOR;
     g.beginPath();
@@ -1727,7 +1569,6 @@ export function paintBoard(
     g.fill();
   }
 
-  // Fiducials: a filled dot inside an open ring.
   for (const f of board.fiducials) {
     g.fillStyle = VIA_COLOR;
     g.beginPath();
@@ -1740,7 +1581,6 @@ export function paintBoard(
     g.stroke();
   }
 
-  // Mounting holes: a wide annular ring around a bare hole.
   for (const m of board.holes) {
     g.fillStyle = VIA_COLOR;
     g.beginPath();
@@ -1752,12 +1592,9 @@ export function paintBoard(
     g.fill();
   }
 
-  // Vias: a teardrop fillet where the trace meets the pad (so it reads as
-  // routed, not drawn), then a crisp copper ring with a plated hole.
   const padR = 2.3;
   for (const via of board.vias) {
     g.fillStyle = VIA_COLOR;
-    // Teardrop: a wedge from the incoming trace out to the pad edge.
     const ax = via.x - via.dx * padR * 2.7;
     const ay = via.y - via.dy * padR * 2.7;
     const px = -via.dy * padR;
@@ -1768,7 +1605,6 @@ export function paintBoard(
     g.lineTo(via.x - px, via.y - py);
     g.closePath();
     g.fill();
-    // Annular ring.
     g.beginPath();
     g.arc(via.x, via.y, padR, 0, Math.PI * 2);
     g.fill();
@@ -1778,8 +1614,6 @@ export function paintBoard(
     g.fill();
   }
 
-  // Silkscreen courtyards: thin square-cornered body outlines printed
-  // around every part (circles around electrolytic cans).
   g.strokeStyle = COURT_COLOR;
   g.lineWidth = 1;
   for (const ct of board.courtyards) {
@@ -1792,7 +1626,6 @@ export function paintBoard(
     }
   }
 
-  // Silkscreen reference designators, printed on top like a real board.
   g.fillStyle = SILK_SCATTER;
   g.textAlign = "left";
   g.font = `7px ${MONO_FONT}`;

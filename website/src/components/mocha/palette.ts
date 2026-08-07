@@ -1,8 +1,3 @@
-/**
- * Shared scene palette for the Mocha product page and landing band. Blue
- * carries the services, coral carries the messages; everything else is data
- * color, not decoration.
- */
 export const CYAN = "#16b9e4";
 export const TEAL = "#5eead4";
 export const CORAL = "#f0786a";

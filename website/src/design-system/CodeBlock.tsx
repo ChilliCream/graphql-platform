@@ -11,7 +11,6 @@ import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 const DEFAULT_THEME: BundledTheme = "github-dark";
 
 type CodeBlockProps = ComponentPropsWithoutRef<"pre"> & {
-  /** Shiki theme for token colors. Defaults to the site-wide github-dark. */
   theme?: BundledTheme;
 };
 

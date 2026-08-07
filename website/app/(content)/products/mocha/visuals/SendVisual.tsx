@@ -3,6 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  type Polyline,
+  clamp01,
+  easeInOutCubic,
+  easeOutCubic,
+  laneD,
+  measure,
+  pointAt,
+  ramp,
+} from "@/src/components/mocha/geometry";
+import {
   CORAL,
   CORAL_SOFT,
   CYAN,
@@ -11,22 +21,12 @@ import {
   NAVY,
   SLATE,
 } from "@/src/components/mocha/palette";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
-type Pt = readonly [number, number];
-
-interface Polyline {
-  readonly pts: readonly Pt[];
-  readonly lens: readonly number[];
-  readonly total: number;
-}
-
-// Master loop. The story is the simultaneity at 2700: the green response
-// heads back to the client while the coral command parks in the queue, then
-// a long readable beat before the queue is drained.
 const T = 10000;
+const REST_T = 8700;
 const H = 176;
-// Below this width the two service panels and the queue slot get too cramped
-// to read, so we lay out at MIN_W and scale the stage down via the viewBox.
 const MIN_W = 700;
 
 const INK = "#a1a3af";
@@ -51,12 +51,10 @@ const PANEL_Y = 36;
 const PANEL_H = 110;
 const ROW_TOP = 74;
 const ROW_H = 34;
-// The queue sits inline on the command run between the two services: one
-// straight copper lane with the slot plated onto it.
 const SLOT_W = 70;
 const SLOT_H = 14;
-const PW1 = 158; // ORDERS SERVICE panel width
-const PW2 = 196; // INVENTORY SERVICE panel width
+const PW1 = 158;
+const PW2 = 196;
 
 interface Layout {
   readonly px1: number;
@@ -78,55 +76,6 @@ interface Layout {
   readonly lane3D: string;
 }
 
-function measure(pts: readonly Pt[]): Polyline {
-  const lens: number[] = [];
-  let total = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const len = Math.hypot(
-      pts[i + 1][0] - pts[i][0],
-      pts[i + 1][1] - pts[i][1],
-    );
-    lens.push(len);
-    total += len;
-  }
-  return { pts, lens, total };
-}
-
-function pointAt(p: Polyline, u: number): Pt {
-  const target = clamp01(u) * p.total;
-  let acc = 0;
-  for (let i = 0; i < p.lens.length; i++) {
-    if (target <= acc + p.lens[i] || i === p.lens.length - 1) {
-      const t = p.lens[i] === 0 ? 0 : (target - acc) / p.lens[i];
-      const [ax, ay] = p.pts[i];
-      const [bx, by] = p.pts[i + 1];
-      return [ax + (bx - ax) * t, ay + (by - ay) * t];
-    }
-    acc += p.lens[i];
-  }
-  return p.pts[p.pts.length - 1];
-}
-
-function laneD(pts: readonly Pt[]): string {
-  return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
-}
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number): number {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-function easeInOutCubic(u: number): number {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
 function buildLayout(lw: number): Layout {
   const chipR = CL_X + CL_W;
   const flexTotal = lw - (chipR + PW1 + PW2 + 2 * M);
@@ -134,7 +83,6 @@ function buildLayout(lw: number): Layout {
   const px1 = chipR + run1;
   const x1R = px1 + PW1;
   const px2 = lw - M - PW2;
-  // The queue slot centers on the straight run between the panels.
   const slotL = x1R + (px2 - x1R - SLOT_W) / 2;
   const slotR = slotL + SLOT_W;
   const rowX1 = px1 + 12;
@@ -152,9 +100,6 @@ function buildLayout(lw: number): Layout {
     slotR,
     entry,
     front,
-    // Pulse polylines run a little past the painted lanes, into the panels to
-    // the handler rows (or to the queue entry / under the client chip), so
-    // every handoff is seamless.
     req: measure([
       [chipR, LANE_Y],
       [rowX1 + 14, LANE_Y],
@@ -186,7 +131,7 @@ function buildLayout(lw: number): Layout {
 export function SendVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(620);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
@@ -211,229 +156,174 @@ export function SendVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful static frame: the response tag
-      // already shown, the command parked in the queue. Keep it.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const setPop = (k: string, o: number, rise: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", o.toFixed(3));
-        el.setAttribute(
-          "transform",
-          `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
-        );
-      }
-    };
-
-    const setDot = (k: string, x: number, y: number, r?: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("cx", x.toFixed(2));
-        el.setAttribute("cy", y.toFixed(2));
-        if (r !== undefined) {
-          el.setAttribute("r", Math.max(0, r).toFixed(2));
-        }
-      }
-    };
-
-    const setRing = (k: string, s: number, r0: number, dr: number) => {
-      const el = E.get(k);
-      if (!el) {
-        return;
-      }
-      if (s < 0 || s >= 1) {
-        el.setAttribute("opacity", "0");
-        return;
-      }
-      el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
-      el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
-    };
-
-    const placePulse = (
-      p: string,
-      poly: Polyline,
-      u: number,
-      op: number,
-      coreR: number,
-    ) => {
-      const g = E.get(p);
-      if (!g) {
-        return;
-      }
-      if (op <= 0.01 || coreR <= 0.05) {
-        g.setAttribute("opacity", "0");
-        return;
-      }
-      g.setAttribute("opacity", op.toFixed(3));
-      const d = clamp01(u) * poly.total;
-      const [x, y] = pointAt(poly, u);
-      setDot(p + "core", x, y, coreR);
-      setDot(p + "in", x, y, coreR * 0.45);
-      setDot(p + "glow", x, y, Math.max(0.6, coreR * 2.4));
-      for (let k = 1; k <= 3; k++) {
-        const dk = d - 7 * k;
-        const el = E.get(p + "t" + k);
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
         if (el) {
-          if (dk <= 0) {
-            el.setAttribute("opacity", "0");
-          } else {
-            const [tx, ty] = pointAt(poly, dk / poly.total);
-            el.setAttribute("cx", tx.toFixed(2));
-            el.setAttribute("cy", ty.toFixed(2));
-            el.setAttribute("opacity", (0.45 - 0.12 * k).toFixed(2));
+          el.setAttribute("opacity", v.toFixed(3));
+        }
+      };
+
+      const setPop = (k: string, o: number, rise: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("opacity", o.toFixed(3));
+          el.setAttribute(
+            "transform",
+            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
+          );
+        }
+      };
+
+      const setDot = (k: string, x: number, y: number, r?: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("cx", x.toFixed(2));
+          el.setAttribute("cy", y.toFixed(2));
+          if (r !== undefined) {
+            el.setAttribute("r", Math.max(0, r).toFixed(2));
           }
         }
-      }
-    };
+      };
 
-    const hidePulse = (p: string) => setO(p, 0);
-
-    const apply = (t: number) => {
-      const L = layoutRef.current;
-      const master = 1 - ramp(t, 9450, 9750);
-
-      // 1 · cyan request: client -> PlaceOrderHandler, then the row works.
-      if (t >= 300 && t < 1800) {
-        const u = easeInOutCubic(ramp(t, 300, 1800));
-        const r = 2.5 * (1 - ramp(t, 1680, 1800));
-        placePulse("req", L.req, u, Math.min((t - 300) / 150, 1), r);
-      } else {
-        hidePulse("req");
-      }
-      setRing("ring1", (t - 1800) / 700, 3, 12);
-      const w1 = t < 1950 ? ramp(t, 1800, 1950) : 1 - ramp(t, 2700, 3450);
-      const a1 = Math.max(0, w1);
-      setO("h1echo", a1 * 0.7);
-      setO("h1lit", a1 * 0.9);
-      setO("pw1", a1 * 0.07);
-      setO("pe1", a1 * 0.55);
-      setO("pl1", a1 * 0.9);
-      setO("ph1", a1 * 0.5);
-
-      // 2 · at 2700 TWO things leave at once. Green response back to the
-      // client; it dips under the chip and the 200 tag pops in and holds.
-      if (t >= 2700 && t < 4100) {
-        const u = easeInOutCubic(ramp(t, 2700, 4100));
-        placePulse("resp", L.resp, u, Math.min((t - 2700) / 150, 1), 2.5);
-      } else {
-        hidePulse("resp");
-      }
-      setRing("ringC", (t - 4100) / 650, 3, 10);
-      const cl = t < 4250 ? ramp(t, 4100, 4250) : 1 - ramp(t, 4250, 5150);
-      setO("clLit", Math.max(0, cl) * 0.9);
-      setO("clGlow", Math.max(0, cl) * 0.25);
-      const tp = easeOutCubic(ramp(t, 4100, 4600));
-      setPop("tag200", tp * 0.92 * master, tp);
-
-      // ... while the coral command runs on to the queue and parks.
-      if (t >= 2700 && t < 4400) {
-        const u = easeInOutCubic(ramp(t, 2700, 4400));
-        placePulse("cmd", L.cmd, u, Math.min((t - 2700) / 150, 1), 2.5);
-      } else {
-        hidePulse("cmd");
-      }
-      setRing("ringQ", (t - 4400) / 650, 2, 8);
-
-      // 3 · the dot slides to the front and just SITS there until 6900: the
-      // caller is done, the work is not.
-      const dot = E.get("qdot");
-      if (dot) {
-        if (t >= 4400 && t < 6900) {
-          const u = easeOutCubic(ramp(t, 4400, 4900));
-          setDot("qdot", L.entry + (L.front - L.entry) * u, LANE_Y);
-          dot.setAttribute("opacity", "0.95");
-        } else {
-          dot.setAttribute("opacity", "0");
+      const setRing = (k: string, s: number, r0: number, dr: number) => {
+        const el = E.get(k);
+        if (!el) {
+          return;
         }
-      }
+        if (s < 0 || s >= 1) {
+          el.setAttribute("opacity", "0");
+          return;
+        }
+        el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
+        el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
+      };
 
-      // 4 · the queue drains: the dot travels into INVENTORY and the handler
-      // row flashes; "handled later" blinks below.
-      if (t >= 6900 && t < 8400) {
-        const u = easeInOutCubic(ramp(t, 6900, 8400));
-        const r = 2.5 * (1 - ramp(t, 8280, 8400));
-        placePulse("dlv", L.dlv, u, Math.min((t - 6900) / 150, 1), r);
-      } else {
-        hidePulse("dlv");
-      }
-      setRing("ring2", (t - 8400) / 700, 3, 12);
-      const w2 = t < 8550 ? ramp(t, 8400, 8550) : 1 - ramp(t, 8850, 9600);
-      const a2 = Math.max(0, w2);
-      setO("h2echo", a2 * 0.7);
-      setO("h2lit", a2 * 0.9);
-      setO("pw2", a2 * 0.07);
-      setO("pe2", a2 * 0.55);
-      setO("pl2", a2 * 0.9);
-      setO("ph2", a2 * 0.5);
+      const placePulse = (
+        p: string,
+        poly: Polyline,
+        u: number,
+        op: number,
+        coreR: number,
+      ) => {
+        const g = E.get(p);
+        if (!g) {
+          return;
+        }
+        if (op <= 0.01 || coreR <= 0.05) {
+          g.setAttribute("opacity", "0");
+          return;
+        }
+        g.setAttribute("opacity", op.toFixed(3));
+        const d = clamp01(u) * poly.total;
+        const [x, y] = pointAt(poly, u);
+        setDot(p + "core", x, y, coreR);
+        setDot(p + "in", x, y, coreR * 0.45);
+        setDot(p + "glow", x, y, Math.max(0.6, coreR * 2.4));
+        for (let k = 1; k <= 3; k++) {
+          const dk = d - 7 * k;
+          const el = E.get(p + "t" + k);
+          if (el) {
+            if (dk <= 0) {
+              el.setAttribute("opacity", "0");
+            } else {
+              const [tx, ty] = pointAt(poly, dk / poly.total);
+              el.setAttribute("cx", tx.toFixed(2));
+              el.setAttribute("cy", ty.toFixed(2));
+              el.setAttribute("opacity", (0.45 - 0.12 * k).toFixed(2));
+            }
+          }
+        }
+      };
 
-      const de = t - 8550;
-      let dd = 0;
-      if (de >= 0) {
-        dd = de < 1050 ? (Math.floor(de / 350) % 2 === 0 ? 0.9 : 0.3) : 0.6;
-      }
-      setO("later", dd * master);
-    };
+      const hidePulse = (p: string) => setO(p, 0);
 
-    let t = 0;
-    let last = 0;
+      const apply = (t: number) => {
+        const L = layoutRef.current;
+        const master = 1 - ramp(t, 9450, 9750);
 
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      apply(t);
-      raf = requestAnimationFrame(step);
-    };
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
+        if (t >= 300 && t < 1800) {
+          const u = easeInOutCubic(ramp(t, 300, 1800));
+          const r = 2.5 * (1 - ramp(t, 1680, 1800));
+          placePulse("req", L.req, u, Math.min((t - 300) / 150, 1), r);
+        } else {
+          hidePulse("req");
+        }
+        setRing("ring1", (t - 1800) / 700, 3, 12);
+        const w1 = t < 1950 ? ramp(t, 1800, 1950) : 1 - ramp(t, 2700, 3450);
+        const a1 = Math.max(0, w1);
+        setO("h1echo", a1 * 0.7);
+        setO("h1lit", a1 * 0.9);
+        setO("pw1", a1 * 0.07);
+        setO("pe1", a1 * 0.55);
+        setO("pl1", a1 * 0.9);
+        setO("ph1", a1 * 0.5);
 
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+        if (t >= 2700 && t < 4100) {
+          const u = easeInOutCubic(ramp(t, 2700, 4100));
+          placePulse("resp", L.resp, u, Math.min((t - 2700) / 150, 1), 2.5);
+        } else {
+          hidePulse("resp");
+        }
+        setRing("ringC", (t - 4100) / 650, 3, 10);
+        const cl = t < 4250 ? ramp(t, 4100, 4250) : 1 - ramp(t, 4250, 5150);
+        setO("clLit", Math.max(0, cl) * 0.9);
+        setO("clGlow", Math.max(0, cl) * 0.25);
+        const tp = easeOutCubic(ramp(t, 4100, 4600));
+        setPop("tag200", tp * 0.92 * master, tp);
+
+        if (t >= 2700 && t < 4400) {
+          const u = easeInOutCubic(ramp(t, 2700, 4400));
+          placePulse("cmd", L.cmd, u, Math.min((t - 2700) / 150, 1), 2.5);
+        } else {
+          hidePulse("cmd");
+        }
+        setRing("ringQ", (t - 4400) / 650, 2, 8);
+
+        const dot = E.get("qdot");
+        if (dot) {
+          if (t >= 4400 && t < 6900) {
+            const u = easeOutCubic(ramp(t, 4400, 4900));
+            setDot("qdot", L.entry + (L.front - L.entry) * u, LANE_Y);
+            dot.setAttribute("opacity", "0.95");
+          } else {
+            dot.setAttribute("opacity", "0");
+          }
+        }
+
+        if (t >= 6900 && t < 8400) {
+          const u = easeInOutCubic(ramp(t, 6900, 8400));
+          const r = 2.5 * (1 - ramp(t, 8280, 8400));
+          placePulse("dlv", L.dlv, u, Math.min((t - 6900) / 150, 1), r);
+        } else {
+          hidePulse("dlv");
+        }
+        setRing("ring2", (t - 8400) / 700, 3, 12);
+        const w2 = t < 8550 ? ramp(t, 8400, 8550) : 1 - ramp(t, 8850, 9600);
+        const a2 = Math.max(0, w2);
+        setO("h2echo", a2 * 0.7);
+        setO("h2lit", a2 * 0.9);
+        setO("pw2", a2 * 0.07);
+        setO("pe2", a2 * 0.55);
+        setO("pl2", a2 * 0.9);
+        setO("ph2", a2 * 0.5);
+
+        const de = t - 8550;
+        let dd = 0;
+        if (de >= 0) {
+          dd = de < 1050 ? (Math.floor(de / 350) % 2 === 0 ? 0.9 : 0.3) : 0.6;
+        }
+        setO("later", dd * master);
+      };
+
+      return { frame: apply, rest: () => apply(REST_T) };
+    },
+    { period: T },
+  );
 
   const pulseGlyph = (p: string, main: string, soft: string) => (
     <g key={p} ref={set(p)} opacity={0}>
@@ -483,10 +373,8 @@ export function SendVisual() {
             </pattern>
           </defs>
 
-          {/* substrate: faint pad-dot grid behind everything */}
           <rect width={lw} height={H} fill="url(#send-pcb-grid)" />
 
-          {/* ── copper lanes: request, then the queued command run ──── */}
           <path
             d={L.lane1D}
             fill="none"
@@ -508,7 +396,6 @@ export function SendVisual() {
             strokeLinejoin="round"
           />
 
-          {/* via ring at the queue exit; the docks get pin rows instead */}
           <circle
             cx={L.slotR}
             cy={LANE_Y}
@@ -518,7 +405,6 @@ export function SendVisual() {
             strokeWidth={1}
           />
 
-          {/* ── queue slot inline on the command run ───────────────── */}
           <rect
             x={L.slotL}
             y={LANE_Y - SLOT_H / 2}
@@ -540,7 +426,6 @@ export function SendVisual() {
           >
             reserve-inventory
           </text>
-          {/* parked command; the reduced-motion frame shows it waiting */}
           <circle
             ref={set("qdot")}
             cx={L.front}
@@ -550,7 +435,6 @@ export function SendVisual() {
             opacity={0.95}
           />
 
-          {/* ── ORDERS SERVICE panel ───────────────────────────────── */}
           <rect
             x={L.px1}
             y={PANEL_Y}
@@ -562,7 +446,6 @@ export function SendVisual() {
             strokeWidth={1}
           />
           <circle cx={L.px1 + 5.5} cy={PANEL_Y + 5.5} r={1.2} fill={SILK} />
-          {/* pin rows where the lanes dock at the package edges */}
           {[-5, 0, 5].map((dy) => (
             <g key={dy}>
               <rect
@@ -581,7 +464,6 @@ export function SendVisual() {
               />
             </g>
           ))}
-          {/* work-beat wash + border echo, driven with the handler window */}
           <rect
             ref={set("pw1")}
             x={L.px1}
@@ -614,7 +496,6 @@ export function SendVisual() {
           >
             ORDERS SERVICE
           </text>
-          {/* activity LED: dim silk dot at rest, cyan while the handler works */}
           <circle
             cx={L.px1 + PW1 - 10}
             cy={PANEL_Y + 10}
@@ -701,7 +582,6 @@ export function SendVisual() {
             opacity={0}
           />
 
-          {/* ── INVENTORY SERVICE panel ────────────────────────────── */}
           <rect
             x={L.px2}
             y={PANEL_Y}
@@ -723,7 +603,6 @@ export function SendVisual() {
               fill={PAD_FILL}
             />
           ))}
-          {/* work-beat wash + border echo, driven with the handler window */}
           <rect
             ref={set("pw2")}
             x={L.px2}
@@ -756,7 +635,6 @@ export function SendVisual() {
           >
             INVENTORY SERVICE
           </text>
-          {/* activity LED: dim silk dot at rest, coral while the handler works */}
           <circle
             cx={L.px2 + PW2 - 10}
             cy={PANEL_Y + 10}
@@ -856,13 +734,11 @@ export function SendVisual() {
             handled later
           </text>
 
-          {/* ── pulses ─────────────────────────────────────────────── */}
           {pulseGlyph("req", CYAN, CYAN_SOFT)}
           {pulseGlyph("resp", GREEN, GREEN_SOFT)}
           {pulseGlyph("cmd", CORAL, CORAL_SOFT)}
           {pulseGlyph("dlv", CORAL, CORAL_SOFT)}
 
-          {/* arrival rings */}
           <circle
             ref={set("ring1")}
             cx={L.px1}
@@ -904,7 +780,6 @@ export function SendVisual() {
             opacity={0}
           />
 
-          {/* ── client chip, drawn last so the response dips under it ─ */}
           <text
             x={CL_X}
             y={chipTop - 10}
@@ -938,7 +813,6 @@ export function SendVisual() {
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
-          {/* pin-1 dot + pin row where the request lane docks */}
           <circle cx={CL_X + 4.5} cy={chipTop + 4.5} r={1.2} fill={SILK} />
           {[-5, 0, 5].map((dy) => (
             <rect
@@ -974,7 +848,6 @@ export function SendVisual() {
           >
             POST /orders
           </text>
-          {/* the reduced-motion frame keeps the 200 tag visible */}
           <g ref={set("tag200")} opacity={0.92}>
             <text
               x={CL_X}

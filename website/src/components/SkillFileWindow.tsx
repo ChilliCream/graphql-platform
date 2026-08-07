@@ -13,21 +13,11 @@ interface SkillToken {
 }
 
 interface SkillFileWindowProps {
-  /** Skill slug shown after `name:` in the frontmatter (teal). */
   readonly name: string;
-  /** The SKILL.md body: the skill's description prose, rendered under the
-   *  frontmatter and soft-wrapped. */
   readonly description: string;
   readonly className?: string;
 }
 
-/**
- * A reviewed SKILL.md rendered as a compact code-editor window: a violet "MD"
- * badge and SKILL.md title, a `name` frontmatter block, the description as the
- * file body, all over a line gutter, and a "reviewed" footer. Shared by the
- * home page's agent-skills facet and the agentic-coding skills grid so both
- * read as the same artifact.
- */
 export function SkillFileWindow({
   name,
   description,

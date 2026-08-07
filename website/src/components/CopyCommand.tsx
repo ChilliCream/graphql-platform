@@ -102,7 +102,8 @@ export function CopyCommand({
           <CopyGlyph className="size-4" />
         )}
       </button>
-      <code
+      <div
+        role="group"
         tabIndex={0}
         aria-label={`Shell command: ${command}`}
         className={[
@@ -110,12 +111,14 @@ export function CopyCommand({
           size === "md" ? "text-sm" : "text-[0.65rem]",
         ].join(" ")}
       >
-        <span className="text-cc-ink-faint select-none">$ </span>
-        <span className="text-cc-accent">{executable}</span>
-        {args.length > 0 && (
-          <span className="text-cc-ink"> {args.join(" ")}</span>
-        )}
-      </code>
+        <code>
+          <span className="text-cc-ink-faint select-none">$ </span>
+          <span className="text-cc-accent">{executable}</span>
+          {args.length > 0 && (
+            <span className="text-cc-ink"> {args.join(" ")}</span>
+          )}
+        </code>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import {
+  easeInOutCubic,
+  easeOutCubic,
+  ramp,
+} from "@/src/components/mocha/geometry";
 import {
   AMBER,
   CORAL,
@@ -11,11 +16,12 @@ import {
   MONO_FONT,
   VIOLET,
 } from "@/src/components/mocha/palette";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
 const T = 9000;
+const REST_T = 8600;
 const H = 240;
-// Below this width the two service panels get too cramped to read, so we lay
-// out at MIN_W and scale the whole stage down via the SVG viewBox.
 const MIN_W = 600;
 
 const INK = "#a1a3af";
@@ -35,8 +41,6 @@ const PANEL_Y = 16;
 const PANEL_H = 156;
 const FRAME_H = 108;
 const ROW_H = 34;
-// Left frame row 2 (outbox) and right frame row 1 (inbox) share this center
-// line, so one straight copper lane connects OUTBOX -> RABBITMQ -> INBOX.
 const LANE_Y = 129;
 const LEFT_FY = 50;
 const RIGHT_FY = 90;
@@ -75,7 +79,6 @@ const R_ROW2: readonly Seg[] = [
 
 const L1_LEN = L_ROW1.reduce((n, s) => n + s.t.length, 0);
 const L2_LEN = L_ROW2.reduce((n, s) => n + s.t.length, 0);
-// Widest row text: "OUTBOX · OrderPlaced · 7f3a".
 const MAX_CHARS = 27;
 
 const STATUS = [
@@ -111,8 +114,6 @@ interface Layout {
   readonly rowFont: number;
 }
 
-// Square-ish dashed rect with a gap in the top edge for the ONE TRANSACTION
-// tag; the tight radius matches the package corners on the panels.
 function framePath(
   x: number,
   y: number,
@@ -182,39 +183,27 @@ function buildLayout(w: number): Layout {
   };
 }
 
-function clamp01(v: number) {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number) {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeInOutCubic(u: number) {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
-function easeOutCubic(u: number) {
-  return 1 - Math.pow(1 - u, 3);
-}
-
 export function OutboxVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(620);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
   const layoutRef = useRef(layout);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     layoutRef.current = layout;
   }, [layout]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const node = wrapRef.current;
     if (!node) {
       return;
+    }
+    const cw0 = node.getBoundingClientRect().width;
+    if (cw0 > 80) {
+      setW(Math.round(cw0));
     }
     const ro = new ResizeObserver((entries) => {
       const cw = entries[0]?.contentRect.width;
@@ -226,287 +215,227 @@ export function OutboxVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful final frame; keep it static.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
+      let n1Cache = -1;
+      let n2Cache = -1;
+      let statusCache = -1;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-    let n1Cache = -1;
-    let n2Cache = -1;
-    let statusCache = -1;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const setPop = (k: string, o: number, rise: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", o.toFixed(3));
-        el.setAttribute(
-          "transform",
-          `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
-        );
-      }
-    };
-
-    const writeTyped = (prefix: string, segs: readonly Seg[], n: number) => {
-      let cum = 0;
-      for (let i = 0; i < segs.length; i++) {
-        const el = E.get(prefix + i);
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
         if (el) {
-          const len = Math.max(0, Math.min(segs[i].t.length, n - cum));
-          el.textContent = segs[i].t.slice(0, len);
+          el.setAttribute("opacity", v.toFixed(3));
         }
-        cum += segs[i].t.length;
-      }
-    };
+      };
 
-    const setDot = (k: string, x: number, y: number, r?: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("cx", x.toFixed(1));
-        el.setAttribute("cy", y.toFixed(1));
-        if (r !== undefined) {
-          el.setAttribute("r", Math.max(0, r).toFixed(2));
-        }
-      }
-    };
-
-    const setRing = (k: string, s: number, r0: number, dr: number) => {
-      const el = E.get(k);
-      if (!el) {
-        return;
-      }
-      if (s < 0 || s >= 1) {
-        el.setAttribute("opacity", "0");
-        return;
-      }
-      el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
-      el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
-    };
-
-    const placePulse = (
-      p: string,
-      d: number,
-      groupOp: number,
-      coreR: number,
-    ) => {
-      if (coreR <= 0.05 || groupOp <= 0.01) {
-        setO(p, 0);
-        return;
-      }
-      const L = layoutRef.current;
-      setO(p, groupOp);
-      const x = L.x1 + Math.max(0, d);
-      setDot(p + "core", x, LANE_Y, coreR);
-      setDot(p + "inner", x, LANE_Y, coreR * 0.45);
-      setDot(p + "glow", x, LANE_Y, Math.max(0.6, coreR * 2.4));
-      for (let k = 1; k <= 3; k++) {
-        const dk = d - k * 7;
-        const el = E.get(p + "t" + k);
+      const setPop = (k: string, o: number, rise: number) => {
+        const el = E.get(k);
         if (el) {
-          el.setAttribute("cx", (L.x1 + Math.max(0, dk)).toFixed(1));
-          el.setAttribute("cy", LANE_Y.toFixed(1));
+          el.setAttribute("opacity", o.toFixed(3));
           el.setAttribute(
-            "opacity",
-            dk > 2 ? (0.5 - k * 0.13).toFixed(2) : "0",
+            "transform",
+            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
           );
         }
-      }
-    };
+      };
 
-    const apply = (t: number) => {
-      const L = layoutRef.current;
-      const master = 1 - ramp(t, 8730, 8960);
-
-      // Phase 1: business row and outbox row written in one transaction.
-      setO("r1g", ramp(t, 150, 450) * master);
-      setO("r2g", ramp(t, 930, 1230) * master);
-      const n1 = Math.round(L1_LEN * ramp(t, 150, 840));
-      if (n1 !== n1Cache) {
-        n1Cache = n1;
-        writeTyped("r1s", L_ROW1, n1);
-      }
-      const n2 = Math.round(L2_LEN * ramp(t, 930, 1860));
-      if (n2 !== n2Cache) {
-        n2Cache = n2;
-        writeTyped("r2s", L_ROW2, n2);
-      }
-
-      // ORDERS SERVICE activity: wash, border and LED warm with the first
-      // row of the transaction and cool once the delivery pulse has left.
-      const actL =
-        easeOutCubic(ramp(t, 150, 450)) *
-        (1 - easeInOutCubic(ramp(t, 3375, 4025)));
-      setO("pwL", actL * 0.07);
-      setO("peL", actL * 0.5);
-      setO("plL", actL * 0.9);
-      setO("phL", actL * 0.5);
-
-      // Left TX frame commits: green border flash + COMMIT tag pops.
-      const f1 =
-        t < 2250
-          ? easeOutCubic(ramp(t, 2025, 2250))
-          : 1 - easeInOutCubic(ramp(t, 2250, 3075));
-      setO("fxL", f1 * 0.9);
-      setO("fxLg", f1 * 0.25);
-      const b1 = easeOutCubic(ramp(t, 2145, 2550));
-      setPop("cmL", b1 * master, b1);
-
-      // Phase 2: coral delivery pulse crosses through the broker.
-      const e1 = t < 3075 ? ramp(t, 2925, 3075) : 1 - ramp(t, 3075, 3675);
-      setO("obEcho", Math.max(0, e1) * 0.6);
-      if (t >= 3075 && t < 4125) {
-        const u = easeInOutCubic(ramp(t, 3075, 4125));
-        placePulse("p1", u * L.laneTotal, Math.min(1, (t - 3075) / 150), 2.5);
-      } else if (t >= 4125 && t < 4470) {
-        // through the dock and INTO the inbox row, absorbed as it lands
-        const v = easeInOutCubic(ramp(t, 4125, 4470));
-        placePulse(
-          "p1",
-          L.laneTotal + v * L.inboxRun,
-          1 - ramp(t, 4310, 4470),
-          2.5,
-        );
-      } else {
-        setO("p1", 0);
-      }
-      const lit = Math.max(
-        easeOutCubic(ramp(t, 3405, 3555)) *
-          (1 - easeInOutCubic(ramp(t, 3705, 4050))),
-        easeOutCubic(ramp(t, 6840, 6990)) *
-          (1 - easeInOutCubic(ramp(t, 7140, 7485))),
-      );
-      setO("chipLit", lit * 0.9);
-      setO("chipLitTx", lit);
-      setO("chipGlow", lit * 0.2);
-
-      // Arrival at the inbox: coral ring at the entry via as the pulse
-      // crosses into the panel, cyan row flash and status once it lands.
-      setRing("ring", ((t - 4125 + T) % T) / 700, 3, 11);
-      const e2 = t < 4620 ? ramp(t, 4470, 4620) : 1 - ramp(t, 4620, 5520);
-      setO("inEchoC", Math.max(0, e2) * 0.7);
-      const e3 = t < 5220 ? ramp(t, 5070, 5220) : 1 - ramp(t, 5220, 6045);
-      setO("hEcho", Math.max(0, e3) * 0.6);
-
-      // BILLING SERVICE activity: hot from the landing through the handler
-      // beat, cooling only after the commit flash has fired.
-      const hwR =
-        easeOutCubic(ramp(t, 4430, 4690)) *
-        (1 - easeInOutCubic(ramp(t, 5775, 6425)));
-      setO("pwR", hwR * 0.07);
-      setO("peR", hwR * 0.55);
-      setO("plR", hwR * 0.9);
-      setO("phR", hwR * 0.5);
-
-      const si = t >= 7530 ? 2 : t >= 4575 ? 1 : 0;
-      if (si !== statusCache) {
-        statusCache = si;
-        const el = E.get("status");
-        if (el) {
-          el.textContent = STATUS[si].t;
-          el.setAttribute("fill", STATUS[si].f);
+      const writeTyped = (prefix: string, segs: readonly Seg[], n: number) => {
+        let cum = 0;
+        for (let i = 0; i < segs.length; i++) {
+          const el = E.get(prefix + i);
+          if (el) {
+            const len = Math.max(0, Math.min(segs[i].t.length, n - cum));
+            el.textContent = segs[i].t.slice(0, len);
+          }
+          cum += segs[i].t.length;
         }
-      }
+      };
 
-      // Right TX frame commits.
-      const f2 =
-        t < 5625
-          ? easeOutCubic(ramp(t, 5400, 5625))
-          : 1 - easeInOutCubic(ramp(t, 5625, 6450));
-      setO("fxR", f2 * 0.9);
-      setO("fxRg", f2 * 0.25);
-      const b2 = easeOutCubic(ramp(t, 5520, 5925));
-      setPop("cmR", b2 * master, b2);
+      const setDot = (k: string, x: number, y: number, r?: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("cx", x.toFixed(1));
+          el.setAttribute("cy", y.toFixed(1));
+          if (r !== undefined) {
+            el.setAttribute("r", Math.max(0, r).toFixed(2));
+          }
+        }
+      };
 
-      // Phase 3: amber redelivery of the same id dissolves inside the inbox.
-      if (t >= 6525 && t < 7500) {
-        const u = easeInOutCubic(ramp(t, 6525, 7500));
-        placePulse("p2", u * L.laneTotal, Math.min(1, (t - 6525) / 180), 2.5);
-      } else if (t >= 7500 && t < 7995) {
-        const v = easeInOutCubic(ramp(t, 7500, 7995));
-        const r = 2.5 * (1 - easeInOutCubic(ramp(t, 7680, 7995)));
-        placePulse(
-          "p2",
-          L.laneTotal + v * L.inboxRun,
-          1 - ramp(t, 7770, 7995),
-          r,
+      const setRing = (k: string, s: number, r0: number, dr: number) => {
+        const el = E.get(k);
+        if (!el) {
+          return;
+        }
+        if (s < 0 || s >= 1) {
+          el.setAttribute("opacity", "0");
+          return;
+        }
+        el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
+        el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
+      };
+
+      const placePulse = (
+        p: string,
+        d: number,
+        groupOp: number,
+        coreR: number,
+      ) => {
+        if (coreR <= 0.05 || groupOp <= 0.01) {
+          setO(p, 0);
+          return;
+        }
+        const L = layoutRef.current;
+        setO(p, groupOp);
+        const x = L.x1 + Math.max(0, d);
+        setDot(p + "core", x, LANE_Y, coreR);
+        setDot(p + "inner", x, LANE_Y, coreR * 0.45);
+        setDot(p + "glow", x, LANE_Y, Math.max(0.6, coreR * 2.4));
+        for (let k = 1; k <= 3; k++) {
+          const dk = d - k * 7;
+          const el = E.get(p + "t" + k);
+          if (el) {
+            el.setAttribute("cx", (L.x1 + Math.max(0, dk)).toFixed(1));
+            el.setAttribute("cy", LANE_Y.toFixed(1));
+            el.setAttribute(
+              "opacity",
+              dk > 2 ? (0.5 - k * 0.13).toFixed(2) : "0",
+            );
+          }
+        }
+      };
+
+      const apply = (t: number) => {
+        const L = layoutRef.current;
+        const master = 1 - ramp(t, 8730, 8960);
+
+        setO("r1g", ramp(t, 150, 450) * master);
+        setO("r2g", ramp(t, 930, 1230) * master);
+        const n1 = Math.round(L1_LEN * ramp(t, 150, 840));
+        if (n1 !== n1Cache) {
+          n1Cache = n1;
+          writeTyped("r1s", L_ROW1, n1);
+        }
+        const n2 = Math.round(L2_LEN * ramp(t, 930, 1860));
+        if (n2 !== n2Cache) {
+          n2Cache = n2;
+          writeTyped("r2s", L_ROW2, n2);
+        }
+
+        const actL =
+          easeOutCubic(ramp(t, 150, 450)) *
+          (1 - easeInOutCubic(ramp(t, 3375, 4025)));
+        setO("pwL", actL * 0.07);
+        setO("peL", actL * 0.5);
+        setO("plL", actL * 0.9);
+        setO("phL", actL * 0.5);
+
+        const f1 =
+          t < 2250
+            ? easeOutCubic(ramp(t, 2025, 2250))
+            : 1 - easeInOutCubic(ramp(t, 2250, 3075));
+        setO("fxL", f1 * 0.9);
+        setO("fxLg", f1 * 0.25);
+        const b1 = easeOutCubic(ramp(t, 2145, 2550));
+        setPop("cmL", b1 * master, b1);
+
+        const e1 = t < 3075 ? ramp(t, 2925, 3075) : 1 - ramp(t, 3075, 3675);
+        setO("obEcho", Math.max(0, e1) * 0.6);
+        if (t >= 3075 && t < 4125) {
+          const u = easeInOutCubic(ramp(t, 3075, 4125));
+          placePulse("p1", u * L.laneTotal, Math.min(1, (t - 3075) / 150), 2.5);
+        } else if (t >= 4125 && t < 4470) {
+          const v = easeInOutCubic(ramp(t, 4125, 4470));
+          placePulse(
+            "p1",
+            L.laneTotal + v * L.inboxRun,
+            1 - ramp(t, 4310, 4470),
+            2.5,
+          );
+        } else {
+          setO("p1", 0);
+        }
+        const lit = Math.max(
+          easeOutCubic(ramp(t, 3405, 3555)) *
+            (1 - easeInOutCubic(ramp(t, 3705, 4050))),
+          easeOutCubic(ramp(t, 6840, 6990)) *
+            (1 - easeInOutCubic(ramp(t, 7140, 7485))),
         );
-      } else {
-        setO("p2", 0);
-      }
-      const rt = ramp(t, 6645, 6975) * (1 - ramp(t, 7620, 8070));
-      setO("redeliv", rt * 0.9);
-      setRing("ringA", ((t - 7500 + T) % T) / 700, 3, 11);
-      const e4 = t < 7650 ? ramp(t, 7500, 7650) : 1 - ramp(t, 7650, 8475);
-      setO("inEchoA", Math.max(0, e4) * 0.75);
-      setO("plRa", Math.max(0, e4) * 0.9);
-      setO("phRa", Math.max(0, e4) * 0.5);
-      const de = t - 7725;
-      let dd = 0;
-      if (de >= 0) {
-        dd = de < 1170 ? (Math.floor(de / 195) % 2 === 0 ? 0.9 : 0.25) : 0.6;
-      }
-      setO("dedup", dd * master);
-    };
+        setO("chipLit", lit * 0.9);
+        setO("chipLitTx", lit);
+        setO("chipGlow", lit * 0.2);
 
-    let t = 0;
-    let last = 0;
+        setRing("ring", ((t - 4125 + T) % T) / 700, 3, 11);
+        const e2 = t < 4620 ? ramp(t, 4470, 4620) : 1 - ramp(t, 4620, 5520);
+        setO("inEchoC", Math.max(0, e2) * 0.7);
+        const e3 = t < 5220 ? ramp(t, 5070, 5220) : 1 - ramp(t, 5220, 6045);
+        setO("hEcho", Math.max(0, e3) * 0.6);
 
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      apply(t);
-      raf = requestAnimationFrame(step);
-    };
+        const hwR =
+          easeOutCubic(ramp(t, 4430, 4690)) *
+          (1 - easeInOutCubic(ramp(t, 5775, 6425)));
+        setO("pwR", hwR * 0.07);
+        setO("peR", hwR * 0.55);
+        setO("plR", hwR * 0.9);
+        setO("phR", hwR * 0.5);
 
-    // Paint the phase-0 frame so the static JSX defaults never flash.
-    apply(0);
+        const si = t >= 7530 ? 2 : t >= 4575 ? 1 : 0;
+        if (si !== statusCache) {
+          statusCache = si;
+          const el = E.get("status");
+          if (el) {
+            el.textContent = STATUS[si].t;
+            el.setAttribute("fill", STATUS[si].f);
+          }
+        }
 
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
+        const f2 =
+          t < 5625
+            ? easeOutCubic(ramp(t, 5400, 5625))
+            : 1 - easeInOutCubic(ramp(t, 5625, 6450));
+        setO("fxR", f2 * 0.9);
+        setO("fxRg", f2 * 0.25);
+        const b2 = easeOutCubic(ramp(t, 5520, 5925));
+        setPop("cmR", b2 * master, b2);
 
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+        if (t >= 6525 && t < 7500) {
+          const u = easeInOutCubic(ramp(t, 6525, 7500));
+          placePulse("p2", u * L.laneTotal, Math.min(1, (t - 6525) / 180), 2.5);
+        } else if (t >= 7500 && t < 7995) {
+          const v = easeInOutCubic(ramp(t, 7500, 7995));
+          const r = 2.5 * (1 - easeInOutCubic(ramp(t, 7680, 7995)));
+          placePulse(
+            "p2",
+            L.laneTotal + v * L.inboxRun,
+            1 - ramp(t, 7770, 7995),
+            r,
+          );
+        } else {
+          setO("p2", 0);
+        }
+        const rt = ramp(t, 6645, 6975) * (1 - ramp(t, 7620, 8070));
+        setO("redeliv", rt * 0.9);
+        setRing("ringA", ((t - 7500 + T) % T) / 700, 3, 11);
+        const e4 = t < 7650 ? ramp(t, 7500, 7650) : 1 - ramp(t, 7650, 8475);
+        setO("inEchoA", Math.max(0, e4) * 0.75);
+        setO("plRa", Math.max(0, e4) * 0.9);
+        setO("phRa", Math.max(0, e4) * 0.5);
+        const de = t - 7725;
+        let dd = 0;
+        if (de >= 0) {
+          dd = de < 1170 ? (Math.floor(de / 195) % 2 === 0 ? 0.9 : 0.25) : 0.6;
+        }
+        setO("dedup", dd * master);
+      };
+
+      apply(0);
+
+      return { frame: apply, rest: () => apply(REST_T) };
+    },
+    { period: T },
+  );
 
   const L = layout;
   const PL = L.left;
@@ -527,14 +456,20 @@ export function OutboxVisual() {
           className="block"
         >
           <defs>
-            <filter id="obxGlow" x="-300%" y="-300%" width="700%" height="700%">
+            <filter
+              id="obx-glow"
+              x="-300%"
+              y="-300%"
+              width="700%"
+              height="700%"
+            >
               <feGaussianBlur stdDeviation="2.6" />
             </filter>
-            <filter id="obxSoft" x="-40%" y="-90%" width="180%" height="280%">
+            <filter id="obx-soft" x="-40%" y="-90%" width="180%" height="280%">
               <feGaussianBlur stdDeviation="2.2" />
             </filter>
             <filter
-              id="obxFrameGlow"
+              id="obx-frame-glow"
               x="-12%"
               y="-20%"
               width="124%"
@@ -543,7 +478,7 @@ export function OutboxVisual() {
               <feGaussianBlur stdDeviation="2" />
             </filter>
             <pattern
-              id="obxGrid"
+              id="obx-grid"
               width={28}
               height={28}
               patternUnits="userSpaceOnUse"
@@ -552,10 +487,8 @@ export function OutboxVisual() {
             </pattern>
           </defs>
 
-          {/* pad-dot substrate behind everything */}
-          <rect x={0} y={0} width={lw} height={H} fill="url(#obxGrid)" />
+          <rect x={0} y={0} width={lw} height={H} fill="url(#obx-grid)" />
 
-          {/* ── left service panel ─────────────────────────────────── */}
           <rect
             x={PL.px}
             y={PL.py}
@@ -599,8 +532,6 @@ export function OutboxVisual() {
           >
             ORDERS SERVICE
           </text>
-          {/* activity LED: dim silk dot at rest, coral while the service
-              works its transaction and emits the delivery */}
           <circle
             cx={PL.px + L.pw - 10}
             cy={PL.py + 10}
@@ -616,7 +547,7 @@ export function OutboxVisual() {
             fill="none"
             stroke={CORAL}
             strokeWidth={1.5}
-            filter="url(#obxGlow)"
+            filter="url(#obx-glow)"
             opacity={0}
           />
           <circle
@@ -628,7 +559,6 @@ export function OutboxVisual() {
             opacity={0}
           />
 
-          {/* left TX frame */}
           <rect
             x={PL.fx}
             y={PL.fy}
@@ -651,7 +581,7 @@ export function OutboxVisual() {
             stroke={GREEN}
             strokeWidth={3}
             strokeDasharray="5 5"
-            filter="url(#obxFrameGlow)"
+            filter="url(#obx-frame-glow)"
             opacity={0}
           />
           <path
@@ -674,7 +604,6 @@ export function OutboxVisual() {
             ONE TRANSACTION
           </text>
 
-          {/* left ledger rows */}
           <g ref={set("r1g")} opacity={1}>
             <rect
               x={PL.rowX}
@@ -753,7 +682,6 @@ export function OutboxVisual() {
             opacity={0}
           />
 
-          {/* left COMMIT tag on the frame border */}
           <g ref={set("cmL")} opacity={0.92}>
             <rect
               x={PL.fx + PL.fw - 62}
@@ -778,7 +706,6 @@ export function OutboxVisual() {
             </text>
           </g>
 
-          {/* ── right service panel ────────────────────────────────── */}
           <rect
             x={PR.px}
             y={PR.py}
@@ -822,8 +749,6 @@ export function OutboxVisual() {
           >
             BILLING SERVICE
           </text>
-          {/* activity LED: dim silk dot at rest, coral while the delivery is
-              handled, amber blip when the redelivery is deduped */}
           <circle
             cx={PR.px + L.pw - 10}
             cy={PR.py + 10}
@@ -839,7 +764,7 @@ export function OutboxVisual() {
             fill="none"
             stroke={CORAL}
             strokeWidth={1.5}
-            filter="url(#obxGlow)"
+            filter="url(#obx-glow)"
             opacity={0}
           />
           <circle
@@ -858,7 +783,7 @@ export function OutboxVisual() {
             fill="none"
             stroke={AMBER}
             strokeWidth={1.5}
-            filter="url(#obxGlow)"
+            filter="url(#obx-glow)"
             opacity={0}
           />
           <circle
@@ -870,7 +795,6 @@ export function OutboxVisual() {
             opacity={0}
           />
 
-          {/* right TX frame */}
           <rect
             x={PR.fx}
             y={PR.fy}
@@ -893,7 +817,7 @@ export function OutboxVisual() {
             stroke={GREEN}
             strokeWidth={3}
             strokeDasharray="5 5"
-            filter="url(#obxFrameGlow)"
+            filter="url(#obx-frame-glow)"
             opacity={0}
           />
           <path
@@ -916,7 +840,6 @@ export function OutboxVisual() {
             ONE TRANSACTION
           </text>
 
-          {/* inbox row */}
           <rect
             x={PR.rowX}
             y={PR.row1Y}
@@ -984,7 +907,6 @@ export function OutboxVisual() {
             opacity={0}
           />
 
-          {/* handler row */}
           <rect
             x={PR.rowX}
             y={PR.row2Y}
@@ -1020,7 +942,6 @@ export function OutboxVisual() {
             opacity={0}
           />
 
-          {/* right COMMIT tag on the frame border */}
           <g ref={set("cmR")} opacity={0.92}>
             <rect
               x={PR.fx + PR.fw - 62}
@@ -1045,7 +966,6 @@ export function OutboxVisual() {
             </text>
           </g>
 
-          {/* dedupe note under the right panel */}
           <text
             ref={set("dedup")}
             x={PR.px + L.pw / 2}
@@ -1060,15 +980,12 @@ export function OutboxVisual() {
             DEDUPED BY ID
           </text>
 
-          {/* ── copper lane through the broker ─────────────────────── */}
           <path
             d={`M${L.x1} ${LANE_Y} H${L.x2}`}
             fill="none"
             stroke={LANE_STROKE}
             strokeWidth={1.5}
           />
-          {/* pin rows where the lane docks at each panel edge; the middle
-              pad carries the lane */}
           {[-5, 0, 5].map((dy) => (
             <g key={dy}>
               <rect
@@ -1100,7 +1017,6 @@ export function OutboxVisual() {
           >
             redelivery · 7f3a
           </text>
-          {/* arrival rings at the entry via, colored by the arriving pulse */}
           <circle
             ref={set("ring")}
             cx={L.x2}
@@ -1122,7 +1038,6 @@ export function OutboxVisual() {
             opacity={0}
           />
 
-          {/* coral delivery pulse */}
           <g ref={set("p1")} opacity={0}>
             <circle ref={set("p1t1")} r={2} fill={CORAL} opacity={0} />
             <circle ref={set("p1t2")} r={1.7} fill={CORAL} opacity={0} />
@@ -1131,14 +1046,13 @@ export function OutboxVisual() {
               ref={set("p1glow")}
               r={6}
               fill={CORAL}
-              filter="url(#obxGlow)"
+              filter="url(#obx-glow)"
               opacity={0.22}
             />
             <circle ref={set("p1core")} r={2.5} fill={CORAL} />
             <circle ref={set("p1inner")} r={1.1} fill={CORAL_SOFT} />
           </g>
 
-          {/* amber redelivery pulse */}
           <g ref={set("p2")} opacity={0}>
             <circle ref={set("p2t1")} r={2} fill={AMBER} opacity={0} />
             <circle ref={set("p2t2")} r={1.7} fill={AMBER} opacity={0} />
@@ -1147,14 +1061,13 @@ export function OutboxVisual() {
               ref={set("p2glow")}
               r={6}
               fill={AMBER}
-              filter="url(#obxGlow)"
+              filter="url(#obx-glow)"
               opacity={0.22}
             />
             <circle ref={set("p2core")} r={2.5} fill={AMBER} />
             <circle ref={set("p2inner")} r={1.1} fill="#fde68a" />
           </g>
 
-          {/* broker chip drawn last so pulses dip underneath it */}
           <rect
             ref={set("chipGlow")}
             x={L.chipX}
@@ -1165,7 +1078,7 @@ export function OutboxVisual() {
             fill="none"
             stroke={VIOLET}
             strokeWidth={5}
-            filter="url(#obxSoft)"
+            filter="url(#obx-soft)"
             opacity={0}
           />
           <rect

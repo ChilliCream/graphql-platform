@@ -3,6 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  type Polyline,
+  type Pt,
+  clamp01,
+  easeInOutCubic,
+  easeOutCubic,
+  laneD,
+  measure,
+  pointAt,
+  ramp,
+} from "@/src/components/mocha/geometry";
+import {
   AMBER,
   CORAL,
   CORAL_SOFT,
@@ -12,19 +23,12 @@ import {
   NAVY,
   SLATE,
 } from "@/src/components/mocha/palette";
-
-type Pt = readonly [number, number];
-
-interface Polyline {
-  readonly pts: readonly Pt[];
-  readonly lens: readonly number[];
-  readonly total: number;
-}
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
 const T = 16000;
+const REST_T = 10450;
 const H = 240;
-// Below this width the queue slots and chips get too cramped to read, so we
-// lay out at MIN_W and scale the whole stage down via the SVG viewBox.
 const MIN_W = 560;
 
 const PAD_FILL = "rgba(158,176,204,0.34)";
@@ -41,15 +45,9 @@ const CONSUME_MS = 392;
 const SLIDE_MS = 350;
 const FLASH_MS = 770;
 
-// The publisher emits one event every ~1.7s for the first nine seconds; the
-// tail of the loop belongs to the consumers working through their queues.
 const PUBS = [380, 2040, 3700, 5360, 7020, 8680] as const;
 const ARR = PUBS.map((p) => p + FLIGHT);
 
-// Consume start times per row, FIFO against ARR (first arrival lands at
-// 1192). Search drains on arrival, billing works at ~3.9s per message then
-// clears its backlog, notifications is offline mid-loop and catches up in a
-// quick burst afterwards.
 const CONSUMES: readonly (readonly number[])[] = [
   ARR,
   [1200, 5180, 9100, 11470, 12980, 14490],
@@ -75,11 +73,9 @@ const Q_GAP = 11;
 const SUBSCRIBERS = [
   { name: "SEARCH", tag: "in step" },
   { name: "BILLING", tag: "own pace" },
-  // Initial tag doubles as the reduced-motion frame for this row.
   { name: "NOTIFICATIONS", tag: "catching up" },
 ] as const;
 
-// Reduced-motion static frame: queues holding 1 / 2 / 3 dots, chips lit.
 const STATIC_DOTS = [1, 2, 3] as const;
 const STATIC_LIT = [0.6, 0.3, 0.45] as const;
 
@@ -102,57 +98,6 @@ interface Layout {
   readonly branchD: readonly string[];
 }
 
-function measure(pts: readonly Pt[]): Polyline {
-  const lens: number[] = [];
-  let total = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const len = Math.hypot(
-      pts[i + 1][0] - pts[i][0],
-      pts[i + 1][1] - pts[i][1],
-    );
-    lens.push(len);
-    total += len;
-  }
-  return { pts, lens, total };
-}
-
-function pointAt(p: Polyline, u: number): Pt {
-  const target = clamp01(u) * p.total;
-  let acc = 0;
-  for (let i = 0; i < p.lens.length; i++) {
-    if (target <= acc + p.lens[i] || i === p.lens.length - 1) {
-      const t = p.lens[i] === 0 ? 0 : (target - acc) / p.lens[i];
-      const [ax, ay] = p.pts[i];
-      const [bx, by] = p.pts[i + 1];
-      return [ax + (bx - ax) * t, ay + (by - ay) * t];
-    }
-    acc += p.lens[i];
-  }
-  return p.pts[p.pts.length - 1];
-}
-
-function laneD(pts: readonly Pt[]): string {
-  return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
-}
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number): number {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-function easeInOutCubic(u: number): number {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
-// Flash that survives the loop wrap: elapsed time is taken modulo T, so a
-// glow that peaks near the end of the loop decays into the next one.
 function loopFlash(t: number, at: number, fall: number): number {
   const e = (t - at + T) % T;
   return e < 200 ? e / 200 : Math.max(0, 1 - (e - 200) / fall);
@@ -198,8 +143,6 @@ function buildLayout(lw: number): Layout {
       [PUB.x + PUB.w, MID_Y],
       [EX_X, MID_Y],
     ]),
-    // Pulse polylines run a little past the painted lane, to the point where
-    // the queue dot takes over, so the handoff is seamless.
     branches: branchPts.map((pts, r) =>
       measure([...pts.slice(0, -1), [entry, ROW_Y[r]]]),
     ),
@@ -210,7 +153,7 @@ function buildLayout(lw: number): Layout {
 export function FanoutVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(620);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
@@ -235,307 +178,255 @@ export function FanoutVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful static frame; keep it.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
+      let tagCache = -1;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-    let tagCache = -1;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const setRing = (k: string, s: number, r0: number, dr: number) => {
-      const el = E.get(k);
-      if (!el) {
-        return;
-      }
-      if (s < 0 || s >= 1) {
-        el.setAttribute("opacity", "0");
-        return;
-      }
-      el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
-      el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
-    };
-
-    const setPart = (k: string, x: number, y: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("cx", x.toFixed(2));
-        el.setAttribute("cy", y.toFixed(2));
-      }
-    };
-
-    const placePulse = (p: string, poly: Polyline, u: number, op: number) => {
-      const g = E.get(p);
-      if (!g) {
-        return;
-      }
-      if (op <= 0.01) {
-        g.setAttribute("opacity", "0");
-        return;
-      }
-      g.setAttribute("opacity", op.toFixed(3));
-      const [x, y] = pointAt(poly, u);
-      setPart(p + "core", x, y);
-      setPart(p + "in", x, y);
-      setPart(p + "glow", x, y);
-      for (let k = 1; k <= 2; k++) {
-        const uu = u - 0.07 * k;
-        const el = E.get(p + "t" + k);
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
         if (el) {
-          if (uu <= 0) {
-            el.setAttribute("opacity", "0");
-          } else {
-            const [tx, ty] = pointAt(poly, uu);
-            el.setAttribute("cx", tx.toFixed(2));
-            el.setAttribute("cy", ty.toFixed(2));
-            el.setAttribute("opacity", k === 1 ? "0.3" : "0.16");
+          el.setAttribute("opacity", v.toFixed(3));
+        }
+      };
+
+      const setRing = (k: string, s: number, r0: number, dr: number) => {
+        const el = E.get(k);
+        if (!el) {
+          return;
+        }
+        if (s < 0 || s >= 1) {
+          el.setAttribute("opacity", "0");
+          return;
+        }
+        el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
+        el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
+      };
+
+      const setPart = (k: string, x: number, y: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("cx", x.toFixed(2));
+          el.setAttribute("cy", y.toFixed(2));
+        }
+      };
+
+      const placePulse = (p: string, poly: Polyline, u: number, op: number) => {
+        const g = E.get(p);
+        if (!g) {
+          return;
+        }
+        if (op <= 0.01) {
+          g.setAttribute("opacity", "0");
+          return;
+        }
+        g.setAttribute("opacity", op.toFixed(3));
+        const [x, y] = pointAt(poly, u);
+        setPart(p + "core", x, y);
+        setPart(p + "in", x, y);
+        setPart(p + "glow", x, y);
+        for (let k = 1; k <= 2; k++) {
+          const uu = u - 0.07 * k;
+          const el = E.get(p + "t" + k);
+          if (el) {
+            if (uu <= 0) {
+              el.setAttribute("opacity", "0");
+            } else {
+              const [tx, ty] = pointAt(poly, uu);
+              el.setAttribute("cx", tx.toFixed(2));
+              el.setAttribute("cy", ty.toFixed(2));
+              el.setAttribute("opacity", k === 1 ? "0.3" : "0.16");
+            }
           }
         }
-      }
-    };
+      };
 
-    const setChip = (r: number, f: number, off: number) => {
-      const base = E.get(`c${r}b`);
-      const glow = E.get(`c${r}g`);
-      const name = E.get(`c${r}n`);
-      const color = mixColor(SLATE, CYAN, f);
-      if (base) {
-        base.setAttribute("stroke", color);
-        base.setAttribute(
-          "stroke-opacity",
-          ((0.3 + 0.5 * f) * (1 - 0.55 * off)).toFixed(3),
-        );
-      }
-      if (glow) {
-        glow.setAttribute("opacity", (0.22 * f).toFixed(3));
-      }
-      if (name) {
-        name.setAttribute("fill", color);
-        name.setAttribute(
-          "fill-opacity",
-          ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3),
-        );
-      }
-    };
-
-    const apply = (t: number) => {
-      const L = layoutRef.current;
-
-      // publisher pulse in flight: trunk, then three branches at once
-      let ai = -1;
-      for (let k = 0; k < PUBS.length; k++) {
-        if (t >= PUBS[k]) {
-          ai = k;
-        } else {
-          break;
-        }
-      }
-      let glow = 0.1;
-      let exS = -1;
-      if (ai >= 0) {
-        const local = t - PUBS[ai];
-        glow = 0.1 + 0.16 * clamp01(1 - local / 340);
-        if (local < TRUNK_MS) {
-          placePulse("tk", L.trunk, local / TRUNK_MS, Math.min(local / 110, 1));
-        } else {
-          placePulse("tk", L.trunk, 1, 0);
-        }
-        const bu = (local - TRUNK_MS) / BRANCH_MS;
-        for (let r = 0; r < 3; r++) {
-          placePulse(
-            `bp${r}`,
-            L.branches[r],
-            clamp01(bu),
-            bu >= 0 && bu < 1 ? 1 : 0,
+      const setChip = (r: number, f: number, off: number) => {
+        const base = E.get(`c${r}b`);
+        const glow = E.get(`c${r}g`);
+        const name = E.get(`c${r}n`);
+        const color = mixColor(SLATE, CYAN, f);
+        if (base) {
+          base.setAttribute("stroke", color);
+          base.setAttribute(
+            "stroke-opacity",
+            ((0.3 + 0.5 * f) * (1 - 0.55 * off)).toFixed(3),
           );
         }
-        exS = (local - TRUNK_MS) / 590;
-      } else {
-        placePulse("tk", L.trunk, 0, 0);
-        for (let r = 0; r < 3; r++) {
-          placePulse(`bp${r}`, L.branches[r], 0, 0);
+        if (glow) {
+          glow.setAttribute("opacity", (0.22 * f).toFixed(3));
         }
-      }
-      setO("pg", glow);
-      setRing("exf", exS, 2.5, 9);
-
-      // publisher activity LED: weaker source-side blip on each emit,
-      // sharing the publish schedule that drives the chip glow
-      let emit = 0;
-      for (let k = 0; k < PUBS.length; k++) {
-        const v = loopFlash(t, PUBS[k], 700);
-        if (v > emit) {
-          emit = v;
+        if (name) {
+          name.setAttribute("fill", color);
+          name.setAttribute(
+            "fill-opacity",
+            ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3),
+          );
         }
-      }
-      setO("pubL", emit * 0.35 * 0.9);
-      setO("pubH", emit * 0.35 * 0.5);
+      };
 
-      // arrival rings at the queue mouths (fan-out lands everywhere at once)
-      let aS = -1;
-      for (let k = 0; k < ARR.length; k++) {
-        if (t >= ARR[k]) {
-          aS = (t - ARR[k]) / 590;
-        } else {
-          break;
-        }
-      }
-      for (let r = 0; r < 3; r++) {
-        setRing(`ar${r}`, aS, 2, 8);
-      }
+      const apply = (t: number) => {
+        const L = layoutRef.current;
 
-      // notifications outage window
-      const off =
-        ramp(t, OFF_START, OFF_START + 350) *
-        (1 - ramp(t, OFF_END, OFF_END + 350));
-
-      for (let r = 0; r < 3; r++) {
-        const cons = CONSUMES[r];
-        const rowY = ROW_Y[r];
-
-        // queue dots: fly in, wait in the slot, slide forward, get consumed
-        for (let j = 0; j < PUBS.length; j++) {
-          const el = E.get(`d${r}-${j}`);
-          if (!el) {
-            continue;
-          }
-          const a = ARR[j];
-          const c = cons[j];
-          let op = 0;
-          let x = 0;
-          if (t >= a && t < c + CONSUME_MS) {
-            if (t < c) {
-              let idx = 0;
-              for (let i = 0; i < j; i++) {
-                const ci = cons[i];
-                if (t < ci) {
-                  idx += 1;
-                } else if (t < ci + SLIDE_MS) {
-                  idx += 1 - easeOutCubic((t - ci) / SLIDE_MS);
-                }
-              }
-              const target = L.front - Q_GAP * idx;
-              const u = easeOutCubic(clamp01((t - a) / ENTRY_MS));
-              x = L.entry + (target - L.entry) * u;
-              op = 0.95;
-            } else {
-              const start =
-                L.entry +
-                (L.front - L.entry) * easeOutCubic(clamp01((c - a) / ENTRY_MS));
-              const u = easeInOutCubic(clamp01((t - c) / CONSUME_MS));
-              x = start + (L.chipEnter - start) * u;
-              op = 0.95 * (1 - ramp(t, c + CONSUME_MS * 0.72, c + CONSUME_MS));
-            }
-          }
-          if (op <= 0.01) {
-            el.setAttribute("opacity", "0");
+        let ai = -1;
+        for (let k = 0; k < PUBS.length; k++) {
+          if (t >= PUBS[k]) {
+            ai = k;
           } else {
-            el.setAttribute("opacity", op.toFixed(3));
-            el.setAttribute("cx", x.toFixed(2));
-            el.setAttribute("cy", String(rowY));
+            break;
           }
         }
+        let glow = 0.1;
+        let exS = -1;
+        if (ai >= 0) {
+          const local = t - PUBS[ai];
+          glow = 0.1 + 0.16 * clamp01(1 - local / 340);
+          if (local < TRUNK_MS) {
+            placePulse(
+              "tk",
+              L.trunk,
+              local / TRUNK_MS,
+              Math.min(local / 110, 1),
+            );
+          } else {
+            placePulse("tk", L.trunk, 1, 0);
+          }
+          const bu = (local - TRUNK_MS) / BRANCH_MS;
+          for (let r = 0; r < 3; r++) {
+            placePulse(
+              `bp${r}`,
+              L.branches[r],
+              clamp01(bu),
+              bu >= 0 && bu < 1 ? 1 : 0,
+            );
+          }
+          exS = (local - TRUNK_MS) / 590;
+        } else {
+          placePulse("tk", L.trunk, 0, 0);
+          for (let r = 0; r < 3; r++) {
+            placePulse(`bp${r}`, L.branches[r], 0, 0);
+          }
+        }
+        setO("pg", glow);
+        setRing("exf", exS, 2.5, 9);
 
-        // each consumed dot flashes its chip briefly; the chip's activity
-        // LED shares this same envelope, so the box only lights when a
-        // message actually lands in it (the offline row stays dark: its
-        // copies wait in the queue, nothing is handled yet)
-        let f = 0;
-        for (let j = 0; j < cons.length; j++) {
-          const s = (t - (cons[j] + CONSUME_MS)) / FLASH_MS;
-          if (s >= 0 && s < 1) {
-            const v = Math.pow(1 - s, 1.6);
-            if (v > f) {
-              f = v;
+        let emit = 0;
+        for (let k = 0; k < PUBS.length; k++) {
+          const v = loopFlash(t, PUBS[k], 700);
+          if (v > emit) {
+            emit = v;
+          }
+        }
+        setO("pubL", emit * 0.35 * 0.9);
+        setO("pubH", emit * 0.35 * 0.5);
+
+        let aS = -1;
+        for (let k = 0; k < ARR.length; k++) {
+          if (t >= ARR[k]) {
+            aS = (t - ARR[k]) / 590;
+          } else {
+            break;
+          }
+        }
+        for (let r = 0; r < 3; r++) {
+          setRing(`ar${r}`, aS, 2, 8);
+        }
+
+        const off =
+          ramp(t, OFF_START, OFF_START + 350) *
+          (1 - ramp(t, OFF_END, OFF_END + 350));
+
+        for (let r = 0; r < 3; r++) {
+          const cons = CONSUMES[r];
+          const rowY = ROW_Y[r];
+
+          for (let j = 0; j < PUBS.length; j++) {
+            const el = E.get(`d${r}-${j}`);
+            if (!el) {
+              continue;
+            }
+            const a = ARR[j];
+            const c = cons[j];
+            let op = 0;
+            let x = 0;
+            if (t >= a && t < c + CONSUME_MS) {
+              if (t < c) {
+                let idx = 0;
+                for (let i = 0; i < j; i++) {
+                  const ci = cons[i];
+                  if (t < ci) {
+                    idx += 1;
+                  } else if (t < ci + SLIDE_MS) {
+                    idx += 1 - easeOutCubic((t - ci) / SLIDE_MS);
+                  }
+                }
+                const target = L.front - Q_GAP * idx;
+                const u = easeOutCubic(clamp01((t - a) / ENTRY_MS));
+                x = L.entry + (target - L.entry) * u;
+                op = 0.95;
+              } else {
+                const start =
+                  L.entry +
+                  (L.front - L.entry) *
+                    easeOutCubic(clamp01((c - a) / ENTRY_MS));
+                const u = easeInOutCubic(clamp01((t - c) / CONSUME_MS));
+                x = start + (L.chipEnter - start) * u;
+                op =
+                  0.95 * (1 - ramp(t, c + CONSUME_MS * 0.72, c + CONSUME_MS));
+              }
+            }
+            if (op <= 0.01) {
+              el.setAttribute("opacity", "0");
+            } else {
+              el.setAttribute("opacity", op.toFixed(3));
+              el.setAttribute("cx", x.toFixed(2));
+              el.setAttribute("cy", String(rowY));
             }
           }
-        }
-        const act = r === 2 ? f * (1 - off) : f;
-        setChip(r, act, r === 2 ? off : 0);
-        setO(`pl${r}`, act * 0.9);
-        setO(`ph${r}`, act * 0.5);
 
-        // canonical arrival ring at the chip's entry pin, fired as the
-        // consumed dot is absorbed at the box edge
-        let re = Number.POSITIVE_INFINITY;
-        for (let j = 0; j < cons.length; j++) {
-          const e = (t - (cons[j] + CONSUME_MS) + T) % T;
-          if (e < re) {
-            re = e;
+          let f = 0;
+          for (let j = 0; j < cons.length; j++) {
+            const s = (t - (cons[j] + CONSUME_MS)) / FLASH_MS;
+            if (s >= 0 && s < 1) {
+              const v = Math.pow(1 - s, 1.6);
+              if (v > f) {
+                f = v;
+              }
+            }
+          }
+          const act = r === 2 ? f * (1 - off) : f;
+          setChip(r, act, r === 2 ? off : 0);
+          setO(`pl${r}`, act * 0.9);
+          setO(`ph${r}`, act * 0.5);
+
+          let re = Number.POSITIVE_INFINITY;
+          for (let j = 0; j < cons.length; j++) {
+            const e = (t - (cons[j] + CONSUME_MS) + T) % T;
+            if (e < re) {
+              re = e;
+            }
+          }
+          setRing(`cr${r}`, re / 700, 3, 11);
+        }
+
+        const bucket =
+          t >= CAUGHT_UP ? 3 : t >= OFF_END ? 2 : t >= OFF_START ? 1 : 0;
+        if (bucket !== tagCache) {
+          tagCache = bucket;
+          const el = E.get("ntag");
+          if (el) {
+            el.textContent = NTAGS[bucket].t;
+            el.setAttribute("fill", NTAGS[bucket].f);
+            el.setAttribute("opacity", String(NTAGS[bucket].o));
           }
         }
-        setRing(`cr${r}`, re / 700, 3, 11);
-      }
+      };
 
-      // notifications tag: in step -> offline -> catching up -> nothing lost
-      const bucket =
-        t >= CAUGHT_UP ? 3 : t >= OFF_END ? 2 : t >= OFF_START ? 1 : 0;
-      if (bucket !== tagCache) {
-        tagCache = bucket;
-        const el = E.get("ntag");
-        if (el) {
-          el.textContent = NTAGS[bucket].t;
-          el.setAttribute("fill", NTAGS[bucket].f);
-          el.setAttribute("opacity", String(NTAGS[bucket].o));
-        }
-      }
-    };
-
-    let t = 0;
-    let last = 0;
-
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      apply(t);
-      raf = requestAnimationFrame(step);
-    };
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
-
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+      return { frame: apply, rest: () => apply(REST_T) };
+    },
+    { period: T },
+  );
 
   const pulseGlyph = (p: string) => (
     <g key={p} ref={set(p)} opacity={0}>
@@ -590,10 +481,8 @@ export function FanoutVisual() {
             </pattern>
           </defs>
 
-          {/* substrate: faint pad-dot grid behind everything */}
           <rect width={lw} height={H} fill="url(#fanout-pcb-grid)" />
 
-          {/* copper lanes: trunk, three branches, three queue exits */}
           <path
             d={laneD(L.trunk.pts)}
             fill="none"
@@ -620,7 +509,6 @@ export function FanoutVisual() {
             />
           ))}
 
-          {/* via rings at the queue exits */}
           {ROW_Y.map((y) => (
             <circle
               key={y}
@@ -633,7 +521,6 @@ export function FanoutVisual() {
             />
           ))}
 
-          {/* exchange junction via */}
           <circle
             cx={EX_X}
             cy={MID_Y}
@@ -654,7 +541,6 @@ export function FanoutVisual() {
             exchange
           </text>
 
-          {/* queue slots: one per subscriber */}
           {ROW_Y.map((y) => (
             <rect
               key={y}
@@ -669,7 +555,6 @@ export function FanoutVisual() {
             />
           ))}
 
-          {/* queue dots */}
           {ROW_Y.map((y, r) => (
             <g key={y}>
               {PUBS.map((p, j) => (
@@ -686,13 +571,11 @@ export function FanoutVisual() {
             </g>
           ))}
 
-          {/* message pulses in flight */}
           {pulseGlyph("tk")}
           {pulseGlyph("bp0")}
           {pulseGlyph("bp1")}
           {pulseGlyph("bp2")}
 
-          {/* flash rings */}
           <circle
             ref={set("exf")}
             cx={EX_X}
@@ -717,7 +600,6 @@ export function FanoutVisual() {
             />
           ))}
 
-          {/* publisher chip */}
           <g>
             <rect
               ref={set("pg")}
@@ -743,7 +625,6 @@ export function FanoutVisual() {
               strokeOpacity={0.4}
               strokeWidth={1}
             />
-            {/* pin-1 dot + pin row where the trunk docks */}
             <circle cx={PUB.x + 4.5} cy={PUB.y + 4.5} r={1.2} fill={SILK} />
             {[-5, 0, 5].map((dy) => (
               <rect
@@ -777,7 +658,6 @@ export function FanoutVisual() {
             >
               publisher
             </text>
-            {/* activity LED: dim silk dot at rest, weak coral blip per emit */}
             <circle
               cx={PUB.x + PUB.w - 10}
               cy={PUB.y + 10}
@@ -806,7 +686,6 @@ export function FanoutVisual() {
             />
           </g>
 
-          {/* subscriber chips, drawn last so consumed dots dip underneath */}
           {SUBSCRIBERS.map((s, r) => {
             const y = ROW_Y[r];
             const lit = STATIC_LIT[r];
@@ -838,7 +717,6 @@ export function FanoutVisual() {
                   strokeOpacity={0.3 + 0.5 * lit}
                   strokeWidth={1}
                 />
-                {/* pin-1 dot + pin where the queue-exit lane docks */}
                 <circle
                   cx={L.chipX + 4.5}
                   cy={y - CHIP_H / 2 + 4.5}
@@ -865,8 +743,6 @@ export function FanoutVisual() {
                 >
                   {s.name}
                 </text>
-                {/* activity LED: dim silk dot at rest, coral while this
-                    subscriber is working a consumed message */}
                 <circle
                   cx={L.chipX + CHIP_W - 8}
                   cy={y - CHIP_H / 2 + 7}
@@ -907,7 +783,6 @@ export function FanoutVisual() {
                 >
                   {s.tag}
                 </text>
-                {/* arrival ring where the consumed dot enters the chip */}
                 <circle
                   ref={set(`cr${r}`)}
                   cx={L.chipX}

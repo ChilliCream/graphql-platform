@@ -3,39 +3,37 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  type Polyline,
+  type Pt,
+  clamp01,
+  easeInOutCubic,
+  easeOutCubic,
+  laneD,
+  measure,
+  pointAt,
+  ramp,
+} from "@/src/components/mocha/geometry";
+import {
   CORAL,
   CORAL_SOFT,
   CYAN,
   MONO_FONT,
   VIOLET,
 } from "@/src/components/mocha/palette";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
-// The transports registration code lives in a separate block on the page;
-// this card is the two-rail diagram alone.
-
-type Pt = readonly [number, number];
-
-interface Polyline {
-  readonly pts: readonly Pt[];
-  readonly lens: readonly number[];
-  readonly total: number;
-}
-
-// Master loop. The Event Hub stream advances one dot spacing every 100ms
-// (DOT_GAP / V_STREAM), and 2800 is an exact multiple of 100, so both the
-// coral pulse and the dense stream are seamless across the wrap.
 const T = 2800;
+const REST_T = 2400;
 const H = 210;
-// Below this width the 10px handler rows no longer fit next to the chips, so
-// we lay out at MIN_W and scale the whole stage down via the SVG viewBox.
 const MIN_W = 540;
 
 const PULSE_MS = 1100;
 const DOT_GAP = 10;
-const V_STREAM = 0.1; // px per ms -> 100px/s firehose
+const V_STREAM = 0.1;
 const MAX_DOTS = 28;
 const COUNT_BASE = 2481302;
-const TICK_MS = 115; // ~9 counter ticks per second
+const TICK_MS = 115;
 
 const INK = "#a1a3af";
 const SURFACE = "#0c1322";
@@ -52,8 +50,8 @@ const CHIP_X = 8;
 const CHIP_W = 96;
 const CHIP_H = 26;
 const CHIP_R = CHIP_X + CHIP_W;
-const C1_Y = 51; // RabbitMQ chip center
-const C2_Y = 158; // Event Hub chip center
+const C1_Y = 51;
+const C2_Y = 158;
 const PANEL_Y = 10;
 const PANEL_H = 190;
 const ROW_H = 30;
@@ -62,7 +60,6 @@ const R2_TOP = 123;
 const R1_Y = R1_TOP + ROW_H / 2;
 const R2_Y = R2_TOP + ROW_H / 2;
 
-// Widest row content: "DeviceTelemetryHandler" + gap + "2 481 302".
 const MAX_CHARS = 33;
 
 interface Layout {
@@ -77,56 +74,6 @@ interface Layout {
   readonly d2: string;
 }
 
-function measure(pts: readonly Pt[]): Polyline {
-  const lens: number[] = [];
-  let total = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const len = Math.hypot(
-      pts[i + 1][0] - pts[i][0],
-      pts[i + 1][1] - pts[i][1],
-    );
-    lens.push(len);
-    total += len;
-  }
-  return { pts, lens, total };
-}
-
-function pointAt(p: Polyline, u: number): Pt {
-  const target = clamp01(u) * p.total;
-  let acc = 0;
-  for (let i = 0; i < p.lens.length; i++) {
-    if (target <= acc + p.lens[i] || i === p.lens.length - 1) {
-      const t = p.lens[i] === 0 ? 0 : (target - acc) / p.lens[i];
-      const [ax, ay] = p.pts[i];
-      const [bx, by] = p.pts[i + 1];
-      return [ax + (bx - ax) * t, ay + (by - ay) * t];
-    }
-    acc += p.lens[i];
-  }
-  return p.pts[p.pts.length - 1];
-}
-
-function laneD(pts: readonly Pt[]): string {
-  return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
-}
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number): number {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-function easeInOutCubic(u: number): number {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
-// 200ms linear attack, linear decay over `fall` ms, survives the loop wrap.
 function loopFlash(t: number, at: number, fall: number): number {
   const e = (t - at + T) % T;
   return e < 200 ? e / 200 : Math.max(0, 1 - (e - 200) / fall);
@@ -152,9 +99,6 @@ function buildLayout(lw: number): Layout {
   const rowW = pw - 24;
   const bx1 = CHIP_R + Math.round(run * 0.6);
   const bx2 = CHIP_R + Math.round(run * 0.4);
-  // 45-degree PCB bends: rail 1 steps down 8px, rail 2 steps up 20px. Both
-  // rails cross the panel edge and terminate on their handler row's left
-  // edge, so every message travels the full lane into the box it triggers.
   const pts1: readonly Pt[] = [
     [CHIP_R, C1_Y],
     [bx1, C1_Y],
@@ -183,7 +127,7 @@ function buildLayout(lw: number): Layout {
 export function TransportsVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(620);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
@@ -208,201 +152,139 @@ export function TransportsVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful static frame: both rails drawn,
-      // frozen dots on each, counter at a fixed value. Keep it.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
+      let countCache = -1;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-    let countCache = -1;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const setPart = (k: string, x: number, y: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("cx", x.toFixed(2));
-        el.setAttribute("cy", y.toFixed(2));
-      }
-    };
-
-    const setRing = (k: string, s: number, r0: number, dr: number) => {
-      const el = E.get(k);
-      if (!el) {
-        return;
-      }
-      if (s < 0 || s >= 1) {
-        el.setAttribute("opacity", "0");
-        return;
-      }
-      el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
-      el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
-    };
-
-    const placePulse = (p: string, poly: Polyline, u: number, op: number) => {
-      const g = E.get(p);
-      if (!g) {
-        return;
-      }
-      if (op <= 0.01) {
-        g.setAttribute("opacity", "0");
-        return;
-      }
-      g.setAttribute("opacity", op.toFixed(3));
-      const d = u * poly.total;
-      const [x, y] = pointAt(poly, u);
-      setPart(p + "core", x, y);
-      setPart(p + "in", x, y);
-      setPart(p + "glow", x, y);
-      for (let k = 1; k <= 3; k++) {
-        const dk = d - 7 * k;
-        const el = E.get(p + "t" + k);
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
         if (el) {
-          if (dk <= 0) {
-            el.setAttribute("opacity", "0");
-          } else {
-            const [tx, ty] = pointAt(poly, dk / poly.total);
-            el.setAttribute("cx", tx.toFixed(2));
-            el.setAttribute("cy", ty.toFixed(2));
-            el.setAttribute("opacity", (0.45 - 0.12 * k).toFixed(2));
+          el.setAttribute("opacity", v.toFixed(3));
+        }
+      };
+
+      const setPart = (k: string, x: number, y: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("cx", x.toFixed(2));
+          el.setAttribute("cy", y.toFixed(2));
+        }
+      };
+
+      const setRing = (k: string, s: number, r0: number, dr: number) => {
+        const el = E.get(k);
+        if (!el) {
+          return;
+        }
+        if (s < 0 || s >= 1) {
+          el.setAttribute("opacity", "0");
+          return;
+        }
+        el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
+        el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
+      };
+
+      const placePulse = (p: string, poly: Polyline, u: number, op: number) => {
+        const g = E.get(p);
+        if (!g) {
+          return;
+        }
+        if (op <= 0.01) {
+          g.setAttribute("opacity", "0");
+          return;
+        }
+        g.setAttribute("opacity", op.toFixed(3));
+        const d = u * poly.total;
+        const [x, y] = pointAt(poly, u);
+        setPart(p + "core", x, y);
+        setPart(p + "in", x, y);
+        setPart(p + "glow", x, y);
+        for (let k = 1; k <= 3; k++) {
+          const dk = d - 7 * k;
+          const el = E.get(p + "t" + k);
+          if (el) {
+            if (dk <= 0) {
+              el.setAttribute("opacity", "0");
+            } else {
+              const [tx, ty] = pointAt(poly, dk / poly.total);
+              el.setAttribute("cx", tx.toFixed(2));
+              el.setAttribute("cy", ty.toFixed(2));
+              el.setAttribute("opacity", (0.45 - 0.12 * k).toFixed(2));
+            }
           }
         }
-      }
-    };
+      };
 
-    // t wraps at T for the loops; life accumulates forever for the counter.
-    const apply = (t: number, life: number) => {
-      const L = layoutRef.current;
+      const apply = (t: number, life: number) => {
+        const L = layoutRef.current;
 
-      // Event Hub firehose: a dense train of dots at fixed spacing and
-      // speed, always flowing. Deterministic, no per-dot state.
-      const off = (t * V_STREAM) % DOT_GAP;
-      for (let i = 0; i < MAX_DOTS; i++) {
-        const el = E.get("s" + i);
-        if (!el) {
-          continue;
+        const off = (t * V_STREAM) % DOT_GAP;
+        for (let i = 0; i < MAX_DOTS; i++) {
+          const el = E.get("s" + i);
+          if (!el) {
+            continue;
+          }
+          const d = off + i * DOT_GAP;
+          if (d >= L.p2.total) {
+            el.setAttribute("opacity", "0");
+            continue;
+          }
+          const op = 0.9 * clamp01(Math.min(d / 8, (L.p2.total - d) / 8, 1));
+          const [x, y] = pointAt(L.p2, d / L.p2.total);
+          el.setAttribute("cx", x.toFixed(2));
+          el.setAttribute("cy", y.toFixed(2));
+          el.setAttribute("opacity", op.toFixed(3));
         }
-        const d = off + i * DOT_GAP;
-        if (d >= L.p2.total) {
-          el.setAttribute("opacity", "0");
-          continue;
+
+        if (t < PULSE_MS) {
+          const u = easeInOutCubic(t / PULSE_MS);
+          const op =
+            Math.min(t / 150, 1) * (1 - ramp(t, PULSE_MS - 160, PULSE_MS));
+          placePulse("p1", L.p1, u, op);
+        } else {
+          placePulse("p1", L.p1, 1, 0);
         }
-        const op = 0.9 * clamp01(Math.min(d / 8, (L.p2.total - d) / 8, 1));
-        const [x, y] = pointAt(L.p2, d / L.p2.total);
-        el.setAttribute("cx", x.toFixed(2));
-        el.setAttribute("cy", y.toFixed(2));
-        el.setAttribute("opacity", op.toFixed(3));
-      }
 
-      // RabbitMQ rail: one deliberate coral pulse per loop. It fades out
-      // over the last 160ms so it dissolves exactly as it reaches the row
-      // edge (absorbed, never bouncing).
-      if (t < PULSE_MS) {
-        const u = easeInOutCubic(t / PULSE_MS);
-        const op =
-          Math.min(t / 150, 1) * (1 - ramp(t, PULSE_MS - 160, PULSE_MS));
-        placePulse("p1", L.p1, u, op);
-      } else {
-        placePulse("p1", L.p1, 1, 0);
-      }
+        setRing("ring", ((t - PULSE_MS + T) % T) / 700, 3, 11);
+        const e = loopFlash(t, PULSE_MS, 1000);
+        setO("r1echo", e * 0.7);
+        setO("r1lit", e * 0.9);
+        setO("plC", e * 0.9);
+        setO("phC", e * 0.5);
 
-      // Arrival at OrderPlacedHandler: ring flash at the entry via, plus row
-      // echo and coral LED pair driven by one shared envelope.
-      setRing("ring", ((t - PULSE_MS + T) % T) / 700, 3, 11);
-      const e = loopFlash(t, PULSE_MS, 1000);
-      setO("r1echo", e * 0.7);
-      setO("r1lit", e * 0.9);
-      setO("plC", e * 0.9);
-      setO("phC", e * 0.5);
+        const cl = Math.max(1 - ramp(t, 0, 390), ramp(t, T - 210, T));
+        setO("c1lit", cl * 0.9);
+        setO("c1glow", cl * 0.28);
 
-      // RabbitMQ chip lights as it emits (pre-glow before the wrap so the
-      // handoff into the next pulse is continuous).
-      const cl = Math.max(1 - ramp(t, 0, 390), ramp(t, T - 210, T));
-      setO("c1lit", cl * 0.9);
-      setO("c1glow", cl * 0.28);
+        const sh = 0.5 + 0.5 * Math.sin(((t / T) * 2 - 0.5) * Math.PI * 3);
+        setO("shim", 0.05 + 0.05 * sh);
+        setO("c2glow", 0.12 + 0.08 * sh);
 
-      // DeviceTelemetryHandler absorbs the stream with a constant shimmer,
-      // never per-dot flashes. 3 cycles per loop keeps the wrap seamless.
-      const sh = 0.5 + 0.5 * Math.sin(((t / T) * 2 - 0.5) * Math.PI * 3);
-      setO("shim", 0.05 + 0.05 * sh);
-      setO("c2glow", 0.12 + 0.08 * sh);
+        const a2 = 0.6 + 0.3 * sh;
+        setO("plS", a2 * 0.9);
+        setO("phS", a2 * 0.5);
 
-      // Cyan LED pair holds a shimmer-linked sustain: the stream never
-      // stops, so the panel is always handling telemetry.
-      const a2 = 0.6 + 0.3 * sh;
-      setO("plS", a2 * 0.9);
-      setO("phS", a2 * 0.5);
-
-      // Events-today counter ticks up steadily while the card is on screen.
-      const n = COUNT_BASE + Math.floor(life / TICK_MS);
-      if (n !== countCache) {
-        countCache = n;
-        const el = E.get("count");
-        if (el) {
-          el.textContent = fmtCount(n);
+        const n = COUNT_BASE + Math.floor(life / TICK_MS);
+        if (n !== countCache) {
+          countCache = n;
+          const el = E.get("count");
+          if (el) {
+            el.textContent = fmtCount(n);
+          }
         }
-      }
-    };
+      };
 
-    let t = 0;
-    let life = 0;
-    let last = 0;
-
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      life += dt;
-      apply(t, life);
-      raf = requestAnimationFrame(step);
-    };
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
-
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+      return {
+        frame: (t, dt, life) => apply(t, life),
+        rest: () => apply(REST_T, 0),
+      };
+    },
+    { period: T },
+  );
 
   const L = layout;
-  // Static-frame positions: coral pulse frozen mid-rail with its trail.
   const midU = 0.55;
   const midD = midU * L.p1.total;
   const [mx, my] = pointAt(L.p1, midU);
@@ -443,7 +325,6 @@ export function TransportsVisual() {
             </pattern>
           </defs>
 
-          {/* pad-dot substrate behind everything */}
           <rect
             x={0}
             y={0}
@@ -452,7 +333,6 @@ export function TransportsVisual() {
             fill="url(#transports-grid)"
           />
 
-          {/* ── shared service panel ───────────────────────────────── */}
           <rect
             x={L.px}
             y={PANEL_Y}
@@ -475,8 +355,6 @@ export function TransportsVisual() {
             ORDERS SERVICE
           </text>
 
-          {/* panel activity LED: resting silk dot, then coral (handler
-              flash) and cyan (stream sustain) halo/core pairs */}
           <circle
             cx={L.px + L.pw - 10}
             cy={PANEL_Y + 10}
@@ -523,7 +401,6 @@ export function TransportsVisual() {
             opacity={0}
           />
 
-          {/* OrderPlacedHandler row (fed by RabbitMQ) */}
           <rect
             x={L.rowX}
             y={R1_TOP}
@@ -584,7 +461,6 @@ export function TransportsVisual() {
             opacity={0}
           />
 
-          {/* DeviceTelemetryHandler row (fed by Event Hub) */}
           <rect
             x={L.rowX}
             y={R2_TOP}
@@ -646,7 +522,6 @@ export function TransportsVisual() {
             events today
           </text>
 
-          {/* ── copper rails, one per transport ────────────────────── */}
           <path
             d={L.d1}
             fill="none"
@@ -662,8 +537,6 @@ export function TransportsVisual() {
             strokeLinejoin="round"
           />
 
-          {/* pin rows at the chip exits and where the rails dock into the
-              panel; the middle pad of each row carries the rail */}
           {[-5, 0, 5].map((dy) => (
             <g key={dy}>
               <rect
@@ -697,7 +570,6 @@ export function TransportsVisual() {
             </g>
           ))}
 
-          {/* entry vias where each rail terminates on its handler row edge */}
           <circle
             cx={L.rowX}
             cy={R1_Y}
@@ -715,7 +587,6 @@ export function TransportsVisual() {
             strokeWidth={1}
           />
 
-          {/* Event Hub firehose: dense deterministic dot train */}
           {Array.from({ length: MAX_DOTS }, (_, i) => {
             const d = i * DOT_GAP;
             const on = d < L.p2.total;
@@ -736,7 +607,6 @@ export function TransportsVisual() {
             );
           })}
 
-          {/* RabbitMQ rail: deliberate coral pulse with trail */}
           <g ref={set("p1")} opacity={1}>
             <circle
               ref={set("p1t3")}
@@ -781,7 +651,6 @@ export function TransportsVisual() {
             />
           </g>
 
-          {/* arrival ring at the OrderPlacedHandler entry via */}
           <circle
             ref={set("ring")}
             cx={L.rowX}
@@ -793,8 +662,6 @@ export function TransportsVisual() {
             opacity={0}
           />
 
-          {/* ── transport chips, drawn last so pulses dip underneath ── */}
-          {/* RabbitMQ chip */}
           <rect
             ref={set("c1glow")}
             x={CHIP_X}
@@ -854,7 +721,6 @@ export function TransportsVisual() {
             orders · commands
           </text>
 
-          {/* Event Hub chip */}
           <rect
             ref={set("c2glow")}
             x={CHIP_X}

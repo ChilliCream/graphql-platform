@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * Mocha messaging page, v14 hero board. The v13 full-page circuit board,
- * scoped to the hero section and rendered permanently at a faded strength
- * instead of being revealed by a light mask. Six service nodes sit right of
- * the copy, breathe with a cyan halo, and exchange coral message pulses over
- * the copper backbone. Purely decorative; the static board is pre-rendered
- * once to an offscreen canvas and composited each frame.
- */
-
 import { useEffect, useRef } from "react";
 
 import {
@@ -35,20 +26,17 @@ interface NodeChipProps {
   readonly className?: string;
 }
 
-/** Refined ring-and-dot service marker (a hover target on the board). */
 function NodeChip({ label, designator, className }: NodeChipProps) {
   return (
     <div
       className={`pointer-events-none absolute z-10 flex flex-col items-center gap-1.5 ${className ?? ""}`}
     >
       <span
-        data-v14-node
+        data-mocha-node
         className="pointer-events-auto relative block h-2.5 w-2.5 rounded-full border border-[rgba(205,216,232,0.55)] transition-colors duration-300 hover:border-[rgba(246,202,190,0.9)]"
       >
         <span className="absolute inset-[2.5px] rounded-full bg-[rgba(232,238,248,0.9)]" />
       </span>
-      {/* Printed like the board's silkscreen: silk paint tone, a reference
-          designator, no UI glow. */}
       <span
         className="font-mono text-[0.68rem] font-semibold tracking-[0.26em] whitespace-nowrap uppercase"
         style={{ color: "rgba(170,188,214,0.8)", fontFamily: MONO_FONT }}
@@ -81,10 +69,8 @@ export function HeroBoard() {
     if (!ctx || !offCtx) {
       return;
     }
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    // Deterministic runtime stream for spawn timing and lane choice.
+    const reducedMql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = reducedMql.matches;
     const runtime = mulberry32(0x51ed270b);
 
     let board: Board | null = null;
@@ -153,9 +139,6 @@ export function HeroBoard() {
       });
     }
 
-    // Pre-render the full static board once, at device resolution, with a
-    // transparent background so the page shows through. The rAF loop then only
-    // composites this bitmap and draws the live layers on top.
     function prerender() {
       if (!board) {
         return;
@@ -182,7 +165,6 @@ export function HeroBoard() {
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.globalCompositeOperation = "lighter";
 
-      // Breathing cyan halos at each service node; hover lifts them.
       for (let i = 0; i < board.nodes.length; i++) {
         const n = board.nodes[i];
         const breathe = 1 + 0.08 * Math.sin(time / 177 + i * 2.1);
@@ -203,7 +185,6 @@ export function HeroBoard() {
         c.fill();
       }
 
-      // Coral messages: a fading trail and a soft glowing head.
       c.lineCap = "round";
       for (const pulse of pulses) {
         const alpha = envelope(pulse);
@@ -240,7 +221,6 @@ export function HeroBoard() {
         c.fill();
       }
 
-      // Arrival flash rings at nodes and at loose trace endpoints.
       c.lineWidth = 1.4;
       for (let i = 0; i < board.nodes.length; i++) {
         if (flash[i] <= 0.02) {
@@ -344,7 +324,7 @@ export function HeroBoard() {
       canvas!.height = Math.round(h * dpr);
       const rect = root!.getBoundingClientRect();
       const chips = Array.from(
-        root!.querySelectorAll<HTMLElement>("[data-v14-node]"),
+        root!.querySelectorAll<HTMLElement>("[data-mocha-node]"),
       ).filter((el) => el.offsetParent !== null);
       const nodes: Point[] = chips.map((chip) => {
         const r = chip.getBoundingClientRect();
@@ -366,24 +346,43 @@ export function HeroBoard() {
     measureAndBuild();
     render(0);
 
-    let io: IntersectionObserver | null = null;
+    const io = new IntersectionObserver(
+      (entries) => {
+        inView = entries[entries.length - 1]?.isIntersecting ?? false;
+        sync();
+      },
+      { rootMargin: "60px" },
+    );
+    io.observe(root);
     const onVisibility = () => {
       sync();
     };
-    if (!reduced) {
-      io = new IntersectionObserver(
-        (entries) => {
-          inView = entries[entries.length - 1]?.isIntersecting ?? false;
-          sync();
-        },
-        { rootMargin: "60px" },
-      );
-      io.observe(root);
-      document.addEventListener("visibilitychange", onVisibility);
-    }
+    document.addEventListener("visibilitychange", onVisibility);
 
-    // The node markers sit in flex columns whose width depends on their label,
-    // so a late web-font load shifts them. Re-measure once fonts settle.
+    const onReducedChange = () => {
+      reduced = reducedMql.matches;
+      sync();
+    };
+    reducedMql.addEventListener("change", onReducedChange);
+
+    let dprMql: MediaQueryList | null = null;
+    const onDprChange = () => {
+      if (disposed) {
+        return;
+      }
+      measureAndBuild();
+      render(0);
+      watchDpr();
+    };
+    function watchDpr() {
+      dprMql?.removeEventListener("change", onDprChange);
+      dprMql = window.matchMedia(
+        `(resolution: ${window.devicePixelRatio}dppx)`,
+      );
+      dprMql.addEventListener("change", onDprChange);
+    }
+    watchDpr();
+
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
         if (!disposed) {
@@ -393,29 +392,40 @@ export function HeroBoard() {
       });
     }
 
-    let resizeRaf = 0;
+    const RESIZE_DEBOUNCE_MS = 150;
+    const RESIZE_THRESHOLD_PX = 4;
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(() => {
-        if (
-          disposed ||
-          (root.clientWidth === w && root.clientHeight === h && board)
-        ) {
+      if (resizeTimer !== null) {
+        clearTimeout(resizeTimer);
+      }
+      resizeTimer = setTimeout(() => {
+        resizeTimer = null;
+        if (disposed) {
+          return;
+        }
+        const dw = Math.abs(root.clientWidth - w);
+        const dh = Math.abs(root.clientHeight - h);
+        if (dw < RESIZE_THRESHOLD_PX && dh < RESIZE_THRESHOLD_PX && board) {
           return;
         }
         measureAndBuild();
         render(0);
-      });
+      }, RESIZE_DEBOUNCE_MS);
     });
     ro.observe(root);
 
     return () => {
       disposed = true;
       stop();
-      cancelAnimationFrame(resizeRaf);
+      if (resizeTimer !== null) {
+        clearTimeout(resizeTimer);
+      }
       ro.disconnect();
-      io?.disconnect();
+      io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      reducedMql.removeEventListener("change", onReducedChange);
+      dprMql?.removeEventListener("change", onDprChange);
       for (const c of hoverCleanups) {
         c();
       }

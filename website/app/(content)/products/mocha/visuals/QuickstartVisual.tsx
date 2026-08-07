@@ -9,8 +9,6 @@ import {
   VIOLET,
 } from "@/src/components/mocha/palette";
 
-// Spotlight loop: ~3.4s per panel; between steps a coral pulse slides down
-// the rail from the previous via ring to the next.
 const STEP = 3.4;
 const PERIOD = STEP * 3;
 const TRAVEL = 0.85;
@@ -138,8 +136,6 @@ export function QuickstartVisual() {
   const flashRef = useRef<SVGCircleElement>(null);
   const [geom, setGeom] = useState<Geom | null>(null);
 
-  // The rail is measured off the live DOM (tag centers), so it stays correct
-  // at any card width; the panels themselves scroll rather than reflow.
   useLayoutEffect(() => {
     const rail = railRef.current;
     const root = rootRef.current;
@@ -200,7 +196,6 @@ export function QuickstartVisual() {
     };
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // Static final frame: all three panels lit evenly, rail static.
       for (let i = 0; i < STEPS.length; i++) {
         setSpot(i, true);
       }
@@ -235,8 +230,6 @@ export function QuickstartVisual() {
       }
       const u = phase - idx * STEP;
 
-      // pulse: fades in at the top via, slides down between steps, fades
-      // out at the bottom of the cycle
       let y: number;
       let op = 1;
       let moving = false;
@@ -276,7 +269,6 @@ export function QuickstartVisual() {
         c.style.opacity = String(TRAIL_OP[j]);
       });
 
-      // arrival ring on the via the pulse just reached
       const k = (u - (idx === 0 ? FADE_IN : TRAVEL)) / FLASH_DUR;
       const fl = flashRef.current;
       if (fl) {
@@ -324,12 +316,12 @@ export function QuickstartVisual() {
   return (
     <div
       ref={rootRef}
+      aria-hidden="true"
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[500px]"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div className="flex min-h-0 flex-1 gap-3">
-        {/* progress rail: three via rings joined by one copper lane */}
         <div ref={railRef} className="relative w-4 shrink-0">
           <svg
             className="absolute inset-0 h-full w-full overflow-visible"

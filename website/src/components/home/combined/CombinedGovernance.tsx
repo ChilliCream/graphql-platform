@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
-
-const ID = "combined-governance-";
+import { BlockMark } from "@/src/icons/BlockMark";
+import { LintMark } from "@/src/icons/LintMark";
+import { RegistryNodeIcon } from "@/src/icons/RegistryNodeIcon";
 
 type LintSeverity = "error" | "warning";
 
@@ -15,7 +16,6 @@ interface LintFinding {
   readonly fix?: string;
 }
 
-// Two errors and one style warning a lint run surfaces on a single change.
 const FINDINGS: readonly LintFinding[] = [
   { severity: "error", rule: "naming", message: "get_user", fix: "getUser" },
   {
@@ -33,12 +33,10 @@ interface ChangeEntry {
   readonly kind: ChangeKind;
   readonly field: string;
   readonly author: string;
-  /** True when the author is a coding agent, traced like any human author. */
   readonly agent?: boolean;
   readonly time: string;
 }
 
-// Three registry versions, including an agent author traced like a human one.
 const CHANGES: readonly ChangeEntry[] = [
   {
     version: "v14",
@@ -64,93 +62,17 @@ const CHANGES: readonly ChangeEntry[] = [
   },
 ];
 
-/** Status colors used as data: green additive change, amber deprecation. */
 const KIND: Record<ChangeKind, string> = {
   added: "bg-cc-success",
   deprecated: "bg-cc-warning",
 };
 
-/** Red x-in-circle marking the blocked breaking result. */
-function BlockMark() {
-  return (
-    <svg
-      id={`${ID}block-mark`}
-      aria-hidden="true"
-      viewBox="0 0 12 12"
-      width="13"
-      height="13"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-cc-danger"
-    >
-      <circle cx="6" cy="6" r="4.7" />
-      <path d="M4.4 4.4 7.6 7.6M7.6 4.4 4.4 7.6" />
-    </svg>
-  );
-}
-
-/** Small checklist mark for the lint window title bar. */
-function LintMark() {
-  return (
-    <svg
-      id={`${ID}lint-mark`}
-      viewBox="0 0 16 16"
-      width="13"
-      height="13"
-      aria-hidden="true"
-      className="text-cc-nav-label shrink-0"
-    >
-      <rect
-        x="2.5"
-        y="2"
-        width="11"
-        height="12"
-        rx="2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.1"
-      />
-      <path
-        d="M5 6h6M5 8.5h6M5 11h3.5"
-        stroke="currentColor"
-        strokeWidth="1.1"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** Registry / schema-version node glyph. */
-function RegistryNodeIcon() {
-  return (
-    <svg
-      id={`${ID}registry-node`}
-      viewBox="0 0 16 16"
-      width="13"
-      height="13"
-      aria-hidden="true"
-      className="text-cc-accent shrink-0"
-    >
-      <path
-        fill="currentColor"
-        d="M8 1.2 13.9 4.6v6.8L8 14.8 2.1 11.4V4.6L8 1.2Zm0 1.5L3.4 5.3v5.4L8 13.3l4.6-2.6V5.3L8 2.7Z"
-      />
-      <circle cx="8" cy="8" r="1.7" fill="currentColor" />
-    </svg>
-  );
-}
-
-/** Shared compact window frame: title bar slot above the illustration body. */
-function FacetWindow({
-  bar,
-  children,
-}: {
+interface FacetWindowProps {
   readonly bar: ReactNode;
   readonly children: ReactNode;
-}) {
+}
+
+function FacetWindow({ bar, children }: FacetWindowProps) {
   return (
     <div className="border-cc-card-border bg-cc-surface mt-4 flex flex-1 flex-col overflow-hidden rounded-xl border shadow-[0_1px_3px_rgba(2,6,16,0.6)]">
       <div className="border-cc-card-border flex shrink-0 items-center gap-2 border-b px-3 py-2">
@@ -161,7 +83,6 @@ function FacetWindow({
   );
 }
 
-/** Facet 1: a blocked publish in the CLI. */
 function BlockedPublishCard() {
   return (
     <FacetWindow
@@ -183,7 +104,7 @@ function BlockedPublishCard() {
           Illustrative configured check
         </p>
         <div className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="text-cc-nav-label select-none">
+          <span aria-hidden="true" className="text-cc-ink-dim select-none">
             $
           </span>
           <span className="text-cc-ink">nitro schema publish</span>
@@ -192,7 +113,7 @@ function BlockedPublishCard() {
         <div className="border-cc-danger/25 bg-cc-danger/[0.06] rounded-lg border p-2.5">
           <div className="flex items-start gap-2">
             <span className="mt-px shrink-0">
-              <BlockMark />
+              <BlockMark className="text-cc-danger" />
             </span>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
@@ -218,13 +139,12 @@ function BlockedPublishCard() {
   );
 }
 
-/** Facet 2: a schema-lint result with naming, deprecation, and style checks. */
 function SchemaLintCard() {
   return (
     <FacetWindow
       bar={
         <>
-          <LintMark />
+          <LintMark className="text-cc-ink-dim shrink-0" />
           <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
             schema-lint
           </span>
@@ -280,13 +200,12 @@ function SchemaLintCard() {
   );
 }
 
-/** Facet 3: a registry changelog tracing each version and its author. */
 function RegistryTraceCard() {
   return (
     <FacetWindow
       bar={
         <>
-          <RegistryNodeIcon />
+          <RegistryNodeIcon className="text-cc-accent shrink-0" />
           <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
             schema.graphql
           </span>
@@ -358,19 +277,10 @@ const FACETS: readonly Facet[] = [
   },
 ];
 
-/**
- * CombinedGovernance: the compacted Governance section for the homepage landing
- * (after the protocol cards, above pricing, on the dark navy canvas). One shared
- * header sits above a tight three-up grid that folds the registry, lint, and
- * release-safety takes into compact facet cards: a blocked publish, a schema
- * lint result, and a registry changelog. The whole section is about the height
- * of a single take.
- */
 export function CombinedGovernance() {
   return (
     <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
-        {/* Shared header. */}
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             Change contracts with a safety net.
@@ -385,7 +295,6 @@ export function CombinedGovernance() {
           </ArrowLink>
         </div>
 
-        {/* Three compact facets. */}
         <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-6">
           {FACETS.map((facet) => (
             <Link

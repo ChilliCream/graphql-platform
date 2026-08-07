@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  clamp01,
+  easeInOutCubic,
+  easeOutCubic,
+  ramp,
+} from "@/src/components/mocha/geometry";
+import {
   AMBER,
   CORAL,
   CORAL_SOFT,
@@ -12,14 +18,12 @@ import {
   NAVY,
   SLATE,
 } from "@/src/components/mocha/palette";
+import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
-// Master loop. The story is the wait: the message leaves ORDERS immediately
-// but parks in the SCHEDULED slot while the clock arc fills and the countdown
-// runs to zero; only then does it move on to the queue and the handler.
 const T = 12000;
+const REST_T = 11280;
 const H = 212;
-// Below this width the panels, the scheduled slot and the queue slot get too
-// cramped to read, so we lay out at MIN_W and scale down via the viewBox.
 const MIN_W = 660;
 
 const INK = "#a1a3af";
@@ -34,8 +38,8 @@ const SILK_SOFT = "rgba(154,172,200,0.7)";
 const GRID_DOT = "rgba(150,166,194,0.10)";
 
 const M = 8;
-const PW1 = 150; // ORDERS SERVICE panel width
-const PW2 = 200; // NOTIFICATIONS SERVICE panel width
+const PW1 = 150;
+const PW2 = 200;
 const PANEL_Y = 40;
 const PANEL_H = 110;
 const ROW_TOP = 86;
@@ -46,7 +50,6 @@ const SLOT_H = 18;
 const QSLOT_W = 56;
 const QSLOT_H = 14;
 const CLOCK_R = 10;
-// The countdown starts at this many "minutes" and runs to zero over the hold.
 const CD_START = 30;
 
 interface Layout {
@@ -70,8 +73,6 @@ interface Layout {
 function buildLayout(lw: number): Layout {
   const x1R = M + PW1;
   const px2 = lw - M - PW2;
-  // Whatever is left between the panels splits evenly around the scheduled
-  // slot, the clock gate on the lane, and the queue slot.
   const g = (px2 - x1R - SLOT_W - 2 * CLOCK_R - QSLOT_W) / 4;
   const slotL = x1R + g;
   const slotR = slotL + SLOT_W;
@@ -92,34 +93,16 @@ function buildLayout(lw: number): Layout {
     qR: qL + QSLOT_W,
     entryQ: qL + 7,
     frontQ: qL + QSLOT_W - 9,
-    // Pulses start inside the message row and end inside the handler row, so
-    // every handoff is seamless.
     pubX0: rowX1 + 14,
     dlvEnd: rowX2 + 14,
     cdX: (slotL + clockX + CLOCK_R) / 2,
   };
 }
 
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function ramp(t: number, a: number, b: number): number {
-  return clamp01((t - a) / (b - a));
-}
-
-function easeOutCubic(u: number): number {
-  return 1 - Math.pow(1 - u, 3);
-}
-
-function easeInOutCubic(u: number): number {
-  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-}
-
 export function SchedulingVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [els] = useState(() => new Map<string, SVGElement | null>());
+  const { els, set } = useElementRegistry();
   const [w, setW] = useState(660);
   const lw = Math.max(w, MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
@@ -144,272 +127,209 @@ export function SchedulingVisual() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) {
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // The initial render is the meaningful static frame: the dot parked in
-      // the scheduled slot, the clock arc ~60% filled, the countdown at 12.
-      return;
-    }
+  useRafLoop(
+    rootRef,
+    () => {
+      const E = els;
+      let numCache = -1;
+      let arcCache = -1;
 
-    const E = els;
-    let raf = 0;
-    let running = false;
-    let inView = false;
-    let numCache = -1;
-    let arcCache = -1;
-
-    const setO = (k: string, v: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", v.toFixed(3));
-      }
-    };
-
-    const setPop = (k: string, o: number, rise: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("opacity", o.toFixed(3));
-        el.setAttribute(
-          "transform",
-          `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
-        );
-      }
-    };
-
-    const setDot = (k: string, x: number, y: number, r?: number) => {
-      const el = E.get(k);
-      if (el) {
-        el.setAttribute("cx", x.toFixed(2));
-        el.setAttribute("cy", y.toFixed(2));
-        if (r !== undefined) {
-          el.setAttribute("r", Math.max(0, r).toFixed(2));
-        }
-      }
-    };
-
-    const setRing = (k: string, s: number, r0: number, dr: number) => {
-      const el = E.get(k);
-      if (!el) {
-        return;
-      }
-      if (s < 0 || s >= 1) {
-        el.setAttribute("opacity", "0");
-        return;
-      }
-      el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
-      el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
-    };
-
-    const placePulse = (
-      p: string,
-      x0: number,
-      x1: number,
-      u: number,
-      op: number,
-      coreR: number,
-    ) => {
-      const g = E.get(p);
-      if (!g) {
-        return;
-      }
-      if (op <= 0.01 || coreR <= 0.05) {
-        g.setAttribute("opacity", "0");
-        return;
-      }
-      g.setAttribute("opacity", op.toFixed(3));
-      const d = clamp01(u) * (x1 - x0);
-      const x = x0 + d;
-      setDot(p + "core", x, LANE_Y, coreR);
-      setDot(p + "in", x, LANE_Y, coreR * 0.45);
-      setDot(p + "glow", x, LANE_Y, Math.max(0.6, coreR * 2.4));
-      for (let k = 1; k <= 3; k++) {
-        const dk = d - 7 * k;
-        const el = E.get(p + "t" + k);
+      const setO = (k: string, v: number) => {
+        const el = E.get(k);
         if (el) {
-          if (dk <= 2) {
-            el.setAttribute("opacity", "0");
-          } else {
-            el.setAttribute("cx", (x0 + dk).toFixed(2));
-            el.setAttribute("cy", LANE_Y.toFixed(2));
-            el.setAttribute("opacity", (0.45 - 0.12 * k).toFixed(2));
+          el.setAttribute("opacity", v.toFixed(3));
+        }
+      };
+
+      const setPop = (k: string, o: number, rise: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("opacity", o.toFixed(3));
+          el.setAttribute(
+            "transform",
+            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
+          );
+        }
+      };
+
+      const setDot = (k: string, x: number, y: number, r?: number) => {
+        const el = E.get(k);
+        if (el) {
+          el.setAttribute("cx", x.toFixed(2));
+          el.setAttribute("cy", y.toFixed(2));
+          if (r !== undefined) {
+            el.setAttribute("r", Math.max(0, r).toFixed(2));
           }
         }
-      }
-    };
+      };
 
-    const hidePulse = (p: string) => setO(p, 0);
+      const setRing = (k: string, s: number, r0: number, dr: number) => {
+        const el = E.get(k);
+        if (!el) {
+          return;
+        }
+        if (s < 0 || s >= 1) {
+          el.setAttribute("opacity", "0");
+          return;
+        }
+        el.setAttribute("r", (r0 + dr * easeOutCubic(s)).toFixed(2));
+        el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
+      };
 
-    const apply = (t: number) => {
-      const L = layoutRef.current;
+      const placePulse = (
+        p: string,
+        x0: number,
+        x1: number,
+        u: number,
+        op: number,
+        coreR: number,
+      ) => {
+        const g = E.get(p);
+        if (!g) {
+          return;
+        }
+        if (op <= 0.01 || coreR <= 0.05) {
+          g.setAttribute("opacity", "0");
+          return;
+        }
+        g.setAttribute("opacity", op.toFixed(3));
+        const d = clamp01(u) * (x1 - x0);
+        const x = x0 + d;
+        setDot(p + "core", x, LANE_Y, coreR);
+        setDot(p + "in", x, LANE_Y, coreR * 0.45);
+        setDot(p + "glow", x, LANE_Y, Math.max(0.6, coreR * 2.4));
+        for (let k = 1; k <= 3; k++) {
+          const dk = d - 7 * k;
+          const el = E.get(p + "t" + k);
+          if (el) {
+            if (dk <= 2) {
+              el.setAttribute("opacity", "0");
+            } else {
+              el.setAttribute("cx", (x0 + dk).toFixed(2));
+              el.setAttribute("cy", LANE_Y.toFixed(2));
+              el.setAttribute("opacity", (0.45 - 0.12 * k).toFixed(2));
+            }
+          }
+        }
+      };
 
-      // 1 · schedule beat: the API tag pops and the message row echoes.
-      const tp = easeOutCubic(ramp(t, 450, 900));
-      setPop("schedTag", tp * 0.9 * (1 - ramp(t, 2600, 3200)), tp);
-      // Canonical send-side kick: eased attack around the departure, eased
-      // decay. One envelope drives the row echo, panel wash, border and LED.
-      const e1 =
-        easeOutCubic(ramp(t, 320, 620)) *
-        (1 - easeInOutCubic(ramp(t, 1100, 1900)));
-      setO("rowEcho", e1 * 0.7);
-      setO("pw1", e1 * 0.07);
-      setO("pe1", e1 * 0.5);
-      setO("pl1", e1 * 0.9);
-      setO("ph1", e1 * 0.5);
+      const hidePulse = (p: string) => setO(p, 0);
 
-      // 2 · coral pulse: ORDERS row -> scheduled slot.
-      if (t >= 600 && t < 2100) {
-        const u = easeInOutCubic(ramp(t, 600, 2100));
-        placePulse(
-          "pub",
-          L.pubX0,
-          L.entryS,
-          u,
-          Math.min((t - 600) / 150, 1),
-          2.5,
-        );
-      } else {
-        hidePulse("pub");
-      }
-      setRing("ringS", (t - 2100) / 700, 2, 9);
+      const apply = (t: number) => {
+        const L = layoutRef.current;
 
-      // 3 · the dot parks and slides to the front of the slot.
-      const sdot = E.get("sdot");
-      if (sdot) {
-        if (t >= 2100 && t < 7400) {
-          const u = easeOutCubic(ramp(t, 2100, 2550));
-          setDot("sdot", L.entryS + (L.frontS - L.entryS) * u, LANE_Y);
-          sdot.setAttribute("opacity", "0.95");
+        const tp = easeOutCubic(ramp(t, 450, 900));
+        setPop("schedTag", tp * 0.9 * (1 - ramp(t, 2600, 3200)), tp);
+        const e1 =
+          easeOutCubic(ramp(t, 320, 620)) *
+          (1 - easeInOutCubic(ramp(t, 1100, 1900)));
+        setO("rowEcho", e1 * 0.7);
+        setO("pw1", e1 * 0.07);
+        setO("pe1", e1 * 0.5);
+        setO("pl1", e1 * 0.9);
+        setO("ph1", e1 * 0.5);
+
+        if (t >= 600 && t < 2100) {
+          const u = easeInOutCubic(ramp(t, 600, 2100));
+          placePulse(
+            "pub",
+            L.pubX0,
+            L.entryS,
+            u,
+            Math.min((t - 600) / 150, 1),
+            2.5,
+          );
         } else {
-          sdot.setAttribute("opacity", "0");
+          hidePulse("pub");
         }
-      }
+        setRing("ringS", (t - 2100) / 700, 2, 9);
 
-      // 4 · the hold: countdown 30 -> 0 while the clock arc fills.
-      const cp = ramp(t, 2700, 7000);
-      const av = Math.round(cp * 200) / 2;
-      if (av !== arcCache) {
-        arcCache = av;
-        const arc = E.get("cdArc");
-        if (arc) {
-          arc.setAttribute("stroke-dasharray", `${av} 100`);
+        const sdot = E.get("sdot");
+        if (sdot) {
+          if (t >= 2100 && t < 7400) {
+            const u = easeOutCubic(ramp(t, 2100, 2550));
+            setDot("sdot", L.entryS + (L.frontS - L.entryS) * u, LANE_Y);
+            sdot.setAttribute("opacity", "0.95");
+          } else {
+            sdot.setAttribute("opacity", "0");
+          }
         }
-      }
-      // The spent arc dissolves after the release so the clock reads idle
-      // again for the rest of the loop.
-      setO("cdArc", 1 - ramp(t, 7950, 8650));
-      const n = Math.ceil(CD_START * (1 - cp));
-      if (n !== numCache) {
-        numCache = n;
-        const el = E.get("cdNum");
-        if (el) {
-          el.textContent = String(n);
+
+        const cp = ramp(t, 2700, 7000);
+        const av = Math.round(cp * 200) / 2;
+        if (av !== arcCache) {
+          arcCache = av;
+          const arc = E.get("cdArc");
+          if (arc) {
+            arc.setAttribute("stroke-dasharray", `${av} 100`);
+          }
         }
-      }
-      setO("cdown", ramp(t, 2300, 2700) * (1 - ramp(t, 7200, 7700)) * 0.95);
+        setO("cdArc", 1 - ramp(t, 7950, 8650));
+        const n = Math.ceil(CD_START * (1 - cp));
+        if (n !== numCache) {
+          numCache = n;
+          const el = E.get("cdNum");
+          if (el) {
+            el.textContent = String(n);
+          }
+        }
+        setO("cdown", ramp(t, 2300, 2700) * (1 - ramp(t, 7200, 7700)) * 0.95);
 
-      // 5 · zero: subtle green release flash on the clock and the slot.
-      const gf = t < 7400 ? ramp(t, 7200, 7400) : 1 - ramp(t, 7400, 7950);
-      setO("arcFlash", Math.max(0, gf) * 0.9);
-      setO("slotFlash", Math.max(0, gf) * 0.55);
-      setRing("ringG", (t - 7200) / 700, CLOCK_R, 12);
+        const gf = t < 7400 ? ramp(t, 7200, 7400) : 1 - ramp(t, 7400, 7950);
+        setO("arcFlash", Math.max(0, gf) * 0.9);
+        setO("slotFlash", Math.max(0, gf) * 0.55);
+        setRing("ringG", (t - 7200) / 700, CLOCK_R, 12);
 
-      // 6 · released: slot front -> under the clock gate -> queue entry.
-      if (t >= 7400 && t < 8850) {
-        const u = easeInOutCubic(ramp(t, 7400, 8850));
-        placePulse(
-          "rel",
-          L.frontS,
-          L.entryQ,
-          u,
-          Math.min((t - 7400) / 150, 1),
-          2.5,
-        );
-      } else {
-        hidePulse("rel");
-      }
-      setRing("ringQ", (t - 8850) / 700, 2, 8);
-
-      // 7 · brief queue beat before delivery.
-      const qdot = E.get("qdot");
-      if (qdot) {
-        if (t >= 8850 && t < 9600) {
-          const u = easeOutCubic(ramp(t, 8850, 9300));
-          setDot("qdot", L.entryQ + (L.frontQ - L.entryQ) * u, LANE_Y);
-          qdot.setAttribute("opacity", "0.95");
+        if (t >= 7400 && t < 8850) {
+          const u = easeInOutCubic(ramp(t, 7400, 8850));
+          placePulse(
+            "rel",
+            L.frontS,
+            L.entryQ,
+            u,
+            Math.min((t - 7400) / 150, 1),
+            2.5,
+          );
         } else {
-          qdot.setAttribute("opacity", "0");
+          hidePulse("rel");
         }
-      }
+        setRing("ringQ", (t - 8850) / 700, 2, 8);
 
-      // 8 · delivery: queue -> SendWelcomeEmailHandler, then the row flashes.
-      if (t >= 9600 && t < 11050) {
-        const u = easeInOutCubic(ramp(t, 9600, 11050));
-        // The pulse fades out over its last 160ms, absorbed by the handler
-        // row; it never bounces.
-        const op = Math.min((t - 9600) / 150, 1) * (1 - ramp(t, 10890, 11050));
-        placePulse("dlv", L.frontQ, L.dlvEnd, u, op, 2.5);
-      } else {
-        hidePulse("dlv");
-      }
-      setRing("ring2", ((t - 11050 + T) % T) / 700, 3, 11);
-      // Canonical work window: attack starts just before arrival, the handler
-      // holds hot through the beat, then cools with an eased decay. The same
-      // envelope drives the row echo, panel wash, border and LED.
-      const w2 =
-        easeOutCubic(ramp(t, 11010, 11270)) *
-        (1 - easeInOutCubic(ramp(t, 11300, 11950)));
-      setO("h2echo", w2 * 0.9);
-      setO("h2lit", w2 * 0.9);
-      setO("pw2", w2 * 0.07);
-      setO("pe2", w2 * 0.55);
-      setO("pl2", w2 * 0.9);
-      setO("ph2", w2 * 0.5);
-    };
+        const qdot = E.get("qdot");
+        if (qdot) {
+          if (t >= 8850 && t < 9600) {
+            const u = easeOutCubic(ramp(t, 8850, 9300));
+            setDot("qdot", L.entryQ + (L.frontQ - L.entryQ) * u, LANE_Y);
+            qdot.setAttribute("opacity", "0.95");
+          } else {
+            qdot.setAttribute("opacity", "0");
+          }
+        }
 
-    let t = 0;
-    let last = 0;
+        if (t >= 9600 && t < 11050) {
+          const u = easeInOutCubic(ramp(t, 9600, 11050));
+          const op =
+            Math.min((t - 9600) / 150, 1) * (1 - ramp(t, 10890, 11050));
+          placePulse("dlv", L.frontQ, L.dlvEnd, u, op, 2.5);
+        } else {
+          hidePulse("dlv");
+        }
+        setRing("ring2", ((t - 11050 + T) % T) / 700, 3, 11);
+        const w2 =
+          easeOutCubic(ramp(t, 11010, 11270)) *
+          (1 - easeInOutCubic(ramp(t, 11300, 11950)));
+        setO("h2echo", w2 * 0.9);
+        setO("h2lit", w2 * 0.9);
+        setO("pw2", w2 * 0.07);
+        setO("pe2", w2 * 0.55);
+        setO("pl2", w2 * 0.9);
+        setO("ph2", w2 * 0.5);
+      };
 
-    const step = (now: number) => {
-      const dt = Math.min(now - last, 50);
-      last = now;
-      t = (t + dt) % T;
-      apply(t);
-      raf = requestAnimationFrame(step);
-    };
-    const sync = () => {
-      const should = inView && !document.hidden;
-      if (should && !running) {
-        running = true;
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      } else if (!should && running) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        inView = entries[entries.length - 1].isIntersecting;
-        sync();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(root);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      cancelAnimationFrame(raf);
-    };
-  }, [els]);
-
-  const set = (k: string) => (node: SVGElement | null) => {
-    els.set(k, node);
-  };
+      return { frame: apply, rest: () => apply(REST_T) };
+    },
+    { period: T },
+  );
 
   const pulseGlyph = (p: string) => (
     <g key={p} ref={set(p)} opacity={0}>
@@ -464,10 +384,8 @@ export function SchedulingVisual() {
             </pattern>
           </defs>
 
-          {/* substrate: faint pad-dot grid behind everything */}
           <rect x={0} y={0} width={lw} height={H} fill="url(#sched-pads)" />
 
-          {/* ── copper lanes: panel -> slot -> clock gate -> queue -> panel ── */}
           <path
             d={`M${x1R} ${LANE_Y} H${L.slotL}`}
             fill="none"
@@ -487,7 +405,6 @@ export function SchedulingVisual() {
             strokeWidth={1.5}
           />
 
-          {/* vias at the slot mouths and exits */}
           {(
             [
               ["v-slot-l", L.slotL],
@@ -507,7 +424,6 @@ export function SchedulingVisual() {
             />
           ))}
 
-          {/* pin-row docks at the two panel edges */}
           {(
             [
               ["pins-orders", x1R, 1],
@@ -528,7 +444,6 @@ export function SchedulingVisual() {
             </g>
           ))}
 
-          {/* ── SCHEDULED holding slot ─────────────────────────────── */}
           <rect
             x={L.slotL}
             y={LANE_Y - SLOT_H / 2}
@@ -565,7 +480,6 @@ export function SchedulingVisual() {
             SCHEDULED
           </text>
 
-          {/* countdown above the slot; the static frame shows 12 min left */}
           <g ref={set("cdown")} opacity={0.95}>
             <text
               x={L.cdX}
@@ -582,7 +496,6 @@ export function SchedulingVisual() {
             </text>
           </g>
 
-          {/* ── queue slot feeding NOTIFICATIONS ───────────────────── */}
           <rect
             x={L.qL}
             y={LANE_Y - QSLOT_H / 2}
@@ -605,7 +518,6 @@ export function SchedulingVisual() {
             welcome-emails
           </text>
 
-          {/* ── ORDERS SERVICE panel ───────────────────────────────── */}
           <rect
             x={M}
             y={PANEL_Y}
@@ -697,8 +609,6 @@ export function SchedulingVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          {/* activity LED: dim silk dot at rest, coral while ORDERS
-              publishes the scheduled message */}
           <circle
             cx={x1R - 10}
             cy={PANEL_Y + 10}
@@ -725,7 +635,6 @@ export function SchedulingVisual() {
             fill={CORAL}
             opacity={0}
           />
-          {/* schedule beat tag near the departure */}
           <text
             ref={set("schedTag")}
             x={M + PW1 / 2}
@@ -740,7 +649,6 @@ export function SchedulingVisual() {
             SchedulePublishAsync
           </text>
 
-          {/* ── NOTIFICATIONS SERVICE panel ────────────────────────── */}
           <rect
             x={L.px2}
             y={PANEL_Y}
@@ -843,8 +751,6 @@ export function SchedulingVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          {/* activity LED: dim silk dot at rest, coral while the panel
-              handles the delivered message */}
           <circle
             cx={L.px2 + PW2 - 10}
             cy={PANEL_Y + 10}
@@ -872,12 +778,10 @@ export function SchedulingVisual() {
             opacity={0}
           />
 
-          {/* ── pulses ─────────────────────────────────────────────── */}
           {pulseGlyph("pub")}
           {pulseGlyph("rel")}
           {pulseGlyph("dlv")}
 
-          {/* parked message; the reduced-motion frame shows it waiting */}
           <circle
             ref={set("sdot")}
             cx={L.frontS}
@@ -895,7 +799,6 @@ export function SchedulingVisual() {
             opacity={0}
           />
 
-          {/* arrival rings */}
           <circle
             ref={set("ringS")}
             cx={L.slotL}
@@ -927,7 +830,6 @@ export function SchedulingVisual() {
             opacity={0}
           />
 
-          {/* ── clock gate, drawn last so the release dips under it ── */}
           <circle
             cx={L.clockX}
             cy={LANE_Y}
@@ -952,7 +854,6 @@ export function SchedulingVisual() {
             fill={SLATE}
             opacity={0.6}
           />
-          {/* the arc fills as the hold elapses; static frame shows ~60% */}
           <circle
             ref={set("cdArc")}
             cx={L.clockX}
