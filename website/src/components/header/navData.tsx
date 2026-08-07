@@ -68,26 +68,25 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/platform/analytics",
             label: "Analytics",
-            description: "Trace latency, errors, and client impact.",
+            description: "Instant Insights. Enhanced Performance.",
             icon: WavePulseIcon,
           },
           {
             href: "/platform/release-safety",
             label: "Release Safety",
-            description:
-              "Validate changes against registered client operations.",
+            description: "Innovate with Confidence. Deliver with Quality.",
             icon: SparklesIcon,
           },
           {
             href: "/platform/ecosystem",
             label: "Ecosystem",
-            description: "Open source, standards, and community.",
+            description: "An Ecosystem You Trust and Love.",
             icon: CloudIcon,
           },
           {
             href: "/platform/agentic-coding",
             label: "Agentic Coding",
-            description: "Shared skills and patterns for coding agents.",
+            description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
           },
         ],
