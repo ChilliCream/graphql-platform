@@ -70,6 +70,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             nodesField,
             [new FieldSelectionNode(combinedField, 0)],
             [],
+            isProjectionRequirement: false,
             isInternal: true,
             arguments: selection.Arguments,
             resolverPipeline: nodesPipeline);

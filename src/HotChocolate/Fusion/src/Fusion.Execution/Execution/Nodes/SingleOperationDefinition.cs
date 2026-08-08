@@ -7,6 +7,7 @@ internal sealed class SingleOperationDefinition : OperationDefinition
     internal SingleOperationDefinition(
         int id,
         OperationSourceText operation,
+        string? lookupTypeName,
         string? schemaName,
         SelectionPath target,
         SelectionPath source,
@@ -18,6 +19,7 @@ internal sealed class SingleOperationDefinition : OperationDefinition
         : base(
             id,
             operation,
+            lookupTypeName,
             schemaName,
             source,
             requirements,

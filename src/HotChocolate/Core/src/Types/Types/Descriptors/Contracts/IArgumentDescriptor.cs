@@ -38,7 +38,7 @@ public interface IArgumentDescriptor
     /// Results in the following schema
     /// <code lang="graphql">
     /// type Query {
-    ///     ships(name: String @deprecated(reason: "No longer supported.")): [Ship!]!
+    ///     ships(name: String @deprecated): [Ship!]!
     /// }
     /// </code>
     /// </example>

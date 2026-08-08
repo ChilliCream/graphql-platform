@@ -27,6 +27,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         ObjectField field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
+        bool isProjectionRequirement,
         DeferUsage[]? deferUsage = null,
         ulong deferMask = 0,
         bool isInternal = false,
@@ -62,6 +63,11 @@ public sealed class Selection : ISelection, IFeatureProvider
         _deferUsage = deferUsage ?? [];
         _deferMask = deferMask;
         _flags = isInternal ? Flags.Internal : Flags.None;
+
+        if (isProjectionRequirement)
+        {
+            _flags |= Flags.ProjectionRequirement;
+        }
 
         if (field.Type.NamedType().IsLeafType())
         {
@@ -124,6 +130,9 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
+
+    internal bool IsProjectionRequirement
+        => (_flags & Flags.ProjectionRequirement) == Flags.ProjectionRequirement;
 
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
@@ -779,6 +788,7 @@ nextItem:
         Sealed = 2,
         List = 4,
         Stream = 8,
-        Leaf = 16
+        Leaf = 16,
+        ProjectionRequirement = 32
     }
 }

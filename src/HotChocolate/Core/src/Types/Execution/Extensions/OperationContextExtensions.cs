@@ -142,14 +142,16 @@ internal static class OperationContextExtensions
 
         if (handled is AggregateError aggregateError)
         {
+            var nextDepth = depth + 1;
+
             foreach (var innerError in aggregateError.Errors)
             {
-                UnwrapError(errorHandler, innerError, errors, depth++);
+                UnwrapError(errorHandler, innerError, errors, nextDepth);
             }
         }
         else
         {
-            errors.Add(error);
+            errors.Add(handled);
         }
     }
 }

@@ -63,7 +63,4 @@
   <data name="SchemaParser_InvalidUnionMemberType" xml:space="preserve">
     <value>The Union type '{0}' cannot include the type '{1}'. Unions can only contain Object types.</value>
   </data>
-  <data name="SchemaParser_NonRepeatableDirectiveAlreadyApplied" xml:space="preserve">
-    <value>The non-repeatable directive '@{0}' was already applied to '{1}' and cannot be applied again by an extension.</value>
-  </data>
 </root>

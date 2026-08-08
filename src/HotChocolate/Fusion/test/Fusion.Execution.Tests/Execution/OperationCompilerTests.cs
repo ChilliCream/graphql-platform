@@ -35,7 +35,7 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -89,7 +89,7 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         // assert
@@ -138,7 +138,7 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         // assert
@@ -225,7 +225,7 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         // assert
@@ -265,7 +265,7 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         // assert
@@ -305,7 +305,7 @@ public class OperationCompilerTests : FusionTestBase
             .OfType<OperationDefinitionNode>()
             .First();
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        compiler.Compile("1", "1", operationDefinition);
+        compiler.Compile("1", "1", "1", operationDefinition);
 
         Assert.Equal(
             ["Type1", "Type2", "Type3", "Type4"],
@@ -348,7 +348,7 @@ public class OperationCompilerTests : FusionTestBase
             .First();
         var compiler = new OperationCompiler(schema, _fieldMapPool);
 
-        compiler.Compile("1", "1", operationDefinition);
+        compiler.Compile("1", "1", "1", operationDefinition);
 
         Assert.True(interfaceType.TypeNameLookupTypes.IsEmpty);
         Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
@@ -449,7 +449,7 @@ public class OperationCompilerTests : FusionTestBase
             });
 
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         var series = GetSelection(operation.RootSelectionSet, "series");

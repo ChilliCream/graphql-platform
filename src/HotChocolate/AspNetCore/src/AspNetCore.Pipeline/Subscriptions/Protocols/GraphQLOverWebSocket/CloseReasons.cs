@@ -7,4 +7,5 @@ internal static class CloseReasons
     public const int TooManyInitAttempts = 4429;
     public const int SubscriberNotUnique = 4409;
     public const int Unauthorized = 4401;
+    public const int Forbidden = 4403;
 }

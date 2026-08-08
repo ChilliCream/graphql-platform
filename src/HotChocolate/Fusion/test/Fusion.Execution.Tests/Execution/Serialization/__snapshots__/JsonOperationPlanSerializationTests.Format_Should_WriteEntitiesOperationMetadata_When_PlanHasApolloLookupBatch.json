@@ -1,0 +1,60 @@
+[
+  {
+    "id": 2,
+    "type": "ApolloOperationBatch",
+    "schema": "b",
+    "operation": {
+      "name": "Op_123456789101112_2",
+      "kind": "Query",
+      "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Brand {\n      name\n    }\n  }\n}",
+      "hash": "de74f37acbcb7c124859be534aea7a77ceccc8f487bbd836b3b6cdda0056c261",
+      "shortHash": "de74f37a",
+      "xxHash": 14238007065013510061
+    },
+    "entityType": "Brand",
+    "resultSelectionSet": "{ name }",
+    "source": "$._entities",
+    "target": "$.brands",
+    "batchingGroupId": 2,
+    "requirements": [
+      {
+        "name": "__fusion_1_id",
+        "type": "ID!",
+        "path": "$.brands",
+        "selectionMap": "id"
+      }
+    ],
+    "dependencies": [
+      1
+    ]
+  },
+  {
+    "id": 3,
+    "type": "ApolloOperationBatch",
+    "schema": "b",
+    "operation": {
+      "name": "Op_123456789101112_3",
+      "kind": "Query",
+      "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      name\n    }\n  }\n}",
+      "hash": "3d0199cf8fe29364979b8f9ecf1412eda2cc9b8c55ddfbfd2e25875498f5d7a3",
+      "shortHash": "3d0199cf",
+      "xxHash": 8835176348033008527
+    },
+    "entityType": "Product",
+    "resultSelectionSet": "{ name }",
+    "source": "$._entities",
+    "target": "$.products",
+    "batchingGroupId": 2,
+    "requirements": [
+      {
+        "name": "__fusion_2_id",
+        "type": "ID!",
+        "path": "$.products",
+        "selectionMap": "id"
+      }
+    ],
+    "dependencies": [
+      1
+    ]
+  }
+]

@@ -3,6 +3,10 @@
     <Project Path="benchmarks/Composition/HotChocolate.Fusion.Composition.Benchmarks.csproj" />
     <Project Path="benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/external/">
+    <Project Path="../AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
+    <Project Path="../AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />

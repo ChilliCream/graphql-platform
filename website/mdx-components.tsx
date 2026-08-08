@@ -19,8 +19,14 @@ import {
   Implementation,
   Schema,
 } from "@/src/components/ExampleTabs";
+import {
+  CSharp,
+  LanguageTabs,
+  TypeScript,
+} from "@/src/components/LanguageTabs";
 import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
 import { FusionSubscriptionsDiagram } from "@/src/components/FusionSubscriptionsDiagram";
+import { DocHeading } from "@/src/components/DocHeading";
 import { PackageInstallation } from "@/src/components/PackageInstallation";
 import { PhotoGrid } from "@/src/components/PhotoGrid";
 import { YouTubeVideo } from "@/src/components/YouTubeVideo";
@@ -36,12 +42,12 @@ import {
 import { Typography } from "@/src/design-system/Typography";
 
 const components: MDXComponents = {
-  h1: (props) => <Typography variant="h1" anchor {...props} />,
-  h2: (props) => <Typography variant="h2" anchor {...props} />,
-  h3: (props) => <Typography variant="h3" anchor {...props} />,
-  h4: (props) => <Typography variant="h4" anchor {...props} />,
-  h5: (props) => <Typography variant="h5" anchor {...props} />,
-  h6: (props) => <Typography variant="h6" anchor {...props} />,
+  h1: (props) => <DocHeading variant="h1" {...props} />,
+  h2: (props) => <DocHeading variant="h2" {...props} />,
+  h3: (props) => <DocHeading variant="h3" {...props} />,
+  h4: (props) => <DocHeading variant="h4" {...props} />,
+  h5: (props) => <DocHeading variant="h5" {...props} />,
+  h6: (props) => <DocHeading variant="h6" {...props} />,
 
   p: (props) => <Typography variant="body" {...props} />,
   strong: (props) => <Typography variant="strong" {...props} />,
@@ -101,6 +107,11 @@ const components: MDXComponents = {
   Code: (props) => <Code {...props} exampleTab="code" />,
   ExampleCode: (props) => <ExampleCode {...props} exampleTab="code" />,
   Schema: (props) => <Schema {...props} exampleTab="schema" />,
+  LanguageTabs,
+  // Same RSC/client identity caveat as above: give the language marker
+  // elements a serializable discriminator for LanguageTabs to inspect.
+  CSharp: (props) => <CSharp {...props} languageTab="csharp" />,
+  TypeScript: (props) => <TypeScript {...props} languageTab="typescript" />,
   PackageInstallation,
 };
 

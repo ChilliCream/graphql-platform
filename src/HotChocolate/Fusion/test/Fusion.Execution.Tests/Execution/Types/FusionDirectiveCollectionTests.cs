@@ -245,7 +245,6 @@ public sealed class FusionDirectiveCollectionTests
             new FusionDirectiveDefinition(
                 name,
                 description: null,
-                isDeprecated: false,
                 deprecationReason: null,
                 isRepeatable: true,
                 FusionInputFieldDefinitionCollection.Empty,

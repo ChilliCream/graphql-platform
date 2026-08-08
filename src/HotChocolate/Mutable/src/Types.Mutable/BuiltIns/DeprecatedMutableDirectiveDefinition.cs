@@ -11,7 +11,8 @@ public sealed class DeprecatedMutableDirectiveDefinition : MutableDirectiveDefin
             | DirectiveLocation.ArgumentDefinition
             | DirectiveLocation.InputFieldDefinition
             | DirectiveLocation.EnumValue
-            | DirectiveLocation.DirectiveDefinition;
+            | DirectiveLocation.DirectiveDefinition
+            | DirectiveLocation.Object;
     }
 
     public MutableInputFieldDefinition Reason => Arguments[DirectiveNames.Deprecated.Arguments.Reason];

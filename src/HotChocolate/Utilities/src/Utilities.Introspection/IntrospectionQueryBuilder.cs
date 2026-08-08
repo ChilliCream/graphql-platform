@@ -55,12 +55,9 @@ internal static class IntrospectionQueryBuilder
                         })));
         }
 
-        selections.Add(CreateTypesField());
+        selections.Add(CreateTypesField(features));
 
-        selections.Add(
-            CreateDirectivesField(
-                features.HasDirectiveLocations,
-                features.HasRepeatableDirectives));
+        selections.Add(CreateDirectivesField(features));
 
         return new DocumentNode(
             new IDefinitionNode[]
@@ -82,18 +79,20 @@ internal static class IntrospectionQueryBuilder
                                 Array.Empty<ArgumentNode>(),
                                 new SelectionSetNode(selections))
                         })),
-                BuildFullTypeFragment(features.HasArgumentDeprecation),
+                BuildFullTypeFragment(features),
                 BuildInputValueFragment(),
                 BuildTypeRefFragment(options.TypeDepth)
             });
     }
 
-    private static FieldNode CreateTypesField()
+    private static FieldNode CreateTypesField(ServerCapabilities features)
         => new FieldNode(
             new NameNode("types"),
             null,
             Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            features.HasObjectDeprecation
+                ? [new ArgumentNode("includeDeprecated", true)]
+                : Array.Empty<ArgumentNode>(),
             new SelectionSetNode(
                 new ISelectionNode[]
                 {
@@ -103,28 +102,16 @@ internal static class IntrospectionQueryBuilder
                         Array.Empty<DirectiveNode>())
                 }));
 
-    private static FieldNode CreateDirectivesField(bool hasLocationsField, bool hasRepeatableDirective)
+    private static FieldNode CreateDirectivesField(ServerCapabilities features)
     {
         var selections = new List<ISelectionNode>
         {
             new FieldNode("name"),
             new FieldNode("description"),
-            new FieldNode(
-                new NameNode("args"),
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                new SelectionSetNode(
-                    new ISelectionNode[]
-                    {
-                        new FragmentSpreadNode(
-                            null,
-                            new NameNode("InputValue"),
-                            Array.Empty<DirectiveNode>())
-                    }))
+            CreateArgsField(features.HasArgumentDeprecation)
         };
 
-        if (hasLocationsField)
+        if (features.HasDirectiveLocations)
         {
             selections.Add(new FieldNode("locations"));
         }
@@ -135,39 +122,56 @@ internal static class IntrospectionQueryBuilder
             selections.Add(new FieldNode("onField"));
         }
 
-        if (hasRepeatableDirective)
+        if (features.HasRepeatableDirectives)
         {
             selections.Add(new FieldNode("isRepeatable"));
+        }
+
+        if (features.HasDirectiveDeprecation)
+        {
+            selections.Add(new FieldNode("isDeprecated"));
+            selections.Add(new FieldNode("deprecationReason"));
         }
 
         return new FieldNode(
             new NameNode("directives"),
             null,
             Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            features.HasDirectiveDeprecation
+                ? [new ArgumentNode("includeDeprecated", true)]
+                : Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
     }
 
-    private static FragmentDefinitionNode BuildFullTypeFragment(bool includeDeprecatedArgs)
-        => new FragmentDefinitionNode(
+    private static FragmentDefinitionNode BuildFullTypeFragment(ServerCapabilities features)
+    {
+        var selections = new List<ISelectionNode>
+        {
+            new FieldNode("kind"),
+            new FieldNode("name"),
+            new FieldNode("description"),
+            CreateFields(features.HasArgumentDeprecation),
+            CreateInputFields(features.HasArgumentDeprecation),
+            CreateInterfacesField(),
+            CreateEnumValuesField(),
+            CreatePossibleTypesField(features)
+        };
+
+        if (features.HasObjectDeprecation)
+        {
+            selections.Add(new FieldNode("isDeprecated"));
+            selections.Add(new FieldNode("deprecationReason"));
+        }
+
+        return new FragmentDefinitionNode(
             null,
             new NameNode("FullType"),
             description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("__Type"),
             Array.Empty<DirectiveNode>(),
-            new SelectionSetNode(
-                new ISelectionNode[]
-                {
-                    new FieldNode("kind"),
-                    new FieldNode("name"),
-                    new FieldNode("description"),
-                    CreateFields(includeDeprecatedArgs),
-                    CreateInputFields(includeDeprecatedArgs),
-                    CreateInterfacesField(),
-                    CreateEnumValuesField(),
-                    CreatePossibleTypesField()
-                }));
+            new SelectionSetNode(selections));
+    }
 
     private static FieldNode CreateFields(bool includeDeprecatedArgs)
         => new FieldNode(
@@ -305,12 +309,14 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode("deprecationReason")
                 }));
 
-    private static FieldNode CreatePossibleTypesField()
+    private static FieldNode CreatePossibleTypesField(ServerCapabilities features)
         => new FieldNode(
             new NameNode("possibleTypes"),
             null,
             Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            features.HasObjectDeprecation
+                ? [new ArgumentNode("includeDeprecated", true)]
+                : Array.Empty<ArgumentNode>(),
             new SelectionSetNode(
                 new ISelectionNode[]
                 {

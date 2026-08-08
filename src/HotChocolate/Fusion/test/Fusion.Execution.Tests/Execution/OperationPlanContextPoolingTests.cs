@@ -140,13 +140,15 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         var fallback = new TestExecutionNode(65);
         nodeField.AddFallbackQuery(fallback);
 
+        var operationText = "query BatchOperation { field }"u8.ToArray();
         var batchDefinition = new SingleOperationDefinition(
             127,
             new OperationSourceText(
                 "BatchOperation",
                 OperationType.Query,
-                "query BatchOperation { field }",
-                "batch-operation"),
+                operationText,
+                OperationSourceTextHash.Compute(operationText)),
+            lookupTypeName: null,
             "a",
             SelectionPath.Root,
             SelectionPath.Root,

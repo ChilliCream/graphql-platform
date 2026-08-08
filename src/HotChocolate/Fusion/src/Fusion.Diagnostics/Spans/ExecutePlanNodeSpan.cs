@@ -53,12 +53,40 @@ internal sealed class ExecutePlanNodeSpan(
         activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);
         activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
 
-        if (node is OperationExecutionNode operationExecutionNode)
-        {
-            SetSourceSchemaTags(activity, operationExecutionNode.Operation, schemaName);
-        }
+        SetSourceSchemaTags(activity, node, schemaName);
 
         return new ExecutePlanNodeSpan(activity, context, node, schemaName, enricher);
+    }
+
+    internal static void SetSourceSchemaTags(
+        Activity activity,
+        ExecutionNode node,
+        string? schemaName)
+    {
+        switch (node)
+        {
+            case OperationExecutionNode operationExecutionNode:
+                SetSourceSchemaTags(activity, operationExecutionNode.Operation, schemaName);
+                break;
+
+            case ApolloOperationExecutionNode apolloOperationExecutionNode:
+                SetSourceSchemaTags(activity, apolloOperationExecutionNode.Operation, schemaName);
+                break;
+
+            case OperationBatchExecutionNode operationBatchExecutionNode:
+                SetSourceSchemaBatchTags(
+                    activity,
+                    schemaName,
+                    operationBatchExecutionNode.Operations.Length);
+                break;
+
+            case ApolloOperationBatchExecutionNode apolloOperationBatchExecutionNode:
+                SetSourceSchemaBatchTags(
+                    activity,
+                    schemaName,
+                    apolloOperationBatchExecutionNode.Operations.Length);
+                break;
+        }
     }
 
     protected override void OnComplete()
@@ -89,6 +117,19 @@ internal sealed class ExecutePlanNodeSpan(
         }
 
         activity.SetTag(GraphQL.SourceSchema.Operation.Name, operation.Name);
-        activity.SetTag(GraphQL.SourceSchema.Operation.Hash, $"sha256:{operation.Hash}");
+        activity.SetTag(GraphQL.SourceSchema.Operation.Hash, $"sha256:{operation.Hash.Sha256}");
+    }
+
+    private static void SetSourceSchemaBatchTags(
+        Activity activity,
+        string? schemaName,
+        int operationCount)
+    {
+        if (!string.IsNullOrWhiteSpace(schemaName))
+        {
+            activity.SetTag(GraphQL.SourceSchema.Name, schemaName);
+        }
+
+        activity.SetTag(GraphQL.SourceSchema.Batch.OperationCount, operationCount);
     }
 }
