@@ -17,7 +17,7 @@ const PRODUCT_NAMES = new Map([
   ["strawberryshake", "Strawberry Shake"],
   ["nitro", "Nitro"],
   ["mocha", "Mocha"],
-  ["skillz", "Skillz"],
+  ["skillz", "Skills"],
 ]);
 const PRODUCT_ORDER = new Map(
   [...PRODUCT_NAMES.keys()].map((product, index) => [product, index]),
@@ -445,7 +445,7 @@ export async function generateLlmsFiles() {
     writeScopedFiles(
       "docs",
       "ChilliCream documentation",
-      "Technical documentation for Hot Chocolate, Fusion, Strawberry Shake, Nitro, Mocha, and Skillz.",
+      "Technical documentation for Hot Chocolate, Fusion, Strawberry Shake, Nitro, Mocha, and Skills.",
       docs,
     ),
     writeScopedFiles(

@@ -7,7 +7,7 @@ import { Fusion } from "@/src/icons/Fusion";
 import { HotChocolate } from "@/src/icons/HotChocolate";
 import { Mocha } from "@/src/icons/Mocha";
 import { Nitro } from "@/src/icons/Nitro";
-import { Skillz } from "@/src/icons/Skillz";
+import { Skills } from "@/src/icons/Skills";
 import { StrawberryShake } from "@/src/icons/StrawberryShake";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { createItemListNode, schemaRef } from "@/src/helpers/structuredData";
@@ -28,7 +28,7 @@ const PRODUCT_ICONS: Record<string, ProductIcon> = {
   strawberryshake: StrawberryShake,
   nitro: Nitro,
   mocha: Mocha,
-  skillz: Skillz,
+  skillz: Skills,
 };
 
 export default function DocsIndex() {
