@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateLlmsFiles } from "./generate-llms-files.mjs";
+import { parseSitemapUrls } from "./parse-sitemap.mjs";
 
 const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -22,20 +23,9 @@ const FORBIDDEN_BUILD_MARKERS = [
   "data:image/",
 ];
 
-function decodeXml(value) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&apos;", "'");
-}
-
 async function sitemapUrls() {
   const xml = await fs.readFile(path.join(OUTPUT_ROOT, "sitemap.xml"), "utf8");
-  return [...xml.matchAll(/<loc>([\s\S]*?)<\/loc>/g)].map((match) =>
-    decodeXml(match[1].trim()),
-  );
+  return parseSitemapUrls(xml);
 }
 
 function markdownRelativePath(url) {

@@ -15,6 +15,18 @@ const SUBJECTS = [
   "Other",
 ];
 
+const REQUEST_CONTEXTS = [
+  "GraphQL Services",
+  "Private Nitro Deployment",
+  "GraphQL Support",
+  "Startup Support",
+  "Business Support",
+  "Enterprise Support",
+  "GraphQL Advisory",
+  "Dedicated Nitro Deployment",
+  "Self-Hosted Nitro",
+];
+
 const SUBMIT_ENDPOINT = "https://forms.chillicream.com/api/SupportForm";
 const THANK_YOU_PATH = "/services/support/thank-you";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,12 +57,26 @@ function resolveSubject(subject: string | null): string {
   return match ?? SUBJECTS[0];
 }
 
+function resolveRequestContext(context: string | null): string {
+  if (!context) {
+    return "";
+  }
+
+  const match = REQUEST_CONTEXTS.find(
+    (candidate) => candidate.toLowerCase() === context.trim().toLowerCase(),
+  );
+
+  return match ?? "";
+}
+
 const subscribe = () => () => {};
 const getSubjectFromUrl = () =>
   resolveSubject(new URLSearchParams(window.location.search).get("subject"));
 const getServerSubject = () => "";
 const getRequestContextFromUrl = () =>
-  new URLSearchParams(window.location.search).get("context")?.trim() ?? "";
+  resolveRequestContext(
+    new URLSearchParams(window.location.search).get("context"),
+  );
 const getServerRequestContext = () => "";
 
 export function ContactForm() {

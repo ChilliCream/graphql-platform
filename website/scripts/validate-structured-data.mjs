@@ -1,3 +1,5 @@
+import { parseSitemapUrls } from "./parse-sitemap.mjs";
+
 const baseUrl = new URL(process.argv[2] ?? "http://localhost:3001");
 const SITE_NODE_TYPES = new Set(["Organization", "ImageObject", "WebSite"]);
 const DISCOVERABLE_ARCHIVES = /^\/blog\/(?:\d+|tags\/[^/?#]+(?:\/\d+)?)$/;
@@ -12,8 +14,8 @@ if (!sitemapResponse.ok) {
 const sitemap = await sitemapResponse.text();
 const queue = [
   ...new Set(
-    [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => {
-      const pathname = new URL(decodeXml(match[1])).pathname;
+    parseSitemapUrls(sitemap).map((url) => {
+      const pathname = new URL(url).pathname;
       return pathname || "/";
     }),
   ),
@@ -181,13 +183,4 @@ function discoverBlogArchives(html) {
       queue.push(pathname);
     }
   }
-}
-
-function decodeXml(value) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&apos;", "'");
 }

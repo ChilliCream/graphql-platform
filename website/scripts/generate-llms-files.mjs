@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { NodeHtmlMarkdown } from "node-html-markdown";
 import { parse } from "node-html-parser";
+import { parseSitemapUrls } from "./parse-sitemap.mjs";
 
 const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -45,15 +46,6 @@ const markdownConverter = new NodeHtmlMarkdown({
   maxConsecutiveNewlines: 2,
   useInlineLinks: true,
 });
-
-function decodeXml(value) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&apos;", "'");
-}
 
 function cleanInlineText(value) {
   return value.replace(/\s+/g, " ").trim();
@@ -206,9 +198,7 @@ function markdownUrl(url) {
 async function readSitemapUrls() {
   const sitemapPath = path.join(OUTPUT_ROOT, "sitemap.xml");
   const xml = await fs.readFile(sitemapPath, "utf8");
-  const urls = [...xml.matchAll(/<loc>([\s\S]*?)<\/loc>/g)].map((match) =>
-    decodeXml(match[1].trim()),
-  );
+  const urls = parseSitemapUrls(xml);
 
   if (urls.length === 0) {
     throw new Error(`No URLs found in ${sitemapPath}`);
