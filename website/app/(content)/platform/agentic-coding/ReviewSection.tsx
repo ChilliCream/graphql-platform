@@ -8,6 +8,7 @@ import { SectionHeading } from "@/src/components/SectionHeading";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
+import { SpinnerGlyph } from "@/src/icons/SpinnerGlyph";
 
 interface HunkRun {
   readonly t: string;
@@ -243,31 +244,19 @@ function CursorGlyph({ className }: { readonly className?: string }) {
   );
 }
 
-/** Amber spinner, GitHub-style, for a check that is still running: a
- * three-quarter circle arc rotating in place. */
+/** Amber spinner, GitHub-style, for a check that is still running. */
 function PendingSpinner() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="size-3.5 shrink-0 animate-spin"
-    >
-      <circle
-        cx="8"
-        cy="8"
-        r="5"
-        stroke="#d9a441"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeDasharray="23.5"
-      />
-    </svg>
+    <SpinnerGlyph className="size-3.5 shrink-0 animate-spin text-[#d9a441] motion-reduce:animate-none" />
   );
 }
 
+interface StatusBadgeProps {
+  readonly status: DemoStatus;
+}
+
 /** The PR status badge in the title bar: In Review -> Approved -> Merged. */
-function StatusBadge({ status }: { readonly status: DemoStatus }) {
+function StatusBadge({ status }: StatusBadgeProps) {
   if (status === "approved") {
     return (
       <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-[0.1em] uppercase">
@@ -300,30 +289,27 @@ function StatusBadge({ status }: { readonly status: DemoStatus }) {
         background: "rgba(217, 164, 65, 0.1)",
       }}
     >
-      <span className="size-1.5 animate-pulse rounded-full bg-current" />
+      <span className="size-1.5 animate-pulse rounded-full bg-current motion-reduce:animate-none" />
       In Review
     </span>
   );
 }
 
-/** One file in the PR: GitHub-dark file box with header strip, added-line
- * green wash, and the Viewed checkbox the pointer ticks. */
-function FileCard({
-  hunk,
-  viewed,
-  pressed,
-  checkboxRef,
-}: {
+interface FileCardProps {
   readonly hunk: Hunk;
   readonly viewed: boolean;
   readonly pressed: boolean;
   readonly checkboxRef: (el: HTMLElement | null) => void;
-}) {
+}
+
+/** One file in the PR: GitHub-dark file box with header strip, added-line
+ * green wash, and the Viewed checkbox the pointer ticks. */
+function FileCard({ hunk, viewed, pressed, checkboxRef }: FileCardProps) {
   return (
     <div className="border-cc-card-border overflow-hidden rounded-lg border select-none">
       <div className="border-cc-card-border flex items-center gap-2 border-b bg-white/[0.03] px-3 py-2">
         <FileGlyph />
-        <span className="text-cc-nav-label min-w-0 truncate font-mono text-xs">
+        <span className="text-cc-ink-dim min-w-0 truncate font-mono text-xs">
           {hunk.file}
         </span>
         <span className="flex shrink-0 items-center gap-1.5 font-mono text-[0.6rem]">
@@ -482,7 +468,7 @@ export function ReviewSection() {
                   <span className="text-cc-ink font-mono text-sm">
                     feat: add product reviews
                   </span>
-                  <Eyebrow as="span" size="2xs">
+                  <Eyebrow as="span" size="2xs" color="ink-dim">
                     3 files changed
                   </Eyebrow>
                   <span className="font-mono text-[0.65rem]">
@@ -510,7 +496,7 @@ export function ReviewSection() {
               {/* CI results under the diff: the platform's schema check runs
                 beside the usual build and tests. */}
               <Card className="p-4 select-none">
-                <Eyebrow as="p" className="text-[0.6rem]">
+                <Eyebrow as="p" color="ink-dim" className="text-[0.6rem]">
                   Checks
                 </Eyebrow>
                 <ul className="mt-2.5 space-y-1.5">
