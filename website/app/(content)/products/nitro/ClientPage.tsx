@@ -9,34 +9,58 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import dynamic from "next/dynamic";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useId, useRef } from "react";
 
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
-import { ControlPlaneConsole } from "@/src/components/nitro/ControlPlaneConsole";
 import { NitroDownload } from "@/src/components/nitro/NitroDownload";
 import { RisingParticles } from "@/src/components/nitro/RisingParticles";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
-import {
-  BarSeries,
-  CountUp,
-  HBarSeries,
-  InsightsTable,
-  LineAreaChart,
-  NitroCompose,
-  NitroDiagnose,
-  NitroFusion,
-  NitroReel,
-  NitroSchema,
-  NitroTheme,
-  NitroTrace,
-  TraceWaterfall,
-} from "@/src/nitro";
+import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
+
+const ControlPlaneConsole = dynamic(() =>
+  import("@/src/components/nitro/ControlPlaneConsole").then(
+    (m) => m.ControlPlaneConsole,
+  ),
+);
+const BarSeries = dynamic(() => import("@/src/nitro").then((m) => m.BarSeries));
+const CountUp = dynamic(() => import("@/src/nitro").then((m) => m.CountUp));
+const HBarSeries = dynamic(() =>
+  import("@/src/nitro").then((m) => m.HBarSeries),
+);
+const InsightsTable = dynamic(() =>
+  import("@/src/nitro").then((m) => m.InsightsTable),
+);
+const LineAreaChart = dynamic(() =>
+  import("@/src/nitro").then((m) => m.LineAreaChart),
+);
+const NitroCompose = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroCompose),
+);
+const NitroDiagnose = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroDiagnose),
+);
+const NitroFusion = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroFusion),
+);
+const NitroSchema = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroSchema),
+);
+const NitroTheme = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroTheme),
+);
+const NitroTrace = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroTrace),
+);
+const TraceWaterfall = dynamic(() =>
+  import("@/src/nitro").then((m) => m.TraceWaterfall),
+);
 
 interface SectionIntroProps {
   readonly index?: string;
@@ -466,6 +490,9 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
         @keyframes v22-breathe {
           0%, 100% { opacity: 0.9; }
           50% { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .v22-hero-flare { animation: none !important; }
         }
         .v22-hero-reel [role="group"] > div:first-child { display: none !important; }
         @media (max-width: 639px) {
@@ -1692,7 +1719,9 @@ export function ClientPage() {
             governance, client safety, and release checks as your team grows.
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-            <SolidButton href="/get-started">Start for Free</SolidButton>
+            <SolidButton href="https://nitro.chillicream.com">
+              Start for Free
+            </SolidButton>
             <OutlineButton href="https://nitro.chillicream.com">
               Launch Nitro
             </OutlineButton>

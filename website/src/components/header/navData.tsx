@@ -72,8 +72,8 @@ export const NAV_ITEMS: NavItem[] = [
             icon: WavePulseIcon,
           },
           {
-            href: "/platform/continuous-integration",
-            label: "Continuous Integration",
+            href: "/platform/release-safety",
+            label: "Release Safety",
             description: "Innovate with Confidence. Deliver with Quality.",
             icon: SparklesIcon,
           },
@@ -97,7 +97,13 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/products/nitro",
             label: "Nitro",
-            description: "Observability, Governance, Delivery",
+            description: "Observability, governance, and delivery.",
+            icon: RocketIcon,
+          },
+          {
+            href: "/products/mocha",
+            label: "Mocha",
+            description: "Messaging for .NET.",
             icon: RocketIcon,
           },
         ],

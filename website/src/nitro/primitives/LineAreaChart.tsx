@@ -48,6 +48,7 @@ export interface LineAreaChartProps {
   seriesStagger?: number;
   showHead?: boolean;
   durationMs?: number;
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -69,6 +70,7 @@ export function LineAreaChart({
   seriesStagger = 0.12,
   showHead = false,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
@@ -77,6 +79,7 @@ export function LineAreaChart({
     progress,
     playWindow,
     durationMs,
+    once,
   });
   const pulse = !reduced && inView;
   const label = ariaLabel ?? `Line chart with ${series.length} series`;

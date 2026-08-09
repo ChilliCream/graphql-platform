@@ -18,9 +18,9 @@ const PLATFORM_SECTIONS = [
     description: "Instant Insights. Enhanced Performance.",
   },
   {
-    href: "/platform/continuous-integration",
-    title: "Continuous Integration",
-    description: "Innovate with Confidence. Deliver with Quality.",
+    href: "/platform/release-safety",
+    title: "Release Safety",
+    description: "Catch Breaking Changes Before They Ship.",
   },
   {
     href: "/platform/ecosystem",

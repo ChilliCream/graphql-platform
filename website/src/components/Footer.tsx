@@ -55,12 +55,11 @@ export default function Footer() {
           <div className="grid flex-4 grid-cols-2 gap-8 md:grid-cols-4">
             <LinkColumn title="Platform">
               <NavLink href="/platform/analytics">Analytics</NavLink>
-              <NavLink href="/platform/continuous-integration">
-                Continuous Integration
-              </NavLink>
+              <NavLink href="/platform/release-safety">Release Safety</NavLink>
               <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
               <NavLink href="/platform/agentic-coding">Agentic Coding</NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
+              <NavLink href="/products/mocha">Mocha</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">
               <NavLink href="/services/advisory">Advisory</NavLink>
