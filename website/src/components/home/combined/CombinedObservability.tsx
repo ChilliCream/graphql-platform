@@ -45,7 +45,7 @@ export function CombinedObservability() {
             documented .NET setup covers REST, gRPC, and background jobs.
           </p>
           <ArrowLink href="/platform/analytics" className="mt-6">
-            Learn more
+            Explore API analytics
           </ArrowLink>
         </div>
 

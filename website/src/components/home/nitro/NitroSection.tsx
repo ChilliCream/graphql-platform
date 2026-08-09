@@ -47,7 +47,7 @@ export function NitroSection() {
             A GraphQL IDE, a telemetry dashboard, a schema and client registry,
             and a Fusion query-plan viewer. All of it is the same app.
           </p>
-          <ArrowLink href="/products/nitro">Learn more</ArrowLink>
+          <ArrowLink href="/products/nitro">Explore Nitro</ArrowLink>
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-2">

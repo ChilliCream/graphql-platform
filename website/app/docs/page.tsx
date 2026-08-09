@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { PRODUCTS } from "@/src/data/products";
 import { LinkCard } from "@/src/components/LinkCard";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { Typography } from "@/src/design-system/Typography";
 import { Fusion } from "@/src/icons/Fusion";
 import { HotChocolate } from "@/src/icons/HotChocolate";
@@ -9,12 +10,15 @@ import { Nitro } from "@/src/icons/Nitro";
 import { Skillz } from "@/src/icons/Skillz";
 import { StrawberryShake } from "@/src/icons/StrawberryShake";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { createItemListNode, schemaRef } from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
+const PAGE = {
   title: "Documentation",
   description: "Documentation for the ChilliCream GraphQL Platform.",
   path: "/docs",
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 type ProductIcon = ComponentType<{ className?: string }>;
 
@@ -28,8 +32,27 @@ const PRODUCT_ICONS: Record<string, ProductIcon> = {
 };
 
 export default function DocsIndex() {
+  const productList = createItemListNode(
+    PAGE.path,
+    "ChilliCream product documentation",
+    PRODUCTS.map((product) => ({
+      name: product.title,
+      description: product.description,
+      url: `/docs/${product.slug}`,
+      itemType: "TechArticle",
+    })),
+    { order: "https://schema.org/ItemListUnordered" },
+  );
+
   return (
     <div className="px-5 py-8 sm:px-12">
+      <PageStructuredData
+        {...PAGE}
+        pageType="CollectionPage"
+        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Documentation" }]}
+        mainEntity={schemaRef(productList["@id"]!)}
+        additionalNodes={[productList]}
+      />
       <div className="mx-auto max-w-5xl">
         <Typography variant="h1">Documentation</Typography>
 

@@ -145,7 +145,7 @@ export function GateSection() {
   return (
     <SectionShell
       title="Every environment is its own gate."
-      lead="Development, staging, and production each hold their own published operations, so the same change is validated against what actually runs in each of them. A change that passes staging can still fail production, because different client versions are published there."
+      lead="Development, staging, and production can each hold a different set of published operations. Validate against the environment you plan to update, because a change that passes staging may still affect client versions published to production."
       artifact={<GateSchematic />}
       flip
     />

@@ -1,25 +1,27 @@
 import { FromOurBlog } from "@/src/components/FromOurBlog";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { TOOLS } from "@/src/components/header/navData";
-import { getGitHubCommitActivity } from "@/src/helpers/githubCommitActivity";
+import commitActivity from "@/src/data/githubCommitActivity.json";
 import { getGitHubContributors } from "@/src/helpers/githubContributors";
 import { getGitHubStarCount } from "@/src/helpers/githubStars";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { schemaId, schemaRef } from "@/src/helpers/structuredData";
 
 import { CommunityGrid } from "./CommunityGrid";
 import { Hero } from "./Hero";
 import { ProofBand } from "./ProofBand";
 import { StandardsBand } from "./StandardsBand";
 
-export const metadata = pageMetadata({
-  title: ".NET GraphQL Ecosystem",
+const PAGE = {
+  title: "Open-Source GraphQL Ecosystem for .NET",
   description:
-    "Explore ChilliCream's open-source .NET GraphQL platform, public development, standards participation, and community channels.",
+    "Explore the open-source .NET GraphQL ecosystem behind Hot Chocolate, Fusion, Mocha and Strawberry Shake: public code, standards work, docs, and community.",
   path: "/platform/ecosystem",
   keywords: [
-    "GraphQL ecosystem",
-    "open source .NET GraphQL",
+    "open-source .NET GraphQL ecosystem",
+    ".NET GraphQL open source",
     "HotChocolate GraphQL server",
     "GraphQL standards",
     "GraphQL Foundation",
@@ -28,16 +30,18 @@ export const metadata = pageMetadata({
     "community channels",
     "Fusion GraphQL",
     "Strawberry Shake",
+    "Mocha Messaging",
   ],
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 const HIDDEN_CONTRIBUTOR_LOGINS = new Set(["artola"]);
 
 export default async function EcosystemPage() {
-  const [starCount, contributors, commitActivity] = await Promise.all([
+  const [starCount, contributors] = await Promise.all([
     getGitHubStarCount(),
     getGitHubContributors(),
-    getGitHubCommitActivity(),
   ]);
   const heroContributors =
     contributors?.filter(
@@ -46,8 +50,24 @@ export default async function EcosystemPage() {
 
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        pageType="CollectionPage"
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Platform", path: "/platform" },
+          { name: "Ecosystem" },
+        ]}
+        about={[
+          schemaRef(schemaId("/products/hotchocolate", "software")),
+          schemaRef(schemaId("/products/strawberryshake", "software")),
+          schemaRef(schemaId("/products/mocha", "software")),
+        ]}
+      />
       <Hero starCount={starCount} contributors={heroContributors} />
-      <ProofBand commitActivity={commitActivity} />
+      <ProofBand commitActivity={commitActivity.weeks} />
       <StandardsBand />
       <CommunityGrid starCount={starCount} />
       <RevealOnScroll>

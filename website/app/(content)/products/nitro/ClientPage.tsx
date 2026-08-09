@@ -1393,8 +1393,9 @@ function DeliveryBand() {
                     Persisted operations
                   </div>
                   <p className="text-cc-ink mt-2 text-sm leading-relaxed">
-                    Only registered query hashes execute. Ad-hoc queries and
-                    injection never reach a resolver.
+                    With strict trusted documents configured, production accepts
+                    registered operation IDs instead of arbitrary GraphQL
+                    documents.
                   </p>
                 </div>
                 <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
@@ -1720,11 +1721,9 @@ export function ClientPage() {
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
             <SolidButton href="https://nitro.chillicream.com">
-              Start for Free
+              Start Nitro for Free
             </SolidButton>
-            <OutlineButton href="https://nitro.chillicream.com">
-              Launch Nitro
-            </OutlineButton>
+            <OutlineButton href="/pricing">Compare Nitro Plans</OutlineButton>
           </div>
         </RevealOnScroll>
       </section>

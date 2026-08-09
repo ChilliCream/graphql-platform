@@ -1,5 +1,6 @@
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-import { SITE_URL } from "@/src/helpers/siteUrl";
+import { schemaId, schemaRef } from "@/src/helpers/structuredData";
 
 import { ClosingCta } from "./ClosingCta";
 import { FindTheCause } from "./FindTheCause";
@@ -7,55 +8,40 @@ import { FullOtelBand } from "./FullOtelBand";
 import { Hero } from "./Hero";
 import { ThreeQuestions } from "./ThreeQuestions";
 
-export const metadata = pageMetadata({
+const PAGE = {
   title: "API Analytics and OpenTelemetry Observability",
   description:
-    "Analyze your APIs with OpenTelemetry: distributed traces, latency and error monitoring, impact scores, and per-client usage across GraphQL, REST, gRPC, and background jobs.",
+    "Use API analytics and OpenTelemetry traces to investigate latency, errors, throughput, operation impact, and identified client usage in Nitro.",
   path: "/platform/analytics",
   keywords: [
     "API analytics",
-    "OpenTelemetry analytics",
+    "API analytics with OpenTelemetry",
     "distributed tracing",
     "p95 p99 latency",
     "impact score",
     "per-client usage",
     "operation monitoring",
-    "REST gRPC monitoring",
+    "GraphQL API observability",
     ".NET observability",
     "Nitro",
   ],
-});
+} as const;
 
-const BREADCRUMB_DATA = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: `${SITE_URL}/`,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Platform",
-      item: `${SITE_URL}/platform`,
-    },
-    {
-      "@type": "ListItem",
-      position: 3,
-      name: "Analytics",
-    },
-  ],
-};
+export const metadata = pageMetadata(PAGE);
 
 export default function AnalyticsPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }}
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Platform", path: "/platform" },
+          { name: "Analytics" },
+        ]}
+        about={schemaRef(schemaId("/products/nitro", "product"))}
       />
       <Hero />
       <FullOtelBand />

@@ -85,7 +85,7 @@ export const NAV_ITEMS: NavItem[] = [
           },
           {
             href: "/platform/agentic-coding",
-            label: "Agentic Coding",
+            label: "Agentic Development",
             description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
           },

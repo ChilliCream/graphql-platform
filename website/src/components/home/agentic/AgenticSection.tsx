@@ -411,7 +411,7 @@ function StartNowPanel() {
         className="bg-cc-surface mt-5"
       />
       <ArrowLink href="/platform/agentic-coding" className="mt-5">
-        Learn more
+        Explore agentic development
       </ArrowLink>
     </div>
   );

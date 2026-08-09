@@ -49,6 +49,9 @@ const subscribe = () => () => {};
 const getSubjectFromUrl = () =>
   resolveSubject(new URLSearchParams(window.location.search).get("subject"));
 const getServerSubject = () => "";
+const getRequestContextFromUrl = () =>
+  new URLSearchParams(window.location.search).get("context")?.trim() ?? "";
+const getServerRequestContext = () => "";
 
 export function ContactForm() {
   const [data, setData] = useState<FormData>(INITIAL);
@@ -62,6 +65,11 @@ export function ContactForm() {
   );
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const subject = selectedSubject ?? urlSubject;
+  const requestContext = useSyncExternalStore(
+    subscribe,
+    getRequestContextFromUrl,
+    getServerRequestContext,
+  );
 
   function update<K extends keyof FormData>(field: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -107,7 +115,9 @@ export function ContactForm() {
           Email: data.email,
           Company: data.company,
           SupportPlan: subject,
-          Message: data.message,
+          Message: requestContext
+            ? `Request: ${requestContext}\n\n${data.message}`
+            : data.message,
         }),
       });
 
@@ -116,7 +126,7 @@ export function ContactForm() {
       }
 
       window.gtag?.("event", "contact_form_submit", {
-        event_label: subject,
+        event_label: requestContext ? `${subject}: ${requestContext}` : subject,
         page_path: window.location.pathname,
       });
 
@@ -186,13 +196,13 @@ export function ContactForm() {
         label="Message"
         name="message"
         rows={5}
-        placeholder="What are you building?"
+        placeholder="What are you building, what do you need, and what is your timeline?"
         value={data.message}
         disabled={isSubmitting}
         onChange={(e) => update("message", e.target.value)}
       />
       <SolidButton type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Sending..." : "Talk to us"}
+        {isSubmitting ? "Sending..." : "Send request"}
       </SolidButton>
     </form>
   );

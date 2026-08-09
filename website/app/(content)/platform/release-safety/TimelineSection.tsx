@@ -12,9 +12,13 @@ interface VersionPoint {
 const VERSIONS: readonly VersionPoint[] = [
   { v: "v12", note: "add Cart.discount", status: "safe" },
   { v: "v13", note: "deprecate Order.placedAt", status: "dangerous" },
-  { v: "v14", note: "remove Order.total — blocked", status: "breaking" },
+  { v: "v14", note: "remove Order.total (blocked)", status: "breaking" },
   { v: "v14", note: "add Order.totalAmount", status: "safe" },
-  { v: "v15", note: "drop Order.total — usage cleared", status: "dangerous" },
+  {
+    v: "v15",
+    note: "remove Order.total (no published client selects it)",
+    status: "breaking",
+  },
 ];
 
 function VersionTimeline() {
@@ -60,7 +64,7 @@ export function TimelineSection() {
   return (
     <SectionShell
       title="Keep the full history of your schema."
-      lead="Every upload and publish adds a version to the registry, giving you a browsable record of how the API evolved: what changed in each version, how severe it was, and when a blocked removal finally cleared. Answering 'when did this field change and why' no longer means digging through merge commits."
+      lead="Every uploaded or published schema leaves a browsable version in the registry, so your team can see what changed, how Nitro classified it, and which published clients the change could affect. See when a field changed without digging through merge commits."
       artifact={<VersionTimeline />}
     />
   );

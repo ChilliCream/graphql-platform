@@ -291,7 +291,7 @@ export function CombinedGovernance() {
             history.
           </p>
           <ArrowLink href="/platform/release-safety" className="mt-6">
-            Learn more
+            Explore schema checks
           </ArrowLink>
         </div>
 

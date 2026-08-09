@@ -1,4 +1,5 @@
 import { FromOurBlog } from "@/src/components/FromOurBlog";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { PatternBand } from "@/src/components/PatternBand";
 import { PcbBand } from "@/src/components/PcbBand";
 import { AgenticSection } from "@/src/components/home/agentic/AgenticSection";
@@ -15,18 +16,27 @@ import { NitroSection } from "@/src/components/home/nitro/NitroSection";
 import { ProtocolCards } from "@/src/components/home/ProtocolCards";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_TITLE } from "@/src/helpers/site";
+import { ORGANIZATION_ID, schemaRef } from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
+const PAGE = {
   title: SITE_TITLE,
   description:
-    "The ChilliCream GraphQL Platform: build, connect, and observe GraphQL APIs with Hot Chocolate, Fusion, Strawberry Shake, and Nitro.",
+    "Build, federate, observe, and evolve GraphQL APIs on .NET with open-source Hot Chocolate, Fusion, Strawberry Shake, and Mocha, plus the Nitro control plane.",
   path: "/",
   absoluteTitle: true,
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 export default function Home() {
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        about={schemaRef(ORGANIZATION_ID)}
+      />
       <HomeHero />
       <LogoCloud />
       <BuildYourWay />

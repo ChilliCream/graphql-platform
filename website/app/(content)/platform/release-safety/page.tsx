@@ -1,5 +1,6 @@
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-import { SITE_URL } from "@/src/helpers/siteUrl";
+import { schemaId, schemaRef } from "@/src/helpers/structuredData";
 
 import { CheckCardSection } from "./CheckCardSection";
 import { ClosingCta } from "./ClosingCta";
@@ -9,55 +10,40 @@ import { ImpactSection } from "./ImpactSection";
 import { PipelineSection } from "./PipelineSection";
 import { TimelineSection } from "./TimelineSection";
 
-export const metadata = pageMetadata({
-  title: "GraphQL Schema Checks and Release Safety",
+const PAGE = {
+  title: "GraphQL Schema Checks for Safer Releases",
   description:
-    "Catch breaking GraphQL schema changes before they ship. Nitro's schema checks validate proposed schemas against the operations your clients use in each environment.",
+    "Run GraphQL schema checks against published client operations. See which versions a proposed change could break before you merge or deploy.",
   path: "/platform/release-safety",
   keywords: [
-    "GraphQL schema release safety",
+    "GraphQL schema checks",
     "breaking change detection",
     "schema registry",
     "client registry",
-    "schema validation CI",
+    "GraphQL schema validation CI",
     "safe schema evolution",
     "Nitro schema checks",
     "published operation impact",
     "schema linting",
     "GraphQL governance",
   ],
-});
+} as const;
 
-const BREADCRUMB_DATA = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: `${SITE_URL}/`,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Platform",
-      item: `${SITE_URL}/platform`,
-    },
-    {
-      "@type": "ListItem",
-      position: 3,
-      name: "Release Safety",
-    },
-  ],
-};
+export const metadata = pageMetadata(PAGE);
 
 export default function ReleaseSafetyPage() {
   return (
     <div className="flex flex-col gap-24 py-6 sm:gap-28">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }}
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Platform", path: "/platform" },
+          { name: "Release Safety" },
+        ]}
+        about={schemaRef(schemaId("/products/nitro", "product"))}
       />
       <HeroSection />
       <CheckCardSection />
