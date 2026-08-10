@@ -9,7 +9,6 @@ import {
   HERO_SWIRLS_MOBILE,
 } from "@/src/components/home/heroArtwork";
 import { PageSection } from "@/src/components/PageSection";
-import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Swirl } from "@/src/icons/Swirl";
 
 function position(
@@ -89,17 +88,11 @@ export function HomeHero() {
         </span>
       </h1>
 
-      <p className="text-cc-ink mt-6 max-w-3xl text-base text-pretty sm:text-xl">
-        Build GraphQL servers, connect services, generate type-safe clients,
-        trace production traffic, and evolve schemas with one platform. Humans
-        and agents work from the same patterns, contracts, and feedback loops.
+      <p className="text-cc-ink mt-6 max-w-2xl text-base text-pretty sm:text-xl">
+        Unify all your APIs into a comprehensive company graph, streamlining
+        data accessibility and enhancing integration. Transform the way you
+        manage and interact with your data.
       </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-        <SolidButton href="https://nitro.chillicream.com">
-          Start Nitro for Free
-        </SolidButton>
-        <OutlineButton href="/docs">Explore the Platform</OutlineButton>
-      </div>
     </PageSection>
   );
 }
