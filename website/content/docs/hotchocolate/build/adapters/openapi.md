@@ -169,7 +169,7 @@ A POST request with a JSON body `{"id": "6", "name": "Alice", "email": "alice@ex
 You can define reusable GraphQL fragments as separate documents. The adapter resolves fragment references across documents:
 
 ```graphql
--- Document 1: endpoint definition
+# Document 1: endpoint definition
 query GetUser($userId: ID!)
   @http(method: GET, route: "/users/{userId}") {
   userById(id: $userId) {
@@ -177,7 +177,7 @@ query GetUser($userId: ID!)
   }
 }
 
--- Document 2: shared fragment
+# Document 2: shared fragment
 fragment UserFields on User {
   id
   name
@@ -187,13 +187,41 @@ fragment UserFields on User {
   }
 }
 
--- Document 3: another shared fragment
+# Document 3: another shared fragment
 fragment AddressFields on Address {
   street
 }
 ```
 
 Each document is a separate entry in your `IOpenApiDefinitionStorage`. Fragment-only documents are treated as shared models.
+
+## One model per document
+
+A fragment-only document defines exactly one shared model. The **first** fragment in the document names the model, and that name is what other documents spread. Any further fragments in the same document are private helpers: fragments within that document can spread them, but no other document can reference them by name.
+
+```graphql
+# A model named "User", plus a helper only this document can spread
+fragment User on User {
+  ...UserContact
+  id
+  name
+}
+
+fragment UserContact on User {
+  email
+  address {
+    street
+  }
+}
+```
+
+To make a fragment referenceable from another document, give it a document of its own.
+
+## Fragment name uniqueness
+
+Fragment names must be unique across every document that contributes to a single endpoint, which is the endpoint's own document plus each model it spreads, transitively. When two of those documents define a fragment with the same name, the endpoint's composed document is invalid and the endpoint responds with HTTP 500. Private helper fragments are not namespaced by their document, so this applies to them as well.
+
+An endpoint that spreads a fragment no document defines is also invalid, and likewise responds with HTTP 500. In both cases the endpoint is still routed, and it is omitted from the OpenAPI specification.
 
 # Storage
 
