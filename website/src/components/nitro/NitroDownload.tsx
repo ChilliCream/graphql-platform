@@ -501,7 +501,7 @@ export function NitroDownload() {
   const active = resolveActiveDownload(activeStatus);
 
   if (active === null) {
-    return <SolidButton href={WEB_STABLE_URL}>Open Web Version</SolidButton>;
+    return <SolidButton href={WEB_STABLE_URL}>Open the Web App</SolidButton>;
   }
 
   return (
@@ -606,7 +606,7 @@ export function NitroDownload() {
                     onClick={() => setOpen(false)}
                     className="text-cc-ink hover:text-cc-white"
                   >
-                    Open Web Version
+                    Open the Web App
                   </a>
                   <span className="text-cc-ink-dim mx-2">|</span>
                   <a

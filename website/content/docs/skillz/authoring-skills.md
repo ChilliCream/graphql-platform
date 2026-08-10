@@ -1,20 +1,20 @@
 ---
 title: "Authoring Skills"
-description: "Author agent skills with Skillz: scaffold a folder with dnx skillz init, write the SKILL.md frontmatter and instructions, and publish via git for installs."
+description: "Author Agent Skills with the `skills` CLI: scaffold a folder with `dnx skills init`, write the SKILL.md frontmatter and instructions, and publish through git."
 ---
 
 Package your team's conventions once, and any agent can pick them up. A skill is a folder with a `SKILL.md` file that tells an agent how to do something the way your team does it: your release checklist, your code review rules, your API client patterns. You write it once, push it to a git repo, and your teammates install it with one command. From then on, every agent they run loads that knowledge on demand, no copy-pasting prompts into each session.
 
-This page teaches you to scaffold a skill, write a correct `SKILL.md`, add supporting files, and publish it so others can install it with [dnx skillz add](./installing-skills.md). The skill format is the open [Agent Skills](https://agentskills.io/home) standard, so what you write here works across [more than 50 agents](./index.md), not only the one you author it in.
+This page teaches you to scaffold a skill, write a correct `SKILL.md`, add supporting files, and publish it so others can install it with [`dnx skills add`](./installing-skills.md). The skill format is the open [Agent Skills](https://agentskills.io/home) standard, so what you write here works across [55+ agents](./index.md), not only the one you author it in.
 
 # Scaffold a skill
 
-> Prerequisites: skillz installed. See [Getting Started](./getting-started.md) to install the CLI before running the commands below.
+> Prerequisite: the .NET 10 SDK. See [Getting Started](./getting-started.md) before running the commands below.
 
-To create a new skill in its own folder, run `dnx skillz init` with a name.
+To create a new skill in its own folder, run `dnx skills init` with a name.
 
 ```bash
-dnx skillz init my-skill
+dnx skills init my-skill
 ```
 
 ```text
@@ -28,16 +28,16 @@ Next steps:
   2. Update the name and description in the frontmatter
 
 Publishing:
-  GitHub: Push to a repo, then skillz add <owner>/<repo>
-  URL:    Host the file, then skillz add https://example.com/my-skill/SKILL.md
+  GitHub: Push to a repo, then skills add <owner>/<repo>
+  URL:    Host the file, then skills add https://example.com/my-skill/SKILL.md
 ```
 
 This creates `my-skill/SKILL.md`. If everything worked, you have a folder named `my-skill` with one file inside it.
 
-To scaffold a skill in the current directory instead, run `dnx skillz init` with no name. skillz derives the skill name from the folder you are in and writes `SKILL.md` next to your other files.
+To scaffold a skill in the current directory instead, run `dnx skills init` with no name. The CLI derives the skill name from the folder you are in and writes `SKILL.md` next to your other files.
 
 ```bash
-dnx skillz init
+dnx skills init
 ```
 
 ```text
@@ -51,11 +51,11 @@ Next steps:
   2. Update the name and description in the frontmatter
 
 Publishing:
-  GitHub: Push to a repo, then skillz add <owner>/<repo>
-  URL:    Host the file, then skillz add https://example.com/my-skill/SKILL.md
+  GitHub: Push to a repo, then skills add <owner>/<repo>
+  URL:    Host the file, then skills add https://example.com/my-skill/SKILL.md
 ```
 
-`dnx skillz init` never overwrites an existing skill. If `SKILL.md` is already present, it leaves your file untouched and tells you so.
+`dnx skills init` never overwrites an existing skill. If `SKILL.md` is already present, it leaves your file untouched and tells you so.
 
 ```text
 Skill already exists at my-skill/SKILL.md
@@ -63,7 +63,7 @@ Skill already exists at my-skill/SKILL.md
 
 ## The generated template
 
-`dnx skillz init` writes a spec-compliant starting point: the two required frontmatter fields, then a body with a heading and the sections most skills need.
+`dnx skills init` writes a spec-compliant starting point: the two required frontmatter fields, then a body with a heading and the sections most skills need.
 
 ```markdown
 ---
@@ -96,7 +96,7 @@ The "Required frontmatter" and "Optional frontmatter" subsections below are refe
 
 ## Required frontmatter
 
-Every skill needs `name` and `description`. skillz skips any skill that is missing either field, so getting these right is the difference between a skill that installs and one that silently disappears.
+Every skill needs `name` and `description`. The CLI skips any skill that is missing either field, so getting these right is the difference between a skill that installs and one that silently disappears.
 
 | Field         | Constraints                                                                                                                                                                                                                                               |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -128,7 +128,7 @@ Add these fields only when you need them. The open spec at [agentskills.io/speci
 For the exhaustive list of frontmatter fields and their constraints, see the [Reference](./reference.md).
 
 > [!WARNING]
-> **`allowed-tools` is experimental.** Support varies between agents, and `dnx skillz init` does not emit it. Treat it as a hint that some agents honor and others ignore, not a security boundary.
+> **`allowed-tools` is experimental.** Support varies between agents, and `dnx skills init` does not emit it. Treat it as a hint that some agents honor and others ignore, not a security boundary.
 
 ## The instructions body
 
@@ -148,7 +148,7 @@ my-skill/
 └── assets/           # Templates, data files, schemas
 ```
 
-skillz copies or symlinks the whole folder as a unit, so every supporting file ships with the skill. (A few build artifacts are excluded automatically, including `.git`, `node_modules`, and `__pycache__`.)
+The CLI copies or symlinks the whole folder as a unit, so every supporting file ships with the skill. (A few build artifacts are excluded automatically, including `.git`, `node_modules`, and `__pycache__`.)
 
 These directories exist because of [progressive disclosure](./index.md#how-skills-load-progressive-disclosure): the agent loads your skill in stages so a large skill costs almost nothing until it is needed.
 
@@ -158,32 +158,32 @@ These directories exist because of [progressive disclosure](./index.md#how-skill
 
 This is why moving detail out of `SKILL.md` and into `references/` is free: that material never enters the context window until the agent actually follows a link to it. Reference your supporting files with relative paths one level deep (for example `references/api.md`), and avoid deep nesting chains. For more on the three-stage model, see the [Introduction](./index.md#how-skills-load-progressive-disclosure) and [Anthropic's overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview).
 
-# How skillz names skills on install
+# How installed skills are named
 
-When someone installs your skill, skillz derives the on-disk directory name by sanitizing the `name` field. It lowercases the name, replaces every run of characters outside `a-z`, `0-9`, `.`, and `_` with a single hyphen, and trims leading and trailing dots and hyphens.
+When someone installs your skill, the CLI derives the on-disk directory name by sanitizing the `name` field. It lowercases the name, replaces every run of characters outside `a-z`, `0-9`, `.`, and `_` with a single hyphen, and trims leading and trailing dots and hyphens.
 
 For a clean lowercase-hyphen name like `release-checklist`, the on-disk name is identical, with no surprises. A name with spaces or uppercase letters gets rewritten (`My Skill` becomes `my-skill`), which can mismatch what you and your teammates expect on disk and during removal. Pick a clean lowercase-hyphen name that already satisfies the [required frontmatter rules](#required-frontmatter), and the install name matches your folder name exactly.
 
 # Publish and install
 
-A skill is a folder in a git repo, so publishing is committing and pushing. Anywhere skillz can reach with git works.
+A skill is a folder in a git repo, so publishing is committing and pushing. Any repository the CLI can reach with git works.
 
-To publish, commit your skill folder and push it to GitHub, GitLab, or any git remote. Then anyone installs it with `dnx skillz add` pointed at the repo. The forms below show what an installer runs against your published skill; for the full add workflow, including expected output, scoping, and agent targeting, see [Installing Skills](./installing-skills.md).
+To publish, commit your skill folder and push it to GitHub, GitLab, or any git remote. Then anyone installs it with `dnx skills add` pointed at the repo. The forms below show what an installer runs against your published skill; for the full add workflow, including expected output, scoping, and agent targeting, see [Installing Skills](./installing-skills.md).
 
 ```bash
 # install every skill in the repo
-dnx skillz add my-org/my-skills
+dnx skills add my-org/my-skills
 
 # install only one skill from a multi-skill repo
-dnx skillz add my-org/my-skills@release-checklist
+dnx skills add my-org/my-skills@release-checklist
 
 # install a single SKILL.md hosted at a URL
-dnx skillz add https://example.com/my-skill/SKILL.md
+dnx skills add https://example.com/my-skill/SKILL.md
 ```
 
-Private repositories work with no extra configuration. skillz shells out to your own `git`, so it uses your existing credentials (SSH agent keys, a git credential helper, or `gh auth`). If you can `git clone` the repo, skillz can install from it. When authentication fails, see [Troubleshooting](./troubleshooting.md).
+Private repositories work with no extra configuration. The CLI shells out to your own `git`, so it uses your existing credentials (SSH agent keys, a git credential helper, or `gh auth`). If you can `git clone` the repo, `skills` can install from it. When authentication fails, see [Troubleshooting](./troubleshooting.md).
 
-To keep a work-in-progress skill out of default discovery, set `metadata.internal` to `true` in the frontmatter. skillz hides internal skills unless the installer explicitly opts in (by filtering for the skill by name, or by setting the `INSTALL_INTERNAL_SKILLS` environment variable).
+To keep a work-in-progress skill out of default discovery, set `metadata.internal` to `true` in the frontmatter. The CLI hides internal skills unless the installer explicitly opts in (by filtering for the skill by name, or by setting the `INSTALL_INTERNAL_SKILLS` environment variable).
 
 ```markdown
 ---
@@ -204,9 +204,9 @@ skills-ref validate ./my-skill
 
 It reports a clean pass when the skill is valid, or names the offending field and rule when it is not (for example, an empty `description` or a `name` that breaks the naming rules).
 
-Running it after `dnx skillz init` and again before you push catches a malformed `name` or an empty `description` while it is still fast to fix, rather than discovering that skillz skipped your skill on install.
+Running it after `dnx skills init` and again before you push catches a malformed `name` or an empty `description` while it is still fast to fix, rather than discovering that the CLI skipped your skill on install.
 
 # Next steps
 
 - [Installing Skills](./installing-skills.md): install your published skill, target specific agents, and choose project or global scope.
-- [Reference](./reference.md): the complete command and flag surface, including `dnx skillz init`.
+- [Reference](./reference.md): the complete command and flag surface, including `dnx skills init`.

@@ -407,11 +407,11 @@ function StartNowPanel() {
         Add the skills to your agent.
       </p>
       <CopyCommand
-        command="dnx skillz add chillicream/agent-skills"
+        command="dnx skills add chillicream/agent-skills"
         className="bg-cc-surface mt-5"
       />
       <ArrowLink href="/platform/agentic-coding" className="mt-5">
-        Learn more
+        Explore agentic development
       </ArrowLink>
     </div>
   );

@@ -9,14 +9,14 @@ export function ClosingCta() {
       <SectionHeading
         align="center"
         title="The whole story, from spike to span."
-        description="Follow an incident from the latency chart to the failing operation to the exact span that caused it, without leaving Nitro."
+        description="Follow an incident from the latency chart to the affected operation and down to the spans behind it, without leaving Nitro."
       />
       <ButtonRow align="center" className="mt-9">
         <SolidButton href="https://nitro.chillicream.com">
-          Start for Free
+          Start Nitro for Free
         </SolidButton>
         <OutlineButton href="/docs/nitro/open-telemetry/operation-monitoring">
-          Read the Docs
+          Read Analytics Docs
         </OutlineButton>
       </ButtonRow>
     </Band>

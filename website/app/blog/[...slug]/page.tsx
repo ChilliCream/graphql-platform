@@ -9,6 +9,7 @@ import { BlogSidebar } from "@/src/components/BlogSidebar";
 import { BlogTags } from "@/src/components/BlogTags";
 import { DocsToolbar } from "@/src/components/DocsToolbar";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { SidebarDrawer } from "@/src/components/SidebarDrawer";
 import { TableOfContents } from "@/src/components/TableOfContents";
 import { Picture } from "@/src/design-system/Picture";
@@ -24,12 +25,26 @@ import {
   findSimilarPosts,
   listBlogPostSummaries,
 } from "@/src/helpers/blogPosts";
+import {
+  BLOG_DESCRIPTION,
+  BLOG_ID,
+  createBlogItemListNode,
+  createBlogNode,
+} from "@/src/helpers/blogStructuredData";
 import { compileDoc } from "@/src/helpers/compileDoc";
+import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
-import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import {
+  ORGANIZATION_ID,
+  schemaId,
+  schemaRef,
+  type JsonLdNode,
+} from "@/src/helpers/structuredData";
 
 type BlogFrontmatter = {
   title?: string;
@@ -38,6 +53,8 @@ type BlogFrontmatter = {
   authorUrl?: string;
   authorImageUrl?: string;
   date?: string;
+  updated?: string;
+  category?: string;
   tags?: string[];
 };
 
@@ -83,7 +100,12 @@ export async function generateMetadata({
     return { title: "Page not found", robots: { index: false, follow: false } };
   }
   if (isPaginationSlug(slug)) {
-    return { title: "Blog" };
+    const pageNum = Number(slug[0]);
+    return pageMetadata({
+      title: `Blog, Page ${pageNum}`,
+      description: `${BLOG_DESCRIPTION} Page ${pageNum}.`,
+      path: `/blog/${pageNum}`,
+    });
   }
   const rel = resolveBlogFile(slug);
   if (rel === null) {
@@ -157,64 +179,76 @@ export default async function BlogSlugPage({ params }: PageProps) {
   }
 
   const absPath = path.join(BLOG_ROOT, rel);
-  const [{ content, frontmatter, toc }, raw] = await Promise.all([
+  const [{ content, frontmatter, toc }, raw, lastModified] = await Promise.all([
     compileDoc<BlogFrontmatter>(absPath),
     fs.readFile(absPath, "utf-8"),
+    getLastModifiedFromGit(absPath),
   ]);
-  const readingTime = estimateReadingTime(raw).text;
+  const readingTime = estimateReadingTime(raw);
 
   const summaries = listBlogPostSummaries();
   const stem = stemForSlug(slug);
   const current = summaries.find((s) => s.stem === stem);
-  const similar = current ? findSimilarPosts(current, summaries) : [];
-  const featuredImage = current?.featuredImage ?? null;
+  if (!current) {
+    notFound();
+  }
+  const similar = findSimilarPosts(current, summaries);
+  const featuredImage = current.featuredImage;
 
   const sidebarPosts = summaries.slice(0, 10);
-  const currentHref = current?.href ?? `/blog/${stem}`;
-
-  const jsonLd = current
-    ? [
-        {
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          headline: current.title,
-          ...(current.description ? { description: current.description } : {}),
-          datePublished: toSchemaDate(current.date),
-          ...(current.featuredImage
-            ? { image: toAbsoluteUrl(current.featuredImage) }
-            : {}),
-          ...(current.author
-            ? {
-                author: {
-                  "@type": "Person",
-                  name: current.author,
-                  ...(current.authorUrl ? { url: current.authorUrl } : {}),
-                },
-              }
-            : {}),
-          ...(current.tags.length > 0 ? { keywords: current.tags } : {}),
-          publisher: { "@id": `${SITE_URL}/#organization` },
-          mainEntityOfPage: toAbsoluteUrl(current.href),
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "Blog",
-              item: toAbsoluteUrl("/blog"),
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: current.title,
-            },
-          ],
-        },
-      ]
+  const currentHref = current.href;
+  const dateModified =
+    normalizeStructuredDate(frontmatter.updated) ?? lastModified?.toISOString();
+  const articleId = schemaId(currentHref, "article");
+  const authorId = schemaId(currentHref, "author");
+  const imageId = schemaId(currentHref, "primary-image");
+  const article: JsonLdNode = {
+    "@type": "BlogPosting",
+    "@id": articleId,
+    url: toAbsoluteUrl(currentHref),
+    headline: current.title,
+    ...(current.description ? { description: current.description } : {}),
+    datePublished: current.date,
+    ...(dateModified ? { dateModified } : {}),
+    ...(featuredImage ? { image: schemaRef(imageId) } : {}),
+    ...(current.author ? { author: schemaRef(authorId) } : {}),
+    publisher: schemaRef(ORGANIZATION_ID),
+    mainEntityOfPage: schemaRef(schemaId(currentHref, "webpage")),
+    isPartOf: schemaRef(BLOG_ID),
+    ...(current.category ? { articleSection: current.category } : {}),
+    ...(current.tags.length > 0 ? { keywords: current.tags } : {}),
+    wordCount: readingTime.words,
+    timeRequired: `PT${readingTime.minutes}M`,
+    inLanguage: "en",
+    isAccessibleForFree: true,
+  };
+  const author: JsonLdNode | null = current.author
+    ? {
+        "@type": "Person",
+        "@id": authorId,
+        name: current.author,
+        ...(current.authorUrl ? { url: current.authorUrl } : {}),
+        ...(current.authorImageUrl
+          ? { image: toAbsoluteUrl(current.authorImageUrl) }
+          : {}),
+      }
     : null;
+  const image: JsonLdNode | null = featuredImage
+    ? {
+        "@type": "ImageObject",
+        "@id": imageId,
+        url: toAbsoluteUrl(getShareImageSrc(featuredImage)),
+        contentUrl: toAbsoluteUrl(getShareImageSrc(featuredImage)),
+        caption: current.title,
+      }
+    : null;
+  const additionalNodes: JsonLdNode[] = [article, createBlogNode()];
+  if (author) {
+    additionalNodes.push(author);
+  }
+  if (image) {
+    additionalNodes.push(image);
+  }
 
   return (
     <div
@@ -231,15 +265,21 @@ export default async function BlogSlugPage({ params }: PageProps) {
         />
         <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
           <main className="min-w-0 px-5 pt-16 pb-8 sm:px-12 2xl:pt-8">
-            {jsonLd ? (
-              <script
-                type="application/ld+json"
-                // Escape `<` so content text can never close the script tag (XSS).
-                dangerouslySetInnerHTML={{
-                  __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-                }}
-              />
-            ) : null}
+            <PageStructuredData
+              title={current.title}
+              description={current.description ?? undefined}
+              dateModified={dateModified}
+              path={currentHref}
+              pageType="ItemPage"
+              breadcrumbs={[
+                { name: "Home", path: "/" },
+                { name: "Blog", path: "/blog" },
+                { name: current.title },
+              ]}
+              mainEntity={schemaRef(articleId)}
+              about={schemaRef(BLOG_ID)}
+              additionalNodes={additionalNodes}
+            />
             <article className="mx-auto max-w-5xl">
               {featuredImage ? (
                 <Picture
@@ -262,10 +302,10 @@ export default async function BlogSlugPage({ params }: PageProps) {
                   authorUrl={frontmatter.authorUrl}
                   authorImageUrl={frontmatter.authorImageUrl}
                   date={frontmatter.date}
-                  readingTime={readingTime}
+                  readingTime={readingTime.text}
                 />
                 <BlogShareBar
-                  url={toAbsoluteUrl(current?.href ?? `/blog/${stem}`)}
+                  url={toAbsoluteUrl(current.href)}
                   title={frontmatter.title ?? ""}
                 />
               </div>
@@ -281,16 +321,23 @@ export default async function BlogSlugPage({ params }: PageProps) {
   );
 }
 
-function toSchemaDate(date: string): string {
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T00:00:00.000Z` : date;
-}
-
 function isPaginationSlug(slug: string[]): boolean {
   return slug.length === 1 && /^\d+$/.test(slug[0]);
 }
 
 function stemForSlug(slug: string[]): string {
   return slug[0];
+}
+
+function normalizeStructuredDate(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
 function renderPagination(pageNum: number) {
@@ -302,15 +349,41 @@ function renderPagination(pageNum: number) {
     notFound();
   }
 
+  const path = `/blog/${pageNum}`;
+  const title = `Blog, Page ${pageNum}`;
+  const description = `${BLOG_DESCRIPTION} Page ${pageNum}.`;
+  const postList = createBlogItemListNode(
+    path,
+    `ChilliCream blog posts, page ${pageNum}`,
+    slice.posts,
+    (pageNum - 1) * POSTS_PER_PAGE + 1,
+  );
+
   return (
-    <BlogIndexShell
-      title="Blog"
-      posts={slice.posts}
-      pagination={{
-        currentPage: slice.currentPage,
-        totalPages: slice.totalPages,
-        hrefForPage: (p) => (p === 1 ? "/blog" : `/blog/${p}`),
-      }}
-    />
+    <>
+      <PageStructuredData
+        title={title}
+        description={description}
+        path={path}
+        pageType="CollectionPage"
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Blog", path: "/blog" },
+          { name: `Page ${pageNum}` },
+        ]}
+        mainEntity={schemaRef(postList["@id"]!)}
+        about={schemaRef(BLOG_ID)}
+        additionalNodes={[createBlogNode(), postList]}
+      />
+      <BlogIndexShell
+        title="Blog"
+        posts={slice.posts}
+        pagination={{
+          currentPage: slice.currentPage,
+          totalPages: slice.totalPages,
+          hrefForPage: (p) => (p === 1 ? "/blog" : `/blog/${p}`),
+        }}
+      />
+    </>
   );
 }

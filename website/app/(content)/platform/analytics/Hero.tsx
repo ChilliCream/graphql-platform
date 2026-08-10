@@ -267,10 +267,10 @@ export function Hero() {
           </p>
           <ButtonRow align="start" className="mt-9">
             <SolidButton href="https://nitro.chillicream.com">
-              Start for Free
+              Start Nitro for Free
             </SolidButton>
             <OutlineButton href="/docs/nitro/open-telemetry/operation-monitoring">
-              Read the Docs
+              Read the analytics docs
             </OutlineButton>
           </ButtonRow>
 

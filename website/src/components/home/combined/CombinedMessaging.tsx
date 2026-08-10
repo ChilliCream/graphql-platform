@@ -26,13 +26,13 @@ export function CombinedMessaging() {
             OpenTelemetry to trace message flows.
           </p>
           <ArrowLink href="/products/mocha" className="mt-6">
-            Learn more
+            Explore Mocha messaging
           </ArrowLink>
         </div>
 
         <Link
           href="/products/mocha"
-          aria-label="How services talk over messaging. Learn more on the Mocha product page"
+          aria-label="Explore .NET messaging on the Mocha product page"
           className="mx-auto mt-10 block max-w-5xl no-underline sm:mt-12"
         >
           <WhyMessagingVisual />

@@ -196,11 +196,12 @@ export function ClientPage() {
               </span>
             </h1>
             <p className="text-cc-ink mt-6 max-w-xl text-base sm:text-lg">
-              Mocha sends commands and events between your services, for example
-              telling the shipping service that an order was placed. It also
-              runs commands and queries inside a single service, with no broker
-              involved. Define messages and handlers in C#, and Mocha generates
-              the handler registration at build time.
+              Mocha is a .NET messaging framework that sends commands and events
+              between your services, for example telling the shipping service
+              that an order was placed. It also runs commands and queries inside
+              a single service, with no broker involved. Define messages and
+              handlers in C#, and Mocha generates the handler registration at
+              build time.
             </p>
             <ButtonRow align="start" className="mt-9">
               <SolidButton

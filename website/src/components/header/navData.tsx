@@ -85,7 +85,7 @@ export const NAV_ITEMS: NavItem[] = [
           },
           {
             href: "/platform/agentic-coding",
-            label: "Agentic Coding",
+            label: "Agentic Development",
             description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
           },
@@ -163,7 +163,7 @@ export const NAV_ITEMS: NavItem[] = [
           { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
           { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
           { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skillz", label: "Skillz", icon: RocketIcon },
+          { href: "/docs/skillz", label: "Skills", icon: RocketIcon },
         ],
       },
       {

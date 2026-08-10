@@ -250,14 +250,13 @@ export function HeroSection() {
             with confidence.
           </h1>
           <p className="text-body text-cc-prose mt-5 max-w-xl leading-relaxed">
-            Nitro&apos;s schema checks test a proposed change against the
-            operations your clients rely on in production. Breaking change
-            detection shows what would break, so you can fix it before it
-            reaches users.
+            Nitro tests a proposed schema against the operations your clients
+            publish to the target environment. See which operations and client
+            versions a change could break, then fix it before users feel it.
           </p>
           <ButtonRow align="start" className="mt-9">
             <SolidButton href="https://nitro.chillicream.com">
-              Start for free
+              Start Nitro for Free
             </SolidButton>
             <OutlineButton href="/docs/nitro/apis/client-registry">
               Read client registry docs

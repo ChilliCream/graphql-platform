@@ -134,7 +134,7 @@ export function ImpactSection() {
   return (
     <SectionShell
       title="See which clients a change would break."
-      lead="Validation runs against the set of operations your client versions have published to that environment. Each client gets its own result: a change that is safe for web can still break mobile, and you see that before you merge."
+      lead="Validation runs against the operations your client versions have published to that environment. Each client gets its own result: a change can be safe for web and still break mobile, and you see that before you merge."
       artifact={<ClientImpactMatrix />}
     />
   );

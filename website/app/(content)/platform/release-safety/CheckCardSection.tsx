@@ -72,7 +72,7 @@ function CheckRow({ icon, name, detail, delayClassName }: CheckRowProps) {
 function CheckCard() {
   return (
     <AppWindow
-      title={<span className="text-cc-prose">#482 Add Money type</span>}
+      title={<span className="text-cc-prose">#482 · Add Money type</span>}
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-cc-ink-dim font-mono text-[0.66rem]">
@@ -97,19 +97,19 @@ function CheckCard() {
       </div>
       <CheckRow
         icon="fail"
-        name="Schema validation — breaking change"
+        name="Schema validation: breaking change"
         detail="Order.total removed"
         delayClassName="delay-0"
       />
       <CheckRow
         icon="pass"
-        name="Schema validation — additive"
+        name="Schema validation: additive"
         detail="Money, totalAmount added"
         delayClassName="delay-150"
       />
       <CheckRow
         icon="run"
-        name="Client compatibility — partner app"
+        name="Client compatibility: partner app"
         detail={<ValidatingDots />}
         delayClassName="delay-300"
       />
@@ -120,8 +120,8 @@ function CheckCard() {
 export function CheckCardSection() {
   return (
     <SectionShell
-      title="Breaking changes fail the pull request."
-      lead="Nitro fails the pull request when a proposed change would break an operation your clients have published. The problem shows up as a red status on the PR, not as an incident after release. Mark it as required and the merge button stays locked until the schema is safe."
+      title="Block breaking schema changes at the pull request."
+      lead="Nitro returns a failed check when a proposed schema would break an operation published by a client. Configure that check as required in your repository, and the pull request cannot merge until the schema passes."
       artifact={<CheckCard />}
       flip
     />

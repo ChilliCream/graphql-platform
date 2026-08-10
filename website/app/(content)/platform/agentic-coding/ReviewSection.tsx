@@ -73,12 +73,15 @@ interface TimeBar {
   readonly fill: string;
 }
 
-// Write is short because the agent did it. Review is short because the change
-// has one shape. The ghosted bar is the review you used to pay for.
+// A qualitative comparison of review effort when agents follow a known pattern
+// instead of introducing an unfamiliar structure.
 const TIME_BARS: readonly TimeBar[] = [
-  { label: "write", width: 22, fill: "rgba(245, 241, 234, 0.42)" },
-  { label: "review", width: 18, fill: "var(--color-cc-accent)" },
-  { label: "usual review", width: 84, fill: "rgba(245, 241, 234, 0.13)" },
+  { label: "patterned change", width: 24, fill: "var(--color-cc-accent)" },
+  {
+    label: "invented structure",
+    width: 84,
+    fill: "rgba(245, 241, 234, 0.13)",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -450,11 +453,11 @@ export function ReviewSection() {
         align="center"
         eyebrow="Review"
         title="Review stays fast because changes stay uniform."
-        description="Every change an agent produces on this platform is the same small, uniform shape, so review stays a glance instead of an investigation. That matters because writing code is cheap now; reviewing it is where your time actually goes."
+        description="When agents fill the same patterns, changes come back in a familiar shape. Review stays a glance instead of an architectural investigation. Writing code is cheap now; reviewing it is where your time actually goes."
       />
 
-      {/* The figure: the PR window replaying the review on the left, the
-          time-to-ship payoff beside it. */}
+      {/* The figure: the PR window replaying the review on the left, with an
+          illustrative comparison of review effort beside it. */}
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
         <div ref={windowRef} className="lg:col-span-2">
           <MockWindowChrome
@@ -562,13 +565,13 @@ export function ReviewSection() {
           </MockWindowChrome>
         </div>
 
-        {/* The payoff, plain beside the window. */}
+        {/* Qualitative review-effort comparison beside the window. */}
         <div className="flex flex-col justify-center lg:px-2">
           <Eyebrow as="p" size="2xs">
-            time to ship
+            review effort
           </Eyebrow>
           <p className="font-heading text-cc-heading text-h5 mt-2 leading-tight font-semibold">
-            reviewed in seconds
+            uniform changes, faster reviews
           </p>
           <div className="mt-5 space-y-3" aria-hidden="true">
             {TIME_BARS.map((bar) => (

@@ -12,9 +12,9 @@ export function ClosingCta() {
         title="Know what breaks before your users do."
         text="Publish the operations each client uses, validate proposed schemas against the environment you plan to update, and merge with the answer in hand."
         primaryLink="https://nitro.chillicream.com"
-        primaryLinkText="Start for free"
+        primaryLinkText="Start Nitro for Free"
         secondaryLink="/docs/nitro/apis/client-registry"
-        secondaryLinkText="Read client registry docs"
+        secondaryLinkText="Read Client Registry Docs"
       />
     </DotGridSurface>
   );

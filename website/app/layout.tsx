@@ -28,7 +28,7 @@ const josefinSans = Josefin_Sans({
 });
 
 const DESCRIPTION =
-  "The ChilliCream GraphQL Platform: build, connect, and observe GraphQL APIs with Hot Chocolate, Fusion, Strawberry Shake, and Nitro.";
+  "Build, federate, observe, and evolve GraphQL APIs with open-source Hot Chocolate, Fusion, Strawberry Shake, and Mocha, plus the Nitro control plane.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

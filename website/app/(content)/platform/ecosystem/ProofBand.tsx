@@ -53,7 +53,7 @@ interface ProofRowSpec {
 const PROOF_ROWS: readonly ProofRowSpec[] = [
   {
     tag: "ONE REPOSITORY",
-    body: "Every part is built and released from the same codebase, so the pieces stay in step.",
+    body: "The core server, gateway, client, and libraries share one codebase, so the pieces stay in step.",
   },
   {
     tag: "MIT LICENSE",
@@ -66,7 +66,7 @@ const PROOF_ROWS: readonly ProofRowSpec[] = [
 ];
 
 interface ProofBandProps {
-  readonly commitActivity: ReadonlyArray<ReadonlyArray<number>> | null;
+  readonly commitActivity: ReadonlyArray<ReadonlyArray<number>>;
 }
 
 export function ProofBand({ commitActivity }: ProofBandProps) {
@@ -115,16 +115,11 @@ export function ProofBand({ commitActivity }: ProofBandProps) {
                   </div>
                 ))}
               </div>
-              {commitActivity ? (
-                <div className="border-cc-card-border border-t">
-                  <p className="text-cc-ink-dim px-6 pt-4 font-mono text-[0.6rem] tracking-[0.18em] uppercase">
-                    COMMITS · PAST YEAR
-                  </p>
-                  <div className="mt-3">
-                    <CommitHeatmap weeks={commitActivity} />
-                  </div>
+              <div className="border-cc-card-border border-t">
+                <div className="pt-3">
+                  <CommitHeatmap weeks={commitActivity} />
                 </div>
-              ) : null}
+              </div>
             </Card>
           </div>
         </div>
