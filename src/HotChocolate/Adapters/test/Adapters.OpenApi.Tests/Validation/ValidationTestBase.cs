@@ -107,6 +107,88 @@ public abstract class ValidationTestBase : OpenApiTestBase
                 error.Message));
     }
 
+    [Fact]
+    public async Task Model_Type_Condition_Not_In_Schema_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on NonExistentType {
+              id
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Model 'User' could not be added to the OpenAPI document: "
+            + "Expected to find type condition type in the schema.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Model_Selects_Unknown_Field_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on User {
+              nonExistentField
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Model 'User' could not be added to the OpenAPI document: "
+            + "Expected to find field 'nonExistentField' on type 'User'.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Model_References_Missing_Fragment_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on User {
+              id
+              ...MissingHelper
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Model 'User' could not be added to the OpenAPI document: "
+            + "Expected to find a definition for fragment 'MissingHelper'.",
+            error.Message);
+    }
+
     #endregion
 
     #region Endpoint
