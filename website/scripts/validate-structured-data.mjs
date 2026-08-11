@@ -130,7 +130,9 @@ function validateProducts(nodes, pathname) {
       !product.brand ||
       !["Brand", "Organization"].includes(product.brand["@type"])
     ) {
-      errors.push(`${pathname}: Product brand must include its object type`);
+      errors.push(
+        `${pathname}: Product.brand must be an object with @type "Brand" or "Organization"`,
+      );
     }
 
     const offers = Array.isArray(product.offers)
