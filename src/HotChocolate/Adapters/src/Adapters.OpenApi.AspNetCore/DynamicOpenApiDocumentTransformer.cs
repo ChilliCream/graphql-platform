@@ -58,10 +58,11 @@ internal sealed class DynamicOpenApiDocumentTransformer
         OpenApiEndpointDefinition[] endpoints,
         OpenApiModelDefinition[] models,
         IDictionary<string, OpenApiModelDefinition> modelsByName,
-        ISchemaDefinition schema)
+        ISchemaDefinition schema,
+        IOpenApiDiagnosticEvents events)
     {
         var (endpointDescriptors, modelDescriptors, inputComponents) =
-            new DocumentBuilder(schema, modelsByName).Build(endpoints, models);
+            new DocumentBuilder(schema, modelsByName, events).Build(endpoints, models);
 
         _endpoints = endpointDescriptors;
         _models = modelDescriptors;
@@ -180,10 +181,12 @@ internal sealed class DynamicOpenApiDocumentTransformer
     // ambient values (schema, models) are read from fields instead of threaded as parameters.
     private sealed class DocumentBuilder(
         ISchemaDefinition schema,
-        IDictionary<string, OpenApiModelDefinition> modelsByName)
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
+        IOpenApiDiagnosticEvents events)
     {
         private readonly ISchemaDefinition _schema = schema;
         private readonly IDictionary<string, OpenApiModelDefinition> _modelsByName = modelsByName;
+        private readonly IOpenApiDiagnosticEvents _events = events;
         private readonly Dictionary<string, int> _operationIdUsages = [];
         private readonly Dictionary<string, OpenApiSchemaAbstraction> _inputComponents = [];
         private readonly HashSet<string> _registeredInputNames = [];
@@ -201,9 +204,16 @@ internal sealed class DynamicOpenApiDocumentTransformer
                     var endpointDescriptor = CreateEndpointDescriptor(endpoint);
                     endpointDescriptors.Add(endpointDescriptor);
                 }
-                catch
+                catch (Exception exception)
                 {
-                    // If the construction of an endpoint descriptor fails, we just skip over it.
+                    // If the construction of an endpoint descriptor fails, we skip over it and
+                    // report why the endpoint is missing from the OpenAPI document.
+                    var endpointName = endpoint.OperationDefinition.Name?.Value;
+
+                    ReportError(
+                        $"Endpoint '{endpointName}' could not be added to the OpenAPI document: "
+                        + exception.Message,
+                        endpoint);
                 }
             }
 
@@ -214,9 +224,14 @@ internal sealed class DynamicOpenApiDocumentTransformer
                     var modelDescriptor = CreateModelDescriptor(model);
                     modelDescriptors.Add(modelDescriptor);
                 }
-                catch
+                catch (Exception exception)
                 {
-                    // If the construction of an model descriptor fails, we just skip over it.
+                    // If the construction of an model descriptor fails, we skip over it and
+                    // report why the model is missing from the OpenAPI document.
+                    ReportError(
+                        $"Model '{model.Name}' could not be added to the OpenAPI document: "
+                        + exception.Message,
+                        model);
                 }
             }
 
@@ -537,9 +552,22 @@ internal sealed class DynamicOpenApiDocumentTransformer
                     var fieldName = field.Name.Value;
                     var responseName = field.Alias?.Value ?? fieldName;
 
-                    var fieldType = fieldName == IntrospectionFieldNames.TypeName ?
-                        new NonNullType(_schema.Types["String"]) :
-                        ((IComplexTypeDefinition)namedType).Fields[fieldName].Type;
+                    IOutputType fieldType;
+
+                    if (fieldName == IntrospectionFieldNames.TypeName)
+                    {
+                        fieldType = new NonNullType(_schema.Types["String"]);
+                    }
+                    else if (namedType is IComplexTypeDefinition complexType
+                        && complexType.Fields.TryGetField(fieldName, out var fieldDefinition))
+                    {
+                        fieldType = fieldDefinition.Type;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Expected to find field '{fieldName}' on type '{namedType.Name}'.");
+                    }
 
                     OpenApiSchemaAbstraction typeSchema;
                     if (field.SelectionSet is not null)
@@ -622,7 +650,12 @@ internal sealed class DynamicOpenApiDocumentTransformer
                     }
                     else
                     {
-                        var fragment = localFragmentLookup[fragmentName];
+                        if (!localFragmentLookup.TryGetValue(fragmentName, out var fragment))
+                        {
+                            throw new InvalidOperationException(
+                                $"Expected to find a definition for fragment '{fragmentName}'.");
+                        }
+
                         var typeCondition = _schema.Types[fragment.TypeCondition.Name.Value];
                         var isDifferentType = !typeCondition.IsAssignableFrom(namedType);
                         var typeName = typeCondition.Name;
@@ -1300,6 +1333,11 @@ internal sealed class DynamicOpenApiDocumentTransformer
                 str.AsSpan().CopyTo(span);
                 span[0] = char.ToLowerInvariant(span[0]);
             });
+        }
+
+        private void ReportError(string message, IOpenApiDefinition definition)
+        {
+            _events.ValidationErrors([new OpenApiDefinitionValidationError(message, definition)]);
         }
     }
 }
