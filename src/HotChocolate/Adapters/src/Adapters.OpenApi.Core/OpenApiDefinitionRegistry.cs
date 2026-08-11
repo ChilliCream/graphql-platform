@@ -153,12 +153,13 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
             validDefinitions.Add(definition);
         }
 
-        UpdateEndpointsAndOpenApiDefinitions(validDefinitions, schema);
+        UpdateEndpointsAndOpenApiDefinitions(validDefinitions, schema, events);
     }
 
     private void UpdateEndpointsAndOpenApiDefinitions(
         List<IOpenApiDefinition> definitions,
-        ISchemaDefinition schema)
+        ISchemaDefinition schema,
+        IOpenApiDiagnosticEvents events)
     {
         var endpoints = definitions
             .OfType<OpenApiEndpointDefinition>()
@@ -191,14 +192,23 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
                 continue;
             }
 
+            var endpointName = endpoint.OperationDefinition.Name!.Value;
+
             OpenApiEndpointDescriptor descriptor;
 
             try
             {
                 descriptor = OpenApiEndpointFactory.CreateEndpointDescriptor(endpoint, modelsByName, schema);
             }
-            catch
+            catch (Exception exception)
             {
+                events.ValidationErrors(
+                [
+                    new OpenApiDefinitionValidationError(
+                        $"Endpoint '{endpointName}' could not be initialized: {exception.Message}",
+                        endpoint)
+                ]);
+
                 continue;
             }
 
@@ -217,18 +227,35 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
                 keyHasValid.Add(key);
             }
-            else if (!keyToIndex.ContainsKey(key))
+            else
             {
-                keyToIndex[key] = chosenEndpoints.Count;
-                chosenEndpoints.Add((endpoint, descriptor));
+                events.ValidationErrors(
+                [
+                    .. descriptor.DocumentErrors.Select(
+                        error => new OpenApiDefinitionValidationError(
+                            $"Endpoint '{endpointName}' has an invalid document: {error.Message}",
+                            endpoint))
+                ]);
+
+                if (!keyToIndex.ContainsKey(key))
+                {
+                    keyToIndex[key] = chosenEndpoints.Count;
+                    chosenEndpoints.Add((endpoint, descriptor));
+                }
             }
         }
 
+        // Endpoints with an invalid document cannot execute, so they are left out of the
+        // OpenAPI document rather than described as callable.
         _transformer.AddDefinitions(
-            chosenEndpoints.Select(e => e.Definition).ToArray(),
+            chosenEndpoints
+                .Where(e => e.Descriptor.HasValidDocument)
+                .Select(e => e.Definition)
+                .ToArray(),
             models,
             modelsByName,
-            schema);
+            schema,
+            events);
 
         var httpEndpoints = new List<Endpoint>();
 

@@ -221,7 +221,7 @@ To make a fragment referenceable from another document, give it a document of it
 
 Fragment names must be unique across every document that contributes to a single endpoint, which is the endpoint's own document plus each model it spreads, transitively. When two of those documents define a fragment with the same name, the endpoint's composed document is invalid and the endpoint responds with HTTP 500. Private helper fragments are not namespaced by their document, so this applies to them as well.
 
-An endpoint that spreads a fragment no document defines is also invalid, and likewise responds with HTTP 500. In both cases the endpoint is still routed, and it is omitted from the OpenAPI specification.
+An endpoint that spreads a fragment no document defines is also invalid, and likewise responds with HTTP 500. In both cases the endpoint is still routed, and it is omitted from the OpenAPI specification. Register a diagnostic event listener (see [Diagnostics](#diagnostics)) to see the reason.
 
 # Storage
 
@@ -276,6 +276,41 @@ builder
 ```
 
 The storage implements `IObservable<OpenApiDefinitionStorageEventArgs>`. When you push `Updated` or `Removed` events through this observable, the adapter picks up changes at runtime, adding, updating, or removing HTTP endpoints without a restart. This hot-reload behavior extends to the OpenAPI specification.
+
+# Diagnostics
+
+A definition that the adapter cannot use is skipped rather than throwing at startup, so an endpoint can be routed and still fail every call with HTTP 500. Derive from `OpenApiDiagnosticEventListener` to observe why:
+
+```csharp
+using HotChocolate.Adapters.OpenApi;
+
+public class LoggingOpenApiDiagnosticEventListener(
+    ILogger<LoggingOpenApiDiagnosticEventListener> logger)
+    : OpenApiDiagnosticEventListener
+{
+    public override void ValidationErrors(
+        IReadOnlyList<OpenApiDefinitionValidationError> errors)
+    {
+        foreach (var error in errors)
+        {
+            logger.LogError("{ValidationError}", error.Message);
+        }
+    }
+}
+```
+
+Register it on the GraphQL server. The listener is activated from the schema services, so any application service it takes as a constructor argument, `ILogger<T>` included, must be made available with `AddApplicationService<T>()`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddQueryType<Query>()
+    .AddOpenApi()
+    .AddApplicationService<ILogger<LoggingOpenApiDiagnosticEventListener>>()
+    .AddDiagnosticEventListener<LoggingOpenApiDiagnosticEventListener>();
+```
+
+The listener receives an error for every definition the adapter cannot use: one that fails a validation rule, an endpoint whose composed document does not validate against the schema, an endpoint that could not be initialized, and a definition that could not be added to the OpenAPI document. Errors are reported whenever definitions are loaded or reloaded, so a hot-reload that breaks an endpoint reports it at that moment.
 
 # OpenAPI Specification
 

@@ -96,10 +96,15 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        var error = Assert.Single(eventListener.Errors);
-        Assert.Equal(
-            "OpenAPI models cannot contain the '@responseBody' directive.",
-            error.Message);
+        Assert.Collection(
+            eventListener.Errors,
+            error => Assert.Equal(
+                "OpenAPI models cannot contain the '@responseBody' directive.",
+                error.Message),
+            error => Assert.Equal(
+                "Endpoint 'GetUser' has an invalid document: "
+                + "The specified fragment `UserPreferences` does not exist.",
+                error.Message));
     }
 
     #endregion
@@ -757,6 +762,105 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal($"Endpoint has invalid route pattern '{route}'.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_References_Missing_Model_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ...User
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint 'GetUser' has an invalid document: "
+            + "The specified fragment `User` does not exist.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_References_Local_Fragment_Of_Model_RaisesError()
+    {
+        // arrange
+        // 'UserContact' is a local fragment of the 'User' model, so it cannot be spread
+        // from another definition.
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                ...UserContact
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+            }
+
+            fragment UserContact on User {
+              email
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint 'GetUser' has an invalid document: "
+            + "The specified fragment `UserContact` does not exist.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Selects_Unknown_Field_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/user") {
+              userById(id: "1") {
+                nonExistentField
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Endpoint 'GetUser' has an invalid document: "
+            + "The field `nonExistentField` does not exist on the type `User`.",
+            error.Message);
     }
 
     #endregion
