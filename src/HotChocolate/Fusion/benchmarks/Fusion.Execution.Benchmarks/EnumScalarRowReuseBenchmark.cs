@@ -113,9 +113,9 @@ public class EnumScalarRowReuseBenchmark
 
         _enumValues = new FusionEnumValueCollection(
         [
-            new FusionEnumValue("RED", null, false, null, false),
-            new FusionEnumValue("GREEN", null, false, null, false),
-            new FusionEnumValue("BLUE", null, false, null, false)
+            new FusionEnumValue("RED", null, null, false),
+            new FusionEnumValue("GREEN", null, null, false),
+            new FusionEnumValue("BLUE", null, null, false)
         ]);
 
         VerifyVariantsProduceIdenticalResults();

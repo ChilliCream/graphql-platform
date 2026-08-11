@@ -14,6 +14,11 @@ internal sealed class CompleteMessage : IDataMessage
 
     public string Type => Messages.Complete;
 
+    public void Dispose()
+    {
+        // a complete message carries no pooled buffers, so there is nothing to release.
+    }
+
     public static CompleteMessage From(ReadOnlySequence<byte> message)
     {
         var id = ParseId(message);
@@ -27,12 +32,13 @@ internal sealed class CompleteMessage : IDataMessage
 
         while (reader.Read())
         {
-            if (reader.TokenType == JsonTokenType.PropertyName
+            if (reader.CurrentDepth == 1
+                && reader.TokenType == JsonTokenType.PropertyName
                 && reader.ValueTextEquals(Utf8MessageProperties.IdProp))
             {
-                reader.Read();
-
-                if (reader.GetString() is { } result)
+                if (reader.Read()
+                    && reader.TokenType == JsonTokenType.String
+                    && reader.GetString() is { } result)
                 {
                     return result;
                 }

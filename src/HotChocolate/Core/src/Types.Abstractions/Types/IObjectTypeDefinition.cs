@@ -25,7 +25,5 @@ public interface IObjectTypeDefinition
     , IDeprecationProvider
     , ISyntaxNodeProvider<ObjectTypeDefinitionNode>
 {
-    bool IDeprecationProvider.IsDeprecated => false;
-
     string? IDeprecationProvider.DeprecationReason => null;
 }

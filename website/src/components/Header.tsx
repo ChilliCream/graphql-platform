@@ -82,7 +82,7 @@ export default async function Header() {
             Contact Us
           </Link>
           <SolidButton href={TOOLS.nitro} className="h-10 py-0">
-            Launch
+            Launch Nitro
           </SolidButton>
           <Search
             ariaLabel="Search"

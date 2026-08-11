@@ -1,15 +1,15 @@
 ---
-title: Skillz
-metaTitle: "Skillz: Agent Skills CLI for .NET"
-description: "skillz is a .NET CLI that installs, updates, and authors Agent Skills: portable SKILL.md files you can share across Claude Code, Cursor, and 50+ agents."
+title: Skills
+metaTitle: "Skills: Agent Skills CLI for .NET"
+description: "The `skills` .NET CLI installs, updates, and authors Agent Skills: portable SKILL.md files you can share across Claude Code, Cursor, and 55+ agents."
 ---
 
-skillz is the .NET CLI that installs, updates, and authors [Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills): portable `SKILL.md` files that teach an AI coding agent how you work. Stop re-explaining your conventions every session. Package the knowledge once, then hand the same skill to Claude Code, Cursor, GitHub Copilot, and 50+ other agents with a single command.
+`skills` is the .NET CLI that installs, updates, and authors [Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills): portable `SKILL.md` files that teach an AI coding agent how you work. Stop re-explaining your conventions every session. Package the knowledge once, then hand the same skill to Claude Code, Cursor, GitHub Copilot, or another of the 55+ supported agents with a single command.
 
 Run it with `dnx`, which ships with the .NET 10 SDK, so there is nothing to install first:
 
 ```bash
-dnx skillz add anthropics/skills --agent claude-code
+dnx skills add anthropics/skills --agent claude-code
 ```
 
 ```text
@@ -30,11 +30,11 @@ Found 2 skill(s)
 Done!  Review skills before use; they run with full agent permissions.
 ```
 
-skillz detects the agents you have installed, then symlinks the skill into each one from a single canonical store. The agent loads the skill on its own when a task matches.
+The CLI detects the agents you have installed, then symlinks the skill into each one from a single canonical store. The agent loads the skill on its own when a task matches.
 
-These docs show every command as `dnx skillz`. Prefer skillz on your `PATH`? Install the global tool with `dotnet tool install -g skillz`, then drop the `dnx` prefix and run `skillz` directly.
+These docs show every command as `dnx skills`. Prefer `skills` on your `PATH`? Install the global tool with `dotnet tool install -g skills`, then drop the `dnx` prefix and run `skills` directly.
 
-Need the prerequisites or a step-by-step walkthrough? See [Get started](./getting-started.md). The source lives at [github.com/ChilliCream/skillz](https://github.com/ChilliCream/skillz), and the package is on [nuget.org](https://www.nuget.org/packages/skillz).
+Need the prerequisites or a step-by-step walkthrough? See [Get started](./getting-started.md). The [source repository](https://github.com/ChilliCream/skillz) and [`skills` package on NuGet](https://www.nuget.org/packages/skills) are public.
 
 # What are Agent Skills
 
@@ -44,7 +44,7 @@ Think of a skill as an onboarding guide for a new team member. You write down a 
 
 Skills differ from prompts. A prompt is conversation-level guidance you paste in for one task. A skill loads on demand across every conversation, so you never repaste the same instructions again.
 
-The `SKILL.md` format is an open standard created by Anthropic and adopted across the ecosystem. The same file works in Claude Code, Cursor, GitHub Copilot, and more than 50 other agents. To go deeper, read Anthropic's [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) and the [open specification](https://agentskills.io/specification) at agentskills.io.
+The `SKILL.md` format is an open standard created by Anthropic and adopted across the ecosystem. The same file works in 55+ supported agents, including Claude Code, Cursor, and GitHub Copilot. To go deeper, read Anthropic's [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) and the [open specification](https://agentskills.io/specification) at agentskills.io.
 
 # How skills load: progressive disclosure
 
@@ -86,15 +86,15 @@ When the user asks to roll dice, parse the count and number of sides (default to
 then return each roll and the total.
 ```
 
-The `dnx skillz init` command scaffolds this layout for you; [Authoring Skills](./authoring-skills.md) walks through it with the generated `SKILL.md` and folder tree. The full field reference, including optional frontmatter, lives in the [open specification](https://agentskills.io/specification) and in [Authoring Skills](./authoring-skills.md).
+The `dnx skills init` command scaffolds this layout for you; [Authoring Skills](./authoring-skills.md) walks through it with the generated `SKILL.md` and folder tree. The full field reference, including optional frontmatter, lives in the [open specification](https://agentskills.io/specification) and in [Authoring Skills](./authoring-skills.md).
 
-# Why skillz
+# Why Skills
 
-skillz brings the install-once, run-anywhere skill workflow to the .NET SDK. Three things make it worth adding to your toolbox.
+The `skills` CLI brings the install-once, run-anywhere skill workflow to the .NET SDK. Three things make it worth adding to your toolbox.
 
 Project-scoped installs are recorded in a `skills-lock.json` file in your working directory. Commit it, and your whole team shares one reproducible skill set, the same way a lock file pins your package dependencies.
 
-One install reaches every detected agent. skillz materializes each skill once in a canonical store, then links it into the directory each installed agent expects. You do not manage per-agent copies by hand.
+One install reaches every detected agent. The CLI materializes each skill once in a canonical store, then links it into the directory each installed agent expects. You do not manage per-agent copies by hand.
 
 Personal skills install globally with `--global`. Those live outside any single project and follow you across every repository you work in.
 
@@ -106,11 +106,11 @@ The Agent Skills world has three distinct layers. Knowing which is which helps y
 | ------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Format / spec | The open `SKILL.md` standard              | [agentskills.io](https://agentskills.io/specification), [anthropics/skills](https://github.com/anthropics/skills) |
 | Discovery     | A directory of published skills to browse | [skills.sh](https://www.skills.sh/)                                                                               |
-| Installers    | CLIs that fetch and install skills        | skillz (.NET), [npx skills](https://github.com/vercel-labs/skills) (Node)                                         |
+| Installers    | CLIs that fetch and install skills        | `skills` (.NET), [npx skills](https://github.com/vercel-labs/skills) (Node)                                       |
 
-skillz brings the [npx skills](https://github.com/vercel-labs/skills) workflow to the .NET SDK via `dnx`, so you can run it without a global install. The command surface deliberately mirrors what Node developers already know. skillz has no registry of its own: you point `dnx skillz add` at any git repository or local folder, and you discover skills to install from directories like [skills.sh](https://www.skills.sh/).
+The `skills` CLI brings the [npx skills](https://github.com/vercel-labs/skills) workflow to the .NET SDK via `dnx`, so you can run it without a global install. The command surface deliberately mirrors what Node developers already know. The CLI has no registry of its own: you point `dnx skills add` at any git repository or local folder, and you discover skills to install from directories like [skills.sh](https://www.skills.sh/).
 
 # Next steps
 
-- [Get started](./getting-started.md): install skillz and add your first skill end to end.
+- [Get started](./getting-started.md): run `skills` and add your first skill end to end.
 - [Author a skill](./authoring-skills.md): scaffold a `SKILL.md`, write a strong description, and publish it.

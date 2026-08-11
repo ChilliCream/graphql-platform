@@ -38,7 +38,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], LocalOverrideOptions("Products"), log);
+        var composed = Compose([settings], LocalOverride("Products"), preferDevUrls: true, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -69,6 +69,89 @@ public sealed class SettingsComposerUrlResolutionTests
     }
 
     [Fact]
+    public void Compose_Should_UseLocalUrlWithoutWarning_When_OverriddenUrlsContainUnresolvableVariables()
+    {
+        // arrange
+        // the configured URLs of a source schema with a URL override are ignored, so their
+        // variables never resolve and never warn.
+        var settings = Parse(
+            """
+            {
+              "name": "Products",
+              "transports": {
+                "http": {
+                  "url": "{{API_URL}}/graphql",
+                  "devUrl": "{{DEV_API_URL}}/graphql"
+                }
+              }
+            }
+            """);
+        var log = new CompositionLog();
+
+        // act
+        var composed = Compose([settings], LocalOverride("Products"), preferDevUrls: true, log);
+
+        // assert
+        composed.MatchInlineSnapshot(
+            """
+            {
+              "sourceSchemas": {
+                "Products": {
+                  "transports": {
+                    "http": {
+                      "url": "http://localhost:5001/graphql"
+                    }
+                  }
+                }
+              }
+            }
+            """);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Compose_Should_ComposeNormalizedAbsoluteUri_When_OverrideOmitsThePath()
+    {
+        // arrange
+        // an override without a path composes as its normalized absolute URI, which carries a
+        // trailing slash.
+        var settings = Parse(
+            """
+            {
+              "name": "Products",
+              "transports": {
+                "http": {
+                  "url": "https://products.internal.example.com/graphql"
+                }
+              }
+            }
+            """);
+        var overrides = new Dictionary<string, Uri>
+        {
+            ["Products"] = new Uri("http://localhost:5001")
+        };
+
+        // act
+        var composed = Compose([settings], overrides, preferDevUrls: false, new CompositionLog());
+
+        // assert
+        composed.MatchInlineSnapshot(
+            """
+            {
+              "sourceSchemas": {
+                "Products": {
+                  "transports": {
+                    "http": {
+                      "url": "http://localhost:5001/"
+                    }
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void Compose_Should_CreateHttpTransport_When_LocalOverrideAndSettingsHaveNoTransports()
     {
         // arrange
@@ -85,7 +168,7 @@ public sealed class SettingsComposerUrlResolutionTests
             """);
 
         // act
-        var composed = Compose([settings], LocalOverrideOptions("Products"), new CompositionLog());
+        var composed = Compose([settings], LocalOverride("Products"), preferDevUrls: true, new CompositionLog());
 
         // assert
         composed.MatchInlineSnapshot(
@@ -129,7 +212,7 @@ public sealed class SettingsComposerUrlResolutionTests
             """);
 
         // act
-        var composed = Compose([settings], LocalOverrideOptions("Products"), new CompositionLog());
+        var composed = Compose([settings], LocalOverride("Products"), preferDevUrls: true, new CompositionLog());
 
         // assert
         composed.MatchInlineSnapshot(
@@ -170,7 +253,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -208,7 +291,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -258,7 +341,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -306,7 +389,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], SettingsComposerOptions.Default, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: false, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -349,7 +432,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], SettingsComposerOptions.Default, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: false, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -397,7 +480,7 @@ public sealed class SettingsComposerUrlResolutionTests
             """);
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, new CompositionLog());
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, new CompositionLog());
 
         // assert
         composed.MatchInlineSnapshot(
@@ -446,7 +529,7 @@ public sealed class SettingsComposerUrlResolutionTests
             """);
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, new CompositionLog());
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, new CompositionLog());
 
         // assert
         composed.MatchInlineSnapshot(
@@ -489,7 +572,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -537,7 +620,7 @@ public sealed class SettingsComposerUrlResolutionTests
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([settings], PreferDevUrlOptions, log);
+        var composed = Compose([settings], s_noOverrides, preferDevUrls: true, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -607,7 +690,7 @@ public sealed class SettingsComposerUrlResolutionTests
         // act
         var composed = Compose(
             [products, reviews],
-            LocalOverrideOptions("Products"),
+            LocalOverride("Products"), preferDevUrls: true,
             new CompositionLog());
 
         // assert
@@ -652,7 +735,7 @@ public sealed class SettingsComposerUrlResolutionTests
             """);
 
         // act
-        void Act() => Compose([settings], LocalOverrideOptions("Products"), new CompositionLog());
+        void Act() => Compose([settings], LocalOverride("Products"), preferDevUrls: true, new CompositionLog());
 
         // assert
         var exception = Assert.Throws<InvalidOperationException>(Act);
@@ -716,7 +799,7 @@ public sealed class SettingsComposerUrlResolutionTests
     }
 
     [Fact]
-    public void Compose_Should_KeepTheEnvironmentOfLocalSchemas_When_AnExternalEnvironmentIsSet()
+    public void Compose_Should_ResolveEverySchemaAgainstTheEnvironment_When_SchemasDefineMultipleEnvironments()
     {
         // arrange
         var products = Parse(
@@ -757,16 +840,10 @@ public sealed class SettingsComposerUrlResolutionTests
               }
             }
             """);
-        var options = new SettingsComposerOptions
-        {
-            PreferDevUrls = true,
-            LocalSourceSchemas = new HashSet<string>(StringComparer.Ordinal) { "Products" },
-            ExternalEnvironment = "Production"
-        };
         var log = new CompositionLog();
 
         // act
-        var composed = Compose([products, reviews], options, log);
+        var composed = Compose([products, reviews], s_noOverrides, preferDevUrls: false, log);
 
         // assert
         composed.MatchInlineSnapshot(
@@ -783,28 +860,25 @@ public sealed class SettingsComposerUrlResolutionTests
                 "Reviews": {
                   "transports": {
                     "http": {
-                      "url": "https://reviews.example.com/graphql"
+                      "url": "https://reviews.dev.example.com/graphql"
                     }
                   }
                 }
               }
             }
             """);
+        Assert.True(log.IsEmpty);
     }
 
-    private static SettingsComposerOptions PreferDevUrlOptions
-        => new() { PreferDevUrls = true };
+    private static readonly Dictionary<string, Uri> s_noOverrides = [];
 
-    private static SettingsComposerOptions LocalOverrideOptions(string schemaName)
-        => new()
-        {
-            LocalUrlOverrides = new Dictionary<string, string> { [schemaName] = LocalUrl },
-            PreferDevUrls = true
-        };
+    private static Dictionary<string, Uri> LocalOverride(string schemaName)
+        => new() { [schemaName] = new Uri(LocalUrl) };
 
     private static string Compose(
         JsonElement[] sourceSchemaSettings,
-        SettingsComposerOptions options,
+        IReadOnlyDictionary<string, Uri> urlOverrides,
+        bool preferDevUrls,
         CompositionLog compositionLog)
     {
         var buffer = new ArrayBufferWriter<byte>();
@@ -813,7 +887,8 @@ public sealed class SettingsComposerUrlResolutionTests
             buffer,
             sourceSchemaSettings,
             "Development",
-            options,
+            urlOverrides,
+            preferDevUrls,
             compositionLog);
 
         return Encoding.UTF8.GetString(buffer.WrittenSpan);

@@ -578,7 +578,7 @@ The URL template for the subgraph's GraphQL endpoint. Use `{{VARIABLE_NAME}}` fo
 
 The URL a local development environment reaches this source schema at. It supports the same `{{VARIABLE_NAME}}` substitution as `url`.
 
-`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./aspire-integration.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
+`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./local-development.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
 
 ```json
 {

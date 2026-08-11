@@ -17,7 +17,7 @@ export function PlanSelector() {
   return (
     <section aria-labelledby="plans-heading" className="pb-4">
       <h2 id="plans-heading" className="sr-only">
-        Plans
+        Nitro pricing plans
       </h2>
       <OfferingGrid columns="md:grid-cols-3">
         {CLOUD_TIERS.map((tier) => (
@@ -29,6 +29,7 @@ export function PlanSelector() {
             priceNote={tier.priceNote}
             perks={tier.features}
             popular={tier.popular}
+            popularLabel={tier.popularLabel}
             callToAction={{ title: tier.cta, link: tier.ctaHref }}
           />
         ))}
@@ -49,8 +50,9 @@ function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
           {tier.name}
         </h3>
         <p className="text-cc-ink mt-2 max-w-2xl text-sm text-pretty">
-          {tier.tagline} Run on your own infrastructure, air-gapped or on-prem,
-          with configurable retention and priority engineering support.
+          {tier.tagline} Run Nitro on your own infrastructure, including on-prem
+          or air-gapped environments, with configurable retention and priority
+          engineering support.
         </p>
       </div>
       <OutlineButton href={tier.ctaHref} className="shrink-0 sm:w-auto">

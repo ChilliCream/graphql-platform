@@ -58,10 +58,10 @@ sourceSchemas:
           "Argument description"
           filter: PostsFilter
           first: Int! = 5 @test(arg: "value")
-          hidden: Boolean @deprecated(reason: "No longer supported")
+          hidden: Boolean @deprecated
         ): [Post]
         userCreation: UserCreation
-        votables: [Votable]! @deprecated(reason: "No longer supported")
+        votables: [Votable]! @deprecated
         postById(postId: ID! @is(field: "id")): Post @lookup
         node(id: ID!): Node @lookup
       }
@@ -98,7 +98,7 @@ sourceSchemas:
       union UserCreation @test(arg: "value") = Post | Review
 
       input PostReviewInput @oneOf {
-        scalar: String @deprecated(reason: "No longer supported")
+        scalar: String @deprecated
         pros: [PostReviewPro]
       }
 
@@ -116,7 +116,7 @@ sourceSchemas:
       enum PostKind @test(arg: "value") {
         "Enum value description"
         STORY @test(arg: "value")
-        PHOTO @deprecated(reason: "No longer supported")
+        PHOTO @deprecated
       }
 
       "Directive description"

@@ -587,7 +587,6 @@ jobs:
           stage: Dev
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
       - name: 🚀 Publish Nitro CLI client (Prod)
         uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
@@ -596,7 +595,6 @@ jobs:
           stage: Prod
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
   publish-aspire-nitro-ops:
     name: 🚀 Publish Fusion Aspire Nitro operations
@@ -640,7 +638,6 @@ jobs:
           stage: Dev
           client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
       - name: 🚀 Publish Fusion Aspire client (Prod)
         uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
@@ -649,7 +646,6 @@ jobs:
           stage: Prod
           client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
   publish-release:
     name: 🚀 Publish Release
@@ -863,4 +859,16 @@ jobs:
           REPO: ChilliCream/nitro-azure-pipelines-tasks
           RUN_ID: ${{ steps.dispatch.outputs.run-id }}
         shell: bash
-        run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact
+        run: |
+          set -euo pipefail
+
+          # A single transient API error kills `gh run watch`, so retry it. Re-watching a run that
+          # really failed costs nothing, because watching a completed run returns immediately.
+          for attempt in 1 2 3; do
+            gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact && exit 0
+            echo "Watch attempt $attempt/3 failed."
+            sleep 10
+          done
+
+          echo "::error::Run $RUN_ID failed, or its status could not be read."
+          exit 1

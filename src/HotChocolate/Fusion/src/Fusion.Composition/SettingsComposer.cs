@@ -26,22 +26,28 @@ internal sealed partial class SettingsComposer
     /// <param name="gatewaySettings">Buffer to write the composed gateway settings to</param>
     /// <param name="sourceSchemaSettings">Source schema settings documents to compose</param>
     /// <param name="environment">
-    /// Target environment for variable resolution. A source schema that is not part of the local
-    /// development environment resolves against
-    /// <see cref="SettingsComposerOptions.ExternalEnvironment"/> instead.
+    /// The environment that every source schema resolves its variables against.
     /// </param>
-    /// <param name="options">Options that control how source schema URLs are resolved</param>
+    /// <param name="urlOverrides">
+    /// HTTP transport URLs that replace the configured URLs, keyed by source schema name. The
+    /// configured <c>url</c> and <c>devUrl</c> of a source schema with an entry are ignored.
+    /// </param>
+    /// <param name="preferDevUrls">
+    /// When <c>true</c>, the <c>devUrl</c> of a source schema that has no URL override takes
+    /// precedence over its <c>url</c>.
+    /// </param>
     /// <param name="compositionLog">Log that receives the composition diagnostics</param>
     public void Compose(
         IBufferWriter<byte> gatewaySettings,
         ReadOnlySpan<JsonElement> sourceSchemaSettings,
         string environment,
-        SettingsComposerOptions options,
+        IReadOnlyDictionary<string, Uri> urlOverrides,
+        bool preferDevUrls,
         ICompositionLog compositionLog)
     {
         ArgumentNullException.ThrowIfNull(gatewaySettings);
         ArgumentException.ThrowIfNullOrEmpty(environment);
-        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(urlOverrides);
         ArgumentNullException.ThrowIfNull(compositionLog);
 
         if (sourceSchemaSettings.IsEmpty)
@@ -59,7 +65,13 @@ internal sealed partial class SettingsComposer
 
         foreach (var sourceSchema in sourceSchemaSettings)
         {
-            ComposeSourceSchema(writer, sourceSchema, environment, options, compositionLog);
+            ComposeSourceSchema(
+                writer,
+                sourceSchema,
+                environment,
+                urlOverrides,
+                preferDevUrls,
+                compositionLog);
         }
 
         writer.WriteEndObject();
@@ -96,7 +108,8 @@ internal sealed partial class SettingsComposer
         Utf8JsonWriter writer,
         JsonElement settings,
         string environment,
-        SettingsComposerOptions options,
+        IReadOnlyDictionary<string, Uri> urlOverrides,
+        bool preferDevUrls,
         ICompositionLog compositionLog)
     {
         // first we will get the source schema name.
@@ -111,27 +124,21 @@ internal sealed partial class SettingsComposer
             throw new InvalidOperationException("Source schema 'name' property cannot be empty");
         }
 
-        // a source schema that does not belong to the local development environment resolves
-        // its settings against the environment that the external configuration was built for.
-        var effectiveEnvironment =
-            options.ExternalEnvironment is { } externalEnvironment
-            && !options.LocalSourceSchemas.Contains(schemaName)
-                ? externalEnvironment
-                : environment;
-
         // next we collect the variables
-        var environmentVariables = ExtractEnvironmentVariables(settings, effectiveEnvironment);
+        var environmentVariables = ExtractEnvironmentVariables(settings, environment);
 
-        // a source schema that is backed by a resource of the local development environment
-        // is reached through the URL of that resource instead of its configured URL.
-        options.LocalUrlOverrides.TryGetValue(schemaName, out var localUrlOverride);
+        // a source schema with a URL override is reached through that URL instead of its
+        // configured URL.
+        var localUrlOverride = urlOverrides.TryGetValue(schemaName, out var urlOverride)
+            ? urlOverride.AbsoluteUri
+            : null;
 
         var context = new SourceSchemaContext(
             schemaName,
-            effectiveEnvironment,
+            environment,
             environmentVariables,
             localUrlOverride,
-            options.PreferDevUrls,
+            preferDevUrls,
             compositionLog);
 
         // now that we have all the context in memory we can start with the settings composition.

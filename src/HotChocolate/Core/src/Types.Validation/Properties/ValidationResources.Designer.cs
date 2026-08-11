@@ -186,6 +186,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The non-repeatable directive &apos;@{0}&apos; on &apos;{1}&apos; is applied more than once..
+        /// </summary>
+        internal static string LogEntryHelper_DirectiveNotUnique {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Enum type &apos;{0}&apos; must define one or more values..
         /// </summary>
         internal static string LogEntryHelper_EmptyEnumType {
