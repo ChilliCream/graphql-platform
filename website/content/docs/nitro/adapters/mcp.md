@@ -21,7 +21,7 @@ The adapter speaks the MCP standard, so the same collection works in Claude, Cha
 
 > **Prerequisite**: Nitro distributes the feature collection, but the MCP endpoint itself is served by your runtime. Install and configure the MCP adapter on your GraphQL server or Fusion gateway before tools published from Nitro become reachable.
 >
-> - Hot Chocolate: [MCP Adapter](../../hotchocolate/build/adapters/mcp.md)
+> - Hot Chocolate: [MCP Adapter](../../hotchocolate/adapters/mcp.md)
 > - Fusion: [MCP Adapter](../../fusion/adapters/mcp.md)
 
 # How it works

@@ -417,7 +417,7 @@ We are building on top of the existing strengths of GraphQL here. Your tools reu
 
 If you want to go deeper, the full references are here:
 
-- Hot Chocolate adapter: [MCP Adapter](../docs/hotchocolate/build/adapters/mcp.md)
+- Hot Chocolate adapter: [MCP Adapter](../docs/hotchocolate/adapters/mcp.md)
 - Fusion adapter: [MCP Adapter](../docs/fusion/adapters/mcp.md)
 - Nitro authoring and CLI: [Nitro MCP](../docs/nitro/adapters/mcp.md)
 - MCP specification: [modelcontextprotocol.io](https://modelcontextprotocol.io/)
