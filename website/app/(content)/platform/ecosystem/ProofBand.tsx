@@ -1,7 +1,7 @@
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { GITHUB_REPO_URL } from "@/src/components/header/navData";
 import { Card } from "@/src/design-system/Card";
+import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { GitHubIcon } from "@/src/icons/GitHub";
 
 import { CARD_FOCUS_CLASSES } from "./cardFocus";
