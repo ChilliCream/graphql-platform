@@ -91,12 +91,9 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         }
 
         if (configuration is null
-            && Transport.Topology.Address.IsBaseOf(address)
-            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName))
+            && TryParseTopologyAddress(address, out var topologyKind, out var resourceName))
         {
-            var resourceName = new string(topologyName);
-
-            if (topologyKind is "e")
+            if (topologyKind is 'e')
             {
                 configuration = new RabbitMQDispatchEndpointConfiguration
                 {
@@ -104,7 +101,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     Name = "e/" + resourceName
                 };
             }
-            else if (topologyKind is "q")
+            else if (topologyKind is 'q')
             {
                 configuration = new RabbitMQDispatchEndpointConfiguration
                 {
@@ -505,11 +502,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address)
-            && TryGetKindAndName(GetTopologyRelativePath(address), out var topologyKind, out var topologyName)
-            && topologyKind is "q")
+        if (TryParseTopologyAddress(address, out var topologyKind, out var topologyName)
+            && topologyKind is 'q')
         {
-            queueName = new string(topologyName);
+            queueName = topologyName;
             return true;
         }
 
@@ -524,48 +520,72 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
     }
 
     /// <summary>
-    /// Splits a topology relative path into the leading kind segment and the resource name that
-    /// follows it. Everything after the first segment is the name, because a queue or exchange
-    /// name may contain a slash.
+    /// Parses an address under the transport topology into its kind and resource name.
+    /// Everything after the kind segment is the name, because a queue or exchange name may
+    /// contain a slash.
     /// </summary>
-    private static bool TryGetKindAndName(
-        ReadOnlySpan<char> path,
-        out ReadOnlySpan<char> kind,
-        out ReadOnlySpan<char> name)
+    private bool TryParseTopologyAddress(
+        Uri address,
+        out char kind,
+        out string name)
     {
-        var separator = path.IndexOf('/');
+        kind = default;
+        name = string.Empty;
 
-        if (separator <= 0 || separator == path.Length - 1)
+        // A valid resource path is not enough to identify this transport. For example,
+        // rabbitmq://other-host:5672/tenant-a/q/orders must not be claimed by this topology.
+        var topologyAddress = Transport.Topology.Address;
+        if (!address.Scheme.EqualsOrdinalIgnoreCase(topologyAddress.Scheme)
+            || !address.Host.EqualsOrdinalIgnoreCase(topologyAddress.Host)
+            || address.Port != topologyAddress.Port)
         {
-            kind = default;
-            name = default;
             return false;
         }
 
-        kind = path[..separator];
-        name = path[(separator + 1)..];
-        return true;
-    }
+        // Normalize only the topology path: "/" becomes empty and "/tenant-a/" becomes
+        // "/tenant-a". Keep the address path unchanged while removing the topology prefix below.
+        var basePath = topologyAddress.AbsolutePath.AsSpan().TrimEnd('/');
+        var path = address.AbsolutePath.AsSpan();
+        ReadOnlySpan<char> relativePath;
 
-    /// <summary>
-    /// Returns the path of the address relative to the transport topology address, so that
-    /// addresses on a named virtual host expose the same <c>e/{name}</c> and <c>q/{name}</c>
-    /// segments as addresses on the default virtual host.
-    /// </summary>
-    private ReadOnlySpan<char> GetTopologyRelativePath(Uri address)
-    {
-        var basePath = Transport.Topology.Address.AbsolutePath.AsSpan().Trim('/');
-        var path = address.AbsolutePath.AsSpan().Trim('/');
-
-        if (basePath.IsEmpty
-            || path.Length <= basePath.Length
-            || !path.StartsWith(basePath, StringComparison.Ordinal)
-            || path[basePath.Length] is not '/')
+        if (basePath.IsEmpty)
         {
-            return path;
+            // A root topology consumes exactly one structural slash:
+            // "/q/orders" becomes "q/orders". The shorthand "rabbitmq:q/orders" has no
+            // leading slash and is handled by the transport-specific branch above.
+            if (path.IsEmpty || path[0] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[1..];
+        }
+        else
+        {
+            // Remove the exact virtual-host path and its separator:
+            // "/tenant-a/q/orders" becomes "q/orders". Requiring the separator prevents
+            // "/tenant-a" from matching "/tenant-a-other/q/orders".
+            if (path.Length <= basePath.Length
+                || !path.StartsWith(basePath, StringComparison.Ordinal)
+                || path[basePath.Length] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[(basePath.Length + 1)..];
         }
 
-        return path[(basePath.Length + 1)..];
+        // Require "{kind}/{name}", where kind is one character. Everything after the first
+        // slash is the name, so a name containing a slash, such as "q/nested/queue", stays intact.
+        if (relativePath.Length < 3 || relativePath[1] is not '/')
+        {
+            return false;
+        }
+
+        kind = relativePath[0];
+        // AbsolutePath is escaped, so "q/space%20name" must produce "space name".
+        name = Uri.UnescapeDataString(relativePath[2..].ToString());
+        return true;
     }
 }
 

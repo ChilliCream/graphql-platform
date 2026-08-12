@@ -55,6 +55,23 @@ public class RabbitMQAddressResolutionTests
         Assert.Equal("q/nested/queue", endpoint.Name);
     }
 
+    [Theory]
+    [InlineData("/")]
+    [InlineData("tenant-a")]
+    public void GetDispatchEndpoint_Should_DecodeQueueName_When_NameIsUriEncoded(string virtualHost)
+    {
+        // arrange
+        const string queueName = "space name";
+        var (runtime, topology) = CreateRuntime(virtualHost, t => t.DeclareQueue(queueName));
+        var queue = topology.Queues.Single(q => q.Name == queueName);
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(queue.Address);
+
+        // assert
+        Assert.Equal("q/" + queueName, endpoint.Name);
+    }
+
     [Fact]
     public void GetDispatchEndpoint_Should_ResolveQueue_When_AddressOmitsHostAndVirtualHost()
     {
@@ -88,19 +105,21 @@ public class RabbitMQAddressResolutionTests
         Assert.Contains(topology.Queues, q => q.Name == "orders-errors");
     }
 
-    [Fact]
-    public void GetDispatchEndpoint_Should_Throw_When_AddressIsOnAnotherVirtualHost()
+    [Theory]
+    [InlineData("rabbitmq://localhost:5672/other/q/orders")]
+    [InlineData("rabbitmq://localhost:5672/q/orders")]
+    public void GetDispatchEndpoint_Should_Throw_When_AddressIsOnAnotherVirtualHost(string addressValue)
     {
         // arrange
         var (runtime, _) = CreateRuntime("tenant-a");
-        var address = new Uri("rabbitmq://localhost:5672/other/q/orders");
+        var address = new Uri(addressValue);
 
         // act
         var exception = Record.Exception(() => runtime.GetDispatchEndpoint(address));
 
         // assert
         Assert.Equal(
-            "No transport can handle address: rabbitmq://localhost:5672/other/q/orders",
+            "No transport can handle address: " + addressValue,
             Assert.IsType<InvalidOperationException>(exception).Message);
     }
 

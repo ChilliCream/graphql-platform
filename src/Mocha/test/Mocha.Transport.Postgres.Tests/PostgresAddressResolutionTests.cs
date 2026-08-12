@@ -66,6 +66,22 @@ public class PostgresAddressResolutionTests
     }
 
     [Fact]
+    public void GetDispatchEndpoint_Should_DecodeQueueName_When_NameIsUriEncoded()
+    {
+        // arrange
+        const string queueName = "space name";
+        var runtime = CreateRuntime(t => t.DeclareQueue(queueName));
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+        var queue = ((PostgresMessagingTopology)transport.Topology).Queues.Single(q => q.Name == queueName);
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(queue.Address);
+
+        // assert
+        Assert.Equal("q/" + queueName, endpoint.Name);
+    }
+
+    [Fact]
     public void GetDispatchEndpoint_Should_ResolveTopic_When_AddressIsTopologyAddress()
     {
         // arrange
