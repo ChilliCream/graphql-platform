@@ -170,8 +170,7 @@ You can define reusable GraphQL fragments as separate documents. The adapter res
 
 ```graphql
 # Document 1: endpoint definition
-query GetUser($userId: ID!)
-  @http(method: GET, route: "/users/{userId}") {
+query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
   userById(id: $userId) {
     ...UserFields
   }
@@ -335,4 +334,4 @@ The Fusion gateway composes schemas from multiple subgraphs. The OpenAPI adapter
 # Next Steps
 
 - [MCP](./mcp.md) to expose your GraphQL schema as MCP tools for AI agents.
-- [Errors](../../resolvers/errors.md) to customize error responses in generated endpoints.
+- [Errors](../resolvers/errors.md) to customize error responses in generated endpoints.
