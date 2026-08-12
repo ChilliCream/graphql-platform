@@ -17,7 +17,8 @@ import {
   connectorPath,
   polarPoint,
 } from "./orbitGeometry";
-import { PILL_CLASSES, StarPillContent } from "./StarPill";
+import { PILL_CLASSES } from "./pillClasses";
+import { StarPillContent } from "./StarPill";
 
 const RING_STROKE = "rgba(245,240,234,0.17)";
 
