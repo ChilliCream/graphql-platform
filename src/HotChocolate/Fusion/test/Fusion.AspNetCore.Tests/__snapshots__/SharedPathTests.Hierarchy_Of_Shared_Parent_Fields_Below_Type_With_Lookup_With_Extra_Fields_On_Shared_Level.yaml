@@ -264,7 +264,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -286,7 +286,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

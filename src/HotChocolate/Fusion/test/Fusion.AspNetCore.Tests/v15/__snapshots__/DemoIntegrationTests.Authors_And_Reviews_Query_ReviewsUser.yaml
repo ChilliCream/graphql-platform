@@ -677,7 +677,7 @@ operationPlan:
         - $.users.reviews.author
         - $.b.author
         - $.a.author
-      batchingGroupId: 4
+      batchingGroupId: 7
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

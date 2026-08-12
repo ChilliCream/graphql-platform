@@ -41,7 +41,7 @@ nodes:
       }
     source: $._entities
     target: $.brands
-    batchingGroupId: 2
+    batchingGroupId: 4
     requirements:
       - name: __fusion_1_id
         selectionMap: >-
@@ -61,7 +61,7 @@ nodes:
       }
     source: $._entities
     target: $.products
-    batchingGroupId: 2
+    batchingGroupId: 4
     requirements:
       - name: __fusion_2_id
         selectionMap: >-

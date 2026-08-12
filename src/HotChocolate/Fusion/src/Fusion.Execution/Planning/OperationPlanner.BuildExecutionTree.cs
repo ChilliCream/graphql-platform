@@ -28,6 +28,7 @@ public sealed partial class OperationPlanner
         ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes,
+        int nextNodeId,
         CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
@@ -43,7 +44,7 @@ public sealed partial class OperationPlanner
             return OperationPlan.Create(operation, nodes, nodes, [], [], searchSpace, expandedNodes);
         }
 
-        var ctx = new ExecutionPlanBuildContext();
+        var ctx = new ExecutionPlanBuildContext(nextNodeId);
         var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
@@ -53,8 +54,10 @@ public sealed partial class OperationPlanner
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
-            .Where(t => !ctx.DependenciesByStepId.ContainsKey(t.Id) && ctx.ExecutionNodes.ContainsKey(t.Id))
-            .Select(t => ctx.ExecutionNodes[t.Id])
+            .Select(t => ResolveRedirectedStepId(t.Id, ctx.RedirectedStepIds))
+            .Distinct()
+            .Where(id => !ctx.DependenciesByStepId.ContainsKey(id) && ctx.ExecutionNodes.ContainsKey(id))
+            .Select(id => ctx.ExecutionNodes[id])
             .ToImmutableArray();
 
         var allNodes = ctx.ExecutionNodes
@@ -65,7 +68,7 @@ public sealed partial class OperationPlanner
         if (operation.HasIntrospectionFields())
         {
             var introspectionNode = new IntrospectionExecutionNode(
-                allNodes.Max(t => t.Id) + 1,
+                ctx.NextId(),
                 operation.GetIntrospectionSelections(),
                 []);
             rootNodes = rootNodes.Add(introspectionNode);
@@ -921,16 +924,23 @@ public sealed partial class OperationPlanner
             group.Add(node);
         }
 
-        // Process from shallowest to deepest so that deeper groups
-        // reference the already-redirected identifiers from earlier merges.
-        foreach (var (_, groupMembers) in batchGroups.OrderBy(t => t.Key.depth))
+        foreach (var group in batchGroups.Values)
+        {
+            group.Sort((a, b) => a.Id.CompareTo(b.Id));
+        }
+
+        // Process from shallowest to deepest so that deeper groups reference
+        // the already-redirected identifiers from earlier merges. Groups at
+        // the same depth are ordered by their lowest member identifier so
+        // batch node identifier assignment is deterministic.
+        foreach (var (_, groupMembers) in batchGroups
+            .OrderBy(t => t.Key.depth)
+            .ThenBy(t => t.Value[0].Id))
         {
             if (groupMembers.Count <= 1)
             {
                 continue;
             }
-
-            groupMembers.Sort((a, b) => a.Id.CompareTo(b.Id));
 
             var operations = new List<OperationDefinition>();
 
@@ -947,8 +957,8 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            var lowestId = groupMembers[0].Id;
-            var batchNode = new OperationBatchExecutionNode(lowestId, operations.ToArray());
+            var batchNodeId = ctx.NextId();
+            var batchNode = new OperationBatchExecutionNode(batchNodeId, operations.ToArray());
 
             // Save each member's dependencies before replacing the individual
             // nodes, because the replacement will remove them from the lookup.
@@ -962,7 +972,7 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            ReplaceMembersWithBatchNode(ctx, groupMembers, batchNode, lowestId);
+            ReplaceMembersWithBatchNode(ctx, groupMembers, batchNode, batchNodeId);
             perOperationDependencies[batchNode] = memberDependencies;
         }
 
@@ -1028,16 +1038,23 @@ public sealed partial class OperationPlanner
             group.Add(node);
         }
 
-        // Process from shallowest to deepest so that deeper groups
-        // reference the already-redirected identifiers from earlier merges.
-        foreach (var (_, groupMembers) in batchGroups.OrderBy(t => t.Key.depth))
+        foreach (var group in batchGroups.Values)
+        {
+            group.Sort((a, b) => a.Id.CompareTo(b.Id));
+        }
+
+        // Process from shallowest to deepest so that deeper groups reference
+        // the already-redirected identifiers from earlier merges. Groups at
+        // the same depth are ordered by their lowest member identifier so
+        // batch node identifier assignment is deterministic.
+        foreach (var (_, groupMembers) in batchGroups
+            .OrderBy(t => t.Key.depth)
+            .ThenBy(t => t.Value[0].Id))
         {
             if (groupMembers.Count <= 1)
             {
                 continue;
             }
-
-            groupMembers.Sort((a, b) => a.Id.CompareTo(b.Id));
 
             var operations = new SingleOperationDefinition[groupMembers.Count];
 
@@ -1046,11 +1063,8 @@ public sealed partial class OperationPlanner
                 operations[i] = CreateApolloSingleOperationDefinition(ctx, groupMembers[i]);
             }
 
-            var lowestId = groupMembers[0].Id;
-            var batchNode = ApolloOperationBatchExecutionNode.CreateFromLookup(
-                lowestId,
-                operations,
-                schema);
+            var batchNodeId = ctx.NextId();
+            var batchNode = ApolloOperationBatchExecutionNode.CreateFromLookup(batchNodeId, operations, schema);
 
             // Save each member's dependencies before replacing the individual
             // nodes, because the replacement will remove them from the lookup.
@@ -1064,7 +1078,7 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            ReplaceMembersWithBatchNode(ctx, groupMembers, batchNode, lowestId);
+            ReplaceMembersWithBatchNode(ctx, groupMembers, batchNode, batchNodeId);
             perOperationDependencies[batchNode] = memberDependencies;
         }
 
@@ -1081,11 +1095,12 @@ public sealed partial class OperationPlanner
         Dictionary<ExecutionNode, Dictionary<int, int[]>> perOperationDependencies,
         Dictionary<int, int[]> originalDependencies)
     {
-        foreach (var (primaryId, merge) in remainingMerges)
+        foreach (var (primaryId, merge) in remainingMerges.OrderBy(t => t.Key))
         {
             var operationDefinition = CreateBatchOperationDefinition(merge);
-            var standaloneBatchNode = new OperationBatchExecutionNode(primaryId, [operationDefinition]);
-            ctx.ExecutionNodes[primaryId] = standaloneBatchNode;
+            var batchNodeId = ctx.NextId();
+            var standaloneBatchNode = new OperationBatchExecutionNode(batchNodeId, [operationDefinition]);
+            ReplaceMembersWithBatchNode(ctx, [merge.Primary], standaloneBatchNode, batchNodeId);
 
             perOperationDependencies[standaloneBatchNode] =
                 new Dictionary<int, int[]>
@@ -1196,10 +1211,14 @@ public sealed partial class OperationPlanner
     private static int ResolveRedirectedStepId(int id, Dictionary<int, int> redirectedStepIds)
     {
         var current = id;
-        var visited = new HashSet<int>();
 
-        while (redirectedStepIds.TryGetValue(current, out var next) && visited.Add(current))
+        for (var hops = 0; hops < redirectedStepIds.Count; hops++)
         {
+            if (!redirectedStepIds.TryGetValue(current, out var next))
+            {
+                break;
+            }
+
             current = next;
         }
 
@@ -1404,14 +1423,20 @@ public sealed partial class OperationPlanner
             if (entry is OperationBatchExecutionNode batchEntry)
             {
                 WireBatchNodeDependencies(
-                    batchEntry, batchEntry.Operations.Length, stepDependencies, executionNodeById);
+                    batchEntry,
+                    batchEntry.Operations.Length > 1 || batchEntry.Operations[0] is BatchOperationDefinition,
+                    stepDependencies,
+                    executionNodeById);
                 continue;
             }
 
             if (entry is ApolloOperationBatchExecutionNode apolloBatchEntry)
             {
                 WireBatchNodeDependencies(
-                    apolloBatchEntry, apolloBatchEntry.Operations.Length, stepDependencies, executionNodeById);
+                    apolloBatchEntry,
+                    apolloBatchEntry.Operations.Length > 1,
+                    stepDependencies,
+                    executionNodeById);
                 continue;
             }
 
@@ -1438,7 +1463,7 @@ public sealed partial class OperationPlanner
 
     private static void WireBatchNodeDependencies(
         ExecutionNode batchEntry,
-        int operationCount,
+        bool useOptionalDependencies,
         HashSet<int> stepDependencies,
         Dictionary<int, ExecutionNode> executionNodeById)
     {
@@ -1464,10 +1489,11 @@ public sealed partial class OperationPlanner
 
             dependencyExecutionNode.AddDependent(batchEntry);
 
-            // When a batch holds multiple operations, the dependency is
-            // optional. The executor evaluates each operation individually
-            // and only waits for the specific upstream results it needs.
-            if (operationCount > 1)
+            // Operations inside a batch track their own dependencies, so batch
+            // nodes with multiple operations or a single merged multi-target
+            // operation take optional dependencies. Single-target operation
+            // nodes require strict dependencies.
+            if (useOptionalDependencies)
             {
                 batchEntry.AddOptionalDependency(dependencyExecutionNode);
             }
@@ -2551,8 +2577,15 @@ public sealed partial class OperationPlanner
         return new SelectionSetNode(selections);
     }
 
-    private sealed class ExecutionPlanBuildContext
+    /// <summary>
+    /// Mutable state for building the execution nodes of a plan.
+    /// <paramref name="nextNodeId"/> must be greater than every identifier
+    /// already used by the plan steps.
+    /// </summary>
+    private sealed class ExecutionPlanBuildContext(int nextNodeId)
     {
+        private int _nextNodeId = nextNodeId;
+
         public HashSet<int> ProcessedStepIds { get; } = [];
         public Dictionary<int, ExecutionNode> ExecutionNodes { get; } = [];
         public Dictionary<int, OperationSourceText> ApolloLookupOperationsByStepId { get; } = [];
@@ -2560,6 +2593,12 @@ public sealed partial class OperationPlanner
         public Dictionary<int, Dictionary<string, int>> BranchesByNodeId { get; } = [];
         public Dictionary<int, int> FallbackByNodeId { get; } = [];
         public Dictionary<int, int> RedirectedStepIds { get; } = [];
+
+        /// <summary>
+        /// Returns a node identifier that is unique across all execution nodes
+        /// and operation definitions of the plan being built.
+        /// </summary>
+        public int NextId() => _nextNodeId++;
     }
 
     private sealed class ConditionalSelectionSetRewriterContext

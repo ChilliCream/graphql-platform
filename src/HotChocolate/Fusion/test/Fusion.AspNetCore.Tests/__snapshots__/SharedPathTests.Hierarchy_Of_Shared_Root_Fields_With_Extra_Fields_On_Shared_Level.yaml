@@ -254,6 +254,15 @@ operationPlan:
             }
           }
         }
+    - id: 3
+      type: Operation
+      schema: C
+      operation: |
+        query Op_2deb87e6_3 {
+          viewer {
+            schema3
+          }
+        }
     - id: 2
       type: Operation
       schema: B
@@ -263,7 +272,7 @@ operationPlan:
             schema2
           }
         }
-      batchingGroupId: 2
+      batchingGroupId: 5
     - id: 4
       type: Operation
       schema: B
@@ -275,13 +284,4 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 2
-    - id: 3
-      type: Operation
-      schema: C
-      operation: |
-        query Op_2deb87e6_3 {
-          viewer {
-            schema3
-          }
-        }
+      batchingGroupId: 5

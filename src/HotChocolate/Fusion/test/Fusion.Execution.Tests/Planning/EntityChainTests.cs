@@ -85,21 +85,6 @@ public class EntityChainTests : FusionTestBase
                 searchSpace: 1
                 expandedNodes: 2
             nodes:
-              - id: 1
-                type: OperationBatch
-                schema: products
-                operation: |
-                  query Op_123456789101112_1 {
-                    topProducts {
-                      products {
-                        id
-                      }
-                    }
-                  }
-                targets:
-                  - $
-                  - $
-                batchingGroupId: 1
               - id: 2
                 type: Operation
                 schema: list
@@ -123,8 +108,8 @@ public class EntityChainTests : FusionTestBase
                         }]
                       }
                 dependencies:
-                  - id: 1
                   - id: 3
+                  - id: 5
               - id: 3
                 type: Operation
                 schema: link
@@ -141,7 +126,22 @@ public class EntityChainTests : FusionTestBase
                     selectionMap: >-
                       id
                 dependencies:
-                  - id: 1
+                  - id: 5
+              - id: 1
+                type: OperationBatch
+                schema: products
+                operation: |
+                  query Op_123456789101112_1 {
+                    topProducts {
+                      products {
+                        id
+                      }
+                    }
+                  }
+                targets:
+                  - $
+                  - $
+                batchingGroupId: 5
             """);
     }
 
