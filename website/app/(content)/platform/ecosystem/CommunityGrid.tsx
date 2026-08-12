@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 
-import { GITHUB_REPO_URL, TOOLS } from "@/src/components/header/navData";
+import { TOOLS } from "@/src/components/header/navData";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { Card } from "@/src/design-system/Card";
+import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { SlackIcon } from "@/src/icons/Slack";

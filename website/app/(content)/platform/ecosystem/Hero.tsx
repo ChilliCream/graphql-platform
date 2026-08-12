@@ -2,12 +2,9 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 import { ButtonRow } from "@/src/components/ButtonRow";
-import {
-  GITHUB_REPO_URL,
-  GITHUB_STARGAZERS_URL,
-  TOOLS,
-} from "@/src/components/header/navData";
+import { TOOLS } from "@/src/components/header/navData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL } from "@/src/helpers/github";
 import type { GitHubContributor } from "@/src/helpers/githubContributors";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
@@ -43,7 +40,7 @@ interface OrbitNodeSpec {
   readonly key: string;
   readonly angle: number;
   readonly radius: number;
-  readonly render: () => ReactNode;
+  readonly content: ReactNode;
 }
 
 const ORBIT_NODES: readonly OrbitNodeSpec[] = [
@@ -51,7 +48,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "stars",
     angle: 197,
     radius: 680,
-    render: () => (
+    content: (
       <a
         href={GITHUB_STARGAZERS_URL}
         target="_blank"
@@ -66,7 +63,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "license",
     angle: 343,
     radius: 680,
-    render: () => (
+    content: (
       <a
         href={`${GITHUB_REPO_URL}/blob/main/LICENSE`}
         target="_blank"
@@ -81,7 +78,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "github",
     angle: 155,
     radius: 680,
-    render: () => (
+    content: (
       <SocialChip href={GITHUB_REPO_URL} label="ChilliCream on GitHub">
         <GitHubIcon className="h-5 w-5 fill-current" />
       </SocialChip>
@@ -91,7 +88,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "slack",
     angle: 25,
     radius: 680,
-    render: () => (
+    content: (
       <SocialChip href={TOOLS.slack} label="Join the ChilliCream Slack">
         <SlackIcon className="h-5 w-5 fill-current" />
       </SocialChip>
@@ -101,7 +98,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "blog",
     angle: 38,
     radius: 560,
-    render: () => (
+    content: (
       <SocialChip href="/blog" label="ChilliCream blog">
         <BlogIcon className="h-5 w-5 fill-current" />
       </SocialChip>
@@ -353,7 +350,7 @@ export function Hero({ contributors }: HeroProps) {
               radius={node.radius}
               delay={i * 40}
             >
-              {node.render()}
+              {node.content}
             </OrbitNode>
           ))}
           {contributors?.slice(0, AVATAR_SLOTS.length).map((contributor, i) => {
