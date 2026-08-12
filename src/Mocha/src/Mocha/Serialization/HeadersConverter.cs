@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -9,36 +10,6 @@ namespace Mocha;
 /// <summary>
 /// JSON converter for serializing and deserializing <see cref="IHeaders"/> instances as JSON objects with dynamic value types.
 /// </summary>
-/// <remarks>
-/// <para>
-/// Header values are weakly typed, but the set of types that can be written is closed:
-/// <see langword="null" />, <see cref="bool" />, <see cref="string" />,
-/// <see cref="char" />, the numeric types, <see cref="DateTime" />,
-/// <see cref="DateTimeOffset" />, <see cref="DateOnly" />, <see cref="TimeOnly" />,
-/// <see cref="TimeSpan" />, <see cref="Guid" />, <see cref="Uri" />, an enum, a byte payload
-/// (written as base64), a JSON value (<see cref="JsonElement" />, <see cref="JsonDocument" />,
-/// <see cref="JsonNode" />), nested headers, a dictionary with string keys, or a sequence of any of
-/// these. Through <see cref="Options" />, any other type is rejected with a
-/// <see cref="JsonException" /> naming the header; through options carrying a reflection-based
-/// resolver, that resolver serializes the value instead.
-/// </para>
-/// <para>
-/// Reading produces a narrower set, because JSON carries no type tag:
-/// <see langword="null" />, <see cref="bool" />, <see cref="string" />, <see cref="int" />,
-/// <see cref="long" />, <see cref="ulong" />, <see cref="double" />, a dictionary, or an array, so a
-/// value keeps its JSON representation across a round trip but not always its CLR type. A
-/// <see cref="Guid" />, <see cref="Uri" />, <see cref="TimeSpan" />, <see cref="DateTime" /> or an
-/// enum reads back as the string written, a byte payload as base64 text, a sequence as an array.
-/// </para>
-/// <para>
-/// A number is read by value, not by the type that wrote it, taking the narrowest of
-/// <see cref="int" />, <see cref="long" /> and <see cref="ulong" /> that holds it: a
-/// <see cref="long" />, or a whole <see cref="double" />, <see cref="float" /> or
-/// <see cref="decimal" />, can come back as an <see cref="int" />. A fractional value reads as a
-/// <see cref="double" />, losing <see cref="decimal" /> precision, and a whole number beyond
-/// <see cref="ulong" /> reads as a <see cref="double" /> written again in scientific notation.
-/// </para>
-/// </remarks>
 public class HeadersJsonConverter : JsonConverter<IHeaders>
 {
     /// <summary>
@@ -49,10 +20,6 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
     /// <summary>
     /// Gets pre-configured <see cref="JsonSerializerOptions"/> with this converter registered.
     /// </summary>
-    /// <remarks>
-    /// These options resolve metadata for <see cref="IHeaders"/> and <see cref="Headers"/> only, and
-    /// are read-only.
-    /// </remarks>
     public static readonly JsonSerializerOptions Options = CreateOptions();
 
     private static JsonSerializerOptions CreateOptions()
@@ -122,64 +89,6 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
         writer.WriteEndObject();
     }
 
-    /// <summary>
-    /// Reads a JSON value into the types a header holds, the reading <see cref="Read" /> applies to a
-    /// document.
-    /// </summary>
-    /// <param name="element">The JSON value to read.</param>
-    /// <returns>The value mapped onto the types a header can hold.</returns>
-    internal static object? ReadHeaderValue(JsonElement element)
-    {
-        switch (element.ValueKind)
-        {
-            case JsonValueKind.Object:
-                var table = new Dictionary<string, object?>();
-                foreach (var property in element.EnumerateObject())
-                {
-                    table[property.Name] = ReadHeaderValue(property.Value);
-                }
-
-                return table;
-
-            case JsonValueKind.Array:
-                var items = new List<object?>();
-                foreach (var item in element.EnumerateArray())
-                {
-                    items.Add(ReadHeaderValue(item));
-                }
-
-                return items;
-
-            case JsonValueKind.String:
-                return element.GetString();
-
-            case JsonValueKind.Number:
-                if (element.TryGetInt32(out var intValue))
-                {
-                    return intValue;
-                }
-                if (element.TryGetInt64(out var longValue))
-                {
-                    return longValue;
-                }
-                if (element.TryGetUInt64(out var unsignedValue))
-                {
-                    return unsignedValue;
-                }
-
-                return element.GetDouble();
-
-            case JsonValueKind.True:
-                return true;
-
-            case JsonValueKind.False:
-                return false;
-
-            default:
-                return null;
-        }
-    }
-
     private static object? ReadValue(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
@@ -193,7 +102,6 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
             case JsonTokenType.False:
                 return false;
 
-            // JSON carries no type tag, so text stays text
             case JsonTokenType.String:
                 return reader.GetString();
 
@@ -337,7 +245,6 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 jsonDocument.RootElement.WriteTo(writer);
                 break;
 
-            // must precede the collection cases
             case JsonNode jsonNode:
                 jsonNode.WriteTo(writer);
                 break;
@@ -362,30 +269,28 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 writer.WriteEndObject();
                 break;
 
-            // the writer's own overload formats into the buffer instead of allocating a string
             case Guid g:
                 writer.WriteStringValue(g);
                 break;
 
-            // the text forms every transport shares
             case TimeSpan t:
-                writer.WriteStringValue(HeaderValueText.From(t));
+                writer.WriteStringValue(t.ToString("c", CultureInfo.InvariantCulture));
                 break;
 
             case Uri u:
-                writer.WriteStringValue(HeaderValueText.From(u));
+                writer.WriteStringValue(u.OriginalString);
                 break;
 
             case DateOnly d:
-                writer.WriteStringValue(HeaderValueText.From(d));
+                writer.WriteStringValue(d.ToString("O", CultureInfo.InvariantCulture));
                 break;
 
             case TimeOnly to:
-                writer.WriteStringValue(HeaderValueText.From(to));
+                writer.WriteStringValue(to.ToString("O", CultureInfo.InvariantCulture));
                 break;
 
             case Enum e:
-                writer.WriteStringValue(HeaderValueText.From(e));
+                writer.WriteStringValue(e.ToString());
                 break;
 
             case short s:
@@ -416,7 +321,6 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 writer.WriteStringValue([c]);
                 break;
 
-            // int[] and Dictionary<string, string> have no covariant conversion to object? items
             case IDictionary dictionary:
                 WriteDictionary(writer, dictionary, options, key);
                 break;
@@ -446,14 +350,9 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
 
         foreach (DictionaryEntry entry in dictionary)
         {
-            // a custom dictionary can hand back any key, a null included
             if (entry.Key is not string name)
             {
-                var keyType = entry.Key is { } entryKey ? entryKey.GetType().FullName : "null";
-
-                throw new JsonException(
-                    $"The header '{key}' holds a dictionary keyed by '{keyType}' that cannot be "
-                        + "written as JSON. Use string keys.");
+                throw ThrowHelper.HeaderDictionaryKeyMustBeString(key, entry.Key);
             }
 
             writer.WritePropertyName(name);
@@ -475,11 +374,7 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
         }
         catch (NotSupportedException ex)
         {
-            throw new JsonException(
-                $"The header '{key}' holds a value of type '{value.GetType().FullName}' that cannot be "
-                    + "written as JSON. Set the header to a supported value type, or register JSON type "
-                    + "metadata for it.",
-                ex);
+            throw ThrowHelper.HeaderValueNotSupported(key, value, ex);
         }
     }
 

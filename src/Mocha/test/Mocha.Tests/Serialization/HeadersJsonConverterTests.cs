@@ -250,11 +250,7 @@ public class HeadersJsonConverterTests
             "x-death",
             new List<object?>
             {
-                new Dictionary<string, object?>
-                {
-                    ["reason"] = "rejected"u8.ToArray(),
-                    ["count"] = 1L
-                }
+                new Dictionary<string, object?> { ["reason"] = "rejected"u8.ToArray(), ["count"] = 1L }
             });
 
         // act
@@ -272,8 +268,9 @@ public class HeadersJsonConverterTests
         headers.Set("handle", nint.Zero);
 
         // act
-        var exception = Record.Exception(
-            () => JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options));
+        var exception = Record.Exception(() =>
+            JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options)
+        );
 
         // assert
         Assert.Equal(
@@ -291,8 +288,9 @@ public class HeadersJsonConverterTests
         headers.Set("custom", new CustomHeaderDto { Name = "test" });
 
         // act
-        var exception = Record.Exception(
-            () => JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options));
+        var exception = Record.Exception(() =>
+            JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options)
+        );
 
         // assert
         Assert.Equal(
@@ -341,8 +339,9 @@ public class HeadersJsonConverterTests
         headers.Set("weights", new Dictionary<int, string> { [1] = "high" });
 
         // act
-        var exception = Record.Exception(
-            () => JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options));
+        var exception = Record.Exception(() =>
+            JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options)
+        );
 
         // assert
         Assert.Equal(

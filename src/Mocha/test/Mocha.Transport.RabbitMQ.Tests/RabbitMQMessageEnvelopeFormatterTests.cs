@@ -7,10 +7,53 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests;
 
-public class RabbitMQDispatchContextExtensionsTests
+public class RabbitMQMessageEnvelopeFormatterTests
 {
+    private static readonly DateTimeOffset s_now = new(2026, 8, 12, 10, 30, 0, TimeSpan.Zero);
+    private static readonly TimeProvider s_timeProvider = new FixedTimeProvider(s_now);
+
     [Fact]
-    public void BuildHeaders_Should_ConvertDateTimeOffset_When_HeaderContainsDateTimeOffset()
+    public void Format_Should_SetBasicProperties_When_EnvelopeContainsMetadata()
+    {
+        // arrange
+        var envelope = new MessageEnvelope
+        {
+            MessageId = "message-1",
+            CorrelationId = "correlation-1",
+            ResponseAddress = "reply-queue",
+            ContentType = "application/json",
+            MessageType = "OrderCreated"
+        };
+
+        // act
+        var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider);
+
+        // assert
+        Assert.Equal("message-1", properties.MessageId);
+        Assert.Equal("correlation-1", properties.CorrelationId);
+        Assert.Equal("reply-queue", properties.ReplyTo);
+        Assert.Equal("application/json", properties.ContentType);
+        Assert.Equal("OrderCreated", properties.Type);
+        Assert.Equal(DeliveryModes.Persistent, properties.DeliveryMode);
+        Assert.Equal(s_now.ToUnixTimeSeconds(), properties.Timestamp.UnixTime);
+        Assert.Null(properties.Expiration);
+    }
+
+    [Fact]
+    public void Format_Should_SetExpiration_When_EnvelopeHasDeliverBy()
+    {
+        // arrange
+        var envelope = new MessageEnvelope { DeliverBy = s_now.AddSeconds(60) };
+
+        // act
+        var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider);
+
+        // assert
+        Assert.Equal("60000", properties.Expiration);
+    }
+
+    [Fact]
+    public void Format_Should_ConvertDateTimeOffset_When_HeaderContainsDateTimeOffset()
     {
         // arrange
         var dto = new DateTimeOffset(2024, 1, 15, 12, 0, 0, TimeSpan.Zero);
@@ -20,7 +63,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         var timestamp = Assert.IsType<AmqpTimestamp>(headers["x-timestamp"]);
@@ -28,7 +71,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_ConvertDateTime_When_HeaderContainsDateTime()
+    public void Format_Should_ConvertDateTime_When_HeaderContainsDateTime()
     {
         // arrange
         var dt = new DateTime(2024, 1, 15, 12, 0, 0, DateTimeKind.Utc);
@@ -38,7 +81,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         var timestamp = Assert.IsType<AmqpTimestamp>(headers["x-timestamp"]);
@@ -47,7 +90,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_ConvertNestedTimestamps_When_HeaderIsDeathTable()
+    public void Format_Should_ConvertNestedTimestamps_When_HeaderIsDeathTable()
     {
         // arrange
         // the x-death shape the receive side produces, whose nested date has no wire form
@@ -70,7 +113,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -84,7 +127,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_ConvertToText_When_HeaderIsUnsignedLong()
+    public void Format_Should_ConvertToText_When_HeaderIsUnsignedLong()
     {
         // arrange
         // a field table has no unsigned 64 bit type, and a double would round off digits
@@ -94,14 +137,14 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("18446744073709551615", headers["offset"]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_DeclareBinary_When_HeaderIsABytePayload()
+    public void Format_Should_DeclareBinary_When_HeaderIsABytePayload()
     {
         // arrange
         // a long string carries text and binary alike, so sending one leaves the receive side guessing
@@ -114,7 +157,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("COM1"u8.ToArray(), Assert.IsType<BinaryTableValue>(headers["x-signature"]).Bytes);
@@ -122,7 +165,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_KeepNullValues_When_HeaderValueIsNull()
+    public void Format_Should_KeepNullValues_When_HeaderValueIsNull()
     {
         // arrange
         var envelope = new MessageEnvelope
@@ -131,7 +174,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.True(headers.ContainsKey("x-null"));
@@ -139,7 +182,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_PassThroughOtherTypes_When_HeaderContainsString()
+    public void Format_Should_PassThroughOtherTypes_When_HeaderContainsString()
     {
         // arrange
         var envelope = new MessageEnvelope
@@ -151,7 +194,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("hello", headers["x-string"]);
@@ -159,79 +202,79 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetConversationId_When_EnvelopeHasConversationId()
+    public void Format_Should_SetConversationId_When_EnvelopeHasConversationId()
     {
         // arrange
         var envelope = new MessageEnvelope { ConversationId = "conv-123" };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("conv-123", headers[RabbitMQMessageHeaders.ConversationId.Key]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetCausationId_When_EnvelopeHasCausationId()
+    public void Format_Should_SetCausationId_When_EnvelopeHasCausationId()
     {
         // arrange
         var envelope = new MessageEnvelope { CausationId = "cause-456" };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("cause-456", headers[RabbitMQMessageHeaders.CausationId.Key]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetSourceAddress_When_EnvelopeHasSourceAddress()
+    public void Format_Should_SetSourceAddress_When_EnvelopeHasSourceAddress()
     {
         // arrange
         var envelope = new MessageEnvelope { SourceAddress = "rabbitmq:///q/source-q" };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("rabbitmq:///q/source-q", headers[RabbitMQMessageHeaders.SourceAddress.Key]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetDestinationAddress_When_EnvelopeHasDestinationAddress()
+    public void Format_Should_SetDestinationAddress_When_EnvelopeHasDestinationAddress()
     {
         // arrange
         var envelope = new MessageEnvelope { DestinationAddress = "rabbitmq:///q/dest-q" };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("rabbitmq:///q/dest-q", headers[RabbitMQMessageHeaders.DestinationAddress.Key]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetFaultAddress_When_EnvelopeHasFaultAddress()
+    public void Format_Should_SetFaultAddress_When_EnvelopeHasFaultAddress()
     {
         // arrange
         var envelope = new MessageEnvelope { FaultAddress = "rabbitmq:///q/fault-q" };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("rabbitmq:///q/fault-q", headers[RabbitMQMessageHeaders.FaultAddress.Key]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetEnclosedMessageTypes_When_EnvelopeHasTypes()
+    public void Format_Should_SetEnclosedMessageTypes_When_EnvelopeHasTypes()
     {
         // arrange
         var types = ImmutableArray.Create("urn:message:OrderCreated", "urn:message:IEvent");
         var envelope = new MessageEnvelope { EnclosedMessageTypes = types };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.True(headers.ContainsKey(RabbitMQMessageHeaders.EnclosedMessageTypes.Key));
@@ -239,33 +282,33 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_SetMessageType_When_EnvelopeHasMessageType()
+    public void Format_Should_SetMessageType_When_EnvelopeHasMessageType()
     {
         // arrange
         var envelope = new MessageEnvelope { MessageType = "urn:message:OrderCreated" };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("urn:message:OrderCreated", headers[RabbitMQMessageHeaders.MessageType.Key]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_ReturnEmptyHeaders_When_EnvelopeIsEmpty()
+    public void Format_Should_ReturnEmptyHeaders_When_EnvelopeIsEmpty()
     {
         // arrange
         var envelope = new MessageEnvelope();
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Empty(headers);
     }
 
     [Fact]
-    public void BuildHeaders_Should_MapToTableValues_When_TypesHaveNoWireForm()
+    public void Format_Should_MapToTableValues_When_TypesHaveNoWireForm()
     {
         // arrange
         // every type a field table cannot represent
@@ -293,7 +336,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -315,7 +358,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_ReadUnzonedTimeAsUtc_When_HeaderIsDateTime()
+    public void Format_Should_ReadUnzonedTimeAsUtc_When_HeaderIsDateTime()
     {
         // arrange
         var envelope = new MessageEnvelope
@@ -328,7 +371,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -338,7 +381,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_ProduceTheEpochFloor_When_HeaderIsTheDefaultDateTime()
+    public void Format_Should_ProduceTheEpochFloor_When_HeaderIsTheDefaultDateTime()
     {
         // arrange
         var envelope = new MessageEnvelope
@@ -347,7 +390,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -356,7 +399,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_CarryDecimalAsText_When_ItExceedsTheTableMantissa()
+    public void Format_Should_CarryDecimalAsText_When_ItExceedsTheTableMantissa()
     {
         // arrange
         // the table's decimal holds a 32 bit mantissa, so a longer one travels as text
@@ -371,7 +414,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -385,7 +428,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_MapJsonToTableShapes_When_HeaderIsAJsonValue()
+    public void Format_Should_MapJsonToTableShapes_When_HeaderIsAJsonValue()
     {
         // arrange
         // writing the JSON text instead would hand the consumer a string holding JSON, quotes and all
@@ -401,7 +444,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -416,7 +459,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_KeepEscapes_When_HeaderIsAUri()
+    public void Format_Should_KeepEscapes_When_HeaderIsAUri()
     {
         // arrange
         // ToString would decode %20 to a space, leaving text that no longer reads back as this URI
@@ -429,14 +472,14 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("https://example.com/a%20b", headers["callback"]);
     }
 
     [Fact]
-    public void BuildHeaders_Should_MapSiblingValues_When_ATableKeyIsNotText()
+    public void Format_Should_MapSiblingValues_When_ATableKeyIsNotText()
     {
         // arrange
         var envelope = new MessageEnvelope
@@ -456,7 +499,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal(
@@ -465,7 +508,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_DeclareBinary_When_HeaderIsAByteMemory()
+    public void Format_Should_DeclareBinary_When_HeaderIsAByteMemory()
     {
         // arrange
         var envelope = new MessageEnvelope
@@ -479,7 +522,7 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var headers = envelope.BuildHeaders();
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
         Assert.Equal("hi"u8.ToArray(), Assert.IsType<BinaryTableValue>(headers["readonly"]).Bytes);
@@ -488,7 +531,7 @@ public class RabbitMQDispatchContextExtensionsTests
     }
 
     [Fact]
-    public void BuildHeaders_Should_ThrowNamingTheHeader_When_AValueContainsItself()
+    public void Format_Should_ThrowNamingTheHeader_When_AValueContainsItself()
     {
         // arrange
         var cyclic = new List<object?>();
@@ -499,12 +542,11 @@ public class RabbitMQDispatchContextExtensionsTests
         };
 
         // act
-        var exception = Record.Exception(() => envelope.BuildHeaders());
+        var exception = Record.Exception(() => RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!);
 
         // assert
         Assert.Equal(
-            "The header 'x-cycle' is nested more than 64 levels deep, or holds a value that "
-                + "contains itself, and cannot be written as an AMQP field table.",
+            "The header 'x-cycle' exceeds the maximum AMQP field-table nesting depth of 64.",
             Assert.IsType<InvalidOperationException>(exception).Message);
     }
 
@@ -512,5 +554,10 @@ public class RabbitMQDispatchContextExtensionsTests
     {
         Low,
         High
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 }

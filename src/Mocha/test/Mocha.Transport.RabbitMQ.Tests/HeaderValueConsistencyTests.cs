@@ -12,6 +12,66 @@ namespace Mocha.Transport.RabbitMQ.Tests;
 /// </summary>
 public class HeaderValueConsistencyTests
 {
+    [Theory]
+    [MemberData(nameof(TextValues))]
+    public void BothEncoders_Should_WriteTheSameText_When_ValueTravelsAsText(string key, object value)
+    {
+        // arrange
+        var headers = new Headers([new HeaderValue { Key = key, Value = value }]);
+        var envelope = new MessageEnvelope { Headers = headers };
+
+        // act
+        var json = JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options);
+        var table = RabbitMQMessageEnvelopeFormatter.Format(envelope, TimeProvider.System).Headers!;
+
+        // assert
+        Assert.Equal(JsonSerializer.Serialize(new Dictionary<string, object?> { [key] = table[key] }), json);
+    }
+
+    [Theory]
+    [MemberData(nameof(ShapedValues))]
+    public void BothEncoders_Should_ProduceTheSameReading_When_ValueIsAContainer(string key, object value)
+    {
+        // arrange
+        var headers = new Headers([new HeaderValue { Key = key, Value = value }]);
+        var envelope = new MessageEnvelope { Headers = headers };
+
+        // act
+        var throughJson =
+            JsonSerializer.Deserialize<IHeaders>(
+                JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options),
+                HeadersJsonConverter.Options);
+        var throughTable = RabbitMQMessageEnvelopeParser.Instance.Parse(
+            CreateDelivery(RabbitMQMessageEnvelopeFormatter.Format(envelope, TimeProvider.System).Headers!),
+            TimeProvider.System);
+
+        // assert
+        throughJson!.TryGetValue(key, out var fromJson);
+        throughTable.Headers!.TryGetValue(key, out var fromTable);
+        Assert.Equal(fromJson, fromTable);
+    }
+
+    [Fact]
+    public void BothEncoders_Should_KeepTheHeader_When_ItsValueIsNull()
+    {
+        // arrange
+        var headers = new Headers([new HeaderValue { Key = "x-null", Value = null }]);
+        var envelope = new MessageEnvelope { Headers = headers };
+
+        // act
+        var throughJson =
+            JsonSerializer.Deserialize<IHeaders>(
+                JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options),
+                HeadersJsonConverter.Options);
+        var throughTable = RabbitMQMessageEnvelopeParser.Instance.Parse(
+            CreateDelivery(RabbitMQMessageEnvelopeFormatter.Format(envelope, TimeProvider.System).Headers!),
+            TimeProvider.System);
+
+        // assert
+        Assert.True(throughJson!.ContainsKey("x-null"));
+        Assert.True(throughTable.Headers!.ContainsKey("x-null"));
+    }
+
     public static TheoryData<string, object> TextValues()
         => new()
         {
@@ -24,78 +84,29 @@ public class HeaderValueConsistencyTests
             { "enum", DayOfWeek.Wednesday }
         };
 
-    [Theory]
-    [MemberData(nameof(TextValues))]
-    public void BothEncoders_Should_WriteTheSameText_When_ValueTravelsAsText(string key, object value)
-    {
-        // arrange
-        var headers = new Headers([new HeaderValue { Key = key, Value = value }]);
-        var envelope = new MessageEnvelope { Headers = headers };
-
-        // act
-        var json = JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options);
-        var table = envelope.BuildHeaders();
-
-        // assert
-        Assert.Equal(
-            JsonSerializer.Serialize(new Dictionary<string, object?> { [key] = table[key] }),
-            json);
-    }
-
-    [Theory]
-    [MemberData(nameof(ShapedValues))]
-    public void BothEncoders_Should_ProduceTheSameReading_When_ValueIsAContainer(string key, object value)
-    {
-        // arrange
-        var headers = new Headers([new HeaderValue { Key = key, Value = value }]);
-        var envelope = new MessageEnvelope { Headers = headers };
-
-        // act
-        var throughJson = JsonSerializer.Deserialize<IHeaders>(
-            JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options),
-            HeadersJsonConverter.Options);
-        var throughTable = RabbitMQMessageEnvelopeParser.Instance
-            .Parse(CreateDelivery(envelope.BuildHeaders()));
-
-        // assert
-        throughJson!.TryGetValue(key, out var fromJson);
-        throughTable.Headers!.TryGetValue(key, out var fromTable);
-        Assert.Equal(fromJson, fromTable);
-    }
-
     public static TheoryData<string, object> ShapedValues()
         => new()
         {
-            { "dictionary", new Dictionary<string, object?> { ["k"] = "v" } },
+            {
+                "dictionary",
+                new Dictionary<string, object?> { ["k"] = "v" }
+            },
             { "sequence", new object?[] { 1, "a" } },
-            { "json-object", new JsonObject { ["k"] = 1 } },
+            {
+                "json-object",
+                new JsonObject { ["k"] = 1 }
+            },
             { "json-array", new JsonArray(1, 2) },
             { "json-text", JsonValue.Create("abc")! },
             // cloned so that the element outlives the document it was parsed from
             { "json-element", JsonDocument.Parse("""{"k":1}""").RootElement.Clone() },
             { "json-document", JsonDocument.Parse("""[1,2]""") },
             { "nested-headers", new Headers([new HeaderValue { Key = "inner", Value = "v" }]) },
-            { "null-inside", new Dictionary<string, object?> { ["k"] = null } }
+            {
+                "null-inside",
+                new Dictionary<string, object?> { ["k"] = null }
+            }
         };
-
-    [Fact]
-    public void BothEncoders_Should_KeepTheHeader_When_ItsValueIsNull()
-    {
-        // arrange
-        var headers = new Headers([new HeaderValue { Key = "x-null", Value = null }]);
-        var envelope = new MessageEnvelope { Headers = headers };
-
-        // act
-        var throughJson = JsonSerializer.Deserialize<IHeaders>(
-            JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options),
-            HeadersJsonConverter.Options);
-        var throughTable = RabbitMQMessageEnvelopeParser.Instance
-            .Parse(CreateDelivery(envelope.BuildHeaders()));
-
-        // assert
-        Assert.True(throughJson!.ContainsKey("x-null"));
-        Assert.True(throughTable.Headers!.ContainsKey("x-null"));
-    }
 
     private static BasicDeliverEventArgs CreateDelivery(IDictionary<string, object?> headers)
     {

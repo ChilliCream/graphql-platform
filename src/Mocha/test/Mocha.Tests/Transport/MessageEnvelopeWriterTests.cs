@@ -185,7 +185,8 @@ public class MessageEnvelopeWriterTests
         writer.Flush();
 
         // assert
-        Encoding.UTF8.GetString(stream.ToArray())
+        Encoding
+            .UTF8.GetString(stream.ToArray())
             .MatchInlineSnapshot("""{"messageId":"msg-008","headers":{"tenant_id":"dGVuYW50LTEyMw=="}}""");
     }
 
@@ -216,7 +217,8 @@ public class MessageEnvelopeWriterTests
         writer.Flush();
 
         // assert
-        Encoding.UTF8.GetString(stream.ToArray())
+        Encoding
+            .UTF8.GetString(stream.ToArray())
             .MatchInlineSnapshot(
                 """
                 {"messageId":"msg-009","headers":{"x-death":[{"queue":"product-queue","reason":"cmVqZWN0ZWQ=","count":1}]}}
@@ -754,11 +756,7 @@ public class MessageEnvelopeWriterTests
     public void Roundtrip_Should_PreserveNullScheduledTime_When_ScheduledTimeIsNull()
     {
         // arrange
-        var original = new MessageEnvelope
-        {
-            MessageId = "msg-024",
-            MessageType = "urn:message:TestEvent"
-        };
+        var original = new MessageEnvelope { MessageId = "msg-024", MessageType = "urn:message:TestEvent" };
 
         // act - write
         using var stream = new MemoryStream();
