@@ -6,13 +6,12 @@ internal static class DateTimeExtensions
 {
     extension(DateTimeOffset value)
     {
-        internal AmqpTimestamp ToAmqpTimestamp()
-            => new(value.ToUnixTimeSeconds());
+        public AmqpTimestamp ToAmqpTimestamp() => new(value.ToUnixTimeSeconds());
     }
 
     extension(DateTime value)
     {
-        internal AmqpTimestamp ToAmqpTimestamp()
+        public AmqpTimestamp ToAmqpTimestamp()
         {
             var utc = value.Kind == DateTimeKind.Local ? value.ToUniversalTime() : value;
 
