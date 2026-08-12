@@ -108,11 +108,71 @@ async function validatePage(pathname) {
       );
     }
 
+    validateProducts(nodes, pathname);
+
     checked.push(pathname);
   } catch (error) {
     errors.push(
       `${pathname}: ${error instanceof Error ? error.message : error}`,
     );
+  }
+}
+
+function validateProducts(nodes, pathname) {
+  const nodesById = new Map(
+    nodes
+      .filter((node) => typeof node?.["@id"] === "string")
+      .map((node) => [node["@id"], node]),
+  );
+
+  for (const product of nodes.filter((node) => node?.["@type"] === "Product")) {
+    if (
+      !product.brand ||
+      !["Brand", "Organization"].includes(product.brand["@type"])
+    ) {
+      errors.push(
+        `${pathname}: Product.brand must be an object with @type "Brand" or "Organization"`,
+      );
+    }
+
+    const offers = Array.isArray(product.offers)
+      ? product.offers
+      : product.offers
+        ? [product.offers]
+        : [];
+
+    if (offers.length === 0 && !product.aggregateRating && !product.review) {
+      errors.push(
+        `${pathname}: Product requires an offer, aggregate rating, or review`,
+      );
+    }
+
+    for (const offerReference of offers) {
+      const offer =
+        typeof offerReference?.["@id"] === "string"
+          ? nodesById.get(offerReference["@id"])
+          : offerReference;
+      if (!offer) {
+        errors.push(`${pathname}: Product references an unknown Offer`);
+        continue;
+      }
+
+      const specification = offer.priceSpecification;
+      const price = offer.price ?? specification?.price;
+      const currency = offer.priceCurrency ?? specification?.priceCurrency;
+      if (price === undefined) {
+        errors.push(`${pathname}: Product Offer is missing a price`);
+      }
+      if (!currency) {
+        errors.push(`${pathname}: Product Offer is missing a price currency`);
+      }
+      if (
+        specification?.["@type"] === "UnitPriceSpecification" &&
+        specification.price === undefined
+      ) {
+        errors.push(`${pathname}: UnitPriceSpecification is missing its price`);
+      }
+    }
   }
 }
 
