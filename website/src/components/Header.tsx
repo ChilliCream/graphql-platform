@@ -6,7 +6,7 @@ import { getLatestBlogPost } from "@/src/helpers/blogPosts";
 import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 
-import { GitHubStarButton } from "./header/GitHubStarButton";
+import { GitHubStarButton } from "./GitHubStarButton";
 import { HeaderNav } from "./header/HeaderNav";
 import { CONTACT_HREF, MOBILE_ITEMS, TOOLS } from "./header/navData";
 import { HeaderShell } from "./HeaderShell";

@@ -7,15 +7,17 @@ export function useGitHubStarCount(): number | null {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
+    let active = true;
 
-    void resolveStarCount(controller.signal).then((resolved) => {
-      if (resolved !== null && !controller.signal.aborted) {
+    void resolveStarCount().then((resolved) => {
+      if (resolved !== null && active) {
         setCount(resolved);
       }
     });
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, []);
 
   return count;
@@ -63,11 +65,10 @@ function writeCachedCount(count: number): void {
   }
 }
 
-async function fetchStarCount(signal: AbortSignal): Promise<number | null> {
+async function fetchStarCount(): Promise<number | null> {
   try {
     const response = await fetch(GITHUB_REPO_API, {
       headers: { Accept: "application/vnd.github+json" },
-      signal,
     });
 
     if (!response.ok) {
@@ -84,18 +85,28 @@ async function fetchStarCount(signal: AbortSignal): Promise<number | null> {
   }
 }
 
-async function resolveStarCount(signal: AbortSignal): Promise<number | null> {
+// Several buttons and pills can be mounted at once (header, footer, ecosystem
+// hero), so an in-flight request is shared instead of one call per consumer.
+let pendingCount: Promise<number | null> | null = null;
+
+function resolveStarCount(): Promise<number | null> {
   const cached = readCachedCount();
 
   if (cached !== null) {
-    return cached;
+    return Promise.resolve(cached);
   }
 
-  const liveCount = await fetchStarCount(signal);
+  pendingCount ??= fetchStarCount()
+    .then((liveCount) => {
+      if (liveCount !== null) {
+        writeCachedCount(liveCount);
+      }
 
-  if (liveCount !== null) {
-    writeCachedCount(liveCount);
-  }
+      return liveCount;
+    })
+    .finally(() => {
+      pendingCount = null;
+    });
 
-  return liveCount;
+  return pendingCount;
 }

@@ -3,7 +3,7 @@
 import { GitHubIcon } from "@/src/icons/GitHub";
 
 import { useGitHubStarCount } from "@/src/helpers/useGitHubStarCount";
-import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL } from "./navData";
+import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL } from "./header/navData";
 
 export function GitHubStarButton() {
   const count = useGitHubStarCount();
