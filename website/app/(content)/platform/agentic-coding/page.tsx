@@ -439,10 +439,7 @@ function McpSection() {
               </>
             }
           />
-          <ArrowLink
-            href="/docs/hotchocolate/build/adapters/mcp"
-            className="mt-6"
-          >
+          <ArrowLink href="/docs/hotchocolate/adapters/mcp" className="mt-6">
             Read the MCP adapter docs
           </ArrowLink>
         </div>
