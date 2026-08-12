@@ -1,14 +1,14 @@
 ---
 title: "Reference"
-description: "Complete skillz CLI reference covering every command and flag, JSON output, exit codes, environment variables, file locations, and supported agents."
+description: "Complete `skills` CLI reference covering every command and flag, JSON output, exit codes, environment variables, file locations, and supported agents."
 ---
 
-This page is the complete, precise reference for the skillz command surface, JSON output, exit codes, environment variables, file locations, and supported agents. It is meant for lookup, not for learning. To learn by doing, start at [Installing Skills](./installing-skills.md) and [Authoring Skills](./authoring-skills.md).
+This page is the complete, precise reference for the `skills` command surface, JSON output, exit codes, environment variables, file locations, and supported agents. It is meant for lookup, not for learning. To learn by doing, start at [Installing Skills](./installing-skills.md) and [Authoring Skills](./authoring-skills.md).
 
-Every command prints the same per-command help at the terminal. Run `dnx skillz <command> --help` to see the synopsis, arguments, and options for that command.
+Every command prints the same per-command help at the terminal. Run `dnx skills <command> --help` to see the synopsis, arguments, and options for that command.
 
 ```bash
-dnx skillz add --help
+dnx skills add --help
 ```
 
 ```text
@@ -16,7 +16,7 @@ Description:
   Add a skill from a source
 
 Usage:
-  skillz add [<source>] [options]
+  skills add [<source>] [options]
 
 Arguments:
   <source>  Source to fetch skills from (e.g., owner/repo, URL, local path)
@@ -33,18 +33,18 @@ Options:
   -?, -h, --help  Show help and usage information
 ```
 
-> The binary on your PATH is `skillz`. Install it with `dotnet tool install -g skillz`, or run it without installing via `dnx skillz <command>` (requires the .NET 10 SDK or later). Both forms accept the same commands, arguments, and options documented below.
+> The binary on your PATH is `skills`. Install it with `dotnet tool install -g skills`, or run it without installing via `dnx skills <command>` (requires the .NET 10 SDK or later). Both forms accept the same commands, arguments, and options documented below.
 
 # Commands
 
-skillz has five commands: `add`, `remove`, `list`, `update`, and `init`. Each command's options are independent. There are no shared global options beyond `--help` and `--version` (see [Global flags](#global-flags)).
+`skills` has five commands: `add`, `remove`, `list`, `update`, and `init`. Each command's options are independent. There are no shared global options beyond `--help` and `--version` (see [Global flags](#global-flags)).
 
-## skillz add &lt;source&gt;
+## skills add &lt;source&gt;
 
 Add skills from a source. Skills are discovered at the source, then materialized into a canonical store and linked into each target agent's skills directory.
 
 ```text
-dnx skillz add <source> [options]
+dnx skills add <source> [options]
 ```
 
 ### Arguments
@@ -66,16 +66,16 @@ dnx skillz add <source> [options]
 | `--full-depth` | (none) | bool                | `false`         | Widen discovery to scan nested directories in the source, not only the source root. This does not change the git clone (clones are always shallow).                                                 |
 | `--list`       | `-l`   | bool                | `false`         | List the available skills at the source without installing anything, then exit.                                                                                                                     |
 
-The default install mode is symlink: skillz materializes each skill once into a canonical store and creates a relative symlink from each agent directory back to it. Pass `--copy` to copy instead. When every selected agent shares one skills directory, copy is used automatically.
+The default install mode is symlink: the CLI materializes each skill once into a canonical store and creates a relative symlink from each agent directory back to it. Pass `--copy` to copy instead. When every selected agent shares one skills directory, copy is used automatically.
 
 For sources, scopes, and install mechanics, see [Installing Skills](./installing-skills.md). For agent targeting, see [Supported agents](#supported-agents).
 
-## skillz remove [skills...]
+## skills remove [skills...]
 
-Remove installed skills. With no skill names and an interactive terminal, skillz prompts you to select which skills to remove.
+Remove installed skills. With no skill names and an interactive terminal, the CLI prompts you to select which skills to remove.
 
 ```text
-dnx skillz remove [skills...] [options]
+dnx skills remove [skills...] [options]
 ```
 
 ### Arguments
@@ -93,21 +93,21 @@ dnx skillz remove [skills...] [options]
 | `--yes`    | `-y`   | bool                | `false` | Skip prompts and run non-interactively.                      |
 | `--all`    | (none) | bool                | `false` | Remove every installed skill.                                |
 
-In interactive mode, skillz shows a multiselect prompt followed by a confirmation prompt. The confirmation defaults to no. Declining the confirmation prints `Removal cancelled` and exits with code 130 (see [Exit codes](#exit-codes)).
+In interactive mode, the CLI shows a multiselect prompt followed by a confirmation prompt. The confirmation defaults to no. Declining the confirmation prints `Removal cancelled` and exits with code 130 (see [Exit codes](#exit-codes)).
 
 ```text
-$ dnx skillz remove alpha
+$ dnx skills remove alpha
 # exit 130
 
 Removal cancelled
 ```
 
-## skillz list
+## skills list
 
 List installed skills. With no options, lists the current project's skills.
 
 ```text
-dnx skillz list [options]
+dnx skills list [options]
 ```
 
 This command takes no positional arguments.
@@ -123,18 +123,18 @@ This command takes no positional arguments.
 
 JSON output is enabled when either `--json` is present or `--format json` is set (case-insensitive). Enabling JSON suppresses the banner and writes the array to stdout.
 
-## skillz update [skills...]
+## skills update [skills...]
 
 Check for available updates and print the exact command to apply each one.
 
 ```text
-dnx skillz update [skills...] [options]
+dnx skills update [skills...] [options]
 ```
 
-> Aliases: `upgrade` and `check`. `dnx skillz upgrade` and `dnx skillz check` are identical to `dnx skillz update`.
+> Aliases: `upgrade` and `check`. `dnx skills upgrade` and `dnx skills check` are identical to `dnx skills update`.
 
 > [!WARNING]
-> **`update` only reports.** It never modifies files or lock files. For each skill that has an update, it prints a `skillz add ...` command you can copy and run to apply it (run it as `dnx skillz add ...` if you use `dnx`). The command always exits 0, even when updates are available. Its output ends with `no updates were applied.`
+> **`update` only reports.** It never modifies files or lock files. For each skill that has an update, it prints a `skills add ...` command you can copy and run to apply it (run it as `dnx skills add ...` if you use `dnx`). The command always exits 0, even when updates are available. Its output ends with `no updates were applied.`
 
 ### Arguments
 
@@ -153,7 +153,7 @@ dnx skillz update [skills...] [options]
 With neither `-g` nor `-p`, an interactive terminal prompts you to choose Project, Global, or Both. Passing both flags, or running non-interactively, checks both scopes.
 
 ```text
-$ dnx skillz update -g
+$ dnx skills update -g
 
 Checking for skill updates...
 
@@ -161,17 +161,17 @@ Checking global skill 1/1: my-skill
 Found 1 global update(s)
 
 Update available: my-skill
-  Run: skillz add owner/repo/skills/my-skill -g -y
+  Run: skills add owner/repo/skills/my-skill -g -y
 
 Updates available for 1 skill(s); no updates were applied.
 ```
 
-## skillz init [name]
+## skills init [name]
 
 Scaffold a new skill directory containing a `SKILL.md` template. This command has no options.
 
 ```text
-dnx skillz init [name]
+dnx skills init [name]
 ```
 
 ### Arguments
@@ -180,10 +180,10 @@ dnx skillz init [name]
 | -------- | ----------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`   | zero or one | no       | Skill name. Creates `<name>/SKILL.md`. The name is sanitized to a slug. With no name, derives the slug from the current directory and writes `SKILL.md` in place. |
 
-If the target `SKILL.md` already exists, skillz does not overwrite it. It prints `Skill already exists at <path>` and exits 0.
+If the target `SKILL.md` already exists, the CLI does not overwrite it. It prints `Skill already exists at <path>` and exits 0.
 
 ```text
-$ dnx skillz init my-skill
+$ dnx skills init my-skill
 
 Initialized skill: my-skill
 
@@ -195,8 +195,8 @@ Next steps:
   2. Update the name and description in the frontmatter
 
 Publishing:
-  GitHub: Push to a repo, then skillz add <owner>/<repo>
-  URL:    Host the file, then skillz add https://example.com/my-skill/SKILL.md
+  GitHub: Push to a repo, then skills add <owner>/<repo>
+  URL:    Host the file, then skills add https://example.com/my-skill/SKILL.md
 ```
 
 See [Authoring Skills](./authoring-skills.md) for the `SKILL.md` format and publishing workflow.
@@ -208,16 +208,16 @@ These are provided on the root command and on every subcommand.
 | Option      | Aliases    | Type | Description                                            |
 | ----------- | ---------- | ---- | ------------------------------------------------------ |
 | `--help`    | `-h`, `-?` | bool | Show help. On a subcommand, shows that command's help. |
-| `--version` | (none)     | bool | Print the installed skillz version and exit 0.         |
+| `--version` | (none)     | bool | Print the installed CLI version and exit 0.            |
 
-Running `skillz` with no arguments shows the banner and exits 0. Running `dnx skillz --help` shows curated top-level help. A bare `--` token is removed before parsing, so `dnx skillz add --agent codex -- owner/repo` parses the same as without it.
+Running `skills` with no arguments shows the banner and exits 0. Running `dnx skills --help` shows curated top-level help. A bare `--` token is removed before parsing, so `dnx skills add --agent codex -- owner/repo` parses the same as without it.
 
 # JSON output
 
-`dnx skillz list --json` (equivalently `dnx skillz list --format json`) prints a JSON array to stdout. Each element describes one installed skill.
+`dnx skills list --json` (equivalently `dnx skills list --format json`) prints a JSON array to stdout. Each element describes one installed skill.
 
 ```bash
-dnx skillz list --json
+dnx skills list --json
 ```
 
 ```json
@@ -242,7 +242,7 @@ The array is written to stdout, so you can pipe it to a tool such as `jq`. Banne
 
 # Exit codes
 
-skillz uses exactly three exit codes.
+`skills` uses exactly three exit codes.
 
 | Code  | Name      | Meaning                                                                                                                                        |
 | ----- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -254,33 +254,33 @@ skillz uses exactly three exit codes.
 
 | Variable                  | Default          | Effect                                                                                                                                                            |
 | ------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SKILLZ_CLONE_TIMEOUT_MS` | `300000`         | Git clone timeout in milliseconds (5 minutes). Must parse to a positive integer, otherwise the default is used. Raise it for large repositories or slow networks. |
+| `SKILLS_CLONE_TIMEOUT_MS` | `300000`         | Git clone timeout in milliseconds (5 minutes). Must parse to a positive integer, otherwise the default is used. Raise it for large repositories or slow networks. |
 | `GITHUB_TOKEN`            | (unset)          | A GitHub API token. Used only by `update` to raise GitHub API rate limits when checking for updates. Not used for cloning.                                        |
 | `GH_TOKEN`                | (unset)          | Fallback GitHub API token. Consulted by `update` after `GITHUB_TOKEN`. Same effect.                                                                               |
 | `INSTALL_INTERNAL_SKILLS` | (unset)          | Set to `1` or `true` to include skills their authors marked as internal in discovery. By default such skills are hidden.                                          |
 | `CLAUDE_CONFIG_DIR`       | `~/.claude`      | Overrides the Claude Code configuration directory used for detection and global installs.                                                                         |
 | `CODEX_HOME`              | `~/.codex`       | Overrides the Codex configuration directory used for detection and global installs.                                                                               |
 | `VIBE_HOME`               | `~/.vibe`        | Overrides the Mistral Vibe configuration directory used for detection and global installs.                                                                        |
-| `XDG_DATA_HOME`           | `~/.local/share` | Root for the global lock location. The global lock lives at `$XDG_DATA_HOME/skillz/.skill-lock.json`.                                                             |
+| `XDG_DATA_HOME`           | `~/.local/share` | Root for the global lock location. The global lock lives at `$XDG_DATA_HOME/skills/.skill-lock.json`.                                                             |
 
-`XDG_CONFIG_HOME` (default `~/.config`) and `XDG_STATE_HOME` (default `~/.local/state`) affect where skillz keeps its own configuration and logs, and where several agents resolve their global directories.
+`XDG_CONFIG_HOME` (default `~/.config`) and `XDG_STATE_HOME` (default `~/.local/state`) affect where the CLI keeps its own configuration and logs, and where several agents resolve their global directories.
 
-For private repositories, skillz shells out to `git` and uses your existing git credentials (SSH agent, credential helper, `gh` auth). See [Troubleshooting](./troubleshooting.md) for authentication and rate-limit guidance.
+For private repositories, the CLI shells out to `git` and uses your existing git credentials (SSH agent, credential helper, `gh` auth). See [Troubleshooting](./troubleshooting.md) for authentication and rate-limit guidance.
 
 # File locations
 
-skillz writes a lock file per scope and materializes skills into a canonical store. Project scope is the current working directory; global scope is your home directory.
+The CLI writes a lock file per scope and materializes skills into a canonical store. Project scope is the current working directory; global scope is your home directory.
 
 | Scope   | Lock file                                                                              | Canonical skills store |
 | ------- | -------------------------------------------------------------------------------------- | ---------------------- |
 | Project | `skills-lock.json` (in the current working directory)                                  | `./.agents/skills`     |
-| Global  | `~/.local/share/skillz/.skill-lock.json` (or `$XDG_DATA_HOME/skillz/.skill-lock.json`) | `~/.agents/skills`     |
+| Global  | `~/.local/share/skills/.skill-lock.json` (or `$XDG_DATA_HOME/skills/.skill-lock.json`) | `~/.agents/skills`     |
 
 Non-universal agents receive a symlink from their own directory (for example `.claude/skills/<name>`) back into the canonical store. Universal agents use the canonical store directly. See [Supported agents](#supported-agents) for per-agent directories.
 
 # Supported agents
 
-skillz supports more than 50 agents (55 in total). It detects which agents are installed on your machine by probing each agent's configuration directory, and it detects which agent it is running inside by reading environment variables that agent hosts set. When run inside a detected agent, `add` runs non-interactively and targets that agent plus the universal agents.
+The `skills` CLI supports 55+ agents. It detects which agents are installed on your machine by probing each agent's configuration directory, and it detects which agent it is running inside by reading environment variables that agent hosts set. When run inside a detected agent, `add` runs non-interactively and targets that agent plus the universal agents.
 
 Agent identifiers are case-sensitive (the identifier is `github-copilot`, not `copilot`). The `--agent` option is repeatable and accepts multiple values per token. `--agent *` targets all agents. "Universal" agents share the `.agents/skills` store, so installing a skill for one universal agent makes it visible to all of them.
 
@@ -347,7 +347,7 @@ In the table below, project directories are relative to the working directory an
 Passing an unknown identifier exits 1 and prints the full list of valid identifiers:
 
 ```text
-$ dnx skillz add ./local-path --yes --agent bogus
+$ dnx skills add ./local-path --yes --agent bogus
 # exit 1
 
 Invalid agents: bogus
@@ -356,5 +356,5 @@ Invalid agents: bogus
 # See also
 
 - [Installing Skills](./installing-skills.md): sources, scopes, and the install workflow in depth.
-- [Authoring Skills](./authoring-skills.md): the `SKILL.md` format, `dnx skillz init`, and publishing.
+- [Authoring Skills](./authoring-skills.md): the `SKILL.md` format, `dnx skills init`, and publishing.
 - [Troubleshooting](./troubleshooting.md): authentication, rate limits, timeouts, and common errors.

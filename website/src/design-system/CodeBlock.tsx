@@ -4,13 +4,15 @@ import {
   type ComponentPropsWithoutRef,
   type ReactNode,
 } from "react";
-import { codeToHtml } from "shiki";
+import { codeToHtml, type BundledTheme } from "shiki";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
-const THEME = "github-dark";
+const DEFAULT_THEME: BundledTheme = "github-dark";
 
-type CodeBlockProps = ComponentPropsWithoutRef<"pre">;
+type CodeBlockProps = ComponentPropsWithoutRef<"pre"> & {
+  theme?: BundledTheme;
+};
 
 type ExtractedCode = {
   code: string;
@@ -38,7 +40,11 @@ function extract(children: ReactNode): ExtractedCode | null {
   return { code, language, meta };
 }
 
-export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
+export async function CodeBlock({
+  children,
+  className = "",
+  theme = DEFAULT_THEME,
+}: CodeBlockProps) {
   const extracted = extract(children);
   if (!extracted) {
     return <pre className={className}>{children}</pre>;
@@ -54,7 +60,7 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
   try {
     html = await codeToHtml(code, {
       lang: shikiLang,
-      theme: THEME,
+      theme,
       transformers: [
         {
           line(node, line) {
@@ -120,7 +126,7 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
       ],
     });
   } catch {
-    html = await codeToHtml(code, { lang: "text", theme: THEME });
+    html = await codeToHtml(code, { lang: "text", theme });
   }
 
   return (

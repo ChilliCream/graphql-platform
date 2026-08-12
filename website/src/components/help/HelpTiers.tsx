@@ -10,56 +10,53 @@ interface Tier {
   readonly priceNote?: string;
   readonly perks: readonly string[];
   readonly callToAction: { readonly title: string; readonly link: string };
-  readonly popular?: boolean;
-  readonly popularLabel?: string;
 }
 
-const TIERS: readonly Tier[] = [
+export const HELP_TIERS: readonly Tier[] = [
   {
     title: "Community",
-    description: "Learn in the open with thousands of practitioners.",
+    description: "Ask public questions and learn from other ChilliCream users.",
     price: "Free",
     perks: [
       "Public Slack channel",
-      "7000+ developers",
       "Open GitHub discussions",
       "Searchable history",
+      "Best-effort responses",
     ],
-    callToAction: { title: "Join Slack", link: SLACK },
+    callToAction: { title: "Join community Slack", link: SLACK },
   },
   {
-    title: "Consultancy",
-    description: "Bring a problem to an expert and get a clear direction.",
+    title: "Advisory",
+    description:
+      "Bring a GraphQL problem to an expert and get clear direction.",
     price: "20h",
     priceNote: "increments",
     perks: [
-      "Dedicated expert session",
-      "One on one with an engineer",
-      "Architecture and review",
-      "No long term contract",
+      "Architecture and schema design",
+      "Troubleshooting and review",
+      "Hot Chocolate and Fusion expertise",
+      "Agreed package of hours",
     ],
     callToAction: { title: "Explore advisory", link: "/services/advisory" },
   },
   {
     title: "Support",
-    description: "Dedicated support for teams running GraphQL in production.",
-    price: "Custom",
+    description: "Ongoing coverage for teams running GraphQL in production.",
+    price: "From $450",
+    priceNote: "per month",
     perks: [
-      "Dedicated account manager",
-      "Private Slack channel",
-      "Email support",
-      "Plan tailored to your team",
+      "Private channel on paid plans",
+      "Defined incident allowances",
+      "Published response times",
+      "Coverage options by plan",
     ],
-    callToAction: { title: "Check out plans", link: "/services/support" },
-    popular: true,
-    popularLabel: "Best Value",
+    callToAction: { title: "Compare support plans", link: "/services/support" },
   },
 ];
 
 /**
- * The three help paths as a card grid, rendered with the shared `Offering` card
- * (the same component as the pricing and support tiers), with Support
- * highlighted as the "Best Value" pick.
+ * The three help paths as a card grid, rendered with the shared `Offering`
+ * card used by the pricing and support tiers.
  */
 export function HelpTiers() {
   return (
@@ -70,11 +67,11 @@ export function HelpTiers() {
           eyebrow="Three paths"
           title="Choose the help that matches your situation."
           titleId="help-tiers-heading"
-          description="Community for open questions, Consultancy for getting unstuck this week, Support for teams that depend on GraphQL in production."
+          description="Community for open questions, advisory for getting unstuck on a defined problem, support for teams that depend on GraphQL in production."
         />
       </div>
       <OfferingGrid columns="md:grid-cols-3">
-        {TIERS.map((tier) => (
+        {HELP_TIERS.map((tier) => (
           <Offering key={tier.title} {...tier} />
         ))}
       </OfferingGrid>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -83,7 +84,8 @@ public partial class ObjectType
         => Fields.AsReadOnlyFieldDefinitionCollection();
 
     /// <inheritdoc />
-    public bool IsDeprecated { get; private set; }
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <inheritdoc />
     public string? DeprecationReason { get; private set; }

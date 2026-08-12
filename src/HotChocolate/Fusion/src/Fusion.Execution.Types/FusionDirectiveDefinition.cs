@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
@@ -18,7 +19,7 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// <summary>
     /// Represents a GraphQL directive definition.
     /// </summary>
-    [Obsolete("Use the constructor overload that accepts isDeprecated and deprecationReason.")]
+    [Obsolete("Use the constructor overload that accepts a deprecationReason.")]
     public FusionDirectiveDefinition(
         string name,
         string? description,
@@ -28,7 +29,6 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
         : this(
             name,
             description,
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable,
             arguments,
@@ -42,7 +42,6 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     public FusionDirectiveDefinition(
         string name,
         string? description,
-        bool isDeprecated,
         string? deprecationReason,
         bool isRepeatable,
         FusionInputFieldDefinitionCollection arguments,
@@ -60,8 +59,7 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 
         Name = name;
         Description = description;
-        IsDeprecated = isDeprecated;
-        DeprecationReason = deprecationReason;
+        DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
         IsRepeatable = isRepeatable;
         Arguments = arguments;
         Locations = locations;
@@ -88,11 +86,14 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 
     /// <summary>
     /// Defines if this directive is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
-    public bool IsDeprecated { get; }
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
-    /// Gets the reason why this directive is deprecated.
+    /// Gets the reason why this directive is deprecated,
+    /// or <c>null</c> if this directive is not deprecated.
     /// </summary>
     public string? DeprecationReason { get; }
 

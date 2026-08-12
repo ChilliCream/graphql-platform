@@ -244,12 +244,15 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         descriptor.Deprecated();
 
         // assert
-        Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
+        Assert.Equal(
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
+            descriptor.CreateConfiguration().DeprecationReason);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData("   ")]
     public void Deprecated_EmptyReason_SetsDefaultReason(string? reason)
     {
         // arrange
@@ -261,7 +264,9 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         descriptor.Deprecated(reason);
 
         // assert
-        Assert.Equal("No longer supported.", descriptor.CreateConfiguration().DeprecationReason);
+        Assert.Equal(
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
+            descriptor.CreateConfiguration().DeprecationReason);
     }
 
     [Fact]

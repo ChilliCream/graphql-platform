@@ -667,6 +667,133 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Null(store.Errors);
     }
 
+    [Theory]
+    [InlineData(
+        "[[Int]]",
+        """{"data":{"matrix":[[1,2],null,[3,null]]}}""",
+        """{"matrix":[[1,2],null,[3,null]]}""")]
+    [InlineData(
+        "[[Int!]!]",
+        """{"data":{"matrix":[[1,2],[3]]}}""",
+        """{"matrix":[[1,2],[3]]}""")]
+    public void AddPartialResults_Should_CompleteNestedLists_When_FieldIsListOfList(
+        string fieldType,
+        string payload,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            $$"""
+            # name: test
+            type Query {
+              matrix: {{fieldType}}
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ matrix }",
+            payload,
+            resultArena,
+            sourceArena);
+
+        // assert
+        Assert.Equal(expected, RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_PropagateNullToList_When_NonNullListElementIsNull()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              sibling: String
+              tags: [String!]
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // a null element in a non-null element list nulls the nullable list itself
+        using var store = CreateLiveStore(
+            schema,
+            "{ sibling tags }",
+            """{"data":{"sibling":"ok","tags":["a",null]}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"sibling":"ok","tags":null}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData("RED", """{"color":"RED","broken":null}""")]
+    [InlineData("YELLOW", """{"color":null,"broken":null}""")]
+    public void AddPartialResults_Should_CompleteEnumOnSlowPath_When_ErrorTrieIsPresent(
+        string enumValue,
+        string expected)
+    {
+        // arrange
+        // the error trie disables the scalar fast path, so enums complete on the slow path
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              color: Color
+              broken: String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        var plan = PlanOperation(schema, "{ color broken }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = Encoding.UTF8.GetBytes(
+            $$"""{"data":{"color":"{{enumValue}}","broken":null},"errors":[{"message":"boom","path":["broken"]}]}""");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: true);
+
+        // assert
+        Assert.True(added);
+        Assert.Equal(expected, RenderData(store));
+        Assert.NotNull(store.Errors);
+        var error = Assert.Single(store.Errors);
+        Assert.Equal("boom", error.Message);
+    }
+
     [Fact]
     public void AddPartialResults_Should_ResolveRuntimeTypes_When_AbstractTypeExceedsTypeNameLookupLimit()
     {

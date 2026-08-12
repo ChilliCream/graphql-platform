@@ -12,8 +12,9 @@ public static class GraphQLOrchestratorExtensions
     /// </summary>
     /// <param name="builder">The distributed application builder</param>
     /// <returns>The distributed application builder for chaining</returns>
-    [Obsolete("Use AddNitro() instead.")]
+    [Obsolete("Use AddNitroComposition() instead.")]
+    [AspireExportIgnore(Reason = "Obsolete alias for AddNitroComposition.")]
     public static IDistributedApplicationBuilder AddGraphQLOrchestrator(
         this IDistributedApplicationBuilder builder)
-        => builder.AddNitro();
+        => builder.AddNitroComposition();
 }

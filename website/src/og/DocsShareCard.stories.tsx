@@ -82,6 +82,6 @@ export const Mocha: Story = {
   args: productArgs("mocha", "Get started"),
 };
 
-export const Skillz: Story = {
+export const Skills: Story = {
   args: productArgs("skillz", "Get started"),
 };

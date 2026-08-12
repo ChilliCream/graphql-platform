@@ -23,26 +23,26 @@ interface Tier {
   readonly highlight?: boolean;
 }
 
-const TIERS: readonly Tier[] = [
+export const ADVISORY_TIERS: readonly Tier[] = [
   {
     id: "consulting",
     eyebrow: "Packages of hours",
     name: "Consulting",
     tagline:
-      "Consulting in packages of hours to get the help you need at any stage of your project. The best way to get started.",
+      "Use a package of hours for architecture, troubleshooting, code review, or guidance at a specific point in your project.",
     priceLine: "20h",
     priceNote: "increments",
     bestFor:
       "Teams that already own the build and need a senior GraphQL engineer on call for design, troubleshooting, and review.",
     perks: [
-      "Mentoring and guidance",
-      "Architecture",
-      "Troubleshooting",
-      "Code Review",
-      "Best practices education",
+      "Architecture and schema design",
+      "Fusion composition and rollout guidance",
+      "Performance troubleshooting",
+      "Code and design review",
+      "Team mentoring",
     ],
-    primaryCta: { label: "Talk to us", href: CONTACT_FORM },
-    secondaryCta: { label: "Email us", href: CONSULTING_MAILTO },
+    primaryCta: { label: "Discuss consulting", href: CONTACT_FORM },
+    secondaryCta: { label: "Email the team", href: CONSULTING_MAILTO },
     highlight: true,
   },
   {
@@ -50,14 +50,19 @@ const TIERS: readonly Tier[] = [
     eyebrow: "Scoped engagements",
     name: "Contracting",
     tagline:
-      "Options for teams who do not have the time, bandwidth, and/or expertise to implement their own GraphQL solutions.",
+      "Scope an implementation when your team needs delivery capacity or deep product expertise, from proof of concept through production rollout.",
     priceLine: "Custom",
     priceNote: "scope & timeline",
     bestFor:
       "Teams that want our engineers to deliver a working result, from a proof of concept to a production rollout.",
-    perks: ["Proof of concept", "Implementation"],
-    primaryCta: { label: "Talk to an Expert", href: CONTACT_FORM },
-    secondaryCta: { label: "Email us", href: CONTRACTING_MAILTO },
+    perks: [
+      "Technical discovery and scope",
+      "Proof of concept",
+      "Production implementation",
+      "Milestones and defined deliverables",
+    ],
+    primaryCta: { label: "Scope an engagement", href: CONTACT_FORM },
+    secondaryCta: { label: "Email the team", href: CONTRACTING_MAILTO },
   },
 ];
 
@@ -69,10 +74,10 @@ export function TierGrid() {
   return (
     <section aria-labelledby="tiers-heading" className="pt-6 pb-16 sm:pb-24">
       <h2 id="tiers-heading" className="sr-only">
-        Engagement tiers
+        GraphQL consulting and contracting options
       </h2>
       <CardGrid cols={2} breakpoint="lg" gap={6} itemsStretch>
-        {TIERS.map((tier) => (
+        {ADVISORY_TIERS.map((tier) => (
           <TierCard key={tier.id} tier={tier} />
         ))}
       </CardGrid>

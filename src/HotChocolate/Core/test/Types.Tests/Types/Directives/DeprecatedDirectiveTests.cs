@@ -16,7 +16,7 @@ public class DeprecatedDirectiveTests
     public void CreateNode_Should_OmitTheReasonArgument_When_ReasonIsTheDefault()
     {
         // act
-        var node = DeprecatedDirective.CreateNode("No longer supported.");
+        var node = DeprecatedDirective.CreateNode(DirectiveNames.Deprecated.Arguments.DefaultReason);
 
         // assert
         node.ToString().MatchInlineSnapshot("@deprecated");

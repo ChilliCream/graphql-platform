@@ -4,7 +4,7 @@ import { Fusion } from "@/src/icons/Fusion";
 import { HotChocolate } from "@/src/icons/HotChocolate";
 import { Mocha } from "@/src/icons/Mocha";
 import { Nitro } from "@/src/icons/Nitro";
-import { Skillz } from "@/src/icons/Skillz";
+import { Skills } from "@/src/icons/Skills";
 import { StrawberryShake } from "@/src/icons/StrawberryShake";
 
 export interface ProductDrink {
@@ -20,5 +20,5 @@ export const PRODUCT_DRINKS: Record<string, ProductDrink> = {
   strawberryshake: { Icon: StrawberryShake, aspect: 1.847 },
   fusion: { Icon: Fusion, aspect: 1.424 },
   mocha: { Icon: Mocha, aspect: 1.424 },
-  skillz: { Icon: Skillz, aspect: 1 },
+  skillz: { Icon: Skills, aspect: 1 },
 };

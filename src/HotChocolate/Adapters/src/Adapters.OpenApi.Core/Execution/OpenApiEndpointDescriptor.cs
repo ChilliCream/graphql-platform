@@ -6,12 +6,15 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed record OpenApiEndpointDescriptor(
     DocumentNode Document,
-    bool HasValidDocument,
+    IReadOnlyList<IError> DocumentErrors,
     string HttpMethod,
     RoutePattern Route,
     VariableValueInsertionTrie ParameterTrie,
     string? VariableFilledThroughBody,
-    OpenApiResponseBodySelection ResponseBodySelection);
+    OpenApiResponseBodySelection ResponseBodySelection)
+{
+    public bool HasValidDocument => DocumentErrors.Count == 0;
+}
 
 internal interface IVariableValueInsertionTrieSegment;
 

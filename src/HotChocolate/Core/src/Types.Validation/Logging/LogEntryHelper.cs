@@ -67,6 +67,19 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveNotUnique(IDirective directive, ITypeSystemMember member)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_DirectiveNotUnique,
+                directive.Name,
+                GetDirectiveMemberName(member))
+            .SetCode(LogEntryCodes.DirectiveNotUnique)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(member)
+            .Build();
+    }
+
     public static LogEntry DuplicateFieldInDefaultValue(
         IInputValueDefinition root,
         IReadOnlyList<object> path,
@@ -502,7 +515,7 @@ internal static class LogEntryHelper
             .SetMessage(
                 LogEntryHelper_UndefinedDirective,
                 directive.Name,
-                member is ISchemaCoordinateProvider m ? m.Coordinate.ToString() : "?")
+                GetDirectiveMemberName(member))
             .SetCode(LogEntryCodes.UndefinedDirective)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(member)
@@ -617,6 +630,16 @@ internal static class LogEntryHelper
         }
 
         return builder.ToString();
+    }
+
+    private static string GetDirectiveMemberName(ITypeSystemMember member)
+    {
+        return member switch
+        {
+            ISchemaCoordinateProvider coordinateProvider => coordinateProvider.Coordinate.ToString(),
+            ISchemaDefinition => "schema",
+            _ => "?"
+        };
     }
 
     private static TypeKind GetTypeSystemMemberKind(ITypeSystemMember member)

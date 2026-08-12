@@ -7,7 +7,8 @@ import {
 
 export const dynamic = "force-static";
 
-export const alt = "ChilliCream GraphQL Platform";
+export const alt =
+  "API Analytics and OpenTelemetry Observability - ChilliCream";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 

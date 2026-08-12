@@ -72,8 +72,8 @@ export const NAV_ITEMS: NavItem[] = [
             icon: WavePulseIcon,
           },
           {
-            href: "/platform/continuous-integration",
-            label: "Continuous Integration",
+            href: "/platform/release-safety",
+            label: "Release Safety",
             description: "Innovate with Confidence. Deliver with Quality.",
             icon: SparklesIcon,
           },
@@ -85,7 +85,7 @@ export const NAV_ITEMS: NavItem[] = [
           },
           {
             href: "/platform/agentic-coding",
-            label: "Agentic Coding",
+            label: "Agentic Development",
             description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
           },
@@ -97,7 +97,13 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/products/nitro",
             label: "Nitro",
-            description: "Observability, Governance, Delivery",
+            description: "Observability, governance, and delivery.",
+            icon: RocketIcon,
+          },
+          {
+            href: "/products/mocha",
+            label: "Mocha",
+            description: "Messaging for .NET.",
             icon: RocketIcon,
           },
         ],
@@ -157,7 +163,7 @@ export const NAV_ITEMS: NavItem[] = [
           { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
           { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
           { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skillz", label: "Skillz", icon: RocketIcon },
+          { href: "/docs/skillz", label: "Skills", icon: RocketIcon },
         ],
       },
       {

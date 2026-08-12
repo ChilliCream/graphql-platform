@@ -27,6 +27,7 @@ public static class GraphQLResourceBuilderExtensions
     /// <c>name</c> in <c>schema-settings.json</c>.
     /// </param>
     /// <returns>The resource builder for chaining</returns>
+    [AspireExport]
     public static IResourceBuilder<T> WithGraphQLHttpEndpoint<T>(
         this IResourceBuilder<T> builder,
         string path = "/graphql",
@@ -80,6 +81,7 @@ public static class GraphQLResourceBuilderExtensions
     [Obsolete(
         "Use WithGraphQLHttpEndpoint instead, which declares the GraphQL route of the resource "
         + "in addition to the schema download path.")]
+    [AspireExportIgnore(Reason = "Superseded by WithGraphQLHttpEndpoint.")]
     public static IResourceBuilder<T> WithGraphQLSchemaEndpoint<T>(
         this IResourceBuilder<T> builder,
         string? path = null,
@@ -110,12 +112,13 @@ public static class GraphQLResourceBuilderExtensions
     /// Marks a resource as having a GraphQL schema file in its project directory.
     /// </summary>
     /// <param name="builder">The resource builder</param>
-    /// <param name="fileName">The schema file name (defaults to "schema.graphql")</param>
+    /// <param name="fileName">The schema file name (defaults to "schema.graphqls")</param>
     /// <param name="sourceSchemaName">The source schema name (defaults to the resource name)</param>
     /// <returns>The resource builder for chaining</returns>
     [Obsolete(
         "File based source schemas are being retired. Use WithGraphQLHttpEndpoint instead, "
         + "which fetches the source schema from the endpoint of the resource.")]
+    [AspireExportIgnore(Reason = "Superseded by WithGraphQLHttpEndpoint.")]
     public static IResourceBuilder<T> WithGraphQLSchemaFile<T>(
         this IResourceBuilder<T> builder,
         string fileName = "schema.graphqls",
@@ -142,12 +145,13 @@ public static class GraphQLResourceBuilderExtensions
     /// </param>
     /// <param name="outputFileName">The output archive file name.</param>
     /// <returns>The resource builder for chaining</returns>
-    public static IResourceBuilder<T> WithGraphQLSchemaComposition<T>(
+    [AspireExport]
+    public static IResourceBuilder<T> WithNitroComposition<T>(
         this IResourceBuilder<T> builder,
         bool disableValidation = false,
         string outputFileName = "gateway.far")
         where T : IResourceWithEndpoints
-        => builder.WithGraphQLSchemaComposition(
+        => builder.WithNitroComposition(
             new GraphQLCompositionSettings
             {
                 DisableSchemaValidation = disableValidation
@@ -158,10 +162,33 @@ public static class GraphQLResourceBuilderExtensions
     /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
     /// </summary>
     /// <param name="builder">The resource builder.</param>
-    /// <param name="settings">The composition settings.</param>
+    /// <param name="settings">
+    /// The composition settings. Composition settings normally come from Nitro and the settings
+    /// given here override them locally.
+    /// </param>
     /// <param name="outputFileName">The output archive file name.</param>
     /// <returns>The resource builder for chaining.</returns>
+    [Obsolete("Use WithNitroComposition instead.")]
+    [AspireExportIgnore(Reason = "Obsolete alias for WithNitroComposition.")]
     public static IResourceBuilder<T> WithGraphQLSchemaComposition<T>(
+        this IResourceBuilder<T> builder,
+        GraphQLCompositionSettings settings,
+        string outputFileName = "gateway.far")
+        where T : IResourceWithEndpoints
+        => builder.WithNitroComposition(settings, outputFileName);
+
+    /// <summary>
+    /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
+    /// </summary>
+    /// <param name="builder">The resource builder.</param>
+    /// <param name="settings">
+    /// The composition settings. Composition settings normally come from Nitro and the settings
+    /// given here override them locally.
+    /// </param>
+    /// <param name="outputFileName">The output archive file name.</param>
+    /// <returns>The resource builder for chaining.</returns>
+    [AspireExportIgnore(Reason = "Composition settings are provided by Nitro.")]
+    public static IResourceBuilder<T> WithNitroComposition<T>(
         this IResourceBuilder<T> builder,
         GraphQLCompositionSettings settings,
         string outputFileName = "gateway.far")

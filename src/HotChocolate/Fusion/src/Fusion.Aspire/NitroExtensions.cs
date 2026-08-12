@@ -12,102 +12,76 @@ public static class NitroExtensions
 {
     /// <summary>
     /// Adds GraphQL schema composition orchestration to the distributed application. Every gateway
-    /// composes the source schemas of the distributed application.
-    /// </summary>
-    /// <param name="builder">
-    /// The distributed application builder.
-    /// </param>
-    /// <returns>
-    /// The distributed application builder for chaining.
-    /// </returns>
-    public static IDistributedApplicationBuilder AddNitro(
-        this IDistributedApplicationBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        SchemaCompositionRegistration.Ensure(builder);
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds GraphQL schema composition orchestration that composes against the fusion
-    /// configurations of Nitro and configures the Nitro portal URL shown on each Nitro-composed
-    /// gateway. A gateway configured with <see cref="WithNitroApiId{T}"/> composes the source
-    /// schemas of the distributed application on top of the fusion configuration that Nitro
+    /// composes the source schemas of the distributed application, and a gateway configured with
+    /// <see cref="WithNitroApiId{T}"/> composes them on top of the fusion configuration that Nitro
     /// serves for <paramref name="stage"/>, so it also serves source schemas that run outside of
     /// the distributed application.
     /// </summary>
     /// <param name="builder">The distributed application builder.</param>
     /// <param name="stage">
     /// The Nitro stage whose fusion configuration is used. The settings of the source schemas
-    /// carried by that configuration resolve against this stage environment.
+    /// carried by that configuration resolve against this stage environment. When it is
+    /// <c>null</c>, the distributed application composes only its own source schemas and the
+    /// remaining arguments must be omitted.
     /// </param>
     /// <param name="portalUrl">
     /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
     /// URL.
     /// </param>
+    /// <param name="seedUpdates">
+    /// The settings for background stage-change subscriptions, current-version queries, fusion
+    /// configuration downloads, and automatic adoption. When omitted, the previously configured
+    /// settings stay in effect.
+    /// </param>
     /// <returns>The distributed application builder for chaining.</returns>
+    /// <exception cref="ArgumentException">
+    /// The stage is empty or white space, the portal URL is not an absolute HTTP URL without user
+    /// information, or a portal URL or seed update settings are given without a stage.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     /// Nitro is already added for another stage or portal URL.
     /// </exception>
     /// <remarks>
     /// A source schema of the distributed application replaces the source schema of the same name
     /// in the fusion configuration. The name of a source schema declared with
-    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaEndpoint{T}"/> is the
-    /// <c>name</c> in its settings file. The name of a source schema declared with
-    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLSchemaFile{T}"/> is the configured
-    /// source schema name or the resource name, and is not checked against its settings file. A
-    /// source schema that ends up with another name is added to the composition instead of
-    /// replacing the one in the fusion configuration.
+    /// <see cref="GraphQLResourceBuilderExtensions.WithGraphQLHttpEndpoint{T}"/> is the
+    /// <c>name</c> in its settings file. A source schema that ends up with another name is added
+    /// to the composition instead of replacing the one in the fusion configuration.
     /// </remarks>
-    public static IDistributedApplicationBuilder AddNitro(
+    [AspireExport]
+    public static IDistributedApplicationBuilder AddNitroComposition(
         this IDistributedApplicationBuilder builder,
-        string stage,
-        Uri? portalUrl = null)
-        => AddNitroCore(builder, stage, portalUrl, configureSeedUpdates: null);
-
-    /// <summary>
-    /// Adds GraphQL schema composition orchestration that composes against Nitro and configures
-    /// how Fusion Aspire follows changes to the selected stage during the AppHost run.
-    /// </summary>
-    /// <param name="builder">The distributed application builder.</param>
-    /// <param name="stage">The Nitro stage whose Fusion configuration is used.</param>
-    /// <param name="portalUrl">
-    /// An optional Nitro portal URL. When omitted, the URL is derived from the effective Nitro API
-    /// URL.
-    /// </param>
-    /// <param name="configureSeedUpdates">
-    /// Configures background stage-change subscriptions, current-version queries, Fusion
-    /// configuration downloads, and automatic adoption.
-    /// </param>
-    /// <returns>The distributed application builder for chaining.</returns>
-    /// <remarks>
-    /// Stage update detection receives stage-change metadata and downloads the same Fusion archive
-    /// that startup seed acquisition downloads. It sends no schema or configuration data to Nitro.
-    /// </remarks>
-    public static IDistributedApplicationBuilder AddNitro(
-        this IDistributedApplicationBuilder builder,
-        string stage,
-        Uri? portalUrl,
-        Action<NitroSeedUpdateOptions> configureSeedUpdates)
-    {
-        ArgumentNullException.ThrowIfNull(configureSeedUpdates);
-
-        return AddNitroCore(builder, stage, portalUrl, configureSeedUpdates);
-    }
-
-    private static IDistributedApplicationBuilder AddNitroCore(
-        IDistributedApplicationBuilder builder,
-        string stage,
-        Uri? portalUrl,
-        Action<NitroSeedUpdateOptions>? configureSeedUpdates)
+        string? stage = null,
+        Uri? portalUrl = null,
+        NitroSeedUpdateOptions? seedUpdates = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if (stage is null)
+        {
+            if (portalUrl is not null)
+            {
+                throw new ArgumentException(
+                    "The Nitro portal URL can only be set together with a stage.",
+                    nameof(portalUrl));
+            }
+
+            if (seedUpdates is not null)
+            {
+                throw new ArgumentException(
+                    "The Nitro seed update settings can only be set together with a stage.",
+                    nameof(seedUpdates));
+            }
+
+            SchemaCompositionRegistration.Ensure(builder);
+
+            return builder;
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(stage);
 
         if (portalUrl?.IsAbsoluteUri is false
-            || portalUrl is not null
+            || (portalUrl is not null
                 && !string.Equals(
                     portalUrl.Scheme,
                     Uri.UriSchemeHttp,
@@ -115,7 +89,7 @@ public static class NitroExtensions
                 && !string.Equals(
                     portalUrl.Scheme,
                     Uri.UriSchemeHttps,
-                    StringComparison.OrdinalIgnoreCase)
+                    StringComparison.OrdinalIgnoreCase))
             || !string.IsNullOrEmpty(portalUrl?.UserInfo))
         {
             throw new ArgumentException(
@@ -124,15 +98,16 @@ public static class NitroExtensions
         }
 
         var options = SchemaCompositionRegistration.Ensure(builder);
+        var coordinator = options.Coordinator;
 
-        if (options.Coordinator is { } coordinator)
+        if (coordinator is not null)
         {
             if (!string.Equals(coordinator.Stage, stage, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
                     $"Nitro is already added for the stage '{coordinator.Stage}'. A distributed "
-                    + "application composes against a single stage, so AddNitro cannot be called "
-                    + $"again for the stage '{stage}'.");
+                    + "application composes against a single stage, so AddNitroComposition cannot "
+                    + $"be called again for the stage '{stage}'.");
             }
 
             if (portalUrl is not null
@@ -142,19 +117,26 @@ public static class NitroExtensions
                 throw new InvalidOperationException(
                     $"Nitro is already added with the portal URL '{options.PortalUrl}'.");
             }
-
-            configureSeedUpdates?.Invoke(options.SeedUpdates);
-            coordinator.SetInitialAutoUpdate(options.SeedUpdates.AutoUpdate);
-            options.PortalUrl ??= portalUrl;
-            AddAutoUpdateCommandsToConfiguredGateways(builder);
-            return builder;
         }
 
-        configureSeedUpdates?.Invoke(options.SeedUpdates);
-        options.Coordinator = NitroSeedCoordinator.CreateProduction(
-            stage,
-            options.SeedUpdates.AutoUpdate);
-        options.PortalUrl = portalUrl;
+        if (seedUpdates is not null)
+        {
+            options.SeedUpdates = seedUpdates;
+        }
+
+        if (coordinator is null)
+        {
+            options.Coordinator = NitroSeedCoordinator.CreateProduction(
+                stage,
+                options.SeedUpdates.AutoUpdate);
+            options.PortalUrl = portalUrl;
+        }
+        else
+        {
+            coordinator.SetInitialAutoUpdate(options.SeedUpdates.AutoUpdate);
+            options.PortalUrl ??= portalUrl;
+        }
+
         AddAutoUpdateCommandsToConfiguredGateways(builder);
 
         return builder;
@@ -176,15 +158,13 @@ public static class NitroExtensions
     /// </returns>
     /// <remarks>
     /// The api id only takes effect on a resource whose schema is composed and only when the
-    /// distributed application calls
-    /// <see cref="AddNitro(IDistributedApplicationBuilder, string, Uri)"/>.
-    /// On any other resource it is metadata
-    /// without an effect.
+    /// distributed application composes against a Nitro stage.
     /// </remarks>
+    [AspireExport]
     public static IResourceBuilder<T> WithNitroApiId<T>(
         this IResourceBuilder<T> builder,
         string apiId)
-        where T : IResource
+        where T : IResourceWithEndpoints
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(apiId);
