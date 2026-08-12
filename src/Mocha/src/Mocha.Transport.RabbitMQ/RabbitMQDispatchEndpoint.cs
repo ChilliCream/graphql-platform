@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
 using static System.StringSplitOptions;
@@ -32,7 +31,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var dispatcher = transport.Dispatcher;
         var cancellationToken = context.CancellationToken;
-        var timeProvider = context.Services.GetRequiredService<TimeProvider>();
+        var timeProvider = context.Services.GetTimeProvider();
         var channel = await dispatcher.RentChannelAsync(cancellationToken);
         try
         {
