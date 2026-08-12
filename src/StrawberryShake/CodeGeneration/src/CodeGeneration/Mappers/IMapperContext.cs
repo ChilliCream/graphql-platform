@@ -10,6 +10,8 @@ public interface IMapperContext
 {
     string ClientName { get; }
 
+    bool OptionalEnum { get; }
+
     /// <summary>
     /// Gets the client root namespace.
     /// This namespace is where we have all the public client APIs.
