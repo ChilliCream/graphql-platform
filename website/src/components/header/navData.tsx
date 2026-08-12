@@ -1,4 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
+import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
@@ -19,7 +20,7 @@ import {
 
 export const TOOLS = {
   blog: "/blog",
-  github: "https://github.com/ChilliCream/graphql-platform",
+  github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
   shop: "https://store.chillicream.com",
@@ -29,9 +30,6 @@ export const TOOLS = {
 };
 
 export const CONTACT_HREF = "/services/support/contact";
-export const GITHUB_REPO_URL =
-  "https://github.com/ChilliCream/graphql-platform";
-export const GITHUB_STARGAZERS_URL = `${GITHUB_REPO_URL}/stargazers`;
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 

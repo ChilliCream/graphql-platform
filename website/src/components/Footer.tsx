@@ -8,6 +8,8 @@ import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 
+import { GitHubStarButton } from "./GitHubStarButton";
+
 const tools = {
   blog: "/blog",
   github: "https://github.com/ChilliCream/graphql-platform",
@@ -51,6 +53,9 @@ export default function Footer() {
               <br />
               United States
             </address>
+            <div className="flex">
+              <GitHubStarButton />
+            </div>
           </div>
           <div className="grid flex-4 grid-cols-2 gap-8 md:grid-cols-4">
             <LinkColumn title="Platform">
