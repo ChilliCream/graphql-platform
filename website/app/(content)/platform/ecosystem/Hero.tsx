@@ -14,13 +14,13 @@ import { GitHubIcon } from "@/src/icons/GitHub";
 import { SlackIcon } from "@/src/icons/Slack";
 
 import { CARD_FOCUS_CLASSES } from "./cardFocus";
-import { PILL_CLASSES, StarPillContent } from "./StarPill";
 import {
   CONNECTORS,
   ORBIT_RINGS,
   connectorPath,
   polarPoint,
 } from "./orbitGeometry";
+import { PILL_CLASSES, StarPillContent } from "./StarPill";
 
 const RING_STROKE = "rgba(245,240,234,0.17)";
 
@@ -43,7 +43,7 @@ interface OrbitNodeSpec {
   readonly key: string;
   readonly angle: number;
   readonly radius: number;
-  readonly render: (starCount: number | null) => ReactNode;
+  readonly render: () => ReactNode;
 }
 
 const ORBIT_NODES: readonly OrbitNodeSpec[] = [
@@ -51,14 +51,14 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "stars",
     angle: 197,
     radius: 680,
-    render: (starCount) => (
+    render: () => (
       <a
         href={GITHUB_STARGAZERS_URL}
         target="_blank"
         rel="noopener noreferrer"
         className={`${PILL_CLASSES} ${ORBIT_LINK_CLASSES}`}
       >
-        <StarPillContent count={starCount} />
+        <StarPillContent />
       </a>
     ),
   },
@@ -203,11 +203,10 @@ function SocialChip({ href, label, children }: SocialChipProps) {
 }
 
 interface MobileHeroLinksProps {
-  readonly starCount: number | null;
   readonly contributors: ReadonlyArray<GitHubContributor> | null;
 }
 
-function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
+function MobileHeroLinks({ contributors }: MobileHeroLinksProps) {
   const linkClassName = `border-cc-card-border bg-cc-surface text-cc-ink-dim flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 font-mono text-[0.65rem] no-underline ${CARD_FOCUS_CLASSES}`;
   return (
     <nav
@@ -222,7 +221,7 @@ function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
             rel="noopener noreferrer"
             className={linkClassName}
           >
-            <StarPillContent count={starCount} />
+            <StarPillContent />
           </a>
         </li>
         <li>
@@ -288,11 +287,10 @@ function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
 }
 
 interface HeroProps {
-  readonly starCount: number | null;
   readonly contributors: ReadonlyArray<GitHubContributor> | null;
 }
 
-export function Hero({ starCount, contributors }: HeroProps) {
+export function Hero({ contributors }: HeroProps) {
   return (
     <section className="relative flex min-h-[640px] flex-col items-center justify-center py-24 [--u:0.62] sm:min-h-[720px] sm:[--u:0.78] lg:min-h-[820px] lg:[--u:1]">
       <style href="ecosystem-hero-entrance" precedence="medium">
@@ -355,7 +353,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
               radius={node.radius}
               delay={i * 40}
             >
-              {node.render(starCount)}
+              {node.render()}
             </OrbitNode>
           ))}
           {contributors?.slice(0, AVATAR_SLOTS.length).map((contributor, i) => {
@@ -414,7 +412,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
             Read the docs
           </OutlineButton>
         </ButtonRow>
-        <MobileHeroLinks starCount={starCount} contributors={contributors} />
+        <MobileHeroLinks contributors={contributors} />
         <p className="font-heading text-h4 text-cc-heading mx-auto mt-20 max-w-2xl font-semibold sm:mt-24">
           Open source you can inspect. Standards you can follow. People you can
           reach.

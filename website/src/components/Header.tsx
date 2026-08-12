@@ -1,22 +1,20 @@
-import Link from "next/link";
 import { SolidButton } from "@/src/design-system/Button";
 import { Picture } from "@/src/design-system/Picture";
+import Link from "next/link";
 
 import { getLatestBlogPost } from "@/src/helpers/blogPosts";
-import { getGitHubStarCount } from "@/src/helpers/githubStars";
 import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 
-import { HeaderShell } from "./HeaderShell";
 import { GitHubStarButton } from "./header/GitHubStarButton";
 import { HeaderNav } from "./header/HeaderNav";
 import { CONTACT_HREF, MOBILE_ITEMS, TOOLS } from "./header/navData";
+import { HeaderShell } from "./HeaderShell";
 import { MobileNav } from "./MobileNav";
 import { Search } from "./Search";
 
 export default async function Header() {
   const latestBlog = getLatestBlogPost();
-  const starCount = await getGitHubStarCount();
   // The optimized <Picture> is built here (server-only: it reads the image
   // manifest from disk) and handed to the client nav as a ready-made node.
   const blogImage = latestBlog?.featuredImage ? (
@@ -45,7 +43,7 @@ export default async function Header() {
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
         <div className="hidden flex-none items-center gap-5 min-[1060px]:flex">
-          <GitHubStarButton initialCount={starCount} />
+          <GitHubStarButton />
           <Link
             href={CONTACT_HREF}
             prefetch={false}

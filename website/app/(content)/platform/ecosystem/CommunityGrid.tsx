@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
+import { GITHUB_REPO_URL, TOOLS } from "@/src/components/header/navData";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { GITHUB_REPO_URL, TOOLS } from "@/src/components/header/navData";
 import { Card } from "@/src/design-system/Card";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
@@ -58,10 +58,9 @@ const COMMUNITY_CARDS: readonly CommunityCardSpec[] = [
 
 interface CommunityCardProps {
   readonly card: CommunityCardSpec;
-  readonly starCount: number | null;
 }
 
-function CommunityCard({ card, starCount }: CommunityCardProps) {
+function CommunityCard({ card }: CommunityCardProps) {
   const content = (
     <>
       <div className="border-cc-card-border bg-cc-surface text-cc-ink-dim flex h-10 w-10 items-center justify-center rounded-full border">
@@ -73,7 +72,7 @@ function CommunityCard({ card, starCount }: CommunityCardProps) {
       <p className="text-cc-ink-dim mt-2 pb-6 text-sm">{card.body}</p>
       <div className="mt-auto flex h-7 items-center">
         {card.withStars ? (
-          <StarPill count={starCount} />
+          <StarPill />
         ) : (
           <span className="text-cc-ink-dim group-hover:text-cc-heading text-sm font-medium transition-colors">
             {card.action} <span aria-hidden="true">→</span>
@@ -100,11 +99,7 @@ function CommunityCard({ card, starCount }: CommunityCardProps) {
   );
 }
 
-interface CommunityGridProps {
-  readonly starCount: number | null;
-}
-
-export function CommunityGrid({ starCount }: CommunityGridProps) {
+export function CommunityGrid() {
   return (
     <section className="py-14 sm:py-20">
       <RevealOnScroll>
@@ -114,7 +109,7 @@ export function CommunityGrid({ starCount }: CommunityGridProps) {
         />
         <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {COMMUNITY_CARDS.map((card) => (
-            <CommunityCard key={card.title} card={card} starCount={starCount} />
+            <CommunityCard key={card.title} card={card} />
           ))}
         </div>
       </RevealOnScroll>
