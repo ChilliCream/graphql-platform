@@ -14,7 +14,7 @@ const COMPARISON = [
         label: "Monthly price",
         free: "$0",
         payg: "$20 / month",
-        dedicated: "from $400 / month",
+        dedicated: "From $400 / month",
         self: "Custom",
       },
       {

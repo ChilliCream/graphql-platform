@@ -14,10 +14,10 @@ export interface Tier {
   readonly id: TierId;
   readonly name: string;
   readonly tagline: string;
-  /** Display price, e.g. "$0", "$20", "from $400", "Custom". */
+  /** Display price, e.g. "$0", "$20", "From $400", "Custom". */
   readonly price: string;
   /** Small note under the price, e.g. "forever", "per month", "talk to us". */
-  readonly priceNote: string;
+  readonly priceNote?: string;
   /** Exact recurring monthly price when the plan has one. */
   readonly monthlyPrice?: number;
   /** Public minimum monthly price when the plan is advertised as "from". */
@@ -38,7 +38,6 @@ export const TIERS: readonly Tier[] = [
     name: "Free",
     tagline: "Shared cloud, fully managed.",
     price: "$0",
-    priceNote: "",
     monthlyPrice: 0,
     features: [
       "Shared multi-tenant cloud",
@@ -72,7 +71,7 @@ export const TIERS: readonly Tier[] = [
     id: "dedicated",
     name: "Dedicated",
     tagline: "Single-tenant, volume based.",
-    price: "from $400",
+    price: "From $400",
     priceNote: "per month",
     minimumMonthlyPrice: 400,
     features: [
@@ -93,7 +92,6 @@ export const TIERS: readonly Tier[] = [
     name: "Self-Hosted",
     tagline: "Your infrastructure.",
     price: "Custom",
-    priceNote: "talk to us",
     features: [
       "Run on your own infrastructure",
       "Air-gapped & on-prem supported",
