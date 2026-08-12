@@ -12,7 +12,7 @@ export function StarPillContent() {
     <>
       <GitHubIcon aria-hidden="true" className="h-3 w-3 fill-current" />
       {count === null ? (
-        <span>GITHUB</span>
+        <span>Stars</span>
       ) : (
         <span className="text-cc-heading">
           <span className="sr-only">GitHub stars: </span>
