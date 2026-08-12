@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
@@ -16,31 +17,35 @@ internal sealed class RabbitMQMessageEnvelopeParser
     /// and custom headers to envelope fields.
     /// </summary>
     /// <param name="eventArgs">The delivery event args containing the message body, properties, and metadata.</param>
+    /// <param name="timeProvider">The clock used when expiration has no send timestamp.</param>
     /// <returns>A fully populated message envelope ready for the receive middleware pipeline.</returns>
-    public MessageEnvelope Parse(BasicDeliverEventArgs eventArgs)
+    public MessageEnvelope Parse(BasicDeliverEventArgs eventArgs, TimeProvider timeProvider)
     {
         var props = eventArgs.BasicProperties;
-        var sentAt = props.Timestamp.UnixTime > 0
-            ? DateTimeOffset.FromUnixTimeSeconds(props.Timestamp.UnixTime)
-            : (DateTimeOffset?)null;
+        var sentAt =
+            props.Timestamp.UnixTime > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(props.Timestamp.UnixTime)
+                : (DateTimeOffset?)null;
+
+        var headers = props.Headers.ParseHeaders();
 
         var envelope = new MessageEnvelope
         {
             MessageId = props.MessageId,
             CorrelationId = props.CorrelationId,
-            ConversationId = props.Headers?.GetString(RabbitMQMessageHeaders.ConversationId),
-            CausationId = props.Headers?.GetString(RabbitMQMessageHeaders.CausationId),
-            SourceAddress = props.Headers?.GetString(RabbitMQMessageHeaders.SourceAddress),
-            DestinationAddress = props.Headers?.GetString(RabbitMQMessageHeaders.DestinationAddress),
+            ConversationId = headers.GetString(RabbitMQMessageHeaders.ConversationId),
+            CausationId = headers.GetString(RabbitMQMessageHeaders.CausationId),
+            SourceAddress = headers.GetString(RabbitMQMessageHeaders.SourceAddress),
+            DestinationAddress = headers.GetString(RabbitMQMessageHeaders.DestinationAddress),
             ResponseAddress = props.ReplyTo,
-            FaultAddress = props.Headers?.GetString(RabbitMQMessageHeaders.FaultAddress),
+            FaultAddress = headers.GetString(RabbitMQMessageHeaders.FaultAddress),
             ContentType = props.ContentType,
-            MessageType = props.Type ?? props.Headers?.GetString(RabbitMQMessageHeaders.MessageType),
+            MessageType = props.Type ?? headers.GetString(RabbitMQMessageHeaders.MessageType),
             SentAt = sentAt,
-            DeliverBy = ParseExpiration(props.Expiration, sentAt),
-            DeliveryCount = GetDeliveryCount(props.Headers, eventArgs.Redelivered),
-            Headers = BuildHeaders(props.Headers),
-            EnclosedMessageTypes = props.Headers?.GetStringArray(RabbitMQMessageHeaders.EnclosedMessageTypes) ?? [],
+            DeliverBy = props.Expiration.ParseExpiration(sentAt, timeProvider),
+            DeliveryCount = headers.GetDeliveryCount(eventArgs.Redelivered),
+            Headers = headers,
+            EnclosedMessageTypes = headers.GetStringArray(RabbitMQMessageHeaders.EnclosedMessageTypes),
             Body = eventArgs.Body
         };
 
@@ -48,14 +53,63 @@ internal sealed class RabbitMQMessageEnvelopeParser
     }
 
     /// <summary>
-    /// Returns the delivery count from the quorum queue <c>x-delivery-count</c> header when
-    /// available; otherwise falls back to the classic queue <c>Redelivered</c> flag.
+    /// Shared singleton instance of the parser.
     /// </summary>
-    private static int GetDeliveryCount(IDictionary<string, object?>? headers, bool redelivered)
+    public static readonly RabbitMQMessageEnvelopeParser Instance = new();
+}
+
+file static class Extensions
+{
+    public static Headers ParseHeaders(this IDictionary<string, object?>? fieldTable)
     {
-        if (headers is not null
-            && headers.TryGetValue("x-delivery-count", out var value)
-            && value is long count)
+        if (fieldTable is null || fieldTable.Count == 0)
+        {
+            return Headers.Empty();
+        }
+
+        var headers = new Headers(fieldTable.Count);
+        foreach (var (key, value) in fieldTable)
+        {
+            headers.Set(key, value.FromFieldTableValue(key));
+        }
+
+        return headers;
+    }
+
+    public static string? GetString(this Headers headers, ContextDataKey<string> key)
+    {
+        var value = headers.GetValue(key.Key);
+        return value is byte[] bytes ? Encoding.UTF8.GetString(bytes) : value?.ToString();
+    }
+
+    public static ImmutableArray<string> GetStringArray(
+        this Headers headers,
+        ContextDataKey<ImmutableArray<string>> key)
+    {
+        if (headers.GetValue(key.Key) is not object?[] values)
+        {
+            return [];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<string>(values.Length);
+        foreach (var value in values)
+        {
+            if (value is string text)
+            {
+                builder.Add(text);
+            }
+            else if (value is byte[] bytes)
+            {
+                builder.Add(Encoding.UTF8.GetString(bytes));
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static int GetDeliveryCount(this Headers headers, bool redelivered)
+    {
+        if (headers.TryGet(RabbitMQMessageHeaders.DeliveryCount, out var count))
         {
             return count > int.MaxValue ? int.MaxValue : (int)count;
         }
@@ -63,44 +117,17 @@ internal sealed class RabbitMQMessageEnvelopeParser
         return redelivered ? 1 : 0;
     }
 
-    private static DateTimeOffset? ParseExpiration(string? expiration, DateTimeOffset? sentAt)
+    public static DateTimeOffset? ParseExpiration(
+        this string? expiration,
+        DateTimeOffset? sentAt,
+        TimeProvider timeProvider)
     {
-        if (string.IsNullOrEmpty(expiration) || !long.TryParse(expiration, out var ms))
+        if (string.IsNullOrEmpty(expiration) || !long.TryParse(expiration, out var milliseconds))
         {
             return null;
         }
 
-        // AMQP expiration is a per-message TTL in milliseconds set at publish time.
-        // Compute deliver-by relative to the send timestamp when available.
-        var origin = sentAt ?? DateTimeOffset.UtcNow;
-        return origin.AddMilliseconds(ms);
+        var origin = sentAt ?? timeProvider.GetUtcNow();
+        return origin.AddMilliseconds(milliseconds);
     }
-
-    private static Headers BuildHeaders(IDictionary<string, object?>? headers)
-    {
-        if (headers is null || headers.Count == 0)
-        {
-            return Headers.Empty();
-        }
-
-        var result = new Headers(headers.Count);
-        foreach (var (key, value) in headers)
-        {
-            var strValue = value switch
-            {
-                byte[] bytes => Encoding.UTF8.GetString(bytes),
-                AmqpTimestamp timestamp => DateTimeOffset.FromUnixTimeSeconds(timestamp.UnixTime),
-                _ => value
-            };
-
-            result.Set(key, strValue);
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// Shared singleton instance of the parser.
-    /// </summary>
-    public static readonly RabbitMQMessageEnvelopeParser Instance = new();
 }

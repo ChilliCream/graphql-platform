@@ -41,26 +41,19 @@ public class HeadersSerializationTests
     }
 
     [Fact]
-    public void RoundTrip_Should_PreserveDateTime_When_Serialized()
+    public void RoundTrip_Should_PreserveDateTimeAsIsoText_When_Serialized()
     {
         // arrange
         var headers = new Headers();
-        var dateTime = new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Utc);
-        headers.Set("dateTime", dateTime);
+        headers.Set("dateTime", new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Utc));
 
         // act
         var json = JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options);
         var result = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         // assert
-        Assert.NotNull(result);
-        Assert.True(result.TryGetValue("dateTime", out var value));
-        Assert.IsType<DateTime>(value);
-        var resultDateTime = (DateTime)value;
-        // DateTime may be deserialized with some precision loss
-        Assert.Equal(dateTime.Year, resultDateTime.Year);
-        Assert.Equal(dateTime.Month, resultDateTime.Month);
-        Assert.Equal(dateTime.Day, resultDateTime.Day);
+        result!.TryGetValue("dateTime", out var value);
+        Assert.Equal("2024-01-15T10:30:45Z", Assert.IsType<string>(value));
     }
 
     [Fact]
