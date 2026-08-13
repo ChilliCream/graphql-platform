@@ -26,8 +26,7 @@ public static class InMemoryMessageBusBuilderExtensions
         busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         busBuilder.Services.TryAddSingleton(
-            sp => new InMemoryTransportScheduledMessageStore(
-                sp.GetService<TimeProvider>() ?? TimeProvider.System));
+            static sp => new InMemoryTransportScheduledMessageStore(sp.GetTimeProvider()));
 
         busBuilder.Services.AddSingleton(
             new ScheduledMessageStoreRegistration(
@@ -36,12 +35,12 @@ public static class InMemoryMessageBusBuilderExtensions
                 static sp => sp.GetRequiredService<InMemoryTransportScheduledMessageStore>()));
 
         busBuilder.Services.TryAddSingleton(
-            sp => new InMemoryScheduledMessageWorker(
+            static sp => new InMemoryScheduledMessageWorker(
                 sp,
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<InMemoryTransportScheduledMessageStore>(),
-                sp.GetService<TimeProvider>() ?? TimeProvider.System,
+                sp.GetTimeProvider(),
                 sp.GetRequiredService<ILogger<InMemoryScheduledMessageWorker>>()));
 
         busBuilder.Services.AddHostedService(

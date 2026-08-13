@@ -54,10 +54,10 @@ internal sealed class InMemoryTransportScheduledMessageStore(TimeProvider timePr
     /// Deep-copies the envelope and stores it under a new token. The stored copy is independent of
     /// the caller's envelope, so mutating the original body or headers afterward does not affect it.
     /// </summary>
-    internal string Add(MessageEnvelope envelope, DateTimeOffset scheduledTime)
+    public string Add(MessageEnvelope envelope, DateTimeOffset scheduledTime)
     {
         var id = Guid.NewGuid();
-        var copy = new MessageEnvelope(envelope) { Body = envelope.Body.ToArray() };
+        var copy = MessageEnvelope.CopyWithOwnedBody(envelope);
         var entry = new ScheduledEntry(id, copy, scheduledTime);
 
         lock (_lock)
