@@ -39,7 +39,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 3
+      - id: 5
   - id: 3
     type: Operation
     schema: b
@@ -51,7 +51,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 3
+    batchingGroupId: 5
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -69,7 +69,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 3
+    batchingGroupId: 5
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

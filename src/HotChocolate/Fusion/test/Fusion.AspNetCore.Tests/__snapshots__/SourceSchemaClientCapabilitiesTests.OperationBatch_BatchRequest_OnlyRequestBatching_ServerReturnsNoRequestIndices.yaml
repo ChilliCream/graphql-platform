@@ -238,7 +238,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.b
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -256,7 +256,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.a
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

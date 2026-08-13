@@ -37,14 +37,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        // When the batch holds a single non-merged operation, the planner
-        // promotes all of its dependencies onto the batch node as required.
-        // So if we reach this point, every dependency has already succeeded.
-        // We use the simpler ExecuteAsync path which avoids the batch
-        // streaming infrastructure (no lists, no receivedResults tracking).
-        // Note: BatchOperationDefinition (merged multi-target ops) uses the
-        // batch path because its deps are optional: some targets' deps may
-        // be skipped while others succeed.
         if (_operations.Length == 1)
         {
             return ExecuteSingleAsync(context, cancellationToken);
@@ -446,6 +438,28 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
     private static bool HasSkippedDependencies(OperationPlanContext context, OperationDefinition operation)
     {
+        // A merged operation targets multiple result paths and each dependency
+        // only feeds a subset of them, so it can still execute as long as at
+        // least one dependency delivered data. Targets without data simply
+        // produce no variable value sets.
+        if (operation is BatchOperationDefinition)
+        {
+            if (operation.Dependencies.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var dep in operation.Dependencies)
+            {
+                if (!context.IsNodeSkipped(dep.Id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         foreach (var dep in operation.Dependencies)
         {
             if (context.IsNodeSkipped(dep.Id))
