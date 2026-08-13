@@ -7,11 +7,11 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open s
 
 You wire MCP onto an existing Hot Chocolate server with two calls: `AddMcp()` during service registration and `MapGraphQLMcp()` during endpoint mapping. The adapter exposes the MCP server over Streamable HTTP at `/graphql/mcp` by default, so any MCP client (Claude Desktop, an editor extension, an agent runtime) can connect directly to your server.
 
-This page covers wiring and configuration. For authoring tools and prompts, see the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
+This page covers wiring and configuration. For authoring tools and prompts, see the [Nitro MCP](../../nitro/adapters/mcp.md) section.
 
 # Prerequisites
 
-You need an existing Hot Chocolate GraphQL server. If you do not have one yet, follow the [Get started with Hot Chocolate](../../get-started-with-graphql-in-net-core.md) tutorial first.
+You need an existing Hot Chocolate GraphQL server. If you do not have one yet, follow the [Get started with Hot Chocolate](../get-started-with-graphql-in-net-core.md) tutorial first.
 
 Add the adapter package to the server project:
 
@@ -159,7 +159,7 @@ With Nitro and MCP both enabled:
 - If Nitro configuration is incomplete (any of `ApiId`, `ApiKey`, or `Stage` not set), MCP integration is disabled with a warning, the storage returns no definitions, and the host continues to start.
 - If configuration is set but the API key is rejected, the storage uses the local cache when one is available and logs the sync failure. Without a usable cache, the exception propagates and host startup fails.
 
-For authoring tools and prompts, publishing feature collection versions, and managing stages, see the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
+For authoring tools and prompts, publishing feature collection versions, and managing stages, see the [Nitro MCP](../../nitro/adapters/mcp.md) section.
 
 # Troubleshooting
 
@@ -188,5 +188,5 @@ Storage is registered but returned no definitions. With Nitro, ensure a publishe
 
 # Next Steps
 
-- Author tools and prompts and publish them with Nitro in the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
-- Customize how GraphQL errors surface in MCP tool results with [Errors](../../resolvers/errors.md).
+- Author tools and prompts and publish them with Nitro in the [Nitro MCP](../../nitro/adapters/mcp.md) section.
+- Customize how GraphQL errors surface in MCP tool results with [Errors](../resolvers/errors.md).

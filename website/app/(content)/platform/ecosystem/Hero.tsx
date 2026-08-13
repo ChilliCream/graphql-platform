@@ -2,25 +2,23 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 import { ButtonRow } from "@/src/components/ButtonRow";
-import {
-  GITHUB_REPO_URL,
-  GITHUB_STARGAZERS_URL,
-  TOOLS,
-} from "@/src/components/header/navData";
+import { TOOLS } from "@/src/components/header/navData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL } from "@/src/helpers/github";
 import type { GitHubContributor } from "@/src/helpers/githubContributors";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { SlackIcon } from "@/src/icons/Slack";
 
 import { CARD_FOCUS_CLASSES } from "./cardFocus";
-import { PILL_CLASSES, StarPillContent } from "./StarPill";
 import {
   CONNECTORS,
   ORBIT_RINGS,
   connectorPath,
   polarPoint,
 } from "./orbitGeometry";
+import { PILL_CLASSES } from "./pillClasses";
+import { StarPillContent } from "./StarPill";
 
 const RING_STROKE = "rgba(245,240,234,0.17)";
 
@@ -43,7 +41,7 @@ interface OrbitNodeSpec {
   readonly key: string;
   readonly angle: number;
   readonly radius: number;
-  readonly render: (starCount: number | null) => ReactNode;
+  readonly content: ReactNode;
 }
 
 const ORBIT_NODES: readonly OrbitNodeSpec[] = [
@@ -51,14 +49,14 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "stars",
     angle: 197,
     radius: 680,
-    render: (starCount) => (
+    content: (
       <a
         href={GITHUB_STARGAZERS_URL}
         target="_blank"
         rel="noopener noreferrer"
         className={`${PILL_CLASSES} ${ORBIT_LINK_CLASSES}`}
       >
-        <StarPillContent count={starCount} />
+        <StarPillContent />
       </a>
     ),
   },
@@ -66,7 +64,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "license",
     angle: 343,
     radius: 680,
-    render: () => (
+    content: (
       <a
         href={`${GITHUB_REPO_URL}/blob/main/LICENSE`}
         target="_blank"
@@ -81,7 +79,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "github",
     angle: 155,
     radius: 680,
-    render: () => (
+    content: (
       <SocialChip href={GITHUB_REPO_URL} label="ChilliCream on GitHub">
         <GitHubIcon className="h-5 w-5 fill-current" />
       </SocialChip>
@@ -91,7 +89,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "slack",
     angle: 25,
     radius: 680,
-    render: () => (
+    content: (
       <SocialChip href={TOOLS.slack} label="Join the ChilliCream Slack">
         <SlackIcon className="h-5 w-5 fill-current" />
       </SocialChip>
@@ -101,7 +99,7 @@ const ORBIT_NODES: readonly OrbitNodeSpec[] = [
     key: "blog",
     angle: 38,
     radius: 560,
-    render: () => (
+    content: (
       <SocialChip href="/blog" label="ChilliCream blog">
         <BlogIcon className="h-5 w-5 fill-current" />
       </SocialChip>
@@ -203,11 +201,10 @@ function SocialChip({ href, label, children }: SocialChipProps) {
 }
 
 interface MobileHeroLinksProps {
-  readonly starCount: number | null;
   readonly contributors: ReadonlyArray<GitHubContributor> | null;
 }
 
-function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
+function MobileHeroLinks({ contributors }: MobileHeroLinksProps) {
   const linkClassName = `border-cc-card-border bg-cc-surface text-cc-ink-dim flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 font-mono text-[0.65rem] no-underline ${CARD_FOCUS_CLASSES}`;
   return (
     <nav
@@ -222,7 +219,7 @@ function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
             rel="noopener noreferrer"
             className={linkClassName}
           >
-            <StarPillContent count={starCount} />
+            <StarPillContent />
           </a>
         </li>
         <li>
@@ -288,11 +285,10 @@ function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
 }
 
 interface HeroProps {
-  readonly starCount: number | null;
   readonly contributors: ReadonlyArray<GitHubContributor> | null;
 }
 
-export function Hero({ starCount, contributors }: HeroProps) {
+export function Hero({ contributors }: HeroProps) {
   return (
     <section className="relative flex min-h-[640px] flex-col items-center justify-center py-24 [--u:0.62] sm:min-h-[720px] sm:[--u:0.78] lg:min-h-[820px] lg:[--u:1]">
       <style href="ecosystem-hero-entrance" precedence="medium">
@@ -355,7 +351,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
               radius={node.radius}
               delay={i * 40}
             >
-              {node.render(starCount)}
+              {node.content}
             </OrbitNode>
           ))}
           {contributors?.slice(0, AVATAR_SLOTS.length).map((contributor, i) => {
@@ -414,7 +410,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
             Read the docs
           </OutlineButton>
         </ButtonRow>
-        <MobileHeroLinks starCount={starCount} contributors={contributors} />
+        <MobileHeroLinks contributors={contributors} />
         <p className="font-heading text-h4 text-cc-heading mx-auto mt-20 max-w-2xl font-semibold sm:mt-24">
           Open source you can inspect. Standards you can follow. People you can
           reach.

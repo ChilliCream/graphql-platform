@@ -89,27 +89,22 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         }
 
         if (configuration is null
-            && Transport.Topology.Address.IsBaseOf(address)
-            && segmentCount == 2)
+            && TryParseTopologyAddress(address, out var topologyKind, out var resourceName))
         {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "t" && name is var topicName)
+            if (topologyKind is 't')
             {
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    TopicName = new string(topicName),
-                    Name = "t/" + new string(topicName)
+                    TopicName = resourceName,
+                    Name = "t/" + resourceName
                 };
             }
-
-            if (kind is "q" && name is var queueName)
+            else if (topologyKind is 'q')
             {
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
+                    QueueName = resourceName,
+                    Name = "q/" + resourceName
                 };
             }
         }
@@ -228,10 +223,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
-            EnsureFaultOrSkippedQueue(
-                postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
-            EnsureFaultOrSkippedQueue(
-                postgresConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
+            EnsureFaultOrSkippedQueue(postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
+            EnsureFaultOrSkippedQueue(postgresConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
         }
 
         if (postgresEndpoint.Kind
@@ -315,17 +308,13 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         if (postgresConfiguration.TopicName is not null
             && _topology.Topics.FirstOrDefault(t => t.Name == postgresConfiguration.TopicName) is null)
         {
-            _topology.GetOrAddTopic(
-                postgresConfiguration.TopicName,
-                static _ => new PostgresTopicConfiguration());
+            _topology.GetOrAddTopic(postgresConfiguration.TopicName, static _ => new PostgresTopicConfiguration());
         }
 
         if (postgresConfiguration.QueueName is not null
             && _topology.Queues.FirstOrDefault(q => q.Name == postgresConfiguration.QueueName) is null)
         {
-            _topology.GetOrAddQueue(
-                postgresConfiguration.QueueName,
-                static _ => new PostgresQueueConfiguration());
+            _topology.GetOrAddQueue(postgresConfiguration.QueueName, static _ => new PostgresQueueConfiguration());
         }
 
         if (postgresConfiguration.TopicName is not null
@@ -455,8 +444,9 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        if (TryParseTopologyAddress(address, out var topologyKind, out var topologyName) && topologyKind is 'q')
         {
+            queueName = topologyName;
             return true;
         }
 
@@ -473,27 +463,69 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         return false;
     }
 
-    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    /// <summary>
+    /// Parses an address under the transport topology into its kind and resource name.
+    /// Everything after the kind segment is the name, because a queue or topic name may contain
+    /// a slash.
+    /// </summary>
+    private bool TryParseTopologyAddress(Uri address, out char kind, out string name)
     {
-        var relative = Transport.Topology.Address.MakeRelativeUri(address);
-        if (relative.IsAbsoluteUri)
+        kind = default;
+        name = string.Empty;
+
+        // A valid resource path is not enough to identify this transport. For example,
+        // postgres://other-host:5432/q/orders must not be claimed by this topology.
+        var topologyAddress = Transport.Topology.Address;
+        if (!address.Scheme.EqualsOrdinalIgnoreCase(topologyAddress.Scheme)
+            || !address.Host.EqualsOrdinalIgnoreCase(topologyAddress.Host)
+            || address.Port != topologyAddress.Port)
         {
-            queueName = string.Empty;
             return false;
         }
 
-        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
-        var path = relativePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+        // Normalize only the topology path: "/" becomes empty and "/base/" becomes "/base".
+        // Keep the address path unchanged while removing the topology prefix below.
+        var basePath = topologyAddress.AbsolutePath.AsSpan().TrimEnd('/');
+        var path = address.AbsolutePath.AsSpan();
+        ReadOnlySpan<char> relativePath;
 
-        if (segmentCount == 2 && path[ranges[0]] is "q")
+        if (basePath.IsEmpty)
         {
-            queueName = new string(path[ranges[1]]);
-            return true;
+            // A root topology consumes exactly one structural slash:
+            // "/q/orders" becomes "q/orders". The shorthand "postgres:q/orders" has no
+            // leading slash and is handled by the transport-specific branch above.
+            if (path.IsEmpty || path[0] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[1..];
+        }
+        else
+        {
+            // Remove the exact topology base and its separator: "/base/q/orders" becomes
+            // "q/orders". Requiring the separator prevents "/base" from matching
+            // "/base-other/q/orders".
+            if (path.Length <= basePath.Length
+                || !path.StartsWith(basePath, StringComparison.Ordinal)
+                || path[basePath.Length] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[(basePath.Length + 1)..];
         }
 
-        queueName = string.Empty;
-        return false;
+        // Require "{kind}/{name}", where kind is one character. Everything after the first
+        // slash is the name, so a name containing a slash, such as "q/nested/queue", stays intact.
+        if (relativePath.Length < 3 || relativePath[1] is not '/')
+        {
+            return false;
+        }
+
+        kind = relativePath[0];
+        // AbsolutePath is escaped, so "q/space%20name" must produce "space name".
+        name = Uri.UnescapeDataString(relativePath[2..].ToString());
+        return true;
     }
 }
