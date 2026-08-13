@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -259,13 +260,14 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            // When every root selection carries a @skip or @include directive,
-            // we promote those directives to node-level conditions. This lets
-            // the executor skip the entire network call when the condition is
-            // not met, rather than sending a request that returns nothing.
-            if (operationPlanStep.AreAllProvidedSelectionsConditional())
+            // When a @skip or @include directive gates every selection of the
+            // operation, we promote it to a node-level condition. This lets the
+            // executor skip the entire network call when the condition is not
+            // met, rather than sending a request that returns nothing.
+            // Directives that gate only some selections stay in the document and
+            // are evaluated by the source schema.
+            if (TryExtractCommonConditionsAndRewrite(operationPlanStep, out var updated))
             {
-                var updated = ExtractConditionsAndRewriteSelectionSet(operationPlanStep);
                 updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updated);
                 operationPlanStep = updated;
             }
@@ -2444,69 +2446,201 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Extracts @skip and @include directives from every selection in the
-    /// root selection set (or beneath a lookup field) and promotes them to
-    /// node-level conditions on the plan step. This allows the executor to
-    /// evaluate the conditions once and skip the entire request if needed.
+    /// Promotes the @skip and @include directives that gate every selection of the step
+    /// to node-level conditions and removes them from the operation document.
+    /// Returns <see langword="false"/> when there is no such common condition, in which
+    /// case <paramref name="updated"/> is <see langword="null"/> and the step must be used as is.
     /// </summary>
-    private static OperationPlanStep ExtractConditionsAndRewriteSelectionSet(OperationPlanStep step)
+    private static bool TryExtractCommonConditionsAndRewrite(
+        OperationPlanStep step,
+        [NotNullWhen(true)] out OperationPlanStep? updated)
     {
-        var context = new ConditionalSelectionSetRewriterContext();
+        updated = null;
 
-        OperationDefinitionNode newOperation;
+        var targetSelectionSet = step.Definition.SelectionSet;
+        List<FieldNode>? enclosingFields = null;
 
         if (step.Lookup is not null)
         {
-            FieldNode? lookupFieldNode = null;
+            enclosingFields = [];
 
-            foreach (var selection in step.Definition.SelectionSet.Selections)
+            foreach (var pathFieldName in step.Lookup.Path)
             {
-                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
+                if (!TryFindFieldWithSelectionSet(targetSelectionSet, pathFieldName, out var pathField))
                 {
-                    lookupFieldNode = fieldNode;
-                    break;
+                    return false;
                 }
+
+                enclosingFields.Add(pathField);
+                targetSelectionSet = pathField.SelectionSet!;
             }
 
-            if (lookupFieldNode?.SelectionSet is not { } lookupSelectionSet)
+            if (!TryFindFieldWithSelectionSet(targetSelectionSet, step.Lookup.FieldName, out var lookupField))
             {
-                throw new InvalidOperationException(
-                    "Expected to find the lookup field with a selection set in the operation definition");
+                return false;
             }
 
-            var newLookupSelectionSet = RewriteConditionalSelectionSet(lookupSelectionSet, context);
-            var newLookupField = lookupFieldNode.WithSelectionSet(newLookupSelectionSet);
-
-            newOperation = step.Definition.WithSelectionSet(
-                new SelectionSetNode([newLookupField]));
+            enclosingFields.Add(lookupField);
+            targetSelectionSet = lookupField.SelectionSet!;
         }
-        else
+
+        var leafConditions = new List<HashSet<ExecutionNodeCondition>>();
+        CollectLeafConditions(targetSelectionSet, [], leafConditions);
+
+        if (leafConditions.Count == 0)
         {
-            var newRootSelectionSet = RewriteConditionalSelectionSet(step.Definition.SelectionSet, context);
-
-            newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
+            return false;
         }
 
-        var mergedConditions = context.Conditions;
+        var commonConditions = new HashSet<ExecutionNodeCondition>(leafConditions[0]);
+
+        for (var i = 1; i < leafConditions.Count && commonConditions.Count > 0; i++)
+        {
+            commonConditions.IntersectWith(leafConditions[i]);
+        }
+
+        if (commonConditions.Count == 0)
+        {
+            return false;
+        }
+
+        var newSelectionSet = RewriteConditionalSelectionSet(targetSelectionSet, commonConditions);
+
+        if (enclosingFields is not null)
+        {
+            for (var i = enclosingFields.Count - 1; i >= 0; i--)
+            {
+                var enclosingField = enclosingFields[i];
+                var parentSelectionSet = i == 0
+                    ? step.Definition.SelectionSet
+                    : enclosingFields[i - 1].SelectionSet!;
+
+                newSelectionSet = ReplaceSelection(
+                    parentSelectionSet,
+                    enclosingField,
+                    enclosingField.WithSelectionSet(newSelectionSet));
+            }
+        }
 
         foreach (var existing in step.Conditions)
         {
-            mergedConditions.Add(existing);
+            commonConditions.Add(existing);
         }
 
-        return step with
+        updated = step with
         {
-            Definition = newOperation,
-            Conditions = mergedConditions
+            Definition = step.Definition.WithSelectionSet(newSelectionSet),
+            Conditions = commonConditions
                 .OrderBy(c => c.VariableName, StringComparer.Ordinal)
                 .ThenBy(c => c.PassingValue)
-                .ToArray(),
+                .ToArray()
         };
+
+        return true;
     }
 
+    private static bool TryFindFieldWithSelectionSet(
+        SelectionSetNode selectionSetNode,
+        string fieldName,
+        [NotNullWhen(true)] out FieldNode? field)
+    {
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            if (selection is FieldNode { SelectionSet: not null } fieldNode
+                && fieldNode.Name.Value == fieldName)
+            {
+                field = fieldNode;
+                return true;
+            }
+        }
+
+        field = null;
+        return false;
+    }
+
+    private static SelectionSetNode ReplaceSelection(
+        SelectionSetNode selectionSetNode,
+        ISelectionNode original,
+        ISelectionNode replacement)
+    {
+        var selections = new List<ISelectionNode>(selectionSetNode.Selections.Count);
+
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            selections.Add(ReferenceEquals(selection, original) ? replacement : selection);
+        }
+
+        return selectionSetNode.WithSelections(selections);
+    }
+
+    /// <summary>
+    /// Collects for every leaf selection the set of conditions that gate it, including
+    /// the conditions of the enclosing untyped inline fragments.
+    /// </summary>
+    private static void CollectLeafConditions(
+        SelectionSetNode selectionSetNode,
+        List<ExecutionNodeCondition> ancestorConditions,
+        List<HashSet<ExecutionNodeCondition>> leafConditions)
+    {
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode:
+                    leafConditions.Add(CreateConditionSet(ancestorConditions, fieldNode.Directives));
+                    break;
+
+                case InlineFragmentNode { TypeCondition: null } untypedFragment:
+                    var conditions = ExtractConditions(untypedFragment.Directives);
+                    var restoreCount = ancestorConditions.Count;
+
+                    if (conditions is not null)
+                    {
+                        ancestorConditions.AddRange(conditions);
+                    }
+
+                    CollectLeafConditions(
+                        untypedFragment.SelectionSet,
+                        ancestorConditions,
+                        leafConditions);
+
+                    ancestorConditions.RemoveRange(
+                        restoreCount,
+                        ancestorConditions.Count - restoreCount);
+                    break;
+
+                case InlineFragmentNode typedFragment:
+                    leafConditions.Add(CreateConditionSet(ancestorConditions, typedFragment.Directives));
+                    break;
+            }
+        }
+
+        static HashSet<ExecutionNodeCondition> CreateConditionSet(
+            List<ExecutionNodeCondition> ancestorConditions,
+            IReadOnlyList<DirectiveNode> directives)
+        {
+            var conditionSet = new HashSet<ExecutionNodeCondition>(ancestorConditions);
+            var conditions = ExtractConditions(directives);
+
+            if (conditions is not null)
+            {
+                foreach (var condition in conditions)
+                {
+                    conditionSet.Add(condition);
+                }
+            }
+
+            return conditionSet;
+        }
+    }
+
+    /// <summary>
+    /// Removes the @skip and @include directives that represent one of the common
+    /// conditions and leaves all other directives in place.
+    /// </summary>
     private static SelectionSetNode RewriteConditionalSelectionSet(
         SelectionSetNode selectionSetNode,
-        ConditionalSelectionSetRewriterContext context)
+        HashSet<ExecutionNodeCondition> commonConditions)
     {
         var selections = new List<ISelectionNode>();
 
@@ -2516,18 +2650,8 @@ public sealed partial class OperationPlanner
             {
                 case FieldNode fieldNode:
                 {
-                    var conditions = ExtractConditions(fieldNode.Directives);
-
-                    if (conditions is not null)
+                    if (TryRemoveCommonConditions(fieldNode.Directives, commonConditions, out var newDirectives))
                     {
-                        var newDirectives = new List<DirectiveNode>(fieldNode.Directives);
-
-                        foreach (var condition in conditions)
-                        {
-                            context.Conditions.Add(condition);
-                            newDirectives.Remove(condition.Directive!);
-                        }
-
                         fieldNode = fieldNode.WithDirectives(newDirectives);
                     }
 
@@ -2539,25 +2663,18 @@ public sealed partial class OperationPlanner
                     if (inlineFragmentNode.TypeCondition is null)
                     {
                         var fragmentSelectionSet =
-                            RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
+                            RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, commonConditions);
 
                         if (fragmentSelectionSet.Selections.Count == 0)
                         {
                             continue;
                         }
 
-                        var conditions = ExtractConditions(inlineFragmentNode.Directives);
-
-                        if (conditions is not null)
+                        if (TryRemoveCommonConditions(
+                            inlineFragmentNode.Directives,
+                            commonConditions,
+                            out var newDirectives))
                         {
-                            var newDirectives = new List<DirectiveNode>(inlineFragmentNode.Directives);
-
-                            foreach (var condition in conditions)
-                            {
-                                context.Conditions.Add(condition);
-                                newDirectives.Remove(condition.Directive!);
-                            }
-
                             if (newDirectives.Count == 0)
                             {
                                 selections.AddRange(fragmentSelectionSet.Selections);
@@ -2566,6 +2683,8 @@ public sealed partial class OperationPlanner
 
                             inlineFragmentNode = inlineFragmentNode.WithDirectives(newDirectives);
                         }
+
+                        inlineFragmentNode = inlineFragmentNode.WithSelectionSet(fragmentSelectionSet);
                     }
 
                     selections.Add(inlineFragmentNode);
@@ -2575,6 +2694,34 @@ public sealed partial class OperationPlanner
         }
 
         return new SelectionSetNode(selections);
+    }
+
+    private static bool TryRemoveCommonConditions(
+        IReadOnlyList<DirectiveNode> directives,
+        HashSet<ExecutionNodeCondition> commonConditions,
+        [NotNullWhen(true)] out List<DirectiveNode>? newDirectives)
+    {
+        var conditions = ExtractConditions(directives);
+
+        if (conditions is null)
+        {
+            newDirectives = null;
+            return false;
+        }
+
+        List<DirectiveNode>? result = null;
+
+        foreach (var condition in conditions)
+        {
+            if (commonConditions.Contains(condition))
+            {
+                result ??= [.. directives];
+                result.Remove(condition.Directive!);
+            }
+        }
+
+        newDirectives = result;
+        return result is not null;
     }
 
     /// <summary>
@@ -2601,11 +2748,6 @@ public sealed partial class OperationPlanner
         public int NextId() => _nextNodeId++;
     }
 
-    private sealed class ConditionalSelectionSetRewriterContext
-    {
-        public HashSet<ExecutionNodeCondition> Conditions { get; } = [];
-    }
-
     private readonly record struct MergeResult(
         SelectionPath[] Targets,
         OperationSourceText CanonicalOp,
@@ -2616,65 +2758,6 @@ public sealed partial class OperationPlanner
 file static class Extensions
 {
     private static readonly Encoding s_encoding = Encoding.UTF8;
-
-    /// <summary>
-    /// Returns <see langword="true"/> when every selection in the relevant
-    /// selection set carries a @skip or @include directive, meaning the
-    /// entire operation is conditional and can potentially be skipped.
-    /// </summary>
-    public static bool AreAllProvidedSelectionsConditional(this OperationPlanStep step)
-    {
-        var selectionSetNode = step.Definition.SelectionSet;
-
-        if (step.Lookup is not null)
-        {
-            FieldNode? lookupFieldNode = null;
-
-            if (!step.Lookup.Path.IsEmpty)
-            {
-                foreach (var fieldName in step.Lookup.Path)
-                {
-                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(selection =>
-                        selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
-
-                    if (fieldNode is not FieldNode { SelectionSet: { } nextSelectionSetNode })
-                    {
-                        throw new InvalidOperationException("Unable to resolve the lookup path.");
-                    }
-
-                    selectionSetNode = nextSelectionSetNode;
-                }
-            }
-
-            foreach (var selection in selectionSetNode.Selections)
-            {
-                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
-                {
-                    lookupFieldNode = fieldNode;
-                    break;
-                }
-            }
-
-            selectionSetNode = lookupFieldNode?.SelectionSet ??
-                throw new InvalidOperationException(
-                    "Expected to find the lookup field with a selection set in the operation definition");
-        }
-
-        foreach (var selection in selectionSetNode.Selections)
-        {
-            switch (selection)
-            {
-                case FieldNode fieldNode
-                    when !fieldNode.Directives.Any(d => d.Name.Value is "skip" or "include"):
-                    return false;
-                case InlineFragmentNode inlineFragmentNode
-                    when !inlineFragmentNode.Directives.Any(d => d.Name.Value is "skip" or "include"):
-                    return false;
-            }
-        }
-
-        return true;
-    }
 
     public static bool IsIntrospectionOnly(this Operation operation)
     {
