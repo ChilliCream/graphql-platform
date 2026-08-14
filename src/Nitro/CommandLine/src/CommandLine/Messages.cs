@@ -30,6 +30,18 @@ internal static class Messages
     public static string SourceSchemaUrlInvalid()
         => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
 
+    public static string TransportUrlInvalid(string optionName)
+        => $"The value for '{optionName}' must be an absolute HTTP URL without user information or a fragment, "
+            + "or reference an environment variable such as '{{API_URL}}'.";
+
+    public static string SourceSchemaSettingsFileNotAnObject(string path)
+        => $"Source schema settings file '{path}' is not a JSON object. "
+            + $"Remove it or write to a different path with '{OptionalSettingsFileOption.OptionName}'.";
+
+    public static string ApolloFederationVersionRequiresKind()
+        => $"The option '{OptionalApolloFederationVersionOption.OptionName}' requires "
+            + $"'{SourceSchemaKindOption.OptionName} {SourceSchemaKindOption.ApolloFederation}'.";
+
     public static string SourceSchemaUrlSettingsCountMismatch()
         => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
             + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";

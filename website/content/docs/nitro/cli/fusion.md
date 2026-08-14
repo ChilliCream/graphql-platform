@@ -411,6 +411,94 @@ Composed new configuration.
 
 For examples of node resolution, shareable runtime type routing, and tag exclusion, see [Fusion CLI](../../fusion/cli.md#nitro-fusion-settings-set).
 
+# `nitro fusion source-schema init`
+
+Create the `schema-settings.json` file that a source schema needs for composition. The settings file is written next to the schema file it belongs to, under the name composition looks for, so `nitro fusion compose` picks it up without further configuration.
+
+Running the command against an existing settings file updates only the values you pass and preserves every other setting in the file, which makes it safe to re-run from a pipeline.
+
+```shell
+nitro fusion source-schema init [options]
+```
+
+## Options
+
+| Option                                  | Env            | Description                                                                                            |
+| --------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------ |
+| `--name <name>`                         |                | Name that identifies the source schema in the composite schema. Prompted for when creating a new file. |
+| `-f, --source-schema-file <path>`       |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to.          |
+| `--settings-file <path>`                |                | Write the settings to this path instead of deriving it from the schema file.                           |
+| `--url <url>`                           |                | URL the gateway uses to reach the source schema. Prompted for when creating a new file.                |
+| `--dev-url <url>`                       |                | URL a local development environment uses to reach the source schema.                                   |
+| `--client-name <name>`                  |                | Name of the HTTP client the gateway uses to reach the source schema.                                   |
+| `--api-id <id>`                         | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                                       |
+| `--kind <kind>`                         |                | `generic` (default), `hot-chocolate`, or `apollo-federation`. See below.                               |
+| `--apollo-federation-version <version>` |                | `1.0` or `2.0` (default `2.0`). Requires `--kind apollo-federation`.                                   |
+| `-w, --working-directory <path>`        |                | Working directory for the command.                                                                     |
+
+Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which composition resolves against the [`environments`](../../fusion/cli.md#environments) section of the settings file.
+
+## Source schema kinds
+
+`--kind` describes the server behind the source schema, which decides what the generated file declares beyond the name and transport URL.
+
+| Kind                | What it adds                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generic`           | Nothing. Use this when the server's transport capabilities are unknown.                                                                      |
+| `hot-chocolate`     | The batching capabilities and error behavior a Hot Chocolate server implements, matching what `dotnet run -- schema export` writes.          |
+| `apollo-federation` | `extensions.chillicream.apolloFederationSupport.version`, which tells composition to read the schema through Apollo Federation's `_service`. |
+
+## Where the file is written
+
+The target path is resolved in this order:
+
+1. `--settings-file`, when given.
+2. Next to `--source-schema-file` as `<schema-file-name>-settings.json`. When the option points at a directory, the schema file inside it determines the name.
+3. `schema-settings.json` in the working directory.
+
+## Examples
+
+Create settings for a subgraph next to its schema file:
+
+```shell
+nitro fusion source-schema init \
+  --name "products" \
+  --source-schema-file ./products/schema.graphqls \
+  --url "https://products.example.com/graphql"
+```
+
+This writes `./products/schema-settings.json`:
+
+```json
+{
+  "name": "products",
+  "transports": {
+    "http": {
+      "url": "https://products.example.com/graphql"
+    }
+  }
+}
+```
+
+Create settings for an Apollo Federation subgraph:
+
+```shell
+nitro fusion source-schema init \
+  --name "reviews" \
+  --source-schema-file ./reviews/schema.graphqls \
+  --url "https://reviews.example.com/graphql" \
+  --kind apollo-federation \
+  --apollo-federation-version 2.0
+```
+
+Point an existing settings file at a new URL without touching its other settings:
+
+```shell
+nitro fusion source-schema init \
+  --source-schema-file ./products/schema.graphqls \
+  --url "https://products.staging.example.com/graphql"
+```
+
 # `nitro fusion run`
 
 Start a Fusion gateway locally with the specified archive. Useful for smoke-testing a composed archive before publishing. Only supports Fusion v2.
