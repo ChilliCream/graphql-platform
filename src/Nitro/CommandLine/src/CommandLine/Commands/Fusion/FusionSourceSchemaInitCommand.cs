@@ -11,6 +11,13 @@ internal sealed class FusionSourceSchemaInitCommand : Command
     private const string DefaultUrl = "http://localhost:5000/graphql";
     private const string SettingsFileSuffix = "-settings.json";
     private const string DefaultSettingsFileName = "schema" + SettingsFileSuffix;
+    private const string NamePropertyName = "name";
+    private const string TransportsPropertyName = "transports";
+    private const string HttpPropertyName = "http";
+    private const string CapabilitiesPropertyName = "capabilities";
+    private const string ExtensionsPropertyName = "extensions";
+    private const string ChilliCreamPropertyName = "chillicream";
+    private const string ApolloFederationSupportPropertyName = "apolloFederationSupport";
 
     private static readonly JsonWriterOptions s_writerOptions = new()
     {
@@ -71,8 +78,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         var settings = await TryReadSettingsAsync(fileSystem, settingsFile, cancellationToken);
         var exists = settings is not null;
 
-        // a new settings file needs a name and a URL, so both are asked for when they are not
-        // passed as options. An existing file already carries them and keeps its values.
+        // an existing file already carries a name and a URL and keeps them unless they are passed.
         var name = exists
             ? parseResult.GetValue(Opt<OptionalSourceSchemaNameOption>.Instance)
             : await console.PromptAsync(
@@ -100,8 +106,17 @@ internal sealed class FusionSourceSchemaInitCommand : Command
             parseResult.GetValue(Opt<OptionalTransportDevUrlOption>.Instance),
             parseResult.GetValue(Opt<OptionalTransportClientNameOption>.Instance),
             parseResult.GetValue(Opt<OptionalApiIdOption>.Instance),
-            parseResult.GetValue(Opt<SourceSchemaKindOption>.Instance) ?? SourceSchemaKindOption.Generic,
+            parseResult.GetValue(Opt<SourceSchemaKindOption>.Instance),
             parseResult.GetValue(Opt<OptionalApolloFederationVersionOption>.Instance));
+
+        // composition rejects a settings file without a name, so an existing file that never had
+        // one is not silently written back in the same broken state.
+        if (settings[NamePropertyName] is not JsonValue nameValue
+            || !nameValue.TryGetValue<string>(out var appliedName)
+            || string.IsNullOrWhiteSpace(appliedName))
+        {
+            throw new ExitException(Messages.SourceSchemaSettingsNameInvalid(settingsFile));
+        }
 
         await WriteSettingsAsync(fileSystem, settingsFile, settings, cancellationToken);
 
@@ -139,8 +154,8 @@ internal sealed class FusionSourceSchemaInitCommand : Command
 
         if (fileSystem.DirectoryExists(sourceSchemaPath))
         {
-            // the same lookup composition performs, so the settings file lands next to the
-            // schema file that composition picks up.
+            // must stay in sync with the lookup in FusionCompositionHelpers.ReadSourceSchemaAsync,
+            // otherwise composition looks for the settings file elsewhere.
             var schemaFile = fileSystem
                 .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
                 .FirstOrDefault(f =>
@@ -180,8 +195,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
     }
 
     /// <summary>
-    /// Reads the settings file when it exists, so that an existing file keeps every setting that
-    /// the command does not touch.
+    /// Reads the settings file, or returns <c>null</c> when it does not exist.
     /// </summary>
     private static async Task<JsonObject?> TryReadSettingsAsync(
         IFileSystem fileSystem,
@@ -213,6 +227,10 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         return settings;
     }
 
+    /// <summary>
+    /// Applies the values that were passed as options. A value that was not passed keeps whatever
+    /// the settings already hold, except for the settings that <paramref name="kind"/> owns.
+    /// </summary>
     private static void ApplySettings(
         JsonObject settings,
         string? name,
@@ -220,19 +238,21 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         string? devUrl,
         string? clientName,
         string? apiId,
-        string kind,
+        string? kind,
         string? apolloFederationVersion)
     {
         if (name is not null)
         {
-            settings["name"] = name;
+            settings[NamePropertyName] = name;
         }
 
         var isHotChocolate = kind is SourceSchemaKindOption.HotChocolate;
 
         if (url is not null || devUrl is not null || clientName is not null || isHotChocolate)
         {
-            var http = GetOrAddObject(GetOrAddObject(settings, "transports"), "http");
+            var http = GetOrAddObject(
+                GetOrAddObject(settings, TransportsPropertyName),
+                HttpPropertyName);
 
             if (url is not null)
             {
@@ -253,7 +273,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
             {
                 // a Hot Chocolate source schema implements these transport extensions, so the
                 // gateway is told about them instead of being left on the defaults.
-                var capabilities = GetOrAddObject(http, "capabilities");
+                var capabilities = GetOrAddObject(http, CapabilitiesPropertyName);
                 var batching = GetOrAddObject(capabilities, "batching");
 
                 batching["variableBatching"] = true;
@@ -265,15 +285,68 @@ internal sealed class FusionSourceSchemaInitCommand : Command
 
         if (apiId is not null)
         {
-            GetOrAddObject(GetOrAddObject(settings, "extensions"), "nitro")["apiId"] = apiId;
+            GetOrAddObject(GetOrAddObject(settings, ExtensionsPropertyName), "nitro")["apiId"] =
+                apiId;
         }
 
         if (kind is SourceSchemaKindOption.ApolloFederation)
         {
-            var chilliCream = GetOrAddObject(GetOrAddObject(settings, "extensions"), "chillicream");
+            // the settings reader rejects this object unless 'version' is its only property, so it
+            // is replaced rather than merged into.
+            var version = apolloFederationVersion
+                ?? GetApolloFederationVersion(settings)
+                ?? OptionalApolloFederationVersionOption.Version2;
 
-            GetOrAddObject(chilliCream, "apolloFederationSupport")["version"] =
-                apolloFederationVersion ?? OptionalApolloFederationVersionOption.Version2;
+            GetOrAddObject(GetOrAddObject(settings, ExtensionsPropertyName), ChilliCreamPropertyName)
+                [ApolloFederationSupportPropertyName] = new JsonObject { ["version"] = version };
+        }
+        else if (kind is not null)
+        {
+            RemoveApolloFederationSupport(settings);
+        }
+
+        if (kind is not null && !isHotChocolate)
+        {
+            RemoveTransportCapabilities(settings);
+        }
+    }
+
+    private static string? GetApolloFederationVersion(JsonObject settings)
+        => settings[ExtensionsPropertyName] is JsonObject extensions
+            && extensions[ChilliCreamPropertyName] is JsonObject chilliCream
+            && chilliCream[ApolloFederationSupportPropertyName] is JsonObject support
+            && support["version"] is JsonValue version
+            && version.TryGetValue<string>(out var value)
+                ? value
+                : null;
+
+    private static void RemoveApolloFederationSupport(JsonObject settings)
+    {
+        if (settings[ExtensionsPropertyName] is not JsonObject extensions
+            || extensions[ChilliCreamPropertyName] is not JsonObject chilliCream)
+        {
+            return;
+        }
+
+        chilliCream.Remove(ApolloFederationSupportPropertyName);
+
+        if (chilliCream.Count == 0)
+        {
+            extensions.Remove(ChilliCreamPropertyName);
+        }
+
+        if (extensions.Count == 0)
+        {
+            settings.Remove(ExtensionsPropertyName);
+        }
+    }
+
+    private static void RemoveTransportCapabilities(JsonObject settings)
+    {
+        if (settings[TransportsPropertyName] is JsonObject transports
+            && transports[HttpPropertyName] is JsonObject http)
+        {
+            http.Remove(CapabilitiesPropertyName);
         }
     }
 

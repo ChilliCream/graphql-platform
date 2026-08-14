@@ -415,7 +415,7 @@ For examples of node resolution, shareable runtime type routing, and tag exclusi
 
 Create the `schema-settings.json` file that a source schema needs for composition. The settings file is written next to the schema file it belongs to, under the name composition looks for, so `nitro fusion compose` picks it up without further configuration.
 
-Running the command against an existing settings file updates only the values you pass and preserves every other setting in the file, which makes it safe to re-run from a pipeline.
+Running the command against an existing settings file updates the values you pass and preserves every other setting in the file, which makes it safe to re-run from a pipeline. The one exception is `--kind`, which owns the settings described under [Source schema kinds](#source-schema-kinds).
 
 ```shell
 nitro fusion source-schema init [options]
@@ -432,28 +432,34 @@ nitro fusion source-schema init [options]
 | `--dev-url <url>`                       |                | URL a local development environment uses to reach the source schema.                                   |
 | `--client-name <name>`                  |                | Name of the HTTP client the gateway uses to reach the source schema.                                   |
 | `--api-id <id>`                         | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                                       |
-| `--kind <kind>`                         |                | `generic` (default), `hot-chocolate`, or `apollo-federation`. See below.                               |
-| `--apollo-federation-version <version>` |                | `1.0` or `2.0` (default `2.0`). Requires `--kind apollo-federation`.                                   |
+| `--kind <kind>`                         |                | `generic`, `hot-chocolate`, or `apollo-federation`. See below.                                         |
+| `--apollo-federation-version <version>` |                | `1.0` or `2.0`. Requires `--kind apollo-federation`.                                                   |
 | `-w, --working-directory <path>`        |                | Working directory for the command.                                                                     |
 
 Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which composition resolves against the [`environments`](../../fusion/cli.md#environments) section of the settings file.
 
 ## Source schema kinds
 
-`--kind` describes the server behind the source schema, which decides what the generated file declares beyond the name and transport URL.
+`--kind` describes the server behind the source schema, which decides what the file declares beyond the name and transport URL.
 
-| Kind                | What it adds                                                                                                                                 |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generic`           | Nothing. Use this when the server's transport capabilities are unknown.                                                                      |
-| `hot-chocolate`     | The batching capabilities and error behavior a Hot Chocolate server implements, matching what `dotnet run -- schema export` writes.          |
-| `apollo-federation` | `extensions.chillicream.apolloFederationSupport.version`, which tells composition to read the schema through Apollo Federation's `_service`. |
+| Kind                | What it declares                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `generic`           | Nothing beyond the name and transport. Use this when the server's transport capabilities are unknown.                                      |
+| `hot-chocolate`     | The batching capabilities and error behavior a Hot Chocolate server implements, matching what `dotnet run -- schema export` writes.        |
+| `apollo-federation` | `extensions.chillicream.apolloFederationSupport.version`, which selects Apollo Federation v1 or v2 directive semantics during composition. |
+
+`--kind` owns these settings: passing it removes the settings belonging to the other kinds, so switching a source schema from one kind to another leaves no stale markers behind. Omit `--kind` to leave them untouched.
+
+`--apollo-federation-version` defaults to `2.0` for a source schema that is not yet marked as an Apollo Federation subgraph. For one that already is, the version already in the file is kept unless you pass a new one.
+
+> A source schema marked `apollo-federation` that composition fetches over HTTP (via `--source-schema-url` on `nitro fusion compose`) is retrieved through Apollo Federation's `_service` field. A source schema read from a local file is read as it is on disk, and the marker only affects directive semantics.
 
 ## Where the file is written
 
 The target path is resolved in this order:
 
 1. `--settings-file`, when given.
-2. Next to `--source-schema-file` as `<schema-file-name>-settings.json`. When the option points at a directory, the schema file inside it determines the name.
+2. Next to `--source-schema-file` as `<schema-file-name>-settings.json`. When the option points at a directory, the schema file inside it determines the name, or `schema-settings.json` is used when that directory holds no schema file.
 3. `schema-settings.json` in the working directory.
 
 ## Examples

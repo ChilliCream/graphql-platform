@@ -9,8 +9,9 @@ internal sealed class SourceSchemaKindOption : Option<string>
 
     public SourceSchemaKindOption() : base(OptionName)
     {
-        Description = "The kind of GraphQL server that serves the source schema";
-        DefaultValueFactory = _ => Generic;
+        Description =
+            "The kind of GraphQL server that serves the source schema. "
+            + "When omitted, kind specific settings are left unchanged";
         AcceptOnlyFromAmong(Generic, HotChocolate, ApolloFederation);
     }
 }
