@@ -32,7 +32,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               --dev-url <dev-url>                               The URL a local development environment uses to reach the source schema
               --client-name <client-name>                       The name of the HTTP client the gateway uses to reach the source schema
               --api-id <api-id>                                 The ID of the API [env: NITRO_API_ID]
-              --kind <apollo-federation|generic|hot-chocolate>  The kind of GraphQL server that serves the source schema. When omitted, kind specific settings are left unchanged
+              --kind <apollo-federation|generic|hot-chocolate>  The kind of GraphQL server that serves the source schema. When omitted, kind-specific settings are left unchanged
               --apollo-federation-version <1.0|2.0>             The Apollo Federation version the source schema is built with
               -w, --working-directory <working-directory>       Set the working directory for the command
               --cloud-url <cloud-url>                           The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
@@ -94,6 +94,44 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
         // arrange
         SetupNoAuthentication();
         SetupDirectory("products", "/some/working/directory/products/schema.graphqls");
+        var capturedStream = SetupCreateFile(SourceSchemaSettingsFile);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "source-schema",
+            "init",
+            "--name",
+            "products",
+            "--source-schema-file",
+            "products",
+            "--url",
+            "https://products.example.com/graphql");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Created '/some/working/directory/products/schema-settings.json'.
+            """);
+
+        Encoding.UTF8.GetString(capturedStream.ToArray()).MatchInlineSnapshot(
+            """
+            {
+              "name": "products",
+              "transports": {
+                "http": {
+                  "url": "https://products.example.com/graphql"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Init_WithSourceSchemaDirectoryThatDoesNotExistYet_WritesSettingsIntoDirectory()
+    {
+        // arrange
+        SetupNoAuthentication();
         var capturedStream = SetupCreateFile(SourceSchemaSettingsFile);
 
         // act
@@ -205,7 +243,9 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "source-schema",
             "init",
             "--name",
-            "reviews");
+            "reviews",
+            "--url",
+            "http://localhost:5000/graphql");
 
         // assert
         result.AssertSuccess(
@@ -291,6 +331,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "init",
             "--name",
             "products",
+            "--url",
+            "http://localhost:5000/graphql",
             "--kind",
             "hot-chocolate");
 
@@ -336,6 +378,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "init",
             "--name",
             "products",
+            "--url",
+            "http://localhost:5000/graphql",
             "--kind",
             "apollo-federation",
             "--apollo-federation-version",
@@ -382,6 +426,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "init",
             "--name",
             "products",
+            "--url",
+            "http://localhost:5000/graphql",
             "--kind",
             "apollo-federation");
 
@@ -662,7 +708,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Source schema settings file '/some/working/directory/schema-settings.json' is not a JSON object. Remove it or write to a different path with '--settings-file'.
+            Source schema settings file '/some/working/directory/schema-settings.json' does not contain a JSON object. Remove it or write to a different path with '--settings-file'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -683,6 +729,54 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
         result.StdErr.MatchInlineSnapshot(
             """
             Missing required option '--name'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Init_MissingUrlInNonInteractiveMode_ReturnsError()
+    {
+        // arrange
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "source-schema",
+            "init",
+            "--name",
+            "products");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--url'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Init_InvalidPromptedUrl_ReturnsError()
+    {
+        // arrange
+        SetupNoAuthentication();
+        SetupInteractionMode(InteractionMode.Interactive);
+        var command = StartInteractiveCommand(
+            "fusion",
+            "source-schema",
+            "init",
+            "--name",
+            "products");
+
+        // act
+        command.Input("not-a-url");
+
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The value for '--url' must be an absolute HTTP URL without user information or a fragment, or reference an environment variable such as '{{API_URL}}'.
             """);
         Assert.Equal(1, result.ExitCode);
     }

@@ -423,18 +423,20 @@ nitro fusion source-schema init [options]
 
 ## Options
 
-| Option                                  | Env            | Description                                                                                            |
-| --------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------ |
-| `--name <name>`                         |                | Name that identifies the source schema in the composite schema. Prompted for when creating a new file. |
-| `-f, --source-schema-file <path>`       |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to.          |
-| `--settings-file <path>`                |                | Write the settings to this path instead of deriving it from the schema file.                           |
-| `--url <url>`                           |                | URL the gateway uses to reach the source schema. Prompted for when creating a new file.                |
-| `--dev-url <url>`                       |                | URL a local development environment uses to reach the source schema.                                   |
-| `--client-name <name>`                  |                | Name of the HTTP client the gateway uses to reach the source schema.                                   |
-| `--api-id <id>`                         | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                                       |
-| `--kind <kind>`                         |                | `generic`, `hot-chocolate`, or `apollo-federation`. See below.                                         |
-| `--apollo-federation-version <version>` |                | `1.0` or `2.0`. Requires `--kind apollo-federation`.                                                   |
-| `-w, --working-directory <path>`        |                | Working directory for the command.                                                                     |
+| Option                                  | Env            | Description                                                                                   |
+| --------------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `--name <name>`                         |                | Name that identifies the source schema in the composite schema. Required for a new file.      |
+| `-f, --source-schema-file <path>`       |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to. |
+| `--settings-file <path>`                |                | Write the settings to this path instead of deriving it from the schema file.                  |
+| `--url <url>`                           |                | URL the gateway uses to reach the source schema. Required for a new file.                     |
+| `--dev-url <url>`                       |                | URL a local development environment uses to reach the source schema.                          |
+| `--client-name <name>`                  |                | Name of the HTTP client the gateway uses to reach the source schema.                          |
+| `--api-id <id>`                         | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                              |
+| `--kind <kind>`                         |                | `generic`, `hot-chocolate`, or `apollo-federation`. See below.                                |
+| `--apollo-federation-version <version>` |                | `1.0` or `2.0`. Requires `--kind apollo-federation`.                                          |
+| `-w, --working-directory <path>`        |                | Working directory for the command.                                                            |
+
+`--name` and `--url` are only required when the settings file does not exist yet, since an existing file already carries both. On an interactive terminal the command asks for whichever of the two you did not pass. Everywhere else, including CI, omitting one fails rather than guessing a value.
 
 Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which composition resolves against the [`environments`](../../fusion/cli.md#environments) section of the settings file.
 
@@ -459,7 +461,7 @@ Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which comp
 The target path is resolved in this order:
 
 1. `--settings-file`, when given.
-2. Next to `--source-schema-file` as `<schema-file-name>-settings.json`. When the option points at a directory, the schema file inside it determines the name, or `schema-settings.json` is used when that directory holds no schema file.
+2. Next to `--source-schema-file` as `<schema-file-name>-settings.json`. A path that is not named like a schema file counts as a directory, whether or not it exists yet: the schema file inside it determines the name, and `schema-settings.json` is used when it holds none.
 3. `schema-settings.json` in the working directory.
 
 ## Examples

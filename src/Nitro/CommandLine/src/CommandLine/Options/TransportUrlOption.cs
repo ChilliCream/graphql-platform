@@ -12,18 +12,27 @@ internal abstract class TransportUrlOption : Option<string>
         {
             var value = result.GetValue(this);
 
-            if (value is null || value.Contains("{{", StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            if (!Uri.TryCreate(value, UriKind.Absolute, out var url)
-                || url.Scheme is not ("http" or "https")
-                || !string.IsNullOrEmpty(url.UserInfo)
-                || !string.IsNullOrEmpty(url.Fragment))
+            if (value is not null && !IsValid(value))
             {
                 result.AddError(Messages.TransportUrlInvalid(name));
             }
         });
+    }
+
+    /// <summary>
+    /// Determines whether the value is an absolute HTTP URL without user information or a
+    /// fragment. A value containing a <c>{{VARIABLE}}</c> reference is always accepted.
+    /// </summary>
+    public static bool IsValid(string value)
+    {
+        if (value.Contains("{{", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return Uri.TryCreate(value, UriKind.Absolute, out var url)
+            && url.Scheme is "http" or "https"
+            && string.IsNullOrEmpty(url.UserInfo)
+            && string.IsNullOrEmpty(url.Fragment);
     }
 }

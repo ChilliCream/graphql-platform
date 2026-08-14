@@ -88,13 +88,20 @@ internal sealed class FusionSourceSchemaInitCommand : Command
                 Opt<OptionalSourceSchemaNameOption>.Instance,
                 cancellationToken);
 
-        var url = parseResult.GetValue(Opt<OptionalTransportUrlOption>.Instance);
+        var url = exists
+            ? parseResult.GetValue(Opt<OptionalTransportUrlOption>.Instance)
+            : await console.PromptAsync(
+                "Source schema URL",
+                DefaultUrl,
+                parseResult,
+                Opt<OptionalTransportUrlOption>.Instance,
+                cancellationToken);
 
-        if (url is null && !exists)
+        // a prompted URL never passed through the option validator.
+        if (url is not null && !TransportUrlOption.IsValid(url))
         {
-            url = console.IsInteractive
-                ? await console.PromptAsync("Source schema URL", DefaultUrl, cancellationToken)
-                : DefaultUrl;
+            throw new ExitException(
+                Messages.TransportUrlInvalid(OptionalTransportUrlOption.OptionName));
         }
 
         settings ??= new JsonObject();
@@ -170,10 +177,18 @@ internal sealed class FusionSourceSchemaInitCommand : Command
                 : GetSettingsFile(schemaFile);
         }
 
-        if (FusionCompositionHelpers.IsExtensionsFile(Path.GetFileName(sourceSchemaPath)))
+        var sourceSchemaFileName = Path.GetFileName(sourceSchemaPath);
+
+        if (FusionCompositionHelpers.IsExtensionsFile(sourceSchemaFileName))
         {
             throw new ExitException(
                 Messages.SchemaExtensionsFileCannotBeUsedAsSchemaFile(sourceSchemaPath));
+        }
+
+        // a path that is not named like a schema file is a directory that does not exist yet.
+        if (!FusionCompositionHelpers.IsSchemaFile(sourceSchemaFileName))
+        {
+            return Path.Combine(sourceSchemaPath, DefaultSettingsFileName);
         }
 
         return GetSettingsFile(sourceSchemaPath);

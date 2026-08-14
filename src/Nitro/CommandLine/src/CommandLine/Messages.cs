@@ -35,7 +35,7 @@ internal static class Messages
             + "or reference an environment variable such as '{{API_URL}}'.";
 
     public static string SourceSchemaSettingsFileNotAnObject(string path)
-        => $"Source schema settings file '{path}' is not a JSON object. "
+        => $"Source schema settings file '{path}' does not contain a JSON object. "
             + $"Remove it or write to a different path with '{OptionalSettingsFileOption.OptionName}'.";
 
     public static string ApolloFederationVersionRequiresKind()
