@@ -885,6 +885,83 @@ public sealed class SchemaComposerTests
     }
 
     [Fact]
+    public void Compose_Should_UnionEnumValues_When_OutputOnlyEnumValuesDifferSymmetricallyAcrossApolloSubgraphs()
+    {
+        // arrange
+        // Each Apollo subgraph declares a value for "OrderPriority" that the other lacks, but
+        // the enum is only used in output positions, so the values are merged by union.
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        EXPRESS
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var enumType = result.Value.ToSyntaxNode().Definitions
+            .OfType<EnumTypeDefinitionNode>()
+            .Single(definition => definition.Name.Value == "OrderPriority");
+
+        enumType.ToString().MatchInlineSnapshot(
+            """
+            enum OrderPriority
+              @fusion__type(schema: CATALOG)
+              @fusion__type(schema: WAREHOUSE) {
+              LOW @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              RUSH @fusion__enumValue(schema: CATALOG)
+              EXPRESS @fusion__enumValue(schema: WAREHOUSE)
+            }
+            """);
+    }
+
+    [Fact]
     public void Compose_Should_ReportEnumValuesMismatch_When_StrictMergeBehaviorConfigured()
     {
         // arrange

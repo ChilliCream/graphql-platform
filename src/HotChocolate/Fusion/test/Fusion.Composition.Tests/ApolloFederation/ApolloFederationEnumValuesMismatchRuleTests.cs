@@ -59,6 +59,56 @@ public sealed class ApolloFederationEnumValuesMismatchRuleTests : RuleTestBase
         ]);
     }
 
+    // Here, each Apollo subgraph declares a value for "OrderPriority" that the other lacks, but
+    // the enum is only used in output positions, so the values are merged by union.
+    [Fact]
+    public void Validate_Should_Succeed_When_OutputOnlyEnumValuesDifferSymmetricallyAcrossApolloSubgraphs()
+    {
+        AssertValid(
+        [
+            """
+            extend schema
+                @link(
+                    url: "https://specs.apollo.dev/federation/v2.3"
+                    import: ["@key"])
+
+            type Query {
+                orderById: Order
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                priority: OrderPriority
+            }
+
+            enum OrderPriority {
+                LOW
+                RUSH
+            }
+            """,
+            """
+            extend schema
+                @link(
+                    url: "https://specs.apollo.dev/federation/v2.3"
+                    import: ["@key"])
+
+            type Query {
+                trackedOrder: Order
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                fulfillmentPriority: OrderPriority
+            }
+
+            enum OrderPriority {
+                LOW
+                EXPRESS
+            }
+            """
+        ]);
+    }
+
     // Here, the enum is used as a field argument type in one Apollo subgraph, so the
     // exact-agreement requirement applies and the differing values are reported.
     [Fact]
