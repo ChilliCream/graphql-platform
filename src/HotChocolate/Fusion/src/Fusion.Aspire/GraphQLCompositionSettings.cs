@@ -23,6 +23,12 @@ public struct GraphQLCompositionSettings
     public bool? EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
+    /// Gets or sets how enum values are merged when the same enum type is defined in multiple
+    /// source schemas.
+    /// </summary>
+    public EnumValuesMergeBehavior? EnumValuesMergeBehavior { get; set; }
+
+    /// <summary>
     /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution? NodeResolution { get; set; }

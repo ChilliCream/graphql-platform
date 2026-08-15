@@ -213,16 +213,23 @@ internal static class AspireCompositionHelper
             {
                 CacheControlMergeBehavior = settings.CacheControlMergeBehavior,
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
+                EnumValuesMergeBehavior = settings.EnumValuesMergeBehavior,
                 NodeResolution = settings.NodeResolution,
                 TagMergeBehavior = settings.TagMergeBehavior
             },
-            Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
+            Satisfiability =
+            {
+                IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths
+            },
             ApolloFederationCompatibility =
             {
                 AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects,
                 ShareableFieldRuntimeTypeRouting = settings.ShareableFieldRuntimeTypeRouting
             },
-            Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
+            Preprocessor =
+            {
+                ExcludeByTag = settings.ExcludeByTag?.ToHashSet()
+            }
         };
     }
 }
