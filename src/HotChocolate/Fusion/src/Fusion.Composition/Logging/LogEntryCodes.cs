@@ -44,6 +44,7 @@ public static class LogEntryCodes
     public const string InterfaceObjectKeyMismatch = "INTERFACE_OBJECT_KEY_MISMATCH";
     public const string InterfaceObjectKeyMissing = "INTERFACE_OBJECT_KEY_MISSING";
     public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
+    public const string InvalidEnumValuesMergeBehavior = "INVALID_ENUM_VALUES_MERGE_BEHAVIOR";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidApolloFederationSupportSettings =

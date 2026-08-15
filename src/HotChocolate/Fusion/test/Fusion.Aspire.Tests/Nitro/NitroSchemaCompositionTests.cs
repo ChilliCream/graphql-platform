@@ -185,6 +185,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": "Gateway",
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"

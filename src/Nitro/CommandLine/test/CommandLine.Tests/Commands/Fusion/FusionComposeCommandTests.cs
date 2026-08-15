@@ -46,6 +46,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               -e, --env, --environment <environment>                                      The name of the environment used for value substitution in the schema-settings.json files
               --cache-control-merge-behavior <ignore|include|include-private>             Choose how @cacheControl directives are merged
               --enable-global-object-identification                                       Add the 'Query.node' field for global object identification
+              --enum-values-merge-behavior <auto|strict|union>                            Choose how enum values are merged across source schemas
               --node-resolution <gateway|source-schema>                                   Choose whether Query.node identifiers are resolved by the gateway or a source schema
               --tag-merge-behavior <ignore|include|include-private>                       Choose how @tag directives are merged
               --shareable-field-runtime-type-routing <common-runtime-types|source-local>  Choose how runtime types are routed for Apollo Federation shareable abstract fields
@@ -905,6 +906,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Ignore",
                 "enableGlobalObjectIdentification": true,
+                "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "Gateway",
                 "removeUnreferencedDefinitions": null,
                 "tagMergeBehavior": "Include"
@@ -1297,6 +1299,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             "--cache-control-merge-behavior",
             "ignore",
             "--enable-global-object-identification",
+            "--enum-values-merge-behavior",
+            "union",
             "--node-resolution",
             "gateway",
             "--tag-merge-behavior",
