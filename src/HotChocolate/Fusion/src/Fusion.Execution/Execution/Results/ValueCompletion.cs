@@ -77,15 +77,12 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
-        CompositeObjectContext objectContext;
-
-        if (target.ValueKind is JsonValueKind.Undefined)
+        if (!target.TryGetObjectContext(out var objectContext))
         {
             objectContext = InitializeTargetObject(source, target);
         }
-        else
+        else if (TryUpgradeOpaqueTarget(objectContext.SelectionSet, target, source))
         {
-            TryUpgradeOpaqueTarget(target, source);
             objectContext = target.GetObjectContext();
         }
 
@@ -251,18 +248,25 @@ internal sealed class ValueCompletion
     /// that is still interface-typed from an <c>@interfaceObject</c> stand-in, upgrades the element
     /// to its concrete type so the identity-dependent fields have slots to complete into.
     /// </summary>
-    private void TryUpgradeOpaqueTarget(CompositeResultElement target, SourceResultElement source)
+    /// <returns>
+    /// <c>true</c>, if the target was upgraded. Any object context acquired for the
+    /// target before the call is then stale and must be refetched.
+    /// </returns>
+    private bool TryUpgradeOpaqueTarget(
+        SelectionSet? targetSelectionSet,
+        CompositeResultElement target,
+        SourceResultElement source)
     {
-        if (target.SelectionSet is not { Type.Kind: TypeKind.Interface } interfaceSet
+        if (targetSelectionSet is not { Type.Kind: TypeKind.Interface } interfaceSet
             || interfaceSet.DeclaringSelection is not { } parentSelection)
         {
-            return;
+            return false;
         }
 
         if (!source.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeName)
             || typeName.ValueKind is not JsonValueKind.String)
         {
-            return;
+            return false;
         }
 
         var concreteType = _schema.Types.GetType<IObjectTypeDefinition>(typeName.AssertString());
@@ -275,6 +279,7 @@ internal sealed class ValueCompletion
 
         var concreteSelectionSet = parentSelection.GetSelectionSet(concreteType)!;
         _store.Result.UpgradeObject(target, concreteSelectionSet);
+        return true;
     }
 
     /// <summary>
@@ -1162,18 +1167,12 @@ TryCompleteList_MoveNext:
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
-        CompositeObjectContext objectContext;
-
-        if (target.ValueKind is JsonValueKind.Undefined)
+        if (!target.TryGetObjectContext(out var objectContext))
         {
             var objectSelectionSet = parentSelection.GetSelectionSet(objectType)
                 ?? throw new InvalidOperationException(
                     "Cannot initialize a result object without a selection set.");
             target.SetObjectValue(objectSelectionSet, out objectContext);
-        }
-        else
-        {
-            objectContext = target.GetObjectContext();
         }
 
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
