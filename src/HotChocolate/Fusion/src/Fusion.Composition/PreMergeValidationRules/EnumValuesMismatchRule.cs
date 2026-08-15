@@ -1,7 +1,12 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Info;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
@@ -19,17 +24,32 @@ namespace HotChocolate.Fusion.PreMergeValidationRules;
 /// inconsistencies by enforcing that all instances of the same named enum across schemas have an
 /// exact match in their values.
 /// </para>
+/// <para>
+/// The configured merge behavior is provided at construction. Under
+/// <see cref="EnumValuesMergeBehavior.Union"/>, values of enums used only in output positions
+/// merge by union. <see cref="EnumValuesMergeBehavior.Auto"/> applies Union when at least one
+/// Apollo Federation connector source schema is part of the composition, otherwise Strict.
+/// </para>
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Enum-Values-Mismatch">
 /// Specification
 /// </seealso>
-internal sealed class EnumValuesMismatchRule : IEventHandler<EnumTypeGroupEvent>
+internal sealed class EnumValuesMismatchRule(EnumValuesMergeBehavior enumValuesMergeBehavior)
+    : IEventHandler<EnumTypeGroupEvent>
 {
+    private readonly EnumValuesMergeBehavior _enumValuesMergeBehavior = enumValuesMergeBehavior;
+
     public void Handle(EnumTypeGroupEvent @event, CompositionContext context)
     {
-        var (_, enumGroup) = @event;
+        var (typeName, enumGroup) = @event;
 
         if (enumGroup.Length < 2)
+        {
+            return;
+        }
+
+        if (ResolveMergeBehavior(context) is EnumValuesMergeBehavior.Union
+            && IsOutputOnlyEnum(typeName, enumGroup))
         {
             return;
         }
@@ -50,5 +70,83 @@ internal sealed class EnumValuesMismatchRule : IEventHandler<EnumTypeGroupEvent>
                 }
             }
         }
+    }
+
+    private EnumValuesMergeBehavior ResolveMergeBehavior(CompositionContext context)
+    {
+        if (_enumValuesMergeBehavior is not EnumValuesMergeBehavior.Auto)
+        {
+            return _enumValuesMergeBehavior;
+        }
+
+        foreach (var schema in context.SchemaDefinitions)
+        {
+            if (schema.Features.Get<ConnectorKindMetadata>()?.Kind == "ApolloFederation")
+            {
+                return EnumValuesMergeBehavior.Union;
+            }
+        }
+
+        return EnumValuesMergeBehavior.Strict;
+    }
+
+    private static bool IsOutputOnlyEnum(string typeName, ImmutableArray<EnumTypeInfo> enumGroup)
+    {
+        foreach (var (_, schema) in enumGroup)
+        {
+            if (IsUsedInInputPosition(typeName, schema))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsUsedInInputPosition(string typeName, MutableSchemaDefinition schema)
+    {
+        foreach (var type in schema.Types)
+        {
+            switch (type)
+            {
+                case MutableComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields)
+                    {
+                        foreach (var argument in field.Arguments)
+                        {
+                            if (argument.Type.NamedType().Name == typeName)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    break;
+
+                case MutableInputObjectTypeDefinition inputType:
+                    foreach (var field in inputType.Fields)
+                    {
+                        if (field.Type.NamedType().Name == typeName)
+                        {
+                            return true;
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        foreach (var directiveDefinition in schema.DirectiveDefinitions)
+        {
+            foreach (var argument in directiveDefinition.Arguments)
+            {
+                if (argument.Type.NamedType().Name == typeName)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
