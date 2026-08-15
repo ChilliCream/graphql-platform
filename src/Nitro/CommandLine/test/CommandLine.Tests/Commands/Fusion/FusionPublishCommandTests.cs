@@ -1338,6 +1338,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
@@ -1428,6 +1429,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"
@@ -4045,6 +4047,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
@@ -4135,6 +4138,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"

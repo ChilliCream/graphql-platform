@@ -423,6 +423,7 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 | `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
 | `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
 | `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | How to merge enum values across source schemas                     |
 | `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
 | `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
 
