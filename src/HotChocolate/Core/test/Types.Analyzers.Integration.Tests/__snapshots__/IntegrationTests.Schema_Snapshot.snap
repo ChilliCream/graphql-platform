@@ -65,6 +65,7 @@ type Query {
   formatNullableAnimalKinds(kinds: AnimalKind): String!
   formatAnimalKindList(kinds: [AnimalKind]!): String!
   isSelectedTest: IsSelectedNode!
+  isSelectedPatternTest: IsSelectedNode!
   """
   Gets the product.
   
@@ -153,6 +154,7 @@ type Query {
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
   shapes: [Shape!]!
+  configuredLocalState(state: ConfiguredLocalStateInput!): String!
   issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
 }
 
@@ -426,6 +428,10 @@ interface Node {
 interface Product {
   kind: String!
   id: String!
+}
+
+input ConfiguredLocalStateInput {
+  value: String!
 }
 
 input CurrentUserInput {
