@@ -15,7 +15,7 @@ internal static class ConsumeContextExtensions
     /// workflows (for example saga headers) keep working. The correlation id is echoed when present,
     /// so callers that correlate by a different mechanism (such as a saga header) are still supported.
     /// </remarks>
-    public static bool TryCreateResponseOptions(this IConsumeContext context, out ReplyOptions options)
+    public static bool TryCreateResponseOptions(this IMessageContext context, out ReplyOptions options)
     {
         options = ReplyOptions.Default;
         var replyTo = context.ResponseAddress;

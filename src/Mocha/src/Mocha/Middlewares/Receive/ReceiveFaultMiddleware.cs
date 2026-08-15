@@ -33,72 +33,41 @@ internal sealed class ReceiveFaultMiddleware(
         }
         catch (Exception ex)
         {
-            var envelope = context.Envelope;
-
             var fault = FaultInfo.From(Guid.NewGuid(), provider.GetUtcNow(), ex);
 
             // A requester expecting a reply should get an explicit negative acknowledgement first.
-            if (envelope?.ResponseAddress is { } responseAddress
-                && Uri.TryCreate(responseAddress, UriKind.Absolute, out var responseAddressUri))
+            if (context.TryCreateResponseOptions(out var options))
             {
-                await ReplyToSenderAsync(context, responseAddressUri, envelope, fault);
+                await ReplyToSenderAsync(context, options, fault);
             }
             else
             {
-                await SendToErrorEndpointAsync(context, envelope, fault);
+                await SendToErrorEndpointAsync(context, context.Envelope, fault);
             }
 
             feature.MessageConsumed = true;
         }
     }
 
-    private async ValueTask ReplyToSenderAsync(
+    private static async ValueTask ReplyToSenderAsync(
         IReceiveContext context,
-        Uri responseAddress,
-        MessageEnvelope envelope,
+        ReplyOptions options,
         FaultInfo fault)
     {
-        var replyEndpoint = context.Runtime.GetTransport(responseAddress)?.ReplyDispatchEndpoint;
-        if (replyEndpoint is null)
-        {
-            // TODO critical error! (Poision Pill)
-            throw ThrowHelper.NoReplyEndpointFound(responseAddress.ToString());
-        }
+        var exceptionType = fault.Exceptions.FirstOrDefault()?.ExceptionType;
 
-        var messageType = context.Runtime.GetMessageType(typeof(NotAcknowledgedEvent));
+        var notAcknowledged = new NotAcknowledgedEvent(
+            context.CorrelationId,
+            context.MessageId,
+            fault.ErrorCode,
+            $"The message faulted with an exception of type {exceptionType}");
 
-        var dispatchContext = pools.DispatchContext.Get();
-        try
-        {
-            dispatchContext.CorrelationId = envelope?.CorrelationId;
-            dispatchContext.ConversationId = envelope?.ConversationId;
-            dispatchContext.DestinationAddress = responseAddress;
-            dispatchContext.SourceAddress = replyEndpoint.Address;
+        var bus = context.Services.GetRequiredService<IMessageBus>();
 
-            dispatchContext.Initialize(
-                context.Services,
-                replyEndpoint,
-                context.Runtime,
-                messageType,
-                context.CancellationToken);
-
-            var exceptionType = fault.Exceptions.FirstOrDefault()?.ExceptionType;
-            var message = $"The message faulted with an exception of type {exceptionType}";
-
-            dispatchContext.Headers.SetMessageKind(MessageKind.Fault);
-
-            dispatchContext.Message = new NotAcknowledgedEvent(
-                envelope!.CorrelationId,
-                envelope.MessageId,
-                fault.ErrorCode,
-                message);
-
-            await replyEndpoint.ExecuteAsync(dispatchContext);
-        }
-        finally
-        {
-            pools.DispatchContext.Return(dispatchContext);
-        }
+        await bus.ReplyAsync(
+            notAcknowledged,
+            options with { MessageKind = MessageKind.Fault },
+            context.CancellationToken);
     }
 
     private async ValueTask SendToErrorEndpointAsync(

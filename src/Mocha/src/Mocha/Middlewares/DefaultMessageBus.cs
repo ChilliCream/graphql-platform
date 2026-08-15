@@ -239,7 +239,7 @@ public sealed class DefaultMessageBus(
             context.Message = response;
 
             context.AddHeaders(headers);
-            context.Headers.SetMessageKind(MessageKind.Reply);
+            context.Headers.SetMessageKind(options.MessageKind ?? MessageKind.Reply);
 
             await replyEndpoint.ExecuteAsync(context);
         }
