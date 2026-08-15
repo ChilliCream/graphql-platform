@@ -63,6 +63,7 @@ namespace TestNamespace
 
             descriptor
                 .Field(naming.GetMemberName("Products", global::HotChocolate.Types.MemberKind.ObjectField))
+                .AddPagingArguments()
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;
@@ -70,13 +71,18 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                    configuration.Type = global::HotChocolate.Types.Pagination.ConnectionTypeHelper.CreateConnectionTypeReference(
+                        field.Context,
+                        "Product",
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
+                        nonNull: true);
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Product>);
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionFlags();
+                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
+                    configuration.Features.Set(pagingOptions);
 
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetProductsAsync_productService();
@@ -112,6 +118,7 @@ namespace TestNamespace
                         field.Context,
                         fieldDescriptor,
                         configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute(),
                         new global::HotChocolate.Types.UsePagingAttribute(null, 14),
                         new global::HotChocolate.Data.UseFilteringAttribute(null, 16),
                         new global::HotChocolate.Data.UseSortingAttribute(null, 17));

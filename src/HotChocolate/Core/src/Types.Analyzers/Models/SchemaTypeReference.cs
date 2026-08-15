@@ -6,12 +6,14 @@ public readonly struct SchemaTypeReference
         SchemaTypeReferenceKind kind,
         string typeString,
         string? typeStructure = null,
-        string? nullability = null)
+        string? nullability = null,
+        bool nonNull = false)
     {
         Kind = kind;
         TypeString = typeString;
         TypeStructure = typeStructure;
         Nullability = nullability;
+        NonNull = nonNull;
     }
 
     public SchemaTypeReferenceKind Kind { get; }
@@ -21,4 +23,6 @@ public readonly struct SchemaTypeReference
     public string? TypeStructure { get; }
 
     public string? Nullability { get; }
+
+    public bool NonNull { get; }
 }

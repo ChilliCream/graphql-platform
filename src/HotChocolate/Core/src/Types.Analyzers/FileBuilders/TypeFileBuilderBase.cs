@@ -2042,6 +2042,29 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 }
                 break;
 
+            case SchemaTypeReferenceKind.ConnectionTypeReference:
+                Writer.WriteIndentedLine(
+                    "{0} = global::{1}.CreateConnectionTypeReference(",
+                    propertyName,
+                    WellKnownTypes.ConnectionTypeHelper);
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine("field.Context,");
+                    Writer.WriteIndentedLine(
+                        "\"{0}\",",
+                        GeneratorUtils.EscapeForStringLiteral(typeReference.TypeStructure));
+                    Writer.WriteIndentedLine(
+                        "typeInspector.GetTypeRef(typeof({0}), {1}.{2}),",
+                        typeReference.TypeString,
+                        WellKnownTypes.TypeContext,
+                        context);
+                    Writer.WriteIndentedLine(
+                        "nonNull: {0}){1}",
+                        typeReference.NonNull ? "true" : "false",
+                        lineEnd);
+                }
+                break;
+
             default:
                 throw new NotSupportedException();
         }
