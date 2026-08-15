@@ -407,23 +407,34 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             if (dependencies is not null)
             {
+                // Multiple member identifiers can redirect to the same batch
+                // node, so dependencies are deduplicated after redirection.
+                var seenDependencyIds = new HashSet<int>();
+
                 foreach (var rawDepId in dependencies)
                 {
                     var dependencyId = idRedirects.TryGetValue(rawDepId, out var redirectId)
                         ? redirectId
                         : rawDepId;
 
+                    if (!seenDependencyIds.Add(dependencyId))
+                    {
+                        continue;
+                    }
+
                     if (nodeMap.TryGetValue(dependencyId, out var dependencyNode))
                     {
-                        // A batch node that holds more than one operation can still
-                        // run even if some of its dependencies are skipped, because
-                        // each operation inside the batch tracks its own fine-grained
-                        // dependencies. We mark these as optional so the executor
-                        // does not block the entire batch when only one member's
-                        // dependency is missing. Single-operation nodes (and
-                        // non-batch nodes) need a strict dependency instead.
-                        if (node is OperationBatchExecutionNode { Operations.Length: > 1 }
-                            or ApolloOperationBatchExecutionNode { Operations.Length: > 1 })
+                        // Operations inside a batch track their own dependencies,
+                        // so batch nodes with multiple operations or a single
+                        // merged multi-target operation take optional dependencies.
+                        // Single-target operation nodes require strict dependencies.
+                        if (node is OperationBatchExecutionNode batchNode
+                            && (batchNode.Operations.Length > 1
+                                || batchNode.Operations[0] is BatchOperationDefinition))
+                        {
+                            node.AddOptionalDependency(dependencyNode);
+                        }
+                        else if (node is ApolloOperationBatchExecutionNode { Operations.Length: > 1 })
                         {
                             node.AddOptionalDependency(dependencyNode);
                         }

@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -55,6 +56,269 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    // Source schema A owns the union and the nested lookups, source schema B the Asset entity
+    // fields. Without request grouping the merged multi-target lookups become batch nodes that
+    // hold a single BatchOperationDefinition with fan-in dependencies.
+    private const string UnionSiblingAssetSchemaA =
+        """
+        # name: a
+        type Query {
+          search: [CandidateResult!]!
+          meterTypeById(id: Int!): MeterType @lookup @internal
+          categoryByDbId(dbId: Int!): Category @lookup @internal
+        }
+        union CandidateResult = NotSubmissableResult | ExistingResult | ConfigMatchesResult | CustomResult
+        type ExistingResult { asset: Asset }
+        type ConfigMatchesResult { asset: Asset }
+        type NotSubmissableResult { asset: Asset }
+        type CustomResult { asset: Asset }
+        type Asset @key(fields: "dbId") { dbId: Int! }
+        type MeterType @key(fields: "id") {
+          id: Int!
+          type: String!
+        }
+        type Category @key(fields: "dbId") {
+          dbId: Int!
+          allowedMeterTypes: [MeterType!]!
+        }
+        """;
+
+    private const string UnionSiblingAssetSchemaB =
+        """
+        # name: b
+        type Query {
+          assetByDbId(dbId: Int!): Asset @lookup @internal
+        }
+        type Asset @key(fields: "dbId") {
+          dbId: Int!
+          statusMessage: String
+          meterType: MeterType
+          category: Category
+        }
+        type MeterType @key(fields: "id") { id: Int! }
+        type Category @key(fields: "dbId") { dbId: Int! }
+        """;
+
+    [Fact]
+    public void Parse_Plan_Preserves_Optional_Dependency_Wiring_For_Single_Merged_Batch_Node()
+    {
+        // arrange
+        // each fan-in dependency of a merged multi-target operation only feeds a subset of
+        // its targets, so it must be wired optional on the parsed plan just like on the built plan
+        var compositeSchema = ComposeSchema(UnionSiblingAssetSchemaA, UnionSiblingAssetSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query testQuery {
+              search {
+                ... on ExistingResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on ConfigMatchesResult {
+                  asset {
+                    category { allowedMeterTypes { type } }
+                    meterType { type }
+                  }
+                }
+                ... on NotSubmissableResult {
+                  asset {
+                    meterType { type }
+                    statusMessage
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on CustomResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+              }
+            }
+            """,
+            new OperationPlannerOptions { EnableRequestGrouping = false });
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        var originalWiring = DescribeDependencyWiring(originalPlan);
+        Assert.Equal(originalWiring, DescribeDependencyWiring(parsedPlan));
+        Assert.Distinct(CollectNodeAndDefinitionIds(parsedPlan));
+        originalWiring.MatchInlineSnapshot(
+            """
+            1 Operation required=[] optional=[]
+            5 Operation required=[1] optional=[]
+            8 Operation required=[1] optional=[]
+            14 OperationBatch(Merged) required=[] optional=[1]
+            15 OperationBatch(Merged) required=[] optional=[5, 8, 14]
+            16 OperationBatch(Merged) required=[] optional=[5, 8, 14]
+
+            """);
+    }
+
+    [Fact]
+    public void Parse_Plan_Preserves_Optional_Dependency_Wiring_For_Grouped_Batch_Nodes()
+    {
+        // arrange
+        // grouped batch nodes carry their own identifier, so the parser must rebuild the
+        // batch node from the batching group identifier and redirect every member identifier
+        var compositeSchema = ComposeSchema(UnionSiblingAssetSchemaA, UnionSiblingAssetSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query testQuery {
+              search {
+                ... on ExistingResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on ConfigMatchesResult {
+                  asset {
+                    category { allowedMeterTypes { type } }
+                    meterType { type }
+                  }
+                }
+                ... on NotSubmissableResult {
+                  asset {
+                    meterType { type }
+                    statusMessage
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on CustomResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+              }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        var originalWiring = DescribeDependencyWiring(originalPlan);
+        Assert.Equal(originalWiring, DescribeDependencyWiring(parsedPlan));
+        Assert.Distinct(CollectNodeAndDefinitionIds(parsedPlan));
+        originalWiring.MatchInlineSnapshot(
+            """
+            1 Operation required=[] optional=[]
+            14 OperationBatch(3) required=[] optional=[1]
+            15 OperationBatch(2) required=[] optional=[14]
+
+            """);
+    }
+
+    private static List<int> CollectNodeAndDefinitionIds(OperationPlan plan)
+    {
+        var ids = new List<int>();
+
+        foreach (var node in plan.AllNodes)
+        {
+            ids.Add(node.Id);
+
+            switch (node)
+            {
+                case OperationBatchExecutionNode batchNode:
+                    foreach (var operation in batchNode.Operations)
+                    {
+                        ids.Add(operation.Id);
+                    }
+                    break;
+
+                case ApolloOperationBatchExecutionNode apolloBatchNode:
+                    foreach (var operation in apolloBatchNode.Operations)
+                    {
+                        ids.Add(operation.Id);
+                    }
+                    break;
+            }
+        }
+
+        return ids;
+    }
+
+    private static string DescribeDependencyWiring(OperationPlan plan)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var node in plan.AllNodes.OrderBy(n => n.Id))
+        {
+            builder.Append(node.Id);
+            builder.Append(' ');
+            builder.Append(node.Type);
+
+            if (node is OperationBatchExecutionNode batchNode)
+            {
+                builder.Append(
+                    batchNode.Operations is [BatchOperationDefinition]
+                        ? "(Merged)"
+                        : $"({batchNode.Operations.Length})");
+            }
+
+            AppendDependencyIds(builder, " required=", node.Dependencies);
+            AppendDependencyIds(builder, " optional=", node.OptionalDependencies);
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static void AppendDependencyIds(
+        StringBuilder builder,
+        string label,
+        ReadOnlySpan<IOperationPlanNode> dependencies)
+    {
+        var ids = new List<int>();
+
+        foreach (var dependency in dependencies)
+        {
+            ids.Add(dependency.Id);
+        }
+
+        ids.Sort();
+        builder.Append(label);
+        builder.Append('[');
+        builder.Append(string.Join(", ", ids));
+        builder.Append(']');
     }
 
     // Source schema A defines the Media interface and its implementing types; source schema B is

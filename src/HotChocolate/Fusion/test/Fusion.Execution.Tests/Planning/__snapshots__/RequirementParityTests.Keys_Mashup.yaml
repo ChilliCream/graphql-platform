@@ -38,9 +38,9 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_name: String!
-          $__fusion_2_compositeIdThree: ID!
-          $__fusion_2_compositeIdTwo: ID!
-          $__fusion_2_id: ID!
+        $__fusion_2_compositeIdThree: ID!
+        $__fusion_2_compositeIdTwo: ID!
+        $__fusion_2_id: ID!
       ) {
         aByIdAndCompositeId(
           id: $__fusion_2_id
@@ -66,7 +66,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 3
+      - id: 6
   - id: 3
     type: OperationBatch
     schema: a
@@ -80,7 +80,7 @@ nodes:
     targets:
       - $.b.a
       - $.b.a
-    batchingGroupId: 3
+    batchingGroupId: 6
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -102,7 +102,7 @@ nodes:
       }
     source: $.aById
     target: $.b.a
-    batchingGroupId: 3
+    batchingGroupId: 6
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

@@ -277,6 +277,7 @@ public sealed partial class OperationPlanner
                 incrementalPlans,
                 searchSpace,
                 expandedNodes,
+                planSteps.NextId(),
                 cancellationToken);
 
             if (eventSourceEnabled)

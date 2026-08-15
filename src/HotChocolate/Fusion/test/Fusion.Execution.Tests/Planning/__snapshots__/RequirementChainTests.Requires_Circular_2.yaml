@@ -45,14 +45,14 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 3
+      - id: 5
   - id: 3
     type: Operation
     schema: b
     operation: |
       query Op_123456789101112_3(
         $__fusion_3_id: ID!
-          $__fusion_4_yearsOfExperience: Int!
+        $__fusion_4_yearsOfExperience: Int!
       ) {
         postById(id: $__fusion_3_id) {
           byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
@@ -60,7 +60,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 3
+    batchingGroupId: 5
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -81,7 +81,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 3
+    batchingGroupId: 5
     requirements:
       - name: __fusion_5_id
         selectionMap: >-

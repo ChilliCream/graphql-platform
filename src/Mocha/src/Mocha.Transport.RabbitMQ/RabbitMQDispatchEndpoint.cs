@@ -31,11 +31,12 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var dispatcher = transport.Dispatcher;
         var cancellationToken = context.CancellationToken;
+        var timeProvider = context.Services.GetTimeProvider();
         var channel = await dispatcher.RentChannelAsync(cancellationToken);
         try
         {
             await EnsureProvisionedAsync(channel, cancellationToken);
-            await DispatchAsync(channel, envelope, cancellationToken);
+            await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
         }
         finally
         {
@@ -46,6 +47,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
     private async ValueTask DispatchAsync(
         IChannel channel,
         MessageEnvelope envelope,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
         var exchangeName = CachedString.Empty;
@@ -121,24 +123,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             }
         }
 
-        var headers = envelope.BuildHeaders();
-
-        var messageType = envelope.MessageType ?? headers.Get(RabbitMQMessageHeaders.MessageType);
-
-        var properties = new BasicProperties
-        {
-            MessageId = envelope.MessageId,
-            CorrelationId = envelope.CorrelationId,
-            Type = messageType,
-            Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
-            ReplyTo = envelope.ResponseAddress,
-            Headers = headers,
-            ContentType = envelope.ContentType,
-            DeliveryMode = DeliveryModes.Persistent
-            // TODO wire up durable
-            // TODO expiration
-            // TODO priority
-        };
+        var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
 
         await channel.BasicPublishAsync(exchangeName, routingKey, true, properties, envelope.Body, cancellationToken);
     }
@@ -199,80 +184,5 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             Exchange as TopologyResource
             ?? Queue as TopologyResource
             ?? throw new InvalidOperationException("Destination is not set");
-    }
-}
-
-/// <summary>
-/// Extension methods for building RabbitMQ-specific message headers from a <see cref="MessageEnvelope"/>.
-/// </summary>
-public static class RabbitMQDispatchContextExtensions
-{
-    internal static IDictionary<string, object?> BuildHeaders(this MessageEnvelope envelope)
-    {
-        var headerCount =
-            (envelope.ConversationId is not null ? 1 : 0)
-            + (envelope.CausationId is not null ? 1 : 0)
-            + (envelope.SourceAddress is not null ? 1 : 0)
-            + (envelope.DestinationAddress is not null ? 1 : 0)
-            + (envelope.FaultAddress is not null ? 1 : 0)
-            + (envelope.Headers?.Count ?? 0);
-
-        var headers = new Dictionary<string, object?>(headerCount);
-
-        if (envelope.Headers is not null)
-        {
-            foreach (var header in envelope.Headers)
-            {
-                if (header.Value is DateTimeOffset dateTimeOffset)
-                {
-                    headers[header.Key] = new AmqpTimestamp(dateTimeOffset.ToUnixTimeSeconds());
-                }
-                else if (header.Value is DateTime dateTime)
-                {
-                    headers[header.Key] = new AmqpTimestamp(new DateTimeOffset(dateTime).ToUnixTimeSeconds());
-                }
-                else if (header.Value is not null)
-                {
-                    headers[header.Key] = header.Value;
-                }
-            }
-        }
-
-        if (envelope.ConversationId is not null)
-        {
-            headers.Set(RabbitMQMessageHeaders.ConversationId, envelope.ConversationId);
-        }
-
-        if (envelope.CausationId is not null)
-        {
-            headers.Set(RabbitMQMessageHeaders.CausationId, envelope.CausationId);
-        }
-
-        if (envelope.SourceAddress is not null)
-        {
-            headers.Set(RabbitMQMessageHeaders.SourceAddress, envelope.SourceAddress);
-        }
-
-        if (envelope.DestinationAddress is not null)
-        {
-            headers.Set(RabbitMQMessageHeaders.DestinationAddress, envelope.DestinationAddress);
-        }
-
-        if (envelope.FaultAddress is not null)
-        {
-            headers.Set(RabbitMQMessageHeaders.FaultAddress, envelope.FaultAddress);
-        }
-
-        if (envelope.EnclosedMessageTypes is { Length: > 0 })
-        {
-            headers.Set(RabbitMQMessageHeaders.EnclosedMessageTypes, envelope.EnclosedMessageTypes.Value);
-        }
-
-        if (envelope.MessageType is not null)
-        {
-            headers.Set(RabbitMQMessageHeaders.MessageType, envelope.MessageType);
-        }
-
-        return headers;
     }
 }

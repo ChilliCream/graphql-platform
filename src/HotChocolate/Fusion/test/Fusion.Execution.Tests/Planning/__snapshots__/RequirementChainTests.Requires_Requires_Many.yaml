@@ -55,10 +55,10 @@ nodes:
     operation: |
       query Op_123456789101112_4(
         $__fusion_10_isExpensive: Boolean!
-          $__fusion_13_isExpensive: Boolean!
-          $__fusion_3_isExpensiveWithDiscount: Boolean!
-          $__fusion_4_id: ID!
-          $__fusion_7_isExpensiveWithDiscount: Boolean!
+        $__fusion_13_isExpensive: Boolean!
+        $__fusion_3_isExpensiveWithDiscount: Boolean!
+        $__fusion_4_id: ID!
+        $__fusion_7_isExpensiveWithDiscount: Boolean!
       ) {
         productById(id: $__fusion_4_id) {
           canAffordWithDiscount2(
@@ -91,34 +91,8 @@ nodes:
           isExpensiveWithDiscount
     dependencies:
       - id: 1
-      - id: 5
-      - id: 7
-  - id: 5
-    type: OperationBatch
-    schema: c
-    operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_id: ID!
-          $__fusion_6_hasDiscount: Boolean!
-      ) {
-        productById(id: $__fusion_5_id) {
-          isExpensiveWithDiscount(hasDiscount: $__fusion_6_hasDiscount)
-        }
-      }
-    source: $.productById
-    targets:
-      - $.product
-      - $.product
-    batchingGroupId: 5
-    requirements:
-      - name: __fusion_5_id
-        selectionMap: >-
-          id
-      - name: __fusion_6_hasDiscount
-        selectionMap: >-
-          hasDiscount
-    dependencies:
-      - id: 1
+      - id: 10
+      - id: 11
   - id: 7
     type: OperationBatch
     schema: c
@@ -132,7 +106,7 @@ nodes:
     targets:
       - $.product
       - $.product
-    batchingGroupId: 7
+    batchingGroupId: 10
     requirements:
       - name: __fusion_11_id
         selectionMap: >-
@@ -149,8 +123,8 @@ nodes:
     operation: |
       query Op_123456789101112_9(
         $__fusion_16_id: ID!
-          $__fusion_17_hasDiscount: Boolean!
-          $__fusion_18_price: Float!
+        $__fusion_17_hasDiscount: Boolean!
+        $__fusion_18_price: Float!
       ) {
         productById(id: $__fusion_16_id) {
           isExpensiveWithDiscount(hasDiscount: $__fusion_17_hasDiscount)
@@ -159,7 +133,7 @@ nodes:
       }
     source: $.productById
     target: $.product
-    batchingGroupId: 7
+    batchingGroupId: 10
     requirements:
       - name: __fusion_16_id
         selectionMap: >-
@@ -173,3 +147,29 @@ nodes:
     dependencies:
       - id: 1
       - id: 2
+  - id: 5
+    type: OperationBatch
+    schema: c
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_id: ID!
+        $__fusion_6_hasDiscount: Boolean!
+      ) {
+        productById(id: $__fusion_5_id) {
+          isExpensiveWithDiscount(hasDiscount: $__fusion_6_hasDiscount)
+        }
+      }
+    source: $.productById
+    targets:
+      - $.product
+      - $.product
+    batchingGroupId: 11
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+      - name: __fusion_6_hasDiscount
+        selectionMap: >-
+          hasDiscount
+    dependencies:
+      - id: 1

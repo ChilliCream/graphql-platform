@@ -5,7 +5,6 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { TOOLS } from "@/src/components/header/navData";
 import commitActivity from "@/src/data/githubCommitActivity.json";
 import { getGitHubContributors } from "@/src/helpers/githubContributors";
-import { getGitHubStarCount } from "@/src/helpers/githubStars";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { schemaId, schemaRef } from "@/src/helpers/structuredData";
 
@@ -39,10 +38,7 @@ export const metadata = pageMetadata(PAGE);
 const HIDDEN_CONTRIBUTOR_LOGINS = new Set(["artola"]);
 
 export default async function EcosystemPage() {
-  const [starCount, contributors] = await Promise.all([
-    getGitHubStarCount(),
-    getGitHubContributors(),
-  ]);
+  const contributors = await getGitHubContributors();
   const heroContributors =
     contributors?.filter(
       (contributor) => !HIDDEN_CONTRIBUTOR_LOGINS.has(contributor.login),
@@ -66,10 +62,10 @@ export default async function EcosystemPage() {
           schemaRef(schemaId("/products/mocha", "software")),
         ]}
       />
-      <Hero starCount={starCount} contributors={heroContributors} />
+      <Hero contributors={heroContributors} />
       <ProofBand commitActivity={commitActivity.weeks} />
       <StandardsBand />
-      <CommunityGrid starCount={starCount} />
+      <CommunityGrid />
       <RevealOnScroll>
         <FromOurBlog limit={3} className="py-10 sm:py-14" />
       </RevealOnScroll>

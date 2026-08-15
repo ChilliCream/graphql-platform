@@ -252,7 +252,7 @@ public sealed class InterfaceInheritanceLookupPlanningTests : FusionTestBase
                 targets:
                   - $.orders<OrderB>.items.product
                   - $.orders<OrderA>.items.product
-                batchingGroupId: 2
+                batchingGroupId: 4
                 requirements:
                   - name: __fusion_1_id
                     selectionMap: >-

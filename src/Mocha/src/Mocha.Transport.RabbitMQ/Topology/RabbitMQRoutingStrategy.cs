@@ -90,42 +90,26 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (configuration is null && Transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
-        {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "e" && name is var exchangeName)
-            {
-                configuration = new RabbitMQDispatchEndpointConfiguration
-                {
-                    ExchangeName = new string(exchangeName),
-                    Name = "e/" + new string(exchangeName)
-                };
-            }
-
-            if (kind is "q" && name is var queueName)
-            {
-                var queueNameValue = new string(queueName);
-                configuration = new RabbitMQDispatchEndpointConfiguration
-                {
-                    QueueName = queueNameValue,
-                    Name = "q/" + queueNameValue,
-                    AutoProvision = GetQueueAutoProvision(queueNameValue)
-                };
-            }
-        }
-
         if (configuration is null
-            && Transport.Topology.Address.IsBaseOf(address)
-            && TryGetBaseQueueName(address, out var baseQueueName))
+            && TryParseTopologyAddress(address, out var topologyKind, out var resourceName))
         {
-            configuration = new RabbitMQDispatchEndpointConfiguration
+            if (topologyKind is 'e')
             {
-                QueueName = baseQueueName,
-                Name = "q/" + baseQueueName,
-                AutoProvision = GetQueueAutoProvision(baseQueueName)
-            };
+                configuration = new RabbitMQDispatchEndpointConfiguration
+                {
+                    ExchangeName = resourceName,
+                    Name = "e/" + resourceName
+                };
+            }
+            else if (topologyKind is 'q')
+            {
+                configuration = new RabbitMQDispatchEndpointConfiguration
+                {
+                    QueueName = resourceName,
+                    Name = "q/" + resourceName,
+                    AutoProvision = GetQueueAutoProvision(resourceName)
+                };
+            }
         }
 
         if (configuration is null && address is { Scheme: "queue" } && segmentCount == 1)
@@ -518,8 +502,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        if (TryParseTopologyAddress(address, out var topologyKind, out var topologyName)
+            && topologyKind is 'q')
         {
+            queueName = topologyName;
             return true;
         }
 
@@ -533,28 +519,73 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         return false;
     }
 
-    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    /// <summary>
+    /// Parses an address under the transport topology into its kind and resource name.
+    /// Everything after the kind segment is the name, because a queue or exchange name may
+    /// contain a slash.
+    /// </summary>
+    private bool TryParseTopologyAddress(
+        Uri address,
+        out char kind,
+        out string name)
     {
-        var relative = Transport.Topology.Address.MakeRelativeUri(address);
-        if (relative.IsAbsoluteUri)
+        kind = default;
+        name = string.Empty;
+
+        // A valid resource path is not enough to identify this transport. For example,
+        // rabbitmq://other-host:5672/tenant-a/q/orders must not be claimed by this topology.
+        var topologyAddress = Transport.Topology.Address;
+        if (!address.Scheme.EqualsOrdinalIgnoreCase(topologyAddress.Scheme)
+            || !address.Host.EqualsOrdinalIgnoreCase(topologyAddress.Host)
+            || address.Port != topologyAddress.Port)
         {
-            queueName = string.Empty;
             return false;
         }
 
-        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
-        var path = relativePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+        // Normalize only the topology path: "/" becomes empty and "/tenant-a/" becomes
+        // "/tenant-a". Keep the address path unchanged while removing the topology prefix below.
+        var basePath = topologyAddress.AbsolutePath.AsSpan().TrimEnd('/');
+        var path = address.AbsolutePath.AsSpan();
+        ReadOnlySpan<char> relativePath;
 
-        if (segmentCount == 2 && path[ranges[0]] is "q")
+        if (basePath.IsEmpty)
         {
-            queueName = new string(path[ranges[1]]);
-            return true;
+            // A root topology consumes exactly one structural slash:
+            // "/q/orders" becomes "q/orders". The shorthand "rabbitmq:q/orders" has no
+            // leading slash and is handled by the transport-specific branch above.
+            if (path.IsEmpty || path[0] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[1..];
+        }
+        else
+        {
+            // Remove the exact virtual-host path and its separator:
+            // "/tenant-a/q/orders" becomes "q/orders". Requiring the separator prevents
+            // "/tenant-a" from matching "/tenant-a-other/q/orders".
+            if (path.Length <= basePath.Length
+                || !path.StartsWith(basePath, StringComparison.Ordinal)
+                || path[basePath.Length] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[(basePath.Length + 1)..];
         }
 
-        queueName = string.Empty;
-        return false;
+        // Require "{kind}/{name}", where kind is one character. Everything after the first
+        // slash is the name, so a name containing a slash, such as "q/nested/queue", stays intact.
+        if (relativePath.Length < 3 || relativePath[1] is not '/')
+        {
+            return false;
+        }
+
+        kind = relativePath[0];
+        // AbsolutePath is escaped, so "q/space%20name" must produce "space name".
+        name = Uri.UnescapeDataString(relativePath[2..].ToString());
+        return true;
     }
 }
 

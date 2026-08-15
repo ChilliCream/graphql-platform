@@ -327,7 +327,7 @@ operationPlan:
         }
       source: $.reviewById
       target: $.searchProduct<ReviewSearchResult>.review
-      batchingGroupId: 2
+      batchingGroupId: 7
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -352,7 +352,7 @@ operationPlan:
         }
       source: $.productById
       target: $.searchProduct<ProductSearchResult>.product
-      batchingGroupId: 2
+      batchingGroupId: 7
       requirements:
         - name: __fusion_4_audience
           selectionMap: >-
@@ -375,7 +375,7 @@ operationPlan:
       targets:
         - $.searchProduct<ReviewSearchResult>.review.author
         - $.searchProduct<ProductSearchResult>.product.reviews.author
-      batchingGroupId: 3
+      batchingGroupId: 8
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
