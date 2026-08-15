@@ -167,6 +167,94 @@ public class SagaValidationTests
         Assert.Equal("The following states cannot reach a final state: Cycle", exception.Message);
     }
 
+    [Fact]
+    public void Initialize_Should_Throw_When_StateHandlesAnyReplyWithoutFault()
+    {
+        // arrange & act
+        var exception = Assert.Throws<SagaInitializationException>(() =>
+        {
+            var saga = Saga.Create<TestState>(descriptor =>
+            {
+                descriptor
+                    .Initially()
+                    .OnEvent<StartEvent>()
+                    .TransitionTo("Awaiting")
+                    .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
+                descriptor.During("Awaiting").OnAnyReply().TransitionTo("Success");
+                descriptor.Finally("Success");
+            });
+            saga.Initialize(_context);
+        });
+
+        // assert
+        Assert.Equal(
+            "State 'Awaiting' handles any reply but does not handle faults. "
+            + "Add '.OnReplyFault()' to this state, or '.DuringAny().OnReplyFault()' to the saga.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void Initialize_Should_PassValidation_When_StateHandlesAnyReplyAndFault()
+    {
+        // arrange & act
+        var saga = Saga.Create<TestState>(descriptor =>
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StartEvent>()
+                .TransitionTo("Awaiting")
+                .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
+            descriptor.During("Awaiting").OnAnyReply().TransitionTo("Success");
+            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Success");
+            descriptor.Finally("Success");
+        });
+
+        // assert - should not throw
+        saga.Initialize(_context);
+    }
+
+    [Fact]
+    public void Initialize_Should_PassValidation_When_FaultHandledByDuringAny()
+    {
+        // arrange & act
+        // DuringAny transitions are merged into every non-initial, non-final state before validation,
+        // so one blanket fault transition covers the state that handles any reply
+        var saga = Saga.Create<TestState>(descriptor =>
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StartEvent>()
+                .TransitionTo("Awaiting")
+                .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
+            descriptor.During("Awaiting").OnAnyReply().TransitionTo("Success");
+            descriptor.DuringAny().OnReplyFault().TransitionTo("Success");
+            descriptor.Finally("Success");
+        });
+
+        // assert - should not throw
+        saga.Initialize(_context);
+    }
+
+    [Fact]
+    public void Initialize_Should_PassValidation_When_StateHandlesOnlyTypedReplies()
+    {
+        // arrange & act
+        // the rule targets the object catch-all, a typed reply cannot select a fault
+        var saga = Saga.Create<TestState>(descriptor =>
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StartEvent>()
+                .TransitionTo("Awaiting")
+                .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
+            descriptor.During("Awaiting").OnReply<TestMessage>().TransitionTo("Success");
+            descriptor.Finally("Success");
+        });
+
+        // assert - should not throw
+        saga.Initialize(_context);
+    }
+
     private class TestState(Guid id, string state) : SagaStateBase(id, state);
 
     private sealed class StartEvent;

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Events;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
@@ -18,10 +19,30 @@ public class SagaRouteConditionTests
         var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
 
         // assert - OnAnyReply routes every saga-id reply to the consumer, so it gates on the saga-id alone
-        var route = GetSagaRoute(runtime, InboundRouteKind.Reply);
+        var route = GetSagaRoute(runtime, InboundRouteKind.Reply, typeof(object));
         var description = route.Condition.Describe();
         Assert.Equal("HeaderPresent", description.Kind);
         Assert.Equal("saga-id", description.Detail);
+    }
+
+    [Fact]
+    public void Configure_Should_GateOnSagaIdAndMessageType_When_OnReplyFault()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
+
+        // assert - a fault is a typed reply, so it keeps the message type term next to the saga-id gate
+        var route = GetSagaRoute(runtime, InboundRouteKind.Reply, typeof(NotAcknowledgedEvent));
+        var description = route.Condition.Describe();
+        Assert.Equal("And", description.Kind);
+        Assert.Collection(
+            description.Children,
+            c =>
+            {
+                Assert.Equal("HeaderPresent", c.Kind);
+                Assert.Equal("saga-id", c.Detail);
+            },
+            c => Assert.Equal("MessageType", c.Kind));
     }
 
     [Fact]
@@ -55,10 +76,15 @@ public class SagaRouteConditionTests
         Assert.IsType<MessageTypeCondition>(route.Condition);
     }
 
-    private static InboundRoute GetSagaRoute(MessagingRuntime runtime, InboundRouteKind kind)
+    private static InboundRoute GetSagaRoute(
+        MessagingRuntime runtime,
+        InboundRouteKind kind,
+        Type? messageType = null)
     {
         var consumer = runtime.Consumers.OfType<SagaConsumer>().Single();
-        return runtime.Router.GetInboundByConsumer(consumer).Single(r => r.Kind == kind);
+        return runtime
+            .Router.GetInboundByConsumer(consumer)
+            .Single(r => r.Kind == kind && (messageType is null || r.MessageType?.RuntimeType == messageType));
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
@@ -96,6 +122,7 @@ public class SagaRouteConditionTests
                 .TransitionTo("Awaiting");
 
             descriptor.During("Awaiting").OnAnyReply().TransitionTo("Done");
+            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Done");
 
             descriptor.Finally("Done");
         }

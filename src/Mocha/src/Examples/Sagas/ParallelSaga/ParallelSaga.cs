@@ -171,7 +171,7 @@ public sealed class ReturnProcessingSaga : Saga<ReturnSagaState>
         // Fault during inspection: compensate by marking failed
         descriptor
             .During(AwaitingInspection)
-            .OnFault()
+            .OnReplyFault()
             .Then((state, fault) => state.FailureReason = $"Inspection failed: {fault.ErrorMessage}")
             .TransitionTo(Failed);
 
@@ -207,7 +207,7 @@ public sealed class ReturnProcessingSaga : Saga<ReturnSagaState>
         // Fault while waiting for either reply: compensation
         descriptor
             .During(AwaitingBothReplies)
-            .OnFault()
+            .OnReplyFault()
             .Then((state, fault) => state.FailureReason = $"Parallel step failed: {fault.ErrorMessage}")
             .TransitionTo(Failed);
 

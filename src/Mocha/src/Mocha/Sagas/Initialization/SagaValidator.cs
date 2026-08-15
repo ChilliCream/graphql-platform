@@ -1,3 +1,5 @@
+using Mocha.Events;
+
 namespace Mocha.Sagas;
 
 internal static class SagaValidator
@@ -33,6 +35,8 @@ internal static class SagaValidator
             {
                 finalStates.Add(stateName);
             }
+
+            ValidateFaultHandling(saga, stateName, sagaState);
 
             foreach (var transition in sagaState.Transitions.Values)
             {
@@ -86,5 +90,24 @@ internal static class SagaValidator
                 saga,
                 "The following states cannot reach a final state: " + unreachableList);
         }
+    }
+
+    /// <summary>
+    /// Rejects a state that handles any reply without handling faults, because a fault reply would
+    /// otherwise select the catch-all transition through its base type.
+    /// </summary>
+    private static void ValidateFaultHandling(Saga saga, string stateName, SagaState state)
+    {
+        if (!state.Transitions.TryGetValue(typeof(object), out var anyReply)
+            || anyReply.TransitionKind is not SagaTransitionKind.Reply
+            || state.Transitions.ContainsKey(typeof(NotAcknowledgedEvent)))
+        {
+            return;
+        }
+
+        throw new SagaInitializationException(
+            saga,
+            $"State '{stateName}' handles any reply but does not handle faults. "
+            + "Add '.OnReplyFault()' to this state, or '.DuringAny().OnReplyFault()' to the saga.");
     }
 }
