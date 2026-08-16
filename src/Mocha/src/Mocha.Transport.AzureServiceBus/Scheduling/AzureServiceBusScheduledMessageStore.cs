@@ -166,20 +166,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
     }
 
     private static string CreateOwner(AzureServiceBusMessagingTransport transport)
-    {
-        var configuration = (AzureServiceBusTransportConfiguration)transport.Configuration;
-        var fullyQualifiedNamespace = configuration.FullyQualifiedNamespace;
-
-        if (fullyQualifiedNamespace is null && configuration.ConnectionString is { } connectionString)
-        {
-            fullyQualifiedNamespace =
-                ServiceBusConnectionStringProperties.Parse(connectionString).FullyQualifiedNamespace;
-        }
-
-        fullyQualifiedNamespace ??= transport.Topology.Address.Host;
-
-        return CreateOwner(transport.Name, fullyQualifiedNamespace);
-    }
+        => CreateOwner(transport.Name, transport.Topology.Address.Host);
 
     private static string Encode(string value)
     {

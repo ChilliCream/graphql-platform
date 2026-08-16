@@ -181,6 +181,10 @@ public class SchedulingTests
     [Fact]
     public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_MessageAlreadyDispatched()
     {
+        Assert.SkipUnless(
+            AzureServiceBusFixture.SupportsScheduledCancellation,
+            "Carve-out: scheduled-message cancellation (emulator bug #119).");
+
         // arrange
         var recorder = new MessageRecorder();
         await using var ctx = _fixture.CreateTestContext();

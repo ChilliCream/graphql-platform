@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
 using Mocha.Transport.AzureServiceBus.Scheduling;
+using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
 
@@ -119,6 +120,21 @@ public sealed class AzureServiceBusSchedulingUnitTests
     }
 
     [Fact]
+    public void ResolveStore_Should_Work_When_TransportRuntimeIsFinalized()
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.AddAzureServiceBus(t => t.ConnectionString(DummyConnectionString));
+        builder.BuildRuntime();
+        using var provider = services.BuildServiceProvider();
+        var registration = provider.GetRequiredService<ScheduledMessageStoreRegistration>();
+
+        var store = registration.Resolve(provider);
+
+        Assert.IsType<AzureServiceBusScheduledMessageStore>(store);
+    }
+
+    [Fact]
     public void CreateMessage_Should_MapEnvelopeAndNativeProperties_When_MessageIsScheduled()
     {
         var headers = new Headers();
@@ -230,4 +246,7 @@ public sealed class AzureServiceBusSchedulingUnitTests
         Assert.Throws<InvalidOperationException>(() =>
             AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow));
     }
+
+    private const string DummyConnectionString =
+        "Endpoint=sb://localhost/;SharedAccessKeyName=test;SharedAccessKey=test";
 }
