@@ -51,6 +51,58 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : RuleTestBase
         ]);
     }
 
+    // In this example the bare enum value "FOO" is a valid default for the list type "[Enum1!]"
+    // through list input coercion, and "FOO" is not marked with @inaccessible, hence it does not
+    // violate the rule.
+    [Fact]
+    public void Validate_EnumTypeDefaultValueAccessibleBareValueOnListType_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            # Schema A
+            type Query {
+                field(arg: [Enum1!] = FOO): [Baz!]!
+            }
+
+            input Input1 {
+                field: [Enum1!] = FOO
+            }
+
+            enum Enum1 {
+                FOO
+                BAR
+            }
+            """
+        ]);
+    }
+
+    // In this example the object default value names a field (undeclared) that the input type does
+    // not declare. Undeclared fields are not checked by this rule, hence it does not violate the
+    // rule.
+    [Fact]
+    public void Validate_EnumTypeDefaultValueObjectValueUndeclaredField_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            # Schema A
+            type Query {
+                field(arg: Input1 = { undeclared: FOO }): [Baz!]!
+            }
+
+            input Input1 {
+                field1: Enum1
+            }
+
+            enum Enum1 {
+                FOO @inaccessible
+                BAR
+            }
+            """
+        ]);
+    }
+
     // The following example violates this rule because the default value for the argument (arg) and
     // the input field (field) references an enum value (FOO), that is marked as @inaccessible.
     [Fact]
@@ -196,6 +248,95 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : RuleTestBase
                     "severity": "Error",
                     "coordinate": "Input1.field",
                     "member": "field",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // The following example violates this rule because the bare enum default value (FOO) for the
+    // list-typed argument (arg) and the input field (field) is coerced into a singleton list and
+    // references an enum value that is marked as @inaccessible.
+    [Fact]
+    public void Validate_EnumTypeDefaultValueInaccessibleBareValueOnListType_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    field(arg: [Enum1!] = FOO): [Baz!]!
+                }
+
+                input Input1 {
+                    field: [Enum1!] = FOO
+                }
+
+                enum Enum1 {
+                    FOO @inaccessible
+                    BAR
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The default value of 'Query.field(arg:)' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Query.field(arg:)",
+                    "member": "arg",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The default value of 'Input1.field' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Input1.field",
+                    "member": "field",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // The following example violates this rule because the bare object default value for the
+    // list-typed argument (arg) is coerced into a singleton list and references an @inaccessible
+    // enum value (FOO) within the object value.
+    [Fact]
+    public void Validate_EnumTypeDefaultValueInaccessibleObjectValueOnListType_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    field(arg: [Input1] = { field1: FOO }): [Baz!]!
+                }
+
+                input Input1 {
+                    field1: Enum1
+                }
+
+                enum Enum1 {
+                    FOO @inaccessible
+                    BAR
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The default value of 'Query.field(arg:)' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Query.field(arg:)",
+                    "member": "arg",
                     "schema": "default",
                     "extensions": {}
                 }
