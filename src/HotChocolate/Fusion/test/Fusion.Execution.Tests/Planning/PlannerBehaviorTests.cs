@@ -81,6 +81,22 @@ public class PlannerBehaviorTests : FusionTestBase
         Assert.Single(plan.AllNodes);
     }
 
+    // control: identical fields and fragments, each spread once; the trigger above exercises reuse, not document size
+    [Fact]
+    public void CreatePlan_Should_Succeed_When_Each_Fragment_Is_Spread_Once()
+    {
+        // arrange
+        // with single spreads the fragment-inlined expansion matches the document's field count, below the 2048 limit
+        var schema = ComposeSchema(CreateWideDetailSchema());
+        var operationText = CreateOperationWithSingleFragmentSpreads();
+
+        // act
+        var plan = PlanOperation(schema, operationText);
+
+        // assert
+        Assert.Single(plan.AllNodes);
+    }
+
     [Fact]
     public void Include_Skip_Basic_Include()
     {
@@ -395,6 +411,23 @@ public class PlannerBehaviorTests : FusionTestBase
         // fragment k selects window k % 7 of the Detail fields, so consecutive
         // fragments select disjoint field windows and each details field spreads
         // one fragment group that covers all 7 windows (112 distinct fields).
+        return CreateOperationWithFragmentSpreads(
+            static field => Enumerable.Range(
+                (field % FragmentGroupCount) * DetailWindowCount,
+                DetailWindowCount));
+    }
+
+    private static string CreateOperationWithSingleFragmentSpreads()
+    {
+        // each fragment is spread exactly once, distributed round-robin over the details fields.
+        return CreateOperationWithFragmentSpreads(
+            static field => Enumerable
+                .Range(0, FragmentGroupCount * DetailWindowCount)
+                .Where(fragment => fragment % ProductDetailFieldCount == field));
+    }
+
+    private static string CreateOperationWithFragmentSpreads(Func<int, IEnumerable<int>> spreadsForDetailsField)
+    {
         var operation = new StringBuilder();
 
         operation.AppendLine("query {");
@@ -404,11 +437,9 @@ public class PlannerBehaviorTests : FusionTestBase
         {
             operation.AppendLine($"    details{i + 1:00} {{");
 
-            var group = i % FragmentGroupCount;
-
-            for (var window = 0; window < DetailWindowCount; window++)
+            foreach (var fragment in spreadsForDetailsField(i))
             {
-                operation.AppendLine($"      ...Details{(group * DetailWindowCount) + window:00}");
+                operation.AppendLine($"      ...Details{fragment:00}");
             }
 
             operation.AppendLine("    }");
