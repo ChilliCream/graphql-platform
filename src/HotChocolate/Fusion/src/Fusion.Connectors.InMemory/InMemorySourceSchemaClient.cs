@@ -388,7 +388,10 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
         // The operation executes in-process, so the source text is parsed here directly
         // instead of routing the request through a source-text document that would parse again.
-        var document = new OperationDocument(Utf8GraphQLParser.Parse(request.OperationSourceText.Value.Span));
+        var document = new OperationDocument(
+            Utf8GraphQLParser.Parse(
+                request.OperationSourceText.Value.Span,
+                ParserOptions.Trusted));
 
         if (request.Variables.Length == 0)
         {

@@ -259,6 +259,47 @@ public class QueryParserTests
     }
 
     [Fact]
+    public void Parse_Should_Succeed_When_Trusted_Options_And_Fields_Exceed_Default_Limit()
+    {
+        // arrange
+        // 2100 aliased fields exceed the default limit of 2048
+        const int fieldCount = 2_100;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < fieldCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        // act
+        var document = Utf8GraphQLParser.Parse(sb.ToString(), ParserOptions.Trusted);
+
+        // assert
+        Assert.Equal(fieldCount, document.FieldsCount);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_SyntaxException_When_Trusted_Options_And_Depth_Exceeds_Default_Limit()
+    {
+        // arrange
+        // 250 nested selection sets exceed the default recursion depth of 200
+        const int depth = 250;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        // act
+        var exception = Assert.Throws<SyntaxException>(
+            () => Utf8GraphQLParser.Parse(query, ParserOptions.Trusted));
+
+        // assert
+        exception.Message.MatchInlineSnapshot(
+            "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
     public void ParseSimpleShortHandFormQuery()
     {
         // arrange
