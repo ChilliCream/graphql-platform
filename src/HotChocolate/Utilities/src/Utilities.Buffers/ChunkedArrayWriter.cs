@@ -44,7 +44,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     public int Position
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (_currentChunk << BufferShift) | _currentChunkOffset;
+        get => (_currentChunk << BufferShift) + _currentChunkOffset;
     }
 
     /// <summary>

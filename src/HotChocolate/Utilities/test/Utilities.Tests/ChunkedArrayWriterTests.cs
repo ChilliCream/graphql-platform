@@ -36,6 +36,71 @@ public class ChunkedArrayWriterTests
     }
 
     [Fact]
+    public void Position_Should_ReportFlatByteCount_When_ChunkIsExactlyFull()
+    {
+        // Arrange
+        // After an Advance that exactly fills a chunk the offset rests at the chunk
+        // size until the next GetSpan rolls over; two full chunks park the writer on
+        // an odd chunk index, where a bitwise position encoding loses the carry.
+        using var writer = new ChunkedArrayWriter();
+        writer.GetSpan(JsonMemory.BufferSize);
+        writer.Advance(JsonMemory.BufferSize);
+        var afterFirstChunk = writer.Position;
+        writer.GetSpan(JsonMemory.BufferSize);
+        writer.Advance(JsonMemory.BufferSize);
+
+        // Act
+        var afterSecondChunk = writer.Position;
+
+        // Assert
+        Assert.Equal(JsonMemory.BufferSize, afterFirstChunk);
+        Assert.Equal(2 * JsonMemory.BufferSize, afterSecondChunk);
+        Assert.Equal(2 * JsonMemory.BufferSize, writer.Length);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Position_Should_AddressBytesWrittenAfterIt_When_TakenAtExactChunkBoundary(
+        bool fillThroughScratch)
+    {
+        // Arrange
+        // Fill two chunks so the writer rests at an odd chunk index with a full offset,
+        // either by advancing exact chunk sizes or by a request that overflows the
+        // remaining space and lands on the boundary through the scratch buffer.
+        using var writer = new ChunkedArrayWriter();
+        writer.GetSpan(JsonMemory.BufferSize);
+        writer.Advance(JsonMemory.BufferSize);
+
+        if (fillThroughScratch)
+        {
+            writer.GetSpan(JsonMemory.BufferSize - 16);
+            writer.Advance(JsonMemory.BufferSize - 16);
+            writer.GetSpan(32);
+            writer.Advance(16);
+        }
+        else
+        {
+            writer.GetSpan(JsonMemory.BufferSize);
+            writer.Advance(JsonMemory.BufferSize);
+        }
+
+        var payload = new byte[64];
+        WritePattern(payload, seed: 23);
+
+        // Act
+        var location = writer.Position;
+        payload.CopyTo(writer.GetSpan(payload.Length));
+        writer.Advance(payload.Length);
+        var actual = new byte[payload.Length];
+        writer.CopyTo(actual, location, payload.Length);
+
+        // Assert
+        Assert.Equal(2 * JsonMemory.BufferSize, location);
+        Assert.Equal(payload, actual);
+    }
+
+    [Fact]
     public void WriteAt_Should_AllowEmptyPatch_When_LocationEqualsLength()
     {
         // Arrange
