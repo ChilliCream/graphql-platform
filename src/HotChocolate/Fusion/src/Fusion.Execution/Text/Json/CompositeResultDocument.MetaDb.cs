@@ -101,7 +101,7 @@ public sealed partial class CompositeResultDocument
         internal Cursor AppendEmptyProperty(int parentRow, int selectionId, ElementFlags flags)
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
-            Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
+            Debug.Assert(selectionId is >= 0 and <= DbRow.OperationReferenceIdMask);
             Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
@@ -116,7 +116,7 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
                 selectionId
-                | ((int)OperationReferenceType.Selection << 15)
+                | ((int)OperationReferenceType.Selection << DbRow.OperationReferenceTypeShift)
                 | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // ints 2..3 must be zero (int 4 is written directly below)
@@ -135,7 +135,7 @@ public sealed partial class CompositeResultDocument
         internal Cursor AppendEmptyPropertyWithNullValue(int parentRow, int selectionId, ElementFlags flags)
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
-            Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
+            Debug.Assert(selectionId is >= 0 and <= DbRow.OperationReferenceIdMask);
             Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var next = _next;
@@ -155,7 +155,7 @@ public sealed partial class CompositeResultDocument
                 Unsafe.WriteUnaligned(
                     ref Unsafe.Add(ref row0, 4),
                     selectionId
-                    | ((int)OperationReferenceType.Selection << 15)
+                    | ((int)OperationReferenceType.Selection << DbRow.OperationReferenceTypeShift)
                     | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 8);
                 // int 4: PropertyName token
@@ -182,7 +182,7 @@ public sealed partial class CompositeResultDocument
         internal Cursor AppendStartObject(int parentRow, int selectionSetId, int propertyCount, ElementFlags flags)
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
-            Debug.Assert(selectionSetId is >= 0 and <= 0x7FFF);
+            Debug.Assert(selectionSetId is >= 0 and <= DbRow.OperationReferenceIdMask);
             Debug.Assert(propertyCount is >= 0 and <= 0x0FFFFFFF); // room for (count*2)+1 in 29 bits
             Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
@@ -198,7 +198,7 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
                 selectionSetId
-                | ((int)OperationReferenceType.SelectionSet << 15)
+                | ((int)OperationReferenceType.SelectionSet << DbRow.OperationReferenceTypeShift)
                 | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: sizeOrLength = property count
@@ -623,7 +623,7 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, DbRow.SelectionAndFlagsOffset),
                 operationReferenceId
-                | ((int)operationReferenceType << 15)
+                | ((int)operationReferenceType << DbRow.OperationReferenceTypeShift)
                 | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: SizeOrLength (full 32 bits; preserves the sign bit / UnknownSize sentinel)
