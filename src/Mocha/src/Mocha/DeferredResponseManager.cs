@@ -58,14 +58,18 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     /// </summary>
     /// <param name="correlationId">The correlation identifier of the promise to fault.</param>
     /// <param name="exception">The exception to propagate to the waiting caller.</param>
-    public void SetException(string correlationId, Exception exception)
+    /// <returns><c>true</c> if a matching promise was found and faulted; <c>false</c> if no promise was registered for the correlation identifier.</returns>
+    public bool SetException(string correlationId, Exception exception)
     {
         if (_matches.TryRemove(correlationId, out var promise))
         {
             promise.Cts.Cancel();
             promise.Cts.Dispose();
             promise.TaskCompletionSource.SetException(exception);
+            return true;
         }
+
+        return false;
     }
 
     /// <summary>

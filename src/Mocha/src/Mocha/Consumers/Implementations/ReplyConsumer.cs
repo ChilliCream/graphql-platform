@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Events;
 
 namespace Mocha;
@@ -14,6 +16,8 @@ namespace Mocha;
 // TODO Not sure if this really has to be consumer. could also just be a middleware
 public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Consumer
 {
+    private ILogger<ReplyConsumer>? _logger;
+
     protected override void Configure(IConsumerDescriptor descriptor)
     {
         descriptor.Name("Reply");
@@ -22,49 +26,83 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
     protected override void OnAfterInitialize(IMessagingSetupContext context)
     {
         base.OnAfterInitialize(context);
+
+        _logger = context.Services.GetRequiredService<ILogger<ReplyConsumer>>();
     }
 
     protected override ValueTask ConsumeAsync(IConsumeContext context)
     {
         if (context.CorrelationId is not { } correlationId)
         {
-            // TODO logs!
-            // Replies without correlation cannot be matched to a pending request promise.
+            // A saga reply correlates through the saga-id header and carries no correlation id, so
+            // it cannot match a promise and is expected to be owned by another consumer.
+            ReportUnmatchedReply(context, correlationId: null);
             return default;
         }
 
         try
         {
-            var message = context.GetMessage();
+            var message = context.GetMessage() ?? throw ThrowHelper.ResponseBodyNotSet();
 
-            if (message is null)
-            {
-                throw ThrowHelper.ResponseBodyNotSet();
-            }
-
-            if (message is NotAcknowledgedEvent failure)
-            {
-                // Fault replies complete the pending request with a remote exception.
-                responseManager.SetException(
+            var matched = message is NotAcknowledgedEvent failure
+                ? responseManager.SetException(
                     correlationId,
                     new RemoteErrorException(
                         failure.ErrorCode,
                         failure.ErrorMessage,
                         failure.MessageId,
-                        failure.CorrelationId));
-            }
-            else if (!responseManager.CompletePromise(context.CorrelationId, message))
+                        failure.CorrelationId))
+                : responseManager.CompletePromise(correlationId, message);
+
+            if (!matched)
             {
-                // A late/unknown reply indicates there is no active waiter for this correlation id.
-                throw ThrowHelper.PromiseNotFound();
+                ReportUnmatchedReply(context, correlationId);
             }
         }
         catch (Exception ex)
         {
-            // TODO logs!
-            responseManager.SetException(correlationId, ex);
+            // Fault the waiting requester rather than leave it to time out.
+            if (!responseManager.SetException(correlationId, ex))
+            {
+                _logger!.ReplyProcessingFailed(ex, correlationId, context.MessageId);
+            }
         }
 
         return default;
     }
+
+    /// <summary>
+    /// Reports a reply that completed no promise, distinguishing one that another consumer on the
+    /// same message owns from one that nothing handled.
+    /// </summary>
+    private void ReportUnmatchedReply(IConsumeContext context, string? correlationId)
+    {
+        // A saga reply route selects the saga consumer alongside this one, so a second consumer on
+        // the message means the reply is owned there and no promise was expected.
+        if (context.Features.Get<ReceiveConsumerFeature>()?.Consumers is { Count: > 1 })
+        {
+            return;
+        }
+
+        _logger!.ReplyDiscarded(correlationId, context.MessageId);
+    }
+}
+
+internal static partial class ReplyConsumerLogs
+{
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Discarded a reply that no pending request and no consumer claimed "
+        + "(correlation id {CorrelationId}, message id {MessageId})")]
+    public static partial void ReplyDiscarded(this ILogger logger, string? correlationId, string? messageId);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to process a reply with no pending request "
+        + "(correlation id {CorrelationId}, message id {MessageId})")]
+    public static partial void ReplyProcessingFailed(
+        this ILogger logger,
+        Exception exception,
+        string correlationId,
+        string? messageId);
 }

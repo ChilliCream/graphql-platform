@@ -97,9 +97,10 @@ public class DeferredResponseManagerTests
         var tcs = manager.AddPromise(correlationId, TimeSpan.FromSeconds(30));
 
         // act
-        manager.SetException(correlationId, new InvalidOperationException("test error"));
+        var faulted = manager.SetException(correlationId, new InvalidOperationException("test error"));
 
         // assert
+        Assert.True(faulted);
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => tcs.Task);
         Assert.Equal("test error", ex.Message);
     }
@@ -111,8 +112,11 @@ public class DeferredResponseManagerTests
         var manager = new DeferredResponseManager(TimeProvider.System);
         var nonExistentId = Guid.NewGuid().ToString();
 
-        // act & assert - should not throw
-        manager.SetException(nonExistentId, new InvalidOperationException("test"));
+        // act
+        var faulted = manager.SetException(nonExistentId, new InvalidOperationException("test"));
+
+        // assert - the caller can tell that nothing was waiting on this correlation id
+        Assert.False(faulted);
     }
 
     [Fact]
