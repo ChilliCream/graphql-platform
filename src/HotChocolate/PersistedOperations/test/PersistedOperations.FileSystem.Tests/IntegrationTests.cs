@@ -38,14 +38,20 @@ public class IntegrationTests
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequest.FromId(documentId),
-            TestContext.Current.CancellationToken);
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequest.FromId(documentId),
+                TestContext.Current.CancellationToken);
 
-        // assert
-        File.Delete(cachedOperation);
-        result.MatchSnapshot();
+            // assert
+            result.MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(cachedOperation);
+        }
     }
 
     [Fact]
@@ -76,14 +82,20 @@ public class IntegrationTests
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequest.FromId("does_not_exist"),
-            TestContext.Current.CancellationToken);
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequest.FromId("does_not_exist"),
+                TestContext.Current.CancellationToken);
 
-        // assert
-        File.Delete(cachedOperation);
-        result.MatchSnapshot();
+            // assert
+            result.MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(cachedOperation);
+        }
     }
 
     [Fact]
@@ -116,16 +128,22 @@ public class IntegrationTests
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequest.FromId(documentId),
-            TestContext.Current.CancellationToken);
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequest.FromId(documentId),
+                TestContext.Current.CancellationToken);
 
-        // assert
-        File.Delete(cachedOperation);
-        using var json = JsonDocument.Parse(result.ToJson());
-        Assert.False(json.RootElement.TryGetProperty("errors", out _));
-        Assert.Equal(fieldCount, json.RootElement.GetProperty("data").EnumerateObject().Count());
+            // assert
+            using var json = JsonDocument.Parse(result.ToJson());
+            Assert.False(json.RootElement.TryGetProperty("errors", out _));
+            Assert.Equal(fieldCount, json.RootElement.GetProperty("data").EnumerateObject().Count());
+        }
+        finally
+        {
+            File.Delete(cachedOperation);
+        }
     }
 
     [Fact]
@@ -153,29 +171,34 @@ public class IntegrationTests
                 .UseAutomaticPersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New()
-                .SetDocumentId(documentHash)
-                .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
-                .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
-                .SetExtensions(new Dictionary<string, object?>
-                {
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocumentId(documentHash)
+                    .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
+                    .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
+                    .SetExtensions(new Dictionary<string, object?>
                     {
-                        "persistedQuery",
-                        new Dictionary<string, object?>
                         {
-                            { "version", 1 },
-                            { "md5Hash", documentHash }
+                            "persistedQuery",
+                            new Dictionary<string, object?>
+                            {
+                                { "version", 1 },
+                                { "md5Hash", documentHash }
+                            }
                         }
-                    }
-                })
-                .Build(),
-            TestContext.Current.CancellationToken);
+                    })
+                    .Build(),
+                TestContext.Current.CancellationToken);
 
-        File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
-
-        // assert
-        result.MatchSnapshot();
+            // assert
+            result.MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
+        }
     }
 }
