@@ -83,7 +83,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, schemaName, lookupOperation);
         var lookup = new ApolloEntityLookup(
             rewritten.SourceText,
-            Utf8GraphQLOperationParser.Parse(rewritten.SourceText.Value),
+            Utf8GraphQLOperationParser.Parse(rewritten.SourceText.Value, ParserOptions.Trusted),
             rewritten.EntityTypeName,
             RepresentationShape: default);
 
@@ -119,7 +119,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             id,
             new ApolloEntityLookup(
                 operation,
-                Utf8GraphQLOperationParser.Parse(operation.Value),
+                Utf8GraphQLOperationParser.Parse(operation.Value, ParserOptions.Trusted),
                 entityTypeName,
                 RepresentationShape: default),
             schemaName,

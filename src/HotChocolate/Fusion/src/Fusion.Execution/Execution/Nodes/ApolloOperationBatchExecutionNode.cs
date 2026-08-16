@@ -460,7 +460,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
         return new ApolloEntityLookup(
             rewritten.SourceText,
-            Utf8GraphQLOperationParser.Parse(rewritten.SourceText.Value),
+            Utf8GraphQLOperationParser.Parse(rewritten.SourceText.Value, ParserOptions.Trusted),
             rewritten.EntityTypeName,
             RepresentationShape: default);
     }

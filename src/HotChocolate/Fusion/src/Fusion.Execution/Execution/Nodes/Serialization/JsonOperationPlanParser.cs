@@ -234,7 +234,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var shortHash = shortHashElement.GetString()!;
 
-        var document = Utf8GraphQLParser.Parse(sourceText);
+        var document = Utf8GraphQLParser.Parse(sourceText, ParserOptions.Trusted);
         var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault();
 
         if (operationDefinition is null)
@@ -1183,7 +1183,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public ApolloEntityLookup CreateLookup()
             => new(
                 OperationSource,
-                Utf8GraphQLOperationParser.Parse(OperationSource.Value),
+                Utf8GraphQLOperationParser.Parse(OperationSource.Value, ParserOptions.Trusted),
                 EntityTypeName,
                 RepresentationShape: default);
 

@@ -124,4 +124,16 @@ public sealed class ParserOptions
     /// Gets the default parser options with the locations switched of.
     /// </summary>
     public static ParserOptions NoLocation { get; } = new(noLocations: true);
+
+    /// <summary>
+    /// Gets parser options for documents from a trusted source, such as persisted operation
+    /// documents or documents the server produced itself. The limits that bound untrusted
+    /// request parsing are lifted while the recursion depth guard remains.
+    /// Never use these options to parse text received from a client.
+    /// </summary>
+    public static ParserOptions Trusted { get; } = new(
+        maxAllowedNodes: int.MaxValue,
+        maxAllowedTokens: int.MaxValue,
+        maxAllowedFields: int.MaxValue,
+        maxAllowedDirectives: int.MaxValue);
 }
