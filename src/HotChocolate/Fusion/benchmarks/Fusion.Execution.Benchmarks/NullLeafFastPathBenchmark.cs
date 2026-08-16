@@ -96,7 +96,11 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
 
     private MemoryArena _arena = null!;
     private CompositeResultDocument _document = null!;
+    private CompositeResultDocument _baselineVerificationDocument = null!;
+    private CompositeResultDocument _fastPathVerificationDocument = null!;
     private SourceResultDocument _sourceDocument = null!;
+    private SourceResultDocument _baselineVerificationSourceDocument = null!;
+    private SourceResultDocument _fastPathVerificationSourceDocument = null!;
     private SourceResultElement[] _sourceElements = null!;
     private CompositeObjectContext _targetContext;
     private ResultSelectionSet _resultSelectionSet = null!;
@@ -153,17 +157,133 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
         _arena = new MemoryArena();
         _document = new CompositeResultDocument(_arena, operation, includeFlags: 0);
 
-        var rootContext = _document.Data.GetObjectContext();
+        // Each kernel gets its own pristine verification document, so the equivalence
+        // check compares independent writes instead of letting the second kernel
+        // observe slots the first one already populated.
+        _baselineVerificationDocument =
+            new CompositeResultDocument(_arena, operation, includeFlags: 0);
+        _fastPathVerificationDocument =
+            new CompositeResultDocument(_arena, operation, includeFlags: 0);
 
-        var productSelection = operation.RootSelectionSet.Selections[0];
-        var productSelectionSet = operation.GetSelectionSet(productSelection);
+        var productResultSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Syntax.ParseSelectionSet(ProductSourceText),
+            schema);
+        var pageInfoResultSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Syntax.ParseSelectionSet(PageInfoSourceText),
+            schema);
 
-        if (!rootContext.TryGetProperty("productById"u8, out var productSlot, out _))
+        var useProductShape = Shape is "Mixed" or "Dense";
+
+        (var sourceObject, _resultSelectionSet) = Shape switch
         {
-            throw new InvalidOperationException("The productById slot is missing.");
+            "AllNull" => (
+                """{"startCursor":null,"endCursor":null}""",
+                pageInfoResultSet),
+            "Half" => (
+                """{"hasNextPage":true,"hasPreviousPage":false,"startCursor":null,"endCursor":null}""",
+                pageInfoResultSet),
+            "Mixed" => (
+                """{"id":"1","name":"Widget","description":null,"price":19.99}""",
+                productResultSet),
+            "Dense" => (
+                """{"id":"1","name":"Widget","description":"About the widget","price":19.99}""",
+                productResultSet),
+            _ => throw new InvalidOperationException($"Unknown shape {Shape}.")
+        };
+
+        _targetContext = MaterializeTarget(_document, operation, useProductShape);
+        var baselineVerificationTarget =
+            MaterializeTarget(_baselineVerificationDocument, operation, useProductShape);
+        var fastPathVerificationTarget =
+            MaterializeTarget(_fastPathVerificationDocument, operation, useProductShape);
+
+        var payload = new StringBuilder("[");
+
+        for (var i = 0; i < SourceObjectCount; i++)
+        {
+            if (i > 0)
+            {
+                payload.Append(',');
+            }
+
+            payload.Append(sourceObject);
         }
 
-        productSlot.SetObjectValue(productSelectionSet, out var productContext);
+        payload.Append(']');
+
+        var json = Encoding.UTF8.GetBytes(payload.ToString());
+        _sourceDocument = SourceResultDocument.Parse(_arena, json, json.Length);
+        _sourceElements = MaterializeSourceElements(_sourceDocument);
+
+        // A source document binds to the first composite document that stores one of
+        // its values (CompositeResultDocument.AssignSourceValue), so each verification
+        // document reads its scalars from a source document of its own.
+        _baselineVerificationSourceDocument = SourceResultDocument.Parse(_arena, json, json.Length);
+        _fastPathVerificationSourceDocument = SourceResultDocument.Parse(_arena, json, json.Length);
+
+        VerifyShapeAssumptions();
+        VerifyEquivalence(
+            MaterializeSourceElements(_baselineVerificationSourceDocument)[0],
+            baselineVerificationTarget,
+            MaterializeSourceElements(_fastPathVerificationSourceDocument)[0],
+            fastPathVerificationTarget);
+    }
+
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        _document.Dispose();
+        _baselineVerificationDocument.Dispose();
+        _fastPathVerificationDocument.Dispose();
+        _sourceDocument.Dispose();
+        _baselineVerificationSourceDocument.Dispose();
+        _fastPathVerificationSourceDocument.Dispose();
+        _arena.Dispose();
+    }
+
+    private static SourceResultElement[] MaterializeSourceElements(SourceResultDocument document)
+    {
+        var elements = new SourceResultElement[SourceObjectCount];
+        var index = 0;
+
+        foreach (var element in document.Root.EnumerateArray())
+        {
+            elements[index++] = element;
+        }
+
+        if (index != SourceObjectCount)
+        {
+            throw new InvalidOperationException("Source materialization is incomplete.");
+        }
+
+        return elements;
+    }
+
+    /// <summary>
+    /// Materializes the shape's target object inside <paramref name="document"/> and
+    /// returns its object context: the productById object for the product shapes, the
+    /// products.pageInfo object otherwise.
+    /// </summary>
+    private static CompositeObjectContext MaterializeTarget(
+        CompositeResultDocument document,
+        Operation operation,
+        bool useProductShape)
+    {
+        var rootContext = document.Data.GetObjectContext();
+
+        if (useProductShape)
+        {
+            var productSelection = operation.RootSelectionSet.Selections[0];
+            var productSelectionSet = operation.GetSelectionSet(productSelection);
+
+            if (!rootContext.TryGetProperty("productById"u8, out var productSlot, out _))
+            {
+                throw new InvalidOperationException("The productById slot is missing.");
+            }
+
+            productSlot.SetObjectValue(productSelectionSet, out var productContext);
+            return productContext;
+        }
 
         var productsSelection = operation.RootSelectionSet.Selections[1];
         var connectionSelectionSet = operation.GetSelectionSet(productsSelection);
@@ -188,75 +308,7 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
         }
 
         pageInfoSlot.SetObjectValue(pageInfoSelectionSet, out var pageInfoContext);
-
-        var productResultSet = ResultSelectionSet.Create(
-            Utf8GraphQLParser.Syntax.ParseSelectionSet(ProductSourceText),
-            schema);
-        var pageInfoResultSet = ResultSelectionSet.Create(
-            Utf8GraphQLParser.Syntax.ParseSelectionSet(PageInfoSourceText),
-            schema);
-
-        (var sourceObject, _targetContext, _resultSelectionSet) = Shape switch
-        {
-            "AllNull" => (
-                """{"startCursor":null,"endCursor":null}""",
-                pageInfoContext,
-                pageInfoResultSet),
-            "Half" => (
-                """{"hasNextPage":true,"hasPreviousPage":false,"startCursor":null,"endCursor":null}""",
-                pageInfoContext,
-                pageInfoResultSet),
-            "Mixed" => (
-                """{"id":"1","name":"Widget","description":null,"price":19.99}""",
-                productContext,
-                productResultSet),
-            "Dense" => (
-                """{"id":"1","name":"Widget","description":"About the widget","price":19.99}""",
-                productContext,
-                productResultSet),
-            _ => throw new InvalidOperationException($"Unknown shape {Shape}.")
-        };
-
-        var payload = new StringBuilder("[");
-
-        for (var i = 0; i < SourceObjectCount; i++)
-        {
-            if (i > 0)
-            {
-                payload.Append(',');
-            }
-
-            payload.Append(sourceObject);
-        }
-
-        payload.Append(']');
-
-        var json = Encoding.UTF8.GetBytes(payload.ToString());
-        _sourceDocument = SourceResultDocument.Parse(_arena, json, json.Length);
-
-        _sourceElements = new SourceResultElement[SourceObjectCount];
-        var index = 0;
-
-        foreach (var element in _sourceDocument.Root.EnumerateArray())
-        {
-            _sourceElements[index++] = element;
-        }
-
-        if (index != SourceObjectCount)
-        {
-            throw new InvalidOperationException("Source materialization is incomplete.");
-        }
-
-        VerifyShapeAssumptions();
-        VerifyEquivalence();
-    }
-
-    [GlobalCleanup]
-    public void Cleanup()
-    {
-        _document.Dispose();
-        _sourceDocument.Dispose();
-        _arena.Dispose();
+        return pageInfoContext;
     }
 
     /// <summary>
@@ -304,18 +356,21 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
     }
 
     /// <summary>
-    /// Runs one merge round through both kernels and asserts every target slot ends in
-    /// the same state: same value kind, and for scalar slots the same raw source bytes.
+    /// Runs one merge round per kernel, each against its own pristine target fed from
+    /// its own source document, and asserts every target slot ends in the same state:
+    /// same value kind, and for scalar slots the same raw JSON text.
     /// </summary>
-    private void VerifyEquivalence()
+    private void VerifyEquivalence(
+        SourceResultElement baselineSource,
+        CompositeObjectContext baselineTarget,
+        SourceResultElement fastPathSource,
+        CompositeObjectContext fastPathTarget)
     {
-        var element = _sourceElements[0];
+        Consumed += MergeBaseline(baselineSource, baselineTarget);
+        var baselineStates = CaptureSlotStates(baselineSource, baselineTarget);
 
-        Consumed += MergeBaseline(element);
-        var baselineStates = CaptureSlotStates(element);
-
-        Consumed += MergeWithNullFastPath(element);
-        var fastPathStates = CaptureSlotStates(element);
+        Consumed += MergeWithNullFastPath(fastPathSource, fastPathTarget);
+        var fastPathStates = CaptureSlotStates(fastPathSource, fastPathTarget);
 
         if (baselineStates.Count != fastPathStates.Count)
         {
@@ -333,18 +388,22 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
         }
     }
 
-    private List<string> CaptureSlotStates(SourceResultElement element)
+    private static List<string> CaptureSlotStates(
+        SourceResultElement element,
+        CompositeObjectContext targetContext)
     {
         var states = new List<string>();
 
         foreach (var property in element.EnumerateObject())
         {
-            if (!_targetContext.TryGetProperty(property.NameSpan, out var resultField, out _))
+            if (!targetContext.TryGetProperty(property.NameSpan, out var resultField, out _))
             {
                 continue;
             }
 
-            states.Add($"{property.Name}:{resultField.ValueKind}");
+            var kind = resultField.ValueKind;
+            var payload = IsScalarValueCopy(kind) ? resultField.GetRawText() : string.Empty;
+            states.Add($"{property.Name}:{kind}:{payload}");
         }
 
         return states;
@@ -357,7 +416,7 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
 
         for (var i = 0; i < _sourceElements.Length; i++)
         {
-            sum += MergeBaseline(_sourceElements[i]);
+            sum += MergeBaseline(_sourceElements[i], _targetContext);
         }
 
         return sum;
@@ -370,7 +429,7 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
 
         for (var i = 0; i < _sourceElements.Length; i++)
         {
-            sum += MergeWithNullFastPath(_sourceElements[i]);
+            sum += MergeWithNullFastPath(_sourceElements[i], _targetContext);
         }
 
         return sum;
@@ -389,7 +448,7 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
 
         for (var i = 0; i < _sourceElements.Length; i++)
         {
-            sum += MergeBaselineCopy(_sourceElements[i]);
+            sum += MergeBaselineCopy(_sourceElements[i], _targetContext);
         }
 
         return sum;
@@ -401,9 +460,8 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
     /// property lookup, real snapshot, real scalar fast path, then the real
     /// TryGetChild plus the TryCompleteValue null handling for null values.
     /// </summary>
-    private long MergeBaseline(SourceResultElement source)
+    private long MergeBaseline(SourceResultElement source, CompositeObjectContext objectContext)
     {
-        var objectContext = _targetContext;
         var resultSelectionSet = _resultSelectionSet;
         var errorTrie = _errorTrie;
         var sum = 0L;
@@ -452,9 +510,8 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
     /// <summary>
     /// Exact textual copy of <see cref="MergeBaseline"/> for the layout-noise control.
     /// </summary>
-    private long MergeBaselineCopy(SourceResultElement source)
+    private long MergeBaselineCopy(SourceResultElement source, CompositeObjectContext objectContext)
     {
-        var objectContext = _targetContext;
         var resultSelectionSet = _resultSelectionSet;
         var errorTrie = _errorTrie;
         var sum = 0L;
@@ -504,9 +561,8 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
     /// The candidate loop: identical to <see cref="MergeBaseline"/> except the fast
     /// path also covers null, completing nullable-selection nulls in place.
     /// </summary>
-    private long MergeWithNullFastPath(SourceResultElement source)
+    private long MergeWithNullFastPath(SourceResultElement source, CompositeObjectContext objectContext)
     {
-        var objectContext = _targetContext;
         var resultSelectionSet = _resultSelectionSet;
         var errorTrie = _errorTrie;
         var sum = 0L;
