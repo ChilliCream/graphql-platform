@@ -43,7 +43,7 @@ internal static class LookupEntityQueryRewriter
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        var document = Utf8GraphQLParser.Parse(operation.Value.Span);
+        var document = Utf8GraphQLParser.Parse(operation.Value.Span, ParserOptions.Trusted);
         var operationDefinition = GetOperationDefinition(document);
         var lookupField = GetLookupField(operationDefinition);
         var lookup = ResolveLookup(schema, schemaName, lookupField);

@@ -39,7 +39,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         Id = id;
         _operation = operation;
-        _operationDocument = Utf8GraphQLOperationParser.Parse(operation.Value);
+        _operationDocument = Utf8GraphQLOperationParser.Parse(operation.Value, ParserOptions.Trusted);
         _lookupTypeName = lookupTypeName;
         _schemaName = schemaName;
         _target = target;

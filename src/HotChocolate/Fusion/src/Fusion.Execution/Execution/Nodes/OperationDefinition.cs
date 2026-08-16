@@ -31,7 +31,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     {
         Id = id;
         SourceText = operation;
-        Document = Utf8GraphQLOperationParser.Parse(operation.Value);
+        Document = Utf8GraphQLOperationParser.Parse(operation.Value, ParserOptions.Trusted);
         LookupTypeName = lookupTypeName;
         SchemaName = schemaName;
         Source = source;

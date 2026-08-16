@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Execution;
@@ -82,6 +84,48 @@ public class IntegrationTests
         // assert
         File.Delete(cachedOperation);
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecutePersistedOperation_Should_Succeed_When_Fields_Exceed_Request_Parser_Limit()
+    {
+        // arrange
+        // 2100 aliased fields exceed the request parser limit of 2048
+        var documentId = Guid.NewGuid().ToString("N");
+        var cacheDirectory = IO.Path.GetTempPath();
+        var cachedOperation = IO.Path.Combine(cacheDirectory, documentId + ".graphql");
+
+        const int fieldCount = 2_100;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < fieldCount; i++)
+        {
+            sb.Append($" a{i}: a");
+        }
+
+        sb.Append(" }");
+
+        await File.WriteAllTextAsync(cachedOperation, sb.ToString(), TestContext.Current.CancellationToken);
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
+                .UsePersistedOperationPipeline()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        File.Delete(cachedOperation);
+        using var json = JsonDocument.Parse(result.ToJson());
+        Assert.False(json.RootElement.TryGetProperty("errors", out _));
+        Assert.Equal(fieldCount, json.RootElement.GetProperty("data").EnumerateObject().Count());
     }
 
     [Fact]
