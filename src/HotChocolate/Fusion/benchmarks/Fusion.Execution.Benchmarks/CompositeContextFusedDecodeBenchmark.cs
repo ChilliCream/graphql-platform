@@ -134,6 +134,7 @@ public class CompositeContextFusedDecodeBenchmark : FusionBenchmarkBase
         var operation = operationCompiler.Compile(
             OperationId,
             OperationId,
+            OperationId,
             operationDefinition);
 
         var productSelection = operation.RootSelectionSet.Selections[0];
