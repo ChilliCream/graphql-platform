@@ -55,7 +55,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
         await endpoint.EnsureProvisionedAsync(cancellationToken);
 
         var entityPath = AzureServiceBusEntityPathResolver.Resolve(endpoint, envelope);
-        var now = DateTimeOffset.UtcNow;
+        var now = context.Services.GetTimeProvider().GetUtcNow();
         var expectedEnqueueTime = scheduledTime > now ? scheduledTime : now;
         var message = AzureServiceBusMessageFactory.Create(envelope, expectedEnqueueTime);
 

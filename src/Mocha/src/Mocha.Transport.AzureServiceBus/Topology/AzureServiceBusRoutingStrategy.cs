@@ -70,10 +70,9 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
         }
 
         if (configuration is null
-            && Transport.Topology.Address.IsBaseOf(address)
-            && segmentCount == 2)
+            && TryParseTopologyAddress(address, out var topologyKind, out var resourceName))
         {
-            configuration = CreateResourceEndpointConfiguration(path, ranges);
+            configuration = CreateResourceEndpointConfiguration(topologyKind, resourceName);
         }
 
         if (configuration is null && TryGetNeutralResourceName(address, "queue", out var queueName))
@@ -302,16 +301,28 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
         Span<Range> ranges)
     {
         var kind = path[ranges[0]];
-        var name = new string(path[ranges[1]]);
+        var name = Uri.UnescapeDataString(new string(path[ranges[1]]));
 
+        if (kind.Length != 1)
+        {
+            return null;
+        }
+
+        return CreateResourceEndpointConfiguration(kind[0], name);
+    }
+
+    private static AzureServiceBusDispatchEndpointConfiguration? CreateResourceEndpointConfiguration(
+        char kind,
+        string name)
+    {
         return kind switch
         {
-            "t" => new AzureServiceBusDispatchEndpointConfiguration
+            't' => new AzureServiceBusDispatchEndpointConfiguration
             {
                 TopicName = name,
                 Name = "t/" + name
             },
-            "q" => new AzureServiceBusDispatchEndpointConfiguration
+            'q' => new AzureServiceBusDispatchEndpointConfiguration
             {
                 QueueName = name,
                 Name = "q/" + name
@@ -463,35 +474,65 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             }
         }
 
-        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        if (TryParseTopologyAddress(address, out var topologyKind, out var topologyName)
+            && topologyKind is 'q')
         {
+            queueName = topologyName;
             return true;
         }
 
         return TryGetNeutralResourceName(address, "queue", out queueName);
     }
 
-    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    /// <summary>
+    /// Parses a resource address owned by this transport. Everything after the kind segment is
+    /// the entity name so names containing slashes remain intact.
+    /// </summary>
+    private bool TryParseTopologyAddress(Uri address, out char kind, out string name)
     {
-        var relative = Transport.Topology.Address.MakeRelativeUri(address);
-        if (relative.IsAbsoluteUri)
+        kind = default;
+        name = string.Empty;
+
+        var topologyAddress = Transport.Topology.Address;
+        if (!address.Scheme.EqualsOrdinalIgnoreCase(topologyAddress.Scheme)
+            || !address.Host.EqualsOrdinalIgnoreCase(topologyAddress.Host)
+            || address.Port != topologyAddress.Port)
         {
-            queueName = string.Empty;
             return false;
         }
 
-        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
-        var path = relativePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+        var basePath = topologyAddress.AbsolutePath.AsSpan().TrimEnd('/');
+        var path = address.AbsolutePath.AsSpan();
+        ReadOnlySpan<char> relativePath;
 
-        if (segmentCount == 2 && path[ranges[0]] is "q")
+        if (basePath.IsEmpty)
         {
-            queueName = new string(path[ranges[1]]);
-            return true;
+            if (path.IsEmpty || path[0] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[1..];
+        }
+        else
+        {
+            if (path.Length <= basePath.Length
+                || !path.StartsWith(basePath, StringComparison.Ordinal)
+                || path[basePath.Length] is not '/')
+            {
+                return false;
+            }
+
+            relativePath = path[(basePath.Length + 1)..];
         }
 
-        queueName = string.Empty;
-        return false;
+        if (relativePath.Length < 3 || relativePath[1] is not '/')
+        {
+            return false;
+        }
+
+        kind = relativePath[0];
+        name = Uri.UnescapeDataString(relativePath[2..].ToString());
+        return true;
     }
 }

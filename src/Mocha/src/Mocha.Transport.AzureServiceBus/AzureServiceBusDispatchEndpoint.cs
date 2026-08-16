@@ -44,11 +44,12 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
 
         var clientManager = transport.ClientManager;
         var cancellationToken = context.CancellationToken;
+        var timeProvider = context.Services.GetTimeProvider();
 
         await EnsureProvisionedAsync(cancellationToken);
 
         var entityPath = AzureServiceBusEntityPathResolver.Resolve(this, envelope);
-        var message = AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow);
+        var message = AzureServiceBusMessageFactory.Create(envelope, timeProvider.GetUtcNow());
 
         await AzureServiceBusEntityNotFoundRetry.ExecuteAsync(
             clientManager,

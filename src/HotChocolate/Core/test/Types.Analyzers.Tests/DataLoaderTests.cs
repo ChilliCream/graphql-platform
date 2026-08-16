@@ -1,7 +1,70 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace HotChocolate.Types;
 
 public class DataLoaderTests
 {
+    [Fact]
+    public async Task Generate_Should_LinkImplementationToAnnotatedMethod_When_SourceMethodIsOverloaded()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    [DataLoaderState("state")] int? state,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                public static Task<IReadOnlyDictionary<string, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<string> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+            }
+            """,
+            compilation =>
+            {
+                var methodSyntax = compilation.SyntaxTrees
+                    .SelectMany(t => t.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+                    .Single(m => m.AttributeLists
+                        .SelectMany(a => a.Attributes)
+                        .Any(a => a.Name.ToString() == "DataLoader"));
+                var sourceMethod = compilation
+                    .GetSemanticModel(methodSyntax.SyntaxTree)
+                    .GetDeclaredSymbol(methodSyntax);
+                var generatedTree = compilation.SyntaxTrees.Single(
+                    t => t.FilePath.StartsWith("GreenDonutDataLoader", StringComparison.Ordinal));
+                var semanticModel = compilation.GetSemanticModel(generatedTree);
+                var crefs = generatedTree
+                    .GetRoot()
+                    .DescendantNodes(descendIntoTrivia: true)
+                    .OfType<XmlCrefAttributeSyntax>()
+                    .Select(a => a.Cref)
+                    .ToArray();
+
+                var cref = Assert.Single(crefs);
+                Assert.Empty(cref.GetDiagnostics());
+                Assert.True(
+                    SymbolEqualityComparer.Default.Equals(
+                        sourceMethod,
+                        semanticModel.GetSymbolInfo(cref).Symbol));
+            }).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
     [Fact]
     public async Task GenerateSource_BatchDataLoader_With_ValueType_Result_MatchesSnapshot()
     {

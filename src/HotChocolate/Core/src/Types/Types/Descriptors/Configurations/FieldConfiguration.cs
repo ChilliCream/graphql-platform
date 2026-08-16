@@ -29,7 +29,7 @@ public abstract class FieldConfiguration
         get => _deprecationReason;
         set
         {
-            if (string.IsNullOrEmpty(value))
+            if (string.IsNullOrWhiteSpace(value))
             {
                 Flags &= ~CoreFieldFlags.Deprecated;
             }

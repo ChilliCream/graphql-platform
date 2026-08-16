@@ -66,7 +66,7 @@ internal sealed class DeleteApiKeyCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IApiKeyNotFoundError err => err.Message,
+                        IApiKeyNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

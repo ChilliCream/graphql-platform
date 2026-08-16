@@ -27,7 +27,7 @@ export function EnterpriseBand() {
           <SectionHeading
             eyebrow="Enterprise"
             title="Your coverage, your teams, your platform."
-            description="Enterprise is for organizations running Hot Chocolate, Fusion, or Nitro across many teams and business units. When you need a 24-hour critical response time, phone support, and regular status reviews, we tailor the contract, the response times, and your named contacts to fit how you operate."
+            description="Enterprise is for organizations running Hot Chocolate, Fusion, or Nitro across multiple teams. Get a 24-hour critical response time, phone support, status reviews, and a dedicated account manager, with final terms defined in your agreement."
           />
           <CheckList className="mt-6" columns={2} items={FACTS} />
         </div>
@@ -35,10 +35,10 @@ export function EnterpriseBand() {
       aside={
         <ButtonRow align="stacked">
           <SolidButton
-            href="/services/support/contact?plan=Enterprise"
+            href="/services/support/contact?subject=Pricing%20%26%20Plans&context=Enterprise%20Support"
             className="w-full"
           >
-            Talk to us about Enterprise
+            Discuss Enterprise support
           </SolidButton>
           <OutlineButton href="/services/advisory" className="w-full">
             See advisory engagements

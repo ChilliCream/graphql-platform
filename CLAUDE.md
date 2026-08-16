@@ -25,41 +25,6 @@ Each area has its own solution file, so you can build or test a subset directly:
 dotnet test src/HotChocolate/Fusion
 ```
 
-## Orchestration
-
-- **You are the orchestrator, not the worker.** Keep the main context window clean for decision-making. Never do work yourself that a subagent could do.
-- **Delegate by default.** Any task with a clear spec and a checkable output goes to a subagent. Keep for yourself only: planning, ambiguous judgment, architecture decisions, and reviewing subagent output.
-- **Escalation valve.** Execute directly only when a task has no checkable output, or when a subagent has failed the same task twice.
-- **Write a spec before delegating.** Subagents run in a fresh context window and cannot see this conversation. For each delegated task, state: inputs, expected output, and acceptance criteria. Vague instructions cause weaker models to wander.
-- **Context window discipline**: When told "let it cook" or "don't inspect" — trust the subagent, don't re-read its output.
-- **Team composition**: Minimum for non-trivial work is lead developer + devil's advocate.
-
-## Team
-
-Delegate execution to the subagents defined in `.claude/agents/`. Route by complexity, not habit:
-
-- `implementer` (sonnet): writes and edits code against a clear spec.
-- `test-runner` (haiku): runs filtered tests, reports pass/fail plus failure detail.
-- `code-reviewer` (sonnet): quality, security, and convention review of a diff.
-- `devils-advocate` (inherit): stress-tests the plan and surfaces risks before work starts. This is high-value reasoning with no checkable output, so it runs on the top model, same tier as you.
-
-You (the orchestrator) keep: task decomposition, spec-writing, reviewing results against acceptance criteria, and final judgment. Run independent subagents in parallel. Always report which subagent handled which part.
-
-Adjust this list to match the agents you actually have; the orchestrator can only route to agents named here.
-
-## Verification
-
-- "Done" means: compiles, tests pass, verified by running the relevant tests.
-- Never mark work complete without proving it works.
-- Verification is delegated to `test-runner`. Review its result against the acceptance criteria you set. Do not re-run or re-read work you were told to trust.
-- Run tests with `--filter` during iteration — never the full suite unnecessarily.
-
-## Core Principles
-
-- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
-- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
-- **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
-
 ## Code Quality
 
 ### C# / .NET
@@ -71,6 +36,7 @@ Adjust this list to match the agents you actually have; the orchestrator can onl
 - If you need 8 stubs + reflection, you're at the wrong test tier
 - Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
 - XML docs should describe the contract and concepts, not internals like pooling, iteration mechanics or leak other implementation detail.
+- XML docs and comments are 1-2 sentences stating the contract: what it is, what null or edge values mean. No rationale, no use-case examples, no design justification. If a sentence explains why the design is right instead of what the member promises, delete it. The same applies to docs pages: every sentence must inform the reader, none may justify the design.
 - Do not make new parameters optional just to avoid updating call sites. A parameter should only be optional when it has a sensible semantic default and the API is frequently used (where call-site brevity outweighs explicitness). If a parameter is logically required, make it required and update all call sites.
 
 ### Testing
@@ -113,3 +79,17 @@ This is framework code — performance matters. Aim for zero allocations on hot 
 ### C# / .NET
 
 If you need to search for packages on nuget.org use the `dotnet` cli, eg `dotnet package search HotChocolate`.
+
+### Nitro persisted operations (Fusion Aspire)
+
+After adding or editing any `.graphql` document under `src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations`, regenerate the `.sha256` sidecars and verify them:
+
+```bash
+.github/scripts/nitro-aspire-operations.sh update \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations
+.github/scripts/nitro-aspire-operations.sh verify \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations \
+    --output /tmp/nitro-aspire-operations.json
+```
+
+Never hand-write or hand-edit a `.sha256` sidecar. The `update` command is the only source of sidecar content, and `verify` must pass before handoff.

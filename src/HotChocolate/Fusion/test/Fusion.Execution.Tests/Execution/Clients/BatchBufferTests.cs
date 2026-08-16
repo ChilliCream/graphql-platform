@@ -116,13 +116,19 @@ public sealed class BatchBufferTests : FusionTestBase
 
     private static SourceSchemaClientRequest CreateRequest(ExecutionNode node)
     {
+        var sourceText = "query { field }"u8.ToArray();
+
         return new SourceSchemaClientRequest
         {
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = "query { field }",
-            OperationHash = 1,
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Query,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
             Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
         };
     }
@@ -132,14 +138,14 @@ public sealed class BatchBufferTests : FusionTestBase
         return new OperationBatchRequest(
             ImmutableArray.Create<FusionIOperationRequest>(
                 new FusionOperationRequest(
-                    "query { field }",
+                    "query { field }"u8.ToArray(),
                     id: null,
                     operationName: null,
                     onError: null,
                     VariableValues.Empty,
                     JsonSegment.Empty),
                 new FusionOperationRequest(
-                    "query { field }",
+                    "query { field }"u8.ToArray(),
                     id: null,
                     operationName: null,
                     onError: null,

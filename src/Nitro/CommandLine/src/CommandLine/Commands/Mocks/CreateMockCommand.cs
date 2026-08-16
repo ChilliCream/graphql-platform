@@ -110,7 +110,7 @@ internal sealed class CreateMockCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IApiNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IMockSchemaNonUniqueNameError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
                         IValidationError err => err.Message,

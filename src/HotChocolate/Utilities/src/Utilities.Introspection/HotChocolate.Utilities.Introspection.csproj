@@ -20,6 +20,8 @@
     <EmbeddedResource Include="Queries\inspect_directives.graphql" />
     <None Remove="Queries\inspect_schema.graphql" />
     <EmbeddedResource Include="Queries\inspect_schema.graphql" />
+    <None Remove="Queries\inspect_type.graphql" />
+    <EmbeddedResource Include="Queries\inspect_type.graphql" />
   </ItemGroup>
 
   <ItemGroup>

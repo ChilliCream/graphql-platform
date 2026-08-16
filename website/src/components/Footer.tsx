@@ -8,6 +8,8 @@ import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 
+import { GitHubStarButton } from "./GitHubStarButton";
+
 const tools = {
   blog: "/blog",
   github: "https://github.com/ChilliCream/graphql-platform",
@@ -24,7 +26,7 @@ const products: { path: string; title: string }[] = [
   { path: "hotchocolate", title: "Hot Chocolate" },
   { path: "strawberryshake", title: "Strawberry Shake" },
   { path: "mocha", title: "Mocha" },
-  { path: "skillz", title: "Skillz" },
+  { path: "skillz", title: "Skills" },
 ];
 
 const basicPages: { path: string; title: string }[] = [
@@ -51,16 +53,20 @@ export default function Footer() {
               <br />
               United States
             </address>
+            <div className="flex">
+              <GitHubStarButton />
+            </div>
           </div>
           <div className="grid flex-4 grid-cols-2 gap-8 md:grid-cols-4">
             <LinkColumn title="Platform">
               <NavLink href="/platform/analytics">Analytics</NavLink>
-              <NavLink href="/platform/continuous-integration">
-                Continuous Integration
-              </NavLink>
+              <NavLink href="/platform/release-safety">Release Safety</NavLink>
               <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
-              <NavLink href="/platform/agentic-coding">Agentic Coding</NavLink>
+              <NavLink href="/platform/agentic-coding">
+                Agentic Development
+              </NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
+              <NavLink href="/products/mocha">Mocha</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">
               <NavLink href="/services/advisory">Advisory</NavLink>

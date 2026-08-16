@@ -8,6 +8,7 @@ agrc
 Alderaan
 ALPN
 Andi
+annotatable
 anthropics
 apphost
 appsettings
@@ -21,6 +22,7 @@ autonumber
 backplane
 backpressure
 Badurina
+Baiji
 bananacakepop
 basicsaga
 bbox
@@ -65,6 +67,7 @@ debuggable
 decompile
 deepagents
 depersist
+deprecatable
 deprioritization
 deprioritized
 dexto
@@ -134,6 +137,7 @@ Linq
 Liquibase
 longpaths
 lscache
+mapfile
 Marek
 marocchino
 matchesBrics
@@ -259,6 +263,7 @@ starwars
 Storeless
 strawberryshake
 streamable
+strikethrough
 Structs
 subfolders
 subgraphs

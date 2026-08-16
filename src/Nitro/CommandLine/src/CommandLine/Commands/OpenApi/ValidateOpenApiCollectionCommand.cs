@@ -86,8 +86,9 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                     {
                         IUnauthorizedOperation err => err.Message,
                         IInvalidSourceMetadataInputError err => err.Message,
-                        IStageNotFoundError err => err.Message,
-                        IOpenApiCollectionNotFoundError err => err.Message,
+                        IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IOpenApiCollectionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

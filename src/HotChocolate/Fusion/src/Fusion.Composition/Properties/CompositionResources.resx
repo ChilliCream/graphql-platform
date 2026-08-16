@@ -516,6 +516,9 @@
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
   </data>
+  <data name="LogEntryHelper_ReferenceToDeprecatedType" xml:space="preserve">
+    <value>The merged field '{0}' in type '{1}' cannot reference the deprecated type '{2}'. Either deprecate the field or change its return type.</value>
+  </data>
   <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument" xml:space="preserve">
     <value>The merged field argument '{0}' on field '{1}' cannot reference the inaccessible type '{2}'.</value>
   </data>

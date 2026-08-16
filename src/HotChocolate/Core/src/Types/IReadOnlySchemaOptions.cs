@@ -87,6 +87,11 @@ public interface IReadOnlySchemaOptions
     bool EnableDirectiveIntrospection { get; }
 
     /// <summary>
+    /// Defines if the experimental object type deprecation feature shall be enabled.
+    /// </summary>
+    bool EnableObjectDeprecation { get; }
+
+    /// <summary>
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }

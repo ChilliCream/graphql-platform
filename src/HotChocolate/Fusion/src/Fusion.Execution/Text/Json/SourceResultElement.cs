@@ -281,6 +281,28 @@ public readonly partial struct SourceResultElement
     public string AssertString()
         => GetString() ?? throw new InvalidOperationException("The element value is null.");
 
+    /// <summary>
+    /// Gets the value as the raw UTF-8 bytes of a JSON string, throwing if the value is not a string.
+    /// </summary>
+    /// <returns>
+    /// The raw UTF-8 bytes of the string value. JSON escape sequences are not decoded.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// The value kind is not <see cref="JsonValueKind.String"/>.
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">
+    /// The parent <see cref="SourceResultDocument"/> has been disposed.
+    /// </exception>
+    public ReadOnlySpan<byte> AssertUtf8String()
+    {
+        if (ValueKind is not JsonValueKind.String)
+        {
+            throw new InvalidOperationException("The element value is not a string.");
+        }
+
+        return ValueSpan;
+    }
+
     /// <summary>Tries to get the current JSON number as an <see cref="sbyte"/> without throwing.</summary>
     /// <param name="value">Receives the parsed value if successful.</param>
     /// <returns><see langword="true"/> if the value was read; otherwise <see langword="false"/>.</returns>
@@ -497,17 +519,19 @@ public readonly partial struct SourceResultElement
     }
 
     /// <summary>
-    /// Tries to get the raw UTF-8 bytes of a JSON string value that contains no escape sequences.
+    /// Creates a stack-only snapshot of this element that carries the element's
+    /// decoded metadata row so repeated row lookups are avoided. A default element
+    /// yields a default snapshot whose <see cref="SourceResultElementSnapshot.ValueKind"/>
+    /// is <see cref="JsonValueKind.Undefined"/>.
     /// </summary>
-    /// <param name="utf8Value">Receives the raw UTF-8 span when successful.</param>
-    /// <returns>
-    /// <see langword="false"/> when the value is not a string, contains escape sequences,
-    /// or is not backed by contiguous memory.
-    /// </returns>
-    internal bool TryGetRawStringValue(out ReadOnlySpan<byte> utf8Value)
+    internal SourceResultElementSnapshot CreateSnapshot()
     {
-        CheckValidInstance();
-        return _parent.TryGetRawStringValue(_cursor, out utf8Value);
+        if (_parent == null)
+        {
+            return default;
+        }
+
+        return new SourceResultElementSnapshot(_parent, _cursor, _parent.GetValueRow(_cursor));
     }
 
     /// <summary>
@@ -519,6 +543,7 @@ public readonly partial struct SourceResultElement
         {
             return text == null;
         }
+
         return TextEqualsHelper(text.AsSpan(), isPropertyName: false);
     }
 

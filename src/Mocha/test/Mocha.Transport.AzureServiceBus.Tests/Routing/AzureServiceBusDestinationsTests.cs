@@ -207,6 +207,45 @@ public class AzureServiceBusDestinationsTests
     }
 
     [Fact]
+    public void GetDispatchEndpoint_Should_ResolveQueue_When_AddressIsTopologyAddress()
+    {
+        var runtime = CreateRuntime(_ => { }, t => t.DeclareQueue("orders"));
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var queue = ((AzureServiceBusMessagingTopology)transport.Topology).Queues
+            .Single(q => q.Name == "orders");
+
+        var endpoint = runtime.GetDispatchEndpoint(queue.Address);
+
+        Assert.Equal("q/orders", endpoint.Name);
+    }
+
+    [Fact]
+    public void GetDispatchEndpoint_Should_DecodeQueueName_When_NameIsUriEncoded()
+    {
+        var runtime = CreateRuntime(_ => { }, t => t.DeclareQueue("space name"));
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var queue = ((AzureServiceBusMessagingTopology)transport.Topology).Queues
+            .Single(q => q.Name == "space name");
+
+        var endpoint = runtime.GetDispatchEndpoint(queue.Address);
+
+        Assert.Equal("q/space name", endpoint.Name);
+    }
+
+    [Fact]
+    public void GetDispatchEndpoint_Should_Throw_When_AddressIsOnAnotherNamespace()
+    {
+        var runtime = CreateRuntime(_ => { });
+        var address = new Uri("azuresb://other-namespace/q/orders");
+
+        var exception = Record.Exception(() => runtime.GetDispatchEndpoint(address));
+
+        Assert.Equal(
+            "No transport can handle address: " + address,
+            Assert.IsType<InvalidOperationException>(exception).Message);
+    }
+
+    [Fact]
     public void Resolve_Should_PreserveSlashInName_When_NameContainsSlash()
     {
         // arrange
@@ -228,14 +267,20 @@ public class AzureServiceBusDestinationsTests
         Assert.Equal("q/orders/eu", resolution.EndpointName);
     }
 
-    private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
+    private static MessagingRuntime CreateRuntime(
+        Action<IMessageBusHostBuilder> configure,
+        Action<IAzureServiceBusMessagingTransportDescriptor>? configureTransport = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton(new MessageRecorder());
         var builder = services.AddMessageBus();
         configure(builder);
         return builder
-            .AddAzureServiceBus(t => t.ConnectionString(DummyConnectionString))
+            .AddAzureServiceBus(t =>
+            {
+                t.ConnectionString(DummyConnectionString);
+                configureTransport?.Invoke(t);
+            })
             .BuildRuntime();
     }
 

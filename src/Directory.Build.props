@@ -76,6 +76,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
+    <PackageReference Include="ChilliCream.AnalyzerConfig.Libraries">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Roslynator.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

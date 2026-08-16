@@ -42,6 +42,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+    private bool _usesDynamicSchemaNames;
+    private bool _usesBatchNodes;
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     private ISourceSchemaClientScope _clientScope = default!;
 #pragma warning restore IDE0370 // Remove unnecessary suppression
@@ -49,6 +51,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private long _start;
     private long _clientScopeCreatedAt;
     private int _disposed;
+    private int _activeNodeSlotCount;
     private int _nodeSlotCapacity;
     private MemoryArena? _memory;
     private readonly FixedMemoryArenaSource _memorySource = new();
@@ -449,8 +452,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requirements,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -466,8 +469,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 selectionSet,
                 variableValues,
                 requirements,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
 
         var importedMatchCount = CountImportedRequirementKeys(requirements);
@@ -479,8 +482,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 selectionSet,
                 variableValues,
                 requirements,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
 
         if (importedMatchCount != requirements.Length)
@@ -498,8 +501,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             _requirementKeys!,
             variableValuesFromSnapshot,
             requirements,
-            entityTypeName,
-            shape);
+            requiredShape,
+            entityTypeName);
     }
 
     private InvalidOperationException CreateMixedScopeException(
@@ -890,28 +893,37 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     private void ResetNodeState()
     {
-        Array.Clear(_schemaNames);
-        Array.Clear(_skippedDefinitions);
-        Array.Clear(_batchRequestErrors);
+        var activeNodeSlotCount = _activeNodeSlotCount;
+
+        if (_usesDynamicSchemaNames)
+        {
+            Array.Clear(_schemaNames, 0, activeNodeSlotCount);
+        }
+
+        if (_usesBatchNodes)
+        {
+            Array.Clear(_skippedDefinitions, 0, activeNodeSlotCount);
+            Array.Clear(_batchRequestErrors, 0, activeNodeSlotCount);
+        }
 
         if (_collectTelemetry)
         {
-            Array.Clear(_variableValueSets);
-            Array.Clear(_transportUris);
-            Array.Clear(_transportContentTypes);
+            Array.Clear(_variableValueSets, 0, activeNodeSlotCount);
+            Array.Clear(_transportUris, 0, activeNodeSlotCount);
+            Array.Clear(_transportContentTypes, 0, activeNodeSlotCount);
         }
 
-        foreach (var nodeCompletionSet in _nodesToComplete)
+        for (var i = 0; i < activeNodeSlotCount; i++)
         {
-            nodeCompletionSet?.Reset();
+            _nodesToComplete[i]?.Reset();
         }
     }
 
-    private void DisposeNodeState()
+    private void DisposeNodeState(int activeNodeSlotCount)
     {
-        foreach (var nodeCompletionSet in _nodesToComplete)
+        for (var i = 0; i < activeNodeSlotCount; i++)
         {
-            nodeCompletionSet?.Dispose();
+            _nodesToComplete[i]?.Dispose();
         }
     }
 

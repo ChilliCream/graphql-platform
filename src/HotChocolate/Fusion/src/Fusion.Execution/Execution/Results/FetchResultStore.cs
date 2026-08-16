@@ -11,6 +11,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Text.Json;
@@ -24,15 +25,19 @@ using ListValueNode = HotChocolate.Language.ListValueNode;
 using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
 using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
 using IValueNode = HotChocolate.Language.IValueNode;
+using System.Text;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore : IDisposable
 {
     private const int MaxRetainedDataElementStagingLength = 1024;
+    private const int MaxStackAllocPathSegments = 32;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
+    private static readonly ArrayPool<byte> s_bytePool = ArrayPool<byte>.Shared;
+    private static readonly ArrayPool<int> s_intPool = ArrayPool<int>.Shared;
 
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
@@ -43,7 +48,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly ChunkedArrayWriter _variableWriter = new();
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
-    private ISchemaDefinition _schema = default!;
+    private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
     private ErrorHandlingMode _errorHandlingMode;
@@ -122,6 +127,27 @@ internal sealed partial class FetchResultStore : IDisposable
         var errorTriesSpan = errorTries.AsSpan(0, results.Length);
         List<IError>? rootErrors = null;
 
+        byte[]? rentedUtf8FieldNames = null;
+        int[]? rentedUtf8FieldNameEnds = null;
+        var asciiByteCount = ComputeAsciiFieldNameBytes(sourcePath);
+
+        var utf8FieldNames = asciiByteCount == 0
+            ? default
+            : asciiByteCount <= JsonConstants.StackallocByteThreshold
+                ? stackalloc byte[JsonConstants.StackallocByteThreshold]
+                : (rentedUtf8FieldNames = s_bytePool.Rent(asciiByteCount));
+
+        var utf8FieldNameEnds = sourcePath.Length == 0
+            ? default
+            : sourcePath.Length <= MaxStackAllocPathSegments
+                ? stackalloc int[MaxStackAllocPathSegments]
+                : (rentedUtf8FieldNameEnds = s_intPool.Rent(sourcePath.Length));
+
+        if (sourcePath.Length > 0)
+        {
+            TranscodeFieldSegments(sourcePath, utf8FieldNames, utf8FieldNameEnds);
+        }
+
         try
         {
             for (var i = 0; i < results.Length; i++)
@@ -135,7 +161,8 @@ internal sealed partial class FetchResultStore : IDisposable
                     rootErrors.AddRange(rootErrorsFromResult);
                 }
 
-                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+                dataElementsSpan[i] =
+                    GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, result);
                 errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
             }
 
@@ -189,6 +216,16 @@ internal sealed partial class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+
+            if (rentedUtf8FieldNames is not null)
+            {
+                s_bytePool.Return(rentedUtf8FieldNames);
+            }
+
+            if (rentedUtf8FieldNameEnds is not null)
+            {
+                s_intPool.Return(rentedUtf8FieldNameEnds);
+            }
         }
 
         static void RegisterRemainingResults(
@@ -234,11 +271,33 @@ internal sealed partial class FetchResultStore : IDisposable
 
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
 
+        byte[]? rentedUtf8FieldNames = null;
+        int[]? rentedUtf8FieldNameEnds = null;
+        var asciiByteCount = ComputeAsciiFieldNameBytes(sourcePath);
+
+        var utf8FieldNames = asciiByteCount == 0
+            ? default
+            : asciiByteCount <= JsonConstants.StackallocByteThreshold
+                ? stackalloc byte[JsonConstants.StackallocByteThreshold]
+                : (rentedUtf8FieldNames = s_bytePool.Rent(asciiByteCount));
+
+        var utf8FieldNameEnds = sourcePath.Length == 0
+            ? default
+            : sourcePath.Length <= MaxStackAllocPathSegments
+                ? stackalloc int[MaxStackAllocPathSegments]
+                : (rentedUtf8FieldNameEnds = s_intPool.Rent(sourcePath.Length));
+
+        if (sourcePath.Length > 0)
+        {
+            TranscodeFieldSegments(sourcePath, utf8FieldNames, utf8FieldNameEnds);
+        }
+
         try
         {
             for (var i = 0; i < results.Length; i++)
             {
-                dataElementsSpan[i] = GetDataElement(sourcePath, results[i].Data);
+                dataElementsSpan[i] =
+                    GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, results[i]);
             }
 
             lock (_lock)
@@ -288,6 +347,16 @@ internal sealed partial class FetchResultStore : IDisposable
             {
                 ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             }
+
+            if (rentedUtf8FieldNames is not null)
+            {
+                s_bytePool.Return(rentedUtf8FieldNames);
+            }
+
+            if (rentedUtf8FieldNameEnds is not null)
+            {
+                s_intPool.Return(rentedUtf8FieldNameEnds);
+            }
         }
 
         static void RegisterRemainingResults(
@@ -327,7 +396,7 @@ internal sealed partial class FetchResultStore : IDisposable
         ResultSelectionSet resultSelectionSet)
     {
         var errors = result.Errors;
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
         var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
         lock (_lock)
@@ -362,7 +431,7 @@ internal sealed partial class FetchResultStore : IDisposable
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
 
         lock (_lock)
         {
@@ -1013,7 +1082,6 @@ AddErrors_Next:
             nextIndex++;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1128,7 +1196,6 @@ AddErrors_Next:
             }
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1204,7 +1271,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1251,7 +1317,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1337,7 +1402,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1400,7 +1464,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1505,7 +1568,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1584,7 +1646,6 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1974,16 +2035,15 @@ AddErrors_Next:
         return buffer;
     }
 
-    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceSchemaResult result)
     {
-        if (sourcePath.IsRoot)
-        {
-            return data;
-        }
+        // A source schema client can resolve the root field of a response while it reads it. The
+        // element it hands over with the result stands in for the first segment of the source
+        // path, so the walk continues after that segment.
+        var lookupData = result.LookupData;
+        var current = lookupData ?? result.Data;
 
-        var current = data;
-
-        for (var i = 0; i < sourcePath.Length; i++)
+        for (var i = lookupData is null ? 0 : 1; i < sourcePath.Length; i++)
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
@@ -2006,16 +2066,7 @@ AddErrors_Next:
                     break;
 
                 case SelectionPathSegmentKind.InlineFragment:
-                    if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String)
-                    {
-                        return default;
-                    }
-
-                    // Fast path: exact __typename match. On a miss the type condition may name an
-                    // abstract type, so accept the element when its runtime type is a subtype.
-                    if (!typeNameProperty.TextEqualsHelper(segment.Name, isPropertyName: false)
-                        && !IsRuntimeTypeAssignableTo(segment.Name, typeNameProperty.GetString()))
+                    if (!TryMatchInlineFragmentType(current, segment.Name))
                     {
                         return default;
                     }
@@ -2028,6 +2079,125 @@ AddErrors_Next:
         }
 
         return current;
+    }
+
+    /// <summary>
+    /// Same as <see cref="GetDataElement(SelectionPath, SourceSchemaResult)"/>, but uses
+    /// pre-encoded segment names so a batch merge encodes the path once and every result
+    /// reuses it.
+    /// </summary>
+    private SourceResultElement GetDataElement(
+        SelectionPath sourcePath,
+        ReadOnlySpan<byte> utf8FieldNames,
+        ReadOnlySpan<int> utf8FieldNameEnds,
+        SourceSchemaResult result)
+    {
+        var lookupData = result.LookupData;
+        var current = lookupData ?? result.Data;
+        var firstSegment = lookupData is null ? 0 : 1;
+        var start = firstSegment > 0 && sourcePath.Length > 0
+            ? utf8FieldNameEnds[firstSegment - 1]
+            : 0;
+
+        for (var i = firstSegment; i < sourcePath.Length; i++)
+        {
+            if (current.ValueKind != JsonValueKind.Object)
+            {
+                return current.ValueKind is JsonValueKind.Null ? current : default;
+            }
+
+            var segment = sourcePath[i];
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
+                    var end = utf8FieldNameEnds[i];
+
+                    if (!current.TryGetProperty(utf8FieldNames[start..end], out current))
+                    {
+                        return default;
+                    }
+
+                    start = end;
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    if (!TryMatchInlineFragmentType(current, segment.Name))
+                    {
+                        return default;
+                    }
+
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Segment kind {segment.Kind} is not supported.");
+            }
+        }
+
+        return current;
+    }
+
+    private bool TryMatchInlineFragmentType(SourceResultElement current, string typeCondition)
+    {
+        if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
+            || typeNameProperty.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        // Fast path: exact __typename match. On a miss the type condition may name an
+        // abstract type, so accept the element when its runtime type is a subtype.
+        return typeNameProperty.TextEqualsHelper(typeCondition, isPropertyName: false)
+            || IsRuntimeTypeAssignableTo(typeCondition, typeNameProperty.GetString());
+    }
+
+    /// <summary>
+    /// Returns the total byte length of all root and field segment names in the path.
+    /// GraphQL names are ASCII, so one character is one byte. Inline fragment segments
+    /// are skipped.
+    /// </summary>
+    private static int ComputeAsciiFieldNameBytes(SelectionPath sourcePath)
+    {
+        var byteCount = 0;
+
+        for (var i = 0; i < sourcePath.Length; i++)
+        {
+            var segment = sourcePath[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            {
+                byteCount += segment.Name.Length;
+            }
+        }
+
+        return byteCount;
+    }
+
+    /// <summary>
+    /// Encodes all root and field segment names into <paramref name="utf8FieldNames"/>.
+    /// <paramref name="utf8FieldNameEnds"/> holds each segment's exclusive end offset.
+    /// Inline fragment segments write no bytes and repeat the previous offset.
+    /// </summary>
+    private static void TranscodeFieldSegments(
+        SelectionPath sourcePath,
+        Span<byte> utf8FieldNames,
+        Span<int> utf8FieldNameEnds)
+    {
+        var offset = 0;
+
+        for (var i = 0; i < sourcePath.Length; i++)
+        {
+            var segment = sourcePath[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            {
+                var status = Ascii.FromUtf16(segment.Name, utf8FieldNames[offset..], out var written);
+                Debug.Assert(status is OperationStatus.Done, "GraphQL names are ASCII.");
+                offset += written;
+            }
+
+            utf8FieldNameEnds[i] = offset;
+        }
     }
 
     private bool IsRuntimeTypeAssignableTo(string typeCondition, string? runtimeTypeName)
@@ -2331,6 +2501,7 @@ AddErrors_Next:
 
         _memory.Clear();
 
+        _variableDedupTable.Dispose();
         _variableWriter.Dispose();
         _pathPool?.Dispose();
     }
@@ -2402,24 +2573,29 @@ AddErrors_Next:
     {
         private const int DefaultBucketSize = 4;
         private const int DefaultBucketCount = 16;
+        private const int TrackedSlotCapacity = 16;
 
         private readonly ChunkedArrayWriter _writer = writer;
-        private Entry[] _table = ArrayPool<Entry>.Shared.Rent(DefaultBucketCount * DefaultBucketSize);
+        private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
+        private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
+        private int _writtenCount;
+        private bool _clearFullTable;
 
         public void Initialize(int capacity)
         {
-            _bucketCount = NextPowerOfTwo(Math.Max(capacity, DefaultBucketCount));
-            var totalSize = _bucketCount * _bucketSize;
+            var bucketCount = NextPowerOfTwo(Math.Max(capacity, DefaultBucketCount));
+            var totalSize = bucketCount * _bucketSize;
+
+            ClearPreviousEntries();
 
             if (_table.Length < totalSize)
             {
-                ArrayPool<Entry>.Shared.Return(_table);
-                _table = ArrayPool<Entry>.Shared.Rent(totalSize);
+                Resize(totalSize);
             }
 
-            _table.AsSpan(0, totalSize).Clear();
+            _bucketCount = bucketCount;
         }
 
         public bool TryGet(
@@ -2467,6 +2643,8 @@ AddErrors_Next:
 
                 if (entry.Index == 0)
                 {
+                    RecordWrittenSlot(s);
+
                     entry.Hash = hash;
                     entry.Index = index + 1;
                     entry.Location = location;
@@ -2479,36 +2657,119 @@ AddErrors_Next:
             Add(hash, index, location, length);
         }
 
-        public void Clear()
-            => _table.AsSpan(0, _bucketCount * _bucketSize).Clear();
-
         public void Dispose()
         {
-            ArrayPool<Entry>.Shared.Return(_table);
-            _table = [];
+            if (_table.Length > 0)
+            {
+                ArrayPool<Entry>.Shared.Return(_table);
+                _table = [];
+            }
+
+            if (_writtenSlots.Length > 0)
+            {
+                ArrayPool<int>.Shared.Return(_writtenSlots);
+                _writtenSlots = [];
+            }
+
+            ResetClearState();
         }
 
         private void Grow()
         {
             var oldTable = _table;
             var oldTotal = _bucketCount * _bucketSize;
+            var newBucketCount = _bucketCount * 2;
+            var newTotal = newBucketCount * _bucketSize;
+            var newTable = RentClearedTable(newTotal);
 
-            _bucketCount *= 2;
-            var newTotal = _bucketCount * _bucketSize;
-            _table = ArrayPool<Entry>.Shared.Rent(newTotal);
-            _table.AsSpan(0, newTotal).Clear();
+            _bucketCount = newBucketCount;
+            _table = newTable;
+            _clearFullTable = true;
+            _writtenCount = 0;
 
-            for (var i = 0; i < oldTotal; i++)
+            try
             {
-                var entry = oldTable[i];
-
-                if (entry.Index != 0)
+                for (var i = 0; i < oldTotal; i++)
                 {
-                    Add(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                    var entry = oldTable[i];
+
+                    if (entry.Index != 0)
+                    {
+                        Add(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<Entry>.Shared.Return(oldTable);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Resize(int totalSize)
+        {
+            var newTable = RentClearedTable(totalSize);
+            var oldTable = _table;
+            _table = newTable;
+            ArrayPool<Entry>.Shared.Return(oldTable);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void RecordWrittenSlot(int slot)
+        {
+            if (_clearFullTable)
+            {
+                return;
+            }
+
+            if (_writtenCount == TrackedSlotCapacity)
+            {
+                _clearFullTable = true;
+                _writtenCount = 0;
+                return;
+            }
+
+            if (_writtenSlots.Length == 0)
+            {
+                RentWrittenSlots();
+            }
+
+            _writtenSlots[_writtenCount++] = slot;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void RentWrittenSlots()
+            => _writtenSlots = ArrayPool<int>.Shared.Rent(TrackedSlotCapacity);
+
+        private void ClearPreviousEntries()
+        {
+            if (_clearFullTable)
+            {
+                _table.AsSpan(0, _bucketCount * _bucketSize).Clear();
+            }
+            else
+            {
+                for (var i = 0; i < _writtenCount; i++)
+                {
+                    _table[_writtenSlots[i]] = default;
                 }
             }
 
-            ArrayPool<Entry>.Shared.Return(oldTable);
+            ResetClearState();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ResetClearState()
+        {
+            _writtenCount = 0;
+            _clearFullTable = false;
+        }
+
+        private static Entry[] RentClearedTable(int minimumLength)
+        {
+            var table = ArrayPool<Entry>.Shared.Rent(minimumLength);
+            table.AsSpan().Clear();
+            return table;
         }
 
         private static int NextPowerOfTwo(int n)

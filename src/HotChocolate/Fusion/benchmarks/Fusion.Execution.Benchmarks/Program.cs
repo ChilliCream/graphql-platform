@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
-using Fusion.Execution.Benchmarks;
+using HotChocolate.Fusion.Execution.Benchmarks;
 
 var config = DefaultConfig.Instance
     .WithOption(ConfigOptions.DisableOptimizationsValidator, true);

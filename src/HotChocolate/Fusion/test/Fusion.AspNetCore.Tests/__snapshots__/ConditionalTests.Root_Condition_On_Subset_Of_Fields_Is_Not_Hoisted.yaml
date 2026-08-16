@@ -1,0 +1,89 @@
+title: Root_Condition_On_Subset_Of_Fields_Is_Not_Hoisted
+request:
+  document: |
+    query testQuery($s: Boolean!, $x: Boolean!) {
+      a @skip(if: $s)
+      b @skip(if: $s)
+      c @include(if: $x)
+    }
+  variables: |
+    {
+      "s": false,
+      "x": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "c": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        a: String
+        b: String
+        c: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_26212815_1($s: Boolean!, $x: Boolean!) {
+              ... @skip(if: $s) {
+                a
+                b
+              }
+              c @include(if: $x)
+            }
+          variables: |
+            {
+              "s": false,
+              "x": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": "Query",
+                  "b": "Query",
+                  "c": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($s: Boolean!, $x: Boolean!) {
+          ... @skip(if: $s) {
+            a
+            b
+          }
+          c @include(if: $x)
+        }
+      name: testQuery
+      hash: 26212815f20a809436643dcb77ee629d
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_26212815_1($s: Boolean!, $x: Boolean!) {
+          ... @skip(if: $s) {
+            a
+            b
+          }
+          c @include(if: $x)
+        }
+      forwardedVariables:
+        - s
+        - x

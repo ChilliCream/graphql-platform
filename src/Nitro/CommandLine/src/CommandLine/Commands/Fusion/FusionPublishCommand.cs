@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Text;
-using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -209,7 +208,7 @@ internal sealed class FusionPublishCommand : Command
 
             await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
-            var newSourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
+            var newSourceSchemas = new Dictionary<string, LocalSourceSchema>();
 
             await using (var downloadSourceSchemaActivity = activity.StartChildActivity(
                              $"Downloading {sourceSchemaVersions.Length} source schema(s)",
@@ -266,7 +265,10 @@ internal sealed class FusionPublishCommand : Command
 
                         newSourceSchemas.Add(
                             schemaName,
-                            (new SourceSchemaText(schemaName, schemaText, extensionsText), settings));
+                            new LocalSourceSchema(
+                                new SourceSchemaText(schemaName, schemaText, extensionsText),
+                                settings,
+                                urlOverride: null));
                     }
                 }
 
@@ -432,7 +434,8 @@ internal sealed class FusionPublishCommand : Command
                                 var errorMessage = error switch
                                 {
                                     IUnauthorizedOperation err => err.Message,
-                                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                                    IFusionConfigurationRequestNotFoundError err =>
+                                        throw new NitroClientNotFoundException(err.Message),
                                     IInvalidProcessingStateTransitionError err => err.Message,
                                     IError err => Messages.UnexpectedMutationError(err),
                                     _ => Messages.UnexpectedMutationError()

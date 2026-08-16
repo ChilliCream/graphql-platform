@@ -245,7 +245,7 @@ operationPlan:
       targets:
         - $.wrappers.authorable<Discussion>.author
         - $.wrappers.authorable.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

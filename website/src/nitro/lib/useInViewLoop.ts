@@ -47,6 +47,7 @@ export interface ChartClockProps {
   playWindow?: [number, number];
   durationMs?: number;
   amount?: number;
+  once?: boolean;
 }
 
 export interface ChartClock {
@@ -61,12 +62,14 @@ export function useChartClock({
   playWindow = [0, 0.62],
   durationMs = 9000,
   amount = 0.35,
+  once = false,
 }: ChartClockProps = {}): ChartClock {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotionPreference();
   const inView = useInView(ref, { amount });
   const own = useMotionValue(reduced ? 1 : 0);
   const standalone = progress === undefined;
+  const playedOnce = useRef(false);
 
   useEffect(() => {
     if (!standalone) return;
@@ -74,7 +77,27 @@ export function useChartClock({
       own.set(1);
       return;
     }
+    if (once && playedOnce.current) {
+      own.set(1);
+      return;
+    }
     if (!inView) return;
+    if (once) {
+      const remaining = (durationMs / 1000) * Math.max(0, 1 - own.get());
+      if (remaining === 0) {
+        own.set(1);
+        playedOnce.current = true;
+        return;
+      }
+      const resume = animate(own, 1, {
+        duration: remaining,
+        ease: "linear",
+        onComplete: () => {
+          playedOnce.current = true;
+        },
+      });
+      return () => resume.stop();
+    }
     const controls = animate(own, [0, 1], {
       duration: durationMs / 1000,
       ease: "linear",
@@ -82,7 +105,7 @@ export function useChartClock({
       repeatType: "loop",
     });
     return () => controls.stop();
-  }, [standalone, reduced, inView, durationMs, own]);
+  }, [standalone, reduced, inView, durationMs, once, own]);
 
   const source = progress ?? own;
   const w0 = Math.max(0, Math.min(playWindow[0], 0.98));

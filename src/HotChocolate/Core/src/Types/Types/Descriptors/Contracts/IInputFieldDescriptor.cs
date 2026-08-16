@@ -56,7 +56,7 @@ public interface IInputFieldDescriptor
     /// Results in the following schema
     /// <code lang="graphql">
     /// input Example {
-    ///     field: String @deprecated(reason: "No longer supported.")
+    ///     field: String @deprecated
     /// }
     /// </code>
     /// </example>

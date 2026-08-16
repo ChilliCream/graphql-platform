@@ -127,7 +127,8 @@ public sealed class AzureServiceBusSchedulingUnitTests
         headers.Set(AzureServiceBusMessageHeaders.ReplyToSessionId, "reply-session");
         headers.Set(AzureServiceBusMessageHeaders.To, "forward-target");
         headers.Set("custom", "value");
-        headers.Set("custom-date", new DateTimeOffset(2026, 7, 13, 10, 0, 0, TimeSpan.Zero));
+        var customDate = new DateTimeOffset(2026, 7, 13, 10, 0, 0, TimeSpan.Zero);
+        headers.Set("custom-date", customDate);
 
         var enqueueTime = new DateTimeOffset(2026, 7, 13, 11, 0, 0, TimeSpan.Zero);
         var envelope = new MessageEnvelope
@@ -175,7 +176,7 @@ public sealed class AzureServiceBusSchedulingUnitTests
             enqueueTime.AddMinutes(-1).ToUnixTimeMilliseconds(),
             properties[AzureServiceBusMessageHeaders.SentAt]);
         Assert.Equal("value", properties["custom"]);
-        Assert.Equal(1783936800000, properties["custom-date"]);
+        Assert.Equal(customDate, properties["custom-date"]);
         Assert.Equal(10, properties.Count);
     }
 

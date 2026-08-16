@@ -69,6 +69,7 @@ public sealed partial class OperationPlanner
     private ImmutableArray<IncrementalPlan> BuildIncrementalPlans(
         string id,
         string hash,
+        string shortHash,
         ImmutableArray<DeferRoutingState> routingStates,
         PlanContextGraph contextGraph,
         CancellationToken cancellationToken)
@@ -93,7 +94,8 @@ public sealed partial class OperationPlanner
 
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
                 registeredInternalOp,
-                finalSteps);
+                finalSteps,
+                finalSteps.NextId());
 
             var compiledOp = AddTypeNameToAbstractSelections(
                 registeredInternalOp,
@@ -101,6 +103,7 @@ public sealed partial class OperationPlanner
             var deferredOperation = _operationCompiler.Compile(
                 id + "#defer_" + routingState.Index,
                 hash + "#defer_" + routingState.Index,
+                shortHash,
                 compiledOp);
 
             var planScopeRequirements = descriptor.Requirements.Count == 0
@@ -928,25 +931,28 @@ public sealed partial class OperationPlanner
     /// </summary>
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,
-        ImmutableList<PlanStep> planSteps)
+        ImmutableList<PlanStep> planSteps,
+        int nextNodeId)
     {
         if (planSteps.Count == 0)
         {
             return ([], []);
         }
 
-        var ctx = new ExecutionPlanBuildContext();
+        var ctx = new ExecutionPlanBuildContext(nextNodeId);
         var hasVariables = deferredOperation.VariableDefinitions.Count > 0;
 
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
-        MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
-            .Where(t => !ctx.DependenciesByStepId.ContainsKey(t.Id) && ctx.ExecutionNodes.ContainsKey(t.Id))
-            .Select(t => ctx.ExecutionNodes[t.Id])
+            .Select(t => ResolveRedirectedStepId(t.Id, ctx.RedirectedStepIds))
+            .Distinct()
+            .Where(id => !ctx.DependenciesByStepId.ContainsKey(id) && ctx.ExecutionNodes.ContainsKey(id))
+            .Select(id => ctx.ExecutionNodes[id])
             .ToImmutableArray();
 
         var allNodes = ctx.ExecutionNodes

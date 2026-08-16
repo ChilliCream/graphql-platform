@@ -51,7 +51,7 @@ nodes:
         selectionMap: >-
           price
     dependencies:
-      - id: 3
+      - id: 7
   - id: 3
     type: OperationBatch
     schema: products
@@ -65,7 +65,7 @@ nodes:
     targets:
       - $.products
       - $.products
-    batchingGroupId: 3
+    batchingGroupId: 7
     requirements:
       - name: __fusion_3_upc
         selectionMap: >-
@@ -83,7 +83,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 3
+    batchingGroupId: 7
     requirements:
       - name: __fusion_4_upc
         selectionMap: >-
@@ -101,7 +101,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 3
+    batchingGroupId: 7
     requirements:
       - name: __fusion_7_upc
         selectionMap: >-

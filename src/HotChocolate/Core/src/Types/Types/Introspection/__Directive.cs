@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -20,6 +21,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
+        var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
 
@@ -79,6 +81,13 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             }
         };
 
+        if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+        {
+            def.Fields.Add(new(Names.AppliedDirectives,
+                type: directiveListType,
+                pureResolver: Resolvers.AppliedDirectives));
+        }
+
         if (optInFeaturesEnabled)
         {
             def.Fields.Single(f => f.Name == Names.Args)
@@ -132,6 +141,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 : directive.Arguments.Where(t => !t.IsDeprecated);
         }
 
+        public static object AppliedDirectives(IResolverContext context) =>
+            ((IDirectivesProvider)context.Parent<DirectiveType>())
+                .Directives
+                .Where(t => Unsafe.As<DirectiveType>(t.Definition).IsPublic)
+                .Select(d => d.ToSyntaxNode());
+
         public static object RequiresOptIn(IResolverContext context) =>
             ((IDirectivesProvider)context.Parent<DirectiveType>())
                 .Directives
@@ -168,6 +183,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public const string DeprecationReason = "deprecationReason";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string IncludeOptIn = "includeOptIn";
+        public const string AppliedDirectives = "appliedDirectives";
         public const string RequiresOptIn = "requiresOptIn";
         public const string Locations = "locations";
         public const string Args = "args";

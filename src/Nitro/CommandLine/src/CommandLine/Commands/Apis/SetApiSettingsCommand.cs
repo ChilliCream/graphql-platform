@@ -78,7 +78,8 @@ internal sealed class SetApiSettingsApiCommand : Command
             {
                 var errorMessage = mutationError switch
                 {
-                    ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError err => err.Message,
+                    ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_UnauthorizedOperation err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()

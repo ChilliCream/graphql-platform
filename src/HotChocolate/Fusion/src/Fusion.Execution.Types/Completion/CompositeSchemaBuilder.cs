@@ -56,6 +56,9 @@ internal static class CompositeSchemaBuilder
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
+        var hasPublicTagDefinition = schemaDocument.Definitions
+            .OfType<DirectiveDefinitionNode>()
+            .Any(static t => t.Name.Value.Equals(Tag.Name, StringComparison.Ordinal));
 
         var schemaDefinition = schemaDocument.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
         if (schemaDefinition is not null)
@@ -82,20 +85,18 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        var baseIntrospectionDocument = options.EnableOptInFeatures
-            ? IntrospectionSchema.OptInDocument
-            : IntrospectionSchema.Document;
-
-        var introspectionDefinitions = options.EnableSemanticIntrospection
-            ? baseIntrospectionDocument.Definitions
-                .Concat(SemanticIntrospectionSchema.Document.Definitions)
-            : baseIntrospectionDocument.Definitions.AsEnumerable();
+        var introspectionDefinitions = IntrospectionSchema.GetDocument(options).Definitions;
 
         foreach (var definition in introspectionDefinitions.Concat(schemaDocument.Definitions))
         {
             if (definition is IHasName namedSyntaxNode
                 && (FusionBuiltIns.IsBuiltInType(namedSyntaxNode.Name.Value)
-                    || FusionBuiltIns.IsBuiltInDirective(namedSyntaxNode.Name.Value)))
+                    || FusionBuiltIns.IsBuiltInDirective(namedSyntaxNode.Name.Value))
+                && !(definition is DirectiveDefinitionNode
+                    && !hasPublicTagDefinition
+                    && namedSyntaxNode.Name.Value.Equals(
+                        FusionBuiltIns.Tag,
+                        StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -106,7 +107,8 @@ internal static class CompositeSchemaBuilder
                     var type = CreateObjectType(
                         objectType,
                         objectType.Name.Value.Equals(queryType, StringComparison.Ordinal),
-                        options.EnableSemanticIntrospection);
+                        options.EnableSemanticIntrospection,
+                        options.EnableObjectDeprecation);
                     types.Add(type);
                     typeDefinitions.Add(objectType.Name.Value, objectType);
                     break;
@@ -139,6 +141,14 @@ internal static class CompositeSchemaBuilder
                 case DirectiveDefinitionNode directiveType:
                     if (IsSpecDirective(directiveType.Name.Value))
                     {
+                        break;
+                    }
+
+                    if (directiveType.Name.Value.Equals(FusionBuiltIns.Tag, StringComparison.Ordinal))
+                    {
+                        var normalizedTagDefinition = RenameDirectiveDefinition(directiveType, Tag.Name);
+                        directiveTypes.Add(CreateDirectiveType(normalizedTagDefinition));
+                        directiveDefinitions.Add(normalizedTagDefinition.Name.Value, normalizedTagDefinition);
                         break;
                     }
 
@@ -221,13 +231,19 @@ internal static class CompositeSchemaBuilder
     private static FusionObjectTypeDefinition CreateObjectType(
         ObjectTypeDefinitionNode definition,
         bool isQuery,
-        bool enableSemanticIntrospection)
+        bool enableSemanticIntrospection,
+        bool enableObjectDeprecation)
     {
+        var deprecationReason = enableObjectDeprecation
+            ? DeprecatedDirectiveParser.ParseReason(definition.Directives)
+            : null;
+
         var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
 
         return new FusionObjectTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            deprecationReason,
             isInaccessible,
             CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection));
     }
@@ -293,17 +309,28 @@ internal static class CompositeSchemaBuilder
     private static FusionDirectiveDefinition CreateDirectiveType(
         DirectiveDefinitionNode definition)
     {
-        var isDeprecated = DeprecatedDirectiveParser.TryParse(definition.Directives, out var deprecated);
+        var deprecationReason = DeprecatedDirectiveParser.ParseReason(definition.Directives);
 
         return new FusionDirectiveDefinition(
             definition.Name.Value,
             definition.Description?.Value,
-            isDeprecated,
-            deprecated?.Reason,
+            deprecationReason,
             definition.IsRepeatable,
             CreateInputFields(definition.Arguments),
             DirectiveLocationUtils.Parse(definition.Locations));
     }
+
+    private static DirectiveDefinitionNode RenameDirectiveDefinition(
+        DirectiveDefinitionNode definition,
+        string name)
+        => new(
+            definition.Location,
+            new HotChocolate.Language.NameNode(name),
+            definition.Description,
+            definition.IsRepeatable,
+            definition.Arguments,
+            definition.Directives,
+            definition.Locations);
 
     private static FusionOutputFieldDefinitionCollection CreateOutputFields(
         IReadOnlyList<FieldDefinitionNode> fields,
@@ -326,7 +353,6 @@ internal static class CompositeSchemaBuilder
             sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                 IntrospectionFieldNames.Schema,
                 null,
-                isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
                 isGatewayField: false,
@@ -335,7 +361,6 @@ internal static class CompositeSchemaBuilder
             sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                 IntrospectionFieldNames.Type,
                 null,
-                isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
                 isGatewayField: false,
@@ -346,7 +371,6 @@ internal static class CompositeSchemaBuilder
                         "name",
                         null,
                         null,
-                        isDeprecated: false,
                         deprecationReason: null,
                         isInaccessible: false)
                 ]));
@@ -354,7 +378,6 @@ internal static class CompositeSchemaBuilder
             sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                 IntrospectionFieldNames.TypeName,
                 null,
-                isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
                 isGatewayField: false,
@@ -365,7 +388,6 @@ internal static class CompositeSchemaBuilder
                 sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                     IntrospectionFieldNames.Search,
                     null,
-                    isDeprecated: false,
                     deprecationReason: null,
                     isInaccessible: false,
                     isGatewayField: false,
@@ -376,7 +398,6 @@ internal static class CompositeSchemaBuilder
                             "query",
                             null,
                             null,
-                            isDeprecated: false,
                             deprecationReason: null,
                             isInaccessible: false),
                         new FusionInputFieldDefinition(
@@ -384,7 +405,6 @@ internal static class CompositeSchemaBuilder
                             "first",
                             null,
                             new IntValueNode(10),
-                            isDeprecated: false,
                             deprecationReason: null,
                             isInaccessible: false),
                         new FusionInputFieldDefinition(
@@ -392,7 +412,6 @@ internal static class CompositeSchemaBuilder
                             "after",
                             null,
                             null,
-                            isDeprecated: false,
                             deprecationReason: null,
                             isInaccessible: false),
                         new FusionInputFieldDefinition(
@@ -400,7 +419,6 @@ internal static class CompositeSchemaBuilder
                             "min_score",
                             null,
                             null,
-                            isDeprecated: false,
                             deprecationReason: null,
                             isInaccessible: false)
                     ]));
@@ -408,7 +426,6 @@ internal static class CompositeSchemaBuilder
                 sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                     IntrospectionFieldNames.Definitions,
                     null,
-                    isDeprecated: false,
                     deprecationReason: null,
                     isInaccessible: false,
                     isGatewayField: false,
@@ -419,7 +436,6 @@ internal static class CompositeSchemaBuilder
                             "coordinates",
                             null,
                             null,
-                            isDeprecated: false,
                             deprecationReason: null,
                             isInaccessible: false)
                     ]));
@@ -428,15 +444,14 @@ internal static class CompositeSchemaBuilder
             for (var i = 0; i < fields.Count; i++)
             {
                 var field = fields[i];
-                var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+                var deprecationReason = DeprecatedDirectiveParser.ParseReason(field.Directives);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
                 var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[fieldIndex + i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
-                    isDeprecated,
-                    deprecated?.Reason,
+                    deprecationReason,
                     isInaccessible: isInaccessible,
                     isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments));
@@ -447,15 +462,14 @@ internal static class CompositeSchemaBuilder
             for (var i = 0; i < fields.Count; i++)
             {
                 var field = fields[i];
-                var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+                var deprecationReason = DeprecatedDirectiveParser.ParseReason(field.Directives);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
                 var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
-                    isDeprecated,
-                    deprecated?.Reason,
+                    deprecationReason,
                     isInaccessible: isInaccessible,
                     isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments));
@@ -478,7 +492,7 @@ internal static class CompositeSchemaBuilder
         for (var i = 0; i < arguments.Count; i++)
         {
             var argument = arguments[i];
-            var isDeprecated = DeprecatedDirectiveParser.TryParse(argument.Directives, out var deprecated);
+            var deprecationReason = DeprecatedDirectiveParser.ParseReason(argument.Directives);
             var isInaccessible = InaccessibleDirectiveParser.Parse(argument.Directives);
 
             temp[i] = new FusionInputFieldDefinition(
@@ -486,8 +500,7 @@ internal static class CompositeSchemaBuilder
                 argument.Name.Value,
                 argument.Description?.Value,
                 argument.DefaultValue,
-                isDeprecated,
-                deprecated?.Reason,
+                deprecationReason,
                 isInaccessible);
         }
 
@@ -507,7 +520,7 @@ internal static class CompositeSchemaBuilder
         for (var i = 0; i < fields.Count; i++)
         {
             var field = fields[i];
-            var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+            var deprecationReason = DeprecatedDirectiveParser.ParseReason(field.Directives);
             var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
 
             sourceFields[i] = new FusionInputFieldDefinition(
@@ -515,8 +528,7 @@ internal static class CompositeSchemaBuilder
                 field.Name.Value,
                 field.Description?.Value,
                 field.DefaultValue,
-                isDeprecated,
-                deprecated?.Reason,
+                deprecationReason,
                 isInaccessible);
         }
 
@@ -536,14 +548,13 @@ internal static class CompositeSchemaBuilder
         for (var i = 0; i < values.Count; i++)
         {
             var value = values[i];
-            var isDeprecated = DeprecatedDirectiveParser.TryParse(value.Directives, out var deprecated);
+            var deprecationReason = DeprecatedDirectiveParser.ParseReason(value.Directives);
             var isInaccessible = InaccessibleDirectiveParser.Parse(value.Directives);
 
             sourceFields[i] = new FusionEnumValue(
                 value.Name.Value,
                 value.Description?.Value,
-                isDeprecated,
-                deprecated?.Reason,
+                deprecationReason,
                 isInaccessible);
         }
 
@@ -1178,7 +1189,6 @@ internal static class CompositeSchemaBuilder
 
         typeDefinition.Complete(
             new CompositeScalarTypeCompletionContext(
-                default,
                 directives,
                 specifiedBy,
                 type,
@@ -1198,6 +1208,11 @@ internal static class CompositeSchemaBuilder
                 argumentDef,
                 context);
         }
+
+        directiveDefinition.Complete(
+            CompletionTools.CreateDirectiveCollection(
+                directiveDefinitionNode.Directives,
+                context));
     }
 
     private static OperationType? GetOperationType(

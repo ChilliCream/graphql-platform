@@ -158,6 +158,57 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
     }
 
     [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupUnpublishClientMutation(errors: [CreateUnpublishClientStageNotFoundError()]);
+
+        var result = await ExecuteCommandAsync(
+            "client", "unpublish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientVersionNotFound_ReturnsError()
+    {
+        SetupUnpublishClientMutation(errors: [CreateUnpublishClientVersionNotFoundError()]);
+
+        var result = await ExecuteCommandAsync(
+            "client", "unpublish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client version not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientNotFound_ReturnsError()
+    {
+        SetupUnpublishClientMutation(errors: [CreateUnpublishClientClientNotFoundError()]);
+
+        var result = await ExecuteCommandAsync(
+            "client", "unpublish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client 'client-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UnpublishThrows_ReturnsError()
     {
         // arrange
@@ -199,27 +250,9 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
                 """
             },
             {
-                CreateUnpublishClientStageNotFoundError(),
-                """
-                Stage 'dev' was not found.
-                """
-            },
-            {
-                CreateUnpublishClientVersionNotFoundError(),
-                """
-                Client version not found.
-                """
-            },
-            {
                 CreateUnpublishClientUnauthorizedError(),
                 """
                 Unauthorized.
-                """
-            },
-            {
-                CreateUnpublishClientClientNotFoundError(),
-                """
-                Client 'client-1' was not found.
                 """
             }
         };
