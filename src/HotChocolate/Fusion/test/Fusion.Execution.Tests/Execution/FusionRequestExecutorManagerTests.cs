@@ -38,7 +38,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var manager =
             new ServiceCollection()
-                .AddGraphQLGateway("some-name")
+                .AddGraphQLRouterCore("some-name")
                 .AddInMemoryConfiguration(schemaDocument)
                 .Services
                 .BuildServiceProvider()
@@ -66,7 +66,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
                 .Services
@@ -95,7 +95,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
                 .UseRequest(
@@ -150,7 +150,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .AddWarmupTask((_, _) =>
                 {
@@ -212,7 +212,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .AddWarmupTask((_, _) =>
                 {
@@ -261,7 +261,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -290,7 +290,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services = new ServiceCollection();
         services
-            .AddGraphQLGateway("schema1")
+            .AddGraphQLRouterCore("schema1")
             .AddConfigurationProvider(_ => configProvider)
             .ConfigureSchemaServices((_, _) =>
             {
@@ -298,7 +298,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 schema1CreationResetEvent.Wait(cts.Token);
             });
         services
-            .AddGraphQLGateway("schema2")
+            .AddGraphQLRouterCore("schema2")
             .AddConfigurationProvider(_ => configProvider);
 
         var provider = services.BuildServiceProvider();
@@ -329,7 +329,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddSingleton<SomeService>();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateConfiguration().Schema)
             .AddApplicationService<SomeService>()
             .AddWarmupTask<CustomWarmupTask>();
@@ -368,7 +368,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -419,7 +419,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -472,7 +472,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -525,7 +525,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -578,7 +578,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -639,7 +639,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();

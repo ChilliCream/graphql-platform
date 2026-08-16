@@ -527,7 +527,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -568,7 +568,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .AddHttpClientConfiguration(
                     new HttpSourceSchemaClientConfiguration(
@@ -614,7 +614,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
         var builder =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider);
 
         FusionSetupUtilities.Configure(

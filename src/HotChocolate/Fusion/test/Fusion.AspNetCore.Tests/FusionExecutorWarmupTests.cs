@@ -31,7 +31,7 @@ public sealed class FusionExecutorWarmupTests : FusionTestBase
 
         var services = new ServiceCollection();
         services
-            .AddGraphQLGatewayServer()
+            .AddGraphQLRouter()
             .AddInMemoryConfiguration(schema)
             .ModifyOptions(o => o.LazyInitialization = lazyInitialization);
         var provider = services.BuildServiceProvider();

@@ -9,7 +9,7 @@ This page covers five directives that handle exposure and evolution. `@inaccessi
 
 # Controlling Client Visibility
 
-Your source schemas contain fields and types that serve different audiences. Some are for clients, some carry internal data shared between subgraphs, and some are infrastructure that only the gateway uses. Fusion provides two directives for hiding schema elements from the composite schema. They differ in how they interact with composition merging.
+Your source schemas contain fields and types that serve different audiences. Some are for clients, some carry internal data shared between subgraphs, and some are infrastructure that only the router uses. Fusion provides two directives for hiding schema elements from the composite schema. They differ in how they interact with composition merging.
 
 ## Hidden Fields
 
@@ -68,7 +68,7 @@ The `CANCELLED` value does not appear in the composite schema. Subgraphs can sti
 
 ## Internal Lookups
 
-The `@internal` directive is designed for lookups. An internal lookup is a query field that the gateway uses for entity resolution but that clients cannot call. Internal lookups do not participate in composition merging, which means multiple subgraphs can define lookups with the same field name and different argument shapes without causing a conflict. This gives each subgraph the flexibility to resolve an entity in whatever way makes sense for its data, without coordinating field signatures across teams.
+The `@internal` directive is designed for lookups. An internal lookup is a query field that the router uses for entity resolution but that clients cannot call. Internal lookups do not participate in composition merging, which means multiple subgraphs can define lookups with the same field name and different argument shapes without causing a conflict. This gives each subgraph the flexibility to resolve an entity in whatever way makes sense for its data, without coordinating field signatures across teams.
 
 **GraphQL schema**
 
@@ -90,7 +90,7 @@ public static partial class ProductQueries
 }
 ```
 
-Without `[Internal]`, this lookup would appear in the composite schema as a second `productById` query field, conflicting with the Products subgraph's public lookup. With `[Internal]`, the gateway can still use it for entity resolution, but clients never see it.
+Without `[Internal]`, this lookup would appear in the composite schema as a second `productById` query field, conflicting with the Products subgraph's public lookup. With `[Internal]`, the router can still use it for entity resolution, but clients never see it.
 
 You can also group internal lookups under a dedicated root object to keep routing infrastructure in one place.
 
@@ -137,9 +137,9 @@ These directives serve different purposes. `@inaccessible` hides data from clien
 | Participates in merging           | Yes                                    | No                                  |
 | Can conflict across subgraphs     | Yes (types must be compatible)         | No                                  |
 | Usable in `@require` dependencies | Yes                                    | No                                  |
-| Primary use case                  | Internal data shared between subgraphs | Lookup entry points for the gateway |
+| Primary use case                  | Internal data shared between subgraphs | Lookup entry points for the router |
 
-Use `@inaccessible` when the field carries data that other subgraphs need but clients should not see. Use `@internal` on lookups that exist only for gateway entity resolution.
+Use `@inaccessible` when the field carries data that other subgraphs need but clients should not see. Use `@internal` on lookups that exist only for router entity resolution.
 
 # Deprecating Fields, Values, and Types
 
@@ -204,7 +204,7 @@ enum SortOrder {
 
 ## Deprecating Object Types
 
-Object type deprecation is not yet part of the released GraphQL specification. It tracks [graphql-spec RFC #997](https://github.com/graphql/graphql-spec/pull/997), which is still open, so its final shape could still change. It is disabled by default; enable it separately on each subgraph and on the Fusion gateway.
+Object type deprecation is not yet part of the released GraphQL specification. It tracks [graphql-spec RFC #997](https://github.com/graphql/graphql-spec/pull/997), which is still open, so its final shape could still change. It is disabled by default; enable it separately on each subgraph and on the Fusion router.
 
 **Subgraph configuration**
 
@@ -215,16 +215,16 @@ builder
     .ModifyOptions(o => o.EnableObjectDeprecation = true);
 ```
 
-**Gateway configuration**
+**Router configuration**
 
-```csharp filename="Gateway/Program.cs"
+```csharp filename="Router/Program.cs"
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .ModifyOptions(o => o.EnableObjectDeprecation = true);
 ```
 
-When `EnableObjectDeprecation` is enabled on the gateway, the introspection schema exposes `isDeprecated` and `deprecationReason` on `__Type`, plus the `includeDeprecated` argument on `__schema.types` and `__Type.possibleTypes`. Deprecated object types are hidden from both by default; clients pass `includeDeprecated: true` to see them.
+When `EnableObjectDeprecation` is enabled on the router, the introspection schema exposes `isDeprecated` and `deprecationReason` on `__Type`, plus the `includeDeprecated` argument on `__schema.types` and `__Type.possibleTypes`. Deprecated object types are hidden from both by default; clients pass `includeDeprecated: true` to see them.
 
 **GraphQL schema**
 
@@ -278,7 +278,7 @@ A deprecated object type remains a valid union member and interface implementati
 
 If a shareable field is deprecated in at least one subgraph, it is deprecated in the composite schema. You do not need to deprecate it in every subgraph that defines it. With shared ownership comes the power for any owner to deprecate the field for all clients.
 
-If you only want to remove a shared field from one subgraph, you do not need to deprecate it. Remove the field from that subgraph and the gateway will resolve it from the remaining subgraphs that still provide it.
+If you only want to remove a shared field from one subgraph, you do not need to deprecate it. Remove the field from that subgraph and the router will resolve it from the remaining subgraphs that still provide it.
 
 Object types follow the same rule. If at least one subgraph deprecates a type, it is deprecated in the composite schema, and the reason is taken from the first subgraph that provides one.
 
@@ -327,7 +327,7 @@ public decimal? DynamicPrice { get; set; }
 
 ## Enabling Opt-In Support
 
-Opt-in features are disabled by default. You must enable them separately on each subgraph and on the Fusion gateway.
+Opt-in features are disabled by default. You must enable them separately on each subgraph and on the Fusion router.
 
 **Subgraph configuration**
 
@@ -338,16 +338,16 @@ builder
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
 
-**Gateway configuration**
+**Router configuration**
 
-```csharp filename="Gateway/Program.cs"
+```csharp filename="Router/Program.cs"
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
 
-When `EnableOptInFeatures` is enabled on the gateway, the introspection schema exposes the `includeOptIn` argument and `__schema.optInFeatures` / `optInFeatureStability` fields. Members marked `@requiresOptIn` are hidden from introspection unless the client opts into their feature via `includeOptIn`. Opt-in affects introspection visibility only: hidden members remain fully executable, and the gateway never rejects a request that selects an opt-in field.
+When `EnableOptInFeatures` is enabled on the router, the introspection schema exposes the `includeOptIn` argument and `__schema.optInFeatures` / `optInFeatureStability` fields. Members marked `@requiresOptIn` are hidden from introspection unless the client opts into their feature via `includeOptIn`. Opt-in affects introspection visibility only: hidden members remain fully executable, and the router never rejects a request that selects an opt-in field.
 
 ## Discovering Opt-In Fields
 
@@ -417,8 +417,8 @@ The full lifecycle of an opt-in feature across a Fusion deployment is:
 
 1. A subgraph marks a field (or enum value, or argument) with `@requiresOptIn(feature: "featureName")` and enables opt-in support with `ModifyOptions(o => o.EnableOptInFeatures = true)`.
 2. Composition merges `@requiresOptIn` by union: if a shareable member is opt-in in any source schema, it is opt-in in the execution schema.
-3. The gateway, configured with `EnableOptInFeatures` enabled, hides opt-in members from introspection by default. Clients that pass `includeOptIn: ["featureName"]` in their introspection query see those members.
-4. Opt-in members are fully executable regardless of whether the client opted in at the introspection level. The gateway does not reject execution-time requests for opt-in fields.
+3. The router, configured with `EnableOptInFeatures` enabled, hides opt-in members from introspection by default. Clients that pass `includeOptIn: ["featureName"]` in their introspection query see those members.
+4. Opt-in members are fully executable regardless of whether the client opted in at the introspection level. The router does not reject execution-time requests for opt-in fields.
 
 ## Stability Mismatch Across Subgraphs
 
@@ -428,7 +428,7 @@ When multiple subgraphs declare stability for the same opt-in feature, they must
 
 As your system evolves, you may need to move a field from one subgraph to another. A team might split a subgraph, or a field might belong more naturally in a different domain. The `@override` directive migrates field ownership without breaking existing queries.
 
-When you apply `[Override(from: "source-subgraph")]`, the gateway routes requests for that field to the new subgraph instead of the original. The old subgraph's resolver is no longer called. No client-facing changes are needed.
+When you apply `[Override(from: "source-subgraph")]`, the router routes requests for that field to the new subgraph instead of the original. The old subgraph's resolver is no longer called. No client-facing changes are needed.
 
 **Before: Products subgraph owns the reviews field**
 
@@ -478,7 +478,7 @@ The `from` argument is the subgraph name (from `schema-settings.json`) that orig
 
 1. Add the field to the new subgraph with `[Override(from: "old-subgraph")]`.
 2. Export schemas and compose. Composition validates that the override is valid.
-3. Deploy the new subgraph. The gateway routes the field to it.
+3. Deploy the new subgraph. The router routes the field to it.
 4. Remove the old resolver from the original subgraph when ready.
 
 The old resolver stays in place during the transition. Both subgraphs can define the field simultaneously because `[Override]` tells composition which one wins. This avoids duplicate-field errors without requiring `[Shareable]`.

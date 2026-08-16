@@ -33,7 +33,7 @@ While other vendors rewrote their gateways in Rust and Go to chase throughput, w
 
 That performance comes from a brand-new execution engine. Fusion 16 is no longer built as an extension on top of Hot Chocolate. It now has its own architecture with a memory model inspired by Rust-style arena allocation: everything is managed as bytes, results are referenced instead of copied, and each request rents and returns fixed-size memory chunks.
 
-The result is a fast gateway without giving up the .NET platform. Your gateway remains an ASP.NET Core application running on .NET 8, 9, and 10. Authentication, configuration, resilience, and observability stay in your hands, and you automatically inherit every Kestrel and runtime improvement Microsoft ships.
+The result is a fast router without giving up the .NET platform. Your router remains an ASP.NET Core application running on .NET 8, 9, and 10. Authentication, configuration, resilience, and observability stay in your hands, and you automatically inherit every Kestrel and runtime improvement Microsoft ships.
 
 Read the full post: [What's new in Fusion 16](./2026-05-15-fusion-16.md).
 
@@ -53,7 +53,7 @@ Read the full post: [Open Your GraphQL API for the REST](./2026-06-11-open-your-
 
 Agents are becoming API consumers, and with v16 you can give them an MCP server built directly on top of your data graph. Tools are authored as GraphQL operations, so they reuse the schema, validation, authorization, and execution pipeline you already have.
 
-But that is not all. The new MCP adapter also supports the MCP Apps standard, so you can colocate UI with your tools and return richer, agentic experiences directly from your GraphQL server or gateway.
+But that is not all. The new MCP adapter also supports the MCP Apps standard, so you can colocate UI with your tools and return richer, agentic experiences directly from your GraphQL server or router.
 
 Read the full post: [From GraphQL to MCP in Two Lines](./2026-05-28-mcp-hotchocolate-fusion.md).
 

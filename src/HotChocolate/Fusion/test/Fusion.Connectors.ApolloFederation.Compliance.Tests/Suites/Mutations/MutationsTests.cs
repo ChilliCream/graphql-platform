@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Suites;
 [OfficialV2Suite("mutations")]
 public sealed class MutationsTests : OfficialV2ComplianceTestBase<MutationsTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
     {
         var state = new MutationsState();
 

@@ -274,7 +274,7 @@ internal static class FusionGatewayBuilder
                 new TestSubgraphHttpClientFactory(hosts, capture));
 
             gatewayServices
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 

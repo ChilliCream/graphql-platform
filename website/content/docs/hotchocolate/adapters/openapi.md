@@ -319,17 +319,17 @@ Each endpoint definition's description becomes the OpenAPI operation summary. Ro
 
 # Fusion Integration
 
-The OpenAPI adapter works with Fusion gateway servers. Replace `AddGraphQL()` with `AddGraphQLGateway()` and the rest of the configuration remains the same:
+The OpenAPI adapter works with Fusion routers. Replace `AddGraphQL()` with `AddGraphQLRouter()` and the rest of the configuration remains the same:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddInMemoryConfiguration(compositeSchema)
     .AddHttpClientConfiguration("Subgraph", subgraphUri)
     .AddOpenApiDefinitionStorage(myStorage);
 ```
 
-The Fusion gateway composes schemas from multiple subgraphs. The OpenAPI adapter generates REST endpoints that execute operations against the composed schema, so a single REST endpoint can fetch data from multiple subgraphs transparently.
+The Fusion router composes schemas from multiple subgraphs. The OpenAPI adapter generates REST endpoints that execute operations against the composed schema, so a single REST endpoint can fetch data from multiple subgraphs transparently.
 
 # Next Steps
 

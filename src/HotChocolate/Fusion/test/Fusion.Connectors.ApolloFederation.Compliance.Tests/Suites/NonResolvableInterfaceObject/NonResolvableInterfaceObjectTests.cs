@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class NonResolvableInterfaceObjectTests
     : OfficialV2ComplianceTestBase<NonResolvableInterfaceObjectTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));

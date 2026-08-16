@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class Fed2ExternalExtensionTests
     : OfficialV2ComplianceTestBase<Fed2ExternalExtensionTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));

@@ -1,31 +1,31 @@
 ---
 title: "MCP Adapter"
-description: "Expose a Fusion gateway as an MCP server with `AddMcp()` and `MapGraphQLMcp()`, serving Nitro or custom tools and prompts to AI assistants over Streamable HTTP."
+description: "Expose a Fusion router as an MCP server with `AddMcp()` and `MapGraphQLMcp()`, serving Nitro or custom tools and prompts to AI assistants over Streamable HTTP."
 ---
 
-The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI assistants connect to external systems through a uniform tool and prompt interface. The `HotChocolate.Fusion.Adapters.Mcp` package turns a Fusion gateway into an MCP server. You supply tool and prompt definitions through an `IMcpStorage`, and the adapter handles execution, transport, and live updates. Definitions can come from Nitro (file-based authoring with a publish workflow) or from a custom `IMcpStorage` you build (programmatic, database-backed, or any source you choose).
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI assistants connect to external systems through a uniform tool and prompt interface. The `HotChocolate.Fusion.Adapters.Mcp` package turns a Fusion router into an MCP server. You supply tool and prompt definitions through an `IMcpStorage`, and the adapter handles execution, transport, and live updates. Definitions can come from Nitro (file-based authoring with a publish workflow) or from a custom `IMcpStorage` you build (programmatic, database-backed, or any source you choose).
 
-You wire MCP onto an existing Fusion gateway with two calls: `AddMcp()` during service registration and `MapGraphQLMcp()` during endpoint mapping. The adapter exposes the MCP server over Streamable HTTP at `/graphql/mcp` by default, so any MCP client (Claude Desktop, an editor extension, an agent runtime) can connect directly to the gateway.
+You wire MCP onto an existing Fusion router with two calls: `AddMcp()` during service registration and `MapGraphQLMcp()` during endpoint mapping. The adapter exposes the MCP server over Streamable HTTP at `/graphql/mcp` by default, so any MCP client (Claude Desktop, an editor extension, an agent runtime) can connect directly to the router.
 
 This page covers wiring and configuration. For authoring tools and prompts, see the [Nitro MCP](../../nitro/adapters/mcp.md) section.
 
 # Prerequisites
 
-You need an existing Fusion gateway. If you do not have one yet, follow the [Getting Started](../getting-started.md) tutorial first.
+You need an existing Fusion router. If you do not have one yet, follow the [Getting Started](../getting-started.md) tutorial first.
 
-Add the adapter package to the gateway project:
+Add the adapter package to the router project:
 
 ```bash
 dotnet add package HotChocolate.Fusion.Adapters.Mcp
 ```
 
-# Enabling MCP on the Gateway
+# Enabling MCP on the Router
 
-Two adapter calls turn a Fusion gateway into an MCP server. `AddMcp()` registers the MCP server, schema services, and a startup warmup that loads tool and prompt definitions from storage. `MapGraphQLMcp()` exposes the MCP transport endpoints.
+Two adapter calls turn a Fusion router into an MCP server. `AddMcp()` registers the MCP server, schema services, and a startup warmup that loads tool and prompt definitions from storage. `MapGraphQLMcp()` exposes the MCP transport endpoints.
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddMcp();
     // Storage is required: see "Connecting a Tool and Prompt Source" below.
 
@@ -34,20 +34,20 @@ builder
 app.MapGraphQLMcp();
 ```
 
-The gateway needs a tool and prompt source. Without one, `MapGraphQLMcp()` throws `InvalidOperationException` during startup. Wire up storage by either [using Nitro](#using-nitro-for-tools-and-prompts) or providing a custom `IMcpStorage`.
+The router needs a tool and prompt source. Without one, `MapGraphQLMcp()` throws `InvalidOperationException` during startup. Wire up storage by either [using Nitro](#using-nitro-for-tools-and-prompts) or providing a custom `IMcpStorage`.
 
 # Connecting a Tool and Prompt Source
 
 The adapter does not ship tools or prompts of its own. It asks an `IMcpStorage` implementation for them at startup, and listens for change notifications afterwards. You have two options:
 
-1. **Use Nitro** (recommended for production). Nitro publishes versioned MCP feature collections to the gateway and supplies an `IMcpStorage` automatically. Skip ahead to [Using Nitro](#using-nitro-for-tools-and-prompts).
+1. **Use Nitro** (recommended for production). Nitro publishes versioned MCP feature collections to the router and supplies an `IMcpStorage` automatically. Skip ahead to [Using Nitro](#using-nitro-for-tools-and-prompts).
 2. **Provide your own `IMcpStorage`** for self-hosted scenarios where you manage tool definitions outside Nitro.
 
 To register a custom storage, implement `IMcpStorage` and pass it to `AddMcpStorage()`:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddMcp()
     .AddMcpStorage<MyMcpStorage>();
 ```
@@ -60,7 +60,7 @@ Three overloads cover the common registration patterns:
 | `AddMcpStorage<T>()`                                 | You want DI to construct the storage. `T` is activated from app services. |
 | `AddMcpStorage(Func<IServiceProvider, IMcpStorage>)` | You need a factory for custom construction or scoping.                    |
 
-`IMcpStorage` returns `OperationToolDefinition` and `PromptDefinition` collections, and exposes `IObservable` streams so the gateway can apply update and remove events without restarting. Reach for this extension point only when you cannot use Nitro, since implementing it correctly involves change diffing, caching, and reactive subscriptions.
+`IMcpStorage` returns `OperationToolDefinition` and `PromptDefinition` collections, and exposes `IObservable` streams so the router can apply update and remove events without restarting. Reach for this extension point only when you cannot use Nitro, since implementing it correctly involves change diffing, caching, and reactive subscriptions.
 
 # Configuring the MCP Server
 
@@ -68,7 +68,7 @@ Three overloads cover the common registration patterns:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddMcp(
         configureServerOptions: options =>
         {
@@ -80,7 +80,7 @@ builder
         });
 ```
 
-Tools registered through `configureServer` appear alongside the GraphQL-derived tools, so you can mix native MCP tools with operation tools in the same gateway.
+Tools registered through `configureServer` appear alongside the GraphQL-derived tools, so you can mix native MCP tools with operation tools in the same router.
 
 # Mapping the MCP Endpoint
 
@@ -90,8 +90,8 @@ Tools registered through `configureServer` appear alongside the GraphQL-derived 
 app.MapGraphQLMcp(pattern: "/graphql/mcp", schemaName: null);
 ```
 
-- **`pattern`**: the URL prefix for the MCP transport. Defaults to `/graphql/mcp`. Change it when the default conflicts with another route or when you expose multiple gateways from the same host.
-- **`schemaName`**: the named Fusion schema to expose. The adapter resolves this automatically when the gateway has a single schema. Pass it explicitly when the gateway hosts multiple schemas, so each schema gets its own MCP endpoint:
+- **`pattern`**: the URL prefix for the MCP transport. Defaults to `/graphql/mcp`. Change it when the default conflicts with another route or when you expose multiple routers from the same host.
+- **`schemaName`**: the named Fusion schema to expose. The adapter resolves this automatically when the router has a single schema. Pass it explicitly when the router hosts multiple schemas, so each schema gets its own MCP endpoint:
 
 ```csharp
 app.MapGraphQLMcp("/graphql/public/mcp", schemaName: "Public");
@@ -102,7 +102,7 @@ The endpoint speaks Streamable HTTP. POST carries JSON-RPC requests and returns 
 
 # Using Nitro for Tools and Prompts
 
-Nitro is the easiest way to manage MCP tools and prompts. You author tools and prompts on disk, upload them as a tagged version of a feature collection with the Nitro CLI, and publish that version to a stage. The gateway loads the collection from the configured stage and picks up new versions automatically. When Nitro is wired up alongside `AddMcp()`, it registers an `IMcpStorage` for you, so you do not call `AddMcpStorage()` yourself.
+Nitro is the easiest way to manage MCP tools and prompts. You author tools and prompts on disk, upload them as a tagged version of a feature collection with the Nitro CLI, and publish that version to a stage. The router loads the collection from the configured stage and picks up new versions automatically. When Nitro is wired up alongside `AddMcp()`, it registers an `IMcpStorage` for you, so you do not call `AddMcpStorage()` yourself.
 
 ## Install the Nitro packages
 
@@ -113,9 +113,9 @@ dotnet add package ChilliCream.Nitro.Fusion
 
 `ChilliCream.Nitro` is the core package and includes a source generator that emits an `AddDefaults()` extension method based on which integration packages are referenced in the project. With `ChilliCream.Nitro.Fusion` referenced, `AddDefaults()` calls `AddFusion()` for you.
 
-## Wire Nitro into the gateway
+## Wire Nitro into the router
 
-Call `AddNitro().AddDefaults()` (or the explicit `AddNitro().AddFusion()`) before configuring the gateway. `AddNitro()` configures the shared connection options (`ApiId`, `ApiKey`, `Stage`) on `NitroServiceOptions`. `ModifyNitroOptions()` on the gateway builder configures gateway-specific options (MCP, OpenAPI, persisted operations, metrics, and so on):
+Call `AddNitro().AddDefaults()` (or the explicit `AddNitro().AddFusion()`) before configuring the router. `AddNitro()` configures the shared connection options (`ApiId`, `ApiKey`, `Stage`) on `NitroServiceOptions`. `ModifyNitroOptions()` on the router builder configures router-specific options (MCP, OpenAPI, persisted operations, metrics, and so on):
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -130,7 +130,7 @@ builder.Services
     .AddDefaults();
 
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .ModifyNitroOptions(o =>
     {
         // Modify Nitro options here.
@@ -147,16 +147,16 @@ app.Run();
 
 If you prefer environment variables over inline configuration, set `NITRO_API_ID`, `NITRO_STAGE`, and `NITRO_API_KEY`. The Nitro service options bind to these automatically and you can drop the `AddNitro` configuration delegate entirely.
 
-> Order matters: `AddNitro().AddDefaults()` (or `AddFusion()`) must run before the gateway builder calls so that the Fusion gateway pipeline picks up the Nitro contributions during registration.
+> Order matters: `AddNitro().AddDefaults()` (or `AddFusion()`) must run before the router builder calls so that the Fusion router pipeline picks up the Nitro contributions during registration.
 
 ## What you get
 
 With Nitro and MCP both enabled:
 
-- The gateway loads the published MCP feature collection for the configured stage on startup.
+- The router loads the published MCP feature collection for the configured stage on startup.
 - Tool and prompt definitions are cached locally so cold starts work without a round trip to Nitro.
-- Stage change events flow over the Nitro change feed. When you publish a new version, the gateway updates its tool and prompt set in place, no restart required.
-- If Nitro configuration is incomplete (any of `ApiId`, `ApiKey`, or `Stage` not set), MCP integration is disabled with a warning, the storage returns no definitions, and the gateway continues to start.
+- Stage change events flow over the Nitro change feed. When you publish a new version, the router updates its tool and prompt set in place, no restart required.
+- If Nitro configuration is incomplete (any of `ApiId`, `ApiKey`, or `Stage` not set), MCP integration is disabled with a warning, the storage returns no definitions, and the router continues to start.
 - If configuration is set but the API key is rejected, the storage uses the local cache when one is available and logs the sync failure. Without a usable cache, the exception propagates and host startup fails.
 
 For authoring tools and prompts, publishing feature collection versions, and managing stages, see the [Nitro MCP](../../nitro/adapters/mcp.md) section.
@@ -165,7 +165,7 @@ For authoring tools and prompts, publishing feature collection versions, and man
 
 ## `InvalidOperationException: Call AddMcp() when configuring the GraphQL server.`
 
-`MapGraphQLMcp()` was called but `AddMcp()` was not registered on the gateway builder. Add `.AddMcp()` to the chain that starts with `AddGraphQLGateway()`.
+`MapGraphQLMcp()` was called but `AddMcp()` was not registered on the router builder. Add `.AddMcp()` to the chain that starts with `AddGraphQLRouter()`.
 
 ## MCP endpoint returns 404 Not Found
 
@@ -176,7 +176,7 @@ The route pattern does not match what your client uses. The default is `/graphql
 Two possible causes:
 
 - **No storage source for that schema.** `AddMcp()` was registered, but no `IMcpStorage` is wired up. Either reference `ChilliCream.Nitro.Fusion` and call `AddNitro().AddDefaults()` (or `AddNitro().AddFusion()`), or register a custom storage with `AddMcpStorage(...)`.
-- **Endpoint mapped to the wrong schema.** `MapGraphQLMcp(pattern, schemaName)` was called with a `schemaName` that does not match any gateway registered through `AddGraphQLGateway(name)` plus `AddMcp()`. With multiple named gateways, pass the matching name. With a single unnamed gateway, omit `schemaName` and the adapter resolves it automatically.
+- **Endpoint mapped to the wrong schema.** `MapGraphQLMcp(pattern, schemaName)` was called with a `schemaName` that does not match any router registered through `AddGraphQLRouter(name)` plus `AddMcp()`. With multiple named routers, pass the matching name. With a single unnamed router, omit `schemaName` and the adapter resolves it automatically.
 
 ## Tools and prompts list is empty
 
@@ -189,4 +189,4 @@ Storage is registered but returned no definitions. With Nitro, ensure a publishe
 # Next Steps
 
 - Author tools and prompts and publish them to a stage in the [Nitro MCP](../../nitro/adapters/mcp.md) section.
-- Deploy your gateway across stages with [Deployment and CI/CD](../deployment-and-ci-cd.md).
+- Deploy your router across stages with [Deployment and CI/CD](../deployment-and-ci-cd.md).

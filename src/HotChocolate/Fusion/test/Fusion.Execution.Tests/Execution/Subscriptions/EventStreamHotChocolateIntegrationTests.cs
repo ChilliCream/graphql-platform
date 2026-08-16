@@ -69,7 +69,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         var services = CreateServices(hub);
         var sdl = await PrintSourceSchemaSdlAsync(
             b => b.AddSubscriptionType<AttributeSubscriptions>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // The single static topic that "onUserCreated-{$args.id}" expands to for id "42".
@@ -181,7 +181,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         var services = CreateServices(hub);
         var sdl = await PrintSourceSchemaSdlAsync(
             b => b.AddSubscriptionType<AttributeSubscriptions>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // The single static topic that "onUserCreated-{$args.id}" expands to for id "42".
@@ -238,7 +238,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         var services = CreateServices(hub);
         var sdl = await PrintSourceSchemaSdlAsync(
             b => b.AddSubscriptionType<AttributeSubscriptions>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // The topic the literal template would yield if "{$args.id}" was never substituted.
@@ -305,7 +305,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
                 .AddSubscriptionType<AnimalSubscriptions>()
                 .AddType<Cat>()
                 .AddType<Dog>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         const string topic = "onAnimalCreated";
@@ -372,7 +372,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         var services = CreateServices(hub);
         var sdl = await PrintSourceSchemaSdlAsync(
             b => b.AddSubscriptionType<ListSubscriptions>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         const string topic = "onUsersCreated";
@@ -435,7 +435,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
                 .AddSubscriptionType<ContentSubscriptions>()
                 .AddType<Article>()
                 .AddType<Photo>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         const string topic = "onContentCreated";
@@ -517,7 +517,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
                 .AddSubscriptionType<SearchSubscriptions>()
                 .AddType<Product>()
                 .AddType<Category>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         const string topic = "onSearchHit";
@@ -586,7 +586,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
                 .AddSubscriptionType<AnimalListSubscriptions>()
                 .AddType<Cat>()
                 .AddType<Dog>());
-        var executor = await BuildGatewayAsync(services, sdl);
+        var executor = await BuildRouterAsync(services, sdl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         const string topic = "onAnimalsCreated";
@@ -662,7 +662,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         return services;
     }
 
-    private static async Task<IRequestExecutor> BuildGatewayAsync(
+    private static async Task<IRequestExecutor> BuildRouterAsync(
         ServiceCollection services,
         string sourceSchemaSdl)
     {
@@ -672,10 +672,10 @@ public sealed class EventStreamHotChocolateIntegrationTests
             .ToSyntaxNode();
 
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(schemaDocument);
 
-        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        return await services.BuildRouterAsync(TestContext.Current.CancellationToken);
     }
 
     private static async Task<string> PrintSourceSchemaSdlAsync(

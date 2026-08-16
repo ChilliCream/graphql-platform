@@ -28,7 +28,7 @@ public sealed class EventStreamTransportFailureTests
         var lookupClient = new TransportFailureLookupClient(
             """{"data":{"reviewById":{"body":"A great read"}}}""");
         var services = CreateServices(topic, publisher, lookupClient);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
         var events = CollectEventsAsync(
@@ -107,7 +107,7 @@ public sealed class EventStreamTransportFailureTests
         services.AddInMemoryEventStreamBroker("memory");
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(

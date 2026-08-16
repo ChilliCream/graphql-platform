@@ -15,7 +15,7 @@ public sealed class FieldArgumentsIntrospectionTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddHttpClient();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """

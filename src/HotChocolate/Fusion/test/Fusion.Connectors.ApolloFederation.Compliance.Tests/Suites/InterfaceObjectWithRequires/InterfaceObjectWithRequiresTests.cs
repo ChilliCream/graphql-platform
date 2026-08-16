@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class InterfaceObjectWithRequiresTests
     : OfficialV2ComplianceTestBase<InterfaceObjectWithRequiresTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));

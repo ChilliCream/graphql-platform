@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class SharedRootTests
     : OfficialV2ComplianceTestBase<SharedRootTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (NameSubgraph.Name, NameSubgraph.BuildAsync),
             (PriceSubgraph.Name, PriceSubgraph.BuildAsync),

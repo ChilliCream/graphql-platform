@@ -277,7 +277,7 @@ public sealed class ProvidesOnlyRequestedFieldsTests : ComplianceTestBase
         }
     }
 
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
     {
         var settings = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -300,7 +300,7 @@ public sealed class ProvidesOnlyRequestedFieldsTests : ComplianceTestBase
     public Task Pr335Case_Should_MatchExpectedResult_When_Executed(string caseId)
         => OfficialAuditSuiteRun<ProvidesOnlyRequestedFieldsTests>.AssertCaseAsync(
             caseId,
-            BuildGatewayAsync,
+            BuildRouterAsync,
             static () => s_suite);
 
     private static OfficialAuditSuite CreateSuite()

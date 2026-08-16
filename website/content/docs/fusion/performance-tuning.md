@@ -1,9 +1,9 @@
 ---
 title: "Performance Tuning"
-description: "Tune the Fusion gateway transport: configure the named fusion `HttpClient`, enable HTTP/2 for subgraph calls, and deduplicate identical in-flight requests."
+description: "Tune the Fusion router transport: configure the named fusion `HttpClient`, enable HTTP/2 for subgraph calls, and deduplicate identical in-flight requests."
 ---
 
-The Fusion gateway proxies every GraphQL operation to one or more subgraphs over HTTP. The defaults work well out of the box, but high-throughput or latency-sensitive deployments can benefit from tuning the transport layer.
+The Fusion router proxies every GraphQL operation to one or more subgraphs over HTTP. The defaults work well out of the box, but high-throughput or latency-sensitive deployments can benefit from tuning the transport layer.
 
 This page covers:
 
@@ -24,26 +24,26 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Register the named HTTP client for subgraph communication
 builder.Services.AddHttpClient("fusion");
 
-// 2. Configure the Fusion gateway
+// 2. Configure the Fusion router
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far");
 
 var app = builder.Build();
 app.MapGraphQLHttp();
 app.Run();
 ```
 
-1. **Named HTTP client `"fusion"`**: the client the gateway uses to call subgraphs. Any handler configuration you add here applies to all subgraph requests.
-2. **Gateway registration**: wires up the Fusion execution engine and loads the composed schema.
+1. **Named HTTP client `"fusion"`**: the client the router uses to call subgraphs. Any handler configuration you add here applies to all subgraph requests.
+2. **Router registration**: wires up the Fusion execution engine and loads the composed schema.
 
 # HTTP/2
 
-HTTP/2 multiplexes multiple requests over a single TCP connection, which reduces connection overhead when the gateway sends many concurrent requests to a subgraph. This is especially beneficial when subgraphs are behind a load balancer that supports HTTP/2.
+HTTP/2 multiplexes multiple requests over a single TCP connection, which reduces connection overhead when the router sends many concurrent requests to a subgraph. This is especially beneficial when subgraphs are behind a load balancer that supports HTTP/2.
 
 ## With TLS
 
-When your subgraphs use TLS (HTTPS), HTTP/2 is negotiated automatically via ALPN. Enable `EnableMultipleHttp2Connections` to allow the gateway to open additional HTTP/2 connections when a single connection's stream limit is reached:
+When your subgraphs use TLS (HTTPS), HTTP/2 is negotiated automatically via ALPN. Enable `EnableMultipleHttp2Connections` to allow the router to open additional HTTP/2 connections when a single connection's stream limit is reached:
 
 ```csharp
 builder.Services
@@ -87,7 +87,7 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 ```
 
-If you are unsure whether your infrastructure supports HTTP/2 cleartext end-to-end, **HTTP/1.1 works well** for most internal deployments. Switch to HTTP/2 only when you have confirmed support on both the gateway and all subgraphs.
+If you are unsure whether your infrastructure supports HTTP/2 cleartext end-to-end, **HTTP/1.1 works well** for most internal deployments. Switch to HTTP/2 only when you have confirmed support on both the router and all subgraphs.
 
 # Request Deduplication
 
@@ -97,7 +97,7 @@ When multiple identical query requests are in flight to the same subgraph at the
 
 Deduplication is most effective when:
 
-- **Burst traffic** hits the gateway with the same query. For example, a popular product page refreshing across many clients simultaneously.
+- **Burst traffic** hits the router with the same query. For example, a popular product page refreshing across many clients simultaneously.
 - **Public APIs** serve unauthenticated traffic where many users send the same queries.
 - **The same user** sends identical concurrent requests (e.g., a UI that fires duplicate fetches).
 
@@ -111,13 +111,13 @@ The deduplication hash includes the request body, URL, and the values of configu
 
 ## How to Enable
 
-Enabling deduplication takes two parts, and both are required. The gateway must annotate outgoing subgraph requests with the operation kind, and the HTTP client must carry the deduplication handler. Either part alone produces no deduplication.
+Enabling deduplication takes two parts, and both are required. The router must annotate outgoing subgraph requests with the operation kind, and the HTTP client must carry the deduplication handler. Either part alone produces no deduplication.
 
 First, opt in to operation kind annotation with `AnnotateOperationKind`:
 
 ```csharp
 builder.Services
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .ModifyRequestOptions(options => options.AnnotateOperationKind = true);
 ```
 
@@ -131,7 +131,7 @@ builder.Services
     .AddRequestDeduplication();
 ```
 
-Without the gateway-level annotation, the handler has nothing to key off and passes all requests through unchanged.
+Without the router-level annotation, the handler has nothing to key off and passes all requests through unchanged.
 
 ## Customizing Hash Headers
 
@@ -144,7 +144,7 @@ By default, the `Authorization` and `Cookie` headers are included in the dedupli
 });
 ```
 
-For **service-to-service communication** where the gateway does not receive cookies, you can remove `Cookie` from the hash:
+For **service-to-service communication** where the router does not receive cookies, you can remove `Cookie` from the hash:
 
 ```csharp
 .AddRequestDeduplication(options =>
@@ -163,18 +163,18 @@ Only **query operations** are deduplicated. The following are **not** deduplicat
 
 # Concurrent Execution Limiting
 
-The gateway limits the number of simultaneous **executions** it processes using a **concurrency gate**. An execution is the work of running a single GraphQL operation end-to-end. Each query or mutation counts as one execution, and each event a subscription emits counts as one execution while its selection set runs. Capping concurrency keeps the gateway operating in its optimal throughput range. Too much work competing for the same resources (thread pool, memory, connections) can reduce overall throughput rather than increase it.
+The router limits the number of simultaneous **executions** it processes using a **concurrency gate**. An execution is the work of running a single GraphQL operation end-to-end. Each query or mutation counts as one execution, and each event a subscription emits counts as one execution while its selection set runs. Capping concurrency keeps the router operating in its optimal throughput range. Too much work competing for the same resources (thread pool, memory, connections) can reduce overall throughput rather than increase it.
 
 The default limit is **64 concurrent executions**. The default is calibrated for small containers 1 to 4 CPUs. Depending on your CPU count and typical operation cost, you may want to increase or decrease this value to find the optimal throughput for your hardware. The limit does not reject work; it queues it, and the GraphQL executor processes at most 64 executions concurrently by default.
 
-Subscriptions participate in this limit like any other operation. Each event the gateway processes consumes a slot. Idle subscriptions between events cost nothing.
+Subscriptions participate in this limit like any other operation. Each event the router processes consumes a slot. Idle subscriptions between events cost nothing.
 
-Set the limit through `ModifyServerOptions` on the gateway builder:
+Set the limit through `ModifyServerOptions` on the router builder:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .ModifyServerOptions(options =>
     {
         options.MaxConcurrentExecutions = 128;
@@ -193,8 +193,8 @@ app.MapGraphQLHttp()
 
 ## Tuning Guidance
 
-- **Too low**: executions queue behind the concurrency gate, adding latency even when the gateway and subgraphs have spare capacity. Subscriptions with high event rates feel this first.
-- **Too high**: the gateway runs more work than it can efficiently process, leading to thread pool starvation and increased latency across queries, mutations, and subscription events.
+- **Too low**: executions queue behind the concurrency gate, adding latency even when the router and subgraphs have spare capacity. Subscriptions with high event rates feel this first.
+- **Too high**: the router runs more work than it can efficiently process, leading to thread pool starvation and increased latency across queries, mutations, and subscription events.
 
 Start with the default of 64 and adjust based on your workload. If you expect many long-lived subscriptions firing frequent events, factor those into your sizing. They now contend for the same slots as queries and mutations. Set to `null` to disable the limit entirely.
 
@@ -206,7 +206,7 @@ Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds)
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(10));
 ```
 
@@ -215,7 +215,7 @@ If executions routinely time out at the gate, that is a signal to scale out or r
 # Next Steps
 
 - **"I want to cut the number of subgraph round trips"**: [Batching](./batching.md) covers variable, request, and alias batching, and the per-subgraph capabilities that select them.
-- **"I need CDN and HTTP response caching behavior"**: [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.
-- **"I need to secure my gateway"**: [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
+- **"I need CDN and HTTP response caching behavior"**: [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and router response headers.
+- **"I need to secure my router"**: [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to deploy this"**: [Deployment & CI/CD](./deployment-and-ci-cd.md) covers production deployment patterns and CI pipeline setup.
 - **"I want to monitor performance"**: Observability and distributed tracing will be covered in future documentation.

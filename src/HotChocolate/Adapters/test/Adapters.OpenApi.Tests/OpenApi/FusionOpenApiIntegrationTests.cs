@@ -55,7 +55,7 @@ public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
         IOpenApiDefinitionStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
-        services.AddGraphQLGatewayServer()
+        services.AddGraphQLRouter()
             .AddInMemoryConfiguration(_compositeSchema)
             .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);

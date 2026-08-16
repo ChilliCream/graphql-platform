@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class ComplexEntityCallTests
     : OfficialV2ComplianceTestBase<ComplexEntityCallTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (LinkSubgraph.Name, LinkSubgraph.BuildAsync),
             (ListSubgraph.Name, ListSubgraph.BuildAsync),

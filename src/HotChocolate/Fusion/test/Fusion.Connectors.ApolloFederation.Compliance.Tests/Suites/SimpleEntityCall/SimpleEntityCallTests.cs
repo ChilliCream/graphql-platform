@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class SimpleEntityCallTests
     : OfficialV2ComplianceTestBase<SimpleEntityCallTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (EmailSubgraph.Name, EmailSubgraph.BuildAsync),
             (NicknameSubgraph.Name, NicknameSubgraph.BuildAsync));

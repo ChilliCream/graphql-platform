@@ -215,7 +215,7 @@ internal sealed class FusionValidateCommand : Command
         if (configuration is null)
         {
             throw new InvalidOperationException(
-                $"Failed to retrieve gateway configuration from the Fusion archive (format version: {latestVersion}). "
+                $"Failed to retrieve router configuration from the Fusion archive (format version: {latestVersion}). "
                 + "The archive may be corrupted, unsupported, or missing required configuration.");
         }
 

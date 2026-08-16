@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion;
 
 /// <summary>
 /// Base class for <c>graphql-hive/federation-gateway-audit</c> compliance suites.
-/// Each derived suite builds its gateway (via <see cref="BuildGatewayAsync"/>) and
+/// Each derived suite builds its gateway (via <see cref="BuildRouterAsync"/>) and
 /// declares one <c>[Fact]</c> per audit test case that calls <see cref="RunAsync"/>
 /// with the inline query and expected response. The composed
 /// <see cref="FusionGateway"/> (subgraph <c>TestServer</c>s and the gateway service
@@ -20,7 +20,7 @@ public abstract class ComplianceTestBase : IAsyncLifetime
     /// Builds the Fusion gateway for this suite. Called lazily from
     /// <see cref="RunAsync"/> on the first invocation per test.
     /// </summary>
-    protected abstract Task<FusionGateway> BuildGatewayAsync();
+    protected abstract Task<FusionGateway> BuildRouterAsync();
 
     /// <summary>
     /// Executes <paramref name="query"/> against the gateway and asserts the response
@@ -40,7 +40,7 @@ public abstract class ComplianceTestBase : IAsyncLifetime
         [StringSyntax("Json")] string? expectedData = null,
         bool? expectsErrors = null)
     {
-        _gateway ??= await BuildGatewayAsync();
+        _gateway ??= await BuildRouterAsync();
         var result = await _gateway.Executor.ExecuteAsync(query);
         var json = result.ToJson(withIndentations: false);
 
@@ -51,7 +51,7 @@ public abstract class ComplianceTestBase : IAsyncLifetime
     {
         ArgumentNullException.ThrowIfNull(testCase);
 
-        _gateway ??= await BuildGatewayAsync();
+        _gateway ??= await BuildRouterAsync();
         await ExecuteAndAssertAsync(
             _gateway,
             testCase,

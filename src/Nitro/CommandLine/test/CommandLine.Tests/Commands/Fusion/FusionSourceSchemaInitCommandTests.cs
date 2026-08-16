@@ -28,9 +28,9 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               --name <name>                                     The name that identifies the source schema in the composite schema
               -f, --source-schema-file <source-schema-file>     The path to the source schema file (.graphqls) the settings belong to, or a directory containing it
               --settings-file <settings-file>                   The path to write the settings file to, instead of deriving it from the source schema file
-              --url <url>                                       The URL the gateway uses to reach the source schema
+              --url <url>                                       The URL the router uses to reach the source schema
               --dev-url <dev-url>                               The URL a local development environment uses to reach the source schema
-              --client-name <client-name>                       The name of the HTTP client the gateway uses to reach the source schema
+              --client-name <client-name>                       The name of the HTTP client the router uses to reach the source schema
               --api-id <api-id>                                 The ID of the API [env: NITRO_API_ID]
               --kind <apollo-federation|generic|hot-chocolate>  The kind of GraphQL server that serves the source schema. When omitted, kind-specific settings are left unchanged
               --apollo-federation-version <1.0|2.0>             The Apollo Federation version the source schema is built with

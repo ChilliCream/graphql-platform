@@ -48,7 +48,7 @@ public sealed class AmazonSqsSubscriptionTests
             });
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic));
 
         builder.Services.AddSingleton(
@@ -69,7 +69,7 @@ public sealed class AmazonSqsSubscriptionTests
                     _ => new InMemorySourceSchemaClientConfiguration("BOOKS"));
             });
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         var events = CollectOneEventAsync(executor, cts.Token);
         await queues.Reader.ReadAsync(cts.Token);
 

@@ -128,14 +128,14 @@ builder.Services
     })
     .AddDefaults();
 
-builder.Services.AddGraphQLGatewayServer();
+builder.Services.AddGraphQLRouter();
 ```
 
-Per-gateway feature options can be overridden via `ModifyNitroOptions()`:
+Per-router feature options can be overridden via `ModifyNitroOptions()`:
 
 ```csharp
 builder.Services
-    .AddGraphQLGatewayServer()
+    .AddGraphQLRouter()
     .ModifyNitroOptions(options =>
     {
         options.PersistedOperations.Enabled = true;
@@ -144,7 +144,7 @@ builder.Services
     });
 ```
 
-If you do not need to modify any per-gateway options, you can omit the `ModifyNitroOptions()` call entirely.
+If you do not need to modify any per-router options, you can omit the `ModifyNitroOptions()` call entirely.
 
 ## OTLP exporters: `AddNitroExporter()` replaced by `AddOpenTelemetry()`
 
@@ -248,7 +248,7 @@ If your project references HotChocolate or Fusion but is missing the correspondi
 
 When the correct integration package is referenced, the generator emits an `AddDefaults()` extension method on `INitroBuilder`. This method wires up the default Nitro integration with the GraphQL pipeline in a single call.
 
-For HotChocolate projects, `AddDefaults()` is equivalent to calling `services.AddGraphQLServer().ModifyNitroOptions()`. For Fusion projects, it is equivalent to calling `services.AddFusionGatewayServer().ModifyNitroOptions()`.
+For HotChocolate projects, `AddDefaults()` is equivalent to calling `services.AddGraphQLServer().ModifyNitroOptions()`. For Fusion projects, it is equivalent to calling `services.AddGraphQLRouter().ModifyNitroOptions()`.
 
 ```csharp
 builder.Services
@@ -339,7 +339,7 @@ app.MapGraphQL();
 app.Run();
 ```
 
-## Fusion Gateway
+## Fusion Router
 
 **Before**
 
@@ -374,7 +374,7 @@ builder.Services
     })
     .AddDefaults();
 
-builder.Services.AddGraphQLGatewayServer();
+builder.Services.AddGraphQLRouter();
 
 var app = builder.Build();
 app.MapGraphQL();

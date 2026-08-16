@@ -24,9 +24,9 @@ Use `@shareable` when the same field is intentionally defined in multiple subgra
 
 - It signals intentional overlap.
 - It requires team alignment on field semantics.
-- It allows the gateway to resolve the field from different subgraphs depending on the operation plan.
+- It allows the router to resolve the field from different subgraphs depending on the operation plan.
 
-Let's assume we have two subgraphs, both define `User.name` as `@shareable`, so composition succeeds and the gateway can resolve the field from either source:
+Let's assume we have two subgraphs, both define `User.name` as `@shareable`, so composition succeeds and the router can resolve the field from either source:
 
 **GraphQL schema**
 

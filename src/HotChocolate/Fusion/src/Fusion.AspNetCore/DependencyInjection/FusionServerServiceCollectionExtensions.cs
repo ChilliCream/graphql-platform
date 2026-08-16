@@ -18,7 +18,15 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class FusionServerServiceCollectionExtensions
 {
-    public static IFusionGatewayBuilder AddGraphQLGatewayServer(
+    /// <summary>
+    /// Adds a Fusion GraphQL router with the GraphQL server transport to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
+    /// <param name="maxAllowedRequestSize">The max allowed GraphQL request size.</param>
+    /// <param name="disableDefaultSecurity">Defines if the default security policy should be disabled.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
+    public static IFusionGatewayBuilder AddGraphQLRouter(
         this IServiceCollection services,
         string? name = null,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
@@ -28,8 +36,10 @@ public static class FusionServerServiceCollectionExtensions
         ArgumentOutOfRangeException.ThrowIfNegative(maxAllowedRequestSize);
 
         var builder = services
-            .AddGraphQLGateway(name)
-            .AddGraphQLGatewayServerCore(maxAllowedRequestSize)
+            .AddGraphQLRouterCore(name)
+            .AddHttpTransport(maxAllowedRequestSize)
+            .AddServerDiagnostics()
+            .AddExecutionConcurrencyGate()
             .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
@@ -48,11 +58,26 @@ public static class FusionServerServiceCollectionExtensions
         return builder;
     }
 
-    private static IFusionGatewayBuilder AddGraphQLGatewayServerCore(
+    /// <summary>
+    /// Adds a Fusion GraphQL router with the GraphQL server transport to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
+    /// <param name="maxAllowedRequestSize">The max allowed GraphQL request size.</param>
+    /// <param name="disableDefaultSecurity">Defines if the default security policy should be disabled.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
+    [Obsolete("Use AddGraphQLRouter() instead.")]
+    public static IFusionGatewayBuilder AddGraphQLGatewayServer(
+        this IServiceCollection services,
+        string? name = null,
+        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
+        bool disableDefaultSecurity = false)
+        => services.AddGraphQLRouter(name, maxAllowedRequestSize, disableDefaultSecurity);
+
+    private static IFusionGatewayBuilder AddHttpTransport(
         this IFusionGatewayBuilder builder,
-        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
-    {
-        builder.ConfigureSchemaServices((applicationServices, sc) =>
+        int maxAllowedRequestSize)
+        => builder.ConfigureSchemaServices((_, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
 
@@ -68,8 +93,12 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+        });
 
-            sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
+    private static IFusionGatewayBuilder AddServerDiagnostics(
+        this IFusionGatewayBuilder builder)
+        => builder.ConfigureSchemaServices(
+            (_, sc) => sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
                 var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
                 return listeners.Length switch
@@ -78,20 +107,19 @@ public static class FusionServerServiceCollectionExtensions
                     1 => listeners[0],
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
-            });
+            }));
 
-            sc.TryAddSingleton(schemaServices =>
+    private static IFusionGatewayBuilder AddExecutionConcurrencyGate(
+        this IFusionGatewayBuilder builder)
+        => builder.ConfigureSchemaServices(
+            (applicationServices, sc) => sc.TryAddSingleton(schemaServices =>
             {
                 var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
                 var serverOptions = applicationServices
                     .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
                     .Get(schemaName);
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
-            });
-        });
-
-        return builder;
-    }
+            }));
 
     private static IFusionGatewayBuilder AddStartupInitialization(
         this IFusionGatewayBuilder builder)

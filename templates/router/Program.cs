@@ -4,8 +4,8 @@ builder.Services
     .AddHttpClient("fusion");
 
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far");
 
 var app = builder.Build();
 

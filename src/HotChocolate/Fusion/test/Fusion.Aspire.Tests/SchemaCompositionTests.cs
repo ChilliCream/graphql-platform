@@ -59,7 +59,7 @@ public sealed class SchemaCompositionTests
         """.MatchInlineSnapshot(
             """
             Global object identification: True
-            Output: gateway.far
+            Output: graph.far
             """);
     }
 
@@ -785,7 +785,7 @@ public sealed class SchemaCompositionTests
                     throw new IOException("The file is in use.");
                 }
             },
-            "gateway.far",
+            "graph.far",
             maxAttempts: 5,
             retryDelay: TimeSpan.Zero,
             TestContext.Current.CancellationToken);
@@ -809,7 +809,7 @@ public sealed class SchemaCompositionTests
                     attempts++;
                     throw new IOException("The file is in use.");
                 },
-                "gateway.far",
+                "graph.far",
                 maxAttempts: 3,
                 retryDelay: TimeSpan.Zero,
                 TestContext.Current.CancellationToken));

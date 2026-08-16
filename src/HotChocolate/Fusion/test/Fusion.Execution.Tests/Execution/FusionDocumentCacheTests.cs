@@ -13,7 +13,7 @@ public class FusionDocumentCacheTests : FusionTestBase
         const int cacheCapacity = 517;
         var services = new ServiceCollection();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyOptions(o => o.OperationDocumentCacheSize = cacheCapacity)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -50,7 +50,7 @@ public class FusionDocumentCacheTests : FusionTestBase
         var services =
             new ServiceCollection()
                 .AddHttpClient()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
@@ -97,7 +97,7 @@ public class FusionDocumentCacheTests : FusionTestBase
 
         var services = new ServiceCollection().AddHttpClient();
         services
-            .AddGraphQLGateway("a")
+            .AddGraphQLRouterCore("a")
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -106,7 +106,7 @@ public class FusionDocumentCacheTests : FusionTestBase
                     }
                     """));
         services
-            .AddGraphQLGateway("b")
+            .AddGraphQLRouterCore("b")
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """

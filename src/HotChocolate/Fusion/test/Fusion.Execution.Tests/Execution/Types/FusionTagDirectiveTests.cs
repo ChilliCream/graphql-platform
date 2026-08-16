@@ -217,7 +217,7 @@ public sealed class FusionTagDirectiveTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddHttpClient();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyOptions(t => t.EnableOptInFeatures = enableOptInFeatures)
             .AddInMemoryConfiguration(ComposeSchemaDocument())
             .UseDefaultPipeline();

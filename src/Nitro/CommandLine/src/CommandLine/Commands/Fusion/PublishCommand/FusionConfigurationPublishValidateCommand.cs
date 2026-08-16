@@ -15,7 +15,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.AddExamples("fusion publish validate --archive ./gateway.far");
+        this.AddExamples("fusion publish validate --archive ./graph.far");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

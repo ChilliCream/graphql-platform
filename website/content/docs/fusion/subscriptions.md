@@ -13,13 +13,13 @@ Fusion supports two complementary models for subscriptions:
 
 1. **Federated Event Streams.** The subscription is backed by
    a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis).
-   The gateway subscribes to a broker topic, and for every event it
+   The router subscribes to a broker topic, and for every event it
    resolves the requested fields across your subgraphs with
    ordinary stateless fetches. This is the recommended model for scale, because the
-   gateway holds no per-subscription state of its own.
+   router holds no per-subscription state of its own.
 2. **Subgraph subscriptions over Server-Sent Events (SSE).** The subscription is
    implemented by a single subgraph as a normal GraphQL subscription, and the
-   gateway consumes that stream over SSE. This is the simplest
+   router consumes that stream over SSE. This is the simplest
    model when a single subgraph already owns the event source.
 
 The first half of this page covers federated event streams, including
@@ -28,26 +28,26 @@ client-resumable streams. The second half covers GraphQL over SSE subgraph subsc
 # Federated Event Streams
 
 Federated event streams decouple the event source from the GraphQL schema. Your
-services publish events to a message broker; the gateway subscribes to the relevant
+services publish events to a message broker; the router subscribes to the relevant
 topics and turns each event into a fully resolved GraphQL result.
 
 <FusionSubscriptionsDiagram />
 
 The flow has four moving parts:
 
-1. **A client opens a long-lived subscription** against the gateway (over WebSockets
+1. **A client opens a long-lived subscription** against the router (over WebSockets
    or SSE, exactly like a non-federated subscription).
-2. **The gateway subscribes to a topic** on the broker (NATS calls topics "subjects").
-   The gateway does not open a subscription against any subgraph for this field.
+2. **The router subscribes to a topic** on the broker (NATS calls topics "subjects").
+   The router does not open a subscription against any subgraph for this field.
 3. **Your services publish events** to that topic. An event payload is small: it
-   carries just the data the gateway needs to resolve the rest of the selection set,
+   carries just the data the router needs to resolve the rest of the selection set,
    typically an entity key such as `{ "id": "1" }`.
-4. **The gateway resolves each event** by running ordinary stateless fetches against
+4. **The router resolves each event** by running ordinary stateless fetches against
    the owning subgraphs (the same entity lookups it uses for queries) and emits one
    GraphQL result per event to the client.
 
-Because the gateway only holds a broker subscription (not a stateful pipeline), the
-gateway stays horizontally scalable, and durability and ordering are delegated to
+Because the router only holds a broker subscription (not a stateful pipeline), the
+router stays horizontally scalable, and durability and ordering are delegated to
 the broker.
 
 ## Declaring an event stream
@@ -57,9 +57,9 @@ directive on the subgraph that owns the event.
 
 The field's return type is the **event payload**. It does not have to be an entity: it
 can be a plain type that carries pure event data, an entity whose current state the
-gateway resolves, or a payload that mixes event data with links to entities. The
+router resolves, or a payload that mixes event data with links to entities. The
 `message` argument is the bridge: it is a selection set over the return type that names
-exactly the fields the broker message delivers, and the gateway resolves anything else
+exactly the fields the broker message delivers, and the router resolves anything else
 the client selects across your subgraphs. The example below returns the `Product`
 entity, so the message only needs its key; [Event payloads](#event-payloads) covers the
 other shapes.
@@ -85,8 +85,8 @@ The `@eventStream` directive takes three arguments:
 | `topics`  | `[String!]`          | The broker topic(s) to subscribe to, with optional `{$args.<name>}` templates. When omitted, the topic is inferred from the field name and its arguments. |
 | `broker`  | `String`             | The name of the registered broker. When omitted, the default (unnamed) broker is used.                                                                    |
 
-The `message` selection set tells the gateway which fields the broker payload
-contains. Here `{ id }` means an event body of `{ "id": "1" }`. The gateway uses that
+The `message` selection set tells the router which fields the broker payload
+contains. Here `{ id }` means an event body of `{ "id": "1" }`. The router uses that
 key to resolve everything else the client asked for.
 
 Because `topics` and `broker` are omitted, Fusion infers the topic from the field name
@@ -130,7 +130,7 @@ public class SubscriptionType : ObjectType<Subscriptions>
 ```
 
 > [!NOTE]
-> The resolver body of an event-stream field never runs; the gateway fulfills
+> The resolver body of an event-stream field never runs; the router fulfills
 > these fields from the broker, not a local resolver. `EventStream.Create<T>` is a
 > compile-time placeholder that always throws. Pass the field's arguments to it so
 > analyzers do not flag them as unused.
@@ -148,10 +148,10 @@ subscription {
 
 Notice that the client selects `name` and `price`, even though the event payload
 only carries `id`. Because `onProductPriceChanged` returns the `Product`
-[entity](./entities-and-lookups.md), the gateway resolves the remaining
+[entity](./entities-and-lookups.md), the router resolves the remaining
 fields the same way it resolves a federated query.
 A client can even select fields owned by other subgraphs, for example `reviews` from a
-Reviews subgraph, and the gateway fetches them per event:
+Reviews subgraph, and the router fetches them per event:
 
 ```graphql
 subscription {
@@ -225,8 +225,8 @@ subscription {
 
 ## Connecting a message broker
 
-Brokers are registered on the gateway builder returned by `AddGraphQLGateway()`. Most
-gateways use a single broker, which you register without a name to make it the default.
+Brokers are registered on the router builder returned by `AddGraphQLRouter()`. Most
+routers use a single broker, which you register without a name to make it the default.
 Fields then need no `broker` argument.
 
 ### NATS
@@ -240,8 +240,8 @@ builder.Services
     .AddHttpClient("fusion");
 
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddNatsEventStreamBroker(options =>
     {
         options.Url = "nats://localhost:4222";
@@ -259,8 +259,8 @@ Install the `HotChocolate.Fusion.Subscriptions.Kafka` package and register the b
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddKafkaEventStreamBroker(options =>
     {
         options.BootstrapServers = "localhost:9092";
@@ -290,15 +290,15 @@ at-most-once delivery, where a resume skips any messages dropped under backpress
 ### Azure Event Hubs
 
 Install the `HotChocolate.Fusion.Subscriptions.AzureEventHubs` package and register the
-broker. Each subscribed topic is treated as an Event Hub name, so the topic the gateway
+broker. Each subscribed topic is treated as an Event Hub name, so the topic the router
 resolves for a field (see [Topics](#topics)) must match a hub in the namespace.
 
 Authenticate with a connection string:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddAzureEventHubsEventStreamBroker(options =>
     {
         options.ConnectionString = "<event-hubs-connection-string>";
@@ -311,8 +311,8 @@ Or with a fully qualified namespace and a token credential. When you set
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddAzureEventHubsEventStreamBroker(options =>
     {
         options.FullyQualifiedNamespace = "my-namespace.servicebus.windows.net";
@@ -353,8 +353,8 @@ need:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddAmazonSqsEventStreamBroker(options =>
     {
         options.Region = "us-east-1";
@@ -366,8 +366,8 @@ LocalStack or other SQS-compatible endpoint:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddAmazonSqsEventStreamBroker(options =>
     {
         options.ServiceUrl = "http://localhost:4566";
@@ -376,15 +376,15 @@ builder
     });
 ```
 
-The gateway creates a dedicated SQS queue per active subscription and deletes it when
+The router creates a dedicated SQS queue per active subscription and deletes it when
 the subscription ends. To broadcast one event to every subscriber, configure
 `ResolveTopicArn` so each generated queue is subscribed to the SNS topic for the logical
 Fusion topic:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddAmazonSqsEventStreamBroker(options =>
     {
         options.Region = "us-east-1";
@@ -414,8 +414,8 @@ Each subscribed topic is treated as a Redis Pub/Sub channel name:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddRedisEventStreamBroker(options =>
     {
         options.Configuration = "localhost:6379";
@@ -429,8 +429,8 @@ existing `ConnectionMultiplexer` that the broker shares but does not dispose:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddRedisEventStreamBroker(options =>
     {
         options.ConnectionMultiplexer = ConnectionMultiplexer.Connect("localhost:6379");
@@ -447,8 +447,8 @@ To run more than one broker, give each a name and select one per field with the
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddNatsEventStreamBroker("nats", o => o.Url = "nats://localhost:4222")
     .AddKafkaEventStreamBroker("kafka", o => o.BootstrapServers = "localhost:9092");
 ```
@@ -462,7 +462,7 @@ type Subscription {
 
 ## Publishing events
 
-The gateway only consumes events. Your services publish them out-of-band using the
+The router only consumes events. Your services publish them out-of-band using the
 broker's native client. An event body must contain at least the fields named in the
 field's `message` selection set.
 
@@ -493,7 +493,7 @@ await producer.ProduceAsync(
 producer.Flush();
 ```
 
-With Amazon SQS, publish to the SNS topic that the gateway's `ResolveTopicArn` maps the
+With Amazon SQS, publish to the SNS topic that the router's `ResolveTopicArn` maps the
 logical topic to. SNS fans the message out to every subscribed queue:
 
 ```csharp
@@ -510,7 +510,7 @@ In direct queue mode (no `ResolveTopicArn`), there is no shared topic to publish
 you send to the per-subscription queue URLs yourself, which is mainly useful for tests.
 
 With Redis, publish to the channel that matches the field's topic. Redis fans the
-message out to every subscribed gateway:
+message out to every subscribed router:
 
 ```csharp
 var multiplexer = await ConnectionMultiplexer.ConnectAsync("localhost:6379");
@@ -530,7 +530,7 @@ hyphens: `onProductPriceChanged(productId: ID!)` infers `onProductPriceChanged-{
 and a field with two arguments infers `<fieldName>-{$args.arg1}-{$args.arg2}`, and so on.
 
 Set `topics` explicitly when you need a different name. A topic can contain
-`{$args.<name>}` placeholders that the gateway expands against the arguments a client
+`{$args.<name>}` placeholders that the router expands against the arguments a client
 supplies when it subscribes:
 
 ```graphql
@@ -545,7 +545,7 @@ type Subscription {
 
 A client subscribing with `onProductPriceChanged(productId: "1")` is wired to the
 topic `product.price-changed.1`, so it only receives the events relevant to that
-product. This keeps fan-out at the broker rather than in the gateway.
+product. This keeps fan-out at the broker rather than in the router.
 
 > [!NOTE]
 > `{$args.<name>}` is the placeholder. To include a literal brace in a topic,
@@ -556,7 +556,7 @@ product. This keeps fan-out at the broker rather than in the gateway.
 # Client-resumable subscriptions
 
 A long-lived subscription will, sooner or later, be interrupted: a client loses
-connectivity, a mobile app is suspended, or the gateway is redeployed. Resumable
+connectivity, a mobile app is suspended, or the router is redeployed. Resumable
 subscriptions let a client pick up exactly where it left off, without missing events
 and without re-receiving events it has already processed.
 
@@ -680,8 +680,8 @@ For NATS, enable JetStream when registering the broker:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far")
     .AddNatsEventStreamBroker(options =>
     {
         options.Url = "nats://localhost:4222";
@@ -710,11 +710,11 @@ an error, and no broker subscription is opened:
 # Subscriptions over Server-Sent Events
 
 Not every subscription needs a broker. When a single subgraph already implements a
-GraphQL subscription, the gateway can federate it directly by consuming that
+GraphQL subscription, the router can federate it directly by consuming that
 subgraph's stream over Server-Sent Events (SSE) or JSON Lines.
 
-This is fetch-based: the gateway sends an HTTP request to the subgraph and reads the
-streamed response. There is no WebSocket connection between the gateway and the
+This is fetch-based: the router sends an HTTP request to the subgraph and reads the
+streamed response. There is no WebSocket connection between the router and the
 subgraph.
 
 ## Serving SSE from a subgraph
@@ -766,7 +766,7 @@ providers), see
 
 ## Configuring the subgraph transport
 
-By default the gateway advertises both JSON Lines and SSE when it subscribes to a
+By default the router advertises both JSON Lines and SSE when it subscribes to a
 subgraph (sending `Accept: application/jsonl, text/event-stream`), and the subgraph's
 response content type decides which is used. You can control this per subgraph in its
 settings under the HTTP transport's subscription capability:
@@ -788,7 +788,7 @@ settings under the HTTP transport's subscription capability:
 }
 ```
 
-Set `supported` to `false` to tell the gateway a subgraph does not serve
+Set `supported` to `false` to tell the router a subgraph does not serve
 subscriptions, or restrict `formats` to pin a single transport.
 
 > [!NOTE]
@@ -799,7 +799,7 @@ subscriptions, or restrict `formats` to pin a single transport.
 ## Choosing between event streams and SSE
 
 Both models expose a normal GraphQL subscription to clients. They differ in how the
-gateway sources events:
+router sources events:
 
 - **Federated event streams** source events from a message broker and resolve the
   selection set with stateless fetches. Prefer them when events fan out to many

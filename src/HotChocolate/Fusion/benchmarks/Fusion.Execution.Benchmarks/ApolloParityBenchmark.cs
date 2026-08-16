@@ -93,11 +93,11 @@ public class ApolloParityBenchmark
             .AddSourceSchemaDefaults();
 
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemorySchema("a")
             .AddInMemorySchema("b");
 
-        return await services.BuildGatewayAsync(cancellationToken);
+        return await services.BuildRouterAsync(cancellationToken);
     }
 
     private static async Task<IRequestExecutor> BuildApolloGatewayAsync(
@@ -109,7 +109,7 @@ public class ApolloParityBenchmark
         RegisterApolloSubgraphs(services);
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(apolloDocument);
 
         services.RemoveAll<ISourceSchemaClientFactory>();
@@ -129,7 +129,7 @@ public class ApolloParityBenchmark
                     _ => new InMemorySourceSchemaClientConfiguration(schemaName)));
         }
 
-        return await services.BuildGatewayAsync(cancellationToken);
+        return await services.BuildRouterAsync(cancellationToken);
     }
 
     private static async Task<DocumentNode> ComposeApolloSchemaAsync(CancellationToken cancellationToken)

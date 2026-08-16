@@ -1,9 +1,9 @@
 ---
 title: "Nitro CLI Reference"
-description: "Reference for the `nitro fusion` CLI commands: compose, validate, publish, download, and run Fusion gateway configurations locally or with Nitro Cloud."
+description: "Reference for the `nitro fusion` CLI commands: compose, validate, publish, download, and run Fusion router configurations locally or with Nitro Cloud."
 ---
 
-The Nitro CLI provides the `nitro fusion` command group for composing, validating, publishing, and running Fusion gateway configurations. Use these commands for local development workflows and for publishing configurations to Nitro Cloud.
+The Nitro CLI provides the `nitro fusion` command group for composing, validating, publishing, and running Fusion router configurations. Use these commands for local development workflows and for publishing configurations to Nitro Cloud.
 
 # Installation
 
@@ -47,10 +47,10 @@ nitro --version
 | Command        | Purpose                                         | Cloud |
 | -------------- | ----------------------------------------------- | ----- |
 | `compose`      | Compose source schemas into a Fusion archive    | No    |
-| `download`     | Download gateway configuration from Nitro Cloud | Yes   |
+| `download`     | Download router configuration from Nitro Cloud  | Yes   |
 | `migrate`      | Migrate v1 to v2 configuration files            | No    |
 | `publish`      | Publish a Fusion configuration to a stage       | Yes   |
-| `run`          | Start a local Fusion gateway                    | No    |
+| `run`          | Start a local Fusion router                     | No    |
 | `settings set` | Configure composition settings in an archive    | No    |
 | `upload`       | Upload a source schema for later composition    | Yes   |
 | `validate`     | Validate a schema against a stage               | Yes   |
@@ -82,7 +82,7 @@ nitro fusion compose [options]
 | `--source-schema-file <path>` (alias: `-f`)                                   | Path to a local source schema file or directory. Can be repeated.                   | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
 | `--source-schema-url <url>`                                                   | URL from which to download a source schema. Can be repeated.                        | --                                                           |
 | `--source-schema-settings-file <path>`                                        | Settings file for the corresponding URL occurrence. Can be repeated.                | --                                                           |
-| `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                  | `./gateway.far`                                              |
+| `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                  | `./graph.far`                                               |
 | `--environment <name>` (alias: `--env`, `-e`)                                 | Environment name for variable substitution                                          | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
 | `--enable-global-object-identification`                                       | Enable Relay-style global object identification                                     | `false`                                                      |
 | `--node-resolution <gateway\|source-schema>`                                  | Choose who resolves `Query.node` identifiers                                        | `gateway`                                                    |
@@ -109,7 +109,7 @@ Compose from specific files:
 nitro fusion compose \
   --source-schema-file ./Products/schema.graphqls \
   --source-schema-file ./Reviews/schema.graphqls \
-  --archive gateway.far \
+  --archive graph.far \
   --environment Development \
   --enable-global-object-identification
 ```
@@ -123,19 +123,19 @@ nitro fusion compose \
   --source-schema-url https://reviews.example.com/graphql \
   --source-schema-settings-file ./Reviews/schema-settings.json \
   --source-schema-file ./Inventory/schema.graphqls \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/gateway.far'.
+✅ Composite schema written to '/absolute/path/to/graph.far'.
 ```
 
 Auto-discover and compose all schemas in the current directory:
 
 ```shell
-nitro fusion compose --archive gateway.far
+nitro fusion compose --archive graph.far
 ```
 
 Watch mode for local development:
@@ -152,12 +152,12 @@ Exclude fields tagged as experimental or internal:
 nitro fusion compose \
   --exclude-by-tag experimental \
   --exclude-by-tag internal-only \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 # nitro fusion download
 
-Downloads gateway configuration from Nitro Cloud.
+Downloads router configuration from Nitro Cloud.
 
 ## Syntax
 
@@ -171,7 +171,7 @@ nitro fusion download [options]
 | ---------------------- | ------------------ | ---------------------- |
 | `--api-id <id>`        | The API identifier | `NITRO_API_ID` env var |
 | `--stage <name>`       | The stage name     | `NITRO_STAGE` env var  |
-| `--output-file <path>` | Output file path   | `./gateway.far`        |
+| `--output-file <path>` | Output file path   | `./graph.far`         |
 
 ## Examples
 
@@ -179,7 +179,7 @@ nitro fusion download [options]
 nitro fusion download \
   --api-id QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg== \
   --stage production \
-  --output-file gateway.far
+  --output-file graph.far
 ```
 
 # nitro fusion migrate
@@ -251,7 +251,7 @@ nitro fusion publish [options]
 
 ```shell
 nitro fusion publish \
-  --archive gateway.far \
+  --archive graph.far \
   --tag v1.0.0 \
   --stage production \
   --api-id QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==
@@ -324,7 +324,7 @@ Validate the configuration before committing.
 | `--archive <path>` (alias: `-a`) | Fusion archive to validate | --                             |
 
 ```shell
-nitro fusion publish validate --archive gateway.far
+nitro fusion publish validate --archive graph.far
 ```
 
 ### nitro fusion publish commit
@@ -337,7 +337,7 @@ Finalize the deployment.
 | `--archive <path>` (alias: `-a`) | Fusion archive to deploy | --                             |
 
 ```shell
-nitro fusion publish commit --archive gateway.far
+nitro fusion publish commit --archive graph.far
 ```
 
 ### nitro fusion publish cancel
@@ -365,7 +365,7 @@ To abort at any point, run `nitro fusion publish cancel`.
 
 # nitro fusion run
 
-Starts a local Fusion gateway from an archive file.
+Starts a local Fusion router from an archive file.
 
 ## Syntax
 
@@ -380,20 +380,20 @@ nitro fusion run <ARCHIVE_FILE> [options]
 | `<ARCHIVE_FILE>` (required)     | Path to the Fusion archive | --                 |
 | `--port <number>` (alias: `-p`) | Port to bind               | Random unused port |
 
-The gateway auto-opens a browser with the Nitro IDE. CORS is enabled, and `GraphQL-Preflight` and `Authorization` headers are propagated.
+The router auto-opens a browser with the Nitro IDE. CORS is enabled, and `GraphQL-Preflight` and `Authorization` headers are propagated.
 
 ## Examples
 
-Start a gateway on a specific port:
+Start a router on a specific port:
 
 ```shell
-nitro fusion run gateway.far --port 5000
+nitro fusion run graph.far --port 5000
 ```
 
-Start a gateway on a random port:
+Start a router on a random port:
 
 ```shell
-nitro fusion run gateway.far
+nitro fusion run graph.far
 ```
 
 # nitro fusion settings set
@@ -431,15 +431,15 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 Enable source-schema node resolution on an existing archive:
 
 ```shell
-nitro fusion settings set global-object-identification true --archive gateway.far
-nitro fusion settings set node-resolution source-schema --archive gateway.far
+nitro fusion settings set global-object-identification true --archive graph.far
+nitro fusion settings set node-resolution source-schema --archive graph.far
 ```
 
 Use common-runtime-types routing on an existing archive:
 
 ```shell
 nitro fusion settings set shareable-field-runtime-type-routing common-runtime-types \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 For the behavior of each routing value, see [Shareable Abstract Field Routing](./connectors/apollofederation.md#shareable-abstract-field-routing).
@@ -447,13 +447,13 @@ For the behavior of each routing value, see [Shareable Abstract Field Routing](.
 Configure cache control merging:
 
 ```shell
-nitro fusion settings set cache-control-merge-behavior include --archive gateway.far
+nitro fusion settings set cache-control-merge-behavior include --archive graph.far
 ```
 
 Exclude tagged fields:
 
 ```shell
-nitro fusion settings set exclude-by-tag experimental,internal-only --archive gateway.far
+nitro fusion settings set exclude-by-tag experimental,internal-only --archive graph.far
 ```
 
 # nitro fusion upload
@@ -530,7 +530,7 @@ Validate from an archive:
 
 ```shell
 nitro fusion validate \
-  --archive gateway.far \
+  --archive graph.far \
   --stage production \
   --api-id QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==
 ```
@@ -604,7 +604,7 @@ The same as `transports.http.devUrl`, for the WebSocket URL of the source schema
 
 **Type:** `string` (optional, defaults to `"fusion"`)
 
-The named HTTP client the gateway uses to communicate with this subgraph. Must match what the gateway configures via `builder.Services.AddHttpClient("fusion")`.
+The named HTTP client the router uses to communicate with this subgraph. Must match what the router configures via `builder.Services.AddHttpClient("fusion")`.
 
 ### `transports.subscriptions.transport`
 

@@ -15,7 +15,7 @@ public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : FusionC
         result.AssertHelpOutput(
             """
             Description:
-              Start a Fusion gateway with the specified archive.
+              Start a Fusion router with the specified archive.
               This command only supports Fusion v2.
 
             Usage:
@@ -25,11 +25,11 @@ public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : FusionC
               <ARCHIVE_FILE>  The path to the Fusion archive file
 
             Options:
-              -p, --port <port>  The port the gateway will listen on
+              -p, --port <port>  The port the router will listen on
               -?, -h, --help     Show help and usage information
 
             Example:
-              nitro fusion run ./gateway.far --port 5000
+              nitro fusion run ./graph.far --port 5000
             """);
     }
 

@@ -37,7 +37,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
 
             Example:
               nitro fusion settings set global-object-identification "true" \
-                --archive ./gateway.far \
+                --archive ./graph.far \
                 --env "dev"
             """);
     }

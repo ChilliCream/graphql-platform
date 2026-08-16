@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.AdditionalCoverage;
 
 public sealed class ComplexEntityCallSupplementalTests : ComplianceTestBase
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => FusionGatewayBuilder.ComposeAsync(
             (LinkSubgraph.Name, LinkSubgraph.BuildAsync),
             (ListSubgraph.Name, ListSubgraph.BuildAsync),

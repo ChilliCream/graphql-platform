@@ -17,7 +17,7 @@ public class FusionOptionsTests : FusionTestBase
         // arrange
         var services = new ServiceCollection();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(

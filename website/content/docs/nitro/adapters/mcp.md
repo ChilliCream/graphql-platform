@@ -5,7 +5,7 @@ description: "Publish MCP feature collections with Nitro: author GraphQL tools a
 
 The [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) is an open standard that connects AI applications to external systems through a single uniform interface. The host (Claude, ChatGPT, a VS Code agent) speaks the protocol once, and any MCP-compatible server plugs in without bespoke glue code per product.
 
-HotChocolate ships an MCP adapter that turns your GraphQL server into an MCP server. The same adapter works with a single HotChocolate server or with a Fusion gateway that composes multiple source schemas. The MCP endpoint lives on the GraphQL server itself, at `/graphql/mcp` by default, and any MCP client connects directly to that URL.
+HotChocolate ships an MCP adapter that turns your GraphQL server into an MCP server. The same adapter works with a single HotChocolate server or with a Fusion router that composes multiple source schemas. The MCP endpoint lives on the GraphQL server itself, at `/graphql/mcp` by default, and any MCP client connects directly to that URL.
 
 Nitro is the control plane around it. You author tools and prompts on disk, package them into a versioned feature collection, and use Nitro to store the collection, validate it, distribute it to the runtime, and surface telemetry.
 
@@ -19,7 +19,7 @@ What you get out of the box:
 
 The adapter speaks the MCP standard, so the same collection works in Claude, ChatGPT (Developer Mode), VS Code agents, and other MCP hosts.
 
-> **Prerequisite**: Nitro distributes the feature collection, but the MCP endpoint itself is served by your runtime. Install and configure the MCP adapter on your GraphQL server or Fusion gateway before tools published from Nitro become reachable.
+> **Prerequisite**: Nitro distributes the feature collection, but the MCP endpoint itself is served by your runtime. Install and configure the MCP adapter on your GraphQL server or Fusion router before tools published from Nitro become reachable.
 >
 > - Hot Chocolate: [MCP Adapter](../../hotchocolate/adapters/mcp.md)
 > - Fusion: [MCP Adapter](../../fusion/adapters/mcp.md)
@@ -31,7 +31,7 @@ The mental model has four moving pieces:
 1. **You author** tools (GraphQL operations) and prompts (JSON) inside your repository, in the layout shown below.
 2. **The Nitro CLI uploads** a snapshot of those files as a tagged version of a feature collection.
 3. **You publish** a version to a stage. Nitro distributes the collection to your HotChocolate runtime.
-4. **Your HotChocolate server (or Fusion gateway) serves** the collection at its `/graphql/mcp` endpoint and executes each tool's GraphQL operation when an MCP client invokes it.
+4. **Your HotChocolate server (or Fusion router) serves** the collection at its `/graphql/mcp` endpoint and executes each tool's GraphQL operation when an MCP client invokes it.
 
 A feature collection contains two kinds of asset:
 
@@ -455,7 +455,7 @@ The MCP endpoint is hosted by your HotChocolate server, not by Nitro. Once a ver
 https://<your-graphql-host>/graphql/mcp
 ```
 
-Replace `<your-graphql-host>` with the public URL of your HotChocolate server or Fusion gateway. The path is configurable, but `/graphql/mcp` is the default and what most deployments use. Give that URL to your MCP clients.
+Replace `<your-graphql-host>` with the public URL of your HotChocolate server or Fusion router. The path is configurable, but `/graphql/mcp` is the default and what most deployments use. Give that URL to your MCP clients.
 
 ## Test with MCP Inspector
 

@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class SimpleRequiresProvidesTests
     : OfficialV2ComplianceTestBase<SimpleRequiresProvidesTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (AccountsSubgraph.Name, AccountsSubgraph.BuildAsync),
             (InventorySubgraph.Name, InventorySubgraph.BuildAsync),

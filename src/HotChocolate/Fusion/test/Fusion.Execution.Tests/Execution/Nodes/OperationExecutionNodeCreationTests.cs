@@ -143,7 +143,7 @@ public sealed class OperationExecutionNodeCreationTests : FusionTestBase
         services.AddHttpClient();
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(ComposeSchemaDocument(SourceSchemaA, SourceSchemaB));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(new RecordingClientFactory(client));
@@ -156,7 +156,7 @@ public sealed class OperationExecutionNodeCreationTests : FusionTestBase
                 setup.ClientConfigurationModifiers.Add(_ => new RecordingClientConfiguration("b"));
             });
 
-        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        return await services.BuildRouterAsync(TestContext.Current.CancellationToken);
     }
 
     /// <summary>

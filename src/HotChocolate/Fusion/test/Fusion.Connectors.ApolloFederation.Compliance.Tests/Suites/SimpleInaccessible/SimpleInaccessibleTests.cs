@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class SimpleInaccessibleTests
     : OfficialV2ComplianceTestBase<SimpleInaccessibleTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (FriendsSubgraph.Name, FriendsSubgraph.BuildAsync),
             (AgeSubgraph.Name, AgeSubgraph.BuildAsync));

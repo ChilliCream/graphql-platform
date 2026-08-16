@@ -180,7 +180,7 @@ public sealed class BatchBufferTests : FusionTestBase
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient();
             var services = serviceCollection
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(
                     ComposeSchemaDocument(
                         """

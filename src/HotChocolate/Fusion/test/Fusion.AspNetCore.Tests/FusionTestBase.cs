@@ -44,7 +44,7 @@ public abstract partial class FusionTestBase : IDisposable
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
-        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer(
+        var gatewayBuilder = gatewayServices.AddGraphQLRouter(
             disableDefaultSecurity: disableDefaultSecurity);
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
         // Interactions are keyed by an atomically-incremented int, but looked up

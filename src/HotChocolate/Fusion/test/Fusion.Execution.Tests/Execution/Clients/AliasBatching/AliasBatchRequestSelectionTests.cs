@@ -289,7 +289,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient();
             var services = serviceCollection
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(
                     ComposeSchemaDocument(
                         """

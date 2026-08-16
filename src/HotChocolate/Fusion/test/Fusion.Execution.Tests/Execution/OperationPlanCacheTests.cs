@@ -14,7 +14,7 @@ public class OperationPlanCacheTests : FusionTestBase
         const int cacheCapacity = 517;
         var services = new ServiceCollection();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyOptions(o => o.OperationExecutionPlanCacheSize = cacheCapacity)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -50,7 +50,7 @@ public class OperationPlanCacheTests : FusionTestBase
 
         var services =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();

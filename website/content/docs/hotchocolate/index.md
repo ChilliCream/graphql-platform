@@ -107,7 +107,7 @@ These two approaches complement each other. A common setup is to host both a pub
 
 # Scaling Beyond a Single Server
 
-When your API grows beyond what a single service can handle, [Fusion](../fusion/index.md) lets you split your schema across multiple independent services. Each service owns part of the API surface. A gateway composes them into one unified schema that clients query as a single endpoint.
+When your API grows beyond what a single service can handle, [Fusion](../fusion/index.md) lets you split your schema across multiple independent services. Each service owns part of the API surface. A router composes them into one unified schema that clients query as a single endpoint.
 
 Fusion is not a separate product. It builds on Hot Chocolate. A standard Hot Chocolate server can act as a Fusion subgraph without changes to its resolvers or type definitions. You can start with a single Hot Chocolate server and add Fusion later when you need independent deployment or team-level ownership boundaries.
 
@@ -125,4 +125,4 @@ Where you go from here depends on what you need:
 
 - **"I'm migrating from an older version."** Read the [migration guide from v15 to v16](./migrating/migrate-from-15-to-16.md).
 
-- **"I want to split my API across services."** See [Fusion](../fusion/index.md) for distributed GraphQL with a gateway.
+- **"I want to split my API across services."** See [Fusion](../fusion/index.md) for distributed GraphQL with a router.

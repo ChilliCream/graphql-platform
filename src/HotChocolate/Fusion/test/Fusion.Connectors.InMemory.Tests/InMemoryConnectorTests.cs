@@ -14,7 +14,7 @@ public sealed class InMemoryConnectorTests
         // arrange
         var services = new ServiceCollection();
 
-        services.AddGraphQLGateway()
+        services.AddGraphQLRouterCore()
             .ModifyInMemoryCompositionOptions(
                 options => options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true);
 
@@ -37,10 +37,10 @@ public sealed class InMemoryConnectorTests
             .AddQueryType<SingleSchema.Query>()
             .AddSourceSchemaDefaults();
 
-        services.AddGraphQLGateway()
+        services.AddGraphQLRouterCore()
             .AddInMemorySchema("products");
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -72,11 +72,11 @@ public sealed class InMemoryConnectorTests
             .AddQueryType<TwoSchemas.ReviewsSchema.Query>()
             .AddSourceSchemaDefaults();
 
-        services.AddGraphQLGateway()
+        services.AddGraphQLRouterCore()
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -108,11 +108,11 @@ public sealed class InMemoryConnectorTests
             .AddQueryType<CrossSchema.ReviewsSchema.Query>()
             .AddSourceSchemaDefaults();
 
-        services.AddGraphQLGateway()
+        services.AddGraphQLRouterCore()
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(

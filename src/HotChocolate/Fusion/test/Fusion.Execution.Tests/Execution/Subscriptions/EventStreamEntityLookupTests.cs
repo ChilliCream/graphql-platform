@@ -25,7 +25,7 @@ public sealed class EventStreamEntityLookupTests
         var publisher = new InMemoryEventStreamBrokerHub();
         var lookupClient = new ReviewLookupClient("""{"data":{"reviewById":{"body":"A great read"}}}""");
         var services = CreateServices(topic, publisher, lookupClient);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var events = CollectEventsAsync(
             executor,
@@ -81,7 +81,7 @@ public sealed class EventStreamEntityLookupTests
         services.AddInMemoryEventStreamBroker("memory");
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(

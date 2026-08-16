@@ -52,7 +52,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         _productsProjectFile = IOPath.Combine(productsDirectory.FullName, "products.csproj");
         _gatewayProjectFile = IOPath.Combine(gatewayDirectory.FullName, "gateway.csproj");
-        _gatewayArchivePath = IOPath.Combine(gatewayDirectory.FullName, "gateway.far");
+        _gatewayArchivePath = IOPath.Combine(gatewayDirectory.FullName, "graph.far");
 
         await File.WriteAllTextAsync(_productsProjectFile, "<Project />");
         await File.WriteAllTextAsync(_gatewayProjectFile, "<Project />");

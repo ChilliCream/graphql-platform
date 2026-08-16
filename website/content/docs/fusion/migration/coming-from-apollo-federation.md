@@ -8,7 +8,7 @@ If you have experience with Apollo Federation, you already understand the core i
 This guide maps Apollo Federation concepts to their Fusion equivalents, explains behavioral differences, and walks you through migrating subgraphs, the gateway, and your CI/CD pipeline. It is self-contained: you can complete a migration by following this guide alone. Links to other Fusion docs pages provide deeper context, not prerequisites.
 
 > [!NOTE]
-> Prefer to keep running your existing Apollo Federation subgraphs unchanged behind the Fusion gateway, rather than moving them to the GraphQL Federation protocol? See the [Apollo Federation connector](../connectors/apollofederation.md). The two protocols interoperate, so you can move one subgraph at a time.
+> Prefer to keep running your existing Apollo Federation subgraphs unchanged behind the Fusion router, rather than moving them to the GraphQL Federation protocol? See the [Apollo Federation connector](../connectors/apollofederation.md). The two protocols interoperate, so you can move one subgraph at a time.
 
 # Concept Mapping
 
@@ -25,7 +25,7 @@ The table below maps Apollo Federation concepts to their Fusion equivalents. Som
 | `@override(from: "...")`                         | `[Override(from: "...")]`                         | Same concept.                                                                                          |
 | `@inaccessible`                                  | `[Inaccessible]`                                  | Same concept.                                                                                          |
 | `@tag`                                           | `[Tag]`                                           | Same concept.                                                                                          |
-| Apollo Router / Gateway                          | Fusion Gateway (`AddGraphQLGateway()`)            | A .NET ASP.NET Core app, not a separate binary.                                                        |
+| Apollo Router / Gateway                          | Fusion Router (`AddGraphQLRouter()`)              | A .NET ASP.NET Core app, not a separate binary.                                                        |
 | `rover` CLI                                      | Nitro CLI (`nitro fusion ...`)                    | Schema composition, validation, and delivery.                                                          |
 | GraphOS managed federation                       | Nitro cloud or local CI/CD composition            | Build-time composition. Works fully offline.                                                           |
 | Supergraph schema (SDL)                          | Composed schema + `.far` archive                  | Binary archive containing the composed schema and subgraph metadata.                                   |
@@ -38,13 +38,13 @@ Several things from Apollo's model have no Fusion equivalent because the archite
 
 **No `_entities` query.** In Apollo Federation, the gateway resolves entities by calling a hidden `_entities` root field with typed representations. In Fusion, entity resolution happens through regular Query fields annotated with `[Lookup]`. These are real, typed fields that you can call directly from any GraphQL client for testing and debugging.
 
-**No `__resolveReference` resolvers.** In Apollo Federation, every subgraph that contributes to an entity must implement a `__resolveReference` function. In Fusion, you write a normal Query field (like `GetProductById`) and add `[Lookup]`. The gateway calls this field like any other query.
+**No `__resolveReference` resolvers.** In Apollo Federation, every subgraph that contributes to an entity must implement a `__resolveReference` function. In Fusion, you write a normal Query field (like `GetProductById`) and add `[Lookup]`. The router calls this field like any other query.
 
 **No Apollo Federation subgraph library.** Apollo Federation subgraphs require `@apollo/subgraph` (or the equivalent in your language) to add Apollo Federation-specific fields and middleware. Fusion subgraphs are standard HotChocolate servers. You add a few attributes (`[Lookup]`, `[Shareable]`, etc.) and export the schema. There is no special Apollo Federation runtime.
 
 **No `_service` introspection.** Apollo Federation subgraphs expose their SDL via `_service { sdl }`. Fusion subgraphs export their schema as a `.graphqls` file using the command `dotnet run -- schema export`. The schema file and its companion `schema-settings.json` are what composition reads.
 
-**No `@key` directive.** In Apollo Federation, `@key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the gateway infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the gateway knows that `id` is the key for `Product`. You can use `[EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
+**No `@key` directive.** In Apollo Federation, `@key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the router infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the router knows that `id` is the key for `Product`. You can use `[EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
 
 # Behavioral Differences in Depth
 
@@ -68,7 +68,7 @@ query {
 }
 ```
 
-**Fusion approach:** The gateway calls a regular Query field that you define and annotate with `[Lookup]`. There is no hidden protocol.
+**Fusion approach:** The router calls a regular Query field that you define and annotate with `[Lookup]`. There is no hidden protocol.
 
 ```csharp
 // Fusion: a regular query field with [Lookup]
@@ -85,7 +85,7 @@ public static partial class ProductQueries
 ```
 
 ```graphql
-# Fusion: the gateway calls a regular query
+# Fusion: the router calls a regular query
 query {
   productById(id: 1) {
     name
@@ -118,9 +118,9 @@ public static partial class UserQueries
 }
 ```
 
-The gateway automatically discovers all available lookups and uses whichever one has the keys it needs.
+The router automatically discovers all available lookups and uses whichever one has the keys it needs.
 
-**Internal lookups.** When a subgraph extends an entity from another subgraph, it needs a lookup the gateway can use for entity resolution, but you may not want that lookup exposed to clients. In Apollo Federation, `_entities` handles this implicitly. In Fusion, you mark the lookup with `[Internal]`:
+**Internal lookups.** When a subgraph extends an entity from another subgraph, it needs a lookup the router can use for entity resolution, but you may not want that lookup exposed to clients. In Apollo Federation, `_entities` handles this implicitly. In Fusion, you mark the lookup with `[Internal]`:
 
 ```csharp
 // In the Reviews subgraph: an internal-only lookup for Product
@@ -133,7 +133,7 @@ public static partial class ProductQueries
 }
 ```
 
-The `[Internal]` attribute hides this field from the composed schema. Only the gateway uses it during query planning.
+The `[Internal]` attribute hides this field from the composed schema. Only the router uses it during query planning.
 
 For more on lookups and entity resolution patterns, see [Entities and Lookups](../entities-and-lookups.md).
 
@@ -169,7 +169,7 @@ public sealed record Product([property: ID<Product>] int Id)
             """)]
         ProductDimensionInput dimension)
     {
-        // dimension.Weight, dimension.Length, etc. are provided by the gateway
+        // dimension.Weight, dimension.Length, etc. are provided by the router
         // from whatever subgraph owns those fields
         var volume = dimension.Length * dimension.Width * dimension.Height;
         return CalculateEstimate(zip, volume, dimension.Weight);
@@ -177,7 +177,7 @@ public sealed record Product([property: ID<Product>] int Id)
 }
 ```
 
-In the composed schema, clients see `deliveryEstimate(zip: String!)`. The `dimension` parameter is invisible. The gateway resolves `weight` and `dimension { length width height }` from the owning subgraph and passes them to the Shipping subgraph automatically.
+In the composed schema, clients see `deliveryEstimate(zip: String!)`. The `dimension` parameter is invisible. The router resolves `weight` and `dimension { length width height }` from the owning subgraph and passes them to the Shipping subgraph automatically.
 
 This changes how you design resolvers. In Apollo, the required data is available on `this` (the entity object). In Fusion, it arrives as a typed argument, which makes the dependency explicit and testable.
 
@@ -213,7 +213,7 @@ public sealed record Product([property: ID<Product>] int Id)
 }
 ```
 
-The stub is not a copy of the full Product type. It only declares the key (`Id`) and the fields this subgraph contributes (`reviews`). The gateway merges it with the full `Product` type from the Products subgraph during composition.
+The stub is not a copy of the full Product type. It only declares the key (`Id`) and the fields this subgraph contributes (`reviews`). The router merges it with the full `Product` type from the Products subgraph during composition.
 
 ## Composition: Build Step, Not Cloud Operation
 
@@ -225,7 +225,7 @@ In Fusion, composition is a local build step you run on your machine or in CI:
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 This produces a `.far` (Fusion Archive) file. The archive contains the composed schema and subgraph metadata. You can inspect what composition produced, run it locally, and validate it in CI before deployment.
@@ -234,16 +234,16 @@ You can also use Nitro cloud for managed composition (similar to Apollo's GraphO
 
 For more on composition rules and error resolution, see [Composition](../composition.md).
 
-## The Gateway Is Code, Not a Separate Binary
+## The Router Is Code, Not a Separate Binary
 
-Apollo Router is a standalone binary (written in Rust) that you configure via YAML. Fusion's gateway is an ASP.NET Core application that you write and control:
+Apollo Router is a standalone binary (written in Rust) that you configure via YAML. Fusion's router is an ASP.NET Core application that you write and control:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far");
 
 var app = builder.Build();
 app.MapGraphQL();
@@ -356,14 +356,14 @@ public static partial class ProductQueries
 }
 ```
 
-The `[Lookup]` attribute serves double duty: it makes the field callable by clients (like a normal query) and tells the gateway to use it for entity resolution. If you only want the gateway to use it, add `[Internal]`:
+The `[Lookup]` attribute serves double duty: it makes the field callable by clients (like a normal query) and tells the router to use it for entity resolution. If you only want the router to use it, add `[Internal]`:
 
 ```csharp
 [Lookup, Internal]
 public static Product GetProductById(int id) => new(id);
 ```
 
-**Key point:** You do not need a `@key` directive. The gateway infers the entity key from the lookup's arguments. If your lookup takes `int id`, the gateway knows `id` is the key.
+**Key point:** You do not need a `@key` directive. The router infers the entity key from the lookup's arguments. If your lookup takes `int id`, the router knows `id` is the key.
 
 ### Step 3: Convert Field Requirements
 
@@ -404,7 +404,7 @@ public sealed record Product([property: ID<Product>] int Id)
 }
 ```
 
-The `weight` parameter is hidden from the composed schema. Clients call `shippingEstimate` with no arguments. The gateway resolves `weight` from whichever subgraph owns it and passes it to this resolver.
+The `weight` parameter is hidden from the composed schema. Clients call `shippingEstimate` with no arguments. The router resolves `weight` from whichever subgraph owns it and passes it to this resolver.
 
 For complex requirements that map multiple fields into an input object:
 
@@ -429,7 +429,7 @@ public int GetDeliveryEstimate(
 
 **`@external`** has a direct equivalent in `[External]`, but it is less frequently needed. In Apollo Federation, you must mark any field referenced by `@requires` as `@external`. In Fusion, the `[Require]` selection syntax references fields from the composed graph directly, so no `@external` annotation is needed on the entity type.
 
-**`@provides`** maps to `[Parent(requires: "...")]`. This optimization hint tells the gateway that a field can resolve certain nested fields locally, avoiding an extra subgraph call:
+**`@provides`** maps to `[Parent(requires: "...")]`. This optimization hint tells the router that a field can resolve certain nested fields locally, avoiding an extra subgraph call:
 
 **Apollo:**
 
@@ -507,7 +507,7 @@ Every Fusion subgraph needs a `schema-settings.json` file that tells composition
 }
 ```
 
-Place this file next to your project. The `name` field must be unique across all subgraphs. The `clientName` field (`"fusion"`) must match the named HTTP client configured in the gateway.
+Place this file next to your project. The `name` field must be unique across all subgraphs. The `clientName` field (`"fusion"`) must match the named HTTP client configured in the router.
 
 ### Step 7: Export the Schema
 
@@ -521,38 +521,38 @@ This generates a `.graphqls` file containing your subgraph's schema with Fusion-
 
 ## Phase 2: Migrate the Gateway
 
-Replace Apollo Router with a Fusion gateway ASP.NET Core project.
+Replace Apollo Router with a Fusion router ASP.NET Core project.
 
-### Step 1: Create the Gateway Project
+### Step 1: Create the Router Project
 
 ```bash
-dotnet new web -n Gateway
-cd Gateway
+dotnet new web -n Router
+cd Router
 dotnet add package HotChocolate.Fusion.AspNetCore
 ```
 
-### Step 2: Configure the Gateway
+### Step 2: Configure the Router
 
-**Minimal gateway (`Program.cs`):**
+**Minimal router (`Program.cs`):**
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-// Register the Fusion gateway
+// Register the Fusion router
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far");
 
 var app = builder.Build();
 app.MapGraphQL();
 app.Run();
 ```
 
-This loads the gateway configuration from a local `.far` file. To use Nitro cloud for configuration delivery instead (similar to Apollo's managed composition in GraphOS):
+This loads the router configuration from a local `.far` file. To use Nitro cloud for configuration delivery instead (similar to Apollo's managed composition in GraphOS):
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddNitro();
 ```
 
@@ -570,7 +570,7 @@ headers:
           named: Authorization
 ```
 
-**Fusion Gateway (C#):**
+**Fusion Router (C#):**
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -587,8 +587,8 @@ builder.Services
     .AddHeaderPropagation();
 
 builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddGraphQLRouter()
+    .AddFileSystemConfiguration("./graph.far");
 
 var app = builder.Build();
 app.UseHeaderPropagation();
@@ -598,19 +598,19 @@ app.Run();
 
 ### Step 4: Compose and Run
 
-Compose your subgraph schemas into a gateway archive:
+Compose your subgraph schemas into a router archive:
 
 ```bash
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive gateway.far
+  --archive graph.far
 ```
 
-Then start the gateway:
+Then start the router:
 
 ```bash
-cd Gateway
+cd Router
 dotnet run
 ```
 
@@ -691,7 +691,7 @@ rover supergraph compose --config ./supergraph-config.yaml --output supergraph.g
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 ### Example GitHub Actions Workflow
@@ -751,14 +751,14 @@ In Apollo Federation, entity resolution happens through a hidden protocol (`_ent
 
 ## You Don't Need to Think About Entity Ownership the Same Way
 
-Apollo Federation has a strong concept of entity "ownership": one subgraph is the "defining" subgraph for an entity, and others "extend" it. In Fusion, all subgraphs contribute fields to shared entity types. The gateway uses lookups to resolve entities wherever they need to be fetched. The question is not "who owns this entity?" but "which subgraphs provide lookups for it?"
+Apollo Federation has a strong concept of entity "ownership": one subgraph is the "defining" subgraph for an entity, and others "extend" it. In Fusion, all subgraphs contribute fields to shared entity types. The router uses lookups to resolve entities wherever they need to be fetched. The question is not "who owns this entity?" but "which subgraphs provide lookups for it?"
 
 ## Composition Is a Build Step, Not a Cloud Operation
 
 In the Apollo workflow, composition typically happens in GraphOS when you publish a subgraph. In Fusion, composition is a command you run locally or in CI:
 
 ```bash
-nitro fusion compose --archive gateway.far
+nitro fusion compose --archive graph.far
 ```
 
 You can run this on your machine, see the output, inspect errors, and fix them before pushing. There is no cloud service in the loop unless you choose to use Nitro cloud.
@@ -768,7 +768,7 @@ You can run this on your machine, see the output, inspect errors, and fix them b
 This changes resolver design. In Apollo Federation, required data appears on the entity object. In Fusion, it arrives as a method parameter:
 
 ```csharp
-// The 'weight' parameter is injected by the gateway
+// The 'weight' parameter is injected by the router
 public int GetShippingEstimate([Require("weight")] int weight)
 {
     return CalculateEstimate(weight);
@@ -777,9 +777,9 @@ public int GetShippingEstimate([Require("weight")] int weight)
 
 This makes dependencies explicit in the method signature. You can see exactly what data a resolver needs by looking at its parameters.
 
-## The Gateway Is Your Code
+## The Router Is Your Code
 
-Apollo Router is a pre-built binary you configure externally. Fusion's gateway is an ASP.NET Core application you control. You write `Program.cs`, configure middleware, add authentication, and deploy it like any other .NET service. This means you have full control but also full responsibility for the gateway's behavior.
+Apollo Router is a pre-built binary you configure externally. Fusion's router is an ASP.NET Core application you control. You write `Program.cs`, configure middleware, add authentication, and deploy it like any other .NET service. This means you have full control but also full responsibility for the router's behavior.
 
 # What Gets Simpler
 
@@ -791,7 +791,7 @@ Moving to the GraphQL Federation protocol resolves several common pain points fr
 
 **Build-time composition catches errors early.** GraphOS composes Apollo Federation schemas when you publish. If composition fails, you find out after pushing. Fusion's composition runs locally as a build step, so you can catch schema conflicts the same way you catch compilation errors: before you commit.
 
-**.NET-native tooling.** If your team is a .NET shop, Fusion means your gateway, subgraphs, and tooling are all .NET. No Node.js dependency for the gateway or CLI, no context-switching between languages.
+**.NET-native tooling.** If your team is a .NET shop, Fusion means your router, subgraphs, and tooling are all .NET. No Node.js dependency for the router or CLI, no context-switching between languages.
 
 **Open standards.** Fusion implements the [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/), an open, vendor-neutral standard under the GraphQL Foundation. Your subgraph schemas are portable. They are not locked into any vendor's directive syntax.
 
@@ -801,19 +801,19 @@ Moving to the GraphQL Federation protocol resolves several common pain points fr
 
 ## Can I migrate incrementally, with some subgraphs on Apollo Federation and some on GraphQL Federation?
 
-Yes. A Fusion gateway composes and executes both subgraph protocols in one graph, so you can move subgraphs from the Apollo Federation protocol to the GraphQL Federation protocol one at a time while the rest keep running unchanged. To keep running your existing Apollo Federation subgraphs as they are, see the [Apollo Federation connector](../connectors/apollofederation.md). Convert and test each subgraph before moving on to the next.
+Yes. A Fusion router composes and executes both subgraph protocols in one graph, so you can move subgraphs from the Apollo Federation protocol to the GraphQL Federation protocol one at a time while the rest keep running unchanged. To keep running your existing Apollo Federation subgraphs as they are, see the [Apollo Federation connector](../connectors/apollofederation.md). Convert and test each subgraph before moving on to the next.
 
 ## Do I need Nitro cloud?
 
-No. Nitro cloud provides managed composition and gateway configuration delivery (similar to Apollo's GraphOS), but everything works without it. You can compose schemas locally with `nitro fusion compose`, load the `.far` file from disk with `AddFileSystemConfiguration()`, and never touch a cloud service. Nitro cloud is optional for teams that want managed schema delivery.
+No. Nitro cloud provides managed composition and router configuration delivery (similar to Apollo's GraphOS), but everything works without it. You can compose schemas locally with `nitro fusion compose`, load the `.far` file from disk with `AddFileSystemConfiguration()`, and never touch a cloud service. Nitro cloud is optional for teams that want managed schema delivery.
 
 ## What About Apollo Federation Auth Directives?
 
-Fusion uses standard ASP.NET Core authentication and authorization. You configure JWT/cookie authentication in the gateway's middleware pipeline and use HotChocolate's `[Authorize]` attribute on fields and types in your subgraphs. There is no Fusion-specific auth directive. You use the same patterns you already know from ASP.NET Core.
+Fusion uses standard ASP.NET Core authentication and authorization. You configure JWT/cookie authentication in the router's middleware pipeline and use HotChocolate's `[Authorize]` attribute on fields and types in your subgraphs. There is no Fusion-specific auth directive. You use the same patterns you already know from ASP.NET Core.
 
 ## Can Fusion handle subscriptions?
 
-Yes. Fusion supports real-time subscriptions through the gateway via SSE (Server-Sent Events) and WebSocket transports. Subgraphs can use any HotChocolate subscription provider, including Postgres-backed subscriptions for multi-instance scenarios.
+Yes. Fusion supports real-time subscriptions through the router via SSE (Server-Sent Events) and WebSocket transports. Subgraphs can use any HotChocolate subscription provider, including Postgres-backed subscriptions for multi-instance scenarios.
 
 ## Where do I go from here?
 

@@ -17,7 +17,7 @@ public class OperationPlannerConfigurationTests : FusionTestBase
 
         var services = new ServiceCollection();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyPlannerOptions(
                 o =>
                 {

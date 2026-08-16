@@ -65,7 +65,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
                 --source-schema-file ./products/schema.graphqls \
               --source-schema-url https://reviews.example.com/graphql \
               --source-schema-settings-file ./reviews/schema-settings.json \
-                --archive ./gateway.far \
+                --archive ./graph.far \
                 --env "dev"
             """);
     }

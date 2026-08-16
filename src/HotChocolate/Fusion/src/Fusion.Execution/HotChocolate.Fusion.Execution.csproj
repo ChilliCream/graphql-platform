@@ -11,8 +11,12 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.NATS.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.Kafka.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.AmazonSqs.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.AzureEventHubs.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.Redis.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />

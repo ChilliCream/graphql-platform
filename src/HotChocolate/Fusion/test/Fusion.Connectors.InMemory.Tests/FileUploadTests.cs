@@ -274,7 +274,7 @@ public sealed class FileUploadTests : IDisposable
                     .AddUploadType()
                     .AddSourceSchemaDefaults();
 
-                services.AddGraphQLGatewayServer()
+                services.AddGraphQLRouter()
                     .AddInMemorySchema("uploads");
             })
             .Configure(app =>

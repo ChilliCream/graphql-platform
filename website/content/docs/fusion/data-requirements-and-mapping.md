@@ -1,6 +1,6 @@
 ---
 title: "Data Requirements"
-description: "Declare cross-subgraph data dependencies in Fusion with the @require directive: required fields are validated at composition and fetched by the gateway."
+description: "Declare cross-subgraph data dependencies in Fusion with the @require directive: required fields are validated at composition and fetched by the router."
 ---
 
 In traditional distributed systems, dependencies between services hide beneath the surface. A service assumes another service provides certain fields, responds in a certain shape, or is available at a certain time. These assumptions are invisible: they live in code, not in contracts. You discover them when something breaks in production. A field gets renamed, a service changes its response format, or a new team removes data another team depended on without knowing.
@@ -13,7 +13,7 @@ This chapter covers the directives and attributes that make this work: `@require
 
 # Declaring Data Dependencies
 
-Use `@require` on a resolver argument when that argument's value must come from fields owned by other subgraphs. Instead of calling another service yourself, you declare what data you need and the gateway fetches it for you.
+Use `@require` on a resolver argument when that argument's value must come from fields owned by other subgraphs. Instead of calling another service yourself, you declare what data you need and the router fetches it for you.
 
 Here is the simplest case: a resolver in the Shipping subgraph needs the product's `weight` to calculate a shipping estimate. The Products subgraph owns `weight`, not the Shipping subgraph. With `@require`, the Shipping subgraph declares this dependency directly in its schema:
 
@@ -31,7 +31,7 @@ type Query {
 }
 ```
 
-The `@require(field: "weight")` directive on the `weight` argument tells the gateway: "Before calling this resolver, fetch `weight` from whichever subgraph can provide it and pass it in as the `weight` argument."
+The `@require(field: "weight")` directive on the `weight` argument tells the router: "Before calling this resolver, fetch `weight` from whichever subgraph can provide it and pass it in as the `weight` argument."
 
 **C# resolver**
 
@@ -67,19 +67,19 @@ type Product {
 }
 ```
 
-The `weight` argument is gone. Clients pass only `zip`. The gateway handles the resolution of `weight` transparently.
+The `weight` argument is gone. Clients pass only `zip`. The router handles the resolution of `weight` transparently.
 
-## How the Gateway Resolves Requirements
+## How the Router Resolves Requirements
 
 When a resolver declares a data requirement with `@require`, three things happen during composition and execution:
 
 1. **Composition** reads the `@require` directive and removes the annotated argument from the composite schema. Clients never see it.
-2. **Query planning** detects the dependency. The gateway plans an additional fetch to retrieve the required fields from whichever subgraph can provide it.
+2. **Query planning** detects the dependency. The router plans an additional fetch to retrieve the required fields from whichever subgraph can provide it.
 3. **Execution** fetches the required data first, then passes it as a resolver argument when invoking the downstream subgraph.
 
 The resolver receives the data as if it were a normal argument. It does not know or care where the data came from. Services are not coupled to each other. The contract is between a resolver and the data it needs, not between one service and another.
 
-![The gateway fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../../public/images/fusion-docs/data-requirements-require-flow.png)
+![The router fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../../public/images/fusion-docs/data-requirements-require-flow.png)
 
 ## Complex Requirements with Input Objects
 
@@ -115,12 +115,12 @@ input ProductDimensionInput {
 }
 ```
 
-The FieldSelectionMap inside `@require` tells the gateway how to populate the `ProductDimensionInput` from fields on the `Product` entity:
+The FieldSelectionMap inside `@require` tells the router how to populate the `ProductDimensionInput` from fields on the `Product` entity:
 
 - `weight` maps directly because the input field name matches the entity field name.
 - `length: dimensions.length` maps the input field `length` from the nested entity path `dimensions.length`. The same applies to `width` and `height`.
 
-The fields referenced in the map do not all have to come from the same subgraph. The gateway resolves each field from whichever subgraph owns it. Your resolver declares what data it needs, not which services to call.
+The fields referenced in the map do not all have to come from the same subgraph. The router resolves each field from whichever subgraph owns it. Your resolver declares what data it needs, not which services to call.
 
 **C# resolver**
 
@@ -163,7 +163,7 @@ type Product {
 }
 ```
 
-The `dimension` requirement argument is hidden from clients. Clients see only `zip`; the gateway resolves the nested fields (`weight`, `length`, `width`, `height`) automatically.
+The `dimension` requirement argument is hidden from clients. Clients see only `zip`; the router resolves the nested fields (`weight`, `length`, `width`, `height`) automatically.
 
 ## Multiple Scalar Requirements
 
@@ -216,7 +216,7 @@ type Product {
 }
 ```
 
-The gateway traverses `seller.address.countryCode` on the entity and passes the resolved value as the `countryCode` argument.
+The router traverses `seller.address.countryCode` on the entity and passes the resolved value as the `countryCode` argument.
 
 ## Constant Arguments in Field Selections
 
@@ -232,13 +232,13 @@ type Product {
 }
 ```
 
-Here the `@require` path selects `dimension` with the constant argument `unit: METRIC`. The gateway evaluates this selection against the Products subgraph and passes the resulting value to `shippingCost`.
+Here the `@require` path selects `dimension` with the constant argument `unit: METRIC`. The router evaluates this selection against the Products subgraph and passes the resulting value to `shippingCost`.
 
 Argument values in a field selection map must be constant literals (no variables). They must match the field's declared argument definitions, and all required arguments must be supplied. Violations surface as `IS_INVALID_FIELDS` for `@is` and `REQUIRE_INVALID_FIELDS` for `@require`. Note that `@provides` field selections must not include arguments at all; any argument usage there is reported as `PROVIDES_FIELDS_HAS_ARGUMENTS`.
 
 ## List Aggregation Paths
 
-When an entity field is a list, you can use bracket notation to select a field from each element. The gateway collects the selected values into a flat list.
+When an entity field is a list, you can use bracket notation to select a field from each element. The router collects the selected values into a flat list.
 
 **GraphQL schema**
 
@@ -256,11 +256,11 @@ The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (
 
 # Declaring Contextually Available Fields
 
-Use `@provides` on a field that returns an entity to tell the gateway that certain subfields of that entity are available when resolved through this specific field. The subgraph does not own those fields globally, but it can provide them in this context.
+Use `@provides` on a field that returns an entity to tell the router that certain subfields of that entity are available when resolved through this specific field. The subgraph does not own those fields globally, but it can provide them in this context.
 
 ## When Contextual Availability Helps
 
-Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
+Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the router would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the router: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
 
 This is different from `@shareable`, which declares that a subgraph can always resolve a field. `@provides` is conditional: the data is only available when coming through a specific field path.
 
@@ -284,7 +284,7 @@ type Query {
 }
 ```
 
-The `@provides(fields: "username")` on `author` tells the gateway that when it resolves `author` from the Reviews subgraph, it can also get `username` without a separate call to the Accounts subgraph.
+The `@provides(fields: "username")` on `author` tells the router that when it resolves `author` from the Reviews subgraph, it can also get `username` without a separate call to the Accounts subgraph.
 
 The `@external` on `username` declares that this field is owned by another subgraph (Accounts), but the Reviews subgraph can provide it in the context of `Review.author`.
 

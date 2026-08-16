@@ -55,7 +55,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             .ConfigureServices(
                 services => services
                     .AddRouting()
-                    .AddGraphQLGatewayServer()
+                    .AddGraphQLRouter()
                     .AddConfigurationProvider(_ => configProvider)
                     .AddMcp()
                     .AddMcpStorage(storage))
@@ -155,7 +155,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
 
                     var builder =
                         services
-                            .AddGraphQLGatewayServer()
+                            .AddGraphQLRouter()
                             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                             .AddInMemoryConfiguration(result.Value.ToSyntaxNode())
                             .AddHttpClientConfiguration(

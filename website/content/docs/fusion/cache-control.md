@@ -23,7 +23,7 @@ To make caching work safely and predictably, you need two things:
 
 GraphQL usually exposes one endpoint, but each request can ask for different fields. Two requests to the same URL can therefore return very different response shapes and different data sensitivity.
 
-A single GraphQL response can also mix public data and user-specific data. Since HTTP cache headers apply to the full response, the gateway has to compute one safe final policy that represents everything selected in that operation.
+A single GraphQL response can also mix public data and user-specific data. Since HTTP cache headers apply to the full response, the router has to compute one safe final policy that represents everything selected in that operation.
 
 That means one response can include:
 
@@ -76,7 +76,7 @@ app.MapGraphQLPersistedOperations();
 
 # `@cacheControl` in GraphQL
 
-A deterministic route alone is not enough. The gateway also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
+A deterministic route alone is not enough. The router also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
 
 GraphQL provides the `@cacheControl` directive for this purpose. You can place it on fields and types to describe cache intent.
 
@@ -146,15 +146,15 @@ builder
     .AddCacheControl();
 ```
 
-# Enable Cache Control in the Fusion Gateway
+# Enable Cache Control in the Fusion Router
 
-The gateway must be configured to read cache-control metadata during planning and to write the final HTTP headers on the response.
+The router must be configured to read cache-control metadata during planning and to write the final HTTP headers on the response.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddCacheControl()
     .UseQueryCache();
 ```
@@ -193,5 +193,5 @@ In day-to-day terms, the flow is simple:
 
 - Subgraphs declare cache intent.
 - Fusion composes that metadata.
-- The gateway calculates one safe policy for each query result.
+- The router calculates one safe policy for each query result.
 - HTTP caches enforce the resulting headers.

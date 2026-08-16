@@ -21,7 +21,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var gate = new RequestGate(requestCount);
 
         var executor = await new ServiceCollection()
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
             .UseRequest(
@@ -79,7 +79,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var gate = new RequestGate(expectedRequests: 2);
 
         var executor = await new ServiceCollection()
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
             .UseRequest(
@@ -142,7 +142,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var secondRequestObserver = new SecondRequestObserver();
 
         var executor = await new ServiceCollection()
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
             .ModifyPlannerOptions(o => o.MaxPlanningTime = TimeSpan.FromTicks(1))
@@ -207,7 +207,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var blockingInterceptor = new BlockingPlannerInterceptor();
 
         var executor = await new ServiceCollection()
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
             .AddOperationPlannerInterceptor(_ => blockingInterceptor)

@@ -3,7 +3,7 @@ title: "Adding a Subgraph"
 description: "Add a new subgraph to an existing Hot Chocolate Fusion project: create the GraphQL service, define entity extensions, export the schema, compose, and verify."
 ---
 
-You have an existing Fusion project with a gateway, one or more subgraphs, and a working composition pipeline. Now you need to add a new subgraph. Maybe your team owns a new domain (shipping, billing, inventory), or you are splitting an existing subgraph into smaller services. Either way, the process is the same: create a new Hot Chocolate project, define your types and any entity extensions, export the schema, compose, and verify.
+You have an existing Fusion project with a router, one or more subgraphs, and a working composition pipeline. Now you need to add a new subgraph. Maybe your team owns a new domain (shipping, billing, inventory), or you are splitting an existing subgraph into smaller services. Either way, the process is the same: create a new Hot Chocolate project, define your types and any entity extensions, export the schema, compose, and verify.
 
 This page walks you through adding a Shipping subgraph to an existing project that already has Products and Reviews subgraphs. If you have not set up a Fusion project yet, start with the [Getting Started](./getting-started.md) tutorial first.
 
@@ -11,7 +11,7 @@ This page walks you through adding a Shipping subgraph to an existing project th
 
 Before you begin, you need:
 
-- An existing Fusion project with at least one subgraph and a gateway
+- An existing Fusion project with at least one subgraph and a router
 - The [Nitro CLI](./cli.md) installed (`dotnet tool install -g ChilliCream.Nitro.CommandLine`)
 - The .NET 10 SDK or later
 
@@ -150,7 +150,7 @@ public sealed record Product(int Id)
 }
 ```
 
-This is not a duplicate of the Product type from the Products subgraph. It is an entity stub. The Shipping subgraph does not define `name`, `price`, or any other Product field. It only contributes the `shipments` field. When the gateway composes the schema, it merges this stub with the full `Product` type from the Products subgraph. Clients see one `Product` type with all fields from all subgraphs.
+This is not a duplicate of the Product type from the Products subgraph. It is an entity stub. The Shipping subgraph does not define `name`, `price`, or any other Product field. It only contributes the `shipments` field. When the router composes the schema, it merges this stub with the full `Product` type from the Products subgraph. Clients see one `Product` type with all fields from all subgraphs.
 
 ## Add Query Resolvers
 
@@ -172,8 +172,8 @@ public static partial class ShippingQueries
 }
 ```
 
-- `GetShipmentById` is a **public lookup**. Clients can call it directly, and the gateway uses it for entity resolution.
-- `GetProductById` is an **internal lookup**. It is hidden from the composite schema and exists only for the gateway to enter the Shipping subgraph's `Product` type during entity resolution. It constructs a stub from the ID without checking whether the product exists, which is safe because the gateway only calls internal lookups after another subgraph has already confirmed the entity exists.
+- `GetShipmentById` is a **public lookup**. Clients can call it directly, and the router uses it for entity resolution.
+- `GetProductById` is an **internal lookup**. It is hidden from the composite schema and exists only for the router to enter the Shipping subgraph's `Product` type during entity resolution. It constructs a stub from the ID without checking whether the product exists, which is safe because the router only calls internal lookups after another subgraph has already confirmed the entity exists.
 
 For more on public vs. internal lookups and when to use each, see [Entities and Lookups](./entities-and-lookups.md).
 
@@ -195,7 +195,7 @@ public static partial class ShipmentNode
 }
 ```
 
-`[BindMember(nameof(Shipment.ProductId))]` tells Hot Chocolate to replace the `productId` field on `Shipment` with the `product` field returned by this resolver. In the exported schema, clients see `shipment.product` (returning a full `Product`) instead of `shipment.productId` (a raw integer). The gateway resolves the full Product from whichever subgraph owns it.
+`[BindMember(nameof(Shipment.ProductId))]` tells Hot Chocolate to replace the `productId` field on `Shipment` with the `product` field returned by this resolver. In the exported schema, clients see `shipment.product` (returning a full `Product`) instead of `shipment.productId` (a raw integer). The router resolves the full Product from whichever subgraph owns it.
 
 # Configure the Server
 
@@ -242,7 +242,7 @@ Because `Program.cs` uses `AddGraphQL("Shipping")`, the generated `schema-settin
 }
 ```
 
-The `name` field identifies this subgraph within the composite schema and must be unique. The `url` is where the gateway sends requests to this subgraph at runtime.
+The `name` field identifies this subgraph within the composite schema and must be unique. The `url` is where the router sends requests to this subgraph at runtime.
 
 # Compose
 
@@ -253,26 +253,26 @@ nitro fusion compose \
   -s Products/schema.graphqls \
   -s Reviews/schema.graphqls \
   -s Shipping/schema.graphqls \
-  -a gateway.far
+  -a graph.far
 ```
 
-If composition succeeds, copy the updated `gateway.far` to your gateway project directory:
+If composition succeeds, copy the updated `graph.far` to your router project directory:
 
 ```bash
-cp gateway.far Gateway/gateway.far
+cp graph.far Router/graph.far
 ```
 
-If you already have a composed `gateway.far` with the Products and Reviews subgraphs, you can add the new subgraph to the existing archive:
+If you already have a composed `graph.far` with the Products and Reviews subgraphs, you can add the new subgraph to the existing archive:
 
 ```bash
 nitro fusion compose \
   -s Shipping/schema.graphqls \
-  -a gateway.far
+  -a graph.far
 ```
 
 # Test Cross-Subgraph Queries
 
-Start all services and the gateway. With the Shipping subgraph added, you can now query shipment data that crosses subgraph boundaries:
+Start all services and the router. With the Shipping subgraph added, you can now query shipment data that crosses subgraph boundaries:
 
 ```graphql
 query {
@@ -289,8 +289,8 @@ query {
 
 This query touches two subgraphs:
 
-1. The gateway calls the Products subgraph to fetch `name` and `price`.
-2. The gateway uses the internal lookup to enter the Shipping subgraph and resolve `shipments` for the same product.
+1. The router calls the Products subgraph to fetch `name` and `price`.
+2. The router uses the internal lookup to enter the Shipping subgraph and resolve `shipments` for the same product.
 
 The client sees one unified response with fields from both subgraphs merged into a single `Product`.
 
@@ -309,7 +309,7 @@ query {
 }
 ```
 
-Here the gateway resolves the shipment from the Shipping subgraph, then uses the Products subgraph to fetch `name` and `price` for the referenced product.
+Here the router resolves the shipment from the Shipping subgraph, then uses the Products subgraph to fetch `name` and `price` for the referenced product.
 
 # Troubleshooting Composition Errors
 

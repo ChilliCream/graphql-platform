@@ -10,7 +10,7 @@ authorUrl: https://github.com/glen-84
 authorImageUrl: https://avatars.githubusercontent.com/u/261509?v=4
 ---
 
-Agents are becoming first-class consumers of our APIs. Alongside the web and mobile clients we have always served, our servers now talk to models that reason over typed tool results and decide what to call next. The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is the interface they use. If you already run a GraphQL server with Hot Chocolate or a Fusion gateway, you have most of what you need to be an MCP server. You have a typed schema, you have operations with arguments and results, you have validation and error handling. What is missing is the wiring.
+Agents are becoming first-class consumers of our APIs. Alongside the web and mobile clients we have always served, our servers now talk to models that reason over typed tool results and decide what to call next. The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is the interface they use. If you already run a GraphQL server with Hot Chocolate or a Fusion router, you have most of what you need to be an MCP server. You have a typed schema, you have operations with arguments and results, you have validation and error handling. What is missing is the wiring.
 
 Hot Chocolate 16 ships that wiring. With the new MCP adapter and Nitro as the control plane, two calls on your server expose every published tool and prompt at `/graphql/mcp`. Authoring is plain files on disk, deployment is a CLI command, and rolling out a new version of your tool catalog does not require a redeploy.
 
@@ -29,7 +29,7 @@ For a GraphQL backend the fit is good. A tool is a GraphQL operation, its argume
 
 There are three moving parts:
 
-1. **The MCP adapter** on your Hot Chocolate server or Fusion gateway. It speaks MCP over Streamable HTTP and answers tool and prompt requests by running operations against the schema.
+1. **The MCP adapter** on your Hot Chocolate server or Fusion router. It speaks MCP over Streamable HTTP and answers tool and prompt requests by running operations against the schema.
 2. **A feature collection** on disk: GraphQL files for tools, JSON files for prompts, optional HTML files for inline views.
 3. **Nitro** as the control plane. It stores versioned, immutable snapshots of the collection, validates them on upload, distributes them to your runtime, and surfaces per-tool telemetry.
 
@@ -77,7 +77,7 @@ app.Run();
 
 If you prefer environment variables, set `NITRO_API_ID`, `NITRO_API_KEY`, and `NITRO_STAGE` and drop the `AddNitro` delegate entirely. Nitro service options bind to them.
 
-# Enable MCP on a Fusion gateway
+# Enable MCP on a Fusion router
 
 The Fusion story is the same shape. Different packages, same two calls:
 
@@ -100,7 +100,7 @@ builder.Services
     .AddDefaults();
 
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddMcp();
 
 var app = builder.Build();
@@ -111,7 +111,7 @@ app.MapGraphQLMcp();
 app.Run();
 ```
 
-The gateway resolves your tools' GraphQL operations across all source schemas it composes, so a single tool can fetch data from multiple subgraphs in one call. From the model's perspective there is just one MCP server and one URL.
+The router resolves your tools' GraphQL operations across all source schemas it composes, so a single tool can fetch data from multiple subgraphs in one call. From the model's perspective there is just one MCP server and one URL.
 
 # Author tools and prompts on disk
 
@@ -394,7 +394,7 @@ Confirm by clicking **Connect Product Catalog** at the bottom of the dialog. The
 
 ![Selecting the Product Catalog app from the chat composer menu](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-select-app.webp)
 
-When the model decides to call `SearchProducts`, the host invokes the tool, your gateway runs the GraphQL operation, and the result comes back. If the tool has an Apps view, it renders inline:
+When the model decides to call `SearchProducts`, the host invokes the tool, your router runs the GraphQL operation, and the result comes back. If the tool has an Apps view, it renders inline:
 
 ![SearchProducts result with Apps view](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-tool-result.webp)
 
@@ -411,7 +411,7 @@ When a new version is published, the change feed pushes it to the runtime. The s
 
 # Wrap up
 
-Two lines on the server, a folder of files on disk, three CLI commands to publish. If you have a Hot Chocolate server or a Fusion gateway, you have an MCP server.
+Two lines on the server, a folder of files on disk, three CLI commands to publish. If you have a Hot Chocolate server or a Fusion router, you have an MCP server.
 
 We are building on top of the existing strengths of GraphQL here. Your tools reuse the schema you already have, your arguments reuse the type system you already have, and your results reuse the responses you already serve. The MCP adapter is the protocol shim. Nitro is the control plane. Everything else is your API.
 

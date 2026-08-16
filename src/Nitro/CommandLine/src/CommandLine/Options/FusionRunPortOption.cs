@@ -4,7 +4,7 @@ internal sealed class FusionRunPortOption : Option<int?>
 {
     public FusionRunPortOption() : base("--port")
     {
-        Description = "The port the gateway will listen on";
+        Description = "The port the router will listen on";
         Aliases.Add("-p");
     }
 }

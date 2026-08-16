@@ -8,7 +8,7 @@ public abstract class OfficialV1ComplianceTestBase<TSuite> : ComplianceTestBase
     protected Task RunOfficialV1CaseAsync(string caseId)
         => OfficialAuditSuiteRun<TSuite>.AssertCaseAsync(
             caseId,
-            BuildGatewayAsync,
+            BuildRouterAsync,
             static () => AuditFixture.GetOfficialV1Suite<TSuite>());
 
     protected Task<FusionGateway> ComposeOfficialV1Async(

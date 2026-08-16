@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <Compile Remove="**\*" />
-    <Content Include="azure-function\**\*;gateway\**\*;server\**\*"
+    <Content Include="azure-function\**\*;router\**\*;server\**\*"
              Exclude="**\bin\**;**\obj\**" />
   </ItemGroup>
 

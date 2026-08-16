@@ -257,7 +257,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient();
             var gatewayBuilder = serviceCollection
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(ComposeSchemaDocument(SchemaA, SchemaB));
             gatewayBuilder.ModifyRequestOptions(
                 options => options.CollectOperationPlanTelemetry = true);

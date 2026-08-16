@@ -30,7 +30,7 @@ public sealed class EventStreamBrokerReadFailureTests
         var broker = new FailingEventStreamBroker();
         var listener = new CapturingDiagnosticListener();
         var services = CreateServices(topic, broker, listener);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
         var events = CollectAllEventsAsync(
@@ -85,7 +85,7 @@ public sealed class EventStreamBrokerReadFailureTests
             (_, _) => new FailingEventStreamBrokerProvider(broker));
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic))
             .AddDiagnosticEventListener(_ => listener);
 

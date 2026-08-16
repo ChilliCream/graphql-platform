@@ -17,7 +17,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
         result.AssertHelpOutput(
             """
             Description:
-              Download the most recent gateway configuration.
+              Download the most recent router configuration.
 
             Usage:
               nitro fusion download [options]
@@ -36,7 +36,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
               nitro fusion download \
                 --api-id "<api-id>" \
                 --stage "dev" \
-                --output-file ./gateway.far
+                --output-file ./graph.far
             """);
     }
 
@@ -210,7 +210,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
             "--stage",
             Stage,
             "--output-file",
-            "gateway.far",
+            "graph.far",
             "--version",
             "1.0.0");
 

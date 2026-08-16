@@ -285,7 +285,7 @@ const NODES: Node[] = [
     position: { x: 385, y: 268 },
     data: {
       kind: "gateway",
-      title: "Fusion Gateway",
+      title: "Fusion Router",
       subtitle: "subscribes · resolves · streams",
     },
     draggable: false,

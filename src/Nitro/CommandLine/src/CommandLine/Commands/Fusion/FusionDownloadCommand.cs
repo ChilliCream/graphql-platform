@@ -18,7 +18,7 @@ internal sealed class FusionDownloadCommand : Command
 {
     public FusionDownloadCommand() : base("download")
     {
-        Description = "Download the most recent gateway configuration.";
+        Description = "Download the most recent router configuration.";
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
@@ -32,7 +32,7 @@ internal sealed class FusionDownloadCommand : Command
             fusion download \
               --api-id "<api-id>" \
               --stage "dev" \
-              --output-file ./gateway.far
+              --output-file ./graph.far
             """);
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
@@ -60,7 +60,7 @@ internal sealed class FusionDownloadCommand : Command
 
         if (string.IsNullOrEmpty(outputFile))
         {
-            outputFile = "gateway." + archiveFormat;
+            outputFile = "graph." + archiveFormat;
         }
 
         if (!Path.IsPathRooted(outputFile))

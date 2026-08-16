@@ -124,7 +124,7 @@ public sealed class ObjectDeprecationIntrospectionTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddHttpClient();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyOptions(o => o.EnableObjectDeprecation = enableObjectDeprecation)
             .AddInMemoryConfiguration(ComposeSchemaDocument(sdl))
             .UseDefaultPipeline();

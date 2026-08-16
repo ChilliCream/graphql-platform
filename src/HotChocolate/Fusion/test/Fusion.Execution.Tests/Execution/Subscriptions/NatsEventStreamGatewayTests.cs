@@ -39,7 +39,7 @@ public sealed class NatsEventStreamGatewayTests
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
 
-        var executor = await BuildGatewayAsync(nats.Url, stream);
+        var executor = await BuildRouterAsync(nats.Url, stream);
 
         // act
         // Drive the initial subscription, publish two events to the single NATS subject, and receive
@@ -137,7 +137,7 @@ public sealed class NatsEventStreamGatewayTests
             """);
     }
 
-    private static async Task<IRequestExecutor> BuildGatewayAsync(
+    private static async Task<IRequestExecutor> BuildRouterAsync(
         string natsUrl,
         string stream)
     {
@@ -159,10 +159,10 @@ public sealed class NatsEventStreamGatewayTests
         });
 
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(schemaDocument);
 
-        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        return await services.BuildRouterAsync(TestContext.Current.CancellationToken);
     }
 
     private static async Task<string> PrintSourceSchemaSdlAsync(

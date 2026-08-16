@@ -33,7 +33,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
               -?, -h, --help                                       Show help and usage information
 
             Example:
-              nitro fusion publish validate --archive ./gateway.far
+              nitro fusion publish validate --archive ./graph.far
             """);
     }
 

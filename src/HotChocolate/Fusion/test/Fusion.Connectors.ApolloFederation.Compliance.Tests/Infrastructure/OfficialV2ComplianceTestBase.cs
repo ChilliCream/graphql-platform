@@ -10,7 +10,7 @@ public abstract class OfficialV2ComplianceTestBase<TSuite> : ComplianceTestBase
     protected Task RunOfficialV2CaseAsync(string caseId)
         => OfficialAuditSuiteRun<TSuite>.AssertCaseAsync(
             caseId,
-            BuildGatewayAsync,
+            BuildRouterAsync,
             static () => AuditFixture.GetOfficialV2Suite<TSuite>());
 
     protected Task<FusionGateway> ComposeOfficialV2Async(

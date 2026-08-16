@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.AdditionalCoverage;
 
 public sealed class PartialUnionComplexSupplementalTests : ComplianceTestBase
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => FusionGatewayBuilder.ComposeAsync(
             new ApolloFederationCompatibilityOptions
             {

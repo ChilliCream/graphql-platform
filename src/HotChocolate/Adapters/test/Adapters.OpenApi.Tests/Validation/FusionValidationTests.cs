@@ -53,7 +53,7 @@ public class FusionValidationTests : ValidationTestBase
         IOpenApiDefinitionStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
-        var builder = services.AddGraphQLGatewayServer()
+        var builder = services.AddGraphQLRouter()
             .AddInMemoryConfiguration(_compositeSchema)
             .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);

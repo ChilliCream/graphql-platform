@@ -11,8 +11,8 @@ namespace HotChocolate.Fusion.Aspire;
 public static class NitroExtensions
 {
     /// <summary>
-    /// Adds GraphQL schema composition orchestration to the distributed application. Every gateway
-    /// composes the source schemas of the distributed application, and a gateway configured with
+    /// Adds GraphQL schema composition orchestration to the distributed application. Every router
+    /// composes the source schemas of the distributed application, and a router configured with
     /// <see cref="WithNitroApiId{T}"/> composes them on top of the fusion configuration that Nitro
     /// serves for <paramref name="stage"/>, so it also serves source schemas that run outside of
     /// the distributed application.
@@ -143,12 +143,12 @@ public static class NitroExtensions
     }
 
     /// <summary>
-    /// Selects the Nitro api that carries the fusion configuration of a gateway. The api id is the
+    /// Selects the Nitro api that carries the fusion configuration of a router. The api id is the
     /// id that the Nitro dashboard and the Nitro CLI report for the api. Calling this method again
     /// replaces the previously configured api id.
     /// </summary>
     /// <param name="builder">
-    /// The resource builder of a gateway.
+    /// The resource builder of a router.
     /// </param>
     /// <param name="apiId">
     /// The id of the Nitro api.

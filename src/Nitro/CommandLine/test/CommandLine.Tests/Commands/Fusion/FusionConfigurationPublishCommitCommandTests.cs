@@ -30,7 +30,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
               -?, -h, --help                                       Show help and usage information
 
             Example:
-              nitro fusion publish commit --archive ./gateway.far
+              nitro fusion publish commit --archive ./graph.far
             """);
     }
 

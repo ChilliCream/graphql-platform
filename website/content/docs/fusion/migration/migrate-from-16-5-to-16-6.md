@@ -23,11 +23,11 @@ Things that have been removed or had a change in behavior that may cause your co
 
 ## WithGraphQLSchemaComposition renamed to WithNitroComposition
 
-`WithGraphQLSchemaComposition` is deprecated. The only remaining overload takes composition settings as its first parameter, so a 16.5 call that omits the settings or passes the output file name positionally no longer compiles. Rename the call on the gateway resource to `WithNitroComposition`:
+`WithGraphQLSchemaComposition` is deprecated. The only remaining overload takes composition settings as its first parameter, so a 16.5 call that omits the settings or passes the output file name positionally no longer compiles. Rename the call on the router resource to `WithNitroComposition`:
 
 ```diff
  builder
-     .AddProject<Projects.Gateway>("gateway")
+     .AddProject<Projects.Router>("router")
 -    .WithGraphQLSchemaComposition()
 +    .WithNitroComposition()
      .WithReference(products)
@@ -40,13 +40,13 @@ The parameters changed as well. In 16.5 the method took the output file name fir
 public static IResourceBuilder<T> WithNitroComposition<T>(
     this IResourceBuilder<T> builder,
     bool disableValidation = false,
-    string outputFileName = "gateway.far")
+    string outputFileName = "graph.far")
     where T : IResourceWithEndpoints;
 
 public static IResourceBuilder<T> WithNitroComposition<T>(
     this IResourceBuilder<T> builder,
     GraphQLCompositionSettings settings,
-    string outputFileName = "gateway.far")
+    string outputFileName = "graph.far")
     where T : IResourceWithEndpoints;
 ```
 
@@ -143,7 +143,7 @@ File-based source schemas are being retired. Replace `WithGraphQLSchemaFile` wit
 +builder.AddNitroComposition();
 ```
 
-`AddNitroComposition` optionally takes a Nitro stage. With a stage, the AppHost composes the local source schemas on top of the fusion configuration that Nitro serves for that stage, and `WithNitroApiId` selects the API a gateway composes against. See [Local Development](../local-development.md) for the full workflow.
+`AddNitroComposition` optionally takes a Nitro stage. With a stage, the AppHost composes the local source schemas on top of the fusion configuration that Nitro serves for that stage, and `WithNitroApiId` selects the API a router composes against. See [Local Development](../local-development.md) for the full workflow.
 
 ```csharp
 builder.AddNitroComposition("dev");
@@ -151,7 +151,7 @@ builder.AddNitroComposition("dev");
 
 ## Nitro schema validation during composition
 
-When the AppHost composes against a Nitro stage and the gateway selects an API with `WithNitroApiId`, composition validates the composed schema through Nitro. `WithNitroComposition(disableValidation: true)` turns the validation off.
+When the AppHost composes against a Nitro stage and the router selects an API with `WithNitroApiId`, composition validates the composed schema through Nitro. `WithNitroComposition(disableValidation: true)` turns the validation off.
 
 ## Polyglot AppHost support
 

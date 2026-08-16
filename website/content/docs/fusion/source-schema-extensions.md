@@ -3,7 +3,7 @@ title: "Source Schema Extensions"
 description: "Add Fusion directives like @lookup and @inaccessible to schemas you cannot edit using a source schema extensions document layered over the base SDL."
 ---
 
-Some source schemas are not yours to edit, or you want to keep them free of Fusion-specific annotations. Fusion still needs [directives](./directives-reference.md) like `@lookup`, `@internal`, and `@inaccessible` on those schemas to compose your graph correctly. A **source schema extensions document** solves this. It is a separate SDL file you author yourself, layered over the base schema at parse time, that adds Fusion-specific annotations without modifying a single character of the base. Your original schema stays clean, and the directives the gateway needs to plan distributed queries land in a file you fully control.
+Some source schemas are not yours to edit, or you want to keep them free of Fusion-specific annotations. Fusion still needs [directives](./directives-reference.md) like `@lookup`, `@internal`, and `@inaccessible` on those schemas to compose your graph correctly. A **source schema extensions document** solves this. It is a separate SDL file you author yourself, layered over the base schema at parse time, that adds Fusion-specific annotations without modifying a single character of the base. Your original schema stays clean, and the directives the router needs to plan distributed queries land in a file you fully control.
 
 # How It Works
 
@@ -72,9 +72,9 @@ enum StockStatus {
 What each block does:
 
 - `extend type Query { productById(id: ID!): Product @lookup }` promotes an existing field to a lookup. The field name targets the existing field, and the return type must match the base. Arguments do not need to be repeated; if you do repeat them, their types and defaults must match the base. New arguments may be added.
-- `extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The gateway uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](./entities-and-lookups.md) for the public versus internal lookup distinction.
+- `extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The router uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](./entities-and-lookups.md) for the public versus internal lookup distinction.
 - `extend type Product { warehouseLocationCode: String @inaccessible }` applies a directive to an existing field. The field type repeats the base declaration; only the directive is the new contribution. Hidden fields can still be referenced by `@require` dependencies in other source schemas. See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
-- `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](./data-requirements-and-mapping.md) for `@require` semantics.
+- `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the router to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](./data-requirements-and-mapping.md) for `@require` semantics.
 - `enum StockStatus { ... }` introduces a new type. Extensions can declare types the base schema does not, because extensions are valid SDL documents in their own right.
 
 ## The Merged Result
@@ -132,7 +132,7 @@ extend type Product {
 extend type LegacyOrder @inaccessible
 ```
 
-**Add new fields to existing types.** The new field needs a runtime resolver in the subgraph for the gateway to actually fetch it. Declaring the field in extensions only adds it to the source schema model.
+**Add new fields to existing types.** The new field needs a runtime resolver in the subgraph for the router to actually fetch it. Declaring the field in extensions only adds it to the source schema model.
 
 ```graphql
 extend type Product {

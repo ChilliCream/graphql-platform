@@ -6,6 +6,6 @@ internal sealed class OptionalTransportUrlOption : TransportUrlOption
 
     public OptionalTransportUrlOption() : base(OptionName)
     {
-        Description = "The URL the gateway uses to reach the source schema";
+        Description = "The URL the router uses to reach the source schema";
     }
 }

@@ -14,7 +14,7 @@ public sealed class DirectiveDefinitionIntrospectionTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddHttpClient();
         services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(

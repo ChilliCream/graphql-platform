@@ -13,7 +13,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class HotChocolateFusionServiceCollectionExtensions
 {
-    public static IFusionGatewayBuilder AddGraphQLGateway(
+    /// <summary>
+    /// Adds the core services of the Fusion GraphQL router to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
+    public static IFusionGatewayBuilder AddGraphQLRouterCore(
         this IServiceCollection services,
         string? name = null)
     {
@@ -22,7 +28,9 @@ public static class HotChocolateFusionServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        AddCore(services);
+        services.AddOptions();
+
+        AddObjectPooling(services);
         AddRequestExecutorManager(services);
         AddSourceSchemaScope(services);
 
@@ -30,13 +38,25 @@ public static class HotChocolateFusionServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Builds a <see cref="ServiceProvider"/> from the <paramref name="services"/> and
-    /// resolves the Fusion gateway executor.
+    /// Adds the core services of the Fusion GraphQL router to the service collection.
     /// </summary>
-    /// <param name="services">The service collection containing the gateway configuration.</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
+    [Obsolete("Use AddGraphQLRouterCore() instead.")]
+    public static IFusionGatewayBuilder AddGraphQLGateway(
+        this IServiceCollection services,
+        string? name = null)
+        => services.AddGraphQLRouterCore(name);
+
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> from the <paramref name="services"/> and
+    /// resolves the Fusion router executor.
+    /// </summary>
+    /// <param name="services">The service collection containing the router configuration.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The gateway request executor.</returns>
-    public static async ValueTask<IRequestExecutor> BuildGatewayAsync(
+    /// <returns>The router request executor.</returns>
+    internal static async ValueTask<IRequestExecutor> BuildRouterAsync(
         this IServiceCollection services,
         CancellationToken cancellationToken = default)
         => await services
@@ -45,11 +65,22 @@ public static class HotChocolateFusionServiceCollectionExtensions
             .GetExecutorAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-    private static void AddCore(
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> from the <paramref name="services"/> and
+    /// resolves the Fusion router executor.
+    /// </summary>
+    /// <param name="services">The service collection containing the router configuration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The router request executor.</returns>
+    [Obsolete("Use BuildRouterAsync() instead.")]
+    internal static ValueTask<IRequestExecutor> BuildGatewayAsync(
+        this IServiceCollection services,
+        CancellationToken cancellationToken = default)
+        => services.BuildRouterAsync(cancellationToken);
+
+    private static void AddObjectPooling(
         IServiceCollection services)
     {
-        services.AddOptions();
-
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.TryAddSingleton(sp =>
         {

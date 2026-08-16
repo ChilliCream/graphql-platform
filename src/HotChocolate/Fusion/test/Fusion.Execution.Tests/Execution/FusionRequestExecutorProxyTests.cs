@@ -11,7 +11,7 @@ public class FusionRequestExecutorProxyTests : FusionTestBase
         // arrange
         var manager =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(
                     ComposeSchemaDocument(
                         """
@@ -49,7 +49,7 @@ public class FusionRequestExecutorProxyTests : FusionTestBase
 
         var manager =
             new ServiceCollection()
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider()

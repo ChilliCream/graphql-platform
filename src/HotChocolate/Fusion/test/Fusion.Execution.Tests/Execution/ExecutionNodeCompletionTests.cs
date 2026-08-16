@@ -332,7 +332,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient();
             var gatewayBuilder = serviceCollection
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(
                     ComposeSchemaDocument(
                         """

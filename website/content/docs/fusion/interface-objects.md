@@ -122,7 +122,7 @@ Selecting `__typename` or a concrete inline fragment makes the concrete identity
 
 ```mermaid
 flowchart LR
-    C[Client] --> G[Fusion gateway]
+    C[Client] --> G[Fusion router]
     G -->|trendingMedia| A[Analytics stand-in]
     A -->|opaque Media and id| G
     G -->|mediaById using id| K[Catalog]

@@ -154,7 +154,7 @@ Variable and request batching aren't enabled by default, so you also need to upd
 
 ### GraphQL errors
 
-The v16 gateway only forwards subgraph errors when the associated field is missing or `null` ([spec](https://spec.graphql.org/draft/#sec-Errors.Execution-Errors)). Reporting an error via `IResolverContext.ReportError()` while also returning a non-null value no longer surfaces the error at the gateway.
+The v16 router only forwards subgraph errors when the associated field is missing or `null` ([spec](https://spec.graphql.org/draft/#sec-Errors.Execution-Errors)). Reporting an error via `IResolverContext.ReportError()` while also returning a non-null value no longer surfaces the error at the router.
 
 Throw a `GraphQLException` instead, so the field resolves to `null` and the error is forwarded.
 
@@ -485,7 +485,7 @@ See [Composition](../composition.md) for guidance on composition behavior and an
 
 # Upgrade the gateway
 
-Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.Fusion.*` packages referenced by your project. The gateway runtime now ships in a single ASP.NET Core meta-package, `HotChocolate.Fusion.AspNetCore`, which includes the execution engine, the type system, and the ASP.NET Core integration. This means you can replace your existing references to `HotChocolate.AspNetCore` and `HotChocolate.Fusion` with a single reference to `HotChocolate.Fusion.AspNetCore`:
+Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.Fusion.*` packages referenced by your project. The router runtime now ships in a single ASP.NET Core meta-package, `HotChocolate.Fusion.AspNetCore`, which includes the execution engine, the type system, and the ASP.NET Core integration. This means you can replace your existing references to `HotChocolate.AspNetCore` and `HotChocolate.Fusion` with a single reference to `HotChocolate.Fusion.AspNetCore`:
 
 ```diff
 -<PackageReference Include="HotChocolate.AspNetCore" Version="15.x.x" />
@@ -497,22 +497,22 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
-### AddFusionGatewayServer renamed to AddGraphQLGatewayServer
+### AddFusionGatewayServer renamed to AddGraphQLRouter
 
-The entry point that adds a Fusion gateway to the service collection has been renamed and now lives in the `Microsoft.Extensions.DependencyInjection` namespace.
+The entry point that adds a Fusion router to the service collection has been renamed and now lives in the `Microsoft.Extensions.DependencyInjection` namespace.
 
 ```diff
 -builder.Services.AddFusionGatewayServer();
-+builder.Services.AddGraphQLGatewayServer();
++builder.Services.AddGraphQLRouter();
 ```
 
-The builder type returned by `AddGraphQLGatewayServer` is now `IFusionGatewayBuilder` instead of the concrete `FusionGatewayBuilder`. All of the configuration extension methods now hang off this interface.
+The builder type returned by `AddGraphQLRouter` is now `IFusionGatewayBuilder` instead of the concrete `FusionGatewayBuilder`. All of the configuration extension methods now hang off this interface.
 
 ### CoreBuilder is gone — methods now hang off IFusionGatewayBuilder directly
 
 In v15, the Fusion gateway builder exposed a `CoreBuilder` property of type `IRequestExecutorBuilder` that you used to reach Hot Chocolate's core configuration APIs (validation rules, error filters, etc.).
 
-In v16 there is no separate underlying request executor builder. The Fusion gateway is configured exclusively via `IFusionGatewayBuilder`, and all relevant Hot Chocolate APIs (such as `DisableIntrospection`, `AddErrorFilter`, `AddSha256DocumentHashProvider`, etc.) are exposed directly on `IFusionGatewayBuilder` as Fusion-specific extension methods.
+In v16 there is no separate underlying request executor builder. The Fusion router is configured exclusively via `IFusionGatewayBuilder`, and all relevant Hot Chocolate APIs (such as `DisableIntrospection`, `AddErrorFilter`, `AddSha256DocumentHashProvider`, etc.) are exposed directly on `IFusionGatewayBuilder` as Fusion-specific extension methods.
 
 ```diff
 -gatewayBuilder.CoreBuilder.DisableIntrospection();
@@ -574,14 +574,14 @@ Be aware that internal directives may carry sensitive information (for example, 
 ### Cache configuration
 
 In v15, the operation cache acted as the cache for operation plans. v16 introduces a dedicated operation plan cache.
-Both document and operation plan cache are now configured on the gateway builder via `ModifyOptions` instead of as global services on the `IServiceCollection`:
+Both document and operation plan cache are now configured on the router builder via `ModifyOptions` instead of as global services on the `IServiceCollection`:
 
 ```diff
 -builder.Services.AddDocumentCache(capacity: 200);
 -builder.Services.AddOperationCache(capacity: 100);
 
 builder.Services
-    .AddGraphQLGatewayServer()
+    .AddGraphQLRouter()
 +    .ModifyOptions(o =>
 +    {
 +        o.OperationDocumentCacheSize = 200;
@@ -589,7 +589,7 @@ builder.Services
 +    });
 ```
 
-If your application contains multiple Fusion gateways, the cache configuration has to be repeated for each one as the configuration is now scoped to a particular gateway.
+If your application contains multiple Fusion routers, the cache configuration has to be repeated for each one as the configuration is now scoped to a particular router.
 
 ### Document hash provider configuration
 
@@ -599,7 +599,7 @@ Document hash providers are no longer registered through the `IServiceCollection
 -builder.Services.AddSha256DocumentHashProvider();
 
 builder.Services
-    .AddGraphQLGatewayServer()
+    .AddGraphQLRouter()
 +    .AddSha256DocumentHashProvider();
 ```
 
@@ -609,7 +609,7 @@ The same applies to `AddMD5DocumentHashProvider` and `AddSha1DocumentHashProvide
 
 Previously, the Fusion gateway constructed the schema and the request executor on the first request. To get eager initialization, you had to opt in via `InitializeOnStartup` on the underlying `CoreBuilder`.
 
-In v16, eager initialization is the default. The schema and the request executor are constructed during application startup, before Kestrel begins accepting traffic. Schema errors surface immediately when you start the gateway, rather than only when the first request arrives.
+In v16, eager initialization is the default. The schema and the request executor are constructed during application startup, before Kestrel begins accepting traffic. Schema errors surface immediately when you start the router, rather than only when the first request arrives.
 
 If you used `InitializeOnStartup`, remove it. If you also passed a warmup delegate, migrate it to `AddWarmupTask`:
 
@@ -669,7 +669,7 @@ A new `MaxBatchSize` property limits the number of operations in a single batch.
 
 ### Configuration provider API
 
-The configuration provider abstractions used to load and watch the Fusion gateway configuration document have been redesigned around `IFusionConfigurationProvider`.
+The configuration provider abstractions used to load and watch the Fusion router configuration document have been redesigned around `IFusionConfigurationProvider`.
 
 #### IObservable\<GatewayConfiguration> replaced by IFusionConfigurationProvider
 
@@ -701,7 +701,7 @@ The old `IObservable<GatewayConfiguration>` source has been replaced by the new 
 
 ```diff
 -gatewayBuilder.ConfigureFromFile("gateway.fgp");
-+gatewayBuilder.AddFileSystemConfiguration("gateway.fgp");
++gatewayBuilder.AddFileSystemConfiguration("./graph.far");
 ```
 
 The `watchFileForUpdates` parameter is gone — file watching is the default behavior of the file-system configuration provider.
@@ -723,7 +723,7 @@ The key changes for Fusion projects:
 
 - **Package rename:** `ChilliCream.Nitro.Core` becomes `ChilliCream.Nitro.GraphQL`, `ChilliCream.Nitro.Telemetry` becomes `ChilliCream.Nitro.OpenTelemetry`, and Azure packages are consolidated into `ChilliCream.Nitro.Azure`.
 - **`ConfigureFromCloud()`** is replaced by `AddNitro().AddDefaults()` on the service collection.
-- **Per-gateway feature options** are configured via `ModifyNitroOptions()` on the gateway builder.
+- **Per-router feature options** are configured via `ModifyNitroOptions()` on the router builder.
 - **`AddNitroExporter()`** is replaced by `AddOpenTelemetry()` on the `INitroBuilder`.
 - **Asset cache** is now configured globally on `INitroBuilder` instead of per-gateway.
 - **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
@@ -756,7 +756,7 @@ builder.Services
     })
     .AddDefaults();
 
-builder.Services.AddGraphQLGatewayServer();
+builder.Services.AddGraphQLRouter();
 ```
 
 ### Diagnostic listener API redesigned
@@ -856,13 +856,13 @@ public class CustomRequestMiddleware
 
 ### Clearer separation between schema and application services
 
-Hot Chocolate has long maintained a second `IServiceProvider` for schema services, separate from the application service provider where you register your services and configuration. This schema service provider is scoped to a particular schema and contains all of the internal services for the gateway (diagnostic listeners, error filters, HTTP request interceptors, …).
+Hot Chocolate has long maintained a second `IServiceProvider` for schema services, separate from the application service provider where you register your services and configuration. This schema service provider is scoped to a particular schema and contains all of the internal services for the router (diagnostic listeners, error filters, HTTP request interceptors, …).
 
-To access application services within schema services like diagnostic event listeners or error filters, the v15 implementation used a combined service provider. In v16, the Fusion gateway uses the schema service provider exclusively — application services must now be explicitly cross-registered to be accessible.
+To access application services within schema services like diagnostic event listeners or error filters, the v15 implementation used a combined service provider. In v16, the Fusion router uses the schema service provider exclusively — application services must now be explicitly cross-registered to be accessible.
 
 ```diff
 builder.Services.AddSingleton<MyService>();
-builder.Services.AddGraphQLGatewayServer()
+builder.Services.AddGraphQLRouter()
 +   .AddApplicationService<MyService>()
 
     // either
@@ -877,7 +877,7 @@ Sometimes the registration of required services is not as obvious. For example, 
 
 ```diff
 builder.Services.AddLogging();
-builder.Services.AddGraphQLGatewayServer()
+builder.Services.AddGraphQLRouter()
 +   .AddApplicationService<ILogger<MyLoggingDiagnosticEventListener>>()
 
     // either
@@ -945,9 +945,9 @@ string schemaStr = SchemaFormatter.FormatAsString(
     new SchemaFormatterOptions { RewriteToSemanticNonNull = true });
 ```
 
-**Downloading the schema from the gateway**
+**Downloading the schema from the router**
 
-If you're using `MapGraphQLSchema()` to expose the gateway schema at `/graphql/schema`, you can additionally call `MapGraphQLSemanticNonNullSchema()` to expose a variant annotated with `@semanticNonNull` at `/graphql/semantic-non-null-schema.graphql`:
+If you're using `MapGraphQLSchema()` to expose the router schema at `/graphql/schema`, you can additionally call `MapGraphQLSemanticNonNullSchema()` to expose a variant annotated with `@semanticNonNull` at `/graphql/semantic-non-null-schema.graphql`:
 
 ```csharp
 app.MapGraphQLSchema();
@@ -958,7 +958,7 @@ app.MapGraphQLSemanticNonNullSchema();
 
 ### Subgraph errors are only forwarded if the associated field is not initialized
 
-The v15 gateway forwarded every subgraph error. The v16 gateway only forwards errors whose associated field is missing or `null`, matching the [GraphQL spec](https://spec.graphql.org/draft/#sec-Errors.Execution-Errors). Errors attached to an initialized (non-null) field are now dropped.
+The v15 gateway forwarded every subgraph error. The v16 router only forwards errors whose associated field is missing or `null`, matching the [GraphQL spec](https://spec.graphql.org/draft/#sec-Errors.Execution-Errors). Errors attached to an initialized (non-null) field are now dropped.
 
 Update affected subgraphs as described in [GraphQL errors](#graphql-errors).
 
@@ -968,7 +968,7 @@ Update affected subgraphs as described in [GraphQL errors](#graphql-errors).
 
 Hot Chocolate v16 introduces a concurrency gate that limits how many GraphQL operations execute at the same time. The gate sits in the request pipeline just before operation execution and applies uniformly to queries, mutations, subscription handshakes, and each subscription event.
 
-For the Fusion gateway, configure the limit through `ModifyServerOptions`:
+For the Fusion router, configure the limit through `ModifyServerOptions`:
 
 ```csharp
 gatewayBuilder.ModifyServerOptions(o => o.MaxConcurrentExecutions = 128);
@@ -980,7 +980,7 @@ Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds)
 
 ### Parser limits
 
-The parser now enforces a maximum recursion depth of **200** by default, a maximum of **4** directives per location, and a fragment visit budget of **1,000** per operation. These limits also apply to documents handled by the Fusion gateway. If your operations legitimately exceed these limits, raise them via `ModifyParserOptions` / `ModifyValidationOptions`:
+The parser now enforces a maximum recursion depth of **200** by default, a maximum of **4** directives per location, and a fragment visit budget of **1,000** per operation. These limits also apply to documents handled by the Fusion router. If your operations legitimately exceed these limits, raise them via `ModifyParserOptions` / `ModifyValidationOptions`:
 
 ```csharp
 gatewayBuilder
@@ -998,7 +998,7 @@ gatewayBuilder
 
 # Aspire
 
-The Aspire integration changed in v16. There is no separate `AddFusionGateway` resource anymore. The gateway and subgraphs are now regular Aspire projects.
+The Aspire integration changed in v16. There is no separate `AddFusionGateway` resource anymore. The router and subgraphs are now regular Aspire projects.
 
 First, update the `Aspire.AppHost.Sdk` and the `Aspire.Hosting.AppHost` package to 13.x:
 
@@ -1014,7 +1014,7 @@ First, update the `Aspire.AppHost.Sdk` and the `Aspire.Hosting.AppHost` package 
    </ItemGroup>
 ```
 
-Then update the AppHost setup. Add the GraphQL orchestrator, tell Aspire where to get each subgraph schema, and reference those subgraphs from the gateway:
+Then update the AppHost setup. Add the GraphQL orchestrator, tell Aspire where to get each subgraph schema, and reference those subgraphs from the router:
 
 ```diff
 -var products = builder.AddProject<Projects.Products>("products");
@@ -1081,7 +1081,7 @@ builder
         });
 ```
 
-Each subgraph also needs an `Aspire` environment in `schema-settings.json`. This is the local GraphQL endpoint the composed gateway configuration uses when it runs under Aspire:
+Each subgraph also needs an `Aspire` environment in `schema-settings.json`. This is the local GraphQL endpoint the composed router configuration uses when it runs under Aspire:
 
 ```diff
 {
@@ -1108,6 +1108,6 @@ Since `dotnet fusion` is no longer used, you can remove any reference to the `Ho
 You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](../../nitro/cli/installation.md).
 
 > [!NOTE]
-> Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
+> Hold off until the v16 router has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
 
 Finally, if you haven't done so already, each subgraph can now independently [switch to Hot Chocolate v16](#migrate-subgraph-to-v16) at its own pace.

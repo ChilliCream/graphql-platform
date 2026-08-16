@@ -22,11 +22,11 @@ public sealed class InMemorySubscriptionTests
             .AddQueryType<TitlesSchema.Query>()
             .AddSourceSchemaDefaults();
 
-        services.AddGraphQLGateway()
+        services.AddGraphQLRouterCore()
             .AddInMemorySchema("books")
             .AddInMemorySchema("titles");
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
 
         // act
         // Each event must be delivered in order and each event document must be usable while its
@@ -52,11 +52,11 @@ public sealed class InMemorySubscriptionTests
             .AddQueryType<TitlesSchema.Query>()
             .AddSourceSchemaDefaults();
 
-        services.AddGraphQLGateway()
+        services.AddGraphQLRouterCore()
             .AddInMemorySchema("books")
             .AddInMemorySchema("titles");
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
 
         // act
         // Consuming the stream to completion exercises the per-event arena swap and the teardown

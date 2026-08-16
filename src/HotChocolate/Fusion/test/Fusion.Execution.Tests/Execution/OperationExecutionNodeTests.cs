@@ -102,7 +102,7 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         services.AddHttpClient();
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -124,7 +124,7 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             setup => setup.ClientConfigurationModifiers.Add(
                 _ => new TestSubscriptionClientConfiguration("events", supportedOperations)));
 
-        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        return await services.BuildRouterAsync(TestContext.Current.CancellationToken);
     }
 
     private static IOperationRequest CreateQueryRequest()

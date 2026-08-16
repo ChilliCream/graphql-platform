@@ -1,7 +1,7 @@
 ---
 date: "2026-07-06"
 title: "Introducing Federated Event Streams for Fusion 16.4"
-description: "Federated Event Streams add broker-backed, resumable GraphQL subscriptions to Fusion 16.4, with stateless gateway scaling and client-owned resume cursors."
+description: "Federated Event Streams add broker-backed, resumable GraphQL subscriptions to Fusion 16.4, with stateless router scaling and client-owned resume cursors."
 tags:
   [
     "fusion",
@@ -26,13 +26,13 @@ Take an order management screen. A support agent is watching an order move from 
 
 For some applications, missing a few events is acceptable. A live typing indicator, presence update, or fast-changing dashboard can simply continue with the newest value. For others, every event matters. In an order workflow, audit trail, payment process, or support inbox, the client needs to resume exactly where it left off, without gaps and without replaying events it has already processed.
 
-In a federated graph, these concerns become even more important. Events can originate from different subgraphs, and the gateway has to turn each event into the response shape the client asked for. At the same time, we still want the system to scale like the rest of our GraphQL architecture: gateway instances should stay stateless, subgraphs should scale independently, and reconnects should not depend on sticky sessions, in-memory subscription state, or transferring session data from one gateway replica to another.
+In a federated graph, these concerns become even more important. Events can originate from different subgraphs, and the router has to turn each event into the response shape the client asked for. At the same time, we still want the system to scale like the rest of our GraphQL architecture: router instances should stay stateless, subgraphs should scale independently, and reconnects should not depend on sticky sessions, in-memory subscription state, or transferring session data from one router replica to another.
 
-Today, we are introducing **Federated Event Streams** in Fusion 16.4: a new way to build broker-backed, resumable subscriptions across a federated graph without making the gateway stateful. A client subscribes once through the Fusion gateway, events come from your broker, and for each event the gateway resolves exactly the fields the client asked for across the federated graph. Resume state stays with the client, so a reconnect can land on any gateway replica without sticky sessions or gateway-owned subscription state.
+Today, we are introducing **Federated Event Streams** in Fusion 16.4: a new way to build broker-backed, resumable subscriptions across a federated graph without making the router stateful. A client subscribes once through the Fusion router, events come from your broker, and for each event the router resolves exactly the fields the client asked for across the federated graph. Resume state stays with the client, so a reconnect can land on any router replica without sticky sessions or router-owned subscription state.
 
 ## Broker-backed GraphQL subscriptions in Fusion
 
-Federated Event Streams starts with the GraphQL subscription the client already knows. The client subscribes through the Fusion gateway and selects the fields it wants back.
+Federated Event Streams starts with the GraphQL subscription the client already knows. The client subscribes through the Fusion router and selects the fields it wants back.
 
 ```graphql
 subscription {
@@ -45,15 +45,15 @@ subscription {
 }
 ```
 
-Instead of forwarding that subscription to a subgraph, the gateway subscribes to a broker topic itself. That topic becomes the event stream for the subscription. Whenever the gateway receives an event, it uses the event as the starting point for the subscription query plan. It performs ordinary stateless GraphQL requests against the relevant subgraphs, builds the response the client asked for, sends it to the client, and waits for the next event.
+Instead of forwarding that subscription to a subgraph, the router subscribes to a broker topic itself. That topic becomes the event stream for the subscription. Whenever the router receives an event, it uses the event as the starting point for the subscription query plan. It performs ordinary stateless GraphQL requests against the relevant subgraphs, builds the response the client asked for, sends it to the client, and waits for the next event.
 
 <FusionSubscriptionsDiagram />
 
-This is the important shift. The gateway does not need to keep a stateful subscription connection open to a subgraph, and subgraphs do not need to keep subscription state for the gateway. From a subgraph's point of view, the gateway only sends normal GraphQL query requests. There is no gateway-to-subgraph subscription lifecycle to recover, no subscription state to move between gateway replicas, and no need for participating subgraphs to hold long-lived connection state.
+This is the important shift. The router does not need to keep a stateful subscription connection open to a subgraph, and subgraphs do not need to keep subscription state for the router. From a subgraph's point of view, the router only sends normal GraphQL query requests. There is no router-to-subgraph subscription lifecycle to recover, no subscription state to move between router replicas, and no need for participating subgraphs to hold long-lived connection state.
 
 ## Declaring the event stream
 
-On the subgraph that exposes the subscription field, you add the `@eventStream` directive. The `message` argument describes the shape of the broker message. It is a selection set over the return type, and it tells the gateway which fields are already present when an event arrives.
+On the subgraph that exposes the subscription field, you add the `@eventStream` directive. The `message` argument describes the shape of the broker message. It is a selection set over the return type, and it tells the router which fields are already present when an event arrives.
 
 ```graphql
 # Reviews subgraph
@@ -84,9 +84,9 @@ public static partial class ReviewSubscriptions
 public record ReviewCreated(Review Review);
 ```
 
-That is the whole contract. `review { id }` means the broker delivers a message shaped like `{ "review": { "id": "1" } }`. The gateway uses that key to resolve the `Review` entity and then continues with whatever the client selected.
+That is the whole contract. `review { id }` means the broker delivers a message shaped like `{ "review": { "id": "1" } }`. The router uses that key to resolve the `Review` entity and then continues with whatever the client selected.
 
-The message does not have to be only an entity key, though. Because `message` is a selection set over the return type, it can describe any fields that arrive with the event. Some fields can come directly from the broker message, while others can be entity links that the gateway resolves through the graph:
+The message does not have to be only an entity key, though. Because `message` is a selection set over the return type, it can describe any fields that arrive with the event. Some fields can come directly from the broker message, while others can be entity links that the router resolves through the graph:
 
 ```graphql
 onProductPriceChanged(productId: ID!): ProductPriceChangedEvent
@@ -101,9 +101,9 @@ type ProductPriceChangedEvent {
 
 Here `oldPrice` and `newPrice` come straight from the broker, while `product` is resolved across your subgraphs from `{ product { id } }`. You stream exactly what the event is about, and let federation fill in the rest only when the client asks for it.
 
-## Resuming without gateway state
+## Resuming without router state
 
-A long-lived subscription will be interrupted eventually. A phone goes to sleep, a network blips, or you roll out a new gateway version. The important question is what happens when the client reconnects. Can it continue from the last event it processed without asking the gateway to remember anything?
+A long-lived subscription will be interrupted eventually. A phone goes to sleep, a network blips, or you roll out a new router version. The important question is what happens when the client reconnects. Can it continue from the last event it processed without asking the router to remember anything?
 
 Federated Event Streams supports this with an opaque cursor that lives with the client. On the subscription field, you annotate one argument with the `@eventCursor` directive. On the payload type, you annotate one field with `@eventCursor` as well. That field carries the position of the event within the stream.
 
@@ -123,7 +123,7 @@ type Review @key(fields: "id") {
 }
 ```
 
-The event cursor is inserted by the gateway, so there is no need to add it to the message format. If you are using Hot Chocolate, the same schema looks like this:
+The event cursor is inserted by the router, so there is no need to add it to the message format. If you are using Hot Chocolate, the same schema looks like this:
 
 ```csharp
 [SubscriptionType]
@@ -153,9 +153,9 @@ subscription {
 }
 ```
 
-The gateway resumes the stream after that cursor. A first-time subscriber simply omits the argument.
+The router resumes the stream after that cursor. A first-time subscriber simply omits the argument.
 
-This is the part that matters for scale. The gateway stores no resume position. There is no per-subscriber cursor table, no position store, and no subscription state to move between gateway replicas. The resume position travels with the client, so a reconnect can land on any gateway instance behind your load balancer.
+This is the part that matters for scale. The router stores no resume position. There is no per-subscriber cursor table, no position store, and no subscription state to move between router replicas. The resume position travels with the client, so a reconnect can land on any router instance behind your load balancer.
 
 The cursor itself is a black box. It is a base64 token whose meaning belongs to the broker. Clients never parse it. They only store it and send it back when they need to resume. If you have used cursor-based paging in GraphQL, the pattern should feel familiar.
 
@@ -185,7 +185,7 @@ type Review @key(fields: "id") {
 
 ## Pick the broker that fits your world
 
-Broker infrastructure stays out of your schema. The schema describes the shape of the event, while the gateway decides which broker implementation to use. Your services can keep publishing with their normal broker clients, and your GraphQL contract stays focused on the API.
+Broker infrastructure stays out of your schema. The schema describes the shape of the event, while the router decides which broker implementation to use. Your services can keep publishing with their normal broker clients, and your GraphQL contract stays focused on the API.
 
 Fusion ships five broker integrations that you can plug in and configure:
 
@@ -197,7 +197,7 @@ Fusion ships five broker integrations that you can plug in and configure:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
+    .AddGraphQLRouter()
     .AddNatsEventStreamBroker(options =>
     {
         options.Url = "nats://localhost:4222";
@@ -227,7 +227,7 @@ Fusion gives your broker the subscription field context, the topics to consume, 
 
 ## Publishing stays in your application
 
-How does a message get into the stream? This is where your application code connects. Event-driven architecture belongs in your domain, and the gateway is simply one more consumer of those events.
+How does a message get into the stream? This is where your application code connects. Event-driven architecture belongs in your domain, and the router is simply one more consumer of those events.
 
 ```csharp
 await nats.PublishAsync(

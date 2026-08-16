@@ -287,7 +287,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
             if (isHotChocolate)
             {
                 // a Hot Chocolate source schema implements these transport extensions, so the
-                // gateway is told about them instead of being left on the defaults.
+                // router is told about them instead of being left on the defaults.
                 var capabilities = GetOrAddObject(http, CapabilitiesPropertyName);
                 var batching = GetOrAddObject(capabilities, "batching");
 

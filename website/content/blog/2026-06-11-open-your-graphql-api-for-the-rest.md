@@ -18,7 +18,7 @@ Until now, that meant spinning up a one-off HTTP endpoint somewhere in your stac
 - duplicates type definitions that diverge over time, and
 - in the case of Fusion, falls outside the composition model: each subgraph is built to contribute its slice of the overall schema, so no single subgraph is positioned to serve an endpoint that aggregates data across the others.
 
-Sooner or later, that endpoint comes back to haunt you. Its traffic never shows up in your schema usage insights, so the next breaking change is decided on incomplete data. Its authorization is a copy that silently drifts from the original. Its DTOs mirror your GraphQL types until they don't. And the subgraph hosting the aggregated endpoint ends up hand-rolling the cross-service composition your gateway already does.
+Sooner or later, that endpoint comes back to haunt you. Its traffic never shows up in your schema usage insights, so the next breaking change is decided on incomplete data. Its authorization is a copy that silently drifts from the original. Its DTOs mirror your GraphQL types until they don't. And the subgraph hosting the aggregated endpoint ends up hand-rolling the cross-service composition your router already does.
 
 And for what? You already have a well-defined GraphQL schema. A few one-off endpoints shouldn't require a second API technology.
 
@@ -51,7 +51,7 @@ The `@http` directive assigns the operation an HTTP method and a route. A reques
 }
 ```
 
-If your GraphQL server is a Fusion gateway, this gets even better: `name` and `price` might come from a `products` subgraph, while `deliveryEstimate` is resolved through a `shipping` subgraph. The REST caller receives one flat resource, and the gateway does the cross-subgraph composition it was built for. No subgraph has to step outside its role to make this endpoint possible.
+If your GraphQL server is a Fusion router, this gets even better: `name` and `price` might come from a `products` subgraph, while `deliveryEstimate` is resolved through a `shipping` subgraph. The REST caller receives one flat resource, and the router does the cross-subgraph composition it was built for. No subgraph has to step outside its role to make this endpoint possible.
 
 Notice what is _not_ there: no controller, no DTO, no auth code, no serializer setup. The schema already provides the types, validation, and resolvers this endpoint needs. The request runs through the same execution pipeline as any GraphQL request, so your existing authorization rules are enforced, and the traffic shows up in your telemetry and field usage tracking like that of any other client.
 
@@ -84,7 +84,7 @@ fragment Product on Product {
 
 # Wiring it up
 
-Install the `HotChocolate.Adapters.OpenApi` NuGet package into your GraphQL server project, or `HotChocolate.Fusion.Adapters.OpenApi` if your server is a Fusion gateway:
+Install the `HotChocolate.Adapters.OpenApi` NuGet package into your GraphQL server project, or `HotChocolate.Fusion.Adapters.OpenApi` if your server is a Fusion router:
 
 ```bash
 dotnet add package HotChocolate.Adapters.OpenApi

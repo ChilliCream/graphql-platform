@@ -43,7 +43,7 @@ public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
         };
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(subject));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
@@ -59,7 +59,7 @@ public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
                     _ => new TestSourceSchemaClientConfiguration("BOOKS"));
             });
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var events = CollectOneEventAsync(executor, cts.Token);
         await Task.Delay(500, cts.Token);

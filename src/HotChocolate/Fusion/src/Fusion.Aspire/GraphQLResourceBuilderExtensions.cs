@@ -149,7 +149,7 @@ public static class GraphQLResourceBuilderExtensions
     public static IResourceBuilder<T> WithNitroComposition<T>(
         this IResourceBuilder<T> builder,
         bool disableValidation = false,
-        string outputFileName = "gateway.far")
+        string outputFileName = "graph.far")
         where T : IResourceWithEndpoints
         => builder.WithNitroComposition(
             new GraphQLCompositionSettings
@@ -191,7 +191,7 @@ public static class GraphQLResourceBuilderExtensions
     public static IResourceBuilder<T> WithNitroComposition<T>(
         this IResourceBuilder<T> builder,
         GraphQLCompositionSettings settings,
-        string outputFileName = "gateway.far")
+        string outputFileName = "graph.far")
         where T : IResourceWithEndpoints
     {
         builder.WithAnnotation(

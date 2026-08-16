@@ -43,7 +43,7 @@ public sealed class RedisSubscriptionTests
             });
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(channel));
 
         builder.Services.AddSingleton(
@@ -64,7 +64,7 @@ public sealed class RedisSubscriptionTests
                     _ => new InMemorySourceSchemaClientConfiguration("BOOKS"));
             });
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         var events = CollectOneEventAsync(executor, cts.Token);
         await WaitForReadyAsync(ready.Reader, count: 1, cts.Token);
 

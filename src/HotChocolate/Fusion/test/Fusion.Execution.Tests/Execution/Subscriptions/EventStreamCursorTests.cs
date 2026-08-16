@@ -22,7 +22,7 @@ public sealed class EventStreamCursorTests
         var topic = CreateTopic();
         var publisher = new InMemoryEventStreamBrokerHub();
         var services = CreateServices(topic, publisher);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var events = CollectEventsAsync(
             executor,
@@ -82,7 +82,7 @@ public sealed class EventStreamCursorTests
         var topic = CreateTopic();
         var publisher = new InMemoryEventStreamBrokerHub();
         var services = CreateServices(topic, publisher);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // act
@@ -127,7 +127,7 @@ public sealed class EventStreamCursorTests
         var services = CreateRecordingServices(
             CreateRequiresCursorExecutionSchemaDocument(includeCursor: true),
             hub);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // act
@@ -155,7 +155,7 @@ public sealed class EventStreamCursorTests
         var services = CreateRecordingServices(
             CreateRequiresCursorExecutionSchemaDocument(includeCursor: false),
             hub);
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // act
@@ -186,7 +186,7 @@ public sealed class EventStreamCursorTests
         services.AddInMemoryEventStreamBroker("memory");
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
@@ -339,7 +339,7 @@ public sealed class EventStreamCursorTests
             (_, _) => new RecordingEventStreamBrokerProvider(hub));
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(executionSchemaDocument);
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(

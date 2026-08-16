@@ -1,11 +1,11 @@
 ---
 title: "Apollo Federation Connector"
-description: "Put a Fusion gateway in front of your existing Apollo Federation subgraphs. Composition auto-detects Apollo Federation SDL and translates @key, @requires, and _entities into the GraphQL Federation model, with no changes to your subgraphs."
+description: "Put a Fusion router in front of your existing Apollo Federation subgraphs. Composition auto-detects Apollo Federation SDL and translates @key, @requires, and _entities into the GraphQL Federation model, with no changes to your subgraphs."
 ---
 
-Fusion supports two subgraph protocols: GraphQL Federation and Apollo Federation. GraphQL Federation is the open specification (formerly the GraphQL Composite Schemas specification) that a Fusion gateway speaks directly. Apollo Federation is Apollo's model for distributed GraphQL. This page explains the Apollo Federation connector, which lets a Fusion gateway run Apollo Federation subgraphs.
+Fusion supports two subgraph protocols: GraphQL Federation and Apollo Federation. GraphQL Federation is the open specification (formerly the GraphQL Composite Schemas specification) that a Fusion router speaks directly. Apollo Federation is Apollo's model for distributed GraphQL. This page explains the Apollo Federation connector, which lets a Fusion router run Apollo Federation subgraphs.
 
-The connector lets you put a Fusion gateway in front of existing Apollo Federation subgraphs without changing them. During composition, Fusion reads each subgraph's Apollo Federation SDL, detects Apollo Federation schemas, and translates them into the GraphQL Federation model. At runtime, the gateway speaks Apollo's wire protocol (the `_entities` field with typed representations) to Apollo Federation subgraphs. It speaks the GraphQL Federation protocol through lookup fields to GraphQL Federation subgraphs in the same graph. Your subgraphs keep their existing SDL, `__resolveReference` and reference resolvers, and deployment model.
+The connector lets you put a Fusion router in front of existing Apollo Federation subgraphs without changing them. During composition, Fusion reads each subgraph's Apollo Federation SDL, detects Apollo Federation schemas, and translates them into the GraphQL Federation model. At runtime, the router speaks Apollo's wire protocol (the `_entities` field with typed representations) to Apollo Federation subgraphs. It speaks the GraphQL Federation protocol through lookup fields to GraphQL Federation subgraphs in the same graph. Your subgraphs keep their existing SDL, `__resolveReference` and reference resolvers, and deployment model.
 
 Apollo Federation v2 has no separate mode to enable. Detection happens per source schema, so one graph can mix Apollo Federation subgraphs (in any language: Apollo Server, HotChocolate.ApolloFederation, graphql-java, and others) with GraphQL Federation subgraphs and compose them into the composed schema. Apollo Federation v1 requires an explicit source setting, as described in [Choose the Schema Acquisition Protocol](#choose-the-schema-acquisition-protocol).
 
@@ -17,16 +17,16 @@ The connector does two things: it translates Apollo Federation schemas at compos
 
 ```mermaid
 flowchart LR
-    Client --> Gateway["Fusion Gateway"]
-    Gateway -->|"_entities protocol"| Apollo["Apollo Federation subgraph"]
-    Gateway -->|"lookup fields"| GraphQLFed["GraphQL Federation subgraph"]
+    Client --> Router["Fusion Router"]
+    Router -->|"_entities protocol"| Apollo["Apollo Federation subgraph"]
+    Router -->|"lookup fields"| GraphQLFed["GraphQL Federation subgraph"]
 ```
 
 **At composition time**, Fusion inspects each source schema. When a v2 schema carries the Apollo Federation `@link` to `https://specs.apollo.dev/federation`, the composer recognizes it as an Apollo Federation subgraph and runs a translation pass over it. For a v1 schema, the source settings must opt into the legacy parser with the exact `"1.0"` marker shown below.
 
 That pass maps Apollo Federation directives onto the GraphQL Federation model: `@key` becomes lookup fields, `@requires` becomes `@require`, `@external` fields are resolved into the model, and the Relay `node` field becomes a lookup. Fusion removes the Apollo Federation infrastructure types (`_service`, `_entities`, `_Entity`, `_Any`). The result is the composed schema. Clients do not see Apollo Federation directives or infrastructure types.
 
-**At runtime**, when the gateway needs to resolve entity fields from an Apollo Federation subgraph, it calls that subgraph as an Apollo router would. It sends the `_entities(representations: [...])` query with typed representations (`{ __typename, <key fields> }`) and reads the entities back. The gateway enters GraphQL Federation subgraphs through their lookup fields instead. Both paths run inside the same query plan.
+**At runtime**, when the router needs to resolve entity fields from an Apollo Federation subgraph, it calls that subgraph as an Apollo router would. It sends the `_entities(representations: [...])` query with typed representations (`{ __typename, <key fields> }`) and reads the entities back. The router enters GraphQL Federation subgraphs through their lookup fields instead. Both paths run inside the same query plan.
 
 Because Federation v2 detection happens per source schema, mixed graphs with v2 Apollo Federation sources need no graph-wide connector configuration. Federation v1 sources still require the exact per-source `"1.0"` marker. An Apollo Federation subgraph and a GraphQL Federation subgraph that both contribute fields to `Product` merge into one `Product` type in the composed schema.
 
@@ -51,16 +51,16 @@ nitro fusion compose \
   --source-schema-url https://reviews.example.com/graphql \
   --source-schema-settings-file ./reviews/schema-settings.json \
   --source-schema-file ./inventory/schema.graphqls \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/gateway.far'.
+✅ Composite schema written to '/absolute/path/to/graph.far'.
 ```
 
-The URL option controls where Nitro acquires the schema during composition. The paired settings file still controls how the gateway reaches the source at runtime. These URLs can differ.
+The URL option controls where Nitro acquires the schema during composition. The paired settings file still controls how the router reaches the source at runtime. These URLs can differ.
 
 For an Apollo Federation v2 endpoint, use a settings file such as:
 
@@ -140,13 +140,13 @@ Compose Apollo Federation subgraphs the same way you compose GraphQL Federation 
 nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/gateway.far'.
+✅ Composite schema written to '/absolute/path/to/graph.far'.
 ```
 
 You can list Apollo Federation and GraphQL Federation source schema files in the same command. Composition produces a single `.far` archive that contains the composed schema. If a subgraph uses an Apollo Federation feature that Fusion does not yet support, composition fails with a specific error code (see [Current Limitations](#current-limitations)).
@@ -157,19 +157,19 @@ For the full command reference, see [nitro fusion compose](../cli.md#nitro-fusio
 
 Composition resolves Apollo Federation constructs before clients see the schema. The composed schema follows the GraphQL Federation model, so clients and downstream tools do not see Apollo Federation directives.
 
-| Apollo Federation                          | Handled during composition as                                                                     |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `@key(fields: "...")`                      | Generated lookup fields, one per key. Single, composite, and nested keys are supported.           |
-| `_entities` / `__resolveReference`         | Kept as the runtime contract. The gateway calls them over the `_entities` protocol like a router. |
-| `@requires(fields: "...")`                 | Translated to `@require`, including nested object requirements and requirement chains.            |
-| `@provides(fields: "...")`                 | Honored. The `@external` fields it references are kept resolvable from the providing subgraph.    |
-| `@external`                                | External fields are resolved into the model.                                                      |
-| `@shareable`                               | Preserved. Key fields are marked shareable automatically.                                         |
-| `@override(from: "...")`                   | Preserved as override semantics.                                                                  |
-| `@inaccessible`                            | Preserved.                                                                                        |
-| `@tag`                                     | Preserved.                                                                                        |
-| `@interfaceObject`                         | Projects fields onto the same-named interface and compatible implementations.                     |
-| Union members contributed across subgraphs | Merged into a single union in the composed schema.                                                |
+| Apollo Federation                          | Handled during composition as                                                                            |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `@key(fields: "...")`                      | Generated lookup fields, one per key. Single, composite, and nested keys are supported.                  |
+| `_entities` / `__resolveReference`         | Kept as the runtime contract. The router calls them over the `_entities` protocol like an Apollo router. |
+| `@requires(fields: "...")`                 | Translated to `@require`, including nested object requirements and requirement chains.                   |
+| `@provides(fields: "...")`                 | Honored. The `@external` fields it references are kept resolvable from the providing subgraph.           |
+| `@external`                                | External fields are resolved into the model.                                                             |
+| `@shareable`                               | Preserved. Key fields are marked shareable automatically.                                                |
+| `@override(from: "...")`                   | Preserved as override semantics.                                                                         |
+| `@inaccessible`                            | Preserved.                                                                                               |
+| `@tag`                                     | Preserved.                                                                                               |
+| `@interfaceObject`                         | Projects fields onto the same-named interface and compatible implementations.                            |
+| Union members contributed across subgraphs | Merged into a single union in the composed schema.                                                       |
 
 # Shareable Abstract Field Routing
 
@@ -189,20 +189,20 @@ nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
   --shareable-field-runtime-type-routing common-runtime-types \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 After a successful composition, Nitro prints the archive path:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/gateway.far'.
+✅ Composite schema written to '/absolute/path/to/graph.far'.
 ```
 
 To change the policy in an existing archive, run:
 
 ```bash
 nitro fusion settings set shareable-field-runtime-type-routing common-runtime-types \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 Nitro reports `Composed new configuration.` after it recomposes the archive. With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../local-development.md#composition-settings).
@@ -248,7 +248,7 @@ See [Interface Objects](../interface-objects.md) for field projection, opaque id
 
 ## Allow Non-Resolvable Interface Objects
 
-By default, composition rejects an Apollo interface object whose key uses `resolvable: false` when Fusion cannot build the required route. This strict default catches projected fields that the gateway could not fetch.
+By default, composition rejects an Apollo interface object whose key uses `resolvable: false` when Fusion cannot build the required route. This strict default catches projected fields that the router could not fetch.
 
 For compatibility with an existing Apollo graph, opt in while composing the archive:
 
@@ -257,20 +257,20 @@ nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
   --allow-non-resolvable-interface-objects \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/gateway.far'.
+✅ Composite schema written to '/absolute/path/to/graph.far'.
 ```
 
 To enable the option in an existing archive, run:
 
 ```bash
 nitro fusion settings set allow-non-resolvable-interface-objects true \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 Nitro reports `Composed new configuration.` after it recomposes the archive.
@@ -279,7 +279,7 @@ With Aspire composition, set the equivalent property:
 
 ```csharp
 builder
-    .AddProject<Projects.Gateway>("gateway-api")
+    .AddProject<Projects.Router>("router-api")
     .WithNitroComposition(
         settings: new GraphQLCompositionSettings
         {
@@ -295,12 +295,12 @@ If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.n
 
 ## Configure node resolution
 
-Choose how the gateway resolves `node(id:)` when you compose the gateway archive. Fusion records the mode in the execution schema, so every compatible gateway that loads the archive uses the same behavior.
+Choose how the router resolves `node(id:)` when you compose the router archive. Fusion records the mode in the execution schema, so every compatible router that loads the archive uses the same behavior.
 
-| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                        |
-| --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gateway`       | `GATEWAY`              | The gateway decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                    |
-| `source-schema` | `SOURCE_SCHEMA`        | The gateway forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the gateway cannot decode your identifiers. |
+| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                      |
+| --------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gateway`       | `GATEWAY`              | The router decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                   |
+| `source-schema` | `SOURCE_SCHEMA`        | The router forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the router cannot decode your identifiers. |
 
 To use source-schema resolution, enable Global Object Identification and select the mode in the compose command:
 
@@ -308,7 +308,7 @@ To use source-schema resolution, enable Global Object Identification and select 
 nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive gateway.far \
+  --archive graph.far \
   --enable-global-object-identification \
   --node-resolution source-schema
 ```
@@ -317,10 +317,10 @@ To update an existing archive, enable Global Object Identification before changi
 
 ```bash
 nitro fusion settings set global-object-identification true \
-  --archive gateway.far
+  --archive graph.far
 
 nitro fusion settings set node-resolution source-schema \
-  --archive gateway.far
+  --archive graph.far
 ```
 
 For the settings command reference, see [nitro fusion settings set](../cli.md#nitro-fusion-settings-set). If you compose through Aspire, set `EnableGlobalObjectIdentification` to `true` and `NodeResolution` to `NodeResolution.SourceSchema` in `GraphQLCompositionSettings`. See [Composition settings](../local-development.md#composition-settings).
@@ -330,7 +330,7 @@ For the settings command reference, see [nitro fusion settings set](../cli.md#ni
 After a successful composition, Nitro prints the archive path:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/gateway.far'.
+✅ Composite schema written to '/absolute/path/to/graph.far'.
 ```
 
 The generated execution schema should also contain:
@@ -341,7 +341,7 @@ schema @fusion__execution(nodeResolution: SOURCE_SCHEMA) {
 }
 ```
 
-Deploy a `SOURCE_SCHEMA` archive only to compatible gateways that support the `@fusion__execution` metadata. An older gateway can fall back to gateway-side ID decoding.
+Deploy a `SOURCE_SCHEMA` archive only to compatible routers that support the `@fusion__execution` metadata. An older router can fall back to router-side ID decoding.
 
 ## Troubleshoot source-schema resolution
 
@@ -353,21 +353,21 @@ See [GraphQL Global Object Identification](../entities-and-lookups.md#graphql-gl
 
 # Runtime Behavior
 
-The gateway uses Apollo's entity protocol when it routes to Apollo Federation subgraphs.
+The router uses Apollo's entity protocol when it routes to Apollo Federation subgraphs.
 
-**Entity batching.** When the gateway needs several entities of the same type from one subgraph, it sends one `_entities` call with all representations in the `representations` array. Identical representations are de-duplicated.
+**Entity batching.** When the router needs several entities of the same type from one subgraph, it sends one `_entities` call with all representations in the `representations` array. Identical representations are de-duplicated.
 
-**Requirement threading.** When a field on one subgraph depends on data owned by another (the `@requires` case), the gateway resolves the required fields first. It then threads them into the representation it sends to the subgraph that needs them.
+**Requirement threading.** When a field on one subgraph depends on data owned by another (the `@requires` case), the router resolves the required fields first. It then threads them into the representation it sends to the subgraph that needs them.
 
-**Error propagation.** Errors returned by a subgraph and transport failures that prevent the gateway from reaching it are attached to the affected result paths and surfaced in the gateway response.
+**Error propagation.** Errors returned by a subgraph and transport failures that prevent the router from reaching it are attached to the affected result paths and surfaced in the router response.
 
 ## Batching
 
 Because entity keys travel in the `representations` argument, a single `_entities` call already resolves many entities at once. What is left to batch is the case where one plan wave needs several _different_ operations from the same subgraph, for example two `_entities` calls with different sub-selections.
 
-For an Apollo Federation subgraph the gateway defaults to **alias batching only**: it merges those operations into one plain GraphQL operation with alias-prefixed root fields, which any spec-compliant GraphQL server can answer. Neither protocol extension, variable batching nor request batching, is assumed on this connector. Subgraphs connected through the default GraphQL connector keep the protocol-extension defaults instead.
+For an Apollo Federation subgraph the router defaults to **alias batching only**: it merges those operations into one plain GraphQL operation with alias-prefixed root fields, which any spec-compliant GraphQL server can answer. Neither protocol extension, variable batching nor request batching, is assumed on this connector. Subgraphs connected through the default GraphQL connector keep the protocol-extension defaults instead.
 
-If your federation server does accept JSON-array request batching, declare it in that source schema's settings and the gateway prefers it over alias batching:
+If your federation server does accept JSON-array request batching, declare it in that source schema's settings and the router prefers it over alias batching:
 
 ```json
 {
@@ -387,11 +387,11 @@ If your federation server does accept JSON-array request batching, declare it in
 
 Each flag you declare wins over the default on its own; the flags you leave out keep it. The snippet above therefore ends up with request batching **and** alias batching. To turn batching off completely for a federation subgraph, declare `"aliasBatching": false` as well.
 
-See [Batching](../batching.md) for the three capabilities, how the gateway picks between them, and how errors are attributed to items of a merged operation.
+See [Batching](../batching.md) for the three capabilities, how the router picks between them, and how errors are attributed to items of a merged operation.
 
 # Current Limitations
 
-The connector is under active development and ships as a preview. Composition rejects unsupported Apollo Federation features with a specific error code, so the gateway does not produce a schema that would misbehave at runtime.
+The connector is under active development and ships as a preview. Composition rejects unsupported Apollo Federation features with a specific error code, so the router does not produce a schema that would misbehave at runtime.
 
 - **Apollo Federation v1 requires explicit source settings.** Set `extensions.chillicream.apolloFederationSupport.version` to exact `"1.0"` for that source. Raw v1 SDL without the marker is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Federation v2 schemas continue to use their `@link`; for a remote source, the optional exact `"2.0"` marker selects `_service.sdl` acquisition without enabling the v1 parser.
 - **Several Apollo Federation v2 directives are not supported.** Composition rejects `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
@@ -404,11 +404,11 @@ Feature support tracks the [GraphQL Hive federation-gateway-audit](https://githu
 
 The connector runs your Apollo Federation subgraphs as they are. It does not rewrite them. When you want to move a subgraph to the GraphQL Federation protocol (`[Lookup]` in place of `@key`, `[Require]` in place of `@requires`, and so on), see [Coming from Apollo Federation](../migration/coming-from-apollo-federation.md).
 
-You do not have to choose one protocol for the whole graph. Apollo Federation and GraphQL Federation subgraphs compose together, so you can put the gateway in front of your existing Apollo Federation fleet first. Then you can move subgraphs to the GraphQL Federation protocol one at a time while the rest keep running unchanged.
+You do not have to choose one protocol for the whole graph. Apollo Federation and GraphQL Federation subgraphs compose together, so you can put the router in front of your existing Apollo Federation fleet first. Then you can move subgraphs to the GraphQL Federation protocol one at a time while the rest keep running unchanged.
 
 # Next Steps
 
-- Compose and run a gateway: [nitro fusion compose](../cli.md#nitro-fusion-compose) and [Getting Started](../getting-started.md).
+- Compose and run a router: [nitro fusion compose](../cli.md#nitro-fusion-compose) and [Getting Started](../getting-started.md).
 - Understand entity resolution in the GraphQL Federation model: [Entities and Lookups](../entities-and-lookups.md).
 - Extend interfaces across source schemas: [Interface Objects](../interface-objects.md).
 - Move subgraphs to the GraphQL Federation protocol: [Coming from Apollo Federation](../migration/coming-from-apollo-federation.md).

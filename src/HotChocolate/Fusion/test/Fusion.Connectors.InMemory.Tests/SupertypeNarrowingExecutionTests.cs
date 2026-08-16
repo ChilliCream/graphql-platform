@@ -28,7 +28,7 @@ public sealed class SupertypeNarrowingExecutionTests
         services.AddHttpClient();
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument());
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
@@ -42,7 +42,7 @@ public sealed class SupertypeNarrowingExecutionTests
                 setup.ClientConfigurationModifiers.Add(_ => new TestSourceSchemaClientConfiguration("B"));
             });
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(

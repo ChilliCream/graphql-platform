@@ -76,7 +76,7 @@ app.MapGraphQLPersistedOperations();
 
 # `@cacheControl` in GraphQL
 
-A deterministic route alone is not enough. The gateway also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
+A deterministic route alone is not enough. The router also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
 
 GraphQL provides the `@cacheControl` directive for this purpose. You can place it on fields and types to describe cache intent.
 
@@ -222,7 +222,7 @@ In day-to-day terms, the flow is simple:
 
 - Subgraphs declare cache intent.
 - Fusion composes that metadata.
-- The gateway calculates one safe policy for each query result.
+- The router calculates one safe policy for each query result.
 - HTTP caches enforce the resulting headers.
 
 # Next Steps

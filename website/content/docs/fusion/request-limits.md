@@ -1,9 +1,9 @@
 ---
 title: "Request Limits"
-description: "Protect a Fusion gateway with request limits: parser options like `MaxAllowedFields`, validation depth caps, planner guardrails, and execution timeouts."
+description: "Protect a Fusion router with request limits: parser options like `MaxAllowedFields`, validation depth caps, planner guardrails, and execution timeouts."
 ---
 
-A Fusion gateway faces the same GraphQL query attacks as a standalone server: deep nesting, alias amplification, fragment expansion, and directive overloading. It also has gateway-specific risks like expensive query planning. Fusion enforces limits at every stage of the pipeline: parsing, validation, planning, and execution.
+A Fusion router faces the same GraphQL query attacks as a standalone server: deep nesting, alias amplification, fragment expansion, and directive overloading. It also has router-specific risks like expensive query planning. Fusion enforces limits at every stage of the pipeline: parsing, validation, planning, and execution.
 
 This page covers:
 
@@ -52,7 +52,7 @@ Each time a visitor enters a fragment spread counts as one visit. Queries with d
 
 ## Field Merge Comparisons
 
-The overlapping-fields-can-be-merged rule caps comparison work at 100,000 by default. No configuration is needed for most gateways. The default protects against fragment expansion bombs.
+The overlapping-fields-can-be-merged rule caps comparison work at 100,000 by default. No configuration is needed for most routers. The default protects against fragment expansion bombs.
 
 ## Field Coordinate Cycles
 
@@ -126,7 +126,7 @@ builder.DisableIntrospection();
 
 # Operation Planner Guardrails
 
-Before execution, the gateway plans how to distribute the query across subgraphs. Complex queries can cause expensive planning. These guardrails prevent planning from consuming excessive resources.
+Before execution, the router plans how to distribute the query across subgraphs. Complex queries can cause expensive planning. These guardrails prevent planning from consuming excessive resources.
 
 ```csharp
 builder
@@ -164,7 +164,7 @@ builder
 The maximum HTTP request body size defaults to approximately 20 MB:
 
 ```csharp
-builder.AddGraphQLGateway(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
+builder.AddGraphQLRouter(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
 ```
 
 ## Server Options
@@ -181,6 +181,6 @@ builder
 
 # Next Steps
 
-- **"I need to secure my gateway."** [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
+- **"I need to secure my router."** [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to tune transport performance."** [Performance Tuning](./performance-tuning.md) covers HTTP/2, request deduplication, and concurrency limiting.
-- **"I need CDN and HTTP response caching behavior."** [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.
+- **"I need CDN and HTTP response caching behavior."** [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and router response headers.

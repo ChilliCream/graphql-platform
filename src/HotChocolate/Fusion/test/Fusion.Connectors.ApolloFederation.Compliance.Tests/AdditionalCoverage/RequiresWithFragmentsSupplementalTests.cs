@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.AdditionalCoverage;
 
 public sealed class RequiresWithFragmentsSupplementalTests : ComplianceTestBase
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => FusionGatewayBuilder.ComposeOfficialV2Async<RequiresWithFragmentsTests>(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));

@@ -22,14 +22,14 @@ internal class FusionRunCommand : Command
 {
     public FusionRunCommand() : base("run")
     {
-        Description = "Start a Fusion gateway with the specified archive."
+        Description = "Start a Fusion router with the specified archive."
             + Environment.NewLine
             + "This command only supports Fusion v2.";
 
         Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
         Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        this.AddExamples("fusion run ./gateway.far --port 5000");
+        this.AddExamples("fusion run ./graph.far --port 5000");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -71,7 +71,7 @@ internal class FusionRunCommand : Command
                     .AddHeaderPropagation();
 
                 services.AddRouting()
-                    .AddGraphQLGatewayServer()
+                    .AddGraphQLRouter()
                     .AddFileSystemConfiguration(archiveFilePath)
                     .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
                     .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);

@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class CorruptedSupergraphNodeIdTests
     : OfficialV2ComplianceTestBase<CorruptedSupergraphNodeIdTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (SubgraphASubgraph.Name, SubgraphASubgraph.BuildAsync),
             (SubgraphBSubgraph.Name, SubgraphBSubgraph.BuildAsync));

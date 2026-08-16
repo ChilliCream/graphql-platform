@@ -31,7 +31,7 @@ internal sealed class FusionSettingsSetCommand : Command
         this.AddExamples(
             """
             fusion settings set global-object-identification "true" \
-              --archive ./gateway.far \
+              --archive ./graph.far \
               --env "dev"
             """);
 

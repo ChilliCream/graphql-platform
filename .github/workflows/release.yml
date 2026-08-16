@@ -131,7 +131,7 @@ jobs:
         run: |
           sed -i "s|0\.0\.0-placeholder|${GIT_TAG}|g" \
             templates/azure-function/HotChocolate.Template.AzureFunctions.csproj \
-            templates/gateway/HotChocolate.Template.Gateway.csproj \
+            templates/router/HotChocolate.Template.Router.csproj \
             templates/server/HotChocolate.Template.Server.csproj
 
       - name: 📦 Build NuGet Packages

@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class NestedProvidesTests
     : OfficialV2ComplianceTestBase<NestedProvidesTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV2Async(
             (AllProductsSubgraph.Name, AllProductsSubgraph.BuildAsync),
             (CategorySubgraph.Name, CategorySubgraph.BuildAsync),

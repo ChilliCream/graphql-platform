@@ -326,7 +326,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient();
             var services = serviceCollection
-                .AddGraphQLGateway()
+                .AddGraphQLRouterCore()
                 .AddInMemoryConfiguration(
                     ComposeSchemaDocument(
                         """

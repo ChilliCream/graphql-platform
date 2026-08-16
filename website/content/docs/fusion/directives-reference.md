@@ -42,7 +42,7 @@ directive @key(fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
 | -------- | -------------------- | -------------------------------------------------------------------------------- |
 | `fields` | `FieldSelectionSet!` | A field selection set that forms the unique key (e.g. `"id"` or `"tenantId id"`) |
 
-Each `@key` directive on a type specifies one distinct unique key for that entity. Apply multiple `@key` directives to define alternative keys that the gateway can use to resolve the entity. Fields referenced in a key are implicitly shareable across subgraphs -- you do not need to add `@shareable` to key fields.
+Each `@key` directive on a type specifies one distinct unique key for that entity. Apply multiple `@key` directives to define alternative keys that the router can use to resolve the entity. Fields referenced in a key are implicitly shareable across subgraphs -- you do not need to add `@shareable` to key fields.
 
 Key fields may supply constant arguments to select a specific variant of a field (for example, `@key(fields: "id(scope: LOCAL)")`). Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied. Composition reports unknown, incompatible, or missing-required arguments as `KEY_INVALID_ARGUMENTS`.
 
@@ -94,13 +94,13 @@ type Product @key(fields: "id sku") {
 
 ## `@lookup`
 
-Marks a field as an entity lookup resolver that the gateway uses to resolve an entity by a stable key.
+Marks a field as an entity lookup resolver that the router uses to resolve an entity by a stable key.
 
 ```graphql
 directive @lookup on FIELD_DEFINITION
 ```
 
-Lookup fields provide the gateway with entry points into a subgraph for entity resolution. A source schema can define multiple lookup fields for the same entity to support resolution by different keys. Lookup fields must return a nullable type and must not return a list.
+Lookup fields provide the router with entry points into a subgraph for entity resolution. A source schema can define multiple lookup fields for the same entity to support resolution by different keys. Lookup fields must return a nullable type and must not return a list.
 
 **Example:**
 
@@ -284,7 +284,7 @@ See [Replace a Projected Default](./interface-objects.md#replace-a-projected-def
 
 ## `@require`
 
-Declares that a resolver argument needs data from fields owned by other subgraphs. The gateway resolves the required data first, then passes it to the resolver. Arguments annotated with `@require` are removed from the composed client-facing schema.
+Declares that a resolver argument needs data from fields owned by other subgraphs. The router resolves the required data first, then passes it to the resolver. Arguments annotated with `@require` are removed from the composed client-facing schema.
 
 ```graphql
 directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
@@ -294,7 +294,7 @@ directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 | -------- | -------------------- | ----------------------------------------------------------------------- |
 | `field`  | `FieldSelectionMap!` | A selection map describing which fields from the entity type are needed |
 
-Use `@require` when a resolver in one subgraph needs data that another subgraph owns. The gateway handles the data fetching automatically. This shifts cross-service data dependencies from hidden runtime failures to validated build-time contracts. Fields in the selection map may carry constant arguments to select a specific variant (for example, `@require(field: "dimension(unit: METRIC)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `REQUIRE_INVALID_FIELDS`.
+Use `@require` when a resolver in one subgraph needs data that another subgraph owns. The router handles the data fetching automatically. This shifts cross-service data dependencies from hidden runtime failures to validated build-time contracts. Fields in the selection map may carry constant arguments to select a specific variant (for example, `@require(field: "dimension(unit: METRIC)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `REQUIRE_INVALID_FIELDS`.
 
 **Example -- scalar requirement:**
 
@@ -339,7 +339,7 @@ Allows multiple subgraphs to define the same field. Without `@shareable`, defini
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 ```
 
-When multiple subgraphs mark the same field as `@shareable`, they declare that the field is semantically equivalent across all definitions. The gateway is free to resolve the field from any subgraph that defines it. Apply `@shareable` to an object type to make all its fields shareable.
+When multiple subgraphs mark the same field as `@shareable`, they declare that the field is semantically equivalent across all definitions. The router is free to resolve the field from any subgraph that defines it. Apply `@shareable` to an object type to make all its fields shareable.
 
 **Example:**
 
@@ -387,7 +387,7 @@ directive @provides(fields: FieldSelectionSet!) on FIELD_DEFINITION
 | -------- | -------------------- | -------------------------------------------------------------------------------------------------- |
 | `fields` | `FieldSelectionSet!` | A field selection set describing the subfields of the returned type that this subgraph can resolve |
 
-This is a query-planning optimization. When a client requests provided subfields through this particular field path, the gateway resolves them from the current subgraph instead of making a separate call. Fields referenced in `@provides` must be marked `@external` on the return type. Fields in a `@provides` selection must not have arguments; composition reports any argument usage as `PROVIDES_FIELDS_HAS_ARGUMENTS`.
+This is a query-planning optimization. When a client requests provided subfields through this particular field path, the router resolves them from the current subgraph instead of making a separate call. Fields referenced in `@provides` must be marked `@external` on the return type. Fields in a `@provides` selection must not have arguments; composition reports any argument usage as `PROVIDES_FIELDS_HAS_ARGUMENTS`.
 
 **Example:**
 
@@ -518,7 +518,7 @@ type Product {
 
 ## `@internal`
 
-Hides a type or field from the composite schema and excludes it from the standard schema-merging process. The gateway can still use internal fields as lookup entry points for entity resolution.
+Hides a type or field from the composite schema and excludes it from the standard schema-merging process. The router can still use internal fields as lookup entry points for entity resolution.
 
 ```graphql
 directive @internal on OBJECT | FIELD_DEFINITION
@@ -612,7 +612,7 @@ These two directives both hide elements from the composite schema, but they beha
 | Collision      | No collisions with other schemas | Hides even if other schemas expose it |
 | Use case       | Internal lookup entry points     | Restrict client access to fields      |
 
-Use `@internal` when a field or type exists solely for the gateway's entity resolution and should not interact with other schemas at all. Use `@inaccessible` when a field carries data that other subgraphs may depend on through `@require`, but clients should not query it directly.
+Use `@internal` when a field or type exists solely for the router's entity resolution and should not interact with other schemas at all. Use `@inaccessible` when a field carries data that other subgraphs may depend on through `@require`, but clients should not query it directly.
 
 ---
 
@@ -620,7 +620,7 @@ Use `@internal` when a field or type exists solely for the gateway's entity reso
 
 ## `@eventStream`
 
-Backs a subscription root field with a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis). The gateway subscribes to the configured topics and, for each event, resolves the field's selection set across the subgraphs from the event payload.
+Backs a subscription root field with a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis). The router subscribes to the configured topics and, for each event, resolves the field's selection set across the subgraphs from the event payload.
 
 ```graphql
 directive @eventStream(
@@ -652,7 +652,7 @@ type Subscription {
 }
 ```
 
-The directive is removed from the client-facing schema; the gateway records the broker binding on its internal subscribe metadata.
+The directive is removed from the client-facing schema; the router records the broker binding on its internal subscribe metadata.
 
 > **In C#:** `[EventStream("...")]` attribute or `.EventStream(...)`. See [Subscriptions](./subscriptions.md).
 
@@ -697,7 +697,7 @@ type ProductPriceChange {
 }
 ```
 
-During composition the two `@eventCursor` markers are recorded on the gateway's internal subscribe metadata (as `cursorField` and `cursorArgument`), so the gateway knows which field surfaces the cursor and which argument resumes the stream.
+During composition the two `@eventCursor` markers are recorded on the router's internal subscribe metadata (as `cursorField` and `cursorArgument`), so the router knows which field surfaces the cursor and which argument resumes the stream.
 
 > **In C#:** `[EventCursor]` attribute or `.EventCursor()`. See [Client-resumable subscriptions](./subscriptions.md#client-resumable-subscriptions).
 

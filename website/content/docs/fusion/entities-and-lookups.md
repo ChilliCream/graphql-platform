@@ -1,6 +1,6 @@
 ---
 title: "Entities and Lookups"
-description: "How entities work in Hot Chocolate Fusion: define key-based identity and use @lookup fields so the gateway can resolve types across subgraphs."
+description: "How entities work in Hot Chocolate Fusion: define key-based identity and use @lookup fields so the router can resolve types across subgraphs."
 ---
 
 Entities are the mechanism that makes distributed GraphQL work. They are types with stable keys that can be referenced and resolved across subgraphs. For example, the Products subgraph defines the `Product` type, and the Reviews subgraph contributes the `reviews` field to `Product`. The Accounts subgraph defines the `User` type, and other subgraphs can contribute additional fields to `User`. Without entities, each subgraph would be an isolated API. With entities, those subgraphs compose into one unified API.
@@ -14,7 +14,7 @@ A type is not an entity because it appears in multiple subgraphs. It is an entit
 In practice, two requirements matter:
 
 1. **Entity identity:** one or more key fields uniquely identify each instance, like `id` or `sku`.
-2. **Entity resolution:** at least one lookup is available so the gateway can resolve references by key.
+2. **Entity resolution:** at least one lookup is available so the router can resolve references by key.
 
 ```graphql
 # Products subgraph
@@ -42,15 +42,15 @@ type Query {
 }
 ```
 
-In these examples, `id` is the key and `@lookup` defines how `Product` is resolved by that key. The Reviews lookup is internal, so clients cannot call it directly, but the gateway can use it to enter the Reviews subgraph and resolve `reviews`.
+In these examples, `id` is the key and `@lookup` defines how `Product` is resolved by that key. The Reviews lookup is internal, so clients cannot call it directly, but the router can use it to enter the Reviews subgraph and resolve `reviews`.
 
 # Lookups
 
-A lookup is a query field that resolves an entity by its key. The gateway uses lookups to fetch additional fields for entities. Depending on the requested fields and available routes, it can use any subgraph that provides those fields and a compatible lookup path. Without a lookup, the gateway has no way to enter a subgraph and resolve an entity.
+A lookup is a query field that resolves an entity by its key. The router uses lookups to fetch additional fields for entities. Depending on the requested fields and available routes, it can use any subgraph that provides those fields and a compatible lookup path. Without a lookup, the router has no way to enter a subgraph and resolve an entity.
 
 ## Public Lookups
 
-A public lookup serves two purposes: clients can call it directly as a query field, and the gateway uses it for entity resolution behind the scenes.
+A public lookup serves two purposes: clients can call it directly as a query field, and the router uses it for entity resolution behind the scenes.
 
 **GraphQL schema**
 
@@ -106,7 +106,7 @@ public static partial class ProductQueries
 
 ## Internal Lookups
 
-An internal lookup is hidden from the composite schema. Clients cannot call it directly. It exists only for the gateway to use during entity resolution.
+An internal lookup is hidden from the composite schema. Clients cannot call it directly. It exists only for the router to use during entity resolution.
 
 **GraphQL schema**
 
@@ -116,7 +116,7 @@ type Query {
 }
 ```
 
-The `@internal` directive tells the composition to exclude this lookup from the public composite schema. The gateway can still use it when it needs to enter the Reviews subgraph to resolve `Product.reviews`, but clients never see or call it.
+The `@internal` directive tells the composition to exclude this lookup from the public composite schema. The router can still use it when it needs to enter the Reviews subgraph to resolve `Product.reviews`, but clients never see or call it.
 
 **C# resolver**
 
@@ -163,11 +163,11 @@ public partial class InternalLookups
 }
 ```
 
-In this pattern, clients cannot access `internalLookups` from the composite schema, but the gateway can still use nested `@lookup` fields for internal transitions.
+In this pattern, clients cannot access `internalLookups` from the composite schema, but the router can still use nested `@lookup` fields for internal transitions.
 
 ## When to Use Internal vs. Public Lookups
 
-![Public vs internal lookup visibility: clients can call public lookups, only the gateway can call internal lookups](../../../public/images/fusion-docs/entities-public-vs-internal-lookup.png)
+![Public vs internal lookup visibility: clients can call public lookups, only the router can call internal lookups](../../../public/images/fusion-docs/entities-public-vs-internal-lookup.png)
 
 Use a **public lookup** when:
 
@@ -185,7 +185,7 @@ For cross-subgraph resolution to work, a subgraph that contributes fields to an 
 
 ## Multiple Lookups Per Entity
 
-An entity can have multiple lookups, even in the same subgraph. This is useful when an entity can be identified by different keys. It is especially helpful when different subgraphs reference the same entity through different keys, for example `User.id` in one place and `User.username` in another. By providing both lookups, the gateway can transition into the target subgraph from either reference shape.
+An entity can have multiple lookups, even in the same subgraph. This is useful when an entity can be identified by different keys. It is especially helpful when different subgraphs reference the same entity through different keys, for example `User.id` in one place and `User.username` in another. By providing both lookups, the router can transition into the target subgraph from either reference shape.
 
 **GraphQL schema**
 
@@ -218,7 +218,7 @@ public static partial class UserQueries
 }
 ```
 
-The Accounts subgraph defines two lookups for `User`: one by `id` and one by `username`. The gateway can resolve a User reference using whichever key is available. If another subgraph references a User by username, the gateway uses `GetUserByUsername`.
+The Accounts subgraph defines two lookups for `User`: one by `id` and one by `username`. The router can resolve a User reference using whichever key is available. If another subgraph references a User by username, the router uses `GetUserByUsername`.
 
 With more modern GraphQL servers you can also use the finder pattern with the `@oneOf` directive.
 
@@ -406,7 +406,7 @@ builder
     .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true);
 ```
 
-> If GraphQL Global Object Identification is enabled at the gateway level, every entity resolvable through the `node` field becomes a public entry point. Use explicit internal lookups for entities you do not want exposed as public entry points.
+> If GraphQL Global Object Identification is enabled at the router level, every entity resolvable through the `node` field becomes a public entry point. Use explicit internal lookups for entities you do not want exposed as public entry points.
 
 # Next Steps
 
@@ -414,4 +414,4 @@ builder
 - **Need field ownership contracts?** See [Field Ownership](./field-ownership-and-sharing.md).
 - **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@is`, `@require`, and FieldSelectionMap patterns.
 - **Need runtime performance guidance?** See Hot Chocolate docs for DataLoader and batching patterns used inside lookup resolvers.
-- **Ready to go to production?** See [Authentication and Authorization](./authentication-and-authorization.md) for securing your gateway and subgraphs, or [Deployment and CI/CD](./deployment-and-ci-cd.md) for setting up independent subgraph deployments.
+- **Ready to go to production?** See [Authentication and Authorization](./authentication-and-authorization.md) for securing your router and subgraphs, or [Deployment and CI/CD](./deployment-and-ci-cd.md) for setting up independent subgraph deployments.

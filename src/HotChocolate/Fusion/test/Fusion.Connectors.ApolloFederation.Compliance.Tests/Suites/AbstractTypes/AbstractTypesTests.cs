@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Suites;
 [OfficialV1Suite("abstract-types")]
 public sealed class AbstractTypesTests : OfficialV1ComplianceTestBase<AbstractTypesTests>
 {
-    protected override Task<FusionGateway> BuildGatewayAsync()
+    protected override Task<FusionGateway> BuildRouterAsync()
         => ComposeOfficialV1Async(
             (AgencySubgraph.Name, AgencySubgraph.BuildAsync),
             (InventorySubgraph.Name, InventorySubgraph.BuildAsync),

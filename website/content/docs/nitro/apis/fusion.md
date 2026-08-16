@@ -1,45 +1,45 @@
 ---
 title: "Fusion"
-description: "Use Nitro as the control plane for your Fusion gateway: monitor topology and subgraph telemetry, and let the gateway pull its latest configuration automatically."
+description: "Use Nitro as the control plane for your Fusion router: monitor topology and subgraph telemetry, and let the router pull its latest configuration automatically."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/fusion-0.webp)
 
-Nitro can be used as your orchestrator for your Fusion gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion gateway.
+Nitro can be used as your orchestrator for your Fusion router. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion router.
 
-On the Fusion dashboard you can now see the tracing information of your gateway and your subgraphs.
+On the Fusion dashboard you can now see the tracing information of your router and your subgraphs.
 
 # Dashboard
 
-The Fusion dashboard gives you a quick overview of your gateway and subgraphs. It shows you the status of your gateway and the status of your subgraphs. You can also see the latest telemetry data insights of your gateway and subgraphs.
+The Fusion dashboard gives you a quick overview of your router and subgraphs. It shows you the status of your router and the status of your subgraphs. You can also see the latest telemetry data insights of your router and subgraphs.
 
 ## Topology
 
 ![Image](../../../../public/images/nitro-docs/apis/fusion-1.webp)
 
-The topology view shows you the connections between your gateway and your subgraphs. You can also see which clients are connected to your gateway and how many operations they are executing.
+The topology view shows you the connections between your router and your subgraphs. You can also see which clients are connected to your router and how many operations they are executing.
 
 ## Status
 
 ![Image](../../../../public/images/nitro-docs/apis/fusion-2.webp)
-The status view shows you a quick overview of the status of your gateway. With the indicators for latency, throughput and errors you see how your gateway statistics developed between the previous and the current time range.
+The status view shows you a quick overview of the status of your router. With the indicators for latency, throughput and errors you see how your router statistics developed between the previous and the current time range.
 
-You also see the essential information about your gateway, such as the version, the stage, how many subgraphs are connected and how many clients are connected.
+You also see the essential information about your router, such as the version, the stage, how many subgraphs are connected and how many clients are connected.
 
 ## Subgraphs
 
 ![Image](../../../../public/images/nitro-docs/apis/fusion-3.webp)
 The subgraphs view shows you a quick overview over your connected subgraphs. You can see the latency, throughput and error rate of each subgraph.
 
-# Gateway Management
+# Router Management
 
-With Fusion you compose your gateway configuration locally when you deploy a subgraph. This means that you somehow need to inform your gateway that there is a new configuration available.
+With Fusion you compose your router configuration locally when you deploy a subgraph. This means that you somehow need to inform your router that there is a new configuration available.
 
-With Nitro you can automate this process. You can configure your gateway to automatically pull the latest configuration from Nitro. This way you can be sure that your gateway always has the latest configuration. You can also validate your configuration against the schema and client registry to make sure that your change does not break any clients.
+With Nitro you can automate this process. You can configure your router to automatically pull the latest configuration from Nitro. This way you can be sure that your router always has the latest configuration. You can also validate your configuration against the schema and client registry to make sure that your change does not break any clients.
 
-## Configure your gateway
+## Configure your router
 
-To configure your Fusion gateway to pull the configuration from Nitro, you need to install the `ChilliCream.Nitro` and `ChilliCream.Nitro.Fusion` packages. You can do this by running the following commands in your project's root directory:
+To configure your Fusion router to pull the configuration from Nitro, you need to install the `ChilliCream.Nitro` and `ChilliCream.Nitro.Fusion` packages. You can do this by running the following commands in your project's root directory:
 
 ```bash
 dotnet add package ChilliCream.Nitro
@@ -79,11 +79,11 @@ builder.Services
 >
 > In this setup, the API key, ID, and stage are set through environment variables.
 
-Now your gateway will be notified whenever there is a new configuration available and will automatically pull it.
+Now your router will be notified whenever there is a new configuration available and will automatically pull it.
 
 ## Configure Your Subgraphs
 
-To set up your subgraphs to be linked with your gateway, you need to follow these steps:
+To set up your subgraphs to be linked with your router, you need to follow these steps:
 
 ### Step 1: Install ChilliCream.Nitro Package
 
@@ -269,11 +269,11 @@ dotnet nitro fusion-configuration publish commit --configuration ./gateway.fgp -
 # Distributed Telemetry
 
 ![Image](../../../../public/images/nitro-docs/apis/fusion-4.webp)
-Nitro provides a distributed telemetry solution for your Fusion Gateway. It allows you to monitor your gateway and all your subgraphs in one place. You can inspect the traces of your operations on the gateway and see how they are executed on the subgraphs.
+Nitro provides a distributed telemetry solution for your Fusion router. It allows you to monitor your router and all your subgraphs in one place. You can inspect the traces of your operations on the router and see how they are executed on the subgraphs.
 
-To enable telemetry for your gateway and subgraphs, all of them need to be configured to send telemetry data to Nitro. Your subgraphs can be configured to send telemetry data by using the [ChilliCream.Nitro](https://www.nuget.org/packages/ChilliCream.Nitro/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](../open-telemetry/operation-monitoring.md) guide.
+To enable telemetry for your router and subgraphs, all of them need to be configured to send telemetry data to Nitro. Your subgraphs can be configured to send telemetry data by using the [ChilliCream.Nitro](https://www.nuget.org/packages/ChilliCream.Nitro/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](../open-telemetry/operation-monitoring.md) guide.
 
-To send telemetry data from the gateway you need to add the instrumentation and the exporter to your gateway.
+To send telemetry data from the router you need to add the instrumentation and the exporter to your router.
 
 ```csharp
 builder.Services
@@ -281,8 +281,7 @@ builder.Services
     .AddOpenTelemetry();
 
 builder
-    .AddGraphQLGateway()
-    .CoreBuilder
+    .AddGraphQLRouter()
     .AddInstrumentation();
 
 builder.Services
@@ -292,7 +291,7 @@ builder.Services
         .AddAspNetCoreInstrumentation());
 ```
 
-Now your gateway will send the telemetry data to Nitro. To connect your subgraphs to the gateway, you need to add an extension to your `subgraph-config.json`. You need to specify the `apiId` of the subgraph
+Now your router will send the telemetry data to Nitro. To connect your subgraphs to the router, you need to add an extension to your `subgraph-config.json`. You need to specify the `apiId` of the subgraph
 
 ```json
 {
@@ -339,7 +338,7 @@ services
     .AddAssetCache<TCache>();
 
 services
-    .AddGraphQLGateway();
+    .AddGraphQLRouterCore();
 ```
 
 ## `FileSystemCache`

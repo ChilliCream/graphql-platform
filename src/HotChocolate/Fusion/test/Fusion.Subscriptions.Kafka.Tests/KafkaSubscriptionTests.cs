@@ -52,7 +52,7 @@ public sealed class KafkaSubscriptionTests : IClassFixture<KafkaFixture>
         };
 
         var builder = services
-            .AddGraphQLGateway()
+            .AddGraphQLRouterCore()
             .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
@@ -68,7 +68,7 @@ public sealed class KafkaSubscriptionTests : IClassFixture<KafkaFixture>
                     _ => new TestSourceSchemaClientConfiguration("BOOKS"));
             });
 
-        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var executor = await services.BuildRouterAsync(TestContext.Current.CancellationToken);
         var events = CollectOneEventAsync(executor, cts.Token);
         await WaitForAssignmentsAsync(assignments.Reader, cts.Token);
 

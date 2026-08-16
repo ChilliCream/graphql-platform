@@ -23,7 +23,7 @@ public struct GraphQLCompositionSettings
     public bool? EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
-    /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
+    /// Gets or sets how the router resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution? NodeResolution { get; set; }
 
