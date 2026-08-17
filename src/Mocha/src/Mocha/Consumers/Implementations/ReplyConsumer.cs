@@ -34,8 +34,8 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
     {
         if (context.CorrelationId is not { } correlationId)
         {
-            // A saga reply correlates through the saga-id header and carries no correlation id, so
-            // it cannot match a promise and is expected to be owned by another consumer.
+            // Dispatch always stamps a correlation id, so a reply without one came from elsewhere.
+            // It cannot match a promise, and only matters when no other consumer claimed it.
             ReportUnmatchedReply(context, correlationId: null);
             return default;
         }
