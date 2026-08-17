@@ -56,7 +56,9 @@ const PRODUCT_TITLES_BY_SLUG = new Map(
 const PRODUCT_TITLES = new Set(PRODUCT_TITLES_BY_SLUG.values());
 const DOCS_PATH_PATTERN = /^\/docs\/([^/]+)/;
 
-function getProduct(hit: DocSearchHit): string {
+type ProductSearchHit = Pick<DocSearchHit, "url" | "hierarchy">;
+
+function getProduct(hit: ProductSearchHit): string {
   try {
     const pathname = new URL(hit.url, "https://chillicream.com").pathname;
     const productSlug = DOCS_PATH_PATTERN.exec(pathname)?.[1]?.toLowerCase();

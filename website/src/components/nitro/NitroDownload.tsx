@@ -561,7 +561,14 @@ export function NitroDownload() {
         href={active.url}
         download={active.filename}
         rel="noopener noreferrer nofollow"
-        onClick={() => reportDownload("stable", activeStatus.os, "primary")}
+        onClick={() => {
+          if (
+            activeStatus.state === "ready" &&
+            activeStatus.activeStable !== undefined
+          ) {
+            reportDownload("stable", activeStatus.activeStable.os, "primary");
+          }
+        }}
         className="bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex cursor-pointer flex-col items-center justify-center rounded-l-full py-1.5 pr-4 pl-7 text-sm leading-tight font-medium no-underline transition-colors"
       >
         {active.text}
