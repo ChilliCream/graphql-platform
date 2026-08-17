@@ -8,7 +8,6 @@
     <AssemblyName>HotChocolate.Execution.Abstractions.Benchmarks</AssemblyName>
     <RootNamespace>HotChocolate.Execution.Abstractions.Benchmarks</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
