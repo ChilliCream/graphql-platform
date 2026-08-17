@@ -16,10 +16,19 @@ function resolveSiteUrl(): string {
     (process.env.NODE_ENV === "development"
       ? `http://localhost:${process.env.PORT ?? 3001}`
       : "https://chillicream.com");
-  const url = new URL(value);
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(
+      `NEXT_PUBLIC_SITE_URL must be a valid absolute URL. Received: ${JSON.stringify(value)}`,
+    );
+  }
 
   if (!/^https?:$/.test(url.protocol)) {
-    throw new Error("NEXT_PUBLIC_SITE_URL must use http or https.");
+    throw new Error(
+      `NEXT_PUBLIC_SITE_URL must use http or https. Received: ${JSON.stringify(value)}`,
+    );
   }
   if (
     url.username ||
@@ -29,7 +38,7 @@ function resolveSiteUrl(): string {
     url.hash
   ) {
     throw new Error(
-      "NEXT_PUBLIC_SITE_URL must be an origin without credentials, a path, a query, or a fragment.",
+      `NEXT_PUBLIC_SITE_URL must be an origin without credentials, a path, a query, or a fragment. Received: ${JSON.stringify(value)}`,
     );
   }
 
