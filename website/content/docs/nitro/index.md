@@ -1,7 +1,7 @@
 ---
 title: Nitro
 metaTitle: "Nitro: GraphQL IDE, Observability, and Governance"
-description: "Explore Nitro, ChilliCream's GraphQL IDE and API platform for collaborative development, schema and client registries, and OpenTelemetry monitoring."
+description: "Introduction to Nitro, the GraphQL IDE from ChilliCream with team collaboration, schema and client registries, and OpenTelemetry monitoring for your APIs."
 ---
 
 Nitro combines a collaborative [GraphQL IDE](./explore-the-ui/index.md), [schema and client registries](./apis/overview.md), and [OpenTelemetry monitoring](./open-telemetry/operation-monitoring.md) in one API platform. Use it to explore schemas, run operations, coordinate API changes, and understand production behavior throughout the API lifecycle.

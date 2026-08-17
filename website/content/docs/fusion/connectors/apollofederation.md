@@ -1,7 +1,7 @@
 ---
 title: "Apollo Federation Connector"
 metaTitle: "Use Apollo Federation Subgraphs with Hot Chocolate Fusion"
-description: "Run Apollo Federation v1 and v2 subgraphs behind Hot Chocolate Fusion without changing their SDL, entity resolvers, or deployment model."
+description: "Put a Fusion gateway in front of your existing Apollo Federation subgraphs. Composition auto-detects Apollo Federation SDL and translates @key, @requires, and _entities into the GraphQL Federation model, with no changes to your subgraphs."
 ---
 
 Fusion supports two subgraph protocols: GraphQL Federation and Apollo Federation. GraphQL Federation is the open specification (formerly the GraphQL Composite Schemas specification) that a Fusion gateway speaks directly. Apollo Federation is Apollo's model for distributed GraphQL. This page explains the Apollo Federation connector, which lets a Fusion gateway run Apollo Federation subgraphs.

@@ -1,7 +1,7 @@
 ---
 title: Strawberry Shake
 metaTitle: "Strawberry Shake: GraphQL Client for .NET"
-description: "Generate strongly typed C# clients from GraphQL operations with Strawberry Shake, the reactive GraphQL client for .NET."
+description: A reactive GraphQL client for .NET.
 ---
 
 Strawberry Shake is an open-source GraphQL client for .NET. It generates strongly typed C# client code from your GraphQL operations and provides reactive APIs for working with local and remote data. It works with spec-compliant servers including [Hot Chocolate](../hotchocolate/index.md), [Apollo Server](https://www.apollographql.com/docs/apollo-server), and [GraphQL Java](https://www.graphql-java.com).

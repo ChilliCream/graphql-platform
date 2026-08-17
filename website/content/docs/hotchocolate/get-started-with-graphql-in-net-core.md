@@ -1,7 +1,7 @@
 ---
 title: "Getting Started with GraphQL in .NET"
 metaTitle: "GraphQL .NET Tutorial with Hot Chocolate"
-description: "Build your first GraphQL server in .NET with Hot Chocolate: create a project, inspect the generated C# schema, and run a query in Nitro."
+description: "In this tutorial, you will walk through the basics of creating a GraphQL server with Hot Chocolate."
 ---
 
 import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
