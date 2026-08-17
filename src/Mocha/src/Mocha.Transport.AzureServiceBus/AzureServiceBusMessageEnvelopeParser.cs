@@ -105,7 +105,7 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
         var userKeyCount = 0;
         foreach (var key in props.Keys)
         {
-            if (!key.StartsWith("x-mocha-", StringComparison.Ordinal))
+            if (!AzureServiceBusMessageHeaders.IsFrameworkHeader(key))
             {
                 userKeyCount++;
             }
@@ -120,7 +120,7 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
         var result = new Headers(userKeyCount + nativePropertyCount);
         foreach (var (key, value) in props)
         {
-            if (key.StartsWith("x-mocha-", StringComparison.Ordinal))
+            if (AzureServiceBusMessageHeaders.IsFrameworkHeader(key))
             {
                 continue;
             }

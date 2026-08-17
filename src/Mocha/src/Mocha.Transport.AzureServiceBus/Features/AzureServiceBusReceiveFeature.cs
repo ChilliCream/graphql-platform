@@ -35,24 +35,20 @@ internal sealed class AzureServiceBusReceiveFeature : IPooledFeature
     /// </summary>
     public ProcessSessionMessageEventArgs? ProcessSessionMessageEventArgs { get; private set; }
 
-    internal void SetNonSession(ProcessMessageEventArgs args)
+    public void SetNonSession(ProcessMessageEventArgs args)
     {
         ProcessMessageEventArgs = args;
         ProcessSessionMessageEventArgs = null;
         Actions = new AzureServiceBusMessageActions(args);
     }
 
-    internal void SetSession(ProcessSessionMessageEventArgs args)
+    public void SetSession(ProcessSessionMessageEventArgs args)
     {
         ProcessMessageEventArgs = null;
         ProcessSessionMessageEventArgs = args;
         Actions = new AzureServiceBusSessionMessageActions(args);
     }
 
-    // IPooledFeature contract: Initialize is a no-op here.
-    // The dispatcher's static lambda calls SetNonSession/SetSession to populate state.
-    // (Existing pattern — Initialize(state) populating the field directly — is replaced
-    //  by the typed setters so the exclusive-disjunction invariant is enforced in code.)
     /// <inheritdoc />
     public void Initialize(object _) { }
 

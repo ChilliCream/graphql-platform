@@ -34,7 +34,7 @@ public class SessionReceiveTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.DeclareQueue(queueName).WithRequiresSession();
+                t.DeclareQueue(queueName).RequiresSession();
                 t.Endpoint("session-recv-ep").Consumer<SessionCapturingConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();
@@ -74,7 +74,7 @@ public class SessionReceiveTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.DeclareQueue(queueName).WithRequiresSession();
+                t.DeclareQueue(queueName).RequiresSession();
                 t.Endpoint("session-order-ep").Consumer<SessionCapturingConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();
@@ -119,7 +119,7 @@ public class SessionReceiveTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.DeclareQueue(queueName).WithRequiresSession();
+                t.DeclareQueue(queueName).RequiresSession();
                 t.Endpoint("session-idemp-ep").Consumer<SessionDeadLetteringConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();
@@ -162,7 +162,7 @@ public class SessionReceiveTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.DeclareQueue(queueName).WithRequiresSession();
+                t.DeclareQueue(queueName).RequiresSession();
                 t.Endpoint("session-state-ep").Consumer<SessionStateConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();
@@ -189,7 +189,7 @@ public class SessionReceiveTests
     [Fact]
     public async Task EndpointStartup_Should_Throw_When_SessionKnobsSetOnNonSessionQueue()
     {
-        // arrange - the queue does NOT have WithRequiresSession; the endpoint sets a session-only knob.
+        // arrange - the queue does NOT have RequiresSession; the endpoint sets a session-only knob.
         await using var ctx = _fixture.CreateTestContext();
         var queueName = ctx.QueueName("session-misconf");
         var act = () =>
@@ -204,7 +204,7 @@ public class SessionReceiveTests
                     t.Endpoint("session-misconf-ep")
                         .Consumer<SessionCapturingConsumer>()
                         .Queue(queueName)
-                        .WithMaxConcurrentCallsPerSession(2);
+                        .MaxConcurrentCallsPerSession(2);
                 })
                 .BuildTestBusAsync();
 
@@ -213,7 +213,7 @@ public class SessionReceiveTests
         {
             await using var bus = await act();
         });
-        Assert.Contains(nameof(IAzureServiceBusReceiveEndpointDescriptor.WithMaxConcurrentCallsPerSession), ex.Message);
+        Assert.Contains(nameof(IAzureServiceBusReceiveEndpointDescriptor.MaxConcurrentCallsPerSession), ex.Message);
         Assert.Contains(queueName, ex.Message);
     }
 
@@ -233,7 +233,7 @@ public class SessionReceiveTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.DeclareQueue(queueName).WithRequiresSession();
+                t.DeclareQueue(queueName).RequiresSession();
                 t.Endpoint("session-id-ep").Consumer<SessionCapturingConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();
@@ -269,7 +269,7 @@ public class SessionReceiveTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.DeclareQueue(queueName).WithRequiresSession().WithMaxDeliveryCount(1);
+                t.DeclareQueue(queueName).RequiresSession().MaxDeliveryCount(1);
                 t.Endpoint("session-throws-ep").Consumer<NonSessionEventArgsCallingConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();

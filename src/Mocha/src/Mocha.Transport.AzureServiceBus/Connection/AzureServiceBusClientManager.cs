@@ -223,8 +223,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 
         public ServiceBusSender Sender => Entry.Sender;
 
-        internal SenderEntry Entry
-            => _entry ?? throw new ObjectDisposedException(nameof(SenderLease));
+        internal SenderEntry Entry => _entry ?? throw new ObjectDisposedException(nameof(SenderLease));
 
         public void Dispose()
         {

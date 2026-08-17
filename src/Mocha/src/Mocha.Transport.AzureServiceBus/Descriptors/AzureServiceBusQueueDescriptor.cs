@@ -20,61 +20,61 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    public IAzureServiceBusQueueDescriptor AutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
     {
         Configuration.Queue.AutoDeleteOnIdle = autoDeleteOnIdle;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithLockDuration(TimeSpan lockDuration)
+    public IAzureServiceBusQueueDescriptor LockDuration(TimeSpan lockDuration)
     {
         Configuration.Queue.LockDuration = lockDuration;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
+    public IAzureServiceBusQueueDescriptor MaxDeliveryCount(int maxDeliveryCount)
     {
         Configuration.Queue.MaxDeliveryCount = maxDeliveryCount;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    public IAzureServiceBusQueueDescriptor DefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
     {
         Configuration.Queue.DefaultMessageTimeToLive = defaultMessageTimeToLive;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    public IAzureServiceBusQueueDescriptor MaxSizeInMegabytes(long maxSizeInMegabytes)
     {
         Configuration.Queue.MaxSizeInMegabytes = maxSizeInMegabytes;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithRequiresSession(bool requiresSession = true)
+    public IAzureServiceBusQueueDescriptor RequiresSession(bool requiresSession = true)
     {
         Configuration.Queue.RequiresSession = requiresSession;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithEnablePartitioning(bool enablePartitioning = true)
+    public IAzureServiceBusQueueDescriptor EnablePartitioning(bool enablePartitioning = true)
     {
         Configuration.Queue.EnablePartitioning = enablePartitioning;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithForwardTo(string entityName)
+    public IAzureServiceBusQueueDescriptor ForwardTo(string entityName)
     {
         Configuration.Queue.ForwardTo = entityName;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
+    public IAzureServiceBusQueueDescriptor ForwardDeadLetteredMessagesTo(string entityName)
     {
         Configuration.Queue.ForwardDeadLetteredMessagesTo = entityName;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithDeadLetteringOnMessageExpiration(
+    public IAzureServiceBusQueueDescriptor DeadLetteringOnMessageExpiration(
         bool deadLetteringOnMessageExpiration = true)
     {
         Configuration.Queue.DeadLetteringOnMessageExpiration = deadLetteringOnMessageExpiration;
@@ -216,25 +216,25 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithMaxConcurrentSessions(int maxConcurrentSessions)
+    public IAzureServiceBusQueueDescriptor MaxConcurrentSessions(int maxConcurrentSessions)
     {
         Configuration.MaxConcurrentSessions = maxConcurrentSessions;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithMaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession)
+    public IAzureServiceBusQueueDescriptor MaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession)
     {
         Configuration.MaxConcurrentCallsPerSession = maxConcurrentCallsPerSession;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithSessionIdleTimeout(TimeSpan sessionIdleTimeout)
+    public IAzureServiceBusQueueDescriptor SessionIdleTimeout(TimeSpan sessionIdleTimeout)
     {
         Configuration.SessionIdleTimeout = sessionIdleTimeout;
         return this;
     }
 
-    public IAzureServiceBusQueueDescriptor WithMaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration)
+    public IAzureServiceBusQueueDescriptor MaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration)
     {
         Configuration.MaxAutoLockRenewalDuration = maxAutoLockRenewalDuration;
         return this;

@@ -10,9 +10,7 @@ internal static class AzureServiceBusMessageFactory
 {
     private static readonly TimeSpan s_minimumTimeToLive = TimeSpan.FromMilliseconds(1);
 
-    public static ServiceBusMessage Create(
-        MessageEnvelope envelope,
-        DateTimeOffset expectedEnqueueTime)
+    public static ServiceBusMessage Create(MessageEnvelope envelope, DateTimeOffset expectedEnqueueTime)
     {
         var message = new ServiceBusMessage(envelope.Body)
         {
@@ -31,9 +29,7 @@ internal static class AzureServiceBusMessageFactory
         if (envelope.DeliverBy is { } deliverBy)
         {
             var timeToLive = deliverBy - expectedEnqueueTime;
-            message.TimeToLive = timeToLive > TimeSpan.Zero
-                ? timeToLive
-                : s_minimumTimeToLive;
+            message.TimeToLive = timeToLive > TimeSpan.Zero ? timeToLive : s_minimumTimeToLive;
         }
 
         ApplyNativeProperties(message, envelope.Headers);
@@ -72,24 +68,19 @@ internal static class AzureServiceBusMessageFactory
             message.PartitionKey = sessionId;
         }
 
-        if (headers.TryGetValue(
-                AzureServiceBusMessageHeaders.ReplyToSessionId,
-                out var replyToSessionIdValue)
+        if (headers.TryGetValue(AzureServiceBusMessageHeaders.ReplyToSessionId, out var replyToSessionIdValue)
             && replyToSessionIdValue is string replyToSessionIdString)
         {
             message.ReplyToSessionId = replyToSessionIdString;
         }
 
-        if (headers.TryGetValue(AzureServiceBusMessageHeaders.To, out var toValue)
-            && toValue is string toString)
+        if (headers.TryGetValue(AzureServiceBusMessageHeaders.To, out var toValue) && toValue is string toString)
         {
             message.To = toString;
         }
     }
 
-    private static void ApplyEnvelopeProperties(
-        IDictionary<string, object> properties,
-        MessageEnvelope envelope)
+    private static void ApplyEnvelopeProperties(IDictionary<string, object> properties, MessageEnvelope envelope)
     {
         if (envelope.ConversationId is not null)
         {
@@ -139,7 +130,7 @@ internal static class AzureServiceBusMessageFactory
 
         foreach (var header in envelope.Headers)
         {
-            if (header.Key.StartsWith("x-mocha-", StringComparison.Ordinal))
+            if (AzureServiceBusMessageHeaders.IsFrameworkHeader(header.Key))
             {
                 continue;
             }

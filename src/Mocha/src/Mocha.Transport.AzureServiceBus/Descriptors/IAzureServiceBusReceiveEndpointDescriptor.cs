@@ -36,21 +36,29 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Kind(ReceiveEndpointKind)"/>
     new IAzureServiceBusReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
-    /// <summary>Sets the absolute address of the fault endpoint.</summary>
+    /// <summary>
+    /// Sets the absolute address of the fault endpoint.
+    /// </summary>
     IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(Uri address);
 
-    /// <summary>Disables forwarding failed messages to a fault endpoint.</summary>
+    /// <summary>
+    /// Disables forwarding failed messages to a fault endpoint.
+    /// </summary>
     IAzureServiceBusReceiveEndpointDescriptor DisableFaultEndpoint();
 
-    /// <summary>Sets the absolute address of the skipped endpoint.</summary>
+    /// <summary>
+    /// Sets the absolute address of the skipped endpoint.
+    /// </summary>
     IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(Uri address);
 
-    /// <summary>Disables forwarding skipped messages to a skipped endpoint.</summary>
+    /// <summary>
+    /// Disables forwarding skipped messages to a skipped endpoint.
+    /// </summary>
     IAzureServiceBusReceiveEndpointDescriptor DisableSkippedEndpoint();
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.MaxConcurrency(int)"/>
     /// <remarks>
-    /// On a session-bound endpoint, when <see cref="WithMaxConcurrentSessions"/> is not explicitly
+    /// On a session-bound endpoint, when <see cref="MaxConcurrentSessions"/> is not explicitly
     /// set, this value is reinterpreted as the maximum number of concurrently locked sessions
     /// (see <see cref="ServiceBusSessionProcessorOptions.MaxConcurrentSessions"/>). The resolved
     /// translation is logged at endpoint startup.
@@ -97,7 +105,7 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// </summary>
     /// <param name="maxConcurrentSessions">The maximum number of concurrent sessions.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentSessions(int maxConcurrentSessions);
+    IAzureServiceBusReceiveEndpointDescriptor MaxConcurrentSessions(int maxConcurrentSessions);
 
     /// <summary>
     /// Sets the maximum number of concurrent message dispatches per locked session
@@ -108,7 +116,7 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// </summary>
     /// <param name="maxConcurrentCallsPerSession">The maximum number of concurrent calls per session.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession);
+    IAzureServiceBusReceiveEndpointDescriptor MaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession);
 
     /// <summary>
     /// Sets the duration the session processor will wait for new messages on a locked session
@@ -119,7 +127,7 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// </summary>
     /// <param name="sessionIdleTimeout">The session idle timeout.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IAzureServiceBusReceiveEndpointDescriptor WithSessionIdleTimeout(TimeSpan sessionIdleTimeout);
+    IAzureServiceBusReceiveEndpointDescriptor SessionIdleTimeout(TimeSpan sessionIdleTimeout);
 
     /// <summary>
     /// Sets the maximum total duration over which the SDK will auto-renew the message lock.
@@ -128,5 +136,5 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// </summary>
     /// <param name="maxAutoLockRenewalDuration">The maximum auto lock renewal duration.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IAzureServiceBusReceiveEndpointDescriptor WithMaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration);
+    IAzureServiceBusReceiveEndpointDescriptor MaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration);
 }

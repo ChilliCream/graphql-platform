@@ -47,6 +47,27 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
         Assert.Equal(expected, envelope.EnclosedMessageTypes);
     }
 
+    [Fact]
+    public void ParseAndCreate_Should_PreserveUnknownXPrefixedApplicationProperty()
+    {
+        // arrange
+        var received = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: BinaryData.FromString("{}"),
+            messageId: "message-1",
+            properties: new Dictionary<string, object>
+            {
+                ["x-mocha-custom"] = "custom-value"
+            });
+
+        // act
+        var envelope = AzureServiceBusMessageEnvelopeParser.Instance.Parse(received);
+        var redispatched = AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow);
+
+        // assert
+        Assert.Equal("custom-value", GetHeader(envelope, "x-mocha-custom"));
+        Assert.Equal("custom-value", redispatched.ApplicationProperties["x-mocha-custom"]);
+    }
+
     [Theory]
     [InlineData(1, 0)]
     [InlineData(2, 1)]

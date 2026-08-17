@@ -123,7 +123,7 @@ internal static class ThrowHelper
                 + $"which does not require sessions ({nameof(AzureServiceBusQueue.RequiresSession)}=false). "
                 + "The following session-only options are set and would have no effect: "
                 + $"{sessionOnlyOptionsList}. Either remove these options, or call "
-                + "WithRequiresSession() on the queue declaration.");
+                + "RequiresSession() on the queue declaration.");
 
     public static Exception TransportIsNotAzureServiceBus()
         => new InvalidOperationException("Transport is not an AzureServiceBusMessagingTransport");

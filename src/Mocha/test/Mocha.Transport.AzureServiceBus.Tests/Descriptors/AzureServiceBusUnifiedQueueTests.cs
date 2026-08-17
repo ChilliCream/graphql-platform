@@ -33,7 +33,7 @@ public class AzureServiceBusUnifiedQueueTests
         var (transport, configuration) = CreateTransport(t =>
         {
             t.BindExplicitly();
-            t.Queue("orders").WithMaxDeliveryCount(7);
+            t.Queue("orders").MaxDeliveryCount(7);
             t.Endpoint("orders").PrefetchCount(23);
             t.DeclareQueue("orders").AutoProvision(false);
         });
@@ -55,12 +55,12 @@ public class AzureServiceBusUnifiedQueueTests
         {
             t.BindExplicitly();
             t.Queue("sessions")
-                .WithRequiresSession()
-                .WithLockDuration(TimeSpan.FromSeconds(45))
-                .WithMaxConcurrentSessions(4)
-                .WithMaxConcurrentCallsPerSession(2)
-                .WithSessionIdleTimeout(TimeSpan.FromSeconds(30))
-                .WithMaxAutoLockRenewalDuration(TimeSpan.FromMinutes(3))
+                .RequiresSession()
+                .LockDuration(TimeSpan.FromSeconds(45))
+                .MaxConcurrentSessions(4)
+                .MaxConcurrentCallsPerSession(2)
+                .SessionIdleTimeout(TimeSpan.FromSeconds(30))
+                .MaxAutoLockRenewalDuration(TimeSpan.FromMinutes(3))
                 .PrefetchCount(17);
         });
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
@@ -122,7 +122,7 @@ public class AzureServiceBusUnifiedQueueTests
         Action action = () => CreateTransport(t =>
         {
             t.BindExplicitly();
-            t.Queue("forwarding-source").WithForwardTo("forwarding-target");
+            t.Queue("forwarding-source").ForwardTo("forwarding-target");
         });
 
         // act
@@ -140,7 +140,7 @@ public class AzureServiceBusUnifiedQueueTests
         {
             t.BindExplicitly();
             t.Queue("forwarding-consumer-source")
-                .WithForwardTo("forwarding-consumer-target")
+                .ForwardTo("forwarding-consumer-target")
                 .Consumer<OrderConsumer>();
         });
 

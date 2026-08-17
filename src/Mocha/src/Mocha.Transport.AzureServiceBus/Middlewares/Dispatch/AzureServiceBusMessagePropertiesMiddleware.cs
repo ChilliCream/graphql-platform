@@ -7,12 +7,6 @@ namespace Mocha.Transport.AzureServiceBus.Middlewares;
 /// properties (<c>SessionId</c>, <c>PartitionKey</c>, <c>ReplyToSessionId</c>, <c>To</c>) and writes
 /// the resulting values to the dispatch context headers for the terminal endpoint to read.
 /// </summary>
-/// <remarks>
-/// User-set headers win: each extractor runs only when the corresponding header has not already been
-/// set on <see cref="IDispatchContext.Headers"/> by an upstream caller. The
-/// <c>PartitionKey</c>/<c>SessionId</c> invariant is enforced in the dispatch endpoint where both
-/// final values are known regardless of origin.
-/// </remarks>
 internal sealed class AzureServiceBusMessagePropertiesMiddleware
 {
     /// <summary>

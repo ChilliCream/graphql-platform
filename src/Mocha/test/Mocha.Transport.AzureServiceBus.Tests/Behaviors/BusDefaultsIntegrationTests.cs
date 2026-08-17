@@ -180,7 +180,7 @@ public class BusDefaultsIntegrationTests
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDeleteOnIdle = TimeSpan.FromMinutes(10));
-                t.DeclareQueue("override-q").WithAutoDeleteOnIdle(TimeSpan.FromMinutes(5));
+                t.DeclareQueue("override-q").AutoDeleteOnIdle(TimeSpan.FromMinutes(5));
             })
             .BuildTestBusAsync();
 

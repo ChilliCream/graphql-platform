@@ -48,8 +48,7 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
 
     public ValueTask DisposeAsync() => _client.DisposeAsync();
 
-    internal static string? ResolveAdministrationConnectionString(
-        AzureServiceBusTransportConfiguration configuration)
+    internal static string? ResolveAdministrationConnectionString(AzureServiceBusTransportConfiguration configuration)
     {
         if (configuration.ConnectionString is not null)
         {
@@ -73,8 +72,7 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
         {
             return new ServiceBusConnection(
                 new ServiceBusClient(configuration.ConnectionString, clientOptions),
-                new ServiceBusAdministrationClient(
-                    ResolveAdministrationConnectionString(configuration)!));
+                new ServiceBusAdministrationClient(ResolveAdministrationConnectionString(configuration)));
         }
 
         if (configuration.FullyQualifiedNamespace is not null

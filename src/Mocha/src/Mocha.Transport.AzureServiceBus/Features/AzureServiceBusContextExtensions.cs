@@ -9,7 +9,7 @@ namespace Mocha.Transport.AzureServiceBus;
 /// raw SDK event-args here for native broker primitives (dead-lettering, abandon with property
 /// modifications, session id, session state, etc.).
 /// </summary>
-public static class AzureServiceBusContextExtensions
+internal static class AzureServiceBusContextExtensions
 {
     /// <summary>
     /// Gets the Azure Service Bus <see cref="ProcessMessageEventArgs"/> for the current message

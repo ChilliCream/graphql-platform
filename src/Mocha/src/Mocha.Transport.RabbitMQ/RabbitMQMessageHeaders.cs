@@ -10,32 +10,32 @@ internal static class RabbitMQMessageHeaders
     /// <summary>
     /// Header key for the conversation identifier that correlates a group of causally related messages.
     /// </summary>
-    public static readonly ContextDataKey<string> ConversationId = new("x-conversation-id");
+    public static readonly ContextDataKey<string> ConversationId = new(MessageHeaders.Transport.ConversationId);
 
     /// <summary>
     /// Header key for the causation identifier linking a message to the command or event that triggered it.
     /// </summary>
-    public static readonly ContextDataKey<string> CausationId = new("x-causation-id");
+    public static readonly ContextDataKey<string> CausationId = new(MessageHeaders.Transport.CausationId);
 
     /// <summary>
     /// Header key for the originating endpoint address of the message.
     /// </summary>
-    public static readonly ContextDataKey<string> SourceAddress = new("x-source-address");
+    public static readonly ContextDataKey<string> SourceAddress = new(MessageHeaders.Transport.SourceAddress);
 
     /// <summary>
     /// Header key for the intended destination endpoint address of the message.
     /// </summary>
-    public static readonly ContextDataKey<string> DestinationAddress = new("x-destination-address");
+    public static readonly ContextDataKey<string> DestinationAddress = new(MessageHeaders.Transport.DestinationAddress);
 
     /// <summary>
     /// Header key for the endpoint address where fault messages should be sent on processing failure.
     /// </summary>
-    public static readonly ContextDataKey<string> FaultAddress = new("x-fault-address");
+    public static readonly ContextDataKey<string> FaultAddress = new(MessageHeaders.Transport.FaultAddress);
 
     /// <summary>
     /// Header key for the fully qualified type name of the message payload.
     /// </summary>
-    public static readonly ContextDataKey<string> MessageType = new("x-message-type");
+    public static readonly ContextDataKey<string> MessageType = new(MessageHeaders.Transport.MessageType);
 
     /// <summary>
     /// Header key for the MIME content type of the serialized message body.
@@ -51,7 +51,7 @@ internal static class RabbitMQMessageHeaders
     /// Header key for the list of message type names enclosed in the envelope, used for polymorphic deserialization.
     /// </summary>
     public static readonly ContextDataKey<ImmutableArray<string>> EnclosedMessageTypes = new(
-        "x-enclosed-message-types");
+        MessageHeaders.Transport.EnclosedMessageTypes);
 
     /// <summary>
     /// Header key for the delivery count maintained by RabbitMQ quorum queues.

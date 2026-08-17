@@ -7,26 +7,28 @@ public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureSer
 {
     IAzureServiceBusQueueDescriptor AutoProvision(bool autoProvision = true);
 
-    /// <summary>Configures the Azure Service Bus idle deletion policy.</summary>
-    IAzureServiceBusQueueDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle);
+    /// <summary>
+    /// Configures the Azure Service Bus idle deletion policy.
+    /// </summary>
+    IAzureServiceBusQueueDescriptor AutoDeleteOnIdle(TimeSpan autoDeleteOnIdle);
 
-    IAzureServiceBusQueueDescriptor WithLockDuration(TimeSpan lockDuration);
+    IAzureServiceBusQueueDescriptor LockDuration(TimeSpan lockDuration);
 
-    IAzureServiceBusQueueDescriptor WithMaxDeliveryCount(int maxDeliveryCount);
+    IAzureServiceBusQueueDescriptor MaxDeliveryCount(int maxDeliveryCount);
 
-    IAzureServiceBusQueueDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive);
+    IAzureServiceBusQueueDescriptor DefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive);
 
-    IAzureServiceBusQueueDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes);
+    IAzureServiceBusQueueDescriptor MaxSizeInMegabytes(long maxSizeInMegabytes);
 
-    IAzureServiceBusQueueDescriptor WithRequiresSession(bool requiresSession = true);
+    IAzureServiceBusQueueDescriptor RequiresSession(bool requiresSession = true);
 
-    IAzureServiceBusQueueDescriptor WithEnablePartitioning(bool enablePartitioning = true);
+    IAzureServiceBusQueueDescriptor EnablePartitioning(bool enablePartitioning = true);
 
-    IAzureServiceBusQueueDescriptor WithForwardTo(string entityName);
+    IAzureServiceBusQueueDescriptor ForwardTo(string entityName);
 
-    IAzureServiceBusQueueDescriptor WithForwardDeadLetteredMessagesTo(string entityName);
+    IAzureServiceBusQueueDescriptor ForwardDeadLetteredMessagesTo(string entityName);
 
-    IAzureServiceBusQueueDescriptor WithDeadLetteringOnMessageExpiration(
+    IAzureServiceBusQueueDescriptor DeadLetteringOnMessageExpiration(
         bool deadLetteringOnMessageExpiration = true);
 
     IAzureServiceBusQueueDescriptor Handler<THandler>() where THandler : class, IHandler;
@@ -66,13 +68,13 @@ public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureSer
 
     IAzureServiceBusQueueDescriptor UseNativeDeadLetterForwarding();
 
-    IAzureServiceBusQueueDescriptor WithMaxConcurrentSessions(int maxConcurrentSessions);
+    IAzureServiceBusQueueDescriptor MaxConcurrentSessions(int maxConcurrentSessions);
 
-    IAzureServiceBusQueueDescriptor WithMaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession);
+    IAzureServiceBusQueueDescriptor MaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession);
 
-    IAzureServiceBusQueueDescriptor WithSessionIdleTimeout(TimeSpan sessionIdleTimeout);
+    IAzureServiceBusQueueDescriptor SessionIdleTimeout(TimeSpan sessionIdleTimeout);
 
-    IAzureServiceBusQueueDescriptor WithMaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration);
+    IAzureServiceBusQueueDescriptor MaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration);
 
     /// <summary>
     /// Declares an explicit topic from which this queue receives messages.

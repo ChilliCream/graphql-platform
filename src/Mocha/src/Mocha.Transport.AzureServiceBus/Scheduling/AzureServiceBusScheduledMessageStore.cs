@@ -32,12 +32,10 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
     {
         if (context.Endpoint is not AzureServiceBusDispatchEndpoint endpoint)
         {
-            throw ThrowHelper.ScheduledMessageStoreRequiresAsbEndpoint(
-                context.Endpoint?.GetType().Name ?? "null");
+            throw ThrowHelper.ScheduledMessageStoreRequiresAsbEndpoint(context.Endpoint?.GetType().Name ?? "null");
         }
 
-        if (!ReferenceEquals(context.Transport, _transport)
-            || !ReferenceEquals(endpoint.Transport, _transport))
+        if (!ReferenceEquals(context.Transport, _transport) || !ReferenceEquals(endpoint.Transport, _transport))
         {
             throw ThrowHelper.ScheduledMessageStoreRequiresMatchingTransport();
         }
@@ -96,10 +94,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
         }
     }
 
-    internal static string CreateToken(
-        string owner,
-        string entityPath,
-        long sequenceNumber)
+    internal static string CreateToken(string owner, string entityPath, long sequenceNumber)
     {
         ArgumentException.ThrowIfNullOrEmpty(owner);
         ArgumentException.ThrowIfNullOrEmpty(entityPath);
@@ -138,11 +133,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
             return false;
         }
 
-        if (!long.TryParse(
-                body[ranges[3]],
-                NumberStyles.None,
-                CultureInfo.InvariantCulture,
-                out sequenceNumber)
+        if (!long.TryParse(body[ranges[3]], NumberStyles.None, CultureInfo.InvariantCulture, out sequenceNumber)
             || sequenceNumber <= 0)
         {
             sequenceNumber = 0;
@@ -157,10 +148,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
         ArgumentException.ThrowIfNullOrEmpty(transportName);
         ArgumentException.ThrowIfNullOrEmpty(fullyQualifiedNamespace);
 
-        var value = string.Concat(
-            transportName,
-            "\n",
-            fullyQualifiedNamespace.TrimEnd('.').ToLowerInvariant());
+        var value = string.Concat(transportName, "\n", fullyQualifiedNamespace.TrimEnd('.').ToLowerInvariant());
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(value));
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
@@ -170,10 +158,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
 
     private static string Encode(string value)
     {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
     private static bool TryDecode(ReadOnlySpan<char> encoded, out string value)
@@ -184,9 +169,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
             return false;
         }
 
-        var base64 = encoded.ToString()
-            .Replace('-', '+')
-            .Replace('_', '/');
+        var base64 = encoded.ToString().Replace('-', '+').Replace('_', '/');
         base64 = (base64.Length % 4) switch
         {
             2 => base64 + "==",

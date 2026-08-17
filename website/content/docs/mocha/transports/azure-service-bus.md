@@ -188,7 +188,7 @@ Available queue defaults:
 | `ForwardDeadLetteredMessagesTo`    | `string?`   | Auto-forward target for the entity's `$DeadLetterQueue`                           |
 | `DeadLetteringOnMessageExpiration` | `bool?`     | Whether expired messages are moved to `$DeadLetterQueue` instead of being dropped |
 
-Defaults never override explicitly configured values. If you call `WithMaxDeliveryCount(...)` on a specific queue, the per-queue value wins.
+Defaults never override explicitly configured values. If you call `MaxDeliveryCount(...)` on a specific queue, the per-queue value wins.
 
 # Configure message properties per type
 
@@ -210,7 +210,7 @@ builder.Services
 
         // The destination queue must be created with RequiresSession = true.
         transport.DeclareQueue("orders")
-            .WithRequiresSession(true);
+            .RequiresSession(true);
     });
 ```
 
@@ -236,7 +236,7 @@ builder.Services
         transport.ConnectionString(connectionString);
 
         transport.DeclareQueue("tenant-events")
-            .WithEnablePartitioning(true);
+            .EnablePartitioning(true);
     });
 ```
 
@@ -339,14 +339,14 @@ public static class TenantAwareBusExtensions
 }
 ```
 
-The dispatch middleware that invokes the four extractors checks `context.Headers` first and skips the extractor whenever the corresponding `x-mocha-*` header is already set. User-set headers always win over the registered extractor, which lets send-site code override the per-type default for a single dispatch without reconfiguring the bus. The headers are defined as string constants on `AzureServiceBusMessageHeaders`:
+The dispatch middleware that invokes the four extractors checks `context.Headers` first and skips the extractor whenever the corresponding `x-*` header is already set. User-set headers always win over the registered extractor, which lets send-site code override the per-type default for a single dispatch without reconfiguring the bus. The headers are defined as string constants on `AzureServiceBusMessageHeaders`:
 
-| Constant                                         | Header key                    |
-| ------------------------------------------------ | ----------------------------- |
-| `AzureServiceBusMessageHeaders.SessionId`        | `x-mocha-session-id`          |
-| `AzureServiceBusMessageHeaders.PartitionKey`     | `x-mocha-partition-key`       |
-| `AzureServiceBusMessageHeaders.ReplyToSessionId` | `x-mocha-reply-to-session-id` |
-| `AzureServiceBusMessageHeaders.To`               | `x-mocha-to`                  |
+| Constant                                         | Header key              |
+| ------------------------------------------------ | ----------------------- |
+| `AzureServiceBusMessageHeaders.SessionId`        | `x-session-id`          |
+| `AzureServiceBusMessageHeaders.PartitionKey`     | `x-partition-key`       |
+| `AzureServiceBusMessageHeaders.ReplyToSessionId` | `x-reply-to-session-id` |
+| `AzureServiceBusMessageHeaders.To`               | `x-to`                  |
 
 When a message is sent, these headers are mapped to native Service Bus fields and omitted from `ApplicationProperties`. On receive, Mocha restores `SessionId`, `PartitionKey`, `ReplyToSessionId`, and `To` into the normalized envelope headers. Fault, skipped, scheduled-redelivery, and other redispatch paths can therefore recreate the same native fields instead of losing session or partition affinity.
 
@@ -354,12 +354,12 @@ When a message is sent, these headers are mapped to native Service Bus fields an
 
 `SessionId`, `PartitionKey`, and `ReplyToSessionId` are each capped at **128 characters** by the broker.
 
-| Extension method                                   | Sets on `ServiceBusMessage` | Header key                    | Gotcha                                                                                           |
-| -------------------------------------------------- | --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| `UseAzureServiceBusSessionId<T>(extractor)`        | `SessionId`                 | `x-mocha-session-id`          | Defaults `PartitionKey` to the same value when no partition-key extractor is set.                |
-| `UseAzureServiceBusPartitionKey<T>(extractor)`     | `PartitionKey`              | `x-mocha-partition-key`       | Must equal `SessionId` when both are set, else dispatch throws `InvalidOperationException`.      |
-| `UseAzureServiceBusReplyToSessionId<T>(extractor)` | `ReplyToSessionId`          | `x-mocha-reply-to-session-id` | Configure on the request type, not the response.                                                 |
-| `UseAzureServiceBusTo<T>(extractor)`               | `To`                        | `x-mocha-to`                  | Broker-reserved; not used for routing today. Useful for autoforward chains or custom inspection. |
+| Extension method                                   | Sets on `ServiceBusMessage` | Header key              | Gotcha                                                                                           |
+| -------------------------------------------------- | --------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `UseAzureServiceBusSessionId<T>(extractor)`        | `SessionId`                 | `x-session-id`          | Defaults `PartitionKey` to the same value when no partition-key extractor is set.                |
+| `UseAzureServiceBusPartitionKey<T>(extractor)`     | `PartitionKey`              | `x-partition-key`       | Must equal `SessionId` when both are set, else dispatch throws `InvalidOperationException`.      |
+| `UseAzureServiceBusReplyToSessionId<T>(extractor)` | `ReplyToSessionId`          | `x-reply-to-session-id` | Configure on the request type, not the response.                                                 |
+| `UseAzureServiceBusTo<T>(extractor)`               | `To`                        | `x-to`                  | Broker-reserved; not used for routing today. Useful for autoforward chains or custom inspection. |
 
 Extractors are the right tool when the ASB property is derived from the payload. When you need to declare the entities they land on - session-aware queues, partitioned topics, or autoforward targets - reach for [the topology builder](#declare-custom-topology) in the next section.
 
@@ -377,8 +377,8 @@ builder.Services
         transport.DeclareTopic("order-events");
 
         transport.DeclareQueue("billing-orders")
-            .WithMaxDeliveryCount(5)
-            .WithLockDuration(TimeSpan.FromMinutes(1));
+            .MaxDeliveryCount(5)
+            .LockDuration(TimeSpan.FromMinutes(1));
 
         transport.DeclareSubscription("order-events", "billing-orders");
     });
@@ -414,7 +414,7 @@ Use `Queue(name)` for application queues. It combines the queue declaration with
 ```csharp
 transport.Queue("process-order")
     .Handler<ProcessOrderCommandHandler>()
-    .WithMaxDeliveryCount(5)
+    .MaxDeliveryCount(5)
     .MaxConcurrency(8);
 ```
 
@@ -511,7 +511,7 @@ builder.Services
 
 `UseNativeDeadLetterForwarding()` sets `ForwardDeadLetteredMessagesTo = "{queueName}_error"` on the underlying queue at provisioning time. Messages dead-lettered by the broker for `MaxDeliveryCountExceeded` or `TTLExpiredException` are forwarded into the same `_error` queue used by handler exceptions, so operators have one place to look.
 
-If you have already configured `WithForwardDeadLetteredMessagesTo("custom-target")` on the same queue, the transport surfaces a configuration conflict at provisioning - it will not silently override your choice.
+If you have already configured `ForwardDeadLetteredMessagesTo("custom-target")` on the same queue, the transport surfaces a configuration conflict at provisioning - it will not silently override your choice.
 
 ## 3. Explicit native dead-letter with reason codes
 
@@ -604,7 +604,7 @@ The receiver must be in `PeekLock` mode (the Mocha default) for native dead-lett
 Either tune the queue's `MaxDeliveryCount` lower so failures surface sooner, or enable `UseNativeDeadLetterForwarding()` on the endpoint so broker-dead-lettered messages are forwarded into your `_error` queue and aggregated with handler exceptions.
 
 **`UseNativeDeadLetterForwarding()` fails at startup with a forwarding conflict.**
-Both `WithForwardDeadLetteredMessagesTo("...")` and `UseNativeDeadLetterForwarding()` are configured on the same queue. The transport refuses to silently override the explicit forwarding target. Pick one.
+Both `ForwardDeadLetteredMessagesTo("...")` and `UseNativeDeadLetterForwarding()` are configured on the same queue. The transport refuses to silently override the explicit forwarding target. Pick one.
 
 **`CancelScheduledMessageAsync` returns false.**
 The most common causes: the scheduled time has already passed (the broker enqueued the message and returned `MessageNotFound` to the cancel call), `IsCancellable` was `false` on the original `SchedulingResult`, or the token came from a different transport than the one that created the message. The transport's cancel path is idempotent - calling it twice is safe.

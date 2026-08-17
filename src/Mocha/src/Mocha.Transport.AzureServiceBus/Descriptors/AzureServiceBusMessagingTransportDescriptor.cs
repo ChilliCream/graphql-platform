@@ -127,7 +127,7 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
-        endpoint.Handler(typeof(THandler));
+        endpoint.Handler<THandler>();
         return new MessagingTransportHandlerDescriptor<IAzureServiceBusReceiveEndpointDescriptor>(endpoint);
     }
 
@@ -137,7 +137,7 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
-        endpoint.Consumer(typeof(TConsumer));
+        endpoint.Consumer<TConsumer>();
         return new MessagingTransportConsumerDescriptor<IAzureServiceBusReceiveEndpointDescriptor>(endpoint);
     }
 
@@ -304,19 +304,17 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
             ConfigureQueueEndpoint(queue);
         }
 
-        Configuration.ReceiveEndpoints = _receiveEndpoints
-            .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
-            .ToList();
+        Configuration.ReceiveEndpoints = _receiveEndpoints.ConvertAll(
+            ReceiveEndpointConfiguration (e) => e.CreateConfiguration());
 
-        Configuration.DispatchEndpoints = _dispatchEndpoints
-            .Select(DispatchEndpointConfiguration (e) => e.CreateConfiguration())
-            .ToList();
+        Configuration.DispatchEndpoints = _dispatchEndpoints.ConvertAll(
+            DispatchEndpointConfiguration (e) => e.CreateConfiguration());
 
-        Configuration.Topics = _topics.Select(e => e.CreateConfiguration()).ToList();
+        Configuration.Topics = _topics.ConvertAll(e => e.CreateConfiguration());
 
-        Configuration.Queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
+        Configuration.Queues = _queueTopology.ConvertAll(q => q.CreateConfiguration());
 
-        Configuration.Subscriptions = _subscriptions.Select(b => b.CreateConfiguration()).ToList();
+        Configuration.Subscriptions = _subscriptions.ConvertAll(b => b.CreateConfiguration());
 
         return Configuration;
     }
@@ -427,52 +425,52 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
 
         if (configuration.AutoDeleteOnIdle is { } autoDeleteOnIdle)
         {
-            descriptor.WithAutoDeleteOnIdle(autoDeleteOnIdle);
+            descriptor.AutoDeleteOnIdle(autoDeleteOnIdle);
         }
 
         if (configuration.LockDuration is { } lockDuration)
         {
-            descriptor.WithLockDuration(lockDuration);
+            descriptor.LockDuration(lockDuration);
         }
 
         if (configuration.MaxDeliveryCount is { } maxDeliveryCount)
         {
-            descriptor.WithMaxDeliveryCount(maxDeliveryCount);
+            descriptor.MaxDeliveryCount(maxDeliveryCount);
         }
 
         if (configuration.DefaultMessageTimeToLive is { } timeToLive)
         {
-            descriptor.WithDefaultMessageTimeToLive(timeToLive);
+            descriptor.DefaultMessageTimeToLive(timeToLive);
         }
 
         if (configuration.MaxSizeInMegabytes is { } maxSize)
         {
-            descriptor.WithMaxSizeInMegabytes(maxSize);
+            descriptor.MaxSizeInMegabytes(maxSize);
         }
 
         if (configuration.RequiresSession is { } requiresSession)
         {
-            descriptor.WithRequiresSession(requiresSession);
+            descriptor.RequiresSession(requiresSession);
         }
 
         if (configuration.EnablePartitioning is { } enablePartitioning)
         {
-            descriptor.WithEnablePartitioning(enablePartitioning);
+            descriptor.EnablePartitioning(enablePartitioning);
         }
 
         if (configuration.ForwardTo is { } forwardTo)
         {
-            descriptor.WithForwardTo(forwardTo);
+            descriptor.ForwardTo(forwardTo);
         }
 
         if (configuration.ForwardDeadLetteredMessagesTo is { } forwardDeadLettersTo)
         {
-            descriptor.WithForwardDeadLetteredMessagesTo(forwardDeadLettersTo);
+            descriptor.ForwardDeadLetteredMessagesTo(forwardDeadLettersTo);
         }
 
         if (configuration.DeadLetteringOnMessageExpiration is { } deadLetterOnExpiration)
         {
-            descriptor.WithDeadLetteringOnMessageExpiration(deadLetterOnExpiration);
+            descriptor.DeadLetteringOnMessageExpiration(deadLetterOnExpiration);
         }
     }
 

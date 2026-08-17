@@ -6,6 +6,26 @@ namespace Mocha;
 internal static class MessageHeaders
 {
     /// <summary>
+    /// Defines the transport-level header names shared by broker integrations.
+    /// </summary>
+    public static class Transport
+    {
+        public const string ConversationId = "x-conversation-id";
+
+        public const string CausationId = "x-causation-id";
+
+        public const string SourceAddress = "x-source-address";
+
+        public const string DestinationAddress = "x-destination-address";
+
+        public const string FaultAddress = "x-fault-address";
+
+        public const string MessageType = "x-message-type";
+
+        public const string EnclosedMessageTypes = "x-enclosed-message-types";
+    }
+
+    /// <summary>
     /// The W3C Trace Context <c>traceparent</c> header (version-traceId-spanId-traceFlags).
     /// </summary>
     public static readonly ContextDataKey<string?> Traceparent = new("traceparent");

@@ -180,7 +180,7 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentSessions(int maxConcurrentSessions)
+    public IAzureServiceBusReceiveEndpointDescriptor MaxConcurrentSessions(int maxConcurrentSessions)
     {
         Configuration.MaxConcurrentSessions = maxConcurrentSessions;
 
@@ -188,7 +188,7 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession)
+    public IAzureServiceBusReceiveEndpointDescriptor MaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession)
     {
         Configuration.MaxConcurrentCallsPerSession = maxConcurrentCallsPerSession;
 
@@ -196,7 +196,7 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusReceiveEndpointDescriptor WithSessionIdleTimeout(TimeSpan sessionIdleTimeout)
+    public IAzureServiceBusReceiveEndpointDescriptor SessionIdleTimeout(TimeSpan sessionIdleTimeout)
     {
         Configuration.SessionIdleTimeout = sessionIdleTimeout;
 
@@ -204,7 +204,7 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusReceiveEndpointDescriptor WithMaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration)
+    public IAzureServiceBusReceiveEndpointDescriptor MaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration)
     {
         Configuration.MaxAutoLockRenewalDuration = maxAutoLockRenewalDuration;
 

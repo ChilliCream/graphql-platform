@@ -114,11 +114,15 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     new IAzureServiceBusMessagingTransportDescriptor UseRoutingStrategy(
         Func<IServiceProvider, RoutingStrategy> factory);
 
-    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    /// <summary>
+    /// Claims a handler for this transport, creating a convention-named endpoint.
+    /// </summary>
     IMessagingTransportHandlerDescriptor<IAzureServiceBusReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler;
 
-    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    /// <summary>
+    /// Claims a consumer for this transport, creating a convention-named endpoint.
+    /// </summary>
     IMessagingTransportConsumerDescriptor<IAzureServiceBusReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
 

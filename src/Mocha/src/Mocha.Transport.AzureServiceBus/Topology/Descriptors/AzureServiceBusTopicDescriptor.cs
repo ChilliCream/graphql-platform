@@ -34,49 +34,49 @@ internal sealed class AzureServiceBusTopicDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    public IAzureServiceBusTopicDescriptor DefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
     {
         Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    public IAzureServiceBusTopicDescriptor MaxSizeInMegabytes(long maxSizeInMegabytes)
     {
         Configuration.MaxSizeInMegabytes = maxSizeInMegabytes;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithEnablePartitioning(bool enablePartitioning = true)
+    public IAzureServiceBusTopicDescriptor EnablePartitioning(bool enablePartitioning = true)
     {
         Configuration.EnablePartitioning = enablePartitioning;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithRequiresDuplicateDetection(bool requiresDuplicateDetection = true)
+    public IAzureServiceBusTopicDescriptor RequiresDuplicateDetection(bool requiresDuplicateDetection = true)
     {
         Configuration.RequiresDuplicateDetection = requiresDuplicateDetection;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithDuplicateDetectionHistoryTimeWindow(TimeSpan duplicateDetectionHistoryTimeWindow)
+    public IAzureServiceBusTopicDescriptor DuplicateDetectionHistoryTimeWindow(TimeSpan duplicateDetectionHistoryTimeWindow)
     {
         Configuration.DuplicateDetectionHistoryTimeWindow = duplicateDetectionHistoryTimeWindow;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    public IAzureServiceBusTopicDescriptor AutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
     {
         Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusTopicDescriptor WithSupportOrdering(bool supportOrdering = true)
+    public IAzureServiceBusTopicDescriptor SupportOrdering(bool supportOrdering = true)
     {
         Configuration.SupportOrdering = supportOrdering;
         return this;

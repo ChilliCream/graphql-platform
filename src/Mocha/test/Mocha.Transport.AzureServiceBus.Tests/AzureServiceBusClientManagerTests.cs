@@ -42,34 +42,48 @@ public sealed class AzureServiceBusClientManagerTests
         var manager = new AzureServiceBusClientManager(configuration);
         var senders = new ConcurrentBag<ServiceBusSender>();
         var entityPaths = new[] { "orders", "payments", "shipments", "notifications" };
+        var senderAcquired = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
         var workers = Enumerable.Range(0, 8)
             .Select(
-                _ => Task.Run(
-                    () =>
-                    {
-                        for (var i = 0; i < 500; i++)
-                        {
-                            try
-                            {
-                                using var lease = manager.AcquireSender(entityPaths[i % entityPaths.Length]);
-                                senders.Add(lease.Sender);
-                            }
-                            catch (ObjectDisposedException)
-                            {
-                                return;
-                            }
-                        }
-                    }))
+                workerIndex => Task.Run(
+                    () => AcquireSendersUntilDisposedAsync(workerIndex),
+                    TestContext.Current.CancellationToken))
             .ToArray();
 
         // act
+        await senderAcquired.Task.WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
         await manager.DisposeAsync();
         await Task.WhenAll(workers);
 
         // assert
-        var stillOpen = senders.Count(sender => !sender.IsClosed);
-        Assert.Equal(0, stillOpen);
+        Assert.NotEmpty(senders);
+        Assert.All(senders, static sender => Assert.True(sender.IsClosed));
         Assert.Throws<ObjectDisposedException>(() => manager.AcquireSender("orders"));
+
+        async Task AcquireSendersUntilDisposedAsync(int workerIndex)
+        {
+            var iteration = workerIndex;
+
+            while (true)
+            {
+                try
+                {
+                    using var lease = manager.AcquireSender(entityPaths[iteration % entityPaths.Length]);
+                    senders.Add(lease.Sender);
+                    senderAcquired.TrySetResult();
+                }
+                catch (ObjectDisposedException)
+                {
+                    return;
+                }
+
+                iteration++;
+                await Task.Yield();
+            }
+        }
     }
 
     [Fact]

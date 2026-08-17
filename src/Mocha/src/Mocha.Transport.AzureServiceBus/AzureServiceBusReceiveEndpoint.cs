@@ -80,15 +80,15 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             var sessionOnly = new List<string>();
             if (configuration.MaxConcurrentSessions is not null)
             {
-                sessionOnly.Add(nameof(IAzureServiceBusReceiveEndpointDescriptor.WithMaxConcurrentSessions));
+                sessionOnly.Add(nameof(IAzureServiceBusReceiveEndpointDescriptor.MaxConcurrentSessions));
             }
             if (configuration.MaxConcurrentCallsPerSession is not null)
             {
-                sessionOnly.Add(nameof(IAzureServiceBusReceiveEndpointDescriptor.WithMaxConcurrentCallsPerSession));
+                sessionOnly.Add(nameof(IAzureServiceBusReceiveEndpointDescriptor.MaxConcurrentCallsPerSession));
             }
             if (configuration.SessionIdleTimeout is not null)
             {
-                sessionOnly.Add(nameof(IAzureServiceBusReceiveEndpointDescriptor.WithSessionIdleTimeout));
+                sessionOnly.Add(nameof(IAzureServiceBusReceiveEndpointDescriptor.SessionIdleTimeout));
             }
 
             if (sessionOnly.Count > 0)

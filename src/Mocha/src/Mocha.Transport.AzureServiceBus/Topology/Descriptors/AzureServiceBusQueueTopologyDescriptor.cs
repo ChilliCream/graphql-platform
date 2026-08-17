@@ -34,70 +34,70 @@ internal sealed class AzureServiceBusQueueTopologyDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    public IAzureServiceBusQueueTopologyDescriptor AutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
     {
         Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithLockDuration(TimeSpan lockDuration)
+    public IAzureServiceBusQueueTopologyDescriptor LockDuration(TimeSpan lockDuration)
     {
         Configuration.LockDuration = lockDuration;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
+    public IAzureServiceBusQueueTopologyDescriptor MaxDeliveryCount(int maxDeliveryCount)
     {
         Configuration.MaxDeliveryCount = maxDeliveryCount;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    public IAzureServiceBusQueueTopologyDescriptor DefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
     {
         Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    public IAzureServiceBusQueueTopologyDescriptor MaxSizeInMegabytes(long maxSizeInMegabytes)
     {
         Configuration.MaxSizeInMegabytes = maxSizeInMegabytes;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithRequiresSession(bool requiresSession = true)
+    public IAzureServiceBusQueueTopologyDescriptor RequiresSession(bool requiresSession = true)
     {
         Configuration.RequiresSession = requiresSession;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithEnablePartitioning(bool enablePartitioning = true)
+    public IAzureServiceBusQueueTopologyDescriptor EnablePartitioning(bool enablePartitioning = true)
     {
         Configuration.EnablePartitioning = enablePartitioning;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithForwardTo(string entityName)
+    public IAzureServiceBusQueueTopologyDescriptor ForwardTo(string entityName)
     {
         Configuration.ForwardTo = entityName;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
+    public IAzureServiceBusQueueTopologyDescriptor ForwardDeadLetteredMessagesTo(string entityName)
     {
         Configuration.ForwardDeadLetteredMessagesTo = entityName;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor WithDeadLetteringOnMessageExpiration(
+    public IAzureServiceBusQueueTopologyDescriptor DeadLetteringOnMessageExpiration(
         bool deadLetteringOnMessageExpiration = true)
     {
         Configuration.DeadLetteringOnMessageExpiration = deadLetteringOnMessageExpiration;

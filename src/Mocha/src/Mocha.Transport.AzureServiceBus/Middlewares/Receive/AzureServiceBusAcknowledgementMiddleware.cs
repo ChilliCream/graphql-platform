@@ -22,9 +22,8 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
     public async ValueTask InvokeAsync(IReceiveContext context, ReceiveDelegate next)
     {
         var feature = context.Features.GetOrSet<AzureServiceBusReceiveFeature>();
-        var actions = feature.Actions;
-        var message = feature.Message;
-        var entityPath = feature.ProcessMessageEventArgs?.EntityPath
+        var entityPath =
+            feature.ProcessMessageEventArgs?.EntityPath
             ?? feature.ProcessSessionMessageEventArgs?.EntityPath
             ?? string.Empty;
         var cancellationToken = context.CancellationToken;
@@ -33,13 +32,13 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         {
             await next(context);
 
-            await CompleteAsync(actions, context.Services, message, entityPath, cancellationToken);
+            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
         }
         catch
         {
             try
             {
-                await AbandonAsync(actions, context.Services, message, entityPath, cancellationToken);
+                await AbandonAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
             }
             catch
             {
@@ -63,14 +62,9 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         }
         catch (ServiceBusException ex) when (IsLockLost(ex))
         {
-            services.GetRequiredService<ILogger<AzureServiceBusAcknowledgementMiddleware>>()
-                .AcknowledgementLockLost(
-                    "Complete",
-                    entityPath,
-                    message.MessageId,
-                    message.SessionId,
-                    ex.Reason,
-                    ex);
+            services
+                .GetRequiredService<ILogger<AzureServiceBusAcknowledgementMiddleware>>()
+                .AcknowledgementLockLost("Complete", entityPath, message.MessageId, message.SessionId, ex.Reason, ex);
 
             // Two cases collapse into MessageLockLost/SessionLockLost here:
             //   1. The handler already settled the message itself (e.g. called DeadLetterAsync
@@ -98,14 +92,9 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         }
         catch (ServiceBusException ex) when (IsLockLost(ex))
         {
-            services.GetRequiredService<ILogger<AzureServiceBusAcknowledgementMiddleware>>()
-                .AcknowledgementLockLost(
-                    "Abandon",
-                    entityPath,
-                    message.MessageId,
-                    message.SessionId,
-                    ex.Reason,
-                    ex);
+            services
+                .GetRequiredService<ILogger<AzureServiceBusAcknowledgementMiddleware>>()
+                .AcknowledgementLockLost("Abandon", entityPath, message.MessageId, message.SessionId, ex.Reason, ex);
 
             // Same two cases as in CompleteAsync: the handler settled the message before
             // throwing, or the lock expired while the handler was running. In the lock-expired
@@ -131,8 +120,8 @@ internal static partial class AcknowledgementLogs
 {
     [LoggerMessage(
         LogLevel.Warning,
-        "Azure Service Bus lock lost during {Operation} settlement on entity {EntityPath} " +
-        "for message {MessageId} (SessionId: {SessionId}, Reason: {Reason}); message settlement skipped")]
+        "Azure Service Bus lock lost during {Operation} settlement on entity {EntityPath} "
+            + "for message {MessageId} (SessionId: {SessionId}, Reason: {Reason}); message settlement skipped")]
     public static partial void AcknowledgementLockLost(
         this ILogger logger,
         string operation,

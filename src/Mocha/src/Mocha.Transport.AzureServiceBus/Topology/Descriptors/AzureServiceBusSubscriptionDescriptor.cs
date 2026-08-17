@@ -31,49 +31,49 @@ internal sealed class AzureServiceBusSubscriptionDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithLockDuration(TimeSpan lockDuration)
+    public IAzureServiceBusSubscriptionDescriptor LockDuration(TimeSpan lockDuration)
     {
         Configuration.LockDuration = lockDuration;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
+    public IAzureServiceBusSubscriptionDescriptor MaxDeliveryCount(int maxDeliveryCount)
     {
         Configuration.MaxDeliveryCount = maxDeliveryCount;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    public IAzureServiceBusSubscriptionDescriptor DefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
     {
         Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithForwardTo(string entityName)
+    public IAzureServiceBusSubscriptionDescriptor ForwardTo(string entityName)
     {
         Configuration.ForwardTo = entityName;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
+    public IAzureServiceBusSubscriptionDescriptor ForwardDeadLetteredMessagesTo(string entityName)
     {
         Configuration.ForwardDeadLetteredMessagesTo = entityName;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithDeadLetteringOnMessageExpiration(bool deadLetteringOnMessageExpiration = true)
+    public IAzureServiceBusSubscriptionDescriptor DeadLetteringOnMessageExpiration(bool deadLetteringOnMessageExpiration = true)
     {
         Configuration.DeadLetteringOnMessageExpiration = deadLetteringOnMessageExpiration;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusSubscriptionDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    public IAzureServiceBusSubscriptionDescriptor AutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
     {
         Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
         return this;

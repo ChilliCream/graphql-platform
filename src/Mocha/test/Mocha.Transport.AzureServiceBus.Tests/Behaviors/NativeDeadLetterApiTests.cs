@@ -62,7 +62,7 @@ public class NativeDeadLetterApiTests
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
                 // Allow at least 2 deliveries so the message redelivers after our abandon.
-                t.DeclareQueue(queueName).WithMaxDeliveryCount(5);
+                t.DeclareQueue(queueName).MaxDeliveryCount(5);
                 t.Endpoint("abandon-api-ep").Consumer<AbandoningConsumer>().Queue(queueName);
             })
             .BuildTestBusAsync();

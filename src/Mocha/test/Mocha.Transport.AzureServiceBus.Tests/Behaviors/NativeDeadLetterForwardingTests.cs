@@ -68,7 +68,7 @@ public class NativeDeadLetterForwardingTests
                 {
                     t.ConnectionString(ctx.ConnectionString);
                     t.AdministrationConnectionString(ctx.AdminConnectionString);
-                    t.DeclareQueue(queueName).WithForwardDeadLetteredMessagesTo("custom-dlq");
+                    t.DeclareQueue(queueName).ForwardDeadLetteredMessagesTo("custom-dlq");
                     t.Endpoint("dlq-conflict-ep")
                         .Handler<OrderCreatedHandler>()
                         .Queue(queueName)
@@ -100,7 +100,7 @@ public class NativeDeadLetterForwardingTests
                 // MaxDeliveryCount = 1 -> first failed delivery moves the message to the broker DLQ,
                 // which is then forwarded into the Mocha-managed _error queue by the queue's
                 // ForwardDeadLetteredMessagesTo binding.
-                t.DeclareQueue(queueName).WithMaxDeliveryCount(1);
+                t.DeclareQueue(queueName).MaxDeliveryCount(1);
                 t.Endpoint("max-dl-ep")
                     .Consumer<AlwaysAbandoningConsumer>()
                     .Queue(queueName)

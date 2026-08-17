@@ -15,6 +15,9 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTransport transport)
     : DispatchEndpoint<AzureServiceBusDispatchEndpointConfiguration>(transport)
 {
+    private readonly SemaphoreSlim _provisionGate = new(1, 1);
+    private volatile bool _provisioned;
+
     /// <summary>
     /// Gets the target queue, or <c>null</c> if this endpoint dispatches to a topic.
     /// </summary>
@@ -42,25 +45,20 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
             throw ThrowHelper.DispatchEndpointEnvelopeNotSet();
         }
 
-        var clientManager = transport.ClientManager;
-        var cancellationToken = context.CancellationToken;
         var timeProvider = context.Services.GetTimeProvider();
 
-        await EnsureProvisionedAsync(cancellationToken);
+        await EnsureProvisionedAsync(context.CancellationToken);
 
         var entityPath = AzureServiceBusEntityPathResolver.Resolve(this, envelope);
         var message = AzureServiceBusMessageFactory.Create(envelope, timeProvider.GetUtcNow());
 
         await AzureServiceBusEntityNotFoundRetry.ExecuteAsync(
-            clientManager,
+            transport.ClientManager,
             this,
             entityPath,
             (sender, ct) => sender.SendMessageAsync(message, ct),
-            cancellationToken);
+            context.CancellationToken);
     }
-
-    private readonly SemaphoreSlim _provisionGate = new(1, 1);
-    private volatile bool _provisioned;
 
     internal async Task EnsureProvisionedAsync(CancellationToken cancellationToken)
     {

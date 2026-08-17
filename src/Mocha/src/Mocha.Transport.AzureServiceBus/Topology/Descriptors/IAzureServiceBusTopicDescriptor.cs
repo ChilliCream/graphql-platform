@@ -22,37 +22,37 @@ public interface IAzureServiceBusTopicDescriptor : IMessagingDescriptor<AzureSer
     /// <summary>
     /// Sets the default time-to-live applied to messages that do not specify their own.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive);
+    IAzureServiceBusTopicDescriptor DefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive);
 
     /// <summary>
     /// Sets the maximum size of the topic in megabytes. Use the SDK's
     /// <c>MaxSizeInMegabytes</c> contract — there is no gigabyte-based property.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes);
+    IAzureServiceBusTopicDescriptor MaxSizeInMegabytes(long maxSizeInMegabytes);
 
     /// <summary>
     /// Sets whether the topic is partitioned. Must be set at creation time and cannot be altered later.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithEnablePartitioning(bool enablePartitioning = true);
+    IAzureServiceBusTopicDescriptor EnablePartitioning(bool enablePartitioning = true);
 
     /// <summary>
     /// Sets whether the topic enforces duplicate detection across the configured history window.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithRequiresDuplicateDetection(bool requiresDuplicateDetection = true);
+    IAzureServiceBusTopicDescriptor RequiresDuplicateDetection(bool requiresDuplicateDetection = true);
 
     /// <summary>
     /// Sets the time window over which duplicate detection is performed. Has no effect unless
     /// duplicate detection is enabled.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithDuplicateDetectionHistoryTimeWindow(TimeSpan duplicateDetectionHistoryTimeWindow);
+    IAzureServiceBusTopicDescriptor DuplicateDetectionHistoryTimeWindow(TimeSpan duplicateDetectionHistoryTimeWindow);
 
     /// <summary>
     /// Controls how long the topic waits without activity before being automatically deleted.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle);
+    IAzureServiceBusTopicDescriptor AutoDeleteOnIdle(TimeSpan autoDeleteOnIdle);
 
     /// <summary>
     /// Sets whether the topic preserves ordering across partitioned subscriptions.
     /// </summary>
-    IAzureServiceBusTopicDescriptor WithSupportOrdering(bool supportOrdering = true);
+    IAzureServiceBusTopicDescriptor SupportOrdering(bool supportOrdering = true);
 }

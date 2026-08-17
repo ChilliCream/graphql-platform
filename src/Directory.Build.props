@@ -42,9 +42,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net11.0; net10.0; net9.0; net8.0</TargetFrameworks>
-    <ExtendedTargetFrameworks>net11.0; net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
-    <OpenApiTargetFrameworks>net11.0; net10.0; net9.0</OpenApiTargetFrameworks>
+    <TargetFrameworks>net11.0;net10.0;net9.0;net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net11.0;net10.0;net9.0;net8.0;netstandard2.0</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>net11.0;net10.0;net9.0</OpenApiTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

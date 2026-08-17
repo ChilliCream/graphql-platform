@@ -110,8 +110,8 @@ public class AutoProvisionIntegrationTests
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(true);
                 t.DeclareQueue(queueName)
-                    .WithLockDuration(TimeSpan.FromSeconds(45))
-                    .WithMaxDeliveryCount(7);
+                    .LockDuration(TimeSpan.FromSeconds(45))
+                    .MaxDeliveryCount(7);
             })
             .BuildTestBusAsync();
 
