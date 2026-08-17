@@ -83,5 +83,5 @@ export const Mocha: Story = {
 };
 
 export const Skills: Story = {
-  args: productArgs("skillz", "Get started"),
+  args: productArgs("skills", "Get started"),
 };

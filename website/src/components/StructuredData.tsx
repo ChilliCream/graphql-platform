@@ -43,7 +43,7 @@ const STRUCTURED_DATA: JsonLdGraph = {
         addressCountry: "US",
       },
       sameAs: [
-        "https://github.com/ChilliCream/graphql-platform",
+        "https://github.com/ChilliCream",
         "https://x.com/Chilli_Cream",
         "https://www.linkedin.com/company/chillicream",
         "https://www.youtube.com/c/ChilliCream",

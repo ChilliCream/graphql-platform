@@ -72,6 +72,15 @@ function notFoundSecondary(
   return { href: "/docs", label: "Browse the docs" };
 }
 
+function isHumanContributor(author: string): boolean {
+  return (
+    author !== "Unknown" &&
+    !/(?:\[bot\]|\bbot\b|automation|github actions|dependabot|renovate)/i.test(
+      author,
+    )
+  );
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -194,6 +203,15 @@ export default async function DocPage({ params }: PageProps) {
     ...(description ? { description } : {}),
     ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
     image: schemaRef(imageId),
+    author: schemaRef(ORGANIZATION_ID),
+    ...(gitMeta && isHumanContributor(gitMeta.author)
+      ? {
+          contributor: {
+            "@type": "Person",
+            name: gitMeta.author,
+          },
+        }
+      : {}),
     publisher: schemaRef(ORGANIZATION_ID),
     mainEntityOfPage: schemaRef(schemaId(pageHref, "webpage")),
     inLanguage: "en",
@@ -247,11 +265,13 @@ export default async function DocPage({ params }: PageProps) {
 
           <EditOnGitHub href={githubEditUrl(`content/docs/${rel}`)} />
 
-          <DocPageMeta
-            isoDate={gitMeta.isoDate}
-            displayDate={gitMeta.displayDate}
-            author={gitMeta.author}
-          />
+          {gitMeta ? (
+            <DocPageMeta
+              isoDate={gitMeta.isoDate}
+              displayDate={gitMeta.displayDate}
+              author={gitMeta.author}
+            />
+          ) : null}
         </article>
       </main>
       <TableOfContents items={toc} />

@@ -24,11 +24,14 @@ export function generateStaticParams(): Params[] {
 
 export async function generateMetadata({ params }: PageProps) {
   const { tag } = await params;
-  return pageMetadata({
-    title: `#${tag} Blog Posts`,
-    description: `Posts tagged "${tag}".`,
-    path: `/blog/tags/${tag}`,
-  });
+  return {
+    ...pageMetadata({
+      title: `#${tag} Blog Posts`,
+      description: `Posts tagged "${tag}".`,
+      path: `/blog/tags/${tag}`,
+    }),
+    robots: { index: false, follow: true },
+  };
 }
 
 export default async function TagIndex({ params }: PageProps) {

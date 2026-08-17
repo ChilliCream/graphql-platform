@@ -20,5 +20,5 @@ export const PRODUCT_DRINKS: Record<string, ProductDrink> = {
   strawberryshake: { Icon: StrawberryShake, aspect: 1.847 },
   fusion: { Icon: Fusion, aspect: 1.424 },
   mocha: { Icon: Mocha, aspect: 1.424 },
-  skillz: { Icon: Skills, aspect: 1 },
+  skills: { Icon: Skills, aspect: 1 },
 };

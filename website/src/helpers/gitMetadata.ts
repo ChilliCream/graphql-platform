@@ -11,7 +11,7 @@ const DISPLAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
 const WEBSITE_ROOT = process.cwd();
 // Static manifest produced by `yarn generate-git-metadata` in the release
 // workflow. Absent during development and builds outside the workflow, in which
-// case every lookup falls back to a static placeholder.
+// case metadata is omitted rather than fabricated from the build time.
 const MANIFEST_PATH = path.join(WEBSITE_ROOT, "git-metadata.generated.json");
 
 export interface GitMetadata {
@@ -58,32 +58,23 @@ export async function getLastModifiedFromGit(
 
 export async function getGitMetadata(
   absoluteFilePath: string,
-): Promise<GitMetadata> {
+): Promise<GitMetadata | undefined> {
   const manifest = loadManifest();
   const key = path.relative(WEBSITE_ROOT, absoluteFilePath);
   const entry = manifest[key];
 
   if (!entry) {
-    return fallback();
+    return undefined;
   }
 
   const date = new Date(entry.date);
   if (Number.isNaN(date.getTime())) {
-    return fallback();
+    return undefined;
   }
 
   return {
     isoDate: date.toISOString(),
     displayDate: formatDate(date, DISPLAY_DATE_OPTIONS),
     author: entry.author || "Unknown",
-  };
-}
-
-function fallback(): GitMetadata {
-  const now = new Date();
-  return {
-    isoDate: now.toISOString(),
-    displayDate: formatDate(now, DISPLAY_DATE_OPTIONS),
-    author: "Unknown",
   };
 }
