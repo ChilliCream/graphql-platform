@@ -34,7 +34,7 @@ The CLI detects the agents you have installed, then symlinks the skill into each
 
 These docs show every command as `dnx skills`. Prefer `skills` on your `PATH`? Install the global tool with `dotnet tool install -g skills`, then drop the `dnx` prefix and run `skills` directly.
 
-Need the prerequisites or a step-by-step walkthrough? See [Get started](./getting-started.md). The [source repository](https://github.com/ChilliCream/skillz) and [`skills` package on NuGet](https://www.nuget.org/packages/skills) are public.
+Need the prerequisites or a step-by-step walkthrough? See [Get started](./getting-started.md). The [source repository](https://github.com/ChilliCream/skills) and [`skills` package on NuGet](https://www.nuget.org/packages/skills) are public.
 
 # What are Agent Skills
 

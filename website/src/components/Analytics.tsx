@@ -2,12 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
+import { canSendAnalytics, sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 function getContentGroup(pathname: string): string {
   if (pathname.startsWith("/docs")) {
@@ -47,14 +42,23 @@ function getContentGroup(pathname: string): string {
  * Reports a GA4 content group for the current route and tracks clicks on any
  * element carrying a `data-track` attribute. Renders nothing.
  *
- * Both effects no-op until `window.gtag` exists, so they are inert until the
- * user grants consent and Google Tag Manager loads.
+ * Collection is gated by Cookiebot statistics consent and by GTM having
+ * started. Nothing is queued for a visitor who has not opted in.
  */
 export function Analytics() {
   const pathname = usePathname();
 
   useEffect(() => {
-    window.gtag?.("set", { content_group: getContentGroup(pathname) });
+    function setContentGroup() {
+      if (canSendAnalytics()) {
+        window.gtag!("set", { content_group: getContentGroup(pathname) });
+      }
+    }
+
+    setContentGroup();
+    window.addEventListener("CookiebotOnConsentReady", setContentGroup);
+    return () =>
+      window.removeEventListener("CookiebotOnConsentReady", setContentGroup);
   }, [pathname]);
 
   useEffect(() => {
@@ -63,21 +67,51 @@ export function Analytics() {
         return;
       }
 
-      const el = e.target.closest<HTMLElement>("[data-track]");
-      if (!el || !window.gtag) {
+      const el = e.target.closest<HTMLElement>("[data-track], a[href]");
+      if (!el) {
         return;
       }
 
-      window.gtag("event", el.dataset.track, {
-        event_label: el.dataset.trackLabel || el.textContent?.trim(),
-        link_url: el.getAttribute("href") || undefined,
+      const href = el.getAttribute("href") ?? "";
+      const inferredEvent = inferBusinessEvent(href);
+      const eventName = el.dataset.track || inferredEvent;
+      if (!eventName) {
+        return;
+      }
+
+      sendAnalyticsEvent(eventName, {
+        link_text: el.dataset.trackLabel || el.textContent?.trim(),
+        link_url: href || undefined,
         page_path: pathname,
+        content_group: getContentGroup(pathname),
       });
     }
 
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, [pathname]);
+
+  return null;
+}
+
+function inferBusinessEvent(href: string): string | null {
+  try {
+    const url = new URL(href, window.location.origin);
+    if (url.hostname === "nitro.chillicream.com") {
+      return "nitro_cta_click";
+    }
+    if (url.pathname === "/services/support/contact") {
+      return "contact_cta_click";
+    }
+    if (
+      url.protocol === "mailto:" &&
+      url.pathname.toLowerCase() === "contact@chillicream.com"
+    ) {
+      return "contact_cta_click";
+    }
+  } catch {
+    return null;
+  }
 
   return null;
 }

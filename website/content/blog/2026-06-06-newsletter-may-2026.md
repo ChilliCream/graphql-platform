@@ -1,7 +1,7 @@
 ---
 date: "2026-06-06"
 title: "Newsletter May 2026"
-description: "Hot Chocolate 16, Fusion 16, MCP, OpenAPI, Semantic Introspection, skillz, and more. Read the newsletter to learn about all the things we shipped in May and what comes next."
+description: "May 2026 brought Hot Chocolate 16, Fusion 16, MCP and OpenAPI adapters, Semantic Introspection, Skills, and more from ChilliCream."
 tags:
   [
     "hotchocolate",
@@ -68,6 +68,8 @@ dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 ```
 
 Read the announcement: [Introducing skillz](./2026-06-05-introducing-skillz.md).
+
+The CLI is now named `skills`; use the current [Skills documentation](../docs/skills/index.md) for installation and commands.
 
 # Semantic Introspection
 

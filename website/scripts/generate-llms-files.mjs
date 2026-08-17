@@ -17,7 +17,7 @@ const PRODUCT_NAMES = new Map([
   ["strawberryshake", "Strawberry Shake"],
   ["nitro", "Nitro"],
   ["mocha", "Mocha"],
-  ["skillz", "Skills"],
+  ["skills", "Skills"],
 ]);
 const PRODUCT_ORDER = new Map(
   [...PRODUCT_NAMES.keys()].map((product, index) => [product, index]),
@@ -38,6 +38,8 @@ const STRIP_FROM_CONTENT = [
   "[data-llms-ignore]",
   ".heading-anchor",
 ];
+const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const LEGACY_CANONICAL_PATH = /^\/docs\/skillz(?:\/|$)/;
 
 const markdownConverter = new NodeHtmlMarkdown({
   bulletMarker: "-",
@@ -208,7 +210,33 @@ async function readSitemapUrls() {
     throw new Error("The sitemap contains duplicate canonical URLs.");
   }
 
+  const origins = new Set();
+  for (const value of urls) {
+    const url = new URL(value);
+    origins.add(url.origin);
+    if (url.username || url.password || url.search || url.hash) {
+      throw new Error(`The sitemap contains a non-canonical URL: ${value}`);
+    }
+    if (url.pathname !== "/" && url.pathname.endsWith("/")) {
+      throw new Error(`The sitemap contains a trailing-slash URL: ${value}`);
+    }
+    if (LEGACY_CANONICAL_PATH.test(url.pathname)) {
+      throw new Error(`The sitemap contains legacy Skills URL: ${value}`);
+    }
+  }
+  if (origins.size !== 1) {
+    throw new Error("The sitemap must use exactly one canonical origin.");
+  }
+
   return urls;
+}
+
+/**
+ * Archive pagination is valuable to crawlers, but converting those repeated
+ * teaser grids into LLM context duplicates the underlying articles many times.
+ */
+export function isLlmsEligibleUrl(value) {
+  return !REDUNDANT_ARCHIVE_PATH.test(new URL(value).pathname);
 }
 
 async function readPage(url) {
@@ -232,6 +260,20 @@ async function readPage(url) {
   }
 
   const document = parse(stripBuildOnlyHtml(html), { comment: false });
+  const canonical = document
+    .querySelector('link[rel="canonical"]')
+    ?.getAttribute("href");
+  if (!canonical || new URL(canonical, url).href !== url) {
+    throw new Error(
+      `Rendered canonical does not match the sitemap URL: ${url}`,
+    );
+  }
+  const robots = document
+    .querySelector('meta[name="robots"]')
+    ?.getAttribute("content");
+  if (/\bnoindex\b/i.test(robots ?? "")) {
+    throw new Error(`Sitemap page is marked noindex: ${url}`);
+  }
   const root = contentRootFor(document, url);
   if (!root) {
     throw new Error(`No main content element found for ${url}`);
@@ -383,7 +425,7 @@ function pagesUnder(pages, prefix, includeRoot = true) {
 
 function scopeLinks(origin) {
   return [
-    `- [Complete site context](${origin}/llms-full.txt): All public sitemap content in one large compatibility export.`,
+    `- [Complete site context](${origin}/llms-full.txt): All substantive public site content in one large compatibility export.`,
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
   ];
@@ -412,7 +454,13 @@ async function writePerPageMarkdown(pages) {
 }
 
 export async function generateLlmsFiles() {
-  const urls = await readSitemapUrls();
+  const sitemapUrls = await readSitemapUrls();
+  const urls = sitemapUrls.filter(isLlmsEligibleUrl);
+  if (urls.length === 0) {
+    throw new Error(
+      "The sitemap contains no substantive pages for LLM export.",
+    );
+  }
   const pages = [];
   for (const url of urls) {
     pages.push(await readPage(url));
@@ -561,7 +609,7 @@ export async function generateLlmsFiles() {
       "llms-full.txt",
       fullCorpus(
         "ChilliCream full site context",
-        "All public ChilliCream pages included in the XML sitemap, converted from final rendered HTML.",
+        "All substantive ChilliCream pages in the XML sitemap, converted from final rendered HTML without repetitive archive pagination.",
         pages,
       ),
     ),

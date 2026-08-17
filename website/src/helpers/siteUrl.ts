@@ -10,27 +10,42 @@
  * 3. The production site.
  */
 function resolveSiteUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL;
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  const value =
+    configured ??
+    (process.env.NODE_ENV === "development"
+      ? `http://localhost:${process.env.PORT ?? 3001}`
+      : "https://chillicream.com");
+  const url = new URL(value);
+
+  if (!/^https?:$/.test(url.protocol)) {
+    throw new Error("NEXT_PUBLIC_SITE_URL must use http or https.");
+  }
+  if (
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL must be an origin without credentials, a path, a query, or a fragment.",
+    );
   }
 
-  if (process.env.NODE_ENV === "development") {
-    return `http://localhost:${process.env.PORT ?? 3001}`;
-  }
-
-  return "https://chillicream.com";
+  return url.origin;
 }
 
-export const SITE_URL = resolveSiteUrl().replace(/\/+$/, "");
+export const SITE_URL = resolveSiteUrl();
 
 /**
  * Turns a path into an absolute URL against {@link SITE_URL}. Root-relative
- * paths (`/foo`) are prefixed with the site origin; values that are already
- * absolute (`https://…`) or protocol-relative (`//…`) are returned unchanged.
+ * paths (`/foo`) are resolved against the site origin. Absolute and
+ * protocol-relative URLs are normalized to fully-qualified HTTP(S) URLs.
  */
 export function toAbsoluteUrl(pathOrUrl: string): string {
-  if (/^(https?:)?\/\//.test(pathOrUrl)) {
-    return pathOrUrl;
+  if (/^\/\//.test(pathOrUrl)) {
+    return new URL(`${new URL(SITE_URL).protocol}${pathOrUrl}`).href;
   }
-  return `${SITE_URL}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
+  return new URL(pathOrUrl, `${SITE_URL}/`).href;
 }

@@ -1,6 +1,7 @@
 ---
-title: "Coming from Apollo Federation"
-description: "Map Apollo Federation concepts like @key and _entities to Hot Chocolate Fusion equivalents such as [Lookup], and migrate subgraphs, gateway, and CI/CD."
+title: "Migrate from Apollo Federation"
+metaTitle: "Migrate from Apollo Federation to Hot Chocolate Fusion"
+description: "Migrate from Apollo Federation to Hot Chocolate Fusion: map @key and _entities to typed lookups, then move subgraphs, the gateway, and CI/CD incrementally."
 ---
 
 If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion supports two subgraph protocols: Apollo Federation and GraphQL Federation, the open [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/) (formerly the GraphQL Composite Schemas specification). This guide is about moving a subgraph from the Apollo Federation protocol to the GraphQL Federation protocol.
