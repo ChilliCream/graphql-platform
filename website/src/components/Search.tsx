@@ -17,6 +17,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { PRODUCTS } from "@/src/data/products";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 import { SearchIcon } from "@/src/icons/Search";
 
 // The DocSearch modal (and its ~120 KB of JS plus CSS) is code-split into its
@@ -248,5 +249,18 @@ function Hit({ hit, children }: HitProps) {
   } catch {
     to = hit.url;
   }
-  return <Link href={to}>{children}</Link>;
+  return (
+    <Link
+      href={to}
+      onClick={() => {
+        sendAnalyticsEvent("search_result_select", {
+          result_path: to,
+          result_product: getProduct(hit) || undefined,
+          page_path: window.location.pathname,
+        });
+      }}
+    >
+      {children}
+    </Link>
+  );
 }

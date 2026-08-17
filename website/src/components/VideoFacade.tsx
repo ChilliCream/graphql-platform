@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 type VideoFacadeProps = {
   /** 11-character YouTube video id. */
@@ -42,7 +43,13 @@ export function VideoFacade({
   return (
     <button
       type="button"
-      onClick={() => setActive(true)}
+      onClick={() => {
+        sendAnalyticsEvent("video_start", {
+          video_id: videoId,
+          page_path: window.location.pathname,
+        });
+        setActive(true);
+      }}
       aria-label={playlabel}
       className="group bg-cc-black relative block aspect-video w-full cursor-pointer overflow-hidden border-0 p-0"
     >
