@@ -16,11 +16,7 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTransport transport)
     : ReceiveEndpoint<AzureServiceBusReceiveEndpointConfiguration>(transport)
 {
-    private static readonly TimeSpan s_maximumRecoveryDelay = TimeSpan.FromSeconds(30);
-    private readonly object _processorRecoverySync = new();
     private MessageProcessor? _processor;
-    private CancellationTokenSource? _processorLifetime;
-    private Task _processorRecoveryTask = Task.CompletedTask;
     private QueueHeartbeat? _heartbeat;
     private ILogger<AzureServiceBusReceiveEndpoint> _logger = null!;
     private int _maxConcurrentCalls = 1;
@@ -40,10 +36,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             throw ThrowHelper.ReceiveEndpointQueueNameRequired();
         }
 
-        _maxConcurrentCalls = Math.Clamp(
-            configuration.MaxConcurrency ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency,
-            1,
-            1000);
+        _maxConcurrentCalls = configuration.MaxConcurrency ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency;
+        _maxConcurrentCalls = Math.Clamp(_maxConcurrentCalls, 1, 1000);
 
         // PrefetchCount 0 disables local buffering and fetches messages on demand.
         // Handler concurrency is governed independently by MaxConcurrentCalls.
@@ -71,8 +65,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         {
             throw new InvalidOperationException(
                 $"Receive endpoint '{Name}' cannot target queue '{Queue.Name}' configured with auto-forwarding "
-                + "(ForwardTo). The broker rejects receivers on an auto-forwarding source. Declare forwarding-only "
-                + "queues with DeclareQueue instead of Queue or Endpoint.");
+                    + "(ForwardTo). The broker rejects receivers on an auto-forwarding source. Declare forwarding-only "
+                    + "queues with DeclareQueue instead of Queue or Endpoint.");
         }
 
         if (Queue.RequiresSession != true)
@@ -101,12 +95,16 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         }
     }
 
+    /// <summary>
+    /// Starts when the messaging runtime activates this endpoint. The endpoint selects and starts
+    /// the appropriate session or non-session processor, and starts a heartbeat for reply queues.
+    /// If startup fails, it disposes any resources created during the attempt before propagating the failure.
+    /// </summary>
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
         _logger = context.Services.GetRequiredService<ILogger<AzureServiceBusReceiveEndpoint>>();
-        _processorLifetime = new CancellationTokenSource();
 
         try
         {
@@ -129,47 +127,11 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         }
         catch
         {
-            if (_heartbeat is not null)
-            {
-                try
-                {
-                    await _heartbeat.DisposeAsync();
-                }
-                catch
-                {
-                }
-                finally
-                {
-                    _heartbeat = null;
-                }
-            }
+            await _heartbeat.DisposeAsyncSafe();
+            await _processor.DisposeAsyncSafe();
 
-            if (_processor is not null)
-            {
-                try
-                {
-                    await _processor.DisposeAsync();
-                }
-                catch
-                {
-                }
-                finally
-                {
-                    _processor = null;
-                }
-            }
-
-            if (_processorLifetime is not null)
-            {
-                try
-                {
-                    _processorLifetime.Dispose();
-                }
-                finally
-                {
-                    _processorLifetime = null;
-                }
-            }
+            _heartbeat = null;
+            _processor = null;
 
             throw;
         }
@@ -191,7 +153,11 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         _logger.ReceiveEndpointStarted(Queue.Name, _prefetchCount, _maxConcurrentCalls);
 
         var processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
-        processor.ProcessMessageAsync += OnNonSessionMessage;
+        processor.ProcessMessageAsync += async args =>
+            await ExecuteAsync(
+                static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetNonSession(state),
+                args,
+                args.CancellationToken);
         processor.ProcessErrorAsync += OnProcessorError;
         return processor;
     }
@@ -218,34 +184,23 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             options.SessionIdleTimeout = idle;
         }
 
-        _logger.SessionReceiveEndpointStarted(
-            Queue.Name,
-            prefetchCount,
-            maxSessions,
-            maxCallsPerSession);
+        _logger.SessionReceiveEndpointStarted(Queue.Name, prefetchCount, maxSessions, maxCallsPerSession);
 
         var sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
-        sessionProcessor.ProcessMessageAsync += OnSessionMessage;
+        sessionProcessor.ProcessMessageAsync += async args =>
+            await ExecuteAsync(
+                static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetSession(state),
+                args,
+                args.CancellationToken);
         sessionProcessor.ProcessErrorAsync += OnProcessorError;
         return sessionProcessor;
     }
 
-    private async Task OnNonSessionMessage(ProcessMessageEventArgs args)
-    {
-        await ExecuteAsync(
-            static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetNonSession(state),
-            args,
-            args.CancellationToken);
-    }
-
-    private async Task OnSessionMessage(ProcessSessionMessageEventArgs args)
-    {
-        await ExecuteAsync(
-            static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetSession(state),
-            args,
-            args.CancellationToken);
-    }
-
+    /// <summary>
+    /// Handles an error reported by either Azure Service Bus processor. Transient errors are logged
+    /// as warnings and other errors as failures. Processor retry and connection recovery remain the
+    /// responsibility of the Azure Service Bus SDK.
+    /// </summary>
     private Task OnProcessorError(ProcessErrorEventArgs args)
     {
         // Transient/recoverable conditions are surfaced as warnings; only unknown faults escalate to error.
@@ -258,38 +213,19 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             _logger.ProcessorError(args.Exception, args.EntityPath, args.ErrorSource);
         }
 
-        if (args.Exception is ServiceBusException { Reason: ServiceBusFailureReason.MessagingEntityNotFound })
-        {
-            BeginProcessorRecovery();
-        }
-
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Stops when the messaging runtime deactivates this endpoint, then disposes the processor and
+    /// heartbeat resources.
+    /// </summary>
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        var processorLifetime = _processorLifetime;
-        processorLifetime?.Cancel();
-
-        Task processorRecoveryTask;
-        lock (_processorRecoverySync)
-        {
-            processorRecoveryTask = _processorRecoveryTask;
-        }
-
         try
         {
-            try
-            {
-                await processorRecoveryTask;
-            }
-            catch (OperationCanceledException) when (processorLifetime?.IsCancellationRequested == true)
-            {
-                // Expected when endpoint shutdown interrupts an in-flight recovery.
-            }
-
             if (_processor is not null)
             {
                 await _processor.StopProcessingAsync(cancellationToken);
@@ -307,105 +243,6 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             {
                 await _processor.DisposeAsync();
                 _processor = null;
-            }
-
-            processorLifetime?.Dispose();
-            _processorLifetime = null;
-        }
-    }
-
-    private void BeginProcessorRecovery()
-    {
-        lock (_processorRecoverySync)
-        {
-            if (_processor is not { } processor
-                || _processorLifetime is not { IsCancellationRequested: false } processorLifetime
-                || !_processorRecoveryTask.IsCompleted)
-            {
-                return;
-            }
-
-            Task stopTask;
-            try
-            {
-                // Do not await this from ProcessErrorAsync. The SDK waits for the error callback
-                // while stopping, so recovery continues only after this callback has returned.
-                stopTask = processor.StopProcessingAsync(processorLifetime.Token);
-            }
-            catch (Exception exception)
-            {
-                stopTask = Task.FromException(exception);
-            }
-
-            _processorRecoveryTask = RecoverProcessorAsync(
-                processor,
-                stopTask,
-                processorLifetime.Token);
-        }
-    }
-
-    private async Task RecoverProcessorAsync(
-        MessageProcessor processor,
-        Task stopTask,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await stopTask;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
-        catch (Exception exception)
-        {
-            _logger.ProcessorRecoveryFailed(exception, Queue.Name, TimeSpan.Zero);
-        }
-
-        var retryDelay = TimeSpan.FromSeconds(1);
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                var topology = (AzureServiceBusMessagingTopology)transport.Topology;
-                if (Queue.AutoProvision ?? topology.AutoProvision)
-                {
-                    await Queue.ProvisionAsync(transport.ClientManager, cancellationToken);
-                }
-
-                if (!ReferenceEquals(_processor, processor))
-                {
-                    return;
-                }
-
-                await processor.StartProcessingAsync(cancellationToken);
-                _logger.ProcessorRecovered(Queue.Name);
-                return;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-            catch (Exception exception)
-            {
-                _logger.ProcessorRecoveryFailed(exception, Queue.Name, retryDelay);
-
-                try
-                {
-                    await processor.StopProcessingAsync(cancellationToken);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-                catch (Exception stopException)
-                {
-                    _logger.ProcessorRecoveryFailed(stopException, Queue.Name, retryDelay);
-                }
-
-                await Task.Delay(retryDelay, cancellationToken);
-                retryDelay = TimeSpan.FromSeconds(
-                    Math.Min(retryDelay.TotalSeconds * 2, s_maximumRecoveryDelay.TotalSeconds));
             }
         }
     }
@@ -467,18 +304,6 @@ internal static partial class Logs
         Exception exception,
         string entityPath,
         ServiceBusErrorSource errorSource);
-
-    [LoggerMessage(LogLevel.Information, "Azure Service Bus processor recovered on entity {EntityPath}")]
-    public static partial void ProcessorRecovered(this ILogger logger, string entityPath);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "Azure Service Bus processor recovery failed on entity {EntityPath}; retrying after {RetryDelay}")]
-    public static partial void ProcessorRecoveryFailed(
-        this ILogger logger,
-        Exception exception,
-        string entityPath,
-        TimeSpan retryDelay);
 
     [LoggerMessage(LogLevel.Warning, "Reply queue keep-alive peek failed for {EntityPath}")]
     public static partial void ReplyQueueKeepAliveFailed(this ILogger logger, Exception exception, string entityPath);

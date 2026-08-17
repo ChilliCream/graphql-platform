@@ -24,40 +24,39 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
         var amqp = message.GetRawAmqpMessage();
         var props = amqp.ApplicationProperties;
 
-        var sentAt = props.TryGetValue(AzureServiceBusMessageHeaders.SentAt, out var sentAtValue)
-            && sentAtValue is long sentAtMs
-            ? DateTimeOffset.FromUnixTimeMilliseconds(sentAtMs)
-            : (DateTimeOffset?)null;
+        var sentAt =
+            props.TryGetValue(AzureServiceBusMessageHeaders.SentAt, out var sentAtValue) && sentAtValue is long sentAtMs
+                ? DateTimeOffset.FromUnixTimeMilliseconds(sentAtMs)
+                : (DateTimeOffset?)null;
 
         var envelope = new MessageEnvelope
         {
             MessageId = message.MessageId,
             CorrelationId = message.CorrelationId,
-            ConversationId = props.GetString(AzureServiceBusMessageHeaders.ConversationId),
-            CausationId = props.GetString(AzureServiceBusMessageHeaders.CausationId),
-            SourceAddress = props.GetString(AzureServiceBusMessageHeaders.SourceAddress),
-            DestinationAddress = props.GetString(AzureServiceBusMessageHeaders.DestinationAddress),
+            ConversationId = props.GetString(MessageHeaders.Transport.ConversationId),
+            CausationId = props.GetString(MessageHeaders.Transport.CausationId),
+            SourceAddress = props.GetString(MessageHeaders.Transport.SourceAddress),
+            DestinationAddress = props.GetString(MessageHeaders.Transport.DestinationAddress),
             ResponseAddress = message.ReplyTo,
-            FaultAddress = props.GetString(AzureServiceBusMessageHeaders.FaultAddress),
+            FaultAddress = props.GetString(MessageHeaders.Transport.FaultAddress),
             ContentType = message.ContentType,
-            MessageType = message.Subject
-                ?? props.GetString(AzureServiceBusMessageHeaders.MessageType),
+            MessageType = message.Subject ?? props.GetString(MessageHeaders.Transport.MessageType),
             SentAt = sentAt ?? message.EnqueuedTime,
             DeliverBy = message.ExpiresAt != DateTimeOffset.MaxValue ? message.ExpiresAt : null,
             DeliveryCount = Math.Max(message.DeliveryCount - 1, 0), // Convention: first delivery = 0, matching RabbitMQ and core dispatch/retry semantics.
             Headers = BuildHeaders(props, message),
             EnclosedMessageTypes = ParseEnclosedMessageTypes(props),
-            Body = message.Body.ToMemory()  // Zero-copy
+            Body = message.Body.ToMemory() // Zero-copy
         };
 
         return envelope;
     }
 
-    private static ImmutableArray<string> ParseEnclosedMessageTypes(
-        IDictionary<string, object?> props)
+    private static ImmutableArray<string> ParseEnclosedMessageTypes(IDictionary<string, object?> props)
     {
-        if (props.TryGetValue(AzureServiceBusMessageHeaders.EnclosedMessageTypes, out var value)
-            && value is string encoded && !string.IsNullOrEmpty(encoded))
+        if (props.TryGetValue(MessageHeaders.Transport.EnclosedMessageTypes.Key, out var value)
+            && value is string encoded
+            && !string.IsNullOrEmpty(encoded))
         {
             var span = encoded.AsSpan();
             var maximumRangeCount = 1;
@@ -70,9 +69,10 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
             }
 
             Range[]? rentedRanges = null;
-            Span<Range> ranges = maximumRangeCount <= 32
-                ? stackalloc Range[32]
-                : rentedRanges = ArrayPool<Range>.Shared.Rent(maximumRangeCount);
+            Span<Range> ranges =
+                maximumRangeCount <= 32
+                    ? stackalloc Range[32]
+                    : rentedRanges = ArrayPool<Range>.Shared.Rent(maximumRangeCount);
 
             try
             {
@@ -97,9 +97,7 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
         return [];
     }
 
-    private static Headers BuildHeaders(
-        IDictionary<string, object?> props,
-        ServiceBusReceivedMessage message)
+    private static Headers BuildHeaders(IDictionary<string, object?> props, ServiceBusReceivedMessage message)
     {
         // Count non-framework keys to avoid allocation when all properties are framework-internal
         var userKeyCount = 0;
@@ -172,9 +170,9 @@ internal static class AzureServiceBusApplicationPropertyExtensions
     /// <param name="props">The application properties dictionary.</param>
     /// <param name="key">The property key to read.</param>
     /// <returns>The string value, or <c>null</c> if the key is absent or not a string.</returns>
-    public static string? GetString(this IDictionary<string, object?> props, string key)
+    public static string? GetString(this IDictionary<string, object?> props, ContextDataKey<string> key)
     {
-        if (props.TryGetValue(key, out var value) && value is string str)
+        if (props.TryGetValue(key.Key, out var value) && value is string str)
         {
             return str;
         }

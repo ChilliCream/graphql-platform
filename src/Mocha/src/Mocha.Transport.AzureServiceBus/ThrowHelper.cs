@@ -90,9 +90,12 @@ internal static class ThrowHelper
     public static Exception DispatchEndpointDestinationAddressInvalidUri()
         => new InvalidOperationException("Destination address is not a valid URI");
 
-    public static Exception DispatchEndpointCannotDetermineDestinationName(string destinationAddress)
-        => new InvalidOperationException(
-            $"Cannot determine topic or queue name from destination address {destinationAddress}");
+    public static Exception DispatchEndpointCannotDetermineDestinationName(Uri destinationAddress)
+    {
+        var address = destinationAddress.ToString();
+        return new InvalidOperationException(
+            $"Cannot determine topic or queue name from destination address {address}");
+    }
 
     public static Exception DispatchEndpointDestinationNotConfigured()
         => new InvalidOperationException("Destination not configured");

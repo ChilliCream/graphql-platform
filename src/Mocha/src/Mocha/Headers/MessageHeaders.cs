@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -10,19 +12,29 @@ internal static class MessageHeaders
     /// </summary>
     public static class Transport
     {
-        public const string ConversationId = "x-conversation-id";
+        public static readonly ContextDataKey<string> ConversationId = new("x-conversation-id");
 
-        public const string CausationId = "x-causation-id";
+        public static readonly ContextDataKey<string> CausationId = new("x-causation-id");
 
-        public const string SourceAddress = "x-source-address";
+        public static readonly ContextDataKey<string> SourceAddress = new("x-source-address");
 
-        public const string DestinationAddress = "x-destination-address";
+        public static readonly ContextDataKey<string> DestinationAddress = new("x-destination-address");
 
-        public const string FaultAddress = "x-fault-address";
+        public static readonly ContextDataKey<string> FaultAddress = new("x-fault-address");
 
-        public const string MessageType = "x-message-type";
+        public static readonly ContextDataKey<string> MessageType = new("x-message-type");
 
-        public const string EnclosedMessageTypes = "x-enclosed-message-types";
+        public static readonly ContextDataKey<ImmutableArray<string>> EnclosedMessageTypes = new(
+            "x-enclosed-message-types");
+
+        public static bool IsDefined(string key)
+            => key == ConversationId.Key
+                || key == CausationId.Key
+                || key == SourceAddress.Key
+                || key == DestinationAddress.Key
+                || key == FaultAddress.Key
+                || key == MessageType.Key
+                || key == EnclosedMessageTypes.Key;
     }
 
     /// <summary>

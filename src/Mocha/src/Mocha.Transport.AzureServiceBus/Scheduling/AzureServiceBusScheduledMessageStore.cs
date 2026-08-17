@@ -50,21 +50,16 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
             throw ThrowHelper.ScheduledMessageStoreRequiresScheduledTime();
         }
 
-        await endpoint.EnsureProvisionedAsync(cancellationToken);
-
-        var entityPath = AzureServiceBusEntityPathResolver.Resolve(endpoint, envelope);
         var now = context.Services.GetTimeProvider().GetUtcNow();
+        // Invariant: expectedEnqueueTime == max(scheduledTime, now).
         var expectedEnqueueTime = scheduledTime > now ? scheduledTime : now;
-        var message = AzureServiceBusMessageFactory.Create(envelope, expectedEnqueueTime);
-
-        var sequenceNumber = await AzureServiceBusEntityNotFoundRetry.ExecuteAsync(
-            _transport.ClientManager,
-            endpoint,
-            entityPath,
-            (sender, ct) => sender.ScheduleMessageAsync(message, scheduledTime, ct),
+        var dispatch = await endpoint.ScheduleEnvelopeAsync(
+            envelope,
+            scheduledTime,
+            expectedEnqueueTime,
             cancellationToken);
 
-        return CreateToken(_owner, entityPath, sequenceNumber);
+        return CreateToken(_owner, dispatch.EntityPath, dispatch.SequenceNumber);
     }
 
     /// <inheritdoc />

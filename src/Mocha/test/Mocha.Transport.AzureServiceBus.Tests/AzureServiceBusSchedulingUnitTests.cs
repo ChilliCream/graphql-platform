@@ -181,13 +181,13 @@ public sealed class AzureServiceBusSchedulingUnitTests
         Assert.Equal(envelope.Body, message.Body.ToMemory());
 
         var properties = message.ApplicationProperties;
-        Assert.Equal("conversation-1", properties[AzureServiceBusMessageHeaders.ConversationId]);
-        Assert.Equal("causation-1", properties[AzureServiceBusMessageHeaders.CausationId]);
-        Assert.Equal("azuresb://example/q/source", properties[AzureServiceBusMessageHeaders.SourceAddress]);
-        Assert.Equal("azuresb://example/q/orders", properties[AzureServiceBusMessageHeaders.DestinationAddress]);
-        Assert.Equal("azuresb://example/q/orders_error", properties[AzureServiceBusMessageHeaders.FaultAddress]);
-        Assert.Equal("OrderCreated", properties[AzureServiceBusMessageHeaders.MessageType]);
-        Assert.Equal("OrderCreated;IEvent", properties[AzureServiceBusMessageHeaders.EnclosedMessageTypes]);
+        Assert.Equal("conversation-1", properties[MessageHeaders.Transport.ConversationId.Key]);
+        Assert.Equal("causation-1", properties[MessageHeaders.Transport.CausationId.Key]);
+        Assert.Equal("azuresb://example/q/source", properties[MessageHeaders.Transport.SourceAddress.Key]);
+        Assert.Equal("azuresb://example/q/orders", properties[MessageHeaders.Transport.DestinationAddress.Key]);
+        Assert.Equal("azuresb://example/q/orders_error", properties[MessageHeaders.Transport.FaultAddress.Key]);
+        Assert.Equal("OrderCreated", properties[MessageHeaders.Transport.MessageType.Key]);
+        Assert.Equal("OrderCreated;IEvent", properties[MessageHeaders.Transport.EnclosedMessageTypes.Key]);
         Assert.Equal(
             enqueueTime.AddMinutes(-1).ToUnixTimeMilliseconds(),
             properties[AzureServiceBusMessageHeaders.SentAt]);

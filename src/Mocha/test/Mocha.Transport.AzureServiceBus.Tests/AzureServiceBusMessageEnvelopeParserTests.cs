@@ -39,7 +39,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
             messageId: "message-1",
             properties: new Dictionary<string, object>
             {
-                [AzureServiceBusMessageHeaders.EnclosedMessageTypes] = string.Join(';', expected)
+                [MessageHeaders.Transport.EnclosedMessageTypes.Key] = string.Join(';', expected)
             });
 
         var envelope = AzureServiceBusMessageEnvelopeParser.Instance.Parse(received);

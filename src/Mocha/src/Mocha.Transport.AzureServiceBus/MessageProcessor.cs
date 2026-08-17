@@ -24,23 +24,14 @@ internal sealed class MessageProcessor : IAsyncDisposable
     }
 
     public static MessageProcessor ForProcessor(ServiceBusProcessor processor)
-        => new(
-            processor.StartProcessingAsync,
-            processor.StopProcessingAsync,
-            processor.DisposeAsync);
+        => new(processor.StartProcessingAsync, processor.StopProcessingAsync, processor.DisposeAsync);
 
     public static MessageProcessor ForSessionProcessor(ServiceBusSessionProcessor processor)
-        => new(
-            processor.StartProcessingAsync,
-            processor.StopProcessingAsync,
-            processor.DisposeAsync);
+        => new(processor.StartProcessingAsync, processor.StopProcessingAsync, processor.DisposeAsync);
 
-    public Task StartProcessingAsync(CancellationToken cancellationToken)
-        => _start(cancellationToken);
+    public Task StartProcessingAsync(CancellationToken cancellationToken) => _start(cancellationToken);
 
-    public Task StopProcessingAsync(CancellationToken cancellationToken = default)
-        => _stop(cancellationToken);
+    public Task StopProcessingAsync(CancellationToken cancellationToken = default) => _stop(cancellationToken);
 
-    public ValueTask DisposeAsync()
-        => _dispose();
+    public ValueTask DisposeAsync() => _dispose();
 }

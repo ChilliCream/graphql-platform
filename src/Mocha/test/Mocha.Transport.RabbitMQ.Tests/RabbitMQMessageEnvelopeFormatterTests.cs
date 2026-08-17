@@ -211,7 +211,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Equal("conv-123", headers[RabbitMQMessageHeaders.ConversationId.Key]);
+        Assert.Equal("conv-123", headers[MessageHeaders.Transport.ConversationId.Key]);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Equal("cause-456", headers[RabbitMQMessageHeaders.CausationId.Key]);
+        Assert.Equal("cause-456", headers[MessageHeaders.Transport.CausationId.Key]);
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Equal("rabbitmq:///q/source-q", headers[RabbitMQMessageHeaders.SourceAddress.Key]);
+        Assert.Equal("rabbitmq:///q/source-q", headers[MessageHeaders.Transport.SourceAddress.Key]);
     }
 
     [Fact]
@@ -250,7 +250,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Equal("rabbitmq:///q/dest-q", headers[RabbitMQMessageHeaders.DestinationAddress.Key]);
+        Assert.Equal("rabbitmq:///q/dest-q", headers[MessageHeaders.Transport.DestinationAddress.Key]);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Equal("rabbitmq:///q/fault-q", headers[RabbitMQMessageHeaders.FaultAddress.Key]);
+        Assert.Equal("rabbitmq:///q/fault-q", headers[MessageHeaders.Transport.FaultAddress.Key]);
     }
 
     [Fact]
@@ -277,8 +277,8 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.True(headers.ContainsKey(RabbitMQMessageHeaders.EnclosedMessageTypes.Key));
-        Assert.Equal(types, headers[RabbitMQMessageHeaders.EnclosedMessageTypes.Key]);
+        Assert.True(headers.ContainsKey(MessageHeaders.Transport.EnclosedMessageTypes.Key));
+        Assert.Equal(types, headers[MessageHeaders.Transport.EnclosedMessageTypes.Key]);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Equal("urn:message:OrderCreated", headers[RabbitMQMessageHeaders.MessageType.Key]);
+        Assert.Equal("urn:message:OrderCreated", headers[MessageHeaders.Transport.MessageType.Key]);
     }
 
     [Fact]

@@ -84,37 +84,37 @@ internal static class AzureServiceBusMessageFactory
     {
         if (envelope.ConversationId is not null)
         {
-            properties[AzureServiceBusMessageHeaders.ConversationId] = envelope.ConversationId;
+            properties[MessageHeaders.Transport.ConversationId.Key] = envelope.ConversationId;
         }
 
         if (envelope.CausationId is not null)
         {
-            properties[AzureServiceBusMessageHeaders.CausationId] = envelope.CausationId;
+            properties[MessageHeaders.Transport.CausationId.Key] = envelope.CausationId;
         }
 
         if (envelope.SourceAddress is not null)
         {
-            properties[AzureServiceBusMessageHeaders.SourceAddress] = envelope.SourceAddress;
+            properties[MessageHeaders.Transport.SourceAddress.Key] = envelope.SourceAddress;
         }
 
         if (envelope.DestinationAddress is not null)
         {
-            properties[AzureServiceBusMessageHeaders.DestinationAddress] = envelope.DestinationAddress;
+            properties[MessageHeaders.Transport.DestinationAddress.Key] = envelope.DestinationAddress;
         }
 
         if (envelope.FaultAddress is not null)
         {
-            properties[AzureServiceBusMessageHeaders.FaultAddress] = envelope.FaultAddress;
+            properties[MessageHeaders.Transport.FaultAddress.Key] = envelope.FaultAddress;
         }
 
         if (envelope.MessageType is not null)
         {
-            properties[AzureServiceBusMessageHeaders.MessageType] = envelope.MessageType;
+            properties[MessageHeaders.Transport.MessageType.Key] = envelope.MessageType;
         }
 
         if (envelope.EnclosedMessageTypes is { Length: > 0 } enclosedTypes)
         {
-            properties[AzureServiceBusMessageHeaders.EnclosedMessageTypes] =
+            properties[MessageHeaders.Transport.EnclosedMessageTypes.Key] =
                 enclosedTypes.Length == 1 ? enclosedTypes[0] : string.Join(";", enclosedTypes);
         }
 
