@@ -7,8 +7,9 @@ interface FaqSectionProps {
   readonly id: string;
   /** Outer section spacing utilities, e.g. "mt-24 sm:mt-28". */
   readonly className?: string;
-  readonly eyebrow: string;
+  readonly eyebrow?: string;
   readonly heading: string;
+  readonly align?: "left" | "center";
   readonly items: readonly {
     readonly question: string;
     readonly answer: string;
@@ -25,12 +26,13 @@ export function FaqSection({
   className,
   eyebrow,
   heading,
+  align = "center",
   items,
 }: FaqSectionProps) {
   return (
     <section aria-labelledby={`${id}-heading`} className={className} id={id}>
       <SectionHeading
-        align="center"
+        align={align}
         eyebrow={eyebrow}
         title={heading}
         titleId={`${id}-heading`}
