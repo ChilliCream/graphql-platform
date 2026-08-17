@@ -14,14 +14,14 @@ public class AzureServiceBusMessagePropertiesTests
     public void UseAzureServiceBusSessionId_Should_StoreExtractorOnMessageType()
     {
         // arrange & act
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusSessionId<OrderCreated>(msg => msg.OrderId)));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusSessionId<OrderCreated>(msg => msg.OrderId))
+        );
 
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<AzureServiceBusSessionIdExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<AzureServiceBusSessionIdExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-123" };
         Assert.Equal("ORD-123", extractor.Extract(order));
@@ -31,14 +31,14 @@ public class AzureServiceBusMessagePropertiesTests
     public void UseAzureServiceBusPartitionKey_Should_StoreExtractorOnMessageType()
     {
         // arrange & act
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusPartitionKey<OrderCreated>(msg => msg.OrderId)));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusPartitionKey<OrderCreated>(msg => msg.OrderId))
+        );
 
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<AzureServiceBusPartitionKeyExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<AzureServiceBusPartitionKeyExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-456" };
         Assert.Equal("ORD-456", extractor.Extract(order));
@@ -48,14 +48,16 @@ public class AzureServiceBusMessagePropertiesTests
     public void UseAzureServiceBusReplyToSessionId_Should_StoreExtractorOnMessageType()
     {
         // arrange & act
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusReplyToSessionId<OrderCreated>(msg => $"reply-{msg.OrderId}")));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d =>
+                d.UseAzureServiceBusReplyToSessionId<OrderCreated>(msg => $"reply-{msg.OrderId}")
+            )
+        );
 
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<AzureServiceBusReplyToSessionIdExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<AzureServiceBusReplyToSessionIdExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-789" };
         Assert.Equal("reply-ORD-789", extractor.Extract(order));
@@ -65,14 +67,14 @@ public class AzureServiceBusMessagePropertiesTests
     public void UseAzureServiceBusTo_Should_StoreExtractorOnMessageType()
     {
         // arrange & act
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusTo<OrderCreated>(msg => $"forward://{msg.OrderId}")));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusTo<OrderCreated>(msg => $"forward://{msg.OrderId}"))
+        );
 
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<AzureServiceBusToExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<AzureServiceBusToExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-321" };
         Assert.Equal("forward://ORD-321", extractor.Extract(order));
@@ -82,14 +84,14 @@ public class AzureServiceBusMessagePropertiesTests
     public void Extractor_Should_ReturnNull_When_ExtractorReturnsNull()
     {
         // arrange & act
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusSessionId<OrderCreated>(_ => null)));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusSessionId<OrderCreated>(_ => null))
+        );
 
         // assert
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
-        Assert.True(messageType!.Features.TryGet<AzureServiceBusSessionIdExtractor>(out var extractor));
+        Assert.True(messageType.Features.TryGet<AzureServiceBusSessionIdExtractor>(out var extractor));
 
         var order = new OrderCreated { OrderId = "ORD-000" };
         Assert.Null(extractor.Extract(order));
@@ -99,9 +101,9 @@ public class AzureServiceBusMessagePropertiesTests
     public async Task Middleware_Should_SetSessionIdHeader_When_ExtractorConfigured()
     {
         // arrange
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusSessionId<OrderCreated>(msg => msg.OrderId)));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusSessionId<OrderCreated>(msg => msg.OrderId))
+        );
 
         var context = new DispatchContext
         {
@@ -130,9 +132,9 @@ public class AzureServiceBusMessagePropertiesTests
     public async Task Middleware_Should_SetPartitionKeyHeader_When_ExtractorConfigured()
     {
         // arrange
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusPartitionKey<OrderCreated>(msg => msg.OrderId)));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusPartitionKey<OrderCreated>(msg => msg.OrderId))
+        );
 
         var context = new DispatchContext
         {
@@ -161,9 +163,11 @@ public class AzureServiceBusMessagePropertiesTests
     public async Task Middleware_Should_SetReplyToSessionIdHeader_When_ExtractorConfigured()
     {
         // arrange
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusReplyToSessionId<OrderCreated>(msg => $"reply-{msg.OrderId}")));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d =>
+                d.UseAzureServiceBusReplyToSessionId<OrderCreated>(msg => $"reply-{msg.OrderId}")
+            )
+        );
 
         var context = new DispatchContext
         {
@@ -192,9 +196,9 @@ public class AzureServiceBusMessagePropertiesTests
     public async Task Middleware_Should_SetToHeader_When_ExtractorConfigured()
     {
         // arrange
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusTo<OrderCreated>(msg => $"forward://{msg.OrderId}")));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusTo<OrderCreated>(msg => $"forward://{msg.OrderId}"))
+        );
 
         var context = new DispatchContext
         {
@@ -223,8 +227,7 @@ public class AzureServiceBusMessagePropertiesTests
     public async Task Middleware_Should_NotSetHeaders_When_ExtractorsNotConfigured()
     {
         // arrange
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(d => d.Send(r => r.ToQueue("orders"))));
+        var runtime = CreateRuntime(b => b.AddMessage<OrderCreated>(d => d.Send(r => r.ToQueue("orders"))));
 
         var context = new DispatchContext
         {
@@ -256,9 +259,9 @@ public class AzureServiceBusMessagePropertiesTests
     public async Task Middleware_Should_NotSetHeader_When_ExtractorReturnsNull()
     {
         // arrange
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusSessionId<OrderCreated>(_ => null)));
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d => d.UseAzureServiceBusSessionId<OrderCreated>(_ => null))
+        );
 
         var context = new DispatchContext
         {
@@ -282,13 +285,15 @@ public class AzureServiceBusMessagePropertiesTests
     {
         // arrange
         var extractorCallCount = 0;
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusSessionId<OrderCreated>(msg =>
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d =>
+                d.UseAzureServiceBusSessionId<OrderCreated>(msg =>
                 {
                     extractorCallCount++;
                     return msg.OrderId;
-                })));
+                })
+            )
+        );
 
         var context = new DispatchContext
         {
@@ -316,13 +321,15 @@ public class AzureServiceBusMessagePropertiesTests
     {
         // arrange
         var extractorCallCount = 0;
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusPartitionKey<OrderCreated>(msg =>
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d =>
+                d.UseAzureServiceBusPartitionKey<OrderCreated>(msg =>
                 {
                     extractorCallCount++;
                     return msg.OrderId;
-                })));
+                })
+            )
+        );
 
         var context = new DispatchContext
         {
@@ -350,13 +357,15 @@ public class AzureServiceBusMessagePropertiesTests
     {
         // arrange
         var extractorCallCount = 0;
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusReplyToSessionId<OrderCreated>(msg =>
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d =>
+                d.UseAzureServiceBusReplyToSessionId<OrderCreated>(msg =>
                 {
                     extractorCallCount++;
                     return msg.OrderId;
-                })));
+                })
+            )
+        );
 
         var context = new DispatchContext
         {
@@ -384,13 +393,15 @@ public class AzureServiceBusMessagePropertiesTests
     {
         // arrange
         var extractorCallCount = 0;
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(
-                d => d.UseAzureServiceBusTo<OrderCreated>(msg =>
+        var runtime = CreateRuntime(b =>
+            b.AddMessage<OrderCreated>(d =>
+                d.UseAzureServiceBusTo<OrderCreated>(msg =>
                 {
                     extractorCallCount++;
                     return msg.OrderId;
-                })));
+                })
+            )
+        );
 
         var context = new DispatchContext
         {
@@ -441,8 +452,6 @@ public class AzureServiceBusMessagePropertiesTests
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         configure(builder);
-        return builder
-            .AddAzureServiceBus(FakeConnectionString)
-            .BuildRuntime();
+        return builder.AddAzureServiceBus(FakeConnectionString).BuildRuntime();
     }
 }

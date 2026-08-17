@@ -1,7 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Transport.AzureServiceBus.Features;
 using Mocha.Transport.AzureServiceBus.Middlewares;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
@@ -90,13 +89,14 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         var message = ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-2");
 
         // act
-        var ex = await Assert.ThrowsAsync<ServiceBusException>(
-            () => AzureServiceBusAcknowledgementMiddleware.CompleteAsync(
+        var ex = await Assert.ThrowsAsync<ServiceBusException>(() =>
+            AzureServiceBusAcknowledgementMiddleware.CompleteAsync(
                 new ThrowingActions(timeout),
                 provider,
                 message,
                 "orders",
-                CancellationToken.None));
+                CancellationToken.None)
+        );
 
         // assert
         Assert.Equal(ServiceBusFailureReason.ServiceTimeout, ex.Reason);
@@ -121,8 +121,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
 
     private sealed class ThrowingActions(Exception exception) : IAzureServiceBusMessageActions
     {
-        public Task CompleteAsync(CancellationToken cancellationToken = default)
-            => Task.FromException(exception);
+        public Task CompleteAsync(CancellationToken cancellationToken = default) => Task.FromException(exception);
 
         public Task AbandonAsync(
             IDictionary<string, object>? propertiesToModify = null,
@@ -140,12 +139,9 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
     {
         public List<LogEntry> Entries { get; } = [];
 
-        public IDisposable BeginScope<TState>(TState state)
-            where TState : notnull
-            => NoOpDisposable.Instance;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoOpDisposable.Instance;
 
-        public bool IsEnabled(LogLevel logLevel)
-            => true;
+        public bool IsEnabled(LogLevel logLevel) => true;
 
         public void Log<TState>(
             LogLevel logLevel,
@@ -175,8 +171,6 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
     {
         public static NoOpDisposable Instance { get; } = new();
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

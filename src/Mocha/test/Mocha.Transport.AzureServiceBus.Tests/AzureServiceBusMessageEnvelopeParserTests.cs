@@ -54,10 +54,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
         var received = ServiceBusModelFactory.ServiceBusReceivedMessage(
             body: BinaryData.FromString("{}"),
             messageId: "message-1",
-            properties: new Dictionary<string, object>
-            {
-                ["x-mocha-custom"] = "custom-value"
-            });
+            properties: new Dictionary<string, object> { ["x-mocha-custom"] = "custom-value" });
 
         // act
         var envelope = AzureServiceBusMessageEnvelopeParser.Instance.Parse(received);
@@ -72,9 +69,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
     [InlineData(1, 0)]
     [InlineData(2, 1)]
     [InlineData(0, 0)]
-    public void Parse_Should_NormalizeDeliveryCountToZeroBased_When_MessageReceived(
-        int sdkCount,
-        int expectedCount)
+    public void Parse_Should_NormalizeDeliveryCountToZeroBased_When_MessageReceived(int sdkCount, int expectedCount)
     {
         // arrange
         var received = ServiceBusModelFactory.ServiceBusReceivedMessage(
@@ -94,14 +89,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
     {
         // arrange
         var utcDateTime = new DateTime(2024, 3, 10, 8, 15, 30, DateTimeKind.Utc);
-        var dateTimeOffset = new DateTimeOffset(
-            2024,
-            3,
-            10,
-            8,
-            15,
-            30,
-            TimeSpan.FromHours(2));
+        var dateTimeOffset = new DateTimeOffset(2024, 3, 10, 8, 15, 30, TimeSpan.FromHours(2));
         var received = ServiceBusModelFactory.ServiceBusReceivedMessage(
             body: BinaryData.FromString("{}"),
             messageId: "message-1",
@@ -127,14 +115,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
     public void Create_Should_StoreDateTimeHeadersNatively_When_HeadersCarryDateValues()
     {
         // arrange
-        var createdAt = new DateTimeOffset(
-            2024,
-            3,
-            10,
-            8,
-            15,
-            30,
-            TimeSpan.FromHours(2));
+        var createdAt = new DateTimeOffset(2024, 3, 10, 8, 15, 30, TimeSpan.FromHours(2));
         var updatedAt = new DateTime(2024, 3, 10, 8, 15, 30, DateTimeKind.Utc);
         var headers = new Headers();
         headers.Set("x-created-at", createdAt);
@@ -150,10 +131,8 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
         var message = AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow);
 
         // assert
-        var actualCreatedAt = Assert.IsType<DateTimeOffset>(
-            message.ApplicationProperties["x-created-at"]);
-        var actualUpdatedAt = Assert.IsType<DateTime>(
-            message.ApplicationProperties["x-updated-at"]);
+        var actualCreatedAt = Assert.IsType<DateTimeOffset>(message.ApplicationProperties["x-created-at"]);
+        var actualUpdatedAt = Assert.IsType<DateTime>(message.ApplicationProperties["x-updated-at"]);
         Assert.Equal(createdAt, actualCreatedAt);
         Assert.Equal(updatedAt, actualUpdatedAt);
     }
@@ -162,11 +141,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
     public void Create_Should_LeaveMessageIdUnset_When_EnvelopeMessageIdIsNull()
     {
         // arrange
-        var envelope = new MessageEnvelope
-        {
-            MessageId = null,
-            Body = BinaryData.FromString("{}").ToMemory()
-        };
+        var envelope = new MessageEnvelope { MessageId = null, Body = BinaryData.FromString("{}").ToMemory() };
 
         // act
         var message = AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow);
@@ -179,11 +154,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
     public void Create_Should_SetMessageId_When_EnvelopeMessageIdIsProvided()
     {
         // arrange
-        var envelope = new MessageEnvelope
-        {
-            MessageId = "message-1",
-            Body = BinaryData.FromString("{}").ToMemory()
-        };
+        var envelope = new MessageEnvelope { MessageId = "message-1", Body = BinaryData.FromString("{}").ToMemory() };
 
         // act
         var message = AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow);
@@ -192,7 +163,7 @@ public sealed class AzureServiceBusMessageEnvelopeParserTests
         Assert.Equal("message-1", message.MessageId);
     }
 
-    private static object? GetHeader(Mocha.Middlewares.MessageEnvelope envelope, string key)
+    private static object? GetHeader(MessageEnvelope envelope, string key)
     {
         Assert.NotNull(envelope.Headers);
         Assert.True(envelope.Headers.TryGetValue(key, out var value));

@@ -48,7 +48,7 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
 
     public ValueTask DisposeAsync() => _client.DisposeAsync();
 
-    internal static string? ResolveAdministrationConnectionString(AzureServiceBusTransportConfiguration configuration)
+    public static string? ResolveAdministrationConnectionString(AzureServiceBusTransportConfiguration configuration)
     {
         if (configuration.ConnectionString is not null)
         {

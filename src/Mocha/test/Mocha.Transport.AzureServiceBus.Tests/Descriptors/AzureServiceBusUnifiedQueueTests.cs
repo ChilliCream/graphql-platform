@@ -16,8 +16,8 @@ public class AzureServiceBusUnifiedQueueTests
         });
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
 
-        var endpoint = transport.ReceiveEndpoints
-            .OfType<AzureServiceBusReceiveEndpoint>()
+        var endpoint = transport
+            .ReceiveEndpoints.OfType<AzureServiceBusReceiveEndpoint>()
             .Single(e => e.Name == "audit");
         var queue = topology.Queues.Single(q => q.Name == "audit");
 
@@ -39,8 +39,8 @@ public class AzureServiceBusUnifiedQueueTests
         });
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
         var queue = topology.Queues.Single(q => q.Name == "orders");
-        var endpoint = configuration.ReceiveEndpoints
-            .OfType<AzureServiceBusReceiveEndpointConfiguration>()
+        var endpoint = configuration
+            .ReceiveEndpoints.OfType<AzureServiceBusReceiveEndpointConfiguration>()
             .Single(e => e.Name == "orders");
 
         Assert.Equal(7, queue.MaxDeliveryCount);
@@ -66,8 +66,8 @@ public class AzureServiceBusUnifiedQueueTests
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
 
         var queue = topology.Queues.Single(q => q.Name == "sessions");
-        var azureConfiguration = Assert.IsType<AzureServiceBusReceiveEndpointConfiguration>(
-            configuration.ReceiveEndpoints.Single());
+        var azureConfiguration =
+            Assert.IsType<AzureServiceBusReceiveEndpointConfiguration>(configuration.ReceiveEndpoints.Single());
 
         Assert.True(queue.RequiresSession);
         Assert.Equal(TimeSpan.FromSeconds(45), queue.LockDuration);
@@ -101,9 +101,7 @@ public class AzureServiceBusUnifiedQueueTests
         var (_, configuration) = CreateTransport(t =>
         {
             t.BindExplicitly();
-            t.Queue("orders")
-                .FaultEndpoint(new Uri("queue:custom-error"))
-                .DisableSkippedEndpoint();
+            t.Queue("orders").FaultEndpoint(new Uri("queue:custom-error")).DisableSkippedEndpoint();
         });
         var endpoint = configuration.ReceiveEndpoints.Single();
         var fault = endpoint.Features.Get<ReceiveFaultEndpointFeature>();
@@ -119,11 +117,12 @@ public class AzureServiceBusUnifiedQueueTests
     public void Queue_Should_RejectAutoForwardingSource_When_NoConsumerAttached()
     {
         // arrange
-        Action action = () => CreateTransport(t =>
-        {
-            t.BindExplicitly();
-            t.Queue("forwarding-source").ForwardTo("forwarding-target");
-        });
+        Action action = () =>
+            CreateTransport(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("forwarding-source").ForwardTo("forwarding-target");
+            });
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(action);
@@ -136,13 +135,12 @@ public class AzureServiceBusUnifiedQueueTests
     public void Queue_Should_RejectAutoForwardingSource_When_ConsumerAttached()
     {
         // arrange
-        Action action = () => CreateTransport(t =>
-        {
-            t.BindExplicitly();
-            t.Queue("forwarding-consumer-source")
-                .ForwardTo("forwarding-consumer-target")
-                .Consumer<OrderConsumer>();
-        });
+        Action action = () =>
+            CreateTransport(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("forwarding-consumer-source").ForwardTo("forwarding-consumer-target").Consumer<OrderConsumer>();
+            });
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(action);
@@ -164,14 +162,12 @@ public class AzureServiceBusUnifiedQueueTests
                 t.ConnectionString(DummyConnectionString);
                 t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderConsumer>();
-                configuration = ((IMessagingDescriptor<AzureServiceBusTransportConfiguration>)t)
-                    .Extend()
-                    .Configuration;
+                configuration = ((IMessagingDescriptor<AzureServiceBusTransportConfiguration>)t).Extend().Configuration;
             })
             .BuildRuntime();
 
-        var endpoints = configuration!.ReceiveEndpoints
-            .Where(e => e.ConsumerIdentities.Contains(typeof(OrderConsumer)))
+        var endpoints = configuration!
+            .ReceiveEndpoints.Where(e => e.ConsumerIdentities.Contains(typeof(OrderConsumer)))
             .ToList();
 
         var endpoint = Assert.Single(endpoints);
@@ -191,15 +187,11 @@ public class AzureServiceBusUnifiedQueueTests
             {
                 t.ConnectionString(DummyConnectionString);
                 configure(t);
-                configuration = ((IMessagingDescriptor<AzureServiceBusTransportConfiguration>)t)
-                    .Extend()
-                    .Configuration;
+                configuration = ((IMessagingDescriptor<AzureServiceBusTransportConfiguration>)t).Extend().Configuration;
             })
             .BuildRuntime();
 
-        return (
-            runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single(),
-            configuration!);
+        return (runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single(), configuration!);
     }
 
     private const string DummyConnectionString =

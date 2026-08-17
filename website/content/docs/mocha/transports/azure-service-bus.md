@@ -137,7 +137,9 @@ graph LR
 
 **Commands (send):** Each command type gets a queue named after the command. The sender writes directly to that queue - there is no intermediate topic on the send path. The receiving handler binds to the same queue, so a single message instance is delivered to exactly one handler. This mirrors the topology MassTransit provisions for ASB.
 
-**Request/reply:** The transport creates a temporary reply queue per service instance (`response-{instanceId}`). The reply address is embedded in the request message so the responder knows where to send the reply.
+**Request/reply:** The transport creates a temporary reply queue per service instance (`response-{instanceId}`). The reply address is embedded in the request message so the responder knows where to send the reply. Reply queues are auto-provisioned with a 24-hour idle-deletion policy. While the service is running, the transport periodically peeks at its reply queue to keep it alive even when no replies are in flight. After the service stops, Azure Service Bus removes the idle queue automatically.
+
+**Scheduled messages:** Azure Service Bus holds scheduled messages in the broker through its native scheduling API. Mocha returns a cancellation token containing the target entity and broker sequence number, which it uses to cancel the message without a separate scheduler or database. See [Scheduling](../scheduling.md) for the common API and cancellation behavior.
 
 ## Default topology for handlers
 

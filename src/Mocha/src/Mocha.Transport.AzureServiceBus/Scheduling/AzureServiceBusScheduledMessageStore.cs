@@ -15,7 +15,7 @@ namespace Mocha.Transport.AzureServiceBus.Scheduling;
 /// </summary>
 internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageStore
 {
-    internal const string TokenPrefix = "asb:";
+    public const string TokenPrefix = "asb:";
     private const string TokenVersion = "v1";
 
     private readonly AzureServiceBusMessagingTransport _transport;
@@ -51,7 +51,6 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
         }
 
         var now = context.Services.GetTimeProvider().GetUtcNow();
-        // Invariant: expectedEnqueueTime == max(scheduledTime, now).
         var expectedEnqueueTime = scheduledTime > now ? scheduledTime : now;
         var dispatch = await endpoint.ScheduleEnvelopeAsync(
             envelope,
@@ -89,7 +88,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
         }
     }
 
-    internal static string CreateToken(string owner, string entityPath, long sequenceNumber)
+    public static string CreateToken(string owner, string entityPath, long sequenceNumber)
     {
         ArgumentException.ThrowIfNullOrEmpty(owner);
         ArgumentException.ThrowIfNullOrEmpty(entityPath);
@@ -101,7 +100,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
             $"{TokenPrefix}{TokenVersion}:{owner}:{encodedEntityPath}:{sequenceNumber}");
     }
 
-    internal static bool TryParseToken(
+    public static bool TryParseToken(
         string token,
         string expectedOwner,
         out string entityPath,
@@ -138,7 +137,7 @@ internal sealed class AzureServiceBusScheduledMessageStore : IScheduledMessageSt
         return TryDecode(body[ranges[2]], out entityPath);
     }
 
-    internal static string CreateOwner(string transportName, string fullyQualifiedNamespace)
+    public static string CreateOwner(string transportName, string fullyQualifiedNamespace)
     {
         ArgumentException.ThrowIfNullOrEmpty(transportName);
         ArgumentException.ThrowIfNullOrEmpty(fullyQualifiedNamespace);
