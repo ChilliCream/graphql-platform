@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Product>Hot Chocolate</Product>
     <PackageIcon>hotchocolate-icon.png</PackageIcon>
+    <IsPackable>true</IsPackable>
     <PackageType>Template</PackageType>
     <PackageId>HotChocolate.Templates</PackageId>
     <Description>Hot Chocolate GraphQL templates.</Description>

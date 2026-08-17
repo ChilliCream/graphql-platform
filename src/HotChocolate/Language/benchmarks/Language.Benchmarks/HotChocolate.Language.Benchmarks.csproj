@@ -8,7 +8,6 @@
     <AssemblyName>HotChocolate.Language.Benchmarks</AssemblyName>
     <RootNamespace>HotChocolate.Language.Benchmarks</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
