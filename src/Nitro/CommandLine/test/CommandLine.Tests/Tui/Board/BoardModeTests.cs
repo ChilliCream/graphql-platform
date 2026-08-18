@@ -433,4 +433,73 @@ public sealed class BoardModeTests
         Assert.Equal(["in-progress-1"], mode.State.Columns[3].Tasks.Select(t => t.Id));
         Assert.Equal(["closed-1"], mode.State.Columns[4].Tasks.Select(t => t.Id));
     }
+
+    [Fact]
+    public void Render_Should_FillRequestedHeight_When_Grid()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(24);
+
+        // act
+        console.Write(mode.Render(80, 24));
+
+        // assert: every column's bottom border reaches the last requested row,
+        // with no blank gap left below the panels.
+        var lines = TrimTrailingNewline(console.Output.Split('\n'));
+        Assert.Equal(24, lines.Length);
+        Assert.Contains('╰', lines[^1]);
+    }
+
+    [Fact]
+    public void Render_Should_FillRequestedHeight_When_Maximized()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(80).Height(24);
+
+        // act
+        console.Write(mode.Render(80, 24));
+
+        // assert
+        var lines = TrimTrailingNewline(console.Output.Split('\n'));
+        Assert.Equal(24, lines.Length);
+        Assert.Contains('╰', lines[^1]);
+    }
+
+    [Fact]
+    public void Render_Should_FillRequestedHeight_When_Stacked()
+    {
+        // arrange: width/columnCount below the stacked threshold forces the
+        // stacked layout kind.
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(40).Height(24);
+
+        // act
+        console.Write(mode.Render(40, 24));
+
+        // assert: the collapsed column takes exactly its one row at the
+        // bottom, and the focused, expanded column's bottom border reaches
+        // the row directly above it, no blank rows in between.
+        var lines = TrimTrailingNewline(console.Output.Split('\n'));
+        Assert.Equal(24, lines.Length);
+        Assert.Contains("Closed (0)", lines[^1]);
+        Assert.Contains('╰', lines[^2]);
+    }
+
+    /// <summary>
+    /// Spectre appends a trailing line break to some renderables (a bare
+    /// panel, a stacked rows list) but not others (a grid layout), so
+    /// splitting console output on '\n' can leave one extra empty entry at
+    /// the end. Strips it so line counts are comparable across layout kinds.
+    /// </summary>
+    private static string[] TrimTrailingNewline(string[] lines) =>
+        lines.Length > 0 && lines[^1].Length == 0 ? lines[..^1] : lines;
 }

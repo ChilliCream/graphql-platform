@@ -172,6 +172,7 @@ internal sealed class BoardMode : ITuiMode
         var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
         var panel = ColumnPane.Render(name, column.Tasks.Count, lines, focused);
         panel.Width = safeWidth;
+        panel.Height = Math.Max(1, panelHeight);
 
         return panel;
     }
