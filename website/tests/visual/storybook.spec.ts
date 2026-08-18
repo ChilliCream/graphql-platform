@@ -19,6 +19,19 @@ interface StoryIndex {
   readonly entries: Record<string, StoryEntry>;
 }
 
+interface StorybookPreview {
+  readonly currentRender?: {
+    readonly id: string;
+    readonly phase: string;
+  };
+}
+
+declare global {
+  interface Window {
+    readonly __STORYBOOK_PREVIEW__?: StorybookPreview;
+  }
+}
+
 const indexPath = join(process.cwd(), "storybook-static", "index.json");
 
 let index: StoryIndex;
@@ -43,6 +56,13 @@ for (const story of stories) {
 
     // Storybook signals a fully rendered story with this class on the body.
     await page.locator("body.sb-show-main").waitFor();
+    // The body shell appears before async play functions have completed. Wait
+    // for Storybook's final render phase so interaction snapshots cannot race
+    // an empty or pre-interaction canvas.
+    await page.waitForFunction((storyId) => {
+      const render = window.__STORYBOOK_PREVIEW__?.currentRender;
+      return render?.id === storyId && render.phase === "finished";
+    }, story.id);
     // Wait for webfonts so text metrics are stable before the screenshot.
     await page.evaluate(() => document.fonts.ready);
 

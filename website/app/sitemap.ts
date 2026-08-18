@@ -10,6 +10,7 @@ import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import { AUTHOR_PROFILES, authorPageUrl } from "@/src/data/authors";
 
 export const dynamic = "force-static";
 
@@ -33,6 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await docsPages()),
     ...blogArchivePages(),
     ...(await blogPosts()),
+    ...authorPages(),
   ];
 
   const urls = entries.map((entry) => entry.url);
@@ -41,6 +43,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   return entries.sort((left, right) => left.url.localeCompare(right.url));
+}
+
+function authorPages(): MetadataRoute.Sitemap {
+  return [
+    sitemapEntry("/authors"),
+    ...AUTHOR_PROFILES.map((author) => sitemapEntry(authorPageUrl(author))),
+  ];
 }
 
 // Pages that live outside the `(content)` route group: the homepage and the
