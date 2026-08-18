@@ -99,7 +99,7 @@ jobs:
             if (changed.length === 0) {
               try {
                 await upsertComment(
-                  `${MARKER}\n✅ **Nitro CLI E2E snapshots** — no flow recordings changed vs \`${baseRef}\`.`);
+                  `${MARKER}\n✅ **Nitro CLI E2E snapshots**: no flow recordings changed vs \`${baseRef}\`.`);
               } catch (e) {
                 core.warning(`comment failed (expected on forks): ${e}`);
               }
@@ -121,11 +121,11 @@ jobs:
               } else {
                 const afterCell = after ? img(after) : '<em>unavailable</em>';
                 inner =
-                  `\n\n<table><tr><th>Before — <code>${baseRef}</code></th><th>After — this PR</th></tr>`
+                  `\n\n<table><tr><th>Before: <code>${baseRef}</code></th><th>After: this PR</th></tr>`
                   + `<tr><td>${img(before)}</td><td>${afterCell}</td></tr></table>\n`;
               }
               blocks.push(
-                `<details><summary>${ICON[status] || '🔁'} ${flow} — ${status}</summary>${inner}</details>`);
+                `<details><summary>${ICON[status] || '🔁'} ${flow}: ${status}</summary>${inner}</details>`);
             }
 
             const body = [
@@ -146,5 +146,5 @@ jobs:
       - name: Fail if any flow drifted from its golden
         if: always() && steps.record.outcome == 'failure'
         run: |
-          echo "::error::E2E recordings drifted from their committed golden — review the nitro-e2e-snapshots artifact, then run ./src/Nitro/CommandLine/test/e2e/run.sh --update <flow> if intended." >&2
+          echo "::error::E2E recordings drifted from their committed golden, review the nitro-e2e-snapshots artifact, then run ./src/Nitro/CommandLine/test/e2e/run.sh --update <flow> if intended." >&2
           exit 1
