@@ -28,7 +28,7 @@ public static class AzureServiceBusMessageHeaders
     public const string ReplyToSessionId = "x-reply-to-session-id";
 
     /// <summary>
-    /// Header key for the Azure Service Bus <c>To</c> property, used for autoforward chaining.
+    /// Header key for the native Azure Service Bus <c>To</c> property.
     /// </summary>
     public const string To = "x-to";
 

@@ -64,8 +64,8 @@ public static class AzureServiceBusMessageTypeExtensions
     }
 
     /// <summary>
-    /// Configures a logical <c>To</c> extractor for this message type, useful for autoforward chains.
-    /// Reserved by the broker; consumers may inspect it but it is not currently used for routing.
+    /// Configures the native <c>To</c> property for this message type. Reserved by the broker;
+    /// consumers may inspect it but it is not currently used for routing.
     /// </summary>
     /// <typeparam name="TMessage">The message type.</typeparam>
     /// <param name="descriptor">The message type descriptor.</param>
