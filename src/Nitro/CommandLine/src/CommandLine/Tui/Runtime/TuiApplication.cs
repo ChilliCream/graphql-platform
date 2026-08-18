@@ -84,26 +84,43 @@ internal sealed class TuiApplication
 
             try
             {
-                await _console.Live(rootRenderer())
-                    .StartAsync(async ctx =>
-                    {
-                        await foreach (var tuiEvent in channel.Reader.ReadAllAsync(loopCts.Token))
+                try
+                {
+                    await _console.Live(rootRenderer())
+                        .StartAsync(async ctx =>
                         {
-                            if (rootHandler(tuiEvent))
+                            await foreach (var tuiEvent in channel.Reader.ReadAllAsync(loopCts.Token))
                             {
-                                ctx.UpdateTarget(rootRenderer());
+                                if (rootHandler(tuiEvent))
+                                {
+                                    ctx.UpdateTarget(rootRenderer());
+                                }
                             }
-                        }
-                    })
-                    .ConfigureAwait(false);
+                        })
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (loopCts.IsCancellationRequested)
+                {
+                    // Shutdown was requested (caller cancellation or Ctrl+C).
+                }
             }
-            catch (OperationCanceledException) when (loopCts.IsCancellationRequested)
+            finally
             {
-                // Shutdown was requested (caller cancellation or Ctrl+C).
-            }
+                // Ensure the background key-reader and tick tasks are always stopped
+                // and awaited, even if the handler or renderer throws, so stdin is
+                // never left being consumed by this loop after the method returns.
+                loopCts.Cancel();
+                channel.Writer.TryComplete();
 
-            channel.Writer.TryComplete();
-            await Task.WhenAll(keyReaderTask, tickTask).ConfigureAwait(false);
+                try
+                {
+                    await Task.WhenAll(keyReaderTask, tickTask).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected once loopCts is cancelled.
+                }
+            }
         }
         finally
         {

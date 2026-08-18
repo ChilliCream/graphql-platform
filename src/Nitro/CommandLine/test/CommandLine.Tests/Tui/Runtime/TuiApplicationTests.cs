@@ -141,4 +141,37 @@ public sealed class TuiApplicationTests
         Assert.Contains("[?1049h", console.Output);
         Assert.Contains("[?1049l", console.Output);
     }
+
+    [Fact]
+    public async Task RunAsync_Should_StopKeyReader_When_HandlerThrows()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole();
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var handlerInvoked = new TaskCompletionSource();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        bool Handler(TuiEvent tuiEvent)
+        {
+            handlerInvoked.TrySetResult();
+            throw new InvalidOperationException("boom");
+        }
+
+        // act
+        var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token);
+        await Task.WhenAny(handlerInvoked.Task, Task.Delay(TestTimeout, testToken));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => runTask);
+
+        // Give the key-reader loop several poll intervals worth of time to consume
+        // the key below if it were still running.
+        await Task.Delay(KeyPollInterval * 10, testToken);
+        console.Input.PushKey(ConsoleKey.A);
+        await Task.Delay(KeyPollInterval * 10, testToken);
+
+        // assert
+        Assert.Equal("boom", exception.Message);
+        Assert.True(console.Input.IsKeyAvailable());
+    }
 }
