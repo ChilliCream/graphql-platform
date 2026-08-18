@@ -3,8 +3,6 @@ title: "Azure Service Bus Transport"
 description: "Configure the Azure Service Bus transport in Mocha for managed cloud messaging with native scheduling, dead-letter forwarding, and Microsoft Entra ID authentication."
 ---
 
-# Azure Service Bus transport
-
 The Azure Service Bus (ASB) transport connects Mocha to a fully managed Azure messaging namespace. It provisions queues, topics, and subscriptions automatically, dispatches publishes through topics and sends through queues, and exposes ASB-specific primitives - native scheduling with cancellation, broker dead-letter forwarding, and lock-renewal-aware acknowledgement. When you run on Azure and want a managed broker without operating the infrastructure yourself, this is the transport to use.
 
 # Set up the Azure Service Bus transport
@@ -65,36 +63,60 @@ The example uses [`DefaultAzureCredential`](https://learn.microsoft.com/dotnet/a
 
 ## Register with .NET Aspire
 
-When using [.NET Aspire](https://aspire.dev/integrations/cloud/azure/azure-service-bus/), define a Service Bus resource in your AppHost and reference it from each service. The Aspire example pre-declares its entities in the [Service Bus emulator](https://learn.microsoft.com/azure/service-bus-messaging/overview-emulator) configuration so the application can connect through the injected data connection string without needing a separate administration connection:
+When using [.NET Aspire](https://aspire.dev/integrations/cloud/azure/azure-service-bus/), define a Service Bus resource in your AppHost and reference it from each service. Aspire injects `MESSAGING_CONNECTIONSTRING` for the local emulator and `MESSAGING_FULLYQUALIFIEDNAMESPACE` for an Azure-hosted namespace.
+
+The emulator serves messaging and management on different dynamically allocated endpoints. Pass its management endpoint to each service so Mocha can auto-provision topology locally:
 
 ```csharp
+using Aspire.Hosting.ApplicationModel;
+
 // AppHost
 var serviceBus = builder
     .AddAzureServiceBus("messaging")
-    .RunAsEmulator(/* configure entities here */);
+    .RunAsEmulator();
+
+var administrationEndpoint = serviceBus.GetEndpoint("emulatorhealth");
+var administrationConnectionString = ReferenceExpression.Create(
+    $"Endpoint=sb://{administrationEndpoint.Property(EndpointProperty.HostAndPort)};SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;");
 
 builder
     .AddProject<Projects.OrderService>("order-service")
     .WithReference(serviceBus)
+    .WithEnvironment(
+        "ConnectionStrings__messaging-administration",
+        administrationConnectionString)
     .WaitFor(serviceBus);
 ```
 
-In each service, read the connection string from Aspire-injected configuration:
+Install Aspire's Azure Service Bus client integration in each service:
+
+```bash
+dotnet add package Aspire.Azure.Messaging.ServiceBus
+```
+
+Then register Aspire's messaging client. For the emulator, pass only its administration connection string to Mocha:
 
 ```csharp
-var connectionString = builder.Configuration.GetConnectionString("messaging")!;
+builder.AddAzureServiceBusClient("messaging");
+
+var administrationConnectionString = builder.Configuration.GetConnectionString("messaging-administration");
 
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
     .AddAzureServiceBus(transport =>
     {
-        transport.ConnectionString(connectionString);
-        transport.AutoProvision(false);
+        // Aspire does not register the emulator's separate administration client.
+        if (administrationConnectionString is not null)
+        {
+            transport.AdministrationConnectionString(administrationConnectionString);
+        }
     });
 ```
 
-The emulator supports runtime entity management through [`ServiceBusAdministrationClient`](https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus.administration.servicebusadministrationclient). If your environment provides that separate administration connection string, configure it with `AdministrationConnectionString(...)` and leave auto-provisioning enabled instead of pre-declaring the entities.
+Mocha always reuses Aspire's singleton `ServiceBusClient`, including its authentication, retries, health checks, and telemetry. The additional connection string is needed only because the emulator exposes management on a separate endpoint and Aspire does not register a `ServiceBusAdministrationClient`. In Azure, the administration connection string is absent, Aspire uses `DefaultAzureCredential`, and runtime provisioning remains disabled.
+
+The emulator supports runtime entity management through [`ServiceBusAdministrationClient`](https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus.administration.servicebusadministrationclient), so no queues, topics, or subscriptions need to be pre-declared in its configuration. For production, grant the application an appropriate Azure Service Bus data role and provision topology through Aspire or another infrastructure deployment process.
 
 ## Verify it works
 
