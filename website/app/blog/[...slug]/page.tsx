@@ -15,6 +15,7 @@ import { TableOfContents } from "@/src/components/TableOfContents";
 import { Picture } from "@/src/design-system/Picture";
 import { SimilarPosts } from "@/src/components/SimilarPosts";
 import { Typography } from "@/src/design-system/Typography";
+import { YouTubeVideo } from "@/src/components/YouTubeVideo";
 import {
   authorPageUrl,
   authorPersonId,
@@ -61,6 +62,7 @@ type BlogFrontmatter = {
   updated?: string;
   category?: string;
   tags?: string[];
+  featuredVideoId?: string;
 };
 
 type Params = { slug: string[] };
@@ -270,7 +272,6 @@ export default async function BlogSlugPage({ params }: PageProps) {
   if (image) {
     additionalNodes.push(image);
   }
-
   return (
     <div
       data-docs-layout
@@ -302,7 +303,12 @@ export default async function BlogSlugPage({ params }: PageProps) {
               additionalNodes={additionalNodes}
             />
             <article className="mx-auto max-w-5xl">
-              {featuredImage ? (
+              {frontmatter.featuredVideoId ? (
+                <YouTubeVideo
+                  videoId={frontmatter.featuredVideoId}
+                  playlabel={`Play ${current.title}`}
+                />
+              ) : featuredImage ? (
                 <Picture
                   src={featuredImage}
                   alt=""
