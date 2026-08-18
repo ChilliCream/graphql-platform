@@ -202,3 +202,12 @@ flowchart LR
   them rendering.
 - A range of MDX components is available (e.g. `Tabs`, `ExampleTabs`,
   `PackageInstallation`); see `mdx-components.tsx` for the full set.
+
+### Generated Markdown copies
+
+Every published documentation page has a generated `.md` alternate used by the
+**Copy as Markdown** action. The export is derived from the rendered article, so
+it preserves headings, prose, links, lists, admonitions, tables, and code while
+excluding frontmatter, navigation, buttons, forms, SVG/canvas diagrams, and
+elements marked with `data-llms-ignore`. Interactive MDX components contribute
+their rendered textual content; purely visual components are omitted.
