@@ -162,9 +162,6 @@ The two failure-side endpoints are populated by different middlewares:
 - **Error queue (`_error`)** receives messages whose handler threw an exception. The `Fault` middleware (`ReceiveFaultMiddleware`) catches the exception, attaches `fault-*` headers (exception type, message, stack trace, timestamp), and forwards the original envelope to the configured `ErrorEndpoint`.
 - **Skipped queue (`_skipped`)** receives messages that completed the pipeline without any consumer marking them as consumed. The `DeadLetter` middleware (`ReceiveDeadLetterMiddleware`) re-dispatches the original envelope to the configured `SkippedEndpoint`.
 
-> [!NOTE]
-> Earlier releases routed both handler exceptions and unmatched-consumer messages to `_error`. As of the current release, unmatched messages are routed to `_skipped` so operators can distinguish "the handler threw" from "no consumer claimed this message" without inspecting headers. The behavior is transport-agnostic - it lives in `ReceiveDeadLetterMiddleware` in core.
-
 Reply queues are temporary, per-instance queues used for request/reply correlation.
 
 # Customize outbound routes
