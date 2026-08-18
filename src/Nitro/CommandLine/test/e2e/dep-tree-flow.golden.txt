@@ -1,0 +1,6 @@
+$ nitro task dep tree acme-epic1.2
+acme-epic1.2 (open) Wire up billing API
+  acme-epic1.1 (blocks, in_progress) Draft new pricing copy
+    acme-epic1 (parent-child, open) Launch v2 pricing page
+  acme-epic1 (parent-child, open) Launch v2 pricing page *
+$

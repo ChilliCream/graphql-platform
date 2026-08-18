@@ -1,0 +1,3 @@
+$ nitro task create "Write onboarding docs"
+✓ Created task 'acme-XXX': Write onboarding docs.
+$

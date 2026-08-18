@@ -41,18 +41,31 @@ VHS_IMAGE="${VHS_IMAGE:-ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212
 # must contain (see extract-frame.sh). Keep this list and ALL_FLOWS in sync.
 #
 # `help` is a trivial pipeline smoke flow: it proves publish -> record -> extract
-# -> diff works end to end before fixture-backed task flows land (separate bead).
+# -> diff works end to end before fixture-backed task flows land. The rest run
+# against the deterministic fixture prepared below (out/fixture/acme).
 declare -A MARKERS=(
   [help]="List tasks."
+  [init]="Initialized task workspace"
+  [list]="acme-e5f"
+  [show]="Draft new pricing copy"
+  [create]="Created task '"
+  [close-reopen]="Reopened task 'acme-a1b'."
+  [dep-tree]="acme-epic1.1"
+  [error]="[nitro exit: 1]"
 )
-ALL_FLOWS=(help)
+ALL_FLOWS=(help init list show create close-reopen dep-tree error)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.
-# Flows that create tasks live seed wall-clock-derived task IDs and dates into
-# their output; a future flow entry would normalize those here, e.g.:
-#   [create]='s/acme-[a-z0-9]+/acme-<id>/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2}/<date>/g'
-declare -A SCRUBS=()
+#
+# `create` mints its task ID from the title and wall-clock time
+# (TaskStore.CreateTaskIdAsync), so it is non-deterministic across recordings;
+# normalize it to a fixed placeholder before diffing. The expression is a
+# single literal substitution (no alternation/backreferences) so it cannot
+# fail on a well-formed frame.
+declare -A SCRUBS=(
+  [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
+)
 
 # --- args: optional --update plus an optional subset of flow names ------------
 UPDATE=0

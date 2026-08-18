@@ -1,0 +1,4 @@
+$ nitro task init
+✓ Initialized task workspace at '.nitro/tasks'.
+✓ Task ID prefix set to 'acme'.
+$

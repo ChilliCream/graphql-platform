@@ -1,0 +1,5 @@
+$ nitro task close acme-a1b --reason "Won't fix, unreproducible"
+✓ Closed task 'acme-a1b'.
+$ nitro task reopen acme-a1b
+✓ Reopened task 'acme-a1b'.
+$

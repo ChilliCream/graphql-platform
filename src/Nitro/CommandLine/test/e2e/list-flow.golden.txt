@@ -1,0 +1,9 @@
+$ nitro task list
+acme-a1b  P0  bug  open  Checkout crashes on Safari
+acme-epic1  P1  epic  open  Launch v2 pricing page
+acme-epic1.1  P2  task  in_progress  Draft new pricing copy
+acme-epic1.2  P2  task  open  Wire up billing API
+acme-e5f  P4  chore  deferred  Rotate staging API keys
+
+5 task(s)
+$
