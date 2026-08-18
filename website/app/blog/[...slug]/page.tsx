@@ -15,6 +15,12 @@ import { TableOfContents } from "@/src/components/TableOfContents";
 import { Picture } from "@/src/design-system/Picture";
 import { SimilarPosts } from "@/src/components/SimilarPosts";
 import { Typography } from "@/src/design-system/Typography";
+import { YouTubeVideo } from "@/src/components/YouTubeVideo";
+import {
+  authorPageUrl,
+  authorPersonId,
+  createAuthorPersonNode,
+} from "@/src/data/authors";
 import { paginate, POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
 import {
   BLOG_ROOT,
@@ -56,6 +62,7 @@ type BlogFrontmatter = {
   updated?: string;
   category?: string;
   tags?: string[];
+  featuredVideoId?: string;
 };
 
 type Params = { slug: string[] };
@@ -126,7 +133,12 @@ export async function generateMetadata({
     ...(summary?.author
       ? {
           authors: [
-            { name: summary.author, url: summary.authorUrl ?? undefined },
+            {
+              name: summary.author,
+              url: summary.authorProfile
+                ? toAbsoluteUrl(authorPageUrl(summary.authorProfile))
+                : (summary.authorUrl ?? undefined),
+            },
           ],
         }
       : {}),
@@ -141,11 +153,16 @@ export async function generateMetadata({
       images,
       url: summary?.href,
       publishedTime: summary?.date,
-      authors: summary?.authorUrl
-        ? [summary.authorUrl]
-        : summary?.author
-          ? [summary.author]
-          : undefined,
+      authors:
+        summary?.authorProfile || summary?.authorUrl
+          ? [
+              summary.authorProfile
+                ? toAbsoluteUrl(authorPageUrl(summary.authorProfile))
+                : summary.authorUrl!,
+            ]
+          : summary?.author
+            ? [summary.author]
+            : undefined,
       tags: summary && summary.tags.length > 0 ? summary.tags : undefined,
     },
     twitter: {
@@ -200,7 +217,9 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const dateModified =
     normalizeStructuredDate(frontmatter.updated) ?? lastModified?.toISOString();
   const articleId = schemaId(currentHref, "article");
-  const authorId = schemaId(currentHref, "author");
+  const authorId = current.authorProfile
+    ? authorPersonId(current.authorProfile)
+    : schemaId(currentHref, "author");
   const imageId = schemaId(currentHref, "primary-image");
   const article: JsonLdNode = {
     "@type": "BlogPosting",
@@ -222,17 +241,21 @@ export default async function BlogSlugPage({ params }: PageProps) {
     inLanguage: "en",
     isAccessibleForFree: true,
   };
-  const author: JsonLdNode | null = current.author
-    ? {
-        "@type": "Person",
-        "@id": authorId,
-        name: current.author,
-        ...(current.authorUrl ? { url: current.authorUrl } : {}),
-        ...(current.authorImageUrl
-          ? { image: toAbsoluteUrl(current.authorImageUrl) }
-          : {}),
-      }
-    : null;
+  const author: JsonLdNode | null = current.authorProfile
+    ? createAuthorPersonNode(current.authorProfile)
+    : current.author
+      ? {
+          "@type": "Person",
+          "@id": authorId,
+          name: current.author,
+          ...(current.authorUrl
+            ? { url: current.authorUrl, sameAs: [current.authorUrl] }
+            : {}),
+          ...(current.authorImageUrl
+            ? { image: toAbsoluteUrl(current.authorImageUrl) }
+            : {}),
+        }
+      : null;
   const image: JsonLdNode | null = featuredImage
     ? {
         "@type": "ImageObject",
@@ -249,7 +272,6 @@ export default async function BlogSlugPage({ params }: PageProps) {
   if (image) {
     additionalNodes.push(image);
   }
-
   return (
     <div
       data-docs-layout
@@ -281,7 +303,12 @@ export default async function BlogSlugPage({ params }: PageProps) {
               additionalNodes={additionalNodes}
             />
             <article className="mx-auto max-w-5xl">
-              {featuredImage ? (
+              {frontmatter.featuredVideoId ? (
+                <YouTubeVideo
+                  videoId={frontmatter.featuredVideoId}
+                  playlabel={`Play ${current.title}`}
+                />
+              ) : featuredImage ? (
                 <Picture
                   src={featuredImage}
                   alt=""
@@ -298,9 +325,14 @@ export default async function BlogSlugPage({ params }: PageProps) {
               ) : null}
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <BlogMetadata
-                  author={frontmatter.author}
-                  authorUrl={frontmatter.authorUrl}
-                  authorImageUrl={frontmatter.authorImageUrl}
+                  author={current.author ?? undefined}
+                  authorUrl={current.authorUrl ?? undefined}
+                  authorProfileHref={
+                    current.authorProfile
+                      ? authorPageUrl(current.authorProfile)
+                      : undefined
+                  }
+                  authorImageUrl={current.authorImageUrl ?? undefined}
                   date={frontmatter.date}
                   readingTime={readingTime.text}
                 />
