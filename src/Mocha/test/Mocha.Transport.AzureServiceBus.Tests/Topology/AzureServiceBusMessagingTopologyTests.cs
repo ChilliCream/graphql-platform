@@ -303,6 +303,37 @@ public class AzureServiceBusMessagingTopologyTests
     }
 
     [Fact]
+    public void GetForwardingSubscriptionName_Should_ReturnSlashFreeConvention_When_QueueNameIsHierarchical()
+    {
+        // act
+        var hierarchicalName = AzureServiceBusSubscription.GetForwardingSubscriptionName("orders/eu");
+        var flatName = AzureServiceBusSubscription.GetForwardingSubscriptionName("orders-eu");
+
+        // assert
+        Assert.Equal("fwd-orders-eu-df09ed59", hierarchicalName);
+        Assert.Equal("fwd-orders-eu", flatName);
+    }
+
+    [Fact]
+    public void DeclareSubscription_Should_ProduceValidName_When_DestinationQueueIsHierarchical()
+    {
+        // arrange
+        var (_, _, topology) = CreateTopology();
+        topology.AddTopic(new AzureServiceBusTopicConfiguration { Name = "orders" });
+        topology.AddQueue(new AzureServiceBusQueueConfiguration { Name = "orders/eu" });
+
+        // act
+        var subscription = topology.AddSubscription(new AzureServiceBusSubscriptionConfiguration
+        {
+            Source = "orders",
+            Destination = "orders/eu"
+        });
+
+        // assert
+        Assert.Equal("fwd-orders-eu-df09ed59", subscription.Name);
+    }
+
+    [Fact]
     public void DeclareSubscription_Should_FlowExplicitName_When_NameOverloadUsed()
     {
         // arrange

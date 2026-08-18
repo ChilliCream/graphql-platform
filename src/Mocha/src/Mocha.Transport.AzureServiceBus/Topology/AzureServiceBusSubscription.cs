@@ -116,14 +116,21 @@ public sealed class AzureServiceBusSubscription
     /// <summary>
     /// Computes the deterministic broker subscription name used by a topic-to-queue forwarding subscription
     /// for the specified destination queue. Infrastructure-as-code tooling can use this method to pre-create
-    /// the subscription with the identical name. The result never exceeds 50 characters.
+    /// the subscription with the identical name. The result never exceeds 50 characters and never contains
+    /// slashes, even when the queue name is hierarchical.
     /// </summary>
     /// <param name="queueName">The destination queue name.</param>
     /// <returns>The forwarding subscription name.</returns>
     public static string GetForwardingSubscriptionName(string queueName)
     {
-        var candidate = "fwd-" + queueName;
-        if (candidate.Length <= MaxSubscriptionNameLength)
+        var sanitizedQueueName = queueName.IndexOf('/') < 0
+            ? queueName
+            : queueName.Replace('/', '-');
+        var candidate = "fwd-" + sanitizedQueueName;
+
+        // A name that required sanitization always gets a hash suffix so it cannot collide with the
+        // subscription name for a different queue that already matches the sanitized form.
+        if (candidate.Length <= MaxSubscriptionNameLength && sanitizedQueueName == queueName)
         {
             return candidate;
         }
@@ -132,7 +139,7 @@ public sealed class AzureServiceBusSubscription
             SHA256.HashData(Encoding.UTF8.GetBytes(queueName)),
             0,
             4).ToLowerInvariant();
-        var prefixLength = MaxSubscriptionNameLength - hash.Length - 1;
+        var prefixLength = Math.Min(candidate.Length, MaxSubscriptionNameLength - hash.Length - 1);
         return candidate[..prefixLength] + "-" + hash;
     }
 
