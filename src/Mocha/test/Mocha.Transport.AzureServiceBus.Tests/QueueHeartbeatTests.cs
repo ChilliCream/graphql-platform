@@ -1,11 +1,64 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
 
 public class QueueHeartbeatTests
 {
+    private const string FakeConnectionString =
+        "Endpoint=sb://fake.servicebus.windows.net/;SharedAccessKeyName=k;SharedAccessKey=a2V5";
+
+    [Fact]
+    public async Task DisposeAsync_Should_DisposeUnderlyingReceiver_When_Constructed()
+    {
+        // arrange
+        await using var client = new ServiceBusClient(FakeConnectionString);
+        var receiver = client.CreateReceiver("test-queue");
+        var heartbeat = new QueueHeartbeat(receiver, NullLogger.Instance, "test-queue");
+
+        // act
+        await heartbeat.DisposeAsync();
+
+        // assert
+        Assert.True(receiver.IsClosed);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_CompleteWithinStopTimeout_When_PeekIgnoresCancellation()
+    {
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        async Task PeekAsync(CancellationToken cancellationToken)
+        {
+            started.TrySetResult();
+
+            // Ignores the cancellation token and blocks well past the heartbeat's internal stop timeout.
+            await Task.Delay(TimeSpan.FromSeconds(30));
+        }
+
+        // arrange
+        var heartbeat = new QueueHeartbeat(
+            PeekAsync,
+            TimeSpan.FromMilliseconds(10),
+            NullLogger.Instance,
+            "test-queue");
+
+        await started.Task.WaitAsync(
+            TimeSpan.FromSeconds(2),
+            TestContext.Current.CancellationToken);
+
+        // act
+        var stopwatch = Stopwatch.StartNew();
+        await heartbeat.DisposeAsync();
+        stopwatch.Stop();
+
+        // assert - disposal falls back to the internal stop timeout instead of hanging on the stuck peek
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"DisposeAsync took {stopwatch.Elapsed}");
+    }
+
     [Fact]
     public async Task Loop_Should_InvokeKeepAliveOneAtATime_When_PeekIsSlow()
     {
