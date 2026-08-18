@@ -1,12 +1,194 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mocha.Middlewares;
+using Mocha.Transport.AzureServiceBus.Features;
 using Mocha.Transport.AzureServiceBus.Middlewares;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
 
 public sealed class AzureServiceBusAcknowledgementMiddlewareTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvokeAsync_Should_Complete_When_NextSucceeds(bool isSession)
+    {
+        // arrange
+        var entityPath = isSession ? "orders-session" : "orders-queue";
+        using var cts = new CancellationTokenSource();
+        var (context, settlement) = CreateContext(isSession, entityPath, cts.Token);
+        var middleware = new AzureServiceBusAcknowledgementMiddleware();
+
+        // act
+        await middleware.InvokeAsync(context, static _ => ValueTask.CompletedTask);
+
+        // assert
+        Assert.Equal(1, settlement.CompleteCallCount);
+        Assert.Equal(0, settlement.AbandonCallCount);
+        Assert.Equal(cts.Token, settlement.LastCancellationToken);
+        Assert.Equal(entityPath, settlement.ObservedEntityPath);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvokeAsync_Should_AbandonAndRethrow_When_NextFails(bool isSession)
+    {
+        // arrange
+        var entityPath = isSession ? "orders-session" : "orders-queue";
+        using var cts = new CancellationTokenSource();
+        var (context, settlement) = CreateContext(isSession, entityPath, cts.Token);
+        var middleware = new AzureServiceBusAcknowledgementMiddleware();
+        var handlerException = new InvalidOperationException("handler failed");
+
+        // act
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => middleware.InvokeAsync(context, _ => throw handlerException).AsTask());
+
+        // assert
+        Assert.Same(handlerException, thrown);
+        Assert.Equal(0, settlement.CompleteCallCount);
+        Assert.Equal(1, settlement.AbandonCallCount);
+        Assert.Equal(cts.Token, settlement.LastCancellationToken);
+        Assert.Equal(entityPath, settlement.ObservedEntityPath);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_PreserveOriginalException_When_AbandonAlsoFails()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource();
+        var (context, settlement) = CreateContext(isSession: false, "orders-queue", cts.Token);
+        settlement.AbandonException = new InvalidOperationException("abandon failed");
+        var middleware = new AzureServiceBusAcknowledgementMiddleware();
+        var handlerException = new InvalidOperationException("handler failed");
+
+        // act
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => middleware.InvokeAsync(context, _ => throw handlerException).AsTask());
+
+        // assert
+        Assert.Same(handlerException, thrown);
+        Assert.Equal(1, settlement.AbandonCallCount);
+    }
+
+    private static (ReceiveContext Context, RecordingSettlement Settlement) CreateContext(
+        bool isSession,
+        string entityPath,
+        CancellationToken cancellationToken)
+    {
+        var provider = new ServiceCollection()
+            .AddSingleton<ILogger<AzureServiceBusAcknowledgementMiddleware>>(new CapturingLogger())
+            .BuildServiceProvider();
+        var settlement = new RecordingSettlement();
+        var feature = new AzureServiceBusReceiveFeature();
+
+        if (isSession)
+        {
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-1", sessionId: "s-1");
+            var receiver = new RecordingServiceBusSessionReceiver(entityPath, settlement);
+            feature.SetSession(new ProcessSessionMessageEventArgs(message, receiver, cancellationToken));
+        }
+        else
+        {
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-1");
+            var receiver = new RecordingServiceBusReceiver(entityPath, settlement);
+            feature.SetNonSession(new ProcessMessageEventArgs(message, receiver, cancellationToken));
+        }
+
+        var context = new ReceiveContext
+        {
+            Services = provider,
+            CancellationToken = cancellationToken
+        };
+        context.Features.Set(feature);
+
+        return (context, settlement);
+    }
+
+    /// <summary>
+    /// Tracks settlement calls made through a <see cref="RecordingServiceBusReceiver"/> or
+    /// <see cref="RecordingServiceBusSessionReceiver"/> so tests can assert on call counts,
+    /// the propagated cancellation token, and the entity path the middleware selected.
+    /// </summary>
+    private sealed class RecordingSettlement
+    {
+        public int CompleteCallCount { get; private set; }
+
+        public int AbandonCallCount { get; private set; }
+
+        public CancellationToken? LastCancellationToken { get; private set; }
+
+        public string? ObservedEntityPath { get; private set; }
+
+        public Exception? AbandonException { get; set; }
+
+        public void RecordEntityPathAccess(string entityPath) => ObservedEntityPath = entityPath;
+
+        public Task CompleteAsync(CancellationToken cancellationToken)
+        {
+            CompleteCallCount++;
+            LastCancellationToken = cancellationToken;
+            return Task.CompletedTask;
+        }
+
+        public Task AbandonAsync(CancellationToken cancellationToken)
+        {
+            AbandonCallCount++;
+            LastCancellationToken = cancellationToken;
+            return AbandonException is null ? Task.CompletedTask : Task.FromException(AbandonException);
+        }
+    }
+
+    private sealed class RecordingServiceBusReceiver(string entityPath, RecordingSettlement settlement)
+        : ServiceBusReceiver
+    {
+        public override string EntityPath
+        {
+            get
+            {
+                settlement.RecordEntityPathAccess(entityPath);
+                return entityPath;
+            }
+        }
+
+        public override Task CompleteMessageAsync(
+            ServiceBusReceivedMessage message,
+            CancellationToken cancellationToken = default)
+            => settlement.CompleteAsync(cancellationToken);
+
+        public override Task AbandonMessageAsync(
+            ServiceBusReceivedMessage message,
+            IDictionary<string, object>? propertiesToModify = null,
+            CancellationToken cancellationToken = default)
+            => settlement.AbandonAsync(cancellationToken);
+    }
+
+    private sealed class RecordingServiceBusSessionReceiver(string entityPath, RecordingSettlement settlement)
+        : ServiceBusSessionReceiver
+    {
+        public override string EntityPath
+        {
+            get
+            {
+                settlement.RecordEntityPathAccess(entityPath);
+                return entityPath;
+            }
+        }
+
+        public override Task CompleteMessageAsync(
+            ServiceBusReceivedMessage message,
+            CancellationToken cancellationToken = default)
+            => settlement.CompleteAsync(cancellationToken);
+
+        public override Task AbandonMessageAsync(
+            ServiceBusReceivedMessage message,
+            IDictionary<string, object>? propertiesToModify = null,
+            CancellationToken cancellationToken = default)
+            => settlement.AbandonAsync(cancellationToken);
+    }
+
     [Fact]
     public async Task CompleteAsync_Should_LogWarningAndSwallow_When_LockLost()
     {
