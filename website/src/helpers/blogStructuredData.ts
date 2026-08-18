@@ -1,4 +1,5 @@
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
+import { authorPersonId } from "@/src/data/authors";
 import {
   ORGANIZATION_ID,
   schemaId,
@@ -56,6 +57,9 @@ export function createBlogItemListNode(
             }
           : {}),
         publisher: schemaRef(ORGANIZATION_ID),
+        ...(post.authorProfile
+          ? { author: schemaRef(authorPersonId(post.authorProfile)) }
+          : {}),
         isPartOf: schemaRef(BLOG_ID),
         inLanguage: "en",
         isAccessibleForFree: true,
