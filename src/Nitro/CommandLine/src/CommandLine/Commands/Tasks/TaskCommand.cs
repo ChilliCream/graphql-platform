@@ -5,7 +5,6 @@ internal sealed class TaskCommand : Command
     public TaskCommand() : base("task")
     {
         Description = "Create and manage tasks for coding agents.";
-        Hidden = true;
 
         Subcommands.Add(new BlockedTaskCommand());
         Subcommands.Add(new BoardTaskCommand());
