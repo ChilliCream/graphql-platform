@@ -1,10 +1,8 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
-using Dapper;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
-namespace ChilliCream.Nitro.CommandLine.Tests.Services.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 
 /// <summary>
 /// Exercises the backend-agnostic read surface of <see cref="TaskStore"/>
@@ -296,8 +294,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "INSERT INTO config (key, value) VALUES ('prefix', 'acme')");
+        await ExecuteAsync(
+            connection, "INSERT INTO config (key, value) VALUES ('prefix', 'acme')");
 
         // act
         var prefix = await _store.GetPrefixAsync(cancellationToken);
@@ -309,8 +307,12 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     private async Task<SqliteConnection> SeedAsync(CancellationToken cancellationToken)
-        => await _store.InitializeAsync(
-            TaskWorkspace.GetDirectory(_workingDirectory), cancellationToken);
+    {
+        var workspaceDirectory = TaskWorkspace.GetDirectory(_workingDirectory);
+        Directory.CreateDirectory(workspaceDirectory);
+
+        return await _store.InitializeAsync(workspaceDirectory, cancellationToken);
+    }
 
     private Task InsertTaskAsync(
         SqliteConnection connection,
@@ -322,18 +324,21 @@ public sealed class TaskStoreTests : IAsyncDisposable
     {
         var now = _timeProvider.GetUtcNow();
 
-        return connection.ExecuteAsync(
+        return ExecuteAsync(
+            connection,
             """
             INSERT INTO tasks (id, title, status, priority, task_type, created_at, updated_at)
             VALUES (@id, @title, @status, @priority, @type, @now, @now)
             """,
-            new { id, title, status, priority, type, now });
+            ("@id", id), ("@title", title), ("@status", status),
+            ("@priority", priority), ("@type", type), ("@now", now));
     }
 
     private Task InsertLabelAsync(SqliteConnection connection, string taskId, string label)
-        => connection.ExecuteAsync(
+        => ExecuteAsync(
+            connection,
             "INSERT INTO labels (task_id, label) VALUES (@taskId, @label)",
-            new { taskId, label });
+            ("@taskId", taskId), ("@label", label));
 
     private Task InsertDependencyAsync(
         SqliteConnection connection,
@@ -343,23 +348,46 @@ public sealed class TaskStoreTests : IAsyncDisposable
     {
         var now = _timeProvider.GetUtcNow();
 
-        return connection.ExecuteAsync(
+        return ExecuteAsync(
+            connection,
             """
             INSERT INTO dependencies (task_id, depends_on_id, dependency_type, created_at)
             VALUES (@taskId, @dependsOnId, @type, @now)
             """,
-            new { taskId, dependsOnId, type, now });
+            ("@taskId", taskId), ("@dependsOnId", dependsOnId), ("@type", type), ("@now", now));
     }
 
     private Task InsertCommentAsync(SqliteConnection connection, string taskId, string text)
     {
         var now = _timeProvider.GetUtcNow();
 
-        return connection.ExecuteAsync(
+        return ExecuteAsync(
+            connection,
             """
             INSERT INTO comments (task_id, author, text, created_at)
             VALUES (@taskId, 'test-agent', @text, @now)
             """,
-            new { taskId, text, now });
+            ("@taskId", taskId), ("@text", text), ("@now", now));
+    }
+
+    /// <summary>
+    /// Runs a parameterized statement via plain ADO.NET, sidestepping
+    /// Dapper.AOT's interceptor so the test project does not need its own
+    /// AOT-compatible call shapes.
+    /// </summary>
+    private static async Task ExecuteAsync(
+        SqliteConnection connection,
+        string sql,
+        params (string Name, object Value)[] parameters)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        foreach (var (name, value) in parameters)
+        {
+            command.Parameters.AddWithValue(name, value);
+        }
+
+        await command.ExecuteNonQueryAsync();
     }
 }

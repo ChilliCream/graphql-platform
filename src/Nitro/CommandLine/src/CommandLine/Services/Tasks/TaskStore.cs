@@ -369,18 +369,24 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return (await connection.QueryAsync<TaskLabelCount>(
-            new CommandDefinition(
-                """
-                SELECT l.label AS Label, COUNT(*) AS Count
-                FROM labels l
-                JOIN tasks t ON t.id = l.task_id
-                WHERE t.status != @tombstoneStatus
-                GROUP BY l.label
-                ORDER BY l.label
-                """,
-                new { tombstoneStatus = TaskStates.Tombstone },
-                cancellationToken: cancellationToken))).ToList();
+        // A row class, not the TaskLabelCount record, receives the COUNT(*)
+        // column: Dapper's reflection path requires an exact constructor
+        // match for record types, and SQLite's COUNT(*) always reads back as
+        // Int64, not Int32. A settable property tolerates the narrowing.
+        return (await connection.QueryAsync<LabelCountRow>(
+                new CommandDefinition(
+                    """
+                    SELECT l.label AS Label, COUNT(*) AS Count
+                    FROM labels l
+                    JOIN tasks t ON t.id = l.task_id
+                    WHERE t.status != @tombstoneStatus
+                    GROUP BY l.label
+                    ORDER BY l.label
+                    """,
+                    new { tombstoneStatus = TaskStates.Tombstone },
+                    cancellationToken: cancellationToken)))
+            .Select(r => new TaskLabelCount(r.Label, r.Count))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<TaskComment>> GetCommentsAsync(
@@ -505,24 +511,31 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
+        // A row class, not the TaskCount record, receives the COUNT(*)
+        // column in every branch: Dapper's reflection path requires an exact
+        // constructor match for record types, and SQLite's COUNT(*) always
+        // reads back as Int64, not Int32. A settable property tolerates the
+        // narrowing.
         switch (dimension)
         {
             case TaskCountDimension.Status:
-                return (await connection.QueryAsync<TaskCount>(
+                return (await connection.QueryAsync<CountRow>(
                         new CommandDefinition(
                             "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
                             + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
                             new { tombstone = TaskStates.Tombstone },
                             cancellationToken: cancellationToken)))
+                    .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             case TaskCountDimension.Type:
-                return (await connection.QueryAsync<TaskCount>(
+                return (await connection.QueryAsync<CountRow>(
                         new CommandDefinition(
                             "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
                             + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
                             new { tombstone = TaskStates.Tombstone },
                             cancellationToken: cancellationToken)))
+                    .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             case TaskCountDimension.Priority:
@@ -536,7 +549,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                     .ToList();
 
             case TaskCountDimension.Assignee:
-                return (await connection.QueryAsync<TaskCount>(
+                return (await connection.QueryAsync<CountRow>(
                         new CommandDefinition(
                             "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
                             + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
@@ -544,16 +557,18 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                             + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
                             new { tombstone = TaskStates.Tombstone },
                             cancellationToken: cancellationToken)))
+                    .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             case TaskCountDimension.Label:
-                return (await connection.QueryAsync<TaskCount>(
+                return (await connection.QueryAsync<CountRow>(
                         new CommandDefinition(
                             "SELECT label AS Value, COUNT(*) AS Count FROM labels "
                             + "INNER JOIN tasks ON tasks.id = labels.task_id "
                             + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
                             new { tombstone = TaskStates.Tombstone },
                             cancellationToken: cancellationToken)))
+                    .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             default:
@@ -567,12 +582,18 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var statusCounts = (await connection.QueryAsync<TaskCount>(
-            new CommandDefinition(
-                "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-                + "WHERE status != @tombstone GROUP BY status",
-                new { tombstone = TaskStates.Tombstone },
-                cancellationToken: cancellationToken))).ToList();
+        // A row class, not the TaskCount record, receives the COUNT(*)
+        // column: Dapper's reflection path requires an exact constructor
+        // match for record types, and SQLite's COUNT(*) always reads back as
+        // Int64, not Int32. A settable property tolerates the narrowing.
+        var statusCounts = (await connection.QueryAsync<CountRow>(
+                new CommandDefinition(
+                    "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+                    + "WHERE status != @tombstone GROUP BY status",
+                    new { tombstone = TaskStates.Tombstone },
+                    cancellationToken: cancellationToken)))
+            .Select(r => new TaskCount(r.Value, r.Count))
+            .ToList();
 
         var now = timeProvider.GetUtcNow();
         var blocked = await ComputeBlockedAsync(connection, cancellationToken);
@@ -991,6 +1012,25 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     private sealed class PriorityCountRow
     {
         public required int Priority { get; init; }
+        public required int Count { get; init; }
+    }
+
+    /// <summary>
+    /// One group-by-value row: the grouped value and how many tasks fall
+    /// into it.
+    /// </summary>
+    private sealed class CountRow
+    {
+        public required string Value { get; init; }
+        public required int Count { get; init; }
+    }
+
+    /// <summary>
+    /// A label's name and how many non-tombstone tasks carry it.
+    /// </summary>
+    private sealed class LabelCountRow
+    {
+        public required string Label { get; init; }
         public required int Count { get; init; }
     }
 }
