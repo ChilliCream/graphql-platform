@@ -201,7 +201,7 @@ for line in "${SUMMARY[@]}"; do
 done
 
 if [[ "$UPDATE" == "1" ]]; then
-  exit 0
+  exit "$overall"
 fi
 
 if [[ "$overall" -ne 0 ]]; then
