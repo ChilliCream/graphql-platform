@@ -67,7 +67,7 @@
 
   <ItemGroup Condition="'$(PackageIcon)' != ''">
     <None
-      Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)"
+      Include="$(MSBuildThisFileDirectory)..\website\public\resources\$(PackageIcon)"
       Pack="true"
       PackagePath="$(PackageIcon)"
       Visible="false"
