@@ -17,7 +17,6 @@ internal sealed class TaskDetailView
 
     private readonly TaskDetailModel _model;
     private readonly Viewport _bodyViewport = new(0, 0);
-    private int _scrollAnchor;
 
     public TaskDetailView(TaskDetailModel model)
     {
@@ -68,12 +67,7 @@ internal sealed class TaskDetailView
             new Layout("body", RenderBody(Math.Max(1, width - sidebarWidth), height, focused)));
     }
 
-    private void Scroll(int delta)
-    {
-        var maxIndex = Math.Max(0, _bodyViewport.TotalCount - 1);
-        _scrollAnchor = Math.Clamp(_scrollAnchor + delta, 0, maxIndex);
-        _bodyViewport.EnsureVisible(_scrollAnchor);
-    }
+    private void Scroll(int delta) => _bodyViewport.ScrollBy(delta);
 
     private IRenderable RenderSidebar(bool focused)
     {
@@ -99,8 +93,6 @@ internal sealed class TaskDetailView
 
         var lines = TaskDetailBody.Build(_model, innerWidth, focused);
         _bodyViewport.Update(lines.Count, innerHeight);
-        _scrollAnchor = Math.Clamp(_scrollAnchor, 0, Math.Max(0, lines.Count - 1));
-        _bodyViewport.EnsureVisible(_scrollAnchor);
 
         var (start, count) = _bodyViewport.Slice();
         var visible = new List<IRenderable>(count);

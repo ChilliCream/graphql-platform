@@ -75,6 +75,16 @@ internal sealed class Viewport
     }
 
     /// <summary>
+    /// Moves the offset by <paramref name="delta"/>, clamping it to a valid
+    /// window position.
+    /// </summary>
+    public void ScrollBy(int delta)
+    {
+        Offset += delta;
+        ClampOffset();
+    }
+
+    /// <summary>
     /// Returns the currently visible range as a start index and row count.
     /// </summary>
     public (int Start, int Count) Slice()

@@ -131,4 +131,47 @@ public sealed class ViewportTests
         Assert.Equal(0, start);
         Assert.Equal(0, count);
     }
+
+    [Fact]
+    public void ScrollBy_Should_MoveOffset_When_DeltaWithinRange()
+    {
+        // arrange
+        var viewport = new Viewport(totalCount: 20, windowHeight: 5);
+        viewport.EnsureVisible(10);
+
+        // act
+        viewport.ScrollBy(2);
+        var (start, _) = viewport.Slice();
+
+        // assert
+        Assert.Equal(8, start);
+    }
+
+    [Fact]
+    public void ScrollBy_Should_ClampAtZero_When_DeltaScrollsPastStart()
+    {
+        // arrange
+        var viewport = new Viewport(totalCount: 20, windowHeight: 5);
+
+        // act
+        viewport.ScrollBy(-100);
+        var (start, _) = viewport.Slice();
+
+        // assert
+        Assert.Equal(0, start);
+    }
+
+    [Fact]
+    public void ScrollBy_Should_ClampAtMaxOffset_When_DeltaScrollsPastEnd()
+    {
+        // arrange
+        var viewport = new Viewport(totalCount: 20, windowHeight: 5);
+
+        // act
+        viewport.ScrollBy(100);
+        var (start, _) = viewport.Slice();
+
+        // assert
+        Assert.Equal(15, start);
+    }
 }
