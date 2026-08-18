@@ -38,6 +38,26 @@ internal static class AzureServiceBusDestinations
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
 
+    /// <summary>
+    /// Resolves the destination that a dispatch endpoint configuration was directed to, based on
+    /// the topic or queue name recorded on the configuration.
+    /// </summary>
+    public static AzureServiceBusDestination? FromDispatchEndpoint(
+        AzureServiceBusDispatchEndpointConfiguration configuration)
+    {
+        if (configuration.TopicName is { } topicName)
+        {
+            return Topic(topicName);
+        }
+
+        if (configuration.QueueName is { } queueName)
+        {
+            return Queue(queueName);
+        }
+
+        return null;
+    }
+
     public static bool TryResolveSourceTopic(
         string schema,
         Uri source,

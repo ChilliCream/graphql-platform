@@ -75,6 +75,23 @@ public class AzureServiceBusReceiveTopologyTests
     }
 
     [Fact]
+    public void DiscoverTopology_Should_SubscribeCustomDispatchTopic_When_PublishRouteUsesDispatchEndpoint()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t => t.DispatchEndpoint("custom-orders-endpoint").ToTopic("custom-orders").Publish<OrderCreated>());
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // act
+        var subscription = topology.Subscriptions.Single(s =>
+            s.Source.Name == "custom-orders" && s.Destination.Name == endpoint.Queue.Name);
+
+        // assert
+        Assert.Equal(TopologyOrigin.Convention, subscription.Origin);
+    }
+
+    [Fact]
     public void DiscoverTopology_Should_SubscribeExplicitTopic_When_PublishDestinationTargetsCurrentNamespace()
     {
         // arrange
