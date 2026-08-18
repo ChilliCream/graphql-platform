@@ -34,10 +34,8 @@ internal static class TaskBadge
         }
 
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var glyph = StatusGlyph(status);
-        var glyphStyle = ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup();
-        var typeCode = TypeCode(type);
-        var typeStyle = ThemeTokens.GetStyle($"badge.type.{type}").ToMarkup();
+        var glyph = TaskGlyphs.Status(status);
+        var typeCode = TaskGlyphs.TypeCode(type);
         var priorityText = TaskPriorities.Format(priority);
         var priorityStyle = ThemeTokens.GetStyle($"badge.priority.p{priority}").ToMarkup();
 
@@ -53,8 +51,8 @@ internal static class TaskBadge
         var escapedTitle = Markup.Escape(truncatedTitle);
 
         var line =
-            $"{Markup.Escape(prefix)}{Stylize(glyphStyle, glyph)} "
-            + $"{Stylize(typeStyle, $"[[{typeCode}]]")} "
+            $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
+            + $"{TaskGlyphs.TypeCodeMarkup(type)} "
             + $"{Stylize(priorityStyle, priorityText)} "
             + $"{Markup.Escape(id)} {escapedTitle}";
 
@@ -89,26 +87,4 @@ internal static class TaskBadge
 
         return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
     }
-
-    private static string StatusGlyph(string status) => status switch
-    {
-        TaskStates.Closed => "✓",
-        TaskStates.InProgress => "●",
-        TaskStates.Open => "○",
-        TaskStates.Deferred => "⏸",
-        TaskStates.Blocked => "⊘",
-        _ => "○"
-    };
-
-    private static string TypeCode(string type) => type switch
-    {
-        TaskTypes.Bug => "B",
-        TaskTypes.Feature => "F",
-        TaskTypes.Task => "T",
-        TaskTypes.Epic => "E",
-        TaskTypes.Chore => "C",
-        TaskTypes.Docs => "D",
-        TaskTypes.Question => "Q",
-        _ => type.Length > 0 ? type[..1].ToUpperInvariant() : "?"
-    };
 }
