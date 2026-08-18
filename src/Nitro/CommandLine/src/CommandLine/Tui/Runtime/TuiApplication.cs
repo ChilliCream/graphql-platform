@@ -89,6 +89,11 @@ internal sealed class TuiApplication
                     await _console.Live(rootRenderer())
                         .StartAsync(async ctx =>
                         {
+                            // Spectre's Live display only paints once something calls
+                            // Refresh/UpdateTarget; without this, the initial frame stays
+                            // blank until the root handler first reports a dirty event.
+                            ctx.Refresh();
+
                             await foreach (var tuiEvent in channel.Reader.ReadAllAsync(loopCts.Token))
                             {
                                 if (rootHandler(tuiEvent))

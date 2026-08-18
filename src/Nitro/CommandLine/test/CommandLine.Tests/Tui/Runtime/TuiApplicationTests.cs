@@ -143,6 +143,27 @@ public sealed class TuiApplicationTests
     }
 
     [Fact]
+    public async Task RunAsync_Should_PaintInitialFrame_BeforeAnyDirtyEvent()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole { EmitAnsiSequences = true };
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        // The handler never reports the frame as dirty, so the initial frame can only
+        // reach the console output via the Live display's own startup paint.
+        var runTask = app.RunAsync(_ => false, () => new Text("initial-frame-marker"), cts.Token);
+        await Task.Delay(TickInterval * 5, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.Contains("initial-frame-marker", console.Output);
+    }
+
+    [Fact]
     public async Task RunAsync_Should_StopKeyReader_When_HandlerThrows()
     {
         // arrange
