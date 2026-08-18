@@ -37,12 +37,7 @@ internal sealed class SetTaskConfigCommand : Command
             value = TaskWorkspace.NormalizePrefix(value);
         }
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        await store.SetConfigAsync(connection, key, value, cancellationToken, transaction);
-
-        await transaction.CommitAsync(cancellationToken);
+        await store.SetConfigAsync(key, value, cancellationToken);
 
         console.OkLine($"Set '{key.EscapeMarkup()}' to '{value.EscapeMarkup()}'.");
 

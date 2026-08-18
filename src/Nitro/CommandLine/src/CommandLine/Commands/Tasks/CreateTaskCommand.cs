@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -40,7 +39,6 @@ internal sealed class CreateTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var timeProvider = services.GetRequiredService<TimeProvider>();
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
 
         var title = parseResult.GetRequiredValue(Opt<TaskTitleArgument>.Instance);
@@ -86,28 +84,8 @@ internal sealed class CreateTaskCommand : Command
 
         var actor = TaskActor.Resolve(
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariables);
-        var now = timeProvider.GetUtcNow();
-        var seed = $"{title}|{now:O}";
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        var resolvedDependencies = new List<(string TargetId, string Type, string Status)>();
-        string id;
-
-        if (parentId is not null)
-        {
-            var parent = await store.GetRequiredTaskAsync(
-                connection, parentId, cancellationToken, transaction);
-            resolvedDependencies.Add((parentId, TaskDependencyTypes.ParentChild, parent.Status));
-            id = await store.CreateTaskIdAsync(connection, parentId, seed, cancellationToken, transaction);
-        }
-        else
-        {
-            id = await store.CreateTaskIdAsync(connection, null, seed, cancellationToken, transaction);
-        }
-
-        foreach (var dependency in dependsOn)
+        var dependencyRequests = dependsOn.Select(dependency =>
         {
             var separatorIndex = dependency.IndexOf(':');
             var dependencyType = separatorIndex < 0
@@ -115,95 +93,32 @@ internal sealed class CreateTaskCommand : Command
                 : TaskDependencyTypes.Normalize(dependency[..separatorIndex]);
             var dependsOnId = separatorIndex < 0 ? dependency : dependency[(separatorIndex + 1)..];
 
-            var target = await store.GetRequiredTaskAsync(
-                connection, dependsOnId, cancellationToken, transaction);
+            return new TaskDependencyRequest(dependsOnId, dependencyType);
+        }).ToList();
 
-            resolvedDependencies.Add((dependsOnId, dependencyType, target.Status));
-        }
-
-        var task = new TaskItem
-        {
-            Id = id,
-            Title = title,
-            Description = description,
-            Status = TaskStates.Open,
-            Priority = priority,
-            Type = type,
-            Assignee = assignee,
-            EstimatedMinutes = estimate,
-            DueAt = dueAt,
-            DeferUntil = deferUntil,
-            CreatedAt = now,
-            CreatedBy = actor,
-            UpdatedAt = now
-        };
-
-        await connection.ExecuteAsync(
-            "INSERT INTO tasks (id, title, description, design, acceptance_criteria, notes, "
-            + "status, priority, task_type, assignee, estimated_minutes, due_at, defer_until, "
-            + "created_at, created_by, updated_at, closed_at, close_reason, deleted_at, "
-            + "delete_reason) "
-            + "VALUES (@Id, @Title, @Description, @Design, @AcceptanceCriteria, @Notes, "
-            + "@Status, @Priority, @Type, @Assignee, @EstimatedMinutes, @DueAt, @DeferUntil, "
-            + "@CreatedAt, @CreatedBy, @UpdatedAt, @ClosedAt, @CloseReason, @DeletedAt, "
-            + "@DeleteReason)",
-            task,
-            transaction);
-
-        foreach (var label in labels)
-        {
-            await connection.ExecuteAsync(
-                "INSERT OR IGNORE INTO labels (task_id, label) VALUES (@TaskId, @Label)",
-                new { TaskId = id, Label = label, cancellationToken },
-                transaction);
-        }
-
-        foreach (var (targetId, dependencyType, _) in resolvedDependencies)
-        {
-            await connection.ExecuteAsync(
-                "INSERT OR IGNORE INTO dependencies "
-                + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
-                + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
-                new TaskDependency
-                {
-                    TaskId = id,
-                    DependsOnId = targetId,
-                    Type = dependencyType,
-                    CreatedAt = now,
-                    CreatedBy = actor
-                },
-                transaction);
-        }
-
-        await store.RecordEventAsync(
-            connection,
-            new TaskEvent
+        var result = await store.CreateTaskAsync(
+            new TaskCreation
             {
-                TaskId = id,
-                Type = TaskEventTypes.Created,
-                Actor = actor,
-                CreatedAt = now
+                Title = title,
+                Description = description,
+                Priority = priority,
+                Type = type,
+                Assignee = assignee,
+                EstimatedMinutes = estimate,
+                DueAt = dueAt,
+                DeferUntil = deferUntil,
+                Labels = labels,
+                DependsOn = dependencyRequests,
+                ParentId = parentId,
+                Actor = actor
             },
-            cancellationToken,
-            transaction);
+            cancellationToken);
 
-        await transaction.CommitAsync(cancellationToken);
+        console.OkLine($"Created task '{result.Id}': {title.EscapeMarkup()}.");
 
-        console.OkLine($"Created task '{id}': {title.EscapeMarkup()}.");
-
-        // A parent-child edge alone does not block the new task; only the
-        // other blocking dependency types gate it (matching ComputeBlockedAsync).
-        var blockedBy = resolvedDependencies
-            .Where(d => d.Type != TaskDependencyTypes.ParentChild
-                && TaskDependencyTypes.IsBlocking(d.Type)
-                && !TaskStates.IsTerminal(d.Status))
-            .Select(d => d.TargetId)
-            .Distinct()
-            .ToList();
-
-        if (blockedBy.Count > 0)
+        if (result.BlockedBy.Count > 0)
         {
-            console.WriteLine($"  Blocked by: {string.Join(", ", blockedBy)}");
+            console.WriteLine($"  Blocked by: {string.Join(", ", result.BlockedBy)}");
         }
 
         return ExitCodes.Success;

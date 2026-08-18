@@ -50,15 +50,7 @@ internal sealed class InitTaskCommand : Command
             fileSystem.CreateDirectory(workspaceDirectory);
         }
 
-        await using (var connection = await store.InitializeAsync(
-            workspaceDirectory, cancellationToken))
-        {
-            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-            await store.SetConfigAsync(connection, "prefix", prefix, cancellationToken, transaction);
-
-            await transaction.CommitAsync(cancellationToken);
-        }
+        await store.InitializeWorkspaceAsync(workspaceDirectory, prefix, cancellationToken);
 
         var gitIgnorePath = Path.Combine(
             workspaceDirectory, TaskWorkspace.GitIgnoreFileName);

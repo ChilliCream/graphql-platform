@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -31,7 +30,6 @@ internal sealed class DeleteTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var timeProvider = services.GetRequiredService<TimeProvider>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
@@ -39,11 +37,10 @@ internal sealed class DeleteTaskCommand : Command
         var actor = TaskActor.Resolve(
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
-        var now = timeProvider.GetUtcNow();
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-        var task = await store.GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+        // Existence is checked up front, before the confirmation prompt, so a
+        // nonexistent task fails immediately instead of asking to confirm it.
+        await store.GetRequiredTaskAsync(id, cancellationToken);
 
         if (!force)
         {
@@ -64,36 +61,7 @@ internal sealed class DeleteTaskCommand : Command
             }
         }
 
-        await connection.ExecuteAsync(
-            "UPDATE tasks SET status = @status, deleted_at = @deletedAt, "
-            + "delete_reason = @deleteReason, updated_at = @updatedAt WHERE id = @id",
-            new
-            {
-                status = TaskStates.Tombstone,
-                deletedAt = now,
-                deleteReason = reason,
-                updatedAt = now,
-                id = task.Id,
-                cancellationToken
-            },
-            transaction);
-
-        await store.RecordEventAsync(
-            connection,
-            new TaskEvent
-            {
-                TaskId = task.Id,
-                Type = TaskEventTypes.Deleted,
-                Actor = actor,
-                OldValue = task.Status,
-                NewValue = TaskStates.Tombstone,
-                Comment = string.IsNullOrEmpty(reason) ? null : reason,
-                CreatedAt = now
-            },
-            cancellationToken,
-            transaction);
-
-        await transaction.CommitAsync(cancellationToken);
+        var task = await store.DeleteTaskAsync(id, reason, actor, cancellationToken);
 
         console.OkLine($"Deleted task '{task.Id.EscapeMarkup()}'.");
 

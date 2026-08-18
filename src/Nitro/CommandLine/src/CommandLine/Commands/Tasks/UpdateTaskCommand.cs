@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -42,7 +41,6 @@ internal sealed class UpdateTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
-        var timeProvider = services.GetRequiredService<TimeProvider>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var actor = TaskActor.Resolve(
@@ -71,290 +69,78 @@ internal sealed class UpdateTaskCommand : Command
             throw new ExitException("Nothing to update. Pass at least one option.");
         }
 
-        var now = timeProvider.GetUtcNow();
-
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-        var task = await store.GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
-
-        var changedFields = new List<string>();
-        string? oldStatus = null;
-        string? newStatus = null;
-        string? oldPriority = null;
-        string? newPriority = null;
-        string? oldAssignee = null;
-        string? newAssignee = null;
+        string? title = null;
 
         if (titleGiven)
         {
-            var title = parseResult.GetValue(Opt<TaskTitleOption>.Instance) ?? "";
+            title = parseResult.GetValue(Opt<TaskTitleOption>.Instance) ?? "";
 
             if (title.Length is 0 or > 500)
             {
                 throw new ExitException("The title must be 1-500 characters.");
             }
-
-            if (title != task.Title)
-            {
-                task.Title = title;
-                changedFields.Add("title");
-            }
         }
 
-        if (descriptionGiven)
-        {
-            var description = parseResult.GetValue(Opt<TaskDescriptionOption>.Instance) ?? "";
-
-            if (description != task.Description)
-            {
-                task.Description = description;
-                changedFields.Add("description");
-            }
-        }
-
-        if (typeGiven)
-        {
-            var type = TaskTypes.Normalize(parseResult.GetValue(Opt<TaskTypeOption>.Instance) ?? "");
-
-            if (type != task.Type)
-            {
-                task.Type = type;
-                changedFields.Add("task_type");
-            }
-        }
-
-        if (notesGiven)
-        {
-            var notes = parseResult.GetValue(Opt<TaskNotesOption>.Instance) ?? "";
-
-            if (notes != task.Notes)
-            {
-                task.Notes = notes;
-                changedFields.Add("notes");
-            }
-        }
-
-        if (designGiven)
-        {
-            var design = parseResult.GetValue(Opt<TaskDesignOption>.Instance) ?? "";
-
-            if (design != task.Design)
-            {
-                task.Design = design;
-                changedFields.Add("design");
-            }
-        }
-
-        if (acceptanceCriteriaGiven)
-        {
-            var acceptanceCriteria =
-                parseResult.GetValue(Opt<TaskAcceptanceCriteriaOption>.Instance) ?? "";
-
-            if (acceptanceCriteria != task.AcceptanceCriteria)
-            {
-                task.AcceptanceCriteria = acceptanceCriteria;
-                changedFields.Add("acceptance_criteria");
-            }
-        }
+        DateTimeOffset? due = null;
 
         if (dueGiven)
         {
-            var due = TaskDates.Parse(
+            due = TaskDates.Parse(
                 parseResult.GetValue(Opt<TaskDueOption>.Instance) ?? "",
                 Opt<TaskDueOption>.Instance.Name);
-
-            if (due != task.DueAt)
-            {
-                task.DueAt = due;
-                changedFields.Add("due_at");
-            }
         }
+
+        DateTimeOffset? deferUntil = null;
 
         if (deferUntilGiven)
         {
-            var deferUntil = TaskDates.Parse(
+            deferUntil = TaskDates.Parse(
                 parseResult.GetValue(Opt<TaskDeferUntilOption>.Instance) ?? "",
                 Opt<TaskDeferUntilOption>.Instance.Name);
-
-            if (deferUntil != task.DeferUntil)
-            {
-                task.DeferUntil = deferUntil;
-                changedFields.Add("defer_until");
-            }
         }
 
-        if (estimateGiven)
-        {
-            var estimate = parseResult.GetValue(Opt<TaskEstimateOption>.Instance);
-
-            if (estimate != task.EstimatedMinutes)
-            {
-                task.EstimatedMinutes = estimate;
-                changedFields.Add("estimated_minutes");
-            }
-        }
-
-        if (statusGiven)
-        {
-            var status = TaskStates.Normalize(parseResult.GetValue(Opt<TaskStatusOption>.Instance) ?? "");
-
-            if (status == TaskStates.Closed)
-            {
-                throw new ExitException("Use `nitro task close` to close a task.");
-            }
-
-            if (status == TaskStates.Tombstone)
-            {
-                throw new ExitException("Use `nitro task delete` to delete a task.");
-            }
-
-            if (task.Status == TaskStates.Closed)
-            {
-                throw new ExitException("Use `nitro task reopen` to reopen a task.");
-            }
-
-            if (status != task.Status)
-            {
-                oldStatus = task.Status;
-                newStatus = status;
-                task.Status = status;
-            }
-        }
+        int? priority = null;
 
         if (priorityGiven)
         {
-            var priority =
-                TaskPriorities.Parse(parseResult.GetValue(Opt<TaskPriorityOption>.Instance) ?? "");
-
-            if (priority != task.Priority)
-            {
-                oldPriority = TaskPriorities.Format(task.Priority);
-                newPriority = TaskPriorities.Format(priority);
-                task.Priority = priority;
-            }
+            priority = TaskPriorities.Parse(parseResult.GetValue(Opt<TaskPriorityOption>.Instance) ?? "");
         }
 
-        if (assigneeGiven)
-        {
-            var assigneeValue = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance);
-            var assignee = string.IsNullOrEmpty(assigneeValue) ? null : assigneeValue;
-
-            if (assignee != task.Assignee)
+        await store.UpdateTaskAsync(
+            id,
+            new TaskUpdate
             {
-                oldAssignee = task.Assignee ?? "";
-                newAssignee = assignee ?? "";
-                task.Assignee = assignee;
-            }
-        }
-
-        task.UpdatedAt = now;
-
-        await connection.ExecuteAsync(
-            """
-            UPDATE tasks
-            SET title = @Title,
-                description = @Description,
-                design = @Design,
-                acceptance_criteria = @AcceptanceCriteria,
-                notes = @Notes,
-                status = @Status,
-                priority = @Priority,
-                task_type = @Type,
-                assignee = @Assignee,
-                estimated_minutes = @EstimatedMinutes,
-                due_at = @DueAt,
-                defer_until = @DeferUntil,
-                updated_at = @UpdatedAt
-            WHERE id = @Id
-            """,
-            new
-            {
-                task.Title,
-                task.Description,
-                task.Design,
-                task.AcceptanceCriteria,
-                task.Notes,
-                task.Status,
-                task.Priority,
-                task.Type,
-                task.Assignee,
-                task.EstimatedMinutes,
-                task.DueAt,
-                task.DeferUntil,
-                task.UpdatedAt,
-                Id = task.Id,
-                cancellationToken
+                Actor = actor,
+                Title = title,
+                TitleGiven = titleGiven,
+                Description = parseResult.GetValue(Opt<TaskDescriptionOption>.Instance),
+                DescriptionGiven = descriptionGiven,
+                Status = statusGiven
+                    ? TaskStates.Normalize(parseResult.GetValue(Opt<TaskStatusOption>.Instance) ?? "")
+                    : null,
+                StatusGiven = statusGiven,
+                Priority = priority,
+                PriorityGiven = priorityGiven,
+                Type = typeGiven
+                    ? TaskTypes.Normalize(parseResult.GetValue(Opt<TaskTypeOption>.Instance) ?? "")
+                    : null,
+                TypeGiven = typeGiven,
+                Assignee = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance),
+                AssigneeGiven = assigneeGiven,
+                Notes = parseResult.GetValue(Opt<TaskNotesOption>.Instance),
+                NotesGiven = notesGiven,
+                Design = parseResult.GetValue(Opt<TaskDesignOption>.Instance),
+                DesignGiven = designGiven,
+                AcceptanceCriteria = parseResult.GetValue(Opt<TaskAcceptanceCriteriaOption>.Instance),
+                AcceptanceCriteriaGiven = acceptanceCriteriaGiven,
+                DueAt = due,
+                DueAtGiven = dueGiven,
+                DeferUntil = deferUntil,
+                DeferUntilGiven = deferUntilGiven,
+                EstimatedMinutes = parseResult.GetValue(Opt<TaskEstimateOption>.Instance),
+                EstimatedMinutesGiven = estimateGiven
             },
-            transaction);
-
-        if (oldStatus is not null)
-        {
-            await store.RecordEventAsync(
-                connection,
-                new TaskEvent
-                {
-                    TaskId = id,
-                    Type = TaskEventTypes.StatusChanged,
-                    Actor = actor,
-                    OldValue = oldStatus,
-                    NewValue = newStatus,
-                    CreatedAt = now
-                },
-                cancellationToken,
-                transaction);
-        }
-
-        if (oldPriority is not null)
-        {
-            await store.RecordEventAsync(
-                connection,
-                new TaskEvent
-                {
-                    TaskId = id,
-                    Type = TaskEventTypes.PriorityChanged,
-                    Actor = actor,
-                    OldValue = oldPriority,
-                    NewValue = newPriority,
-                    CreatedAt = now
-                },
-                cancellationToken,
-                transaction);
-        }
-
-        if (oldAssignee is not null)
-        {
-            await store.RecordEventAsync(
-                connection,
-                new TaskEvent
-                {
-                    TaskId = id,
-                    Type = TaskEventTypes.AssigneeChanged,
-                    Actor = actor,
-                    OldValue = oldAssignee,
-                    NewValue = newAssignee,
-                    CreatedAt = now
-                },
-                cancellationToken,
-                transaction);
-        }
-
-        if (changedFields.Count > 0)
-        {
-            await store.RecordEventAsync(
-                connection,
-                new TaskEvent
-                {
-                    TaskId = id,
-                    Type = TaskEventTypes.Updated,
-                    Actor = actor,
-                    Comment = string.Join(", ", changedFields),
-                    CreatedAt = now
-                },
-                cancellationToken,
-                transaction);
-        }
-
-        await transaction.CommitAsync(cancellationToken);
+            cancellationToken);
 
         console.OkLine($"Updated task '{id.EscapeMarkup()}'.");
 
