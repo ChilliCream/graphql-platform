@@ -557,6 +557,136 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Handle_Should_OpenCreateFormAndRouteSubsequentKeys_ToForm_When_CreateTaskRequested()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = new FakeTuiMode();
+        var shell = CreateShellWithModes(mode, store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+        Assert.Contains("Create Task", RenderToText(shell));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+
+        // assert: the 'j' that would otherwise move the active mode's cursor
+        // was absorbed by the modal create form instead.
+        Assert.Empty(mode.HandledMessages);
+    }
+
+    [Fact]
+    public void Handle_Should_PresetEpicType_When_CreateEpicRequestedThenSubmitted()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('C', ConsoleKey.C, ConsoleModifiers.Shift)));
+        Assert.Contains("Create Epic", RenderToText(shell));
+
+        // act: type a title, tab to the button row (5 fields: title/type/
+        // priority/labels/description), then activate the default Create button.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 5; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal(TaskTypes.Epic, store.CreationReceived!.Type);
+    }
+
+    [Fact]
+    public void Handle_Should_PassSelectedTaskIdAsParentId_When_CreateFormSubmittedWithSelection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 5; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a", store.CreationReceived!.ParentId);
+    }
+
+    [Fact]
+    public void Handle_Should_CreateTopLevelTaskWithNoToast_When_CreateFormSubmittedWithNoSelection()
+    {
+        // arrange: creating never requires a selection, so a null
+        // SelectedTaskId must not trigger the "No task selected." toast that
+        // gates edit, lifecycle, and the pickers.
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 5; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Null(store.CreationReceived!.ParentId);
+        Assert.DoesNotContain("No task selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ToastRefreshModeAndSelectCreatedTask_When_CreateFormSubmittedSuccessfully()
+    {
+        // arrange
+        var store = new FakeTaskStore { CreationResult = new TaskCreationResult { Id = "a2" } };
+        var mode = new FakeTuiMode();
+        var shell = CreateShellWithModes(mode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 5; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Contains("Created task 'a2'.", RenderToText(shell));
+        Assert.Contains(mode.HandledMessages, m => m is TuiMessage.RefreshRequested);
+        Assert.Equal(["a2"], mode.SelectTaskCalls);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseCreateFormWithoutCreating_When_EscapePressedWhileCreating()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        Assert.Null(store.CreationReceived);
+        Assert.DoesNotContain("Create Task", RenderToText(shell));
+    }
+
+    [Fact]
     public void Handle_Should_RouteRawKeyToSearchQueryInput_When_SearchModeHasInputFocus()
     {
         // arrange

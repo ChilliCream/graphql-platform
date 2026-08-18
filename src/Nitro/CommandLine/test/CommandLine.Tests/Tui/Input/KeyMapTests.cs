@@ -242,6 +242,38 @@ public sealed class KeyMapTests
     }
 
     [Fact]
+    public void CreateDefaultGlobal_Should_MapC_ToCreateTaskRequested()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.C, ConsoleModifiers.None, 'c'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.CreateTaskRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefaultGlobal_Should_MapShiftC_ToCreateEpicRequested()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.C, ConsoleModifiers.Shift, 'C'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.CreateEpicRequested>(message);
+    }
+
+    [Fact]
     public void CreateDefaultGlobal_Should_MapP_ToPriorityPickerRequested()
     {
         // arrange

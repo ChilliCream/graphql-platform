@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 /// <summary>
 /// An in-memory <see cref="ITaskStore"/> exercising only the surface
 /// <see cref="TuiShell"/>'s cross-mode gestures consume (task by id, labels,
-/// close, reopen, delete, update). Every other member throws
+/// close, reopen, delete, update, create). Every other member throws
 /// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
@@ -25,6 +25,10 @@ internal sealed class FakeTaskStore : ITaskStore
     public TaskUpdate? UpdateReceived { get; private set; }
 
     public string? Actor { get; private set; }
+
+    public TaskCreation? CreationReceived { get; private set; }
+
+    public TaskCreationResult CreationResult { get; set; } = new() { Id = "a1" };
 
     public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(TaskFilter filter, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<TaskItem>>([.. Tasks.Values]);
@@ -162,7 +166,11 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<TaskCreationResult> CreateTaskAsync(TaskCreation creation, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        CreationReceived = creation;
+        Actor = creation.Actor;
+        return Task.FromResult(CreationResult);
+    }
 
     public Task<TaskItem> DeferTaskAsync(string id, DateTimeOffset until, string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();

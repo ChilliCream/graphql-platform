@@ -27,7 +27,11 @@ internal sealed class FakeTuiMode : ITuiMode
 
     public string? SelectedTaskId { get; set; }
 
+    public List<string> SelectTaskCalls { get; } = [];
+
     public void OnEnter() => EnterCalled = true;
+
+    public void SelectTask(string taskId) => SelectTaskCalls.Add(taskId);
 
     public void OnResize(int width, int height) => ResizeCalls.Add((width, height));
 
