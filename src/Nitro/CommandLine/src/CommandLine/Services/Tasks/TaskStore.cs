@@ -167,15 +167,12 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
     {
-        // The intercepted read path cannot convert the TEXT-stored timestamp
-        // columns to DateTimeOffset, so this materializes an all-primitives
-        // row and parses the timestamps itself.
+        // Materializes an all-primitives row and parses the timestamps
+        // itself, since the DateTimeOffset columns are stored as TEXT.
         var row = await connection.QueryFirstOrDefaultAsync<TaskRow>(
-            new CommandDefinition(
-                $"SELECT {TaskItem.Columns} FROM tasks WHERE id = @id",
-                new { id },
-                transaction,
-                cancellationToken: cancellationToken));
+            $"SELECT {TaskItem.Columns} FROM tasks WHERE id = @id",
+            new { id, cancellationToken },
+            transaction);
 
         return row?.ToTaskItem();
     }
@@ -196,21 +193,25 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return task;
     }
 
-    private async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
+    private async Task<(
+        IReadOnlyDictionary<string, IReadOnlyList<string>> Blocked,
+        IReadOnlyDictionary<string, TaskGraphNode> Tasks)> ComputeBlockedAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken)
     {
+        // Both queries below run against the whole table and take no filter
+        // parameters, so there is nothing for @-placeholder analysis to key
+        // on; cancellation is checked up front instead of plumbed through a
+        // parameter object.
+        cancellationToken.ThrowIfCancellationRequested();
+
         var tasks = (await connection.QueryAsync<TaskGraphNode>(
-            new CommandDefinition(
-                "SELECT id AS Id, status AS Status, task_type AS Type FROM tasks",
-                cancellationToken: cancellationToken)))
+                "SELECT id AS Id, status AS Status, task_type AS Type FROM tasks"))
             .ToDictionary(t => t.Id);
 
         var dependencies = (await connection.QueryAsync<TaskGraphEdge>(
-            new CommandDefinition(
                 "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-                + "FROM dependencies",
-                cancellationToken: cancellationToken)))
+                + "FROM dependencies"))
             .ToList();
 
         var blocked = new Dictionary<string, List<string>>();
@@ -288,10 +289,12 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             }
         }
 
-        return blocked.ToDictionary(
+        var result = blocked.ToDictionary(
             pair => pair.Key,
             IReadOnlyList<string> (pair) =>
                 [.. pair.Value.Order(StringComparer.Ordinal).Distinct()]);
+
+        return (result, tasks);
     }
 
     // -------------------------------------------------------------------
@@ -313,7 +316,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         if (!filter.ExcludeBlocked && filter.Limit is { } sqlLimit)
         {
-            parameters.Add("limit", sqlLimit);
+            parameters["limit"] = sqlLimit;
             sql += " LIMIT @limit";
         }
 
@@ -321,15 +324,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         if (!filter.ExcludeBlocked)
         {
-            return (await connection.QueryAsync<TaskItem>(
-                new CommandDefinition(sql, parameters, cancellationToken: cancellationToken)))
-                .ToList();
+            return await ExecuteTaskQueryAsync(connection, sql, parameters, cancellationToken);
         }
 
-        var blocked = await ComputeBlockedAsync(connection, cancellationToken);
+        var (blocked, _) = await ComputeBlockedAsync(connection, cancellationToken);
 
-        IEnumerable<TaskItem> tasks = await connection.QueryAsync<TaskItem>(
-            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+        IEnumerable<TaskItem> tasks =
+            await ExecuteTaskQueryAsync(connection, sql, parameters, cancellationToken);
 
         tasks = tasks.Where(t => !blocked.ContainsKey(t.Id));
 
@@ -339,6 +340,38 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         return tasks.ToList();
+    }
+
+    // The WHERE/ORDER/LIMIT clauses here are assembled at runtime from the
+    // filter, so the SQL text is never a call-site literal; Dapper.AOT can
+    // only intercept calls whose SQL it can read at compile time. Reading
+    // through plain ADO.NET instead of Dapper's reflection fallback keeps
+    // this path free of runtime code generation.
+    private static async Task<List<TaskItem>> ExecuteTaskQueryAsync(
+        SqliteConnection connection,
+        string sql,
+        IReadOnlyDictionary<string, object?> parameters,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        foreach (var (name, value) in parameters)
+        {
+            command.Parameters.AddWithValue("@" + name, value ?? DBNull.Value);
+        }
+
+        var results = new List<TaskItem>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var columns = TaskRowColumns.From(reader);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            results.Add(columns.Read(reader).ToTaskItem());
+        }
+
+        return results;
     }
 
     public async Task<TaskItem?> GetTaskAsync(
@@ -376,21 +409,18 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var connection = await ConnectAsync(cancellationToken);
 
         // A row class, not the TaskLabelCount record, receives the COUNT(*)
-        // column: Dapper's reflection path requires an exact constructor
-        // match for record types, and SQLite's COUNT(*) always reads back as
-        // Int64, not Int32. A settable property tolerates the narrowing.
+        // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
+        // settable property tolerates the narrowing.
         return (await connection.QueryAsync<LabelCountRow>(
-                new CommandDefinition(
-                    """
-                    SELECT l.label AS Label, COUNT(*) AS Count
-                    FROM labels l
-                    JOIN tasks t ON t.id = l.task_id
-                    WHERE t.status != @tombstoneStatus
-                    GROUP BY l.label
-                    ORDER BY l.label
-                    """,
-                    new { tombstoneStatus = TaskStates.Tombstone },
-                    cancellationToken: cancellationToken)))
+                """
+                SELECT l.label AS Label, COUNT(*) AS Count
+                FROM labels l
+                JOIN tasks t ON t.id = l.task_id
+                WHERE t.status != @tombstoneStatus
+                GROUP BY l.label
+                ORDER BY l.label
+                """,
+                new { tombstoneStatus = TaskStates.Tombstone, cancellationToken }))
             .Select(r => new TaskLabelCount(r.Label, r.Count))
             .ToList();
     }
@@ -453,14 +483,15 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // Uses the reflection (CommandDefinition) path so the created_at
-        // column, stored as TEXT, converts to DateTimeOffset; the
-        // intercepted classic shape cannot perform that conversion.
-        return (await connection.QueryAsync<TaskDependency>(
-            new CommandDefinition(
-                $"SELECT {TaskDependency.Columns} FROM dependencies "
-                + "ORDER BY task_id, depends_on_id",
-                cancellationToken: cancellationToken))).ToList();
+        // Materializes an all-primitives row and parses the timestamp
+        // itself, since the created_at column is stored as TEXT. The query
+        // takes no filter parameters, so cancellation here is best-effort
+        // rather than plumbed through a parameter object.
+        return (await connection.QueryAsync<TaskDependencyRow>(
+                $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
+                + "ORDER BY task_id, depends_on_id"))
+            .Select(r => r.ToTaskDependency())
+            .ToList();
     }
 
     public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
@@ -468,7 +499,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return await ComputeBlockedAsync(connection, cancellationToken);
+        var (blocked, _) = await ComputeBlockedAsync(connection, cancellationToken);
+
+        return blocked;
     }
 
     public async Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(
@@ -483,28 +516,27 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         SqliteConnection connection,
         CancellationToken cancellationToken)
         => (await connection.QueryAsync<TaskEpicStatus>(
-            new CommandDefinition(
-                """
-                SELECT e.id AS Id, e.title AS Title, e.status AS Status,
-                       COUNT(c.id) AS Total,
-                       SUM(CASE WHEN c.status = @closed THEN 1 ELSE 0 END) AS Closed
-                FROM tasks e
-                LEFT JOIN dependencies d
-                    ON d.depends_on_id = e.id AND d.dependency_type = @parentChild
-                LEFT JOIN tasks c
-                    ON c.id = d.task_id AND c.status != @tombstone
-                WHERE e.task_type = @epic AND e.status != @tombstone
-                GROUP BY e.id, e.title, e.status
-                ORDER BY e.id
-                """,
-                new
-                {
-                    closed = TaskStates.Closed,
-                    parentChild = TaskDependencyTypes.ParentChild,
-                    tombstone = TaskStates.Tombstone,
-                    epic = TaskTypes.Epic
-                },
-                cancellationToken: cancellationToken))).ToList();
+            """
+            SELECT e.id AS Id, e.title AS Title, e.status AS Status,
+                   COUNT(c.id) AS Total,
+                   SUM(CASE WHEN c.status = @closed THEN 1 ELSE 0 END) AS Closed
+            FROM tasks e
+            LEFT JOIN dependencies d
+                ON d.depends_on_id = e.id AND d.dependency_type = @parentChild
+            LEFT JOIN tasks c
+                ON c.id = d.task_id AND c.status != @tombstone
+            WHERE e.task_type = @epic AND e.status != @tombstone
+            GROUP BY e.id, e.title, e.status
+            ORDER BY e.id
+            """,
+            new
+            {
+                closed = TaskStates.Closed,
+                parentChild = TaskDependencyTypes.ParentChild,
+                tombstone = TaskStates.Tombstone,
+                epic = TaskTypes.Epic,
+                cancellationToken
+            })).ToList();
 
     public async Task<int> CountTasksAsync(
         CancellationToken cancellationToken)
@@ -523,62 +555,50 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var connection = await ConnectAsync(cancellationToken);
 
         // A row class, not the TaskCount record, receives the COUNT(*)
-        // column in every branch: Dapper's reflection path requires an exact
-        // constructor match for record types, and SQLite's COUNT(*) always
-        // reads back as Int64, not Int32. A settable property tolerates the
-        // narrowing.
+        // column in every branch: SQLite's COUNT(*) always reads back as
+        // Int64, not Int32. A settable property tolerates the narrowing.
         switch (dimension)
         {
             case TaskCountDimension.Status:
                 return (await connection.QueryAsync<CountRow>(
-                        new CommandDefinition(
-                            "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-                            + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
-                            new { tombstone = TaskStates.Tombstone },
-                            cancellationToken: cancellationToken)))
+                        "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+                        + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
+                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
                     .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             case TaskCountDimension.Type:
                 return (await connection.QueryAsync<CountRow>(
-                        new CommandDefinition(
-                            "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
-                            + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
-                            new { tombstone = TaskStates.Tombstone },
-                            cancellationToken: cancellationToken)))
+                        "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
+                        + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
+                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
                     .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             case TaskCountDimension.Priority:
                 return (await connection.QueryAsync<PriorityCountRow>(
-                        new CommandDefinition(
-                            "SELECT priority AS Priority, COUNT(*) AS Count FROM tasks "
-                            + "WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC",
-                            new { tombstone = TaskStates.Tombstone },
-                            cancellationToken: cancellationToken)))
+                        "SELECT priority AS Priority, COUNT(*) AS Count FROM tasks "
+                        + "WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC",
+                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
                     .Select(r => new TaskCount(TaskPriorities.Format(r.Priority), r.Count))
                     .ToList();
 
             case TaskCountDimension.Assignee:
                 return (await connection.QueryAsync<CountRow>(
-                        new CommandDefinition(
-                            "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
-                            + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
-                            + "GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned') "
-                            + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
-                            new { tombstone = TaskStates.Tombstone },
-                            cancellationToken: cancellationToken)))
+                        "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
+                        + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
+                        + "GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned') "
+                        + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
+                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
                     .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
             case TaskCountDimension.Label:
                 return (await connection.QueryAsync<CountRow>(
-                        new CommandDefinition(
-                            "SELECT label AS Value, COUNT(*) AS Count FROM labels "
-                            + "INNER JOIN tasks ON tasks.id = labels.task_id "
-                            + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
-                            new { tombstone = TaskStates.Tombstone },
-                            cancellationToken: cancellationToken)))
+                        "SELECT label AS Value, COUNT(*) AS Count FROM labels "
+                        + "INNER JOIN tasks ON tasks.id = labels.task_id "
+                        + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
+                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
                     .Select(r => new TaskCount(r.Value, r.Count))
                     .ToList();
 
@@ -594,20 +614,17 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var connection = await ConnectAsync(cancellationToken);
 
         // A row class, not the TaskCount record, receives the COUNT(*)
-        // column: Dapper's reflection path requires an exact constructor
-        // match for record types, and SQLite's COUNT(*) always reads back as
-        // Int64, not Int32. A settable property tolerates the narrowing.
+        // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
+        // settable property tolerates the narrowing.
         var statusCounts = (await connection.QueryAsync<CountRow>(
-                new CommandDefinition(
-                    "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-                    + "WHERE status != @tombstone GROUP BY status",
-                    new { tombstone = TaskStates.Tombstone },
-                    cancellationToken: cancellationToken)))
+                "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+                + "WHERE status != @tombstone GROUP BY status",
+                new { tombstone = TaskStates.Tombstone, cancellationToken }))
             .Select(r => new TaskCount(r.Value, r.Count))
             .ToList();
 
         var now = timeProvider.GetUtcNow();
-        var blocked = await ComputeBlockedAsync(connection, cancellationToken);
+        var (blocked, tasksById) = await ComputeBlockedAsync(connection, cancellationToken);
 
         var readyIds = await connection.QueryAsync<string>(
             "SELECT id FROM tasks WHERE status = @status "
@@ -616,26 +633,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         var readyCount = readyIds.Count(id => !blocked.ContainsKey(id));
 
+        // Reuses the full task set ComputeBlockedAsync already loaded instead
+        // of a second "id IN (...)" query, whose parameter count varies with
+        // the blocked set and so is never a fixed, interceptable shape.
         var blockedTaskStatuses = new Dictionary<string, string>();
 
-        if (blocked.Count > 0)
+        foreach (var id in blocked.Keys)
         {
-            // The IN clause needs the array-expansion that only the
-            // reflection (CommandDefinition) path performs; the intercepted
-            // classic shape sends "@ids" verbatim and SQLite rejects it.
-            var rows = await connection.QueryAsync<TaskGraphNode>(
-                new CommandDefinition(
-                    "SELECT id AS Id, status AS Status, task_type AS Type "
-                    + "FROM tasks WHERE id IN @ids",
-                    new { ids = blocked.Keys.ToArray() },
-                    cancellationToken: cancellationToken));
-
-            foreach (var row in rows)
+            if (tasksById.TryGetValue(id, out var node) && !TaskStates.IsTerminal(node.Status))
             {
-                if (!TaskStates.IsTerminal(row.Status))
-                {
-                    blockedTaskStatuses[row.Id] = row.Status;
-                }
+                blockedTaskStatuses[id] = node.Status;
             }
         }
 
@@ -1821,39 +1828,52 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return null;
     }
 
-    private static (string WhereClause, DynamicParameters Parameters) BuildTaskFilterClause(
+    // Builds a plain ADO.NET-ready SQL fragment and parameter map. The
+    // "statuses" filter expands its own IN-list placeholders (rather than
+    // relying on Dapper's array-parameter rewriting) because the resulting
+    // query executes through plain ADO.NET, not Dapper: see the comment on
+    // ExecuteTaskQueryAsync.
+    private static (string WhereClause, Dictionary<string, object?> Parameters) BuildTaskFilterClause(
         TaskFilter filter)
     {
         var conditions = new List<string>();
-        var parameters = new DynamicParameters();
+        var parameters = new Dictionary<string, object?>();
 
         if (filter.Statuses is { Length: > 0 })
         {
-            parameters.Add("statuses", filter.Statuses.Select(TaskStates.Normalize).ToArray());
-            conditions.Add("status IN @statuses");
+            var placeholders = new string[filter.Statuses.Length];
+
+            for (var i = 0; i < filter.Statuses.Length; i++)
+            {
+                var parameterName = $"status{i}";
+                parameters[parameterName] = TaskStates.Normalize(filter.Statuses[i]);
+                placeholders[i] = $"@{parameterName}";
+            }
+
+            conditions.Add($"status IN ({string.Join(", ", placeholders)})");
         }
         else if (!filter.IncludeAll)
         {
-            parameters.Add("closedStatus", TaskStates.Closed);
-            parameters.Add("tombstoneStatus", TaskStates.Tombstone);
+            parameters["closedStatus"] = TaskStates.Closed;
+            parameters["tombstoneStatus"] = TaskStates.Tombstone;
             conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
         }
 
         if (filter.ExcludeTombstones)
         {
-            parameters.Add("tombstone", TaskStates.Tombstone);
+            parameters["tombstone"] = TaskStates.Tombstone;
             conditions.Add("status != @tombstone");
         }
 
         if (!string.IsNullOrEmpty(filter.Type))
         {
-            parameters.Add("type", TaskTypes.Normalize(filter.Type));
+            parameters["type"] = TaskTypes.Normalize(filter.Type);
             conditions.Add("task_type = @type");
         }
 
         if (filter.Priority is { } priority)
         {
-            parameters.Add("priority", priority);
+            parameters["priority"] = priority;
             conditions.Add("priority = @priority");
         }
 
@@ -1863,7 +1883,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
         else if (!string.IsNullOrEmpty(filter.Assignee))
         {
-            parameters.Add("assignee", filter.Assignee);
+            parameters["assignee"] = filter.Assignee;
             conditions.Add("assignee = @assignee");
         }
 
@@ -1872,7 +1892,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             for (var i = 0; i < filter.Labels.Length; i++)
             {
                 var parameterName = $"label{i}";
-                parameters.Add(parameterName, filter.Labels[i].Trim().ToLowerInvariant());
+                parameters[parameterName] = filter.Labels[i].Trim().ToLowerInvariant();
                 conditions.Add(
                     "EXISTS (SELECT 1 FROM labels WHERE task_id = tasks.id "
                     + $"AND label = @{parameterName})");
@@ -1881,7 +1901,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         if (!string.IsNullOrEmpty(filter.Text))
         {
-            parameters.Add("text", EscapeLikeText(filter.Text));
+            parameters["text"] = EscapeLikeText(filter.Text);
             conditions.Add(
                 "(LOWER(title) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
                 + "LOWER(description) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
@@ -1892,13 +1912,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         if (filter.UpdatedBefore is { } updatedBefore)
         {
-            parameters.Add("updatedBefore", updatedBefore);
+            parameters["updatedBefore"] = updatedBefore;
             conditions.Add("updated_at <= @updatedBefore");
         }
 
         if (filter.DeferredVisibleAt is { } visibleAt)
         {
-            parameters.Add("visibleAt", visibleAt);
+            parameters["visibleAt"] = visibleAt;
             conditions.Add("(defer_until IS NULL OR defer_until <= @visibleAt)");
         }
 
@@ -1975,7 +1995,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return connection;
     }
 
-    private sealed class TaskRow
+    // These nested row types are internal, not private: Dapper.AOT's
+    // generated interceptors live outside TaskStore and cannot reference a
+    // private nested type, so a private row type would silently fall back to
+    // Dapper's reflection-emit deserializer.
+    internal sealed class TaskRow
     {
         public required string Id { get; init; }
         public required string Title { get; init; }
@@ -2028,14 +2052,74 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 : DateTimeOffset.Parse(value, CultureInfo.InvariantCulture);
     }
 
-    private sealed class TaskGraphNode
+    /// <summary>
+    /// Column ordinals for <see cref="TaskRow"/>, captured once per reader
+    /// and reused for every row so <see cref="ExecuteTaskQueryAsync"/> reads
+    /// plain ADO.NET fields without any per-row reflection.
+    /// </summary>
+    private readonly struct TaskRowColumns(
+        int id, int title, int description, int design, int acceptanceCriteria, int notes,
+        int status, int priority, int type, int assignee, int estimatedMinutes, int dueAt,
+        int deferUntil, int createdAt, int createdBy, int updatedAt, int closedAt,
+        int closeReason, int deletedAt, int deleteReason)
+    {
+        public static TaskRowColumns From(DbDataReader reader) => new(
+            reader.GetOrdinal("Id"),
+            reader.GetOrdinal("Title"),
+            reader.GetOrdinal("Description"),
+            reader.GetOrdinal("Design"),
+            reader.GetOrdinal("AcceptanceCriteria"),
+            reader.GetOrdinal("Notes"),
+            reader.GetOrdinal("Status"),
+            reader.GetOrdinal("Priority"),
+            reader.GetOrdinal("Type"),
+            reader.GetOrdinal("Assignee"),
+            reader.GetOrdinal("EstimatedMinutes"),
+            reader.GetOrdinal("DueAt"),
+            reader.GetOrdinal("DeferUntil"),
+            reader.GetOrdinal("CreatedAt"),
+            reader.GetOrdinal("CreatedBy"),
+            reader.GetOrdinal("UpdatedAt"),
+            reader.GetOrdinal("ClosedAt"),
+            reader.GetOrdinal("CloseReason"),
+            reader.GetOrdinal("DeletedAt"),
+            reader.GetOrdinal("DeleteReason"));
+
+        public TaskRow Read(DbDataReader reader) => new()
+        {
+            Id = reader.GetString(id),
+            Title = reader.GetString(title),
+            Description = reader.GetString(description),
+            Design = reader.GetString(design),
+            AcceptanceCriteria = reader.GetString(acceptanceCriteria),
+            Notes = reader.GetString(notes),
+            Status = reader.GetString(status),
+            Priority = reader.GetInt32(priority),
+            Type = reader.GetString(type),
+            Assignee = reader.IsDBNull(assignee) ? null : reader.GetString(assignee),
+            EstimatedMinutes = reader.IsDBNull(estimatedMinutes)
+                ? null
+                : reader.GetInt32(estimatedMinutes),
+            DueAt = reader.IsDBNull(dueAt) ? null : reader.GetString(dueAt),
+            DeferUntil = reader.IsDBNull(deferUntil) ? null : reader.GetString(deferUntil),
+            CreatedAt = reader.GetString(createdAt),
+            CreatedBy = reader.GetString(createdBy),
+            UpdatedAt = reader.GetString(updatedAt),
+            ClosedAt = reader.IsDBNull(closedAt) ? null : reader.GetString(closedAt),
+            CloseReason = reader.GetString(closeReason),
+            DeletedAt = reader.IsDBNull(deletedAt) ? null : reader.GetString(deletedAt),
+            DeleteReason = reader.GetString(deleteReason)
+        };
+    }
+
+    internal sealed class TaskGraphNode
     {
         public required string Id { get; init; }
         public required string Status { get; init; }
         public required string Type { get; init; }
     }
 
-    private sealed class TaskGraphEdge
+    internal sealed class TaskGraphEdge
     {
         public required string TaskId { get; init; }
         public required string DependsOnId { get; init; }
@@ -2046,7 +2130,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     /// A group-by-priority row, kept numeric so it can be formatted as
     /// P0..P4.
     /// </summary>
-    private sealed class PriorityCountRow
+    internal sealed class PriorityCountRow
     {
         public required int Priority { get; init; }
         public required int Count { get; init; }
@@ -2056,7 +2140,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     /// One group-by-value row: the grouped value and how many tasks fall
     /// into it.
     /// </summary>
-    private sealed class CountRow
+    internal sealed class CountRow
     {
         public required string Value { get; init; }
         public required int Count { get; init; }
@@ -2065,7 +2149,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     /// <summary>
     /// A label's name and how many non-tombstone tasks carry it.
     /// </summary>
-    private sealed class LabelCountRow
+    internal sealed class LabelCountRow
     {
         public required string Label { get; init; }
         public required int Count { get; init; }
@@ -2075,7 +2159,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     /// A dependency edge's task pair and type, for the blocking-cycle walk in
     /// <see cref="AddDependencyAsync"/>.
     /// </summary>
-    private sealed class DependencyEdgeRow
+    internal sealed class DependencyEdgeRow
     {
         public required string TaskId { get; init; }
         public required string DependsOnId { get; init; }

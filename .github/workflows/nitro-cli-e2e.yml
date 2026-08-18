@@ -28,8 +28,6 @@ concurrency:
 jobs:
   aot-publish-smoke:
     runs-on: ubuntu-latest
-    # Informational until the Dapper IL3053/IL2104 AOT/trim errors are fixed, see perles-net-4gb.9.
-    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
