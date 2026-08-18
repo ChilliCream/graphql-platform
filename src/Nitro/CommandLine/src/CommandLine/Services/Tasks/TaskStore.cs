@@ -43,7 +43,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return connection;
     }
 
-    public async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
+    private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = FindWorkspaceDirectory()
             ?? throw new ExitException(
@@ -69,7 +69,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     public string? FindWorkspaceDirectory()
         => TaskWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
-    public async Task<string?> GetConfigAsync(
+    private async Task<string?> GetConfigAsync(
         SqliteConnection connection,
         string key,
         CancellationToken cancellationToken,
@@ -79,7 +79,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             new { key, cancellationToken },
             transaction);
 
-    public async Task SetConfigAsync(
+    private async Task SetConfigAsync(
         SqliteConnection connection,
         string key,
         string value,
@@ -91,14 +91,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             new { key, value, cancellationToken },
             transaction);
 
-    public async Task<string> GetPrefixAsync(
+    private async Task<string> GetPrefixAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
         => await GetConfigAsync(connection, PrefixConfigKey, cancellationToken, transaction)
             ?? TaskWorkspace.FallbackPrefix;
 
-    public async Task<string> CreateTaskIdAsync(
+    private async Task<string> CreateTaskIdAsync(
         SqliteConnection connection,
         string? parentId,
         string seed,
@@ -140,7 +140,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         throw new ExitException("Could not allocate a unique task ID.");
     }
 
-    public async Task RecordEventAsync(
+    private async Task RecordEventAsync(
         SqliteConnection connection,
         TaskEvent taskEvent,
         CancellationToken cancellationToken,
@@ -161,7 +161,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             },
             transaction);
 
-    public async Task<TaskItem?> GetTaskAsync(
+    private async Task<TaskItem?> GetTaskAsync(
         SqliteConnection connection,
         string id,
         CancellationToken cancellationToken,
@@ -171,14 +171,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // columns to DateTimeOffset, so this materializes an all-primitives
         // row and parses the timestamps itself.
         var row = await connection.QueryFirstOrDefaultAsync<TaskRow>(
-            $"SELECT {TaskItem.Columns} FROM tasks WHERE id = @id",
-            new { id },
-            transaction);
+            new CommandDefinition(
+                $"SELECT {TaskItem.Columns} FROM tasks WHERE id = @id",
+                new { id },
+                transaction,
+                cancellationToken: cancellationToken));
 
         return row?.ToTaskItem();
     }
 
-    public async Task<TaskItem> GetRequiredTaskAsync(
+    private async Task<TaskItem> GetRequiredTaskAsync(
         SqliteConnection connection,
         string id,
         CancellationToken cancellationToken,
@@ -194,17 +196,21 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return task;
     }
 
-    public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
+    private async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken)
     {
         var tasks = (await connection.QueryAsync<TaskGraphNode>(
-            "SELECT id AS Id, status AS Status, task_type AS Type FROM tasks"))
+            new CommandDefinition(
+                "SELECT id AS Id, status AS Status, task_type AS Type FROM tasks",
+                cancellationToken: cancellationToken)))
             .ToDictionary(t => t.Id);
 
         var dependencies = (await connection.QueryAsync<TaskGraphEdge>(
-            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-            + "FROM dependencies"))
+            new CommandDefinition(
+                "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
+                + "FROM dependencies",
+                cancellationToken: cancellationToken)))
             .ToList();
 
         var blocked = new Dictionary<string, List<string>>();
