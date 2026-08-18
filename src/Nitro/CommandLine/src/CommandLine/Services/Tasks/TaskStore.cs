@@ -10,12 +10,22 @@ using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
-internal sealed class TaskStore(IFileSystem fileSystem) : ITaskStore
+internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvider) : ITaskStore
 {
     private const string PrefixConfigKey = "prefix";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
     private const int MinIdLength = 3;
     private const int MaxIdAttempts = 10;
+
+    private static readonly string[] StatusOrder =
+    [
+        TaskStates.Open,
+        TaskStates.InProgress,
+        TaskStates.Blocked,
+        TaskStates.Deferred,
+        TaskStates.Closed,
+        TaskStates.Tombstone
+    ];
 
     static TaskStore() => SQLitePCL.Batteries_V2.Init();
 
@@ -280,79 +290,356 @@ internal sealed class TaskStore(IFileSystem fileSystem) : ITaskStore
     }
 
     // -------------------------------------------------------------------
-    // New surface: backend-agnostic, no ADO.NET or SQLite types. Every
-    // member below is a temporary stub; bd-oyf.2 and bd-oyf.3 replace them
-    // with real implementations. No command calls this surface yet.
+    // New surface: backend-agnostic, no ADO.NET or SQLite types. The read
+    // members below (bd-oyf.2) are real implementations; the write members
+    // further down (bd-oyf.3) are still stubs. No command calls this
+    // surface yet.
     // -------------------------------------------------------------------
 
-    public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
+    public async Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
         TaskFilter filter,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var (whereClause, parameters) = BuildTaskFilterClause(filter);
+        var orderBy = OrderByClause(filter.Ordering);
 
-    public Task<TaskItem?> GetTaskAsync(
+        var sql = $"SELECT {TaskItem.Columns} FROM tasks{whereClause}{orderBy}";
+
+        if (!filter.ExcludeBlocked && filter.Limit is { } sqlLimit)
+        {
+            parameters.Add("limit", sqlLimit);
+            sql += " LIMIT @limit";
+        }
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        if (!filter.ExcludeBlocked)
+        {
+            return (await connection.QueryAsync<TaskItem>(
+                new CommandDefinition(sql, parameters, cancellationToken: cancellationToken)))
+                .ToList();
+        }
+
+        var blocked = await ComputeBlockedAsync(connection, cancellationToken);
+
+        IEnumerable<TaskItem> tasks = await connection.QueryAsync<TaskItem>(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+
+        tasks = tasks.Where(t => !blocked.ContainsKey(t.Id));
+
+        if (filter.Limit is { } limit)
+        {
+            tasks = tasks.Take(limit);
+        }
+
+        return tasks.ToList();
+    }
+
+    public async Task<TaskItem?> GetTaskAsync(
         string id,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<TaskItem> GetRequiredTaskAsync(
+        return await GetTaskAsync(connection, id, cancellationToken);
+    }
+
+    public async Task<TaskItem> GetRequiredTaskAsync(
         string id,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<string>> GetLabelsAsync(
+        return await GetRequiredTaskAsync(connection, id, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<string>> GetLabelsAsync(
         string taskId,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(
+        return (await connection.QueryAsync<string>(
+            "SELECT label FROM labels WHERE task_id = @taskId ORDER BY label",
+            new { taskId, cancellationToken })).ToList();
+    }
+
+    public async Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(
+        return (await connection.QueryAsync<TaskLabelCount>(
+            new CommandDefinition(
+                """
+                SELECT l.label AS Label, COUNT(*) AS Count
+                FROM labels l
+                JOIN tasks t ON t.id = l.task_id
+                WHERE t.status != @tombstoneStatus
+                GROUP BY l.label
+                ORDER BY l.label
+                """,
+                new { tombstoneStatus = TaskStates.Tombstone },
+                cancellationToken: cancellationToken))).ToList();
+    }
+
+    public async Task<IReadOnlyList<TaskComment>> GetCommentsAsync(
         string taskId,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(
+        // The intercepted read path cannot convert the TEXT-stored timestamp
+        // column to DateTimeOffset, so this materializes an all-primitives
+        // row and parses the timestamp itself.
+        return (await connection.QueryAsync<TaskCommentRow>(
+                $"SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId "
+                + "ORDER BY created_at, id",
+                new { taskId, cancellationToken }))
+            .Select(r => r.ToTaskComment())
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(
         string taskId,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(
+        return (await connection.QueryAsync<TaskDependencyDetail>(
+            """
+            SELECT d.dependency_type AS Type, d.depends_on_id AS DependsOnId,
+                   t.status AS Status, t.title AS Title
+            FROM dependencies d
+            LEFT JOIN tasks t ON t.id = d.depends_on_id
+            WHERE d.task_id = @taskId
+            ORDER BY d.created_at, d.depends_on_id
+            """,
+            new { taskId, cancellationToken })).ToList();
+    }
+
+    public async Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(
         string taskId,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(
+        return (await connection.QueryAsync<TaskDependentDetail>(
+            """
+            SELECT d.task_id AS TaskId, d.dependency_type AS Type,
+                   t.status AS Status, t.title AS Title
+            FROM dependencies d
+            LEFT JOIN tasks t ON t.id = d.task_id
+            WHERE d.depends_on_id = @taskId
+            ORDER BY d.created_at, d.task_id
+            """,
+            new { taskId, cancellationToken })).ToList();
+    }
+
+    public async Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
+        // Uses the reflection (CommandDefinition) path so the created_at
+        // column, stored as TEXT, converts to DateTimeOffset; the
+        // intercepted classic shape cannot perform that conversion.
+        return (await connection.QueryAsync<TaskDependency>(
+            new CommandDefinition(
+                $"SELECT {TaskDependency.Columns} FROM dependencies "
+                + "ORDER BY task_id, depends_on_id",
+                cancellationToken: cancellationToken))).ToList();
+    }
+
+    public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(
+        return await ComputeBlockedAsync(connection, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<int> CountTasksAsync(
+        return (await connection.QueryAsync<TaskEpicStatus>(
+            new CommandDefinition(
+                """
+                SELECT e.id AS Id, e.title AS Title, e.status AS Status,
+                       COUNT(c.id) AS Total,
+                       SUM(CASE WHEN c.status = @closed THEN 1 ELSE 0 END) AS Closed
+                FROM tasks e
+                LEFT JOIN dependencies d
+                    ON d.depends_on_id = e.id AND d.dependency_type = @parentChild
+                LEFT JOIN tasks c
+                    ON c.id = d.task_id AND c.status != @tombstone
+                WHERE e.task_type = @epic AND e.status != @tombstone
+                GROUP BY e.id, e.title, e.status
+                ORDER BY e.id
+                """,
+                new
+                {
+                    closed = TaskStates.Closed,
+                    parentChild = TaskDependencyTypes.ParentChild,
+                    tombstone = TaskStates.Tombstone,
+                    epic = TaskTypes.Epic
+                },
+                cancellationToken: cancellationToken))).ToList();
+    }
+
+    public async Task<int> CountTasksAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<IReadOnlyList<TaskCount>> CountTasksByAsync(
+        return await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM tasks WHERE status != @tombstone",
+            new { tombstone = TaskStates.Tombstone, cancellationToken });
+    }
+
+    public async Task<IReadOnlyList<TaskCount>> CountTasksByAsync(
         TaskCountDimension dimension,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<TaskStats> GetStatsAsync(
+        switch (dimension)
+        {
+            case TaskCountDimension.Status:
+                return (await connection.QueryAsync<TaskCount>(
+                        new CommandDefinition(
+                            "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+                            + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
+                            new { tombstone = TaskStates.Tombstone },
+                            cancellationToken: cancellationToken)))
+                    .ToList();
+
+            case TaskCountDimension.Type:
+                return (await connection.QueryAsync<TaskCount>(
+                        new CommandDefinition(
+                            "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
+                            + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
+                            new { tombstone = TaskStates.Tombstone },
+                            cancellationToken: cancellationToken)))
+                    .ToList();
+
+            case TaskCountDimension.Priority:
+                return (await connection.QueryAsync<PriorityCountRow>(
+                        new CommandDefinition(
+                            "SELECT priority AS Priority, COUNT(*) AS Count FROM tasks "
+                            + "WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC",
+                            new { tombstone = TaskStates.Tombstone },
+                            cancellationToken: cancellationToken)))
+                    .Select(r => new TaskCount(TaskPriorities.Format(r.Priority), r.Count))
+                    .ToList();
+
+            case TaskCountDimension.Assignee:
+                return (await connection.QueryAsync<TaskCount>(
+                        new CommandDefinition(
+                            "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
+                            + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
+                            + "GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned') "
+                            + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
+                            new { tombstone = TaskStates.Tombstone },
+                            cancellationToken: cancellationToken)))
+                    .ToList();
+
+            case TaskCountDimension.Label:
+                return (await connection.QueryAsync<TaskCount>(
+                        new CommandDefinition(
+                            "SELECT label AS Value, COUNT(*) AS Count FROM labels "
+                            + "INNER JOIN tasks ON tasks.id = labels.task_id "
+                            + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
+                            new { tombstone = TaskStates.Tombstone },
+                            cancellationToken: cancellationToken)))
+                    .ToList();
+
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(dimension), dimension, "Unknown task count dimension.");
+        }
+    }
+
+    public async Task<TaskStats> GetStatsAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<string?> GetConfigAsync(
+        var statusCounts = (await connection.QueryAsync<TaskCount>(
+            new CommandDefinition(
+                "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+                + "WHERE status != @tombstone GROUP BY status",
+                new { tombstone = TaskStates.Tombstone },
+                cancellationToken: cancellationToken))).ToList();
+
+        var now = timeProvider.GetUtcNow();
+        var blocked = await ComputeBlockedAsync(connection, cancellationToken);
+
+        var readyIds = await connection.QueryAsync<string>(
+            "SELECT id FROM tasks WHERE status = @status "
+            + "AND (defer_until IS NULL OR defer_until <= @now)",
+            new { status = TaskStates.Open, now, cancellationToken });
+
+        var readyCount = readyIds.Count(id => !blocked.ContainsKey(id));
+
+        var blockedTaskStatuses = new Dictionary<string, string>();
+
+        if (blocked.Count > 0)
+        {
+            // The IN clause needs the array-expansion that only the
+            // reflection (CommandDefinition) path performs; the intercepted
+            // classic shape sends "@ids" verbatim and SQLite rejects it.
+            var rows = await connection.QueryAsync<TaskGraphNode>(
+                new CommandDefinition(
+                    "SELECT id AS Id, status AS Status, task_type AS Type "
+                    + "FROM tasks WHERE id IN @ids",
+                    new { ids = blocked.Keys.ToArray() },
+                    cancellationToken: cancellationToken));
+
+            foreach (var row in rows)
+            {
+                if (!TaskStates.IsTerminal(row.Status))
+                {
+                    blockedTaskStatuses[row.Id] = row.Status;
+                }
+            }
+        }
+
+        var labelCount = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(DISTINCT l.label) FROM labels l "
+            + "INNER JOIN tasks t ON t.id = l.task_id WHERE t.status != @tombstone",
+            new { tombstone = TaskStates.Tombstone, cancellationToken });
+
+        var commentCount = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM comments");
+
+        var eventCount = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM events");
+
+        return new TaskStats
+        {
+            StatusCounts = statusCounts
+                .OrderBy(StatusOrderIndex)
+                .ThenBy(row => row.Value, StringComparer.Ordinal)
+                .ToList(),
+            ReadyCount = readyCount,
+            BlockedTaskStatuses = blockedTaskStatuses,
+            LabelCount = labelCount,
+            CommentCount = commentCount,
+            EventCount = eventCount
+        };
+    }
+
+    public async Task<string?> GetConfigAsync(
         string key,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        return await GetConfigAsync(connection, key, cancellationToken);
+    }
 
     public Task SetConfigAsync(
         string key,
@@ -360,13 +647,22 @@ internal sealed class TaskStore(IFileSystem fileSystem) : ITaskStore
         CancellationToken cancellationToken)
         => throw NotImplemented();
 
-    public Task<IReadOnlyList<TaskConfigEntry>> ListConfigAsync(
+    public async Task<IReadOnlyList<TaskConfigEntry>> ListConfigAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
 
-    public Task<string> GetPrefixAsync(
+        return (await connection.QueryAsync<TaskConfigEntry>(
+            "SELECT key AS Key, value AS Value FROM config ORDER BY key ASC")).ToList();
+    }
+
+    public async Task<string> GetPrefixAsync(
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        return await GetPrefixAsync(connection, cancellationToken);
+    }
 
     public Task InitializeWorkspaceAsync(
         string workspaceDirectory,
@@ -466,6 +762,116 @@ internal sealed class TaskStore(IFileSystem fileSystem) : ITaskStore
             $"ITaskStore.{memberName} is not implemented yet. "
             + "No command calls the new backend-agnostic surface until the "
             + "read and write migration work lands.");
+
+    private static (string WhereClause, DynamicParameters Parameters) BuildTaskFilterClause(
+        TaskFilter filter)
+    {
+        var conditions = new List<string>();
+        var parameters = new DynamicParameters();
+
+        if (filter.Statuses is { Length: > 0 })
+        {
+            parameters.Add("statuses", filter.Statuses.Select(TaskStates.Normalize).ToArray());
+            conditions.Add("status IN @statuses");
+        }
+        else if (!filter.IncludeAll)
+        {
+            parameters.Add("closedStatus", TaskStates.Closed);
+            parameters.Add("tombstoneStatus", TaskStates.Tombstone);
+            conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
+        }
+
+        if (filter.ExcludeTombstones)
+        {
+            parameters.Add("tombstone", TaskStates.Tombstone);
+            conditions.Add("status != @tombstone");
+        }
+
+        if (!string.IsNullOrEmpty(filter.Type))
+        {
+            parameters.Add("type", TaskTypes.Normalize(filter.Type));
+            conditions.Add("task_type = @type");
+        }
+
+        if (filter.Priority is { } priority)
+        {
+            parameters.Add("priority", priority);
+            conditions.Add("priority = @priority");
+        }
+
+        if (filter.Unassigned)
+        {
+            conditions.Add("(assignee IS NULL OR assignee = '')");
+        }
+        else if (!string.IsNullOrEmpty(filter.Assignee))
+        {
+            parameters.Add("assignee", filter.Assignee);
+            conditions.Add("assignee = @assignee");
+        }
+
+        if (filter.Labels is { Length: > 0 })
+        {
+            for (var i = 0; i < filter.Labels.Length; i++)
+            {
+                var parameterName = $"label{i}";
+                parameters.Add(parameterName, filter.Labels[i].Trim().ToLowerInvariant());
+                conditions.Add(
+                    "EXISTS (SELECT 1 FROM labels WHERE task_id = tasks.id "
+                    + $"AND label = @{parameterName})");
+            }
+        }
+
+        if (!string.IsNullOrEmpty(filter.Text))
+        {
+            parameters.Add("text", EscapeLikeText(filter.Text));
+            conditions.Add(
+                "(LOWER(title) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
+                + "LOWER(description) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
+                + "LOWER(design) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
+                + "LOWER(acceptance_criteria) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
+                + "LOWER(notes) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\')");
+        }
+
+        if (filter.UpdatedBefore is { } updatedBefore)
+        {
+            parameters.Add("updatedBefore", updatedBefore);
+            conditions.Add("updated_at <= @updatedBefore");
+        }
+
+        if (filter.DeferredVisibleAt is { } visibleAt)
+        {
+            parameters.Add("visibleAt", visibleAt);
+            conditions.Add("(defer_until IS NULL OR defer_until <= @visibleAt)");
+        }
+
+        var whereClause = conditions.Count > 0 ? $" WHERE {string.Join(" AND ", conditions)}" : "";
+
+        return (whereClause, parameters);
+    }
+
+    private static string OrderByClause(TaskOrdering ordering) => ordering switch
+    {
+        TaskOrdering.PriorityCreatedId => " ORDER BY priority ASC, created_at ASC, id ASC",
+        TaskOrdering.UpdatedAtAscending => " ORDER BY updated_at ASC, id ASC",
+        TaskOrdering.ReadyPick =>
+            " ORDER BY CASE WHEN priority <= 1 THEN 0 ELSE 1 END, created_at ASC, id ASC",
+        _ => throw new ArgumentOutOfRangeException(nameof(ordering), ordering, "Unknown task ordering.")
+    };
+
+    /// <summary>
+    /// Escapes the LIKE wildcard characters '%' and '_' (and the escape
+    /// character itself) so search text is matched literally, other than the
+    /// wildcards callers wrap around it.
+    /// </summary>
+    private static string EscapeLikeText(string value)
+        => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
+    private static int StatusOrderIndex(TaskCount statusCount)
+    {
+        var index = Array.IndexOf(StatusOrder, statusCount.Value);
+
+        return index < 0 ? StatusOrder.Length : index;
+    }
 
     private static void AddBlocker(
         Dictionary<string, List<string>> blocked,
@@ -576,5 +982,15 @@ internal sealed class TaskStore(IFileSystem fileSystem) : ITaskStore
         public required string TaskId { get; init; }
         public required string DependsOnId { get; init; }
         public required string Type { get; init; }
+    }
+
+    /// <summary>
+    /// A group-by-priority row, kept numeric so it can be formatted as
+    /// P0..P4.
+    /// </summary>
+    private sealed class PriorityCountRow
+    {
+        public required int Priority { get; init; }
+        public required int Count { get; init; }
     }
 }
