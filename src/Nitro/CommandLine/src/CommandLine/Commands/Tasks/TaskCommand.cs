@@ -8,6 +8,7 @@ internal sealed class TaskCommand : Command
         Hidden = true;
 
         Subcommands.Add(new BlockedTaskCommand());
+        Subcommands.Add(new BoardTaskCommand());
         Subcommands.Add(new CloseTaskCommand());
         Subcommands.Add(new TaskCommentCommand());
         Subcommands.Add(new TaskConfigCommand());
