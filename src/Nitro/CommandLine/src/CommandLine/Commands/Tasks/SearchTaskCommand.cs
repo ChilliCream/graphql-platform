@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -31,29 +30,15 @@ internal sealed class SearchTaskCommand : Command
         var text = parseResult.GetRequiredValue(Opt<SearchTextArgument>.Instance);
         var limit = parseResult.GetValue(Opt<TaskLimitOption>.Instance);
 
-        var parameters = new DynamicParameters();
-        parameters.Add("tombstone", TaskStates.Tombstone);
-        parameters.Add("text", EscapeLikeText(text));
-
-        var sql = "SELECT id AS Id, priority AS Priority, task_type AS Type, "
-            + "status AS Status, title AS Title FROM tasks WHERE status != @tombstone AND ("
-            + "LOWER(title) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-            + "LOWER(description) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-            + "LOWER(design) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-            + "LOWER(acceptance_criteria) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-            + "LOWER(notes) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\') "
-            + "ORDER BY priority ASC, created_at ASC, id ASC";
-
-        if (limit is { } limitValue)
+        var filter = new TaskFilter
         {
-            parameters.Add("limit", limitValue);
-            sql += " LIMIT @limit";
-        }
+            IncludeAll = true,
+            ExcludeTombstones = true,
+            Text = text,
+            Limit = limit
+        };
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-
-        var tasks = (await connection.QueryAsync<TaskListRow>(
-            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
+        var tasks = await store.QueryTasksAsync(filter, cancellationToken);
 
         if (tasks.Count == 0)
         {
@@ -63,7 +48,7 @@ internal sealed class SearchTaskCommand : Command
 
         foreach (var task in tasks)
         {
-            console.WriteLine(task.Format());
+            console.WriteLine(FormatRow(task));
         }
 
         console.WriteLine();
@@ -72,11 +57,13 @@ internal sealed class SearchTaskCommand : Command
         return ExitCodes.Success;
     }
 
-    /// <summary>
-    /// Escapes the LIKE wildcard characters '%' and '_' (and the escape
-    /// character itself) so the search text is matched literally, other than
-    /// the wildcards this command wraps around it.
-    /// </summary>
-    private static string EscapeLikeText(string value)
-        => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+    private static string FormatRow(TaskItem task)
+        => new TaskListRow
+        {
+            Id = task.Id,
+            Priority = task.Priority,
+            Type = task.Type,
+            Status = task.Status,
+            Title = task.Title
+        }.Format();
 }

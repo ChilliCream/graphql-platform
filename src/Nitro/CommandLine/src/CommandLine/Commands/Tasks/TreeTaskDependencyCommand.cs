@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -31,16 +30,12 @@ internal sealed class TreeTaskDependencyCommand : Command
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        var root = await store.GetRequiredTaskAsync(connection, id, cancellationToken);
+        var root = await store.GetRequiredTaskAsync(id, cancellationToken);
 
-        var tasks = (await connection.QueryAsync<TaskNodeRow>(
-            "SELECT id AS Id, status AS Status, title AS Title FROM tasks"))
+        var tasks = (await store.QueryTasksAsync(new TaskFilter { IncludeAll = true }, cancellationToken))
             .ToDictionary(t => t.Id);
 
-        var edges = (await connection.QueryAsync<DependencyEdgeRow>(
-            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-            + "FROM dependencies")).ToList();
+        var edges = await store.GetDependencyEdgesAsync(cancellationToken);
 
         var childrenByParent = edges
             .GroupBy(e => e.TaskId)
@@ -62,8 +57,8 @@ internal sealed class TreeTaskDependencyCommand : Command
     private static void WriteChildren(
         INitroConsole console,
         string parentId,
-        IReadOnlyDictionary<string, TaskNodeRow> tasks,
-        IReadOnlyDictionary<string, List<DependencyEdgeRow>> childrenByParent,
+        IReadOnlyDictionary<string, TaskItem> tasks,
+        IReadOnlyDictionary<string, List<TaskDependency>> childrenByParent,
         HashSet<string> printed,
         int depth)
     {
@@ -94,19 +89,5 @@ internal sealed class TreeTaskDependencyCommand : Command
                 WriteChildren(console, edge.DependsOnId, tasks, childrenByParent, printed, depth + 1);
             }
         }
-    }
-
-    private sealed class TaskNodeRow
-    {
-        public required string Id { get; init; }
-        public required string Status { get; init; }
-        public required string Title { get; init; }
-    }
-
-    private sealed class DependencyEdgeRow
-    {
-        public required string TaskId { get; init; }
-        public required string DependsOnId { get; init; }
-        public required string Type { get; init; }
     }
 }

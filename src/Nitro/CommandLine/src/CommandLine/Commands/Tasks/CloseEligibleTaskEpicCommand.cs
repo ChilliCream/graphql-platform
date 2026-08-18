@@ -37,7 +37,7 @@ internal sealed class CloseEligibleTaskEpicCommand : Command
 
         await using var connection = await store.ConnectAsync(cancellationToken);
 
-        var epics = await StatusTaskEpicCommand.GetEpicsAsync(connection, cancellationToken);
+        var epics = await store.GetEpicStatusesAsync(cancellationToken);
         var eligible = epics.Where(epic => epic.IsEligibleForClose).ToList();
 
         if (eligible.Count == 0)

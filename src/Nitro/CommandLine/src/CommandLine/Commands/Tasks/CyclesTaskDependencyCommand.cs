@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -24,11 +23,7 @@ internal sealed class CyclesTaskDependencyCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-
-        var edges = (await connection.QueryAsync<EdgeRow>(
-            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-            + "FROM dependencies"))
+        var edges = (await store.GetDependencyEdgesAsync(cancellationToken))
             .Where(e => TaskDependencyTypes.IsBlocking(e.Type))
             .ToList();
 
@@ -114,11 +109,4 @@ internal sealed class CyclesTaskDependencyCommand : Command
 
     private static string FormatCycle(IReadOnlyList<string> cycle)
         => string.Join(" -> ", cycle) + " -> " + cycle[0];
-
-    private sealed class EdgeRow
-    {
-        public required string TaskId { get; init; }
-        public required string DependsOnId { get; init; }
-        public required string Type { get; init; }
-    }
 }

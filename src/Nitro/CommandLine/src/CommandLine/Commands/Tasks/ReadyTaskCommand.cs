@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -34,66 +33,27 @@ internal sealed class ReadyTaskCommand : Command
 
         var priorityValue = parseResult.GetValue(Opt<TaskPriorityOption>.Instance);
         var assignee = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance);
-        var labels = parseResult.GetValue(Opt<TaskLabelOption>.Instance) ?? [];
+        var labels = parseResult.GetValue(Opt<TaskLabelOption>.Instance);
         var limit = parseResult.GetValue(Opt<TaskLimitOption>.Instance);
         var includeDeferred = parseResult.GetValue(Opt<TaskIncludeDeferredOption>.Instance);
 
-        int? priority = priorityValue is null ? null : TaskPriorities.Parse(priorityValue);
-        var now = timeProvider.GetUtcNow();
+        var unassigned = !string.IsNullOrEmpty(assignee)
+            && string.Equals(assignee, "unassigned", StringComparison.OrdinalIgnoreCase);
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-
-        var blocked = await store.ComputeBlockedAsync(connection, cancellationToken);
-
-        var sql = $"SELECT {TaskItem.Columns} FROM tasks WHERE status = @status";
-        var parameters = new DynamicParameters();
-        parameters.Add("status", TaskStates.Open);
-
-        if (priority is { } priorityFilter)
+        var filter = new TaskFilter
         {
-            sql += " AND priority = @priority";
-            parameters.Add("priority", priorityFilter);
-        }
+            Statuses = [TaskStates.Open],
+            Priority = priorityValue is null ? null : TaskPriorities.Parse(priorityValue),
+            Unassigned = unassigned,
+            Assignee = unassigned ? null : assignee,
+            Labels = labels,
+            DeferredVisibleAt = includeDeferred ? null : timeProvider.GetUtcNow(),
+            ExcludeBlocked = true,
+            Limit = limit,
+            Ordering = TaskOrdering.ReadyPick
+        };
 
-        if (!string.IsNullOrEmpty(assignee))
-        {
-            if (string.Equals(assignee, "unassigned", StringComparison.OrdinalIgnoreCase))
-            {
-                sql += " AND (assignee IS NULL OR assignee = '')";
-            }
-            else
-            {
-                sql += " AND assignee = @assignee";
-                parameters.Add("assignee", assignee);
-            }
-        }
-
-        for (var i = 0; i < labels.Length; i++)
-        {
-            var parameterName = $"label{i}";
-            sql +=
-                $" AND EXISTS (SELECT 1 FROM labels WHERE labels.task_id = tasks.id AND labels.label = @{parameterName})";
-            parameters.Add(parameterName, labels[i].Trim().ToLowerInvariant());
-        }
-
-        if (!includeDeferred)
-        {
-            sql += " AND (defer_until IS NULL OR defer_until <= @now)";
-            parameters.Add("now", now);
-        }
-
-        sql += " ORDER BY CASE WHEN priority <= 1 THEN 0 ELSE 1 END, created_at ASC, id ASC";
-
-        var tasks = (await connection.QueryAsync<TaskItem>(
-            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken)))
-            .Where(t => !blocked.ContainsKey(t.Id));
-
-        if (limit is { } limitValue)
-        {
-            tasks = tasks.Take(limitValue);
-        }
-
-        var readyTasks = tasks.ToList();
+        var readyTasks = await store.QueryTasksAsync(filter, cancellationToken);
 
         if (readyTasks.Count == 0)
         {

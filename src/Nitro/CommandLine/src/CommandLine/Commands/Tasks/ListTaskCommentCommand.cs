@@ -1,9 +1,7 @@
-using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -30,18 +28,8 @@ internal sealed class ListTaskCommentCommand : Command
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        var task = await store.GetRequiredTaskAsync(connection, id, cancellationToken);
-
-        // The intercepted read path cannot convert the TEXT-stored timestamp
-        // column to DateTimeOffset, so this materializes an all-primitives
-        // row and parses the timestamp itself.
-        var comments = (await connection.QueryAsync<TaskCommentRow>(
-                $"SELECT {TaskComment.Columns} FROM comments WHERE task_id = @id "
-                + "ORDER BY created_at, id",
-                new { id = task.Id }))
-            .Select(r => r.ToTaskComment())
-            .ToList();
+        var task = await store.GetRequiredTaskAsync(id, cancellationToken);
+        var comments = await store.GetCommentsAsync(task.Id, cancellationToken);
 
         if (comments.Count == 0)
         {

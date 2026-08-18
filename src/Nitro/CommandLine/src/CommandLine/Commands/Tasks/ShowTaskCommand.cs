@@ -1,9 +1,7 @@
-using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -30,45 +28,12 @@ internal sealed class ShowTaskCommand : Command
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-        var task = await store.GetRequiredTaskAsync(connection, id, cancellationToken);
-
-        var labels = (await connection.QueryAsync<string>(
-            "SELECT label FROM labels WHERE task_id = @id ORDER BY label",
-            new { id = task.Id, cancellationToken })).ToList();
-
-        var dependencies = (await connection.QueryAsync<DependencyRow>(
-            """
-            SELECT d.dependency_type AS Type, d.depends_on_id AS DependsOnId,
-                   t.status AS Status, t.title AS Title
-            FROM dependencies d
-            LEFT JOIN tasks t ON t.id = d.depends_on_id
-            WHERE d.task_id = @id
-            ORDER BY d.created_at, d.depends_on_id
-            """,
-            new { id = task.Id })).ToList();
-
-        var blocks = (await connection.QueryAsync<BlockRow>(
-            """
-            SELECT d.task_id AS TaskId, t.status AS Status, t.title AS Title
-            FROM dependencies d
-            LEFT JOIN tasks t ON t.id = d.task_id
-            WHERE d.depends_on_id = @id
-            ORDER BY d.created_at, d.task_id
-            """,
-            new { id = task.Id })).ToList();
-
-        // The intercepted read path cannot convert the TEXT-stored timestamp
-        // column to DateTimeOffset, so this materializes an all-primitives
-        // row and parses the timestamp itself.
-        var comments = (await connection.QueryAsync<TaskCommentRow>(
-                $"SELECT {TaskComment.Columns} FROM comments WHERE task_id = @id "
-                + "ORDER BY created_at, id",
-                new { id = task.Id }))
-            .Select(r => r.ToTaskComment())
-            .ToList();
-
-        var blocked = await store.ComputeBlockedAsync(connection, cancellationToken);
+        var task = await store.GetRequiredTaskAsync(id, cancellationToken);
+        var labels = await store.GetLabelsAsync(task.Id, cancellationToken);
+        var dependencies = await store.GetDependenciesAsync(task.Id, cancellationToken);
+        var blocks = await store.GetDependentsAsync(task.Id, cancellationToken);
+        var comments = await store.GetCommentsAsync(task.Id, cancellationToken);
+        var blocked = await store.ComputeBlockedAsync(cancellationToken);
 
         console.WriteLine($"{task.Id}: {task.Title}");
         console.WriteLine();
@@ -165,8 +130,8 @@ internal sealed class ShowTaskCommand : Command
     }
 
     private static List<string> BuildDependencies(
-        IReadOnlyList<DependencyRow> dependencies,
-        IReadOnlyList<BlockRow> blocks)
+        IReadOnlyList<TaskDependencyDetail> dependencies,
+        IReadOnlyList<TaskDependentDetail> blocks)
     {
         var lines = new List<string>();
 
@@ -261,20 +226,5 @@ internal sealed class ShowTaskCommand : Command
         }
 
         separatorPending = true;
-    }
-
-    private sealed class DependencyRow
-    {
-        public required string Type { get; init; }
-        public required string DependsOnId { get; init; }
-        public string? Status { get; init; }
-        public string? Title { get; init; }
-    }
-
-    private sealed class BlockRow
-    {
-        public required string TaskId { get; init; }
-        public string? Status { get; init; }
-        public string? Title { get; init; }
     }
 }

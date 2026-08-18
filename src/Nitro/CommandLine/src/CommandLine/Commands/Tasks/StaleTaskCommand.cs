@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -31,19 +30,14 @@ internal sealed class StaleTaskCommand : Command
         var days = parseResult.GetValue(Opt<TaskDaysOption>.Instance) ?? 30;
         var threshold = timeProvider.GetUtcNow() - TimeSpan.FromDays(days);
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
+        var filter = new TaskFilter
+        {
+            Statuses = [TaskStates.Open, TaskStates.InProgress],
+            UpdatedBefore = threshold,
+            Ordering = TaskOrdering.UpdatedAtAscending
+        };
 
-        var tasks = (await connection.QueryAsync<TaskListRow>(
-            "SELECT id AS Id, priority AS Priority, task_type AS Type, "
-            + "status AS Status, title AS Title FROM tasks "
-            + "WHERE status IN (@open, @inProgress) AND updated_at <= @threshold "
-            + "ORDER BY updated_at ASC, id ASC",
-            new
-            {
-                open = TaskStates.Open,
-                inProgress = TaskStates.InProgress,
-                threshold
-            })).ToList();
+        var tasks = await store.QueryTasksAsync(filter, cancellationToken);
 
         if (tasks.Count == 0)
         {
@@ -53,7 +47,7 @@ internal sealed class StaleTaskCommand : Command
 
         foreach (var task in tasks)
         {
-            console.WriteLine(task.Format());
+            console.WriteLine(FormatRow(task));
         }
 
         console.WriteLine();
@@ -61,4 +55,14 @@ internal sealed class StaleTaskCommand : Command
 
         return ExitCodes.Success;
     }
+
+    private static string FormatRow(TaskItem task)
+        => new TaskListRow
+        {
+            Id = task.Id,
+            Priority = task.Priority,
+            Type = task.Type,
+            Status = task.Status,
+            Title = task.Title
+        }.Format();
 }

@@ -28,9 +28,7 @@ internal sealed class GetTaskConfigCommand : Command
 
         var key = parseResult.GetRequiredValue(Opt<ConfigKeyArgument>.Instance);
 
-        await using var connection = await store.ConnectAsync(cancellationToken);
-
-        var value = await store.GetConfigAsync(connection, key, cancellationToken)
+        var value = await store.GetConfigAsync(key, cancellationToken)
             ?? throw new ExitException($"Configuration key '{key}' is not set.");
 
         console.WriteLine(value);
