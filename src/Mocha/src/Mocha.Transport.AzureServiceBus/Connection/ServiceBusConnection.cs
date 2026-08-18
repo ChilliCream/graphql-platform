@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Transport.AzureServiceBus;
 
@@ -11,13 +12,22 @@ namespace Mocha.Transport.AzureServiceBus;
 internal sealed class ServiceBusConnection : IAsyncDisposable
 {
     private readonly ServiceBusClient _client;
-    private readonly ServiceBusAdministrationClient _adminClient;
+    private readonly ServiceBusAdministrationClient? _administrationClient;
+    private readonly bool _ownsClient;
 
-    private ServiceBusConnection(ServiceBusClient client, ServiceBusAdministrationClient adminClient)
+    private ServiceBusConnection(
+        ServiceBusClient client,
+        ServiceBusAdministrationClient? administrationClient,
+        bool ownsClient)
     {
         _client = client;
-        _adminClient = adminClient;
+        _administrationClient = administrationClient;
+        _ownsClient = ownsClient;
     }
+
+    public string FullyQualifiedNamespace => _client.FullyQualifiedNamespace;
+
+    public bool CanManageTopology => _administrationClient is not null;
 
     public ServiceBusSender CreateSender(string entityPath) => _client.CreateSender(entityPath);
 
@@ -38,15 +48,20 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
         => _client.CreateSessionProcessor(queueName, options);
 
     public Task CreateQueueAsync(CreateQueueOptions options, CancellationToken cancellationToken)
-        => _adminClient.CreateQueueAsync(options, cancellationToken);
+        => AdministrationClient.CreateQueueAsync(options, cancellationToken);
 
     public Task CreateTopicAsync(CreateTopicOptions options, CancellationToken cancellationToken)
-        => _adminClient.CreateTopicAsync(options, cancellationToken);
+        => AdministrationClient.CreateTopicAsync(options, cancellationToken);
 
     public Task CreateSubscriptionAsync(CreateSubscriptionOptions options, CancellationToken cancellationToken)
-        => _adminClient.CreateSubscriptionAsync(options, cancellationToken);
+        => AdministrationClient.CreateSubscriptionAsync(options, cancellationToken);
 
-    public ValueTask DisposeAsync() => _client.DisposeAsync();
+    public ValueTask DisposeAsync() => _ownsClient ? _client.DisposeAsync() : ValueTask.CompletedTask;
+
+    private ServiceBusAdministrationClient AdministrationClient
+        => _administrationClient
+            ?? throw new InvalidOperationException(
+                "A ServiceBusAdministrationClient must be registered to manage Azure Service Bus topology.");
 
     public static string? ResolveAdministrationConnectionString(AzureServiceBusTransportConfiguration configuration)
     {
@@ -66,25 +81,54 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
 
     public static ServiceBusConnection Create(
         AzureServiceBusTransportConfiguration configuration,
+        ServiceBusClientOptions clientOptions,
+        IServiceProvider services)
+    {
+        if (configuration.ConnectionString is not null
+            || configuration.FullyQualifiedNamespace is not null
+            || configuration.Credential is not null)
+        {
+            return Create(configuration, clientOptions);
+        }
+
+        return new ServiceBusConnection(
+            services.GetRequiredService<ServiceBusClient>(),
+            configuration.AdministrationConnectionString is { } administrationConnectionString
+                ? new ServiceBusAdministrationClient(administrationConnectionString)
+                : services.GetService<ServiceBusAdministrationClient>(),
+            ownsClient: false);
+    }
+
+    public static ServiceBusConnection Create(
+        AzureServiceBusTransportConfiguration configuration,
         ServiceBusClientOptions clientOptions)
     {
         if (configuration.ConnectionString is not null)
         {
             return new ServiceBusConnection(
                 new ServiceBusClient(configuration.ConnectionString, clientOptions),
-                new ServiceBusAdministrationClient(ResolveAdministrationConnectionString(configuration)));
+                new ServiceBusAdministrationClient(ResolveAdministrationConnectionString(configuration)),
+                ownsClient: true);
         }
 
-        if (configuration.FullyQualifiedNamespace is not null
-            && configuration.Credential is not null)
+        if (configuration.FullyQualifiedNamespace is not null || configuration.Credential is not null)
         {
             ResolveAdministrationConnectionString(configuration);
 
+            if (configuration.FullyQualifiedNamespace is null || configuration.Credential is null)
+            {
+                throw ThrowHelper.ConnectionStringOrCredentialRequired();
+            }
+
             return new ServiceBusConnection(
                 new ServiceBusClient(configuration.FullyQualifiedNamespace, configuration.Credential, clientOptions),
-                new ServiceBusAdministrationClient(configuration.FullyQualifiedNamespace, configuration.Credential));
+                new ServiceBusAdministrationClient(
+                    configuration.FullyQualifiedNamespace,
+                    configuration.Credential),
+                ownsClient: true);
         }
 
+        ResolveAdministrationConnectionString(configuration);
         throw ThrowHelper.ConnectionStringOrCredentialRequired();
     }
 }

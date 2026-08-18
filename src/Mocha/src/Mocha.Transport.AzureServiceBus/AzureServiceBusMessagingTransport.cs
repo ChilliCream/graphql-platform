@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Azure.Messaging.ServiceBus;
 
 namespace Mocha.Transport.AzureServiceBus;
 
@@ -11,6 +10,7 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusMessagingTransport : MessagingTransport
 {
     private readonly Action<IAzureServiceBusMessagingTransportDescriptor> _configure;
+    private AzureServiceBusMessagingTopology _topology = null!;
 
     /// <summary>
     /// Creates a new Azure Service Bus transport with the specified configuration delegate.
@@ -20,8 +20,6 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
     {
         _configure = configure;
     }
-
-    private AzureServiceBusMessagingTopology _topology = null!;
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
@@ -39,15 +37,11 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
     protected override void OnAfterInitialized(IMessagingSetupContext context)
     {
         var configuration = (AzureServiceBusTransportConfiguration)Configuration;
+        var services = context.Services.GetApplicationServices();
 
-        ClientManager = new AzureServiceBusClientManager(configuration);
+        ClientManager = new AzureServiceBusClientManager(configuration, services);
 
-        var fullyQualifiedNamespace = configuration.FullyQualifiedNamespace;
-        if (configuration.ConnectionString is { } connectionString)
-        {
-            fullyQualifiedNamespace =
-                ServiceBusConnectionStringProperties.Parse(connectionString).FullyQualifiedNamespace;
-        }
+        var fullyQualifiedNamespace = ClientManager.FullyQualifiedNamespace;
 
         var builder = new UriBuilder
         {
@@ -60,7 +54,7 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
             this,
             builder.Uri,
             configuration.Defaults,
-            configuration.AutoProvision ?? true);
+            configuration.AutoProvision ?? ClientManager.CanManageTopology);
 
         foreach (var topic in configuration.Topics)
         {

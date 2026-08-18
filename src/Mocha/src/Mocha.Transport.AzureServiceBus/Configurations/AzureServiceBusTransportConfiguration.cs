@@ -39,9 +39,9 @@ public class AzureServiceBusTransportConfiguration : MessagingTransportConfigura
     /// Gets or sets the connection string used for management operations, including entity provisioning,
     /// through <see cref="Azure.Messaging.ServiceBus.Administration.ServiceBusAdministrationClient"/>.
     /// When <c>null</c>, <see cref="ConnectionString"/> is used for management operations as well.
-    /// This is only honored with connection string-based configuration and is rejected with namespace and
-    /// credential-based configuration. It supports brokers that serve data and management on different
-    /// endpoints, such as the Azure Service Bus emulator (AMQP on 5672 and management over HTTP on 5300).
+    /// It can also supplement a messaging client resolved from dependency injection. It is rejected with
+    /// explicit namespace and credential configuration. This supports brokers that serve data and management
+    /// on different endpoints, such as the Azure Service Bus emulator.
     /// </summary>
     public string? AdministrationConnectionString { get; set; }
 
@@ -86,8 +86,8 @@ public class AzureServiceBusTransportConfiguration : MessagingTransportConfigura
 
     /// <summary>
     /// Gets or sets a value indicating whether topology resources (queues, topics, subscriptions)
-    /// should be automatically provisioned on the broker. When <c>null</c>, defaults to <c>true</c>.
-    /// Individual resources can override this setting.
+    /// should be automatically provisioned on the broker. When <c>null</c>, provisioning is enabled
+    /// when an administration client is available. Individual resources can override this setting.
     /// </summary>
     public bool? AutoProvision { get; set; }
 

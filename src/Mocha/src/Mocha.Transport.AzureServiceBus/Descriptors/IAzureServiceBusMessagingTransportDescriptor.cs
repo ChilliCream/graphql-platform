@@ -74,8 +74,8 @@ public interface IAzureServiceBusMessagingTransportDescriptor
 
     /// <summary>
     /// Sets the connection string used for management operations, including entity provisioning.
-    /// When configured, it is used with connection string-based configuration to support brokers
-    /// that serve data and management on different endpoints.
+    /// It can supplement connection string-based configuration or a messaging client resolved from
+    /// dependency injection when data and management use different endpoints.
     /// </summary>
     /// <param name="administrationConnectionString">The management connection string.</param>
     /// <returns>The descriptor for method chaining.</returns>
@@ -105,7 +105,8 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     /// Individual resources can override this setting via their own <c>AutoProvision</c> method.
     /// </summary>
     /// <param name="autoProvision">
-    /// <c>true</c> to enable auto-provisioning (default); <c>false</c> to disable it globally.
+    /// <c>true</c> to enable auto-provisioning; <c>false</c> to disable it globally.
+    /// When not configured, provisioning is enabled when an administration client is available.
     /// </param>
     /// <returns>The descriptor for method chaining.</returns>
     IAzureServiceBusMessagingTransportDescriptor AutoProvision(bool autoProvision = true);

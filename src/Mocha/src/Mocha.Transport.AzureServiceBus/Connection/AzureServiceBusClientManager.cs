@@ -24,8 +24,35 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// Thrown when neither a connection string nor a fully qualified namespace with credential is provided.
     /// </exception>
     public AzureServiceBusClientManager(AzureServiceBusTransportConfiguration configuration)
+        : this(ServiceBusConnection.Create(configuration, CreateClientOptions(configuration)))
     {
-        var clientOptions = new ServiceBusClientOptions
+    }
+
+    /// <summary>
+    /// Creates a new client manager from the transport configuration and application services.
+    /// </summary>
+    /// <param name="configuration">The transport configuration containing connection settings.</param>
+    /// <param name="services">The application service provider containing registered Service Bus clients.</param>
+    internal AzureServiceBusClientManager(
+        AzureServiceBusTransportConfiguration configuration,
+        IServiceProvider services)
+        : this(ServiceBusConnection.Create(configuration, CreateClientOptions(configuration), services))
+    {
+    }
+
+    private AzureServiceBusClientManager(ServiceBusConnection connection)
+    {
+        _connection = connection;
+    }
+
+    internal string FullyQualifiedNamespace => _connection.FullyQualifiedNamespace;
+
+    internal bool CanManageTopology => _connection.CanManageTopology;
+
+    private static ServiceBusClientOptions CreateClientOptions(
+        AzureServiceBusTransportConfiguration configuration)
+    {
+        return new ServiceBusClientOptions
         {
             TransportType = configuration.TransportType,
             RetryOptions =
@@ -38,8 +65,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
                     MaxDelay = TimeSpan.FromMinutes(1)
                 }
         };
-
-        _connection = ServiceBusConnection.Create(configuration, clientOptions);
     }
 
     /// <summary>

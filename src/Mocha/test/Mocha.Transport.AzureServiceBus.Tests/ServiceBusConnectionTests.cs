@@ -1,5 +1,6 @@
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
@@ -64,6 +65,55 @@ public sealed class ServiceBusConnectionTests
         // assert
         Assert.Contains("AdministrationConnectionString", exception.Message);
         Assert.Contains("ConnectionString", exception.Message);
+    }
+
+    [Fact]
+    public async Task Create_Should_UseConfiguredAdministrationConnectionWithRegisteredMessagingClient()
+    {
+        // arrange
+        var client = new ServiceBusClient(
+            "Endpoint=sb://injected/;SharedAccessKeyName=test;SharedAccessKey=test");
+        await using var services = new ServiceCollection()
+            .AddSingleton(client)
+            .BuildServiceProvider();
+        var configuration = new AzureServiceBusTransportConfiguration
+        {
+            AdministrationConnectionString =
+                "Endpoint=sb://admin/;SharedAccessKeyName=test;SharedAccessKey=test"
+        };
+
+        // act
+        await using (var connection = ServiceBusConnection.Create(
+            configuration,
+            new ServiceBusClientOptions(),
+            services))
+        {
+            // assert
+            Assert.Equal("injected", connection.FullyQualifiedNamespace);
+            Assert.True(connection.CanManageTopology);
+        }
+
+        Assert.False(client.IsClosed);
+    }
+
+    [Fact]
+    public async Task Create_Should_DisableTopologyManagement_When_AdministrationClientIsNotRegistered()
+    {
+        // arrange
+        var client = new ServiceBusClient(
+            "Endpoint=sb://injected/;SharedAccessKeyName=test;SharedAccessKey=test");
+        await using var services = new ServiceCollection()
+            .AddSingleton(client)
+            .BuildServiceProvider();
+
+        // act
+        await using var connection = ServiceBusConnection.Create(
+            new AzureServiceBusTransportConfiguration(),
+            new ServiceBusClientOptions(),
+            services);
+
+        // assert
+        Assert.False(connection.CanManageTopology);
     }
 
     private sealed class TestTokenCredential : TokenCredential

@@ -1,3 +1,5 @@
+using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
@@ -5,6 +7,9 @@ namespace Mocha.Transport.AzureServiceBus.Tests.Topology;
 
 public class AzureServiceBusMessagingTopologyTests
 {
+    private const string DummyConnectionString =
+        "Endpoint=sb://localhost/;SharedAccessKeyName=test;SharedAccessKey=test";
+
     [Fact]
     public void Topology_Should_UseConnectionStringNamespace_When_ConnectionStringConfigured()
     {
@@ -17,6 +22,56 @@ public class AzureServiceBusMessagingTopologyTests
         var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
 
         Assert.Equal("orders.servicebus.windows.net", transport.Topology.Address.Host);
+    }
+
+    [Fact]
+    public async Task AddAzureServiceBus_Should_ResolveClientFromDependencyInjection_When_ConnectionNotConfigured()
+    {
+        // arrange
+        var client = new ServiceBusClient(
+            "Endpoint=sb://injected/;SharedAccessKeyName=test;SharedAccessKey=test");
+        var services = new ServiceCollection();
+        services.AddSingleton(client);
+
+        // act
+        var runtime = services
+            .AddMessageBus()
+            .AddAzureServiceBus()
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal("injected", transport.Topology.Address.Host);
+        Assert.False(((AzureServiceBusMessagingTopology)transport.Topology).AutoProvision);
+
+        await transport.DisposeAsync();
+        Assert.False(client.IsClosed);
+        await client.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task AutoProvision_Should_DefaultToTrue_When_AdministrationClientRegistered()
+    {
+        // arrange
+        const string connectionString =
+            "Endpoint=sb://injected/;SharedAccessKeyName=test;SharedAccessKey=test";
+        var client = new ServiceBusClient(connectionString);
+        var services = new ServiceCollection();
+        services.AddSingleton(client);
+        services.AddSingleton(new ServiceBusAdministrationClient(connectionString));
+
+        // act
+        var runtime = services
+            .AddMessageBus()
+            .AddAzureServiceBus()
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+
+        // assert
+        Assert.True(((AzureServiceBusMessagingTopology)transport.Topology).AutoProvision);
+
+        await transport.DisposeAsync();
+        await client.DisposeAsync();
     }
 
     [Fact]
@@ -322,7 +377,4 @@ public class AzureServiceBusMessagingTopologyTests
         var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
         return (runtime, transport, (AzureServiceBusMessagingTopology)transport.Topology);
     }
-
-    private const string DummyConnectionString =
-        "Endpoint=sb://localhost/;SharedAccessKeyName=test;SharedAccessKey=test";
 }

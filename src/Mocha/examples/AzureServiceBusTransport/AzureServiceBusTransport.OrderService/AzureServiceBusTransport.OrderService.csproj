@@ -3,6 +3,7 @@
     <RootNamespace>AzureServiceBusTransport.OrderService</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
     <PackageReference Include="ChilliCream.Nitro" />
     <PackageReference Include="ChilliCream.Nitro.Mocha" />
     <PackageReference Include="ChilliCream.Nitro.Mocha.Mediator" />

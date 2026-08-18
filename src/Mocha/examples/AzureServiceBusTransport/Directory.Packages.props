@@ -5,6 +5,7 @@
   <ItemGroup>
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Azure.Messaging.ServiceBus" Version="13.4.6" />
     <PackageVersion Include="ChilliCream.Nitro" Version="16.5.1-preview.1" />
     <PackageVersion Include="ChilliCream.Nitro.Mocha" Version="16.5.1-preview.1" />
     <PackageVersion Include="ChilliCream.Nitro.Mocha.Mediator" Version="16.5.1-preview.1" />

@@ -45,4 +45,14 @@ public static class MessageBusBuilderExtensions
     {
         return busBuilder.AddAzureServiceBus(x => x.ConnectionString(connectionString));
     }
+
+    /// <summary>
+    /// Adds an Azure Service Bus messaging transport with clients resolved from dependency injection.
+    /// </summary>
+    /// <param name="busBuilder">The message bus host builder to extend.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder AddAzureServiceBus(this IMessageBusHostBuilder busBuilder)
+    {
+        return busBuilder.AddAzureServiceBus(static _ => { });
+    }
 }

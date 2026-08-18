@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
@@ -39,6 +40,33 @@ public class AutoProvisionIntegrationTests
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event");
         var order = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("AP-1", order.OrderId);
+    }
+
+    [Fact]
+    public async Task AddAzureServiceBus_Should_AutoProvision_When_AdministrationConnectionConfigured()
+    {
+        // arrange
+        await using var ctx = _fixture.CreateTestContext();
+        var queueName = ctx.QueueName("di-q");
+        var client = new ServiceBusClient(ctx.ConnectionString);
+        var administrationClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
+
+        // act
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(client)
+            .AddMessageBus()
+            .AddAzureServiceBus(t =>
+            {
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
+                t.DeclareQueue(queueName);
+            })
+            .BuildTestBusAsync();
+        var queueExists = (await administrationClient.QueueExistsAsync(
+            queueName,
+            Xunit.TestContext.Current.CancellationToken)).Value;
+
+        // assert
+        Assert.True(queueExists);
     }
 
     [Fact]
