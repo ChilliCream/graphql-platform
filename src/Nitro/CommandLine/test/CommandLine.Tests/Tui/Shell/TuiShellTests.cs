@@ -1,6 +1,9 @@
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
+using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
@@ -17,6 +20,26 @@ public sealed class TuiShellTests
 
     private static TuiShell CreateShell(FakeTuiMode mode, int width = 80, int height = 24) =>
         new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height);
+
+    private static TuiShell CreateShellWithModes(
+        FakeTuiMode initialMode,
+        FakeTaskStore store,
+        out SearchMode searchMode,
+        out DependencyTreeView treeView)
+    {
+        searchMode = new SearchMode(store);
+        treeView = new DependencyTreeView(store, rootId: "");
+
+        return new TuiShell(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            initialMode,
+            80,
+            24,
+            searchMode,
+            treeView,
+            store,
+            actor: "tester");
+    }
 
     private static string RenderToText(TuiShell shell)
     {
@@ -230,5 +253,243 @@ public sealed class TuiShellTests
 
         // assert
         Assert.Equal((80, 23), Assert.Single(mode.RenderCalls));
+    }
+
+    [Fact]
+    public void Handle_Should_SwitchToSearchAndFocusInput_When_SlashPressed()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Equal(SearchFocus.Input, search.Focus);
+        Assert.Contains("Results", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_PopBackToPreviousMode_When_EscapePressedAfterSwitchingModes()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var initialMode = new FakeTuiMode { RenderText = "board" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+        Assert.Contains("Results", RenderToText(shell));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("board", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_TreeRequestedWithNoSelection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var initialMode = new FakeTuiMode();
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('t', ConsoleKey.T)));
+
+        // assert
+        Assert.Contains("No task selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_SwitchToTreeRootedOnSelection_When_TreeRequested()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out var tree);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('t', ConsoleKey.T)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Equal("a", tree.RootId);
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_EditRequestedWithNoSelection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+
+        // assert
+        Assert.Contains("No task selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_OpenEditorAndWriteChangedTitle_When_EditRequestedThenSaved()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", "Old title");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+        Assert.Contains("Edit Task", RenderToText(shell));
+
+        // act: append a character to the focused title field, then tab to the
+        // button row (7 fields: title/status/priority/type/labels/description/
+        // notes) and activate the default-selected Save button.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 7; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a", store.UpdatedId);
+        Assert.Equal("Old title!", store.UpdateReceived!.Title);
+        Assert.Equal("tester", store.Actor);
+        Assert.Contains("Updated task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_CloseEditorWithoutWriting_When_EscapePressedWhileEditing()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        Assert.Null(store.UpdatedId);
+        Assert.DoesNotContain("Edit Task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_CloseTask_When_CloseOrReopenRequestedOnOpenTask()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('x', ConsoleKey.X)));
+        Assert.Contains("Close task", RenderToText(shell));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal(["a"], store.ClosedIds);
+        Assert.Equal("tester", store.Actor);
+        Assert.Contains("Closed task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ReopenTask_When_CloseOrReopenRequestedOnClosedTask()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Closed);
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('x', ConsoleKey.X)));
+        Assert.Contains("Reopen task", RenderToText(shell));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a", store.ReopenedId);
+        Assert.Contains("Reopened task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_DeleteTask_When_DeleteRequested()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('X', ConsoleKey.X, ConsoleModifiers.Shift)));
+        Assert.Contains("Delete task", RenderToText(shell));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a", store.DeletedId);
+        Assert.Contains("Deleted task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_SwallowUnboundGlobalKeys_When_QuitConfirmActive()
+    {
+        // arrange: 'r' is bound globally to RefreshRequested but not on the
+        // quit confirm dialog's own key table; while the dialog is active it
+        // must not leak through to the active mode.
+        var mode = new FakeTuiMode();
+        var shell = CreateShell(mode);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+
+        // assert
+        Assert.DoesNotContain(mode.HandledMessages, m => m is TuiMessage.RefreshRequested);
+    }
+
+    [Fact]
+    public void Handle_Should_CapRecursionDepth_When_ModeKeepsProducingFollowUpMessages()
+    {
+        // arrange: a misbehaving mode that answers every message with another
+        // message must not overflow the stack.
+        var mode = new FakeTuiMode
+        {
+            HandleResult = _ => [new TuiMessage.MoveCursor(CursorDirection.Down)]
+        };
+        var shell = CreateShell(mode);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.True(mode.HandledMessages.Count is > 1 and < 100);
+    }
+
+    [Fact]
+    public void Handle_Should_RouteRawKeyToSearchQueryInput_When_SearchModeHasInputFocus()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+        // act: 'j' would move a list cursor globally, but with the query
+        // input focused it must be typed instead.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+
+        // assert
+        Assert.Equal("j", search.QueryText);
     }
 }

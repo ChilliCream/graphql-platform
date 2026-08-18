@@ -33,8 +33,10 @@ internal sealed class KeyMap
     /// <summary>
     /// The hardcoded global key bindings: vim-style navigation (j/k/h/l and arrow
     /// keys, g/G for edges), Enter to open, r to refresh, y to copy the selected id,
-    /// q and Ctrl+C to request quit, Ctrl+N/Ctrl+P to cycle views, and z to toggle
-    /// the maximized layout.
+    /// q and Ctrl+C to request quit, Ctrl+N/Ctrl+P to cycle views, z to toggle the
+    /// maximized layout, / to jump into search, t to open the dependency tree on
+    /// the current selection, e to edit it, x to close or reopen it, X to delete
+    /// it, and Escape to leave the active mode.
     /// </summary>
     public static KeyMap CreateDefaultGlobal() => new(
     [
@@ -91,6 +93,24 @@ internal sealed class KeyMap
             () => new TuiMessage.CycleView(-1)),
         new KeyBinding(
             new KeyChord(ConsoleKey.Z, ConsoleModifiers.None, 'z'),
-            () => new TuiMessage.ToggleMaximize())
+            () => new TuiMessage.ToggleMaximize()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/'),
+            () => new TuiMessage.FocusSearchRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't'),
+            () => new TuiMessage.OpenTreeRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.E, ConsoleModifiers.None, 'e'),
+            () => new TuiMessage.EditRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.X, ConsoleModifiers.None, 'x'),
+            () => new TuiMessage.CloseOrReopenRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.X, ConsoleModifiers.Shift, 'X'),
+            () => new TuiMessage.DeleteRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, ''),
+            () => new TuiMessage.Back())
     ]);
 }

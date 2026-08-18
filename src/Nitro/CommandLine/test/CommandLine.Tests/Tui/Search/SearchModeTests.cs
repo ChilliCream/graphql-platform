@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
+using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Search;
 
@@ -282,6 +283,60 @@ public sealed class SearchModeTests
         Assert.Equal(new TuiMessage.MoveCursor(CursorDirection.Left), escapeMessage);
         Assert.True(tabResolved);
         Assert.Equal(new TuiMessage.OpenSelected(), tabMessage);
+    }
+
+    [Fact]
+    public void Handle_Should_EmitBack_When_MoveCursorLeftReceivedAtInputFocus()
+    {
+        // arrange
+        var mode = new SearchMode(new FakeTaskStore());
+        Assert.Equal(SearchFocus.Input, mode.Focus);
+
+        // act
+        var followUps = mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
+        Assert.Equal([new TuiMessage.Back()], followUps);
+        Assert.Equal(SearchFocus.Input, mode.Focus);
+    }
+
+    [Fact]
+    public void Handle_Should_NotEmitBack_When_MoveCursorLeftReceivedAtListFocus()
+    {
+        // arrange
+        var mode = new SearchMode(new FakeTaskStore());
+        mode.Handle(new TuiMessage.OpenSelected());
+        Assert.Equal(SearchFocus.List, mode.Focus);
+
+        // act
+        var followUps = mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
+        Assert.Empty(followUps);
+        Assert.Equal(SearchFocus.Input, mode.Focus);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowSelectedTaskDetail_Instead_Of_Placeholder()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "My task title"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(Now, CancellationToken.None);
+        mode.Handle(new TuiMessage.OpenSelected());
+        mode.Handle(new TuiMessage.OpenSelected());
+        Assert.Equal(SearchFocus.Detail, mode.Focus);
+
+        // act
+        var console = new TestConsole().Width(100);
+        console.Write(mode.Render(100, 24));
+
+        // assert
+        var text = console.Output;
+        Assert.DoesNotContain("detail view pending", text);
+        Assert.Contains("My task title", text);
     }
 
     private static void TypeChar(SearchMode mode, char c, DateTimeOffset now)

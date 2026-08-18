@@ -17,14 +17,14 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Tree;
 /// Enter and f both refocus the tree on the cursor node, and Enter is
 /// already reachable through the global key table via
 /// <see cref="TuiMessage.OpenSelected"/>; <see cref="KeyMap"/> maps f to the
-/// same message. Toggling the edge mode, toggling the direction, and
-/// popping the breadcrumb stack have no equivalent in the closed
-/// <see cref="TuiMessage"/> set, so <see cref="ToggleEdgeMode"/>,
-/// <see cref="ToggleDirection"/>, and <see cref="NavigateBack"/> are not yet
-/// reachable through <see cref="ITuiMode.Handle"/>: callers (today, tests;
-/// once wired, the shell keymap) drive them directly, the same way
+/// same message. m toggles the edge mode, d toggles the direction, and u
+/// pops the breadcrumb stack, via <see cref="TuiMessage.ToggleTreeEdgeMode"/>,
+/// <see cref="TuiMessage.ToggleTreeDirection"/>, and
+/// <see cref="TuiMessage.NavigateTreeBack"/>. Entering the tree on a task
+/// selected in another mode, and leaving it, are shell-level concerns: the
+/// shell drives <see cref="EnterOnTask"/> directly the same way
 /// <c>SearchMode.HandleQueryKey</c> is driven directly for gestures outside
-/// that set.
+/// the closed <see cref="TuiMessage"/> set.
 /// </remarks>
 internal sealed class DependencyTreeView : ITuiMode
 {
@@ -80,15 +80,23 @@ internal sealed class DependencyTreeView : ITuiMode
 
     /// <summary>
     /// f mirrors the global Enter binding, refocusing the tree on the cursor
-    /// node. Every other gesture the tree explorer needs (m, d, u, o) has no
-    /// counterpart in the closed <see cref="TuiMessage"/> set; see the
-    /// remarks on this type.
+    /// node. m toggles the edge mode, d toggles the direction, and u pops the
+    /// breadcrumb stack.
     /// </summary>
     public KeyMap? KeyMap { get; } = new KeyMap(
     [
         new KeyBinding(
             new KeyChord(ConsoleKey.F, ConsoleModifiers.None, 'f'),
-            () => new TuiMessage.OpenSelected())
+            () => new TuiMessage.OpenSelected()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.M, ConsoleModifiers.None, 'm'),
+            () => new TuiMessage.ToggleTreeEdgeMode()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.D, ConsoleModifiers.None, 'd'),
+            () => new TuiMessage.ToggleTreeDirection()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u'),
+            () => new TuiMessage.NavigateTreeBack())
     ]);
 
     public void OnEnter() => RefreshBlocking();
@@ -119,6 +127,18 @@ internal sealed class DependencyTreeView : ITuiMode
 
             case TuiMessage.RefreshRequested:
                 RefreshBlocking();
+                return [];
+
+            case TuiMessage.ToggleTreeEdgeMode:
+                ToggleEdgeMode();
+                return [];
+
+            case TuiMessage.ToggleTreeDirection:
+                ToggleDirection();
+                return [];
+
+            case TuiMessage.NavigateTreeBack:
+                NavigateBack();
                 return [];
 
             default:

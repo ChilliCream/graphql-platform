@@ -64,6 +64,60 @@ internal abstract record TuiMessage
     /// A toast with <paramref name="Text"/> should be shown using <paramref name="Style"/>.
     /// </summary>
     public sealed record ShowToast(string Text, ToastStyle Style) : TuiMessage;
+
+    /// <summary>
+    /// The active mode should be left in favor of whichever mode preceded it.
+    /// The shell is expected to pop its mode stack; has no effect at the base
+    /// mode.
+    /// </summary>
+    public sealed record Back : TuiMessage;
+
+    /// <summary>
+    /// The search mode should become active with its query input focused.
+    /// </summary>
+    public sealed record FocusSearchRequested : TuiMessage;
+
+    /// <summary>
+    /// The dependency tree should become active, rooted on the active mode's
+    /// currently selected task.
+    /// </summary>
+    public sealed record OpenTreeRequested : TuiMessage;
+
+    /// <summary>
+    /// The task editor should open for the active mode's currently selected
+    /// task.
+    /// </summary>
+    public sealed record EditRequested : TuiMessage;
+
+    /// <summary>
+    /// The close (or, when the task is already closed, reopen) confirmation
+    /// should open for the active mode's currently selected task.
+    /// </summary>
+    public sealed record CloseOrReopenRequested : TuiMessage;
+
+    /// <summary>
+    /// The delete confirmation should open for the active mode's currently
+    /// selected task.
+    /// </summary>
+    public sealed record DeleteRequested : TuiMessage;
+
+    /// <summary>
+    /// The dependency tree should toggle between the blocking-dependency and
+    /// parent-child edge sets.
+    /// </summary>
+    public sealed record ToggleTreeEdgeMode : TuiMessage;
+
+    /// <summary>
+    /// The dependency tree should toggle between showing what the root
+    /// depends on and what depends on the root.
+    /// </summary>
+    public sealed record ToggleTreeDirection : TuiMessage;
+
+    /// <summary>
+    /// The dependency tree should pop its breadcrumb stack and re-root on the
+    /// popped task.
+    /// </summary>
+    public sealed record NavigateTreeBack : TuiMessage;
 }
 
 /// <summary>

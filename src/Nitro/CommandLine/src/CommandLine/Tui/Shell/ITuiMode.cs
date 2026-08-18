@@ -34,4 +34,12 @@ internal interface ITuiMode
     /// Renders the mode into the given content area.
     /// </summary>
     IRenderable Render(int width, int height);
+
+    /// <summary>
+    /// The id of the mode's currently selected task, or null when nothing is
+    /// selected or the mode has no notion of a single selected task. Drives
+    /// the shell's cross-mode gestures (open the dependency tree, edit,
+    /// close/reopen, delete) for whichever mode is active.
+    /// </summary>
+    string? SelectedTaskId => null;
 }

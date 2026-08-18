@@ -25,6 +25,8 @@ internal sealed class FakeTuiMode : ITuiMode
 
     public string RenderText { get; set; } = "mode";
 
+    public string? SelectedTaskId { get; set; }
+
     public void OnEnter() => EnterCalled = true;
 
     public void OnResize(int width, int height) => ResizeCalls.Add((width, height));

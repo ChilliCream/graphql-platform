@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Details;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
@@ -15,12 +16,14 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Search;
 /// </summary>
 /// <remarks>
 /// Text typed into the query input and the debounce that follows it are not
-/// yet reachable through <see cref="ITuiMode.Handle"/>: the shell's key
-/// dispatch only ever produces the closed <see cref="TuiMessage"/> set from a
-/// <see cref="Input.KeyMap"/>, and ticks are not forwarded to the active mode.
-/// <see cref="HandleQueryKey"/> and <see cref="TickAsync"/> expose that
-/// behavior directly for callers (today, tests; once wired, the shell and
-/// runtime) to drive.
+/// reachable through <see cref="ITuiMode.Handle"/>: the shell's key dispatch
+/// only ever produces the closed <see cref="TuiMessage"/> set from a
+/// <see cref="Input.KeyMap"/>. <see cref="HandleQueryKey"/> and
+/// <see cref="TickAsync"/> expose that behavior directly for the shell to
+/// drive: raw key input while <see cref="Focus"/> is <see cref="SearchFocus.Input"/>,
+/// and every tick, respectively. <see cref="FocusInput"/> is likewise driven
+/// directly by the shell for the '/' gesture, since jumping into search from
+/// another mode has no equivalent in the closed <see cref="TuiMessage"/> set.
 /// </remarks>
 internal sealed class SearchMode : ITuiMode
 {
@@ -32,6 +35,8 @@ internal sealed class SearchMode : ITuiMode
 
     private readonly ITaskStore _store;
     private readonly SearchResultsList _results = new();
+    private readonly TaskDetailModel _detailModel;
+    private readonly TaskDetailView _detailView;
 
     private SearchFocus _focus = SearchFocus.Input;
     private string _queryText = "";
@@ -44,6 +49,8 @@ internal sealed class SearchMode : ITuiMode
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
         _pendingQuery = TaskQuery.Empty;
+        _detailModel = new TaskDetailModel(store);
+        _detailView = new TaskDetailView(_detailModel);
     }
 
     /// <summary>
@@ -108,13 +115,23 @@ internal sealed class SearchMode : ITuiMode
                 return [];
 
             case TuiMessage.MoveCursor(var direction):
-                HandleMoveCursor(direction);
-                return [];
+                return HandleMoveCursor(direction);
 
             case TuiMessage.MoveToEdge(var edge):
                 if (_focus == SearchFocus.List)
                 {
                     _results.MoveToEdge(edge);
+                }
+                else if (_focus == SearchFocus.Detail)
+                {
+                    if (edge == EdgeTarget.Top)
+                    {
+                        _detailView.ScrollToTop();
+                    }
+                    else
+                    {
+                        _detailView.ScrollToBottom();
+                    }
                 }
 
                 return [];
@@ -234,14 +251,14 @@ internal sealed class SearchMode : ITuiMode
 
         var body = new Layout("body").SplitColumns(
             new Layout("list", RenderListPane(listWidth, bodyHeight)),
-            new Layout("detail", RenderDetailPane()));
+            new Layout("detail", RenderDetailPane(detailWidth, bodyHeight)));
 
         return new Layout("root").SplitRows(
             new Layout("input", inputArea).Size(inputHeight),
             body);
     }
 
-    private void HandleMoveCursor(CursorDirection direction)
+    private IReadOnlyList<TuiMessage> HandleMoveCursor(CursorDirection direction)
     {
         switch (direction)
         {
@@ -251,10 +268,28 @@ internal sealed class SearchMode : ITuiMode
                 {
                     _results.MoveCursor(direction);
                 }
+                else if (_focus == SearchFocus.Detail)
+                {
+                    if (direction == CursorDirection.Down)
+                    {
+                        _detailView.ScrollDown();
+                    }
+                    else
+                    {
+                        _detailView.ScrollUp();
+                    }
+                }
 
                 break;
 
             case CursorDirection.Left:
+                if (_focus == SearchFocus.Input)
+                {
+                    // Already at the leftmost pane: h/Escape leaves search
+                    // mode instead of doing nothing.
+                    return [new TuiMessage.Back()];
+                }
+
                 _focus = _focus switch
                 {
                     SearchFocus.Detail => SearchFocus.List,
@@ -272,6 +307,8 @@ internal sealed class SearchMode : ITuiMode
 
                 break;
         }
+
+        return [];
     }
 
     private void HandleOpenSelected()
@@ -353,19 +390,27 @@ internal sealed class SearchMode : ITuiMode
         };
     }
 
-    private IRenderable RenderDetailPane()
+    private IRenderable RenderDetailPane(int width, int height)
     {
         var focused = _focus == SearchFocus.Detail;
-        var body = SelectedTaskId is { } id
-            ? $"Task {id}, detail view pending."
-            : "No task selected.";
-        var borderToken = focused ? "board.column.border.focused" : "board.column.border";
 
-        return new Panel(new Markup(Markup.Escape(body)))
+        if (SelectedTaskId is not { } id)
         {
-            Header = new PanelHeader("Detail"),
-            Border = BoxBorder.Rounded,
-            BorderStyle = ThemeTokens.GetStyle(borderToken)
-        };
+            var borderToken = focused ? "board.column.border.focused" : "board.column.border";
+
+            return new Panel(new Markup(Markup.Escape("No task selected.")))
+            {
+                Header = new PanelHeader("Detail"),
+                Border = BoxBorder.Rounded,
+                BorderStyle = ThemeTokens.GetStyle(borderToken)
+            };
+        }
+
+        if (_detailModel.CurrentTaskId != id)
+        {
+            _detailModel.LoadAsync(id, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        return _detailView.Render(width, height, focused);
     }
 }

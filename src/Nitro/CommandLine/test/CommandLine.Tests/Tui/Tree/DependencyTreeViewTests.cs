@@ -309,6 +309,78 @@ public sealed class DependencyTreeViewTests
         Assert.Equal(new TuiMessage.OpenSelected(), message);
     }
 
+    [Fact]
+    public void KeyMap_Should_ResolveM_D_U_To_TreeGestures()
+    {
+        // arrange
+        var view = new DependencyTreeView(new FakeTaskStore(), "a");
+
+        // act & assert
+        Assert.True(view.KeyMap!.TryResolve(new KeyChord(ConsoleKey.M, ConsoleModifiers.None, 'm'), out var m));
+        Assert.Equal(new TuiMessage.ToggleTreeEdgeMode(), m);
+
+        Assert.True(view.KeyMap!.TryResolve(new KeyChord(ConsoleKey.D, ConsoleModifiers.None, 'd'), out var d));
+        Assert.Equal(new TuiMessage.ToggleTreeDirection(), d);
+
+        Assert.True(view.KeyMap!.TryResolve(new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u'), out var u));
+        Assert.Equal(new TuiMessage.NavigateTreeBack(), u);
+    }
+
+    [Fact]
+    public void Handle_ToggleTreeEdgeMode_Should_ToggleEdgeMode()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a"));
+        store.Tasks.Add(TaskItemBuilder.Create("b"));
+        store.Edges.Add(Edge("a", "b", TaskDependencyTypes.ParentChild));
+        var view = new DependencyTreeView(store, "a");
+        view.OnEnter();
+
+        // act
+        view.Handle(new TuiMessage.ToggleTreeEdgeMode());
+
+        // assert
+        Assert.Equal(TreeEdgeMode.ParentChild, view.EdgeMode);
+    }
+
+    [Fact]
+    public void Handle_ToggleTreeDirection_Should_ToggleDirection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a"));
+        var view = new DependencyTreeView(store, "a");
+        view.OnEnter();
+
+        // act
+        view.Handle(new TuiMessage.ToggleTreeDirection());
+
+        // assert
+        Assert.Equal(TreeDirection.Down, view.Direction);
+    }
+
+    [Fact]
+    public void Handle_NavigateTreeBack_Should_PopBreadcrumb()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a"));
+        store.Tasks.Add(TaskItemBuilder.Create("b"));
+        store.Edges.Add(Edge("a", "b"));
+        var view = new DependencyTreeView(store, "a");
+        view.OnEnter();
+        view.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+        view.Refocus();
+        Assert.Equal("b", view.RootId);
+
+        // act
+        view.Handle(new TuiMessage.NavigateTreeBack());
+
+        // assert
+        Assert.Equal("a", view.RootId);
+    }
+
     private static TaskDependency Edge(string taskId, string dependsOnId, string type = TaskDependencyTypes.Blocks)
         => new()
         {

@@ -5,9 +5,11 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Search;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising only the query surface
-/// search mode consumes (<see cref="QueryTasksAsync"/>). Every other member
-/// throws <see cref="NotSupportedException"/>: search mode never calls them.
+/// An in-memory <see cref="ITaskStore"/> exercising the surface search mode
+/// consumes: the query surface (<see cref="QueryTasksAsync"/>) and the read
+/// surface its embedded detail pane consumes (task by id, labels, comments,
+/// dependencies both directions, blocked set). Every other member throws
+/// <see cref="NotSupportedException"/>: search mode never calls them.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
@@ -112,31 +114,32 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult(Tasks.FirstOrDefault(t => t.Id == id));
 
     public Task<TaskItem> GetRequiredTaskAsync(string id, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<string>>([]);
 
     public Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskComment>>([]);
 
     public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskDependencyDetail>>([]);
 
     public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskDependentDetail>>([]);
 
     public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyDictionary<string, IReadOnlyList<string>>>(
+            new Dictionary<string, IReadOnlyList<string>>());
 
     public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
