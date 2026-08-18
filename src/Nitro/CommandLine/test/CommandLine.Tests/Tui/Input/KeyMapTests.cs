@@ -226,6 +226,38 @@ public sealed class KeyMapTests
     }
 
     [Fact]
+    public void CreateDefaultGlobal_Should_MapS_ToStatusPickerRequested()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.S, ConsoleModifiers.None, 's'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.StatusPickerRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefaultGlobal_Should_MapP_ToPriorityPickerRequested()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.P, ConsoleModifiers.None, 'p'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.PriorityPickerRequested>(message);
+    }
+
+    [Fact]
     public void CreateDefaultGlobal_Should_ReturnFalse_When_KeyIsUnbound()
     {
         // arrange

@@ -102,6 +102,18 @@ internal abstract record TuiMessage
     public sealed record DeleteRequested : TuiMessage;
 
     /// <summary>
+    /// The status quick picker should open for the active mode's currently
+    /// selected task.
+    /// </summary>
+    public sealed record StatusPickerRequested : TuiMessage;
+
+    /// <summary>
+    /// The priority quick picker should open for the active mode's currently
+    /// selected task.
+    /// </summary>
+    public sealed record PriorityPickerRequested : TuiMessage;
+
+    /// <summary>
     /// The dependency tree should toggle between the blocking-dependency and
     /// parent-child edge sets.
     /// </summary>

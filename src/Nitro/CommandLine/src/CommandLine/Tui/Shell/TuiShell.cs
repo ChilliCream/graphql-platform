@@ -1,3 +1,4 @@
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -13,8 +14,8 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// <summary>
 /// The root handler and renderer for <see cref="TuiApplication"/>. Owns the mode
 /// stack and composites the shell-level overlays (the quit confirmation, the task
-/// editor, the close/reopen/delete confirmation, and the toast row) over whichever
-/// mode is active.
+/// editor, the close/reopen/delete confirmation, the status and priority quick
+/// pickers, and the toast row) over whichever mode is active.
 /// </summary>
 internal sealed class TuiShell
 {
@@ -35,6 +36,9 @@ internal sealed class TuiShell
     private EditingConfirmDialog? _lifecycleDialog;
     private TaskItem? _lifecycleTask;
     private TaskLifecycleAction _lifecycleAction;
+    private QuickPicker? _picker;
+    private TaskItem? _pickerTask;
+    private PickerKind _pickerKind;
     private int _width;
     private int _height;
 
@@ -97,7 +101,9 @@ internal sealed class TuiShell
                 ? form.Render(_width, contentHeight)
                 : _lifecycleDialog is { } lifecycleDialog
                     ? lifecycleDialog.Render(_width, contentHeight)
-                    : _activeMode.Render(_width, contentHeight);
+                    : _picker is { } picker
+                        ? picker.Render(_width, contentHeight)
+                        : _activeMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render() ?? (IRenderable)new Markup(string.Empty);
 
@@ -147,6 +153,11 @@ internal sealed class TuiShell
         if (_lifecycleDialog is not null)
         {
             return HandleLifecycleDialogKey(info);
+        }
+
+        if (_picker is not null)
+        {
+            return HandlePickerKey(info);
         }
 
         if (_searchMode is { } searchMode
@@ -238,6 +249,59 @@ internal sealed class TuiShell
         return true;
     }
 
+    private bool HandlePickerKey(ConsoleKeyInfo info)
+    {
+        var result = _picker!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case QuickPickerResult.Cancelled:
+                _picker = null;
+                _pickerTask = null;
+                return true;
+
+            case QuickPickerResult.Applied applied:
+                return SubmitPicker(applied.SelectedId);
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitPicker(string selectedId)
+    {
+        var task = _pickerTask!;
+        var kind = _pickerKind;
+        _picker = null;
+        _pickerTask = null;
+
+        // Picking Closed on the status picker is not a bare status write: it
+        // routes through the same close confirmation flow the x key uses.
+        if (kind == PickerKind.Status && selectedId == TaskStates.Closed)
+        {
+            _lifecycleTask = task;
+            _lifecycleAction = TaskLifecycleAction.Close;
+            _lifecycleDialog = TaskLifecycleActions.CreateCloseDialog(task);
+            return true;
+        }
+
+        var outcomeTask = kind switch
+        {
+            PickerKind.Status => StatusPicker.ApplyAsync(_store!, task, selectedId, _actor!, CancellationToken.None),
+            PickerKind.Priority => PriorityPicker.ApplyAsync(
+                _store!, task, int.Parse(selectedId, CultureInfo.InvariantCulture), _actor!, CancellationToken.None),
+            _ => throw new NotSupportedException()
+        };
+        var outcome = outcomeTask.GetAwaiter().GetResult();
+
+        HandleMessage(outcome.ToShowToast());
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
     private bool HandleMessage(TuiMessage message)
     {
         switch (message)
@@ -284,6 +348,12 @@ internal sealed class TuiShell
 
             case TuiMessage.DeleteRequested:
                 return TryOpenDeleteDialog();
+
+            case TuiMessage.StatusPickerRequested:
+                return TryOpenPicker(PickerKind.Status);
+
+            case TuiMessage.PriorityPickerRequested:
+                return TryOpenPicker(PickerKind.Priority);
 
             default:
                 foreach (var followUp in _activeMode.Handle(message))
@@ -382,6 +452,24 @@ internal sealed class TuiShell
         return true;
     }
 
+    private bool TryOpenPicker(PickerKind kind)
+    {
+        if (_store is null)
+        {
+            return false;
+        }
+
+        if (LoadSelectedTask() is not { } task)
+        {
+            return true;
+        }
+
+        _pickerTask = task;
+        _pickerKind = kind;
+        _picker = kind == PickerKind.Status ? StatusPicker.Create(task) : PriorityPicker.Create(task);
+        return true;
+    }
+
     private TaskItem? LoadSelectedTask()
     {
         if (_store is null)
@@ -435,4 +523,13 @@ internal sealed class TuiShell
         _activeMode.OnResize(_width, ContentHeight);
         _activeMode.OnEnter();
     }
+}
+
+/// <summary>
+/// Which field a <see cref="TuiShell"/>'s active quick picker is editing.
+/// </summary>
+internal enum PickerKind
+{
+    Status,
+    Priority
 }

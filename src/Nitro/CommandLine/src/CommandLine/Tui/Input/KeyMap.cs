@@ -36,7 +36,8 @@ internal sealed class KeyMap
     /// q and Ctrl+C to request quit, Ctrl+N/Ctrl+P to cycle views, z to toggle the
     /// maximized layout, / to jump into search, t to open the dependency tree on
     /// the current selection, e to edit it, x to close or reopen it, X to delete
-    /// it, and Escape to leave the active mode.
+    /// it, s to open the status quick picker on it, p to open the priority quick
+    /// picker on it, and Escape to leave the active mode.
     /// </summary>
     public static KeyMap CreateDefaultGlobal() => new(
     [
@@ -109,6 +110,12 @@ internal sealed class KeyMap
         new KeyBinding(
             new KeyChord(ConsoleKey.X, ConsoleModifiers.Shift, 'X'),
             () => new TuiMessage.DeleteRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.S, ConsoleModifiers.None, 's'),
+            () => new TuiMessage.StatusPickerRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.P, ConsoleModifiers.None, 'p'),
+            () => new TuiMessage.PriorityPickerRequested()),
         new KeyBinding(
             new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, ''),
             () => new TuiMessage.Back())

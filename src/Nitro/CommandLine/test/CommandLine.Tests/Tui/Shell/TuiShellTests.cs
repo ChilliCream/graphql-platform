@@ -442,6 +442,121 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Handle_Should_ShowToast_When_StatusPickerRequestedWithNoSelection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S)));
+
+        // assert
+        Assert.Contains("No task selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_OpenStatusPickerAndWriteSelectedStatus_When_StatusPickerRequestedThenApplied()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S)));
+        Assert.Contains("Status", RenderToText(shell));
+
+        // act: move down once to In Progress, then apply.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a", store.UpdatedId);
+        Assert.True(store.UpdateReceived!.StatusGiven);
+        Assert.Equal(TaskStates.InProgress, store.UpdateReceived.Status);
+        Assert.Equal("tester", store.Actor);
+        Assert.Contains("Status set to", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_CancelStatusPickerWithoutWriting_When_EscapePressedWhilePicking()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        Assert.Null(store.UpdatedId);
+        Assert.DoesNotContain("Status", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_OpenCloseConfirmation_When_ClosedPickedOnStatusPicker()
+    {
+        // arrange: picking Closed on the status picker is not a bare status
+        // write, it routes through the same close confirmation flow as x.
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S)));
+
+        // act: move down to Closed (Open, In Progress, Blocked, Deferred, Closed).
+        for (var i = 0; i < 4; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Null(store.UpdatedId);
+        Assert.Contains("Close task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_PriorityPickerRequestedWithNoSelection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('p', ConsoleKey.P)));
+
+        // assert
+        Assert.Contains("No task selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_OpenPriorityPickerAndWriteSelectedPriority_When_PriorityPickerRequestedThenApplied()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('p', ConsoleKey.P)));
+        Assert.Contains("Priority", RenderToText(shell));
+
+        // act: move up once to P1, then apply.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('k', ConsoleKey.K)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a", store.UpdatedId);
+        Assert.True(store.UpdateReceived!.PriorityGiven);
+        Assert.Equal(1, store.UpdateReceived.Priority);
+        Assert.Contains("Priority set to", RenderToText(shell));
+    }
+
+    [Fact]
     public void Handle_Should_RouteRawKeyToSearchQueryInput_When_SearchModeHasInputFocus()
     {
         // arrange
