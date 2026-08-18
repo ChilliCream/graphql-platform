@@ -228,12 +228,12 @@ dotnet ef database update
 
 The PostgreSQL and Azure Service Bus transports have scheduling stores of their own. InMemory and RabbitMQ need the `UsePostgresScheduling()` fallback; without it, a scheduled dispatch on either transport throws `NotSupportedException`.
 
-| Transport         | Scheduling type                           | Durability                      | Cancellation support                       | Setup required                            |
-| ----------------- | ----------------------------------------- | ------------------------------- | ------------------------------------------ | ----------------------------------------- |
+| Transport         | Scheduling type                          | Durability                      | Cancellation support                       | Setup required                            |
+| ----------------- | ---------------------------------------- | ------------------------------- | ------------------------------------------ | ----------------------------------------- |
 | InMemory          | None, requires `UsePostgresScheduling()` | Durable, via the fallback store | Yes, via the fallback store                | `UsePostgresScheduling()` + EF Core model |
-| PostgreSQL        | Native (transport-owned store)            | Durable, survives restarts      | Yes (token prefixed `postgres-transport:`) | None                                      |
+| PostgreSQL        | Native (transport-owned store)           | Durable, survives restarts      | Yes (token prefixed `postgres-transport:`) | None                                      |
 | RabbitMQ          | None, requires `UsePostgresScheduling()` | Durable, via the fallback store | Yes, via the fallback store                | `UsePostgresScheduling()` + EF Core model |
-| Azure Service Bus | Native (`ScheduleMessageAsync`)           | Durable, broker-managed         | Yes (native)                               | None                                      |
+| Azure Service Bus | Native (`ScheduleMessageAsync`)          | Durable, broker-managed         | Yes (native)                               | None                                      |
 
 **InMemory:** The transport has no scheduling store of its own. Scheduling a message throws `NotSupportedException` unless `UsePostgresScheduling()` is registered as a fallback. With the fallback configured, scheduled messages are persisted to Postgres and dispatched through a background worker, the same as RabbitMQ below.
 

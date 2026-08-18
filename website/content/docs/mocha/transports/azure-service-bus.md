@@ -51,7 +51,7 @@ builder.Services
     .AddAzureServiceBus(transport =>
     {
         transport.Namespace(
-            "mynamespace.servicebus.windows.net",
+            "example.servicebus.windows.net",
             new DefaultAzureCredential());
     });
 
@@ -362,7 +362,7 @@ Native property values supplied through `PublishOptions.Headers` take precedence
 | `AzureServiceBusMessageHeaders.PartitionKey`     | `x-partition-key`       |
 | `AzureServiceBusMessageHeaders.ReplyToSessionId` | `x-reply-to-session-id` |
 
-When a message is sent, these headers are mapped to native Service Bus fields and omitted from `ApplicationProperties`. On receive, Mocha restores the native values into the normalized envelope headers so redispatch can preserve session and partition affinity.
+When a message is sent, these headers are mapped to native Service Bus fields and omitted from `ApplicationProperties`. On receive, Mocha restores the native values into the normalized envelope headers so subsequent dispatches can preserve session and partition affinity.
 
 ## Reference
 
@@ -374,7 +374,7 @@ When a message is sent, these headers are mapped to native Service Bus fields an
 | `UseAzureServiceBusPartitionKey<T>(extractor)`     | `PartitionKey`              | `x-partition-key`       | Must equal `SessionId` when both are set, else dispatch throws `InvalidOperationException`. |
 | `UseAzureServiceBusReplyToSessionId<T>(extractor)` | `ReplyToSessionId`          | `x-reply-to-session-id` | Configure on the request type, not the response.                                            |
 
-Extractors are the right tool when the ASB property is derived from the payload. When you need to declare the entities they land on - session-aware queues, partitioned topics, or autoforward targets - reach for [the topology builder](#declare-custom-topology) in the next section.
+Extractors are the right tool when the ASB property is derived from the payload. When you need to declare the entities they land on - session-aware queues, partitioned topics, or automatic forwarding targets - reach for [the topology builder](#declare-custom-topology) in the next section.
 
 # Declare custom topology
 
