@@ -3,16 +3,16 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising only the lifecycle write
-/// surface <see cref="TaskLifecycleActions"/> consumes (close, reopen,
-/// delete). Every other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="ITaskStore"/> exercising only the write surface
+/// <see cref="TaskLifecycleActions"/> and <see cref="TaskEditorForm"/> consume
+/// (close, reopen, delete, update, add label, remove label). Every other
+/// member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
     /// <summary>
-    /// When set, the next call to <see cref="CloseTaskAsync"/>,
-    /// <see cref="ReopenTaskAsync"/>, or <see cref="DeleteTaskAsync"/> throws
-    /// this instead of returning a result.
+    /// When set, the next write call throws this instead of returning a
+    /// result.
     /// </summary>
     public ExitException? ThrowOnWrite { get; set; }
 
@@ -31,6 +31,20 @@ internal sealed class FakeTaskStore : ITaskStore
     public string? Actor { get; private set; }
 
     public TaskItem ResultTask { get; set; } = null!;
+
+    public string? UpdatedId { get; private set; }
+
+    public TaskUpdate? UpdateReceived { get; private set; }
+
+    public TaskUpdateResult UpdateResult { get; set; } = new();
+
+    public string? AddLabelId { get; private set; }
+
+    public IReadOnlyList<string>? AddedLabels { get; private set; }
+
+    public string? RemoveLabelId { get; private set; }
+
+    public List<string> RemovedLabels { get; } = [];
 
     public Task<IReadOnlyList<TaskItem>> CloseTaskAsync(
         IReadOnlyList<string> ids, string reason, string actor, CancellationToken cancellationToken)
@@ -140,7 +154,18 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<TaskUpdateResult> UpdateTaskAsync(string id, TaskUpdate update, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        UpdatedId = id;
+        UpdateReceived = update;
+        Actor = update.Actor;
+
+        if (ThrowOnWrite is { } exception)
+        {
+            throw exception;
+        }
+
+        return Task.FromResult(UpdateResult);
+    }
 
     public Task<TaskItem> DeferTaskAsync(string id, DateTimeOffset until, string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
@@ -155,10 +180,33 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskLabelChange>> AddLabelAsync(string id, IReadOnlyList<string> labels, string actor, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        AddLabelId = id;
+        AddedLabels = labels;
+        Actor = actor;
+
+        if (ThrowOnWrite is { } exception)
+        {
+            throw exception;
+        }
+
+        return Task.FromResult<IReadOnlyList<TaskLabelChange>>(
+            [.. labels.Select(label => new TaskLabelChange(label, Added: true))]);
+    }
 
     public Task RemoveLabelAsync(string id, string label, string actor, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        RemoveLabelId = id;
+        RemovedLabels.Add(label);
+        Actor = actor;
+
+        if (ThrowOnWrite is { } exception)
+        {
+            throw exception;
+        }
+
+        return Task.CompletedTask;
+    }
 
     public Task<TaskDependencyAddResult> AddDependencyAsync(string id, string dependsOnId, string type, string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
