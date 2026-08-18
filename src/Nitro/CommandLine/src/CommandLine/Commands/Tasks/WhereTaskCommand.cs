@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
@@ -8,6 +9,8 @@ internal sealed class WhereTaskCommand : Command
     public WhereTaskCommand() : base("where")
     {
         Description = "Print the absolute path of the current task workspace.";
+
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task where");
 
@@ -21,13 +24,22 @@ internal sealed class WhereTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
                 "No task workspace found. Run `nitro task init` first.");
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskWorkspaceLocationResult(workspaceDirectory)));
+            return Task.FromResult(ExitCodes.Success);
+        }
+
         console.WriteLine(workspaceDirectory);
 
         return Task.FromResult(ExitCodes.Success);
     }
+
+    public sealed record TaskWorkspaceLocationResult(string Path);
 }

@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -9,6 +10,8 @@ internal sealed class ListTaskConfigCommand : Command
     public ListTaskConfigCommand() : base("list")
     {
         Description = "List all configuration values.";
+
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task config list");
 
@@ -22,8 +25,15 @@ internal sealed class ListTaskConfigCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var rows = await store.ListConfigAsync(cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskConfigEntry>(rows));
+            return ExitCodes.Success;
+        }
 
         foreach (var row in rows)
         {

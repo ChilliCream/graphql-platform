@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class ListTaskCommentCommand : Command
         Description = "List a task's comments.";
 
         Arguments.Add(Opt<TaskIdArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task comment list \"acme-1a2\"");
 
@@ -25,11 +27,18 @@ internal sealed class ListTaskCommentCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
         var task = await store.GetRequiredTaskAsync(id, cancellationToken);
         var comments = await store.GetCommentsAsync(task.Id, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskComment>(comments));
+            return ExitCodes.Success;
+        }
 
         if (comments.Count == 0)
         {

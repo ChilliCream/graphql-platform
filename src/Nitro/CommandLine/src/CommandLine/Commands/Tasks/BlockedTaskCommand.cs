@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -9,6 +10,8 @@ internal sealed class BlockedTaskCommand : Command
     public BlockedTaskCommand() : base("blocked")
     {
         Description = "List tasks that are blocked by unfinished dependencies.";
+
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task blocked");
 
@@ -22,14 +25,9 @@ internal sealed class BlockedTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var blocked = await store.ComputeBlockedAsync(cancellationToken);
-
-        if (blocked.Count == 0)
-        {
-            console.WriteLine("No blocked tasks.");
-            return ExitCodes.Success;
-        }
 
         var tasks = new List<TaskItem>();
 
@@ -44,6 +42,15 @@ internal sealed class BlockedTaskCommand : Command
         }
 
         tasks = tasks.OrderBy(t => t.Id, StringComparer.Ordinal).ToList();
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskBlockedResult>(
+                tasks.Select(t => new TaskBlockedResult(
+                    t.Id, t.Priority, t.Type, t.Status, t.Title, blocked[t.Id]))
+                    .ToArray()));
+            return ExitCodes.Success;
+        }
 
         if (tasks.Count == 0)
         {

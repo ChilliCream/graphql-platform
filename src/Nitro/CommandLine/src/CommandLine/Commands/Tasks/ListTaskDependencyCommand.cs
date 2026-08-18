@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class ListTaskDependencyCommand : Command
         Description = "List a task's dependencies.";
 
         Arguments.Add(Opt<TaskIdArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task dep list \"acme-1a2\"");
 
@@ -25,12 +27,19 @@ internal sealed class ListTaskDependencyCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
         var task = await store.GetRequiredTaskAsync(id, cancellationToken);
         var dependencies = await store.GetDependenciesAsync(task.Id, cancellationToken);
         var dependents = await store.GetDependentsAsync(task.Id, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskDependenciesResult(dependencies, dependents)));
+            return ExitCodes.Success;
+        }
 
         if (dependencies.Count == 0 && dependents.Count == 0)
         {

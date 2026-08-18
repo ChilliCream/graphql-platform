@@ -23,7 +23,8 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
               <id>  The task ID
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task label list
@@ -110,5 +111,61 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_WithId_ReturnsStructuredLabels()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "label", "add", id, "parser", "api");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "label", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [
+                "api",
+                "parser"
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_WithoutId_ReturnsStructuredCounts()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id1 = await CreateTaskAsync("Fix the parser");
+        var id2 = await CreateTaskAsync("Write the docs");
+        await ExecuteCommandAsync("task", "label", "add", id1, "api", "parser");
+        await ExecuteCommandAsync("task", "label", "add", id2, "api");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "label", "list");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [
+                {
+                  "label": "api",
+                  "count": 2
+                },
+                {
+                  "label": "parser",
+                  "count": 1
+                }
+              ]
+            }
+            """);
     }
 }

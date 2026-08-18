@@ -23,7 +23,8 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
               <id>  The task ID
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task dep list "acme-1a2"
@@ -95,5 +96,56 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredDependenciesAndDependents()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        var dependsOnId = await CreateTaskAsync("Write the tokenizer");
+        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "dependencies": [
+                {
+                  "type": "blocks",
+                  "dependsOnId": "{{dependsOnId}}",
+                  "status": "open",
+                  "title": "Write the tokenizer"
+                }
+              ],
+              "dependents": []
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoDependencies_ReturnsEmptyArrays()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "dependencies": [],
+              "dependents": []
+            }
+            """);
     }
 }

@@ -23,7 +23,8 @@ public sealed class GetTaskConfigCommandTests(NitroCommandFixture fixture)
               <key>  The configuration key
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task config get prefix
@@ -80,6 +81,25 @@ public sealed class GetTaskConfigCommandTests(NitroCommandFixture fixture)
         result.AssertError(
             """
             No task workspace found. Run `nitro task init` first.
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ExistingKey_ReturnsStructuredValue()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "config", "get", "prefix");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "value": "acme"
+            }
             """);
     }
 }

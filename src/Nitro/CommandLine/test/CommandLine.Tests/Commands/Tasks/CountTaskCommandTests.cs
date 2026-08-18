@@ -20,8 +20,9 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
               nitro task count [options]
 
             Options:
-              --by <by>       Group counts by: status, type, priority, assignee, or label
-              -?, -h, --help  Show help and usage information
+              --by <by>        Group counts by: status, type, priority, assignee, or label
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task count
@@ -122,6 +123,51 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
             """
             api  2
             parser  1
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoOptions_ReturnsStructuredTotal()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "count");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "total": 1
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ByStatus_ReturnsStructuredList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "count", "--by", "status");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [
+                {
+                  "value": "open",
+                  "count": 1
+                }
+              ]
+            }
             """);
     }
 

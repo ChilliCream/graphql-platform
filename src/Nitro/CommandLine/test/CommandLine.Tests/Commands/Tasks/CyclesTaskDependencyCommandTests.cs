@@ -20,7 +20,8 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
               nitro task dep cycles [options]
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task dep cycles
@@ -75,6 +76,57 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
 
         // assert
         result.AssertSuccess("No cycles found.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoCycles_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_TwoNodeBlockingCycle_ReturnsStructuredCycle()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var a = await CreateTaskAsync("Task A");
+        var b = await CreateTaskAsync("Task B");
+        await ExecuteCommandAsync("task", "dep", "add", a, b);
+        await ExecuteCommandAsync("task", "dep", "add", b, a);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+
+        // assert
+        var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
+        var larger = smaller == a ? b : a;
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "tasks": [
+                    "{{smaller}}",
+                    "{{larger}}"
+                  ]
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]

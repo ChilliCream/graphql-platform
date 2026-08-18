@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -16,6 +17,7 @@ internal sealed class ReadyTaskCommand : Command
         Options.Add(Opt<TaskLabelOption>.Instance);
         Options.Add(Opt<TaskLimitOption>.Instance);
         Options.Add(Opt<TaskIncludeDeferredOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task ready", "task ready --assignee alice --limit 5");
 
@@ -30,6 +32,7 @@ internal sealed class ReadyTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var priorityValue = parseResult.GetValue(Opt<TaskPriorityOption>.Instance);
         var assignee = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance);
@@ -55,6 +58,12 @@ internal sealed class ReadyTaskCommand : Command
 
         var readyTasks = await store.QueryTasksAsync(filter, cancellationToken);
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskSummaryResult>(readyTasks.Select(ToSummary).ToArray()));
+            return ExitCodes.Success;
+        }
+
         if (readyTasks.Count == 0)
         {
             console.WriteLine("No ready tasks.");
@@ -75,4 +84,7 @@ internal sealed class ReadyTaskCommand : Command
     private static string FormatRow(TaskItem task)
         => $"{task.Id}  {TaskPriorities.Format(task.Priority)}  {task.Type}  "
             + $"{task.Status}  {task.Title}";
+
+    private static TaskSummaryResult ToSummary(TaskItem task)
+        => new(task.Id, task.Priority, task.Type, task.Status, task.Title);
 }

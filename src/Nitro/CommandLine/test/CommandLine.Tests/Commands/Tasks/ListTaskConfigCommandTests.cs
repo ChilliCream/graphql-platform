@@ -20,7 +20,8 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
               nitro task config list [options]
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task config list
@@ -70,6 +71,30 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
         result.AssertError(
             """
             No task workspace found. Run `nitro task init` first.
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "config", "list");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [
+                {
+                  "key": "prefix",
+                  "value": "acme"
+                }
+              ]
+            }
             """);
     }
 }

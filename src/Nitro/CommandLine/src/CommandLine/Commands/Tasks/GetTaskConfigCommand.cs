@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class GetTaskConfigCommand : Command
         Description = "Get a configuration value.";
 
         Arguments.Add(Opt<ConfigKeyArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task config get prefix");
 
@@ -25,14 +27,23 @@ internal sealed class GetTaskConfigCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var key = parseResult.GetRequiredValue(Opt<ConfigKeyArgument>.Instance);
 
         var value = await store.GetConfigAsync(key, cancellationToken)
             ?? throw new ExitException($"Configuration key '{key}' is not set.");
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskConfigValueResult(value)));
+            return ExitCodes.Success;
+        }
+
         console.WriteLine(value);
 
         return ExitCodes.Success;
     }
+
+    public sealed record TaskConfigValueResult(string Value);
 }

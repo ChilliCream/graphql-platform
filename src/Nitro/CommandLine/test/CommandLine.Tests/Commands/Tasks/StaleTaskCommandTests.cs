@@ -20,8 +20,9 @@ public sealed class StaleTaskCommandTests(NitroCommandFixture fixture)
               nitro task stale [options]
 
             Options:
-              --days <days>   The staleness threshold in days (default 30)
-              -?, -h, --help  Show help and usage information
+              --days <days>    The staleness threshold in days (default 30)
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task stale
@@ -99,6 +100,54 @@ public sealed class StaleTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess("No stale tasks.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        FakeTime.Advance(TimeSpan.FromDays(31));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "stale");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{id}}",
+                  "priority": 2,
+                  "type": "task",
+                  "status": "open",
+                  "title": "Fix the parser"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoStaleTasks_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "stale");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
+            """);
     }
 
     [Fact]

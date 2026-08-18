@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class TreeTaskDependencyCommand : Command
         Description = "Show a task's outgoing dependency tree.";
 
         Arguments.Add(Opt<TaskIdArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task dep tree \"acme-1a2\"");
 
@@ -27,6 +29,7 @@ internal sealed class TreeTaskDependencyCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
@@ -47,11 +50,61 @@ internal sealed class TreeTaskDependencyCommand : Command
 
         var printed = new HashSet<string> { root.Id };
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskDependencyTreeNode
+            {
+                Id = root.Id,
+                Type = null,
+                Status = root.Status,
+                Title = root.Title,
+                Repeated = false,
+                Children = BuildChildren(root.Id, tasks, childrenByParent, printed, depth: 1)
+            }));
+
+            return ExitCodes.Success;
+        }
+
         console.WriteLine($"{root.Id} ({root.Status}) {root.Title}");
 
         WriteChildren(console, root.Id, tasks, childrenByParent, printed, depth: 1);
 
         return ExitCodes.Success;
+    }
+
+    private static IReadOnlyList<TaskDependencyTreeNode> BuildChildren(
+        string parentId,
+        IReadOnlyDictionary<string, TaskItem> tasks,
+        IReadOnlyDictionary<string, List<TaskDependency>> childrenByParent,
+        HashSet<string> printed,
+        int depth)
+    {
+        if (depth > MaxDepth || !childrenByParent.TryGetValue(parentId, out var children))
+        {
+            return [];
+        }
+
+        var nodes = new List<TaskDependencyTreeNode>();
+
+        foreach (var edge in children)
+        {
+            var alreadyPrinted = !printed.Add(edge.DependsOnId);
+            var hasNode = tasks.TryGetValue(edge.DependsOnId, out var node);
+
+            nodes.Add(new TaskDependencyTreeNode
+            {
+                Id = edge.DependsOnId,
+                Type = edge.Type,
+                Status = hasNode ? node!.Status : null,
+                Title = hasNode ? node!.Title : null,
+                Repeated = alreadyPrinted,
+                Children = alreadyPrinted
+                    ? []
+                    : BuildChildren(edge.DependsOnId, tasks, childrenByParent, printed, depth + 1)
+            });
+        }
+
+        return nodes;
     }
 
     private static void WriteChildren(

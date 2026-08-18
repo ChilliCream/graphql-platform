@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -9,6 +10,8 @@ internal sealed class CyclesTaskDependencyCommand : Command
     public CyclesTaskDependencyCommand() : base("cycles")
     {
         Description = "Detect cycles among blocking dependencies.";
+
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task dep cycles");
 
@@ -22,6 +25,7 @@ internal sealed class CyclesTaskDependencyCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var edges = (await store.GetDependencyEdgesAsync(cancellationToken))
             .Where(e => TaskDependencyTypes.IsBlocking(e.Type))
@@ -37,6 +41,13 @@ internal sealed class CyclesTaskDependencyCommand : Command
                     .ToList());
 
         var cycles = FindCycles(adjacency);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskCycleResult>(
+                cycles.Select(c => new TaskCycleResult(c)).ToArray()));
+            return ExitCodes.Success;
+        }
 
         if (cycles.Count == 0)
         {

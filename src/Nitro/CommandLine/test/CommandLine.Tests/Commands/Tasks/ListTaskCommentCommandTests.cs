@@ -23,7 +23,8 @@ public sealed class ListTaskCommentCommandTests(NitroCommandFixture fixture)
               <id>  The task ID
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task comment list "acme-1a2"
@@ -119,5 +120,54 @@ public sealed class ListTaskCommentCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredComments()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "comment", "add", id, "Looks good to me.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": 1,
+                  "taskId": "{{id}}",
+                  "author": "test-agent",
+                  "text": "Looks good to me.",
+                  "createdAt": "2026-01-01T00:00:00+00:00"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoComments_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
+            """);
     }
 }

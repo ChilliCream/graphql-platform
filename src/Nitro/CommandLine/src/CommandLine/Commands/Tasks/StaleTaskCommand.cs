@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class StaleTaskCommand : Command
         Description = "List open tasks that have not been updated recently.";
 
         Options.Add(Opt<TaskDaysOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task stale", "task stale --days 14");
 
@@ -26,6 +28,7 @@ internal sealed class StaleTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var days = parseResult.GetValue(Opt<TaskDaysOption>.Instance) ?? 30;
         var threshold = timeProvider.GetUtcNow() - TimeSpan.FromDays(days);
@@ -38,6 +41,12 @@ internal sealed class StaleTaskCommand : Command
         };
 
         var tasks = await store.QueryTasksAsync(filter, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskSummaryResult>(tasks.Select(ToSummary).ToArray()));
+            return ExitCodes.Success;
+        }
 
         if (tasks.Count == 0)
         {
@@ -65,4 +74,7 @@ internal sealed class StaleTaskCommand : Command
             Status = task.Status,
             Title = task.Title
         }.Format();
+
+    private static TaskSummaryResult ToSummary(TaskItem task)
+        => new(task.Id, task.Priority, task.Type, task.Status, task.Title);
 }

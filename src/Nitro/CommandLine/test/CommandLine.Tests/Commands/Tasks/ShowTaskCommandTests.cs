@@ -24,7 +24,8 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
               <id>  The task ID
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task show "acme-1a2"
@@ -196,6 +197,72 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
               [2] test-agent 2026-01-01 00:00
                 Thanks, merging.
             """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_MinimalTask_ReturnsStructuredDetail()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", id);
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{id}}",
+              "title": "Fix the parser",
+              "status": "open",
+              "priority": 2,
+              "type": "task",
+              "assignee": null,
+              "estimatedMinutes": null,
+              "dueAt": null,
+              "deferUntil": null,
+              "createdAt": "2026-01-01T00:00:00+00:00",
+              "createdBy": "test-agent",
+              "updatedAt": "2026-01-01T00:00:00+00:00",
+              "closedAt": null,
+              "closeReason": null,
+              "description": "",
+              "design": "",
+              "acceptanceCriteria": "",
+              "notes": "",
+              "labels": [],
+              "blockers": [],
+              "dependencies": [],
+              "dependents": [],
+              "comments": []
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_TaskWithDependency_EmbedsDependenciesAndBlockers()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var baseId = await CreateTaskAsync("Fix the parser");
+        var dependentId = await CreateTaskAsync("Fix the lexer", "--depends-on", baseId);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", dependentId);
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("open", root.GetProperty("blockers")[0].GetString()!.Split(':')[1]);
+        Assert.Equal(baseId, root.GetProperty("blockers")[0].GetString()!.Split(':')[0]);
+        Assert.Equal("blocks", root.GetProperty("dependencies")[0].GetProperty("type").GetString());
+        Assert.Equal(baseId, root.GetProperty("dependencies")[0].GetProperty("dependsOnId").GetString());
     }
 
     /// <summary>

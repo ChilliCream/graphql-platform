@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class ShowTaskCommand : Command
         Description = "Show a task's details.";
 
         Arguments.Add(Opt<TaskIdArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task show \"acme-1a2\"");
 
@@ -25,6 +27,7 @@ internal sealed class ShowTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
@@ -34,6 +37,42 @@ internal sealed class ShowTaskCommand : Command
         var blocks = await store.GetDependentsAsync(task.Id, cancellationToken);
         var comments = await store.GetCommentsAsync(task.Id, cancellationToken);
         var blocked = await store.ComputeBlockedAsync(cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            var blockers = blocked.TryGetValue(task.Id, out var taskBlockers)
+                ? taskBlockers
+                : [];
+
+            resultHolder.SetResult(new ObjectResult(new TaskDetailResult
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Status = task.Status,
+                Priority = task.Priority,
+                Type = task.Type,
+                Assignee = task.Assignee,
+                EstimatedMinutes = task.EstimatedMinutes,
+                DueAt = task.DueAt,
+                DeferUntil = task.DeferUntil,
+                CreatedAt = task.CreatedAt,
+                CreatedBy = task.CreatedBy,
+                UpdatedAt = task.UpdatedAt,
+                ClosedAt = task.ClosedAt,
+                CloseReason = string.IsNullOrEmpty(task.CloseReason) ? null : task.CloseReason,
+                Description = task.Description,
+                Design = task.Design,
+                AcceptanceCriteria = task.AcceptanceCriteria,
+                Notes = task.Notes,
+                Labels = labels,
+                Blockers = blockers,
+                Dependencies = dependencies,
+                Dependents = blocks,
+                Comments = comments
+            }));
+
+            return ExitCodes.Success;
+        }
 
         console.WriteLine($"{task.Id}: {task.Title}");
         console.WriteLine();

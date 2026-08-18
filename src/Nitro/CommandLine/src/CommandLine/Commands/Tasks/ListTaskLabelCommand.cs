@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class ListTaskLabelCommand : Command
         Description = "List a task's labels, or every label in use.";
 
         Arguments.Add(Opt<OptionalTaskIdArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task label list", "task label list \"acme-1a2\"");
 
@@ -25,6 +27,7 @@ internal sealed class ListTaskLabelCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetValue(Opt<OptionalTaskIdArgument>.Instance);
 
@@ -32,6 +35,12 @@ internal sealed class ListTaskLabelCommand : Command
         {
             var task = await store.GetRequiredTaskAsync(id, cancellationToken);
             var labels = await store.GetLabelsAsync(task.Id, cancellationToken);
+
+            if (!console.IsHumanReadable)
+            {
+                resultHolder.SetResult(new ListResult<string>(labels));
+                return ExitCodes.Success;
+            }
 
             if (labels.Count == 0)
             {
@@ -48,6 +57,12 @@ internal sealed class ListTaskLabelCommand : Command
         }
 
         var rows = await store.GetLabelCountsAsync(cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskLabelCount>(rows));
+            return ExitCodes.Success;
+        }
 
         if (rows.Count == 0)
         {

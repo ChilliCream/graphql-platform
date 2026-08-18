@@ -19,7 +19,8 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
               nitro task epic status [options]
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task epic status
@@ -104,5 +105,57 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess($"{epicId}  1/1  Ship v4");
+    }
+
+    [Fact]
+    public async Task JsonOutput_EpicWithOpenAndClosedChildren_ReturnsStructuredStatus()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var epicId = await CreateTaskAsync("Ship v2", "--type", "epic");
+        var child1Id = await CreateTaskAsync("Design API", "--parent", epicId);
+        await CreateTaskAsync("Implement API", "--parent", epicId);
+        await ExecuteCommandAsync("task", "close", child1Id);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{epicId}}",
+                  "title": "Ship v2",
+                  "status": "open",
+                  "total": 2,
+                  "closed": 1,
+                  "isEligibleForClose": false
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoEpics_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Standalone task");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
+            """);
     }
 }

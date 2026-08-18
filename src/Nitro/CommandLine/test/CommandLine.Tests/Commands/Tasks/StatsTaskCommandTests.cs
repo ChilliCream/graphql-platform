@@ -21,7 +21,8 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
               nitro task stats [options]
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task stats
@@ -139,6 +140,39 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
             Labels: 2
             Comments: 2
             Events: 2
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredStats()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var baseId = await CreateTaskAsync("Base task");
+        var dependentId = await CreateTaskAsync("Dependent task", "--depends-on", baseId);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "stats");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "statusCounts": [
+                {
+                  "value": "open",
+                  "count": 2
+                }
+              ],
+              "readyCount": 1,
+              "blockedTaskStatuses": {
+                "{{dependentId}}": "open"
+              },
+              "labelCount": 0,
+              "commentCount": 0,
+              "eventCount": 2
+            }
             """);
     }
 

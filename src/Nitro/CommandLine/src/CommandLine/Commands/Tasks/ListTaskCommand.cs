@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -18,6 +19,7 @@ internal sealed class ListTaskCommand : Command
         Options.Add(Opt<TaskLabelOption>.Instance);
         Options.Add(Opt<TaskLimitOption>.Instance);
         Options.Add(Opt<TaskAllOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task list",
@@ -34,6 +36,7 @@ internal sealed class ListTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var statuses = parseResult.GetValue(Opt<TaskStatusFilterOption>.Instance);
         var type = parseResult.GetValue(Opt<TaskTypeOption>.Instance);
@@ -55,6 +58,12 @@ internal sealed class ListTaskCommand : Command
         };
 
         var tasks = await store.QueryTasksAsync(filter, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskSummaryResult>(tasks.Select(ToSummary).ToArray()));
+            return ExitCodes.Success;
+        }
 
         if (tasks.Count == 0)
         {
@@ -82,4 +91,7 @@ internal sealed class ListTaskCommand : Command
             Status = task.Status,
             Title = task.Title
         }.Format();
+
+    private static TaskSummaryResult ToSummary(TaskItem task)
+        => new(task.Id, task.Priority, task.Type, task.Status, task.Title);
 }

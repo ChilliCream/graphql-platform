@@ -24,6 +24,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
 
             Options:
               --limit <limit>  The maximum number of tasks to show
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
@@ -120,6 +121,54 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
             {mid}  P1  task  open  Widget beta
 
             2 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the Parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "search", "parser");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{id}}",
+                  "priority": 2,
+                  "type": "task",
+                  "status": "open",
+                  "title": "Fix the Parser"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoMatches_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "search", "nonexistent");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
             """);
     }
 

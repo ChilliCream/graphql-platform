@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -13,6 +14,7 @@ internal sealed class SearchTaskCommand : Command
 
         Arguments.Add(Opt<SearchTextArgument>.Instance);
         Options.Add(Opt<TaskLimitOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task search \"parser\"", "task search \"parser\" --limit 5");
 
@@ -26,6 +28,7 @@ internal sealed class SearchTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var text = parseResult.GetRequiredValue(Opt<SearchTextArgument>.Instance);
         var limit = parseResult.GetValue(Opt<TaskLimitOption>.Instance);
@@ -39,6 +42,12 @@ internal sealed class SearchTaskCommand : Command
         };
 
         var tasks = await store.QueryTasksAsync(filter, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskSummaryResult>(tasks.Select(ToSummary).ToArray()));
+            return ExitCodes.Success;
+        }
 
         if (tasks.Count == 0)
         {
@@ -66,4 +75,7 @@ internal sealed class SearchTaskCommand : Command
             Status = task.Status,
             Title = task.Title
         }.Format();
+
+    private static TaskSummaryResult ToSummary(TaskItem task)
+        => new(task.Id, task.Priority, task.Type, task.Status, task.Title);
 }

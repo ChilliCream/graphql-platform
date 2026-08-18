@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -12,6 +13,7 @@ internal sealed class CountTaskCommand : Command
         Description = "Count tasks.";
 
         Options.Add(Opt<TaskByOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task count", "task count --by status");
 
@@ -25,12 +27,19 @@ internal sealed class CountTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var by = parseResult.GetValue(Opt<TaskByOption>.Instance);
 
         if (string.IsNullOrEmpty(by))
         {
             var total = await store.CountTasksAsync(cancellationToken);
+
+            if (!console.IsHumanReadable)
+            {
+                resultHolder.SetResult(new ObjectResult(new TaskTotalCountResult(total)));
+                return ExitCodes.Success;
+            }
 
             console.WriteLine(total.ToString());
 
@@ -40,6 +49,12 @@ internal sealed class CountTaskCommand : Command
         var dimension = ParseDimension(by);
         var rows = await store.CountTasksByAsync(dimension, cancellationToken);
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ListResult<TaskCount>(rows));
+            return ExitCodes.Success;
+        }
+
         foreach (var row in rows)
         {
             console.WriteLine($"{row.Value}  {row.Count}");
@@ -47,6 +62,8 @@ internal sealed class CountTaskCommand : Command
 
         return ExitCodes.Success;
     }
+
+    public sealed record TaskTotalCountResult(int Total);
 
     private static TaskCountDimension ParseDimension(string by) => by.Trim().ToLowerInvariant() switch
     {

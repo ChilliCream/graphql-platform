@@ -19,7 +19,8 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
               nitro task blocked [options]
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task blocked
@@ -94,6 +95,59 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             No blocked tasks.
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredListWithBlockers()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
+        var dependentId = ExtractTaskId(
+            await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "blocked");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{dependentId}}",
+                  "priority": 2,
+                  "type": "task",
+                  "status": "open",
+                  "title": "Dependent task",
+                  "blockers": [
+                    "{{baseId}}:open"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoBlockedTasks_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("task", "create", "Standalone task");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "blocked");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
             """);
     }
 

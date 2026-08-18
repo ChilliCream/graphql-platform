@@ -23,7 +23,8 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
               <id>  The task ID
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task dep tree "acme-1a2"
@@ -114,5 +115,66 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_Chain_ReturnsNestedTree()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var root = await CreateTaskAsync("Root task");
+        var child = await CreateTaskAsync("Child task");
+        await ExecuteCommandAsync("task", "dep", "add", root, child);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "tree", root);
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{root}}",
+              "type": null,
+              "status": "open",
+              "title": "Root task",
+              "repeated": false,
+              "children": [
+                {
+                  "id": "{{child}}",
+                  "type": "blocks",
+                  "status": "open",
+                  "title": "Child task",
+                  "repeated": false,
+                  "children": []
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoDependencies_ReturnsRootOnly()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "tree", id);
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{id}}",
+              "type": null,
+              "status": "open",
+              "title": "Fix the parser",
+              "repeated": false,
+              "children": []
+            }
+            """);
     }
 }

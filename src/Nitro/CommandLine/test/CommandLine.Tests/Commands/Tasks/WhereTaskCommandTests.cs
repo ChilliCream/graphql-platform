@@ -20,7 +20,8 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
               nitro task where [options]
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task where
@@ -50,5 +51,24 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("No task workspace found. Run `nitro task init` first.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_WorkspaceExists_ReturnsStructuredPath()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "where");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "path": "{{WorkspaceDirectory.Replace("\\", "\\\\")}}"
+            }
+            """);
     }
 }

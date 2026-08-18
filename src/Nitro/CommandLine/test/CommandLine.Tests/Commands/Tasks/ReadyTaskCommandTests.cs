@@ -24,6 +24,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
               --label <label>        A label; can be used multiple times
               --limit <limit>        The maximum number of tasks to show
               --include-deferred     Include deferred tasks
+              --output <json>        The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help         Show help and usage information
 
             Example:
@@ -128,6 +129,53 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
             {deferredId}  P2  task  open  Deferred task
 
             1 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsStructuredList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "ready");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{id}}",
+                  "priority": 2,
+                  "type": "task",
+                  "status": "open",
+                  "title": "Fix the parser"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_EmptyWorkspace_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "ready");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
             """);
     }
 
