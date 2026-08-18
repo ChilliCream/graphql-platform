@@ -1,3 +1,6 @@
+using System.Data.Common;
+using Azure.Identity;
+using ChilliCream.Nitro;
 using Mocha;
 using Mocha.Transport.AzureServiceBus;
 using AzureServiceBusTransport.Contracts.Commands;
@@ -7,10 +10,11 @@ using AzureServiceBusTransport.ShippingService.Handlers;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.Services.AddNitro().AddMocha();
 
-var connectionString =
-    builder.Configuration.GetConnectionString("messaging")
-    ?? throw new InvalidOperationException("Connection string 'messaging' not found.");
+var connectionString = builder.Configuration["MESSAGING_CONNECTIONSTRING"];
+var administrationEndpoint = builder.Configuration["MESSAGING_ADMINISTRATIONENDPOINT"];
+var fullyQualifiedNamespace = builder.Configuration["MESSAGING_FULLYQUALIFIEDNAMESPACE"];
 
 builder
     .Services.AddMessageBus()
@@ -20,8 +24,30 @@ builder
     .AddRequestHandler<PrepareShipmentRequestHandler>()
     .AddAzureServiceBus(t =>
     {
-        t.ConnectionString(connectionString);
-        t.AutoProvision(false);
+        if (connectionString is not null)
+        {
+            t.ConnectionString(connectionString);
+
+            if (administrationEndpoint is not null)
+            {
+                var administrationConnectionString = new DbConnectionStringBuilder { ConnectionString = connectionString };
+                administrationConnectionString["Endpoint"] = administrationEndpoint;
+                t.AdministrationConnectionString(administrationConnectionString.ConnectionString);
+                t.AutoProvision();
+            }
+            else
+            {
+                t.AutoProvision(false);
+            }
+        }
+        else
+        {
+            t.Namespace(
+                fullyQualifiedNamespace
+                    ?? throw new InvalidOperationException("Service Bus namespace is not configured."),
+                new DefaultAzureCredential());
+            t.AutoProvision(false);
+        }
 
         // Receive PrepareShipmentCommand from the order fulfillment saga
         t.DeclareQueue("prepare-shipment");
@@ -61,7 +87,6 @@ app.MapPost(
             status = "Shipped"
         });
     });
-
 
 app.Run();
 

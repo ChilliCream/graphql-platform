@@ -1,4 +1,7 @@
+using System.Data.Common;
 using System.Diagnostics;
+using Azure.Identity;
+using ChilliCream.Nitro;
 using Mocha;
 using Mocha.Mediator;
 using Mocha.Sagas;
@@ -16,10 +19,11 @@ using AzureServiceBusTransport.OrderService.Sagas;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.Services.AddNitro().AddMocha();
 
-var connectionString =
-    builder.Configuration.GetConnectionString("messaging")
-    ?? throw new InvalidOperationException("Connection string 'messaging' not found.");
+var connectionString = builder.Configuration["MESSAGING_CONNECTIONSTRING"];
+var administrationEndpoint = builder.Configuration["MESSAGING_ADMINISTRATIONENDPOINT"];
+var fullyQualifiedNamespace = builder.Configuration["MESSAGING_FULLYQUALIFIEDNAMESPACE"];
 
 // ---------------------------------------------------------------------------
 //  Mediator — in-process CQRS for API-to-domain dispatch
@@ -51,8 +55,30 @@ builder
     .AddSaga<OrderFulfillmentSaga>()
     .AddAzureServiceBus(t =>
     {
-        t.ConnectionString(connectionString);
-        t.AutoProvision(false);
+        if (connectionString is not null)
+        {
+            t.ConnectionString(connectionString);
+
+            if (administrationEndpoint is not null)
+            {
+                var administrationConnectionString = new DbConnectionStringBuilder { ConnectionString = connectionString };
+                administrationConnectionString["Endpoint"] = administrationEndpoint;
+                t.AdministrationConnectionString(administrationConnectionString.ConnectionString);
+                t.AutoProvision();
+            }
+            else
+            {
+                t.AutoProvision(false);
+            }
+        }
+        else
+        {
+            t.Namespace(
+                fullyQualifiedNamespace
+                    ?? throw new InvalidOperationException("Service Bus namespace is not configured."),
+                new DefaultAzureCredential());
+            t.AutoProvision(false);
+        }
 
         // Explicit topology for Send pattern demo
         t.DeclareQueue("process-order");
@@ -351,7 +377,6 @@ app.MapGet(
 
         return Results.Ok(response);
     });
-
 
 app.Run();
 

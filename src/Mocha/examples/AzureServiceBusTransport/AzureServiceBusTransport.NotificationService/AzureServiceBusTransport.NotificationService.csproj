@@ -3,6 +3,8 @@
     <RootNamespace>AzureServiceBusTransport.NotificationService</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ChilliCream.Nitro" />
+    <PackageReference Include="ChilliCream.Nitro.Mocha" />
     <ProjectReference Include="..\AzureServiceBusTransport.ServiceDefaults\AzureServiceBusTransport.ServiceDefaults.csproj" />
     <ProjectReference Include="..\AzureServiceBusTransport.Contracts\AzureServiceBusTransport.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />

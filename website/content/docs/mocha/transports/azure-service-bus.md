@@ -1,18 +1,11 @@
 ---
 title: "Azure Service Bus Transport"
-description: "Configure the Azure Service Bus transport in Mocha for managed cloud messaging with native scheduling, native dead-lettering, and Azure AD authentication."
+description: "Configure the Azure Service Bus transport in Mocha for managed cloud messaging with native scheduling, dead-letter forwarding, and Microsoft Entra ID authentication."
 ---
 
 # Azure Service Bus transport
 
-The Azure Service Bus (ASB) transport connects Mocha to a fully managed Azure messaging namespace. It provisions queues, topics, and subscriptions automatically, dispatches publishes through topics and sends through queues, and exposes ASB-specific primitives - native scheduling with cancellation, broker-side dead-lettering with reason codes, and lock-renewal-aware acknowledgement. When you run on Azure and want a managed broker without operating the infrastructure yourself, this is the transport to use.
-
-**When to choose Azure Service Bus over a self-hosted broker:**
-
-- Your workload runs on Azure and you want managed messaging with SLAs, redundancy, and per-message billing.
-- You need durable scheduling with the ability to cancel a scheduled message before delivery, and you do not want to deploy a Postgres scheduling store alongside your application.
-- You want broker-native dead-lettering with structured reason codes that surface in Azure Monitor and Service Bus Explorer.
-- You authenticate with Azure AD and want managed identities instead of shared access keys.
+The Azure Service Bus (ASB) transport connects Mocha to a fully managed Azure messaging namespace. It provisions queues, topics, and subscriptions automatically, dispatches publishes through topics and sends through queues, and exposes ASB-specific primitives - native scheduling with cancellation, broker dead-letter forwarding, and lock-renewal-aware acknowledgement. When you run on Azure and want a managed broker without operating the infrastructure yourself, this is the transport to use.
 
 # Set up the Azure Service Bus transport
 
@@ -43,11 +36,9 @@ var app = builder.Build();
 app.Run();
 ```
 
-`.AddAzureServiceBus(connectionString)` creates a `ServiceBusClient` from the connection string, provisions topics, queues, and subscriptions for your registered handlers, and registers the scheduled-message store so `bus.CancelScheduledMessageAsync(token)` works against the broker.
-
 ## Register with a fully qualified namespace and a token credential
 
-Use Azure AD authentication (managed identity, workload identity, or any other `TokenCredential`) instead of a shared access key:
+Use [Microsoft Entra ID authentication](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-authentication-and-authorization) with a [managed identity](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-managed-service-identity), [workload identity](https://learn.microsoft.com/azure/aks/workload-identity-overview), or any other [`TokenCredential`](https://learn.microsoft.com/dotnet/api/azure.core.tokencredential) instead of a [shared access key](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-sas):
 
 ```csharp
 using Azure.Identity;
@@ -70,9 +61,11 @@ var app = builder.Build();
 app.Run();
 ```
 
+The example uses [`DefaultAzureCredential`](https://learn.microsoft.com/dotnet/api/azure.identity.defaultazurecredential), which supports local developer credentials as well as credentials provided by Azure hosting environments.
+
 ## Register with .NET Aspire
 
-When using .NET Aspire, define a Service Bus resource in your AppHost and reference it from each service. The Aspire Service Bus emulator is convenient for local development - it requires entities to be pre-declared in `Config.json` because the emulator does not support runtime entity creation through the management API:
+When using [.NET Aspire](https://aspire.dev/integrations/cloud/azure/azure-service-bus/), define a Service Bus resource in your AppHost and reference it from each service. The Aspire example pre-declares its entities in the [Service Bus emulator](https://learn.microsoft.com/azure/service-bus-messaging/overview-emulator) configuration so the application can connect through the injected data connection string without needing a separate administration connection:
 
 ```csharp
 // AppHost
@@ -94,8 +87,14 @@ var connectionString = builder.Configuration.GetConnectionString("messaging")!;
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
-    .AddAzureServiceBus(connectionString);
+    .AddAzureServiceBus(transport =>
+    {
+        transport.ConnectionString(connectionString);
+        transport.AutoProvision(false);
+    });
 ```
+
+The emulator supports runtime entity management through [`ServiceBusAdministrationClient`](https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus.administration.servicebusadministrationclient). If your environment provides that separate administration connection string, configure it with `AdministrationConnectionString(...)` and leave auto-provisioning enabled instead of pre-declaring the entities.
 
 ## Verify it works
 
@@ -119,7 +118,7 @@ Send a POST request to `/orders` and check your application logs. You should see
 
 # How topology works
 
-The transport maps Mocha's routing model onto Azure Service Bus topics and queues:
+The transport maps Mocha's routing model onto Azure Service Bus [queues, topics, and subscriptions](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-queues-topics-subscriptions):
 
 ```mermaid
 graph LR
@@ -133,13 +132,13 @@ graph LR
     Q3 -->|consume| C3[Handler]
 ```
 
-**Events (publish/subscribe):** Each event type gets a topic. Each subscribing service gets a queue and a forwarding subscription that delivers messages from the topic into the queue. Publishing sends the message to the topic, which fans it out to all forwarded subscriber queues.
+**Events (publish/subscribe):** Each event type gets a topic. Each subscribing receive endpoint gets a queue and a forwarding subscription that delivers messages from the topic into the queue. Publishing sends the message to the topic, which fans it out to all forwarded subscriber queues.
 
 **Commands (send):** Each command type gets a queue named after the command. The sender writes directly to that queue - there is no intermediate topic on the send path. The receiving handler binds to the same queue, so a single message instance is delivered to exactly one handler. This mirrors the topology MassTransit provisions for ASB.
 
 **Request/reply:** The transport creates a temporary reply queue per service instance (`response-{instanceId}`). The reply address is embedded in the request message so the responder knows where to send the reply. Reply queues are auto-provisioned with a 24-hour idle-deletion policy. While the service is running, the transport periodically peeks at its reply queue to keep it alive even when no replies are in flight. After the service stops, Azure Service Bus removes the idle queue automatically.
 
-**Scheduled messages:** Azure Service Bus holds scheduled messages in the broker through its native scheduling API. Mocha returns a cancellation token containing the target entity and broker sequence number, which it uses to cancel the message without a separate scheduler or database. See [Scheduling](../scheduling.md) for the common API and cancellation behavior.
+**Scheduled messages:** Azure Service Bus holds scheduled messages in the broker through its native scheduling API. Mocha returns a transport-scoped cancellation token containing the target entity and broker sequence number, which it uses to cancel the message without a separate scheduler or database. See [Scheduling](../scheduling.md) for the common API and cancellation behavior.
 
 ## Default topology for handlers
 
@@ -186,15 +185,34 @@ Available queue defaults:
 | `MaxSizeInMegabytes`               | `long?`     | Maximum queue size in megabytes                                                   |
 | `RequiresSession`                  | `bool?`     | Whether the queue requires sessions (immutable after creation)                    |
 | `EnablePartitioning`               | `bool?`     | Whether the queue is partitioned (immutable after creation)                       |
-| `ForwardTo`                        | `string?`   | Auto-forward target for incoming messages                                         |
 | `ForwardDeadLetteredMessagesTo`    | `string?`   | Auto-forward target for the entity's `$DeadLetterQueue`                           |
 | `DeadLetteringOnMessageExpiration` | `bool?`     | Whether expired messages are moved to `$DeadLetterQueue` instead of being dropped |
+
+Available topic defaults:
+
+| Property                              | Type        | Description                                                                                                                             |
+| ------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `AutoProvision`                       | `bool?`     | Whether topics are auto-provisioned at startup                                                                                          |
+| `AutoDeleteOnIdle`                    | `TimeSpan?` | Idle window before the broker may delete the topic                                                                                      |
+| `DefaultMessageTimeToLive`            | `TimeSpan?` | TTL applied to messages that do not specify their own                                                                                   |
+| `MaxSizeInMegabytes`                  | `long?`     | Maximum topic size in megabytes                                                                                                         |
+| `EnablePartitioning`                  | `bool?`     | Whether the topic is partitioned                                                                                                        |
+| `RequiresDuplicateDetection`          | `bool?`     | Whether the broker rejects [duplicate message identifiers](https://learn.microsoft.com/azure/service-bus-messaging/duplicate-detection) |
+| `DuplicateDetectionHistoryTimeWindow` | `TimeSpan?` | Window during which duplicate message identifiers are tracked                                                                           |
+| `SupportOrdering`                     | `bool?`     | Whether subscriptions support ordered forwarding                                                                                        |
+
+Available receive-endpoint defaults:
+
+| Property         | Type   | Description                                                    |
+| ---------------- | ------ | -------------------------------------------------------------- |
+| `PrefetchCount`  | `int?` | Number of messages prefetched from the broker                  |
+| `MaxConcurrency` | `int?` | Maximum number of messages processed concurrently per endpoint |
 
 Defaults never override explicitly configured values. If you call `MaxDeliveryCount(...)` on a specific queue, the per-queue value wins.
 
 # Configure message properties per type
 
-Azure Service Bus messages carry native broker properties - `SessionId`, `PartitionKey`, `ReplyToSessionId`, `To` - that drive session affinity, partition pinning, request/reply correlation, and autoforward chains. These properties depend on the payload, so Mocha configures them per message type through typed extractors that run at dispatch time. The shape mirrors [RabbitMQ routing keys](./rabbitmq.md#routing-keys) - register an extractor next to the message contract and the transport wires it into the outbound `ServiceBusMessage` without bespoke per-endpoint code.
+Azure Service Bus messages carry [native broker properties](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messages-payloads) - `SessionId`, `PartitionKey`, `ReplyToSessionId`, `To` - that drive session affinity, partition pinning, request/reply correlation, and autoforward chains. These properties depend on the payload, so Mocha configures them per message type through typed extractors that run at dispatch time. The shape mirrors [RabbitMQ routing keys](./rabbitmq.md#routing-keys) - register an extractor next to the message contract and the transport wires it into the outbound `ServiceBusMessage` without bespoke per-endpoint code.
 
 ## Configure session affinity with `UseAzureServiceBusSessionId`
 
@@ -220,9 +238,8 @@ Use `UseAzureServiceBusSessionId<T>()` when the destination queue or subscriptio
 
 The extractor runs at dispatch time for each message. It receives the message instance and returns the session identifier string. Return `null` to publish without a `SessionId`. On a queue or topic that is both partitioned and session-aware, the broker uses the `SessionId` as the partition key - Mocha mirrors that by defaulting `PartitionKey = SessionId` when no partition-key extractor is configured, so you do not need to set both.
 
-:::warning
-Dispatching a null-session message to a `RequiresSession = true` queue fails at send time - the broker throws a `ServiceBusException` whose `Reason` is `ServiceBusFailureReason.SessionCannotBeLocked`.
-:::
+> [!WARNING]
+> Azure Service Bus rejects a message without a `SessionId` when it is sent to a session-enabled queue or topic subscription. Ensure the extractor always returns a value for messages routed to session-enabled entities.
 
 ## Configure partitioning with `UseAzureServiceBusPartitionKey`
 
@@ -242,7 +259,7 @@ builder.Services
     });
 ```
 
-Use `UseAzureServiceBusPartitionKey<T>()` on partitioned queues and topics when you do not need sessions but still want ordered delivery within a partition, or when you want transactional sends to land on the same broker. Azure Service Bus assigns every message with the same partition key to the same messaging store, so consumers see per-key FIFO even across multiple partitions. See Microsoft Learn on [partitioned queues and topics](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-partitioning).
+Use `UseAzureServiceBusPartitionKey<T>()` on partitioned queues and topics when related messages must land on the same broker partition, or when transactional sends must share a partition. A partition key preserves broker submission order within that partition, but it does not by itself guarantee consumer processing order when messages are processed concurrently. Use sessions when strict per-key processing order is required. See Microsoft Learn on [partitioned queues and topics](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-partitioning) and [message sequencing](https://learn.microsoft.com/azure/service-bus-messaging/message-sequencing).
 
 When a `SessionId` is also configured on the same message type, the broker requires `PartitionKey == SessionId`. Mocha enforces this at dispatch with a fail-fast check and throws:
 
@@ -252,9 +269,8 @@ PartitionKey must equal SessionId when both are set on an Azure Service Bus mess
 
 This `InvalidOperationException` surfaces before the message reaches the broker, so a mismatch never costs you a round trip. If you want the automatic `PartitionKey = SessionId` behavior, configure only `UseAzureServiceBusSessionId<T>()` and let the transport default the partition key.
 
-:::note
-When the extractor returns `null`, no partition key is set and Service Bus picks a partition with an internal round-robin - use this only when you do not need per-key ordering.
-:::
+> [!NOTE]
+> When the extractor returns `null`, no partition key is set and Service Bus picks a partition with an internal round-robin - use this only when you do not need per-key ordering.
 
 ## Configure reply correlation with `UseAzureServiceBusReplyToSessionId`
 
@@ -283,13 +299,11 @@ Use `UseAzureServiceBusReplyToSessionId<T>()` to put the native `ReplyToSessionI
 
 The extractor lives on the request type, not the response - the requester is the one that tells the responder where replies should land.
 
-:::note
-Mocha's default temporary reply queue is created per service instance and is not session-enabled. Configuring `ReplyToSessionId` does not turn that queue into a shared, multiplexed session queue. Native session multiplexing requires an explicitly managed session-enabled reply destination and receiver.
-:::
+> [!NOTE]
+> Mocha's default temporary reply queue is created per service instance and is not session-enabled. Configuring `ReplyToSessionId` does not turn that queue into a shared, multiplexed session queue. Native session multiplexing requires an explicitly managed session-enabled reply destination and receiver.
 
-:::tip
-`ReplyToSessionId` is capped at **128 characters**. Use a stable identifier per requester instance (a GUID created at process start is idiomatic) so replies reach the right receiver even after reconnects.
-:::
+> [!TIP]
+> `ReplyToSessionId` is capped at **128 characters**. Use a stable identifier per requester instance (a GUID created at process start is idiomatic) so replies reach the right receiver even after reconnects.
 
 ## Configure autoforward chaining with `UseAzureServiceBusTo`
 
@@ -308,9 +322,8 @@ builder.Services
 
 Use `UseAzureServiceBusTo<T>()` when you participate in an [autoforwarding](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) chain and want to annotate messages with their logical final destination, or when a downstream component inspects `To` as part of custom routing logic.
 
-:::note
-`To` is broker-reserved. Microsoft Learn explicitly notes that "the **To** property is reserved for future use and might eventually be interpreted by the broker" - today the broker does not use it for routing. Rely on topic subscriptions, autoforward rules, or application properties for real routing decisions, and treat `To` as a metadata annotation only.
-:::
+> [!NOTE]
+> `To` is broker-reserved. Microsoft Learn explicitly notes that "the **To** property is reserved for future use and might eventually be interpreted by the broker" - today the broker does not use it for routing. Rely on topic subscriptions, autoforward rules, or application properties for real routing decisions, and treat `To` as a metadata annotation only.
 
 ## Override per dispatch via headers
 
@@ -422,9 +435,32 @@ transport.Queue("process-order")
 
 Use `DeclareQueue(name)` for low-level broker topology that does not represent an application receive endpoint. It configures the Azure Service Bus queue resource without attaching handlers or receive middleware.
 
+## Configure receive concurrency and sessions
+
+Configure broker [prefetch](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-performance-improvements), message concurrency, and [lock renewal](https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement) on an application queue:
+
+```csharp
+transport.Queue("process-order")
+    .PrefetchCount(32)
+    .MaxConcurrency(8)
+    .MaxAutoLockRenewalDuration(TimeSpan.FromMinutes(10));
+```
+
+For a session-enabled queue, configure the number of simultaneously locked sessions independently from the number of concurrent calls within each session:
+
+```csharp
+transport.Queue("tenant-orders")
+    .RequiresSession(true)
+    .MaxConcurrentSessions(8)
+    .MaxConcurrentCallsPerSession(1)
+    .SessionIdleTimeout(TimeSpan.FromSeconds(30));
+```
+
+`MaxConcurrentCallsPerSession` defaults to `1` to preserve in-session processing order. When `MaxConcurrentSessions` is not specified, `MaxConcurrency` determines the maximum number of concurrently locked sessions. Session-only settings cause startup to fail when applied to a non-session queue. Lock auto-renewal defaults to five minutes for both regular and session endpoints.
+
 # Control auto-provisioning
 
-When infrastructure is managed externally - for example through Bicep, Terraform, the Azure Service Bus emulator's `Config.json`, or a CI/CD pipeline - disable auto-provisioning so the transport expects entities to already exist:
+When infrastructure is managed externally - for example through [Bicep](https://learn.microsoft.com/azure/templates/microsoft.servicebus/allversions), Terraform, the Azure Service Bus emulator's `Config.json`, or a CI/CD pipeline - disable auto-provisioning so the transport expects entities to already exist:
 
 ```csharp
 builder.Services
@@ -440,7 +476,7 @@ With auto-provisioning disabled, the transport will not call the management API 
 
 # Scheduling
 
-Azure Service Bus schedules messages natively. The dispatch endpoint calls `ServiceBusSender.ScheduleMessageAsync` and the broker holds the message until the scheduled time:
+Azure Service Bus [schedules messages natively](https://learn.microsoft.com/azure/service-bus-messaging/message-sequencing). The dispatch endpoint calls `ServiceBusSender.ScheduleMessageAsync` and the broker holds the message until the scheduled time:
 
 ```csharp
 var result = await bus.SchedulePublishAsync(
@@ -461,13 +497,13 @@ Cancellation is supported natively - no Postgres store, EF Core model, or backgr
 await bus.CancelScheduledMessageAsync(reminderToken, cancellationToken);
 ```
 
-The token encodes the entity path and the broker-assigned sequence number, and `CancelScheduledMessageAsync` revokes the message via `ServiceBusSender.CancelScheduledMessageAsync`. If the message has already been dispatched, the broker returns `MessageNotFound` and Mocha surfaces this as `false`.
+The token identifies the transport owner, target entity, and broker-assigned sequence number. It can only be cancelled through the transport and namespace that created it. `CancelScheduledMessageAsync` revokes the message through the broker; if the message has already been dispatched or no longer exists, Mocha returns `false`.
 
 ASB supports both **native scheduling and native cancellation**. See [Scheduling](../scheduling.md) for the full scheduling API.
 
 # Dead-lettering
 
-The Azure Service Bus transport offers three dead-letter paths in increasing order of power. Pick the one whose semantics fit the failure you are modeling.
+The Azure Service Bus transport supports two complementary dead-letter paths. Use the transport-level fault queue for handler failures, and the broker dead-letter queue for Service Bus delivery failures.
 
 ## 1. Handler exception → `_error` queue (default, transport-agnostic)
 
@@ -496,7 +532,7 @@ Azure Service Bus dead-letters messages itself when broker-side conditions are m
 | Message TTL expired     | `TTLExpiredException`       |
 | Filter evaluation error | `FilterEvaluationException` |
 
-These messages land in the entity's `$DeadLetterQueue` sub-entity (`{queue}/$DeadLetterQueue`), separate from Mocha's `_error` queue. To consolidate operations, opt the endpoint's queue into forwarding broker-dead-lettered messages into the Mocha-managed `_error` queue:
+These messages land in the entity's [`$DeadLetterQueue`](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-dead-letter-queues) sub-entity (`{queue}/$DeadLetterQueue`), separate from Mocha's `_error` queue. To consolidate operations, opt the endpoint's queue into forwarding broker-dead-lettered messages into the Mocha-managed `_error` queue:
 
 ```csharp
 builder.Services
@@ -511,96 +547,18 @@ builder.Services
     });
 ```
 
-`UseNativeDeadLetterForwarding()` sets `ForwardDeadLetteredMessagesTo = "{queueName}_error"` on the underlying queue at provisioning time. Messages dead-lettered by the broker for `MaxDeliveryCountExceeded` or `TTLExpiredException` are forwarded into the same `_error` queue used by handler exceptions, so operators have one place to look.
+`UseNativeDeadLetterForwarding()` sets `ForwardDeadLetteredMessagesTo` to the endpoint's configured Azure Service Bus fault queue. By convention this is `{queueName}_error`, but a custom fault endpoint is respected. Messages dead-lettered by the broker for `MaxDeliveryCountExceeded` or `TTLExpiredException` are forwarded into the same fault queue used by handler exceptions, so operators have one place to look.
 
 If you have already configured `ForwardDeadLetteredMessagesTo("custom-target")` on the same queue, the transport surfaces a configuration conflict at provisioning - it will not silently override your choice.
-
-## 3. Explicit native dead-letter with reason codes
-
-For domain-level failures where you want a structured reason code visible in Azure Monitor and Service Bus Explorer, dead-letter the message yourself through the ASB-specific message context. The context is exposed on the `IConsumeContext` available to any `IConsumer<T>`:
-
-```csharp
-public class ProcessInvoiceConsumer : IConsumer<ProcessInvoice>
-{
-    public async ValueTask ConsumeAsync(IConsumeContext<ProcessInvoice> context)
-    {
-        var message = context.Message;
-
-        if (string.IsNullOrEmpty(message.CustomerId))
-        {
-            var args = context.GetAzureServiceBusEventArgs();
-            await args.DeadLetterMessageAsync(
-                args.Message,
-                deadLetterReason: "InvalidPayload",
-                deadLetterErrorDescription: "Missing customer id",
-                propertiesToModify: new Dictionary<string, object>
-                {
-                    ["InvoiceId"] = message.InvoiceId
-                },
-                context.CancellationToken);
-
-            return;
-        }
-
-        // ... normal processing
-    }
-}
-```
-
-If your processing code lives in an `IEventHandler<T>`, resolve the context through whichever scoped accessor you have wired up - or refactor to `IConsumer<T>` when you need direct access to broker primitives like `DeadLetterAsync`.
-
-The message is moved to the entity's `$DeadLetterQueue` with `DeadLetterReason = "InvalidPayload"` and `DeadLetterErrorDescription = "Missing customer id"`. Both fields are first-class columns in Service Bus Explorer and queryable through Azure Monitor.
-
-After `DeadLetterAsync` returns, the acknowledgement middleware still attempts `Complete`. Azure Service Bus reports the already released lock as `MessageLockLost`; the middleware treats that result as already settled and continues without failing the consumer invocation.
-
-# Native receive context
-
-Resolve the native SDK event arguments from `IConsumeContext<T>`. Use `GetAzureServiceBusEventArgs()` for regular queues and `GetAzureServiceBusSessionEventArgs()` for session-enabled queues:
-
-```csharp
-public class ReviewCustomerConsumer : IConsumer<ReviewCustomer>
-{
-    public async ValueTask ConsumeAsync(IConsumeContext<ReviewCustomer> context)
-    {
-        var args = context.GetAzureServiceBusEventArgs();
-
-        // Inspect broker-managed metadata
-        var deliveries = args.Message.DeliveryCount;
-        var lockUntil = args.Message.LockedUntil;
-
-        // Native dead-letter with structured reason code
-        await args.DeadLetterMessageAsync(
-            args.Message,
-            deadLetterReason: "BusinessReject",
-            deadLetterErrorDescription: "Customer flagged for review",
-            cancellationToken: context.CancellationToken);
-    }
-}
-```
-
-The SDK event arguments expose:
-
-| Member                                  | Purpose                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `Message` (`ServiceBusReceivedMessage`) | The raw message, including delivery count and lock metadata                                |
-| `DeadLetterMessageAsync(...)`           | Move the message to `$DeadLetterQueue` with structured reason metadata                     |
-| `AbandonMessageAsync(...)`              | Return the message to the queue for redelivery, optionally updating application properties |
-| `CompleteMessageAsync(...)`             | Complete the message explicitly                                                            |
-
-The event arguments are only valid for the duration of the consumer invocation. Calling either extension from a message received on the wrong endpoint kind throws `InvalidOperationException`.
 
 # Best practices
 
 - **Default to `_error`.** Handler exceptions should fall through to the `Fault` middleware. The `_error` queue is consistent across transports and keeps your handlers portable.
 - **Enable `UseNativeDeadLetterForwarding()` to consolidate ops.** When you want a single queue to monitor in production, forward broker-dead-lettered messages into `_error` so `MaxDeliveryCountExceeded` and handler exceptions share one operational surface.
-- **Use `DeadLetterMessageAsync` for domain-level rejection.** Reach for the native API only when you want a structured reason code visible to operators in Service Bus Explorer or Azure Monitor (`InvalidPayload`, `BusinessReject`, `DuplicateRequest`, etc.). Generic infrastructure failures still belong in the `_error` queue with a stack trace.
 - **Tune `MaxDeliveryCount` deliberately.** The default is 10. Combined with retry middleware, a high count can produce many handler invocations before broker dead-lettering kicks in. Lower the count if you would rather see failures in `$DeadLetterQueue` sooner.
 - **Avoid building consumer endpoints over `$DeadLetterQueue`.** Treat the broker DLQ as an operations surface, not a normal pipeline destination. The same advice applies in MassTransit and other Service Bus clients - dead-lettered messages are typically inspected, fixed, and resubmitted, not auto-processed.
 
 # Troubleshooting
-
-**Handler called `DeadLetterAsync` but the message is not in the DLQ.**
-The receiver must be in `PeekLock` mode (the Mocha default) for native dead-lettering to be supported. The transport configures `PeekLock` automatically; if you have customized the `ServiceBusProcessor` options, make sure you have not switched to `ReceiveAndDelete`.
 
 **The broker DLQ fills up with `MaxDeliveryCountExceeded`.**
 Either tune the queue's `MaxDeliveryCount` lower so failures surface sooner, or enable `UseNativeDeadLetterForwarding()` on the endpoint so broker-dead-lettered messages are forwarded into your `_error` queue and aggregated with handler exceptions.
@@ -610,9 +568,6 @@ Both `ForwardDeadLetteredMessagesTo("...")` and `UseNativeDeadLetterForwarding()
 
 **`CancelScheduledMessageAsync` returns false.**
 The most common causes: the scheduled time has already passed (the broker enqueued the message and returned `MessageNotFound` to the cancel call), `IsCancellable` was `false` on the original `SchedulingResult`, or the token came from a different transport than the one that created the message. The transport's cancel path is idempotent - calling it twice is safe.
-
-**`GetAzureServiceBusEventArgs()` throws `InvalidOperationException`.**
-The current message did not originate from a non-session Azure Service Bus endpoint. Use `GetAzureServiceBusSessionEventArgs()` for session-enabled endpoints.
 
 **Receive endpoint logs `MessageLockLost`.**
 The broker reclaimed the lock before the acknowledgement middleware could `Complete` or `Abandon` the message - usually because the handler ran longer than `LockDuration`. The acknowledgement middleware swallows this exception (the broker will redeliver per its own rules), but you should consider either lengthening `LockDuration` on the queue or shortening the handler.
