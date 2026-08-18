@@ -21,7 +21,11 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             return null;
         }
 
-        var resolution = AzureServiceBusDestinations.Resolve(Transport.Schema, context.Naming, route);
+        var resolution = AzureServiceBusDestinations.Resolve(
+            Transport.Schema,
+            _topology.Address,
+            context.Naming,
+            route);
 
         if (resolution.Kind == AzureServiceBusDestinationKind.Queue)
         {
@@ -238,7 +242,11 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
 
             if (explicitPublishRoute is not null)
             {
-                var destination = AzureServiceBusDestinations.Resolve(schema, context.Naming, explicitPublishRoute);
+                var destination = AzureServiceBusDestinations.Resolve(
+                    schema,
+                    _topology.Address,
+                    context.Naming,
+                    explicitPublishRoute);
                 if (destination.Kind == AzureServiceBusDestinationKind.Queue)
                 {
                     continue;

@@ -75,6 +75,49 @@ public class AzureServiceBusReceiveTopologyTests
     }
 
     [Fact]
+    public void DiscoverTopology_Should_SubscribeExplicitTopic_When_PublishDestinationTargetsCurrentNamespace()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b =>
+            {
+                b.AddConsumer<OrderSpyConsumer>();
+                b.AddMessage<OrderCreated>(d =>
+                    d.Publish(r => r.Destination(new Uri("azuresb://localhost/t/custom-orders"))));
+            },
+            t => t.BindImplicitly());
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // act
+        var subscription = topology.Subscriptions.Single(s =>
+            s.Source.Name == "custom-orders" && s.Destination.Name == endpoint.Queue.Name);
+
+        // assert
+        Assert.Equal(TopologyOrigin.Convention, subscription.Origin);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_Throw_When_PublishDestinationTargetsAnotherNamespace()
+    {
+        // arrange
+        var destination = new Uri("azuresb://other-namespace/t/custom-orders");
+
+        // act
+        var exception = Record.Exception(() => CreateRuntime(
+            b =>
+            {
+                b.AddConsumer<OrderSpyConsumer>();
+                b.AddMessage<OrderCreated>(d => d.Publish(r => r.Destination(destination)));
+            },
+            t => t.BindImplicitly()));
+
+        // assert
+        Assert.Equal(
+            "No transport can handle address: " + destination,
+            Assert.IsType<InvalidOperationException>(exception).Message);
+    }
+
+    [Fact]
     public void DiscoverTopology_Should_NotSubscribeConsumerQueue_When_PublishTargetsQueue()
     {
         var runtime = CreateRuntime(
