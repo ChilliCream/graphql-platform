@@ -297,6 +297,119 @@ public sealed class BoardModeTests
     }
 
     [Fact]
+    public void ToggleMaximize_Should_ShowOnlyFocusedColumn_When_Toggled()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.Contains("Open - 1/2", console.Output);
+        Assert.DoesNotContain("Closed", console.Output);
+    }
+
+    [Fact]
+    public void ToggleMaximize_Should_ShowNewlyFocusedColumn_When_FocusChangedWhileMaximized()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.Contains("Closed - 2/2", console.Output);
+        Assert.DoesNotContain("Open -", console.Output);
+    }
+
+    [Fact]
+    public void ToggleMaximize_Should_ReturnToGrid_When_ToggledTwice()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.Contains("Open (0)", console.Output);
+        Assert.Contains("Closed (0)", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ReClampViewport_When_ResizedSmaller_After_ScrollingDown()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        for (var i = 1; i <= 30; i++)
+        {
+            store.Tasks.Add(TaskItemBuilder.Create(
+                $"t-{i:D2}", status: TaskStates.Open, createdAt: Now.AddMinutes(i)));
+        }
+
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var bigConsole = new TestConsole().Width(80).Height(20);
+        bigConsole.Write(mode.Render(80, 20));
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
+        bigConsole.Write(mode.Render(80, 20));
+
+        // act: shrink the frame drastically after scrolling to the bottom
+        mode.OnResize(80, 4);
+        var smallConsole = new TestConsole().Width(80).Height(4);
+        var exception = Record.Exception(() => smallConsole.Write(mode.Render(80, 4)));
+
+        // assert
+        Assert.Null(exception);
+        Assert.Contains("t-30", smallConsole.Output);
+    }
+
+    [Fact]
+    public void Render_Should_NotThrow_When_WidthIsBelowColumnCount()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var view = new BoardView
+        {
+            Name = "Many",
+            Columns =
+            [
+                new ColumnDefinition { Name = "A", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "B", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "C", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "D", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "E", Statuses = [TaskStates.Open] }
+            ]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+        var console = new TestConsole().Width(3).Height(10);
+
+        // act
+        var exception = Record.Exception(() => console.Write(mode.Render(3, 10)));
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
     public void OnEnter_Should_LoadEveryColumnOfDefaultView_ThroughLoader()
     {
         // arrange: BoardView.Default loaded end-to-end through BoardDataLoader

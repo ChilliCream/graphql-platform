@@ -38,6 +38,7 @@ internal sealed class BoardMode : ITuiMode
     private BoardState _state;
     private Viewport[] _viewports;
     private int _viewIndex;
+    private bool _maximized;
 
     /// <summary>
     /// Creates the board mode over <paramref name="loader"/>, starting on the
@@ -68,9 +69,9 @@ internal sealed class BoardMode : ITuiMode
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render(width, height) recomputes every column's layout from its
-        // parameters on every frame, so there is no per-resize state to update
-        // ahead of time.
+        // Render(width, height) recomputes the layout decision and every
+        // column's viewport window from its parameters on every frame, so
+        // there is no per-resize state to update ahead of time.
     }
 
     /// <inheritdoc />
@@ -84,6 +85,7 @@ internal sealed class BoardMode : ITuiMode
         TuiMessage.MoveToEdge(EdgeTarget.Bottom) => MoveSelectionToEdge(top: false),
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CycleView(var delta) => CycleView(delta),
+        TuiMessage.ToggleMaximize => ToggleMaximize(),
         TuiMessage.OpenSelected => [new TuiMessage.ShowToast("Detail view not available yet.", ToastStyle.Info)],
         TuiMessage.CopySelectedId => CopySelectedId(),
         _ => []
@@ -99,25 +101,85 @@ internal sealed class BoardMode : ITuiMode
             return new Markup(string.Empty);
         }
 
-        var columnWidths = DistributeWidth(width, columns.Count);
-        var interiorHeight = Math.Max(0, height - PanelChromeHeight);
+        var decision = BoardLayout.Decide(width, height, columns.Count, _state.FocusedColumnIndex, _maximized);
+
+        return decision.Kind switch
+        {
+            BoardLayoutKind.Maximized => RenderMaximized(decision),
+            BoardLayoutKind.Stacked => RenderStacked(decision),
+            _ => RenderGrid(decision)
+        };
+    }
+
+    private IRenderable RenderGrid(BoardLayoutDecision decision)
+    {
+        var columns = _state.Columns;
         var columnLayouts = new Layout[columns.Count];
 
         for (var i = 0; i < columns.Count; i++)
         {
-            var column = columns[i];
-            var columnWidth = Math.Max(1, columnWidths[i]);
-            var contentWidth = Math.Max(0, columnWidth - PanelChromeWidth);
+            var slot = decision.Columns[i];
             var focused = i == _state.FocusedColumnIndex;
+            var panel = RenderColumnPanel(i, slot.Width, slot.Height, focused, headerSuffix: null);
 
-            var lines = RenderColumnLines(column, _viewports[i], contentWidth, interiorHeight, focused);
-            var panel = ColumnPane.Render(column.Definition.Name, column.Tasks.Count, lines, focused);
-            panel.Width = columnWidth;
-
-            columnLayouts[i] = new Layout($"board-column-{i}", panel).Size(columnWidth);
+            columnLayouts[i] = new Layout($"board-column-{i}", panel).Size(Math.Max(1, slot.Width));
         }
 
         return new Layout("board").SplitColumns(columnLayouts);
+    }
+
+    private IRenderable RenderMaximized(BoardLayoutDecision decision)
+    {
+        var columns = _state.Columns;
+        var focused = _state.FocusedColumnIndex;
+        var slot = decision.Columns[focused];
+        var suffix = $"{focused + 1}/{columns.Count}";
+
+        return RenderColumnPanel(focused, slot.Width, slot.Height, focused: true, headerSuffix: suffix);
+    }
+
+    private IRenderable RenderStacked(BoardLayoutDecision decision)
+    {
+        var columns = _state.Columns;
+        var rows = new List<IRenderable>(columns.Count);
+
+        for (var i = 0; i < columns.Count; i++)
+        {
+            var slot = decision.Columns[i];
+
+            rows.Add(slot.Expanded
+                ? RenderColumnPanel(i, slot.Width, slot.Height, focused: i == _state.FocusedColumnIndex, headerSuffix: null)
+                : new Markup($"{columns[i].Definition.Name} ({columns[i].Tasks.Count})"));
+        }
+
+        return new Rows(rows);
+    }
+
+    /// <summary>
+    /// Builds one column's bordered panel: its visible task lines, sized to
+    /// <paramref name="columnWidth"/> and <paramref name="panelHeight"/>, with
+    /// <paramref name="headerSuffix"/> appended to the column name when the
+    /// column is the only one shown.
+    /// </summary>
+    private Panel RenderColumnPanel(int index, int columnWidth, int panelHeight, bool focused, string? headerSuffix)
+    {
+        var column = _state.Columns[index];
+        var safeWidth = Math.Max(1, columnWidth);
+        var contentWidth = Math.Max(0, safeWidth - PanelChromeWidth);
+        var interiorHeight = Math.Max(0, panelHeight - PanelChromeHeight);
+
+        var lines = RenderColumnLines(column, _viewports[index], contentWidth, interiorHeight, focused);
+        var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
+        var panel = ColumnPane.Render(name, column.Tasks.Count, lines, focused);
+        panel.Width = safeWidth;
+
+        return panel;
+    }
+
+    private IReadOnlyList<TuiMessage> ToggleMaximize()
+    {
+        _maximized = !_maximized;
+        return [];
     }
 
     private IReadOnlyList<TuiMessage> FocusColumn(int delta)
@@ -201,20 +263,6 @@ internal sealed class BoardMode : ITuiMode
         }
 
         return viewports;
-    }
-
-    private static int[] DistributeWidth(int totalWidth, int columnCount)
-    {
-        var baseWidth = totalWidth / columnCount;
-        var remainder = totalWidth % columnCount;
-        var widths = new int[columnCount];
-
-        for (var i = 0; i < columnCount; i++)
-        {
-            widths[i] = baseWidth + (i < remainder ? 1 : 0);
-        }
-
-        return widths;
     }
 
     /// <summary>
