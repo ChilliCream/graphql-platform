@@ -1,4 +1,6 @@
+import fs from "node:fs/promises";
 import path from "node:path";
+import matter from "gray-matter";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocPageMeta } from "@/src/components/DocPageMeta";
@@ -166,6 +168,10 @@ export default async function DocPage({ params }: PageProps) {
   }
 
   const absolutePath = path.join(CONTENT_ROOT, rel);
+  const fallbackMarkdownBody =
+    process.env.NODE_ENV === "development"
+      ? matter(await fs.readFile(absolutePath, "utf8")).content.trim()
+      : undefined;
   const {
     content,
     frontmatter,
@@ -189,6 +195,10 @@ export default async function DocPage({ params }: PageProps) {
     });
   }
   const title = frontmatter.title ?? slug[slug.length - 1];
+  const fallbackMarkdown =
+    fallbackMarkdownBody === undefined
+      ? undefined
+      : `# ${title}\n\n${fallbackMarkdownBody}`.trim();
   const description = frontmatter.description;
   const articleId = schemaId(pageHref, "article");
   const imageId = schemaId(pageHref, "primary-image");
@@ -274,7 +284,12 @@ export default async function DocPage({ params }: PageProps) {
           ) : null}
         </article>
       </main>
-      <TableOfContents items={toc} />
+      <TableOfContents
+        fallbackMarkdown={fallbackMarkdown}
+        items={toc}
+        markdownUrl={`${pageHref}.md`}
+        title={title}
+      />
     </div>
   );
 }

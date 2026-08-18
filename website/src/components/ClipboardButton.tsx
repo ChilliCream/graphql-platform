@@ -8,8 +8,7 @@ import { WarningIcon } from "@/src/icons/Warning";
 
 type CopyStatus = "idle" | "copied" | "error";
 
-interface ClipboardButtonProps {
-  readonly value: string;
+interface ClipboardButtonBaseProps {
   readonly label: string;
   readonly copiedLabel: string;
   readonly errorLabel: string;
@@ -18,8 +17,23 @@ interface ClipboardButtonProps {
     Record<string, string | number | boolean>
   >;
   readonly className?: string;
+  readonly labelClassName?: string;
   readonly showLabel?: boolean;
 }
+
+type ClipboardButtonProps = ClipboardButtonBaseProps &
+  (
+    | {
+        readonly value: string;
+        readonly sourceUrl?: never;
+        readonly fallbackValue?: never;
+      }
+    | {
+        readonly value?: never;
+        readonly sourceUrl: string;
+        readonly fallbackValue?: string;
+      }
+  );
 
 export function ClipboardButton({
   value,
@@ -29,7 +43,10 @@ export function ClipboardButton({
   analyticsEventName,
   analyticsParameters,
   className = "",
+  labelClassName = "",
   showLabel = false,
+  sourceUrl,
+  fallbackValue,
 }: ClipboardButtonProps) {
   const [status, setStatus] = useState<CopyStatus>("idle");
   const resetTimer = useRef<number | undefined>(undefined);
@@ -43,7 +60,26 @@ export function ClipboardButton({
     window.clearTimeout(resetTimer.current);
 
     try {
-      await navigator.clipboard.writeText(value);
+      let copyValue = value;
+      if (sourceUrl) {
+        if (fallbackValue !== undefined) {
+          copyValue = fallbackValue;
+        } else {
+          const response = await fetch(sourceUrl, {
+            headers: { Accept: "text/markdown" },
+          });
+          const contentType = response.headers.get("content-type") ?? "";
+          if (!response.ok || !contentType.includes("text/markdown")) {
+            throw new Error("Markdown source is unavailable");
+          }
+          copyValue = await response.text();
+        }
+      }
+      if (copyValue === undefined) {
+        throw new Error("Clipboard value is unavailable");
+      }
+
+      await navigator.clipboard.writeText(copyValue);
       setStatus("copied");
       sendAnalyticsEvent(analyticsEventName, {
         ...analyticsParameters,
@@ -72,7 +108,7 @@ export function ClipboardButton({
       ) : (
         <CopyIcon className="size-4" />
       )}
-      {showLabel ? <span>{statusLabel}</span> : null}
+      {showLabel ? <span className={labelClassName}>{statusLabel}</span> : null}
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "idle" ? "" : statusLabel}
       </span>
