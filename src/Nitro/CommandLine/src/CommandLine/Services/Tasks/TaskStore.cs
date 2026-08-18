@@ -1,6 +1,5 @@
 using System.Data.Common;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
@@ -290,10 +289,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     // -------------------------------------------------------------------
-    // New surface: backend-agnostic, no ADO.NET or SQLite types. The read
-    // members below (bd-oyf.2) are real implementations; the write members
-    // further down (bd-oyf.3) are still stubs. No command calls this
-    // surface yet.
+    // New surface: backend-agnostic, no ADO.NET or SQLite types. Both the
+    // read members (bd-oyf.2) and the write members (bd-oyf.3) below are
+    // real implementations, each owning its own transaction and audit
+    // events. No command calls this surface yet; that migration is done by
+    // bd-oyf.4/bd-oyf.5.
     // -------------------------------------------------------------------
 
     public async Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
@@ -470,7 +470,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return (await connection.QueryAsync<TaskEpicStatus>(
+        return await QueryEpicStatusesAsync(connection, cancellationToken);
+    }
+
+    private static async Task<IReadOnlyList<TaskEpicStatus>> QueryEpicStatusesAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+        => (await connection.QueryAsync<TaskEpicStatus>(
             new CommandDefinition(
                 """
                 SELECT e.id AS Id, e.title AS Title, e.status AS Status,
@@ -493,7 +499,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                     epic = TaskTypes.Epic
                 },
                 cancellationToken: cancellationToken))).ToList();
-    }
 
     public async Task<int> CountTasksAsync(
         CancellationToken cancellationToken)
@@ -662,11 +667,18 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return await GetConfigAsync(connection, key, cancellationToken);
     }
 
-    public Task SetConfigAsync(
+    public async Task SetConfigAsync(
         string key,
         string value,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await SetConfigAsync(connection, key, value, cancellationToken, transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyList<TaskConfigEntry>> ListConfigAsync(
         CancellationToken cancellationToken)
@@ -685,104 +697,1123 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return await GetPrefixAsync(connection, cancellationToken);
     }
 
-    public Task InitializeWorkspaceAsync(
+    public async Task InitializeWorkspaceAsync(
         string workspaceDirectory,
         string prefix,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        await using var connection = await InitializeAsync(workspaceDirectory, cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-    public Task<TaskCreationResult> CreateTaskAsync(
+        await SetConfigAsync(connection, PrefixConfigKey, prefix, cancellationToken, transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task<TaskCreationResult> CreateTaskAsync(
         TaskCreation creation,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
+        var seed = $"{creation.Title}|{now:O}";
 
-    public Task<TaskUpdateResult> UpdateTaskAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var resolvedDependencies = new List<(string TargetId, string Type, string Status)>();
+        string id;
+
+        if (creation.ParentId is not null)
+        {
+            var parent = await GetRequiredTaskAsync(
+                connection, creation.ParentId, cancellationToken, transaction);
+            resolvedDependencies.Add(
+                (creation.ParentId, TaskDependencyTypes.ParentChild, parent.Status));
+            id = await CreateTaskIdAsync(
+                connection, creation.ParentId, seed, cancellationToken, transaction);
+        }
+        else
+        {
+            id = await CreateTaskIdAsync(connection, null, seed, cancellationToken, transaction);
+        }
+
+        foreach (var dependency in creation.DependsOn)
+        {
+            var target = await GetRequiredTaskAsync(
+                connection, dependency.DependsOnId, cancellationToken, transaction);
+
+            resolvedDependencies.Add((dependency.DependsOnId, dependency.Type, target.Status));
+        }
+
+        var task = new TaskItem
+        {
+            Id = id,
+            Title = creation.Title,
+            Description = creation.Description,
+            Status = TaskStates.Open,
+            Priority = creation.Priority,
+            Type = creation.Type,
+            Assignee = creation.Assignee,
+            EstimatedMinutes = creation.EstimatedMinutes,
+            DueAt = creation.DueAt,
+            DeferUntil = creation.DeferUntil,
+            CreatedAt = now,
+            CreatedBy = creation.Actor,
+            UpdatedAt = now
+        };
+
+        await connection.ExecuteAsync(
+            "INSERT INTO tasks (id, title, description, design, acceptance_criteria, notes, "
+            + "status, priority, task_type, assignee, estimated_minutes, due_at, defer_until, "
+            + "created_at, created_by, updated_at, closed_at, close_reason, deleted_at, "
+            + "delete_reason) "
+            + "VALUES (@Id, @Title, @Description, @Design, @AcceptanceCriteria, @Notes, "
+            + "@Status, @Priority, @Type, @Assignee, @EstimatedMinutes, @DueAt, @DeferUntil, "
+            + "@CreatedAt, @CreatedBy, @UpdatedAt, @ClosedAt, @CloseReason, @DeletedAt, "
+            + "@DeleteReason)",
+            task,
+            transaction);
+
+        foreach (var label in creation.Labels)
+        {
+            await connection.ExecuteAsync(
+                "INSERT OR IGNORE INTO labels (task_id, label) VALUES (@TaskId, @Label)",
+                new { TaskId = id, Label = label, cancellationToken },
+                transaction);
+        }
+
+        foreach (var (targetId, dependencyType, _) in resolvedDependencies)
+        {
+            await connection.ExecuteAsync(
+                "INSERT OR IGNORE INTO dependencies "
+                + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
+                + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+                new TaskDependency
+                {
+                    TaskId = id,
+                    DependsOnId = targetId,
+                    Type = dependencyType,
+                    CreatedAt = now,
+                    CreatedBy = creation.Actor
+                },
+                transaction);
+        }
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = id,
+                Type = TaskEventTypes.Created,
+                Actor = creation.Actor,
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        // A parent-child edge alone does not block the new task; only the
+        // other blocking dependency types gate it (matching ComputeBlockedAsync).
+        var blockedBy = resolvedDependencies
+            .Where(d => d.Type != TaskDependencyTypes.ParentChild
+                && TaskDependencyTypes.IsBlocking(d.Type)
+                && !TaskStates.IsTerminal(d.Status))
+            .Select(d => d.TargetId)
+            .Distinct()
+            .ToList();
+
+        return new TaskCreationResult { Id = id, BlockedBy = blockedBy };
+    }
+
+    public async Task<TaskUpdateResult> UpdateTaskAsync(
         string id,
         TaskUpdate update,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task<IReadOnlyList<TaskItem>> CloseTaskAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        var changedFields = new List<string>();
+        string? oldStatus = null;
+        string? newStatus = null;
+        string? oldPriority = null;
+        string? newPriority = null;
+        string? oldAssignee = null;
+        string? newAssignee = null;
+
+        if (update.TitleGiven)
+        {
+            var title = update.Title ?? "";
+
+            if (title.Length is 0 or > 500)
+            {
+                throw new ExitException("The title must be 1-500 characters.");
+            }
+
+            if (title != task.Title)
+            {
+                task.Title = title;
+                changedFields.Add("title");
+            }
+        }
+
+        if (update.DescriptionGiven)
+        {
+            var description = update.Description ?? "";
+
+            if (description != task.Description)
+            {
+                task.Description = description;
+                changedFields.Add("description");
+            }
+        }
+
+        if (update.TypeGiven)
+        {
+            var type = TaskTypes.Normalize(update.Type ?? "");
+
+            if (type != task.Type)
+            {
+                task.Type = type;
+                changedFields.Add("task_type");
+            }
+        }
+
+        if (update.NotesGiven)
+        {
+            var notes = update.Notes ?? "";
+
+            if (notes != task.Notes)
+            {
+                task.Notes = notes;
+                changedFields.Add("notes");
+            }
+        }
+
+        if (update.DesignGiven)
+        {
+            var design = update.Design ?? "";
+
+            if (design != task.Design)
+            {
+                task.Design = design;
+                changedFields.Add("design");
+            }
+        }
+
+        if (update.AcceptanceCriteriaGiven)
+        {
+            var acceptanceCriteria = update.AcceptanceCriteria ?? "";
+
+            if (acceptanceCriteria != task.AcceptanceCriteria)
+            {
+                task.AcceptanceCriteria = acceptanceCriteria;
+                changedFields.Add("acceptance_criteria");
+            }
+        }
+
+        if (update.DueAtGiven)
+        {
+            if (update.DueAt != task.DueAt)
+            {
+                task.DueAt = update.DueAt;
+                changedFields.Add("due_at");
+            }
+        }
+
+        if (update.DeferUntilGiven)
+        {
+            if (update.DeferUntil != task.DeferUntil)
+            {
+                task.DeferUntil = update.DeferUntil;
+                changedFields.Add("defer_until");
+            }
+        }
+
+        if (update.EstimatedMinutesGiven)
+        {
+            if (update.EstimatedMinutes != task.EstimatedMinutes)
+            {
+                task.EstimatedMinutes = update.EstimatedMinutes;
+                changedFields.Add("estimated_minutes");
+            }
+        }
+
+        if (update.StatusGiven)
+        {
+            var status = TaskStates.Normalize(update.Status ?? "");
+
+            if (status == TaskStates.Closed)
+            {
+                throw new ExitException("Use `nitro task close` to close a task.");
+            }
+
+            if (status == TaskStates.Tombstone)
+            {
+                throw new ExitException("Use `nitro task delete` to delete a task.");
+            }
+
+            if (task.Status == TaskStates.Closed)
+            {
+                throw new ExitException("Use `nitro task reopen` to reopen a task.");
+            }
+
+            if (status != task.Status)
+            {
+                oldStatus = task.Status;
+                newStatus = status;
+                task.Status = status;
+            }
+        }
+
+        if (update.PriorityGiven)
+        {
+            var priority = update.Priority ?? TaskPriorities.Medium;
+
+            if (priority != task.Priority)
+            {
+                oldPriority = TaskPriorities.Format(task.Priority);
+                newPriority = TaskPriorities.Format(priority);
+                task.Priority = priority;
+            }
+        }
+
+        if (update.AssigneeGiven)
+        {
+            var assignee = string.IsNullOrEmpty(update.Assignee) ? null : update.Assignee;
+
+            if (assignee != task.Assignee)
+            {
+                oldAssignee = task.Assignee ?? "";
+                newAssignee = assignee ?? "";
+                task.Assignee = assignee;
+            }
+        }
+
+        task.UpdatedAt = now;
+
+        await connection.ExecuteAsync(
+            """
+            UPDATE tasks
+            SET title = @Title,
+                description = @Description,
+                design = @Design,
+                acceptance_criteria = @AcceptanceCriteria,
+                notes = @Notes,
+                status = @Status,
+                priority = @Priority,
+                task_type = @Type,
+                assignee = @Assignee,
+                estimated_minutes = @EstimatedMinutes,
+                due_at = @DueAt,
+                defer_until = @DeferUntil,
+                updated_at = @UpdatedAt
+            WHERE id = @Id
+            """,
+            new
+            {
+                task.Title,
+                task.Description,
+                task.Design,
+                task.AcceptanceCriteria,
+                task.Notes,
+                task.Status,
+                task.Priority,
+                task.Type,
+                task.Assignee,
+                task.EstimatedMinutes,
+                task.DueAt,
+                task.DeferUntil,
+                task.UpdatedAt,
+                Id = task.Id,
+                cancellationToken
+            },
+            transaction);
+
+        if (oldStatus is not null)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.StatusChanged,
+                    Actor = update.Actor,
+                    OldValue = oldStatus,
+                    NewValue = newStatus,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        if (oldPriority is not null)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.PriorityChanged,
+                    Actor = update.Actor,
+                    OldValue = oldPriority,
+                    NewValue = newPriority,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        if (oldAssignee is not null)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.AssigneeChanged,
+                    Actor = update.Actor,
+                    OldValue = oldAssignee,
+                    NewValue = newAssignee,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        if (changedFields.Count > 0)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.Updated,
+                    Actor = update.Actor,
+                    Comment = string.Join(", ", changedFields),
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TaskUpdateResult { ChangedFields = changedFields };
+    }
+
+    public async Task<IReadOnlyList<TaskItem>> CloseTaskAsync(
         IReadOnlyList<string> ids,
         string reason,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task<TaskItem> ReopenTaskAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        // Every task is loaded and validated before any write happens, which
+        // gives close its all-or-nothing behavior: nothing is written until
+        // every id has passed.
+        var tasks = new List<TaskItem>();
+
+        foreach (var id in ids)
+        {
+            var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+            if (task.Status == TaskStates.Closed)
+            {
+                throw new ExitException($"Task '{id}' is already closed.");
+            }
+
+            tasks.Add(task);
+        }
+
+        foreach (var task in tasks)
+        {
+            var oldStatus = task.Status;
+
+            await connection.ExecuteAsync(
+                "UPDATE tasks SET status = @status, closed_at = @closedAt, "
+                + "close_reason = @closeReason, updated_at = @updatedAt WHERE id = @id",
+                new
+                {
+                    status = TaskStates.Closed,
+                    closedAt = now,
+                    closeReason = reason,
+                    updatedAt = now,
+                    id = task.Id,
+                    cancellationToken
+                },
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = task.Id,
+                    Type = TaskEventTypes.Closed,
+                    Actor = actor,
+                    OldValue = oldStatus,
+                    NewValue = TaskStates.Closed,
+                    Comment = string.IsNullOrEmpty(reason) ? null : reason,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+
+            task.Status = TaskStates.Closed;
+            task.ClosedAt = now;
+            task.CloseReason = reason;
+            task.UpdatedAt = now;
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return tasks;
+    }
+
+    public async Task<TaskItem> ReopenTaskAsync(
         string id,
         string reason,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task<TaskItem> DeferTaskAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        if (task.Status != TaskStates.Closed)
+        {
+            throw new ExitException($"Task '{id}' is not closed.");
+        }
+
+        var oldStatus = task.Status;
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET status = @status, closed_at = NULL, "
+            + "close_reason = @closeReason, updated_at = @updatedAt WHERE id = @id",
+            new
+            {
+                status = TaskStates.Open,
+                closeReason = "",
+                updatedAt = now,
+                id = task.Id,
+                cancellationToken
+            },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = task.Id,
+                Type = TaskEventTypes.Reopened,
+                Actor = actor,
+                OldValue = oldStatus,
+                NewValue = TaskStates.Open,
+                Comment = string.IsNullOrEmpty(reason) ? null : reason,
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        task.Status = TaskStates.Open;
+        task.ClosedAt = null;
+        task.CloseReason = "";
+        task.UpdatedAt = now;
+
+        return task;
+    }
+
+    public async Task<TaskItem> DeferTaskAsync(
         string id,
         DateTimeOffset until,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task<TaskItem> UndeferTaskAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        if (task.Status is not (TaskStates.Open or TaskStates.InProgress))
+        {
+            throw new ExitException("Only open or in-progress tasks can be deferred.");
+        }
+
+        var oldStatus = task.Status;
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET status = @status, defer_until = @deferUntil, "
+            + "updated_at = @updatedAt WHERE id = @id",
+            new
+            {
+                status = TaskStates.Deferred,
+                deferUntil = until,
+                updatedAt = now,
+                id = task.Id,
+                cancellationToken
+            },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = task.Id,
+                Type = TaskEventTypes.Deferred,
+                Actor = actor,
+                OldValue = oldStatus,
+                NewValue = TaskDates.Format(until),
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        task.Status = TaskStates.Deferred;
+        task.DeferUntil = until;
+        task.UpdatedAt = now;
+
+        return task;
+    }
+
+    public async Task<TaskItem> UndeferTaskAsync(
         string id,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task<TaskItem> DeleteTaskAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        if (task.Status != TaskStates.Deferred)
+        {
+            throw new ExitException($"Task '{id}' is not deferred.");
+        }
+
+        var oldStatus = task.Status;
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET status = @status, defer_until = NULL, "
+            + "updated_at = @updatedAt WHERE id = @id",
+            new
+            {
+                status = TaskStates.Open,
+                updatedAt = now,
+                id = task.Id,
+                cancellationToken
+            },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = task.Id,
+                Type = TaskEventTypes.Undeferred,
+                Actor = actor,
+                OldValue = oldStatus,
+                NewValue = TaskStates.Open,
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        task.Status = TaskStates.Open;
+        task.DeferUntil = null;
+        task.UpdatedAt = now;
+
+        return task;
+    }
+
+    public async Task<TaskItem> DeleteTaskAsync(
         string id,
         string reason,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        var oldStatus = task.Status;
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET status = @status, deleted_at = @deletedAt, "
+            + "delete_reason = @deleteReason, updated_at = @updatedAt WHERE id = @id",
+            new
+            {
+                status = TaskStates.Tombstone,
+                deletedAt = now,
+                deleteReason = reason,
+                updatedAt = now,
+                id = task.Id,
+                cancellationToken
+            },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = task.Id,
+                Type = TaskEventTypes.Deleted,
+                Actor = actor,
+                OldValue = oldStatus,
+                NewValue = TaskStates.Tombstone,
+                Comment = string.IsNullOrEmpty(reason) ? null : reason,
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        task.Status = TaskStates.Tombstone;
+        task.DeletedAt = now;
+        task.DeleteReason = reason;
+        task.UpdatedAt = now;
+
+        return task;
+    }
+
+    public async Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        const string closeReason = "All children are closed.";
+        var now = timeProvider.GetUtcNow();
 
-    public Task<TaskComment> AddCommentAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var epics = await QueryEpicStatusesAsync(connection, cancellationToken);
+        var eligible = epics.Where(epic => epic.IsEligibleForClose).ToList();
+
+        if (eligible.Count == 0)
+        {
+            return eligible;
+        }
+
+        // Every epic is validated up front (IsEligibleForClose, checked
+        // against data read before the transaction opens); the update loop
+        // below is then all-or-nothing, matching CloseTaskCommand's pattern.
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        foreach (var epic in eligible)
+        {
+            await connection.ExecuteAsync(
+                "UPDATE tasks SET status = @status, closed_at = @closedAt, "
+                + "close_reason = @closeReason, updated_at = @updatedAt WHERE id = @id",
+                new
+                {
+                    status = TaskStates.Closed,
+                    closedAt = now,
+                    closeReason,
+                    updatedAt = now,
+                    id = epic.Id,
+                    cancellationToken
+                },
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = epic.Id,
+                    Type = TaskEventTypes.Closed,
+                    Actor = actor,
+                    OldValue = epic.Status,
+                    NewValue = TaskStates.Closed,
+                    Comment = closeReason,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return eligible.Select(epic => epic with { Status = TaskStates.Closed }).ToList();
+    }
+
+    public async Task<TaskComment> AddCommentAsync(
         string id,
         string text,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ExitException("The comment text must not be empty.");
+        }
 
-    public Task<IReadOnlyList<TaskLabelChange>> AddLabelAsync(
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        var commentId = await connection.ExecuteScalarAsync<long>(
+            "INSERT INTO comments (task_id, author, text, created_at) "
+            + "VALUES (@TaskId, @Author, @Text, @CreatedAt) RETURNING id",
+            new { TaskId = task.Id, Author = actor, Text = text, CreatedAt = now, cancellationToken },
+            transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET updated_at = @updatedAt WHERE id = @id",
+            new { updatedAt = now, id = task.Id, cancellationToken },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = task.Id,
+                Type = TaskEventTypes.Commented,
+                Actor = actor,
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TaskComment
+        {
+            Id = commentId,
+            TaskId = task.Id,
+            Author = actor,
+            Text = text,
+            CreatedAt = now
+        };
+    }
+
+    public async Task<IReadOnlyList<TaskLabelChange>> AddLabelAsync(
         string id,
         IReadOnlyList<string> labels,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var normalizedLabels = labels.Select(label => label.Trim().ToLowerInvariant()).ToList();
 
-    public Task RemoveLabelAsync(
+        if (normalizedLabels.Any(label => label.Length == 0))
+        {
+            throw new ExitException("Labels must be non-empty.");
+        }
+
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        var results = new List<TaskLabelChange>();
+
+        foreach (var label in normalizedLabels)
+        {
+            var rowsAffected = await connection.ExecuteAsync(
+                "INSERT OR IGNORE INTO labels (task_id, label) VALUES (@TaskId, @Label)",
+                new { TaskId = task.Id, Label = label, cancellationToken },
+                transaction);
+
+            results.Add(new TaskLabelChange(label, rowsAffected > 0));
+        }
+
+        if (results.Any(result => result.Added))
+        {
+            await connection.ExecuteAsync(
+                "UPDATE tasks SET updated_at = @updatedAt WHERE id = @id",
+                new { updatedAt = now, id = task.Id, cancellationToken },
+                transaction);
+        }
+
+        foreach (var result in results)
+        {
+            if (result.Added)
+            {
+                await RecordEventAsync(
+                    connection,
+                    new TaskEvent
+                    {
+                        TaskId = task.Id,
+                        Type = TaskEventTypes.LabelAdded,
+                        Actor = actor,
+                        NewValue = result.Label,
+                        CreatedAt = now
+                    },
+                    cancellationToken,
+                    transaction);
+            }
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return results;
+    }
+
+    public async Task RemoveLabelAsync(
         string id,
         string label,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var normalizedLabel = label.Trim().ToLowerInvariant();
+        var now = timeProvider.GetUtcNow();
 
-    public Task<TaskDependencyAddResult> AddDependencyAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        var exists = await connection.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM labels WHERE task_id = @TaskId AND label = @Label",
+            new { TaskId = task.Id, Label = normalizedLabel, cancellationToken },
+            transaction);
+
+        if (exists == 0)
+        {
+            throw new ExitException($"Label '{normalizedLabel}' is not on '{task.Id}'.");
+        }
+
+        await connection.ExecuteAsync(
+            "DELETE FROM labels WHERE task_id = @TaskId AND label = @Label",
+            new { TaskId = task.Id, Label = normalizedLabel, cancellationToken },
+            transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET updated_at = @updatedAt WHERE id = @id",
+            new { updatedAt = now, id = task.Id, cancellationToken },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = task.Id,
+                Type = TaskEventTypes.LabelRemoved,
+                Actor = actor,
+                OldValue = normalizedLabel,
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task<TaskDependencyAddResult> AddDependencyAsync(
         string id,
         string dependsOnId,
         string type,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    public Task RemoveDependencyAsync(
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+        await GetRequiredTaskAsync(connection, dependsOnId, cancellationToken, transaction);
+
+        if (id == dependsOnId)
+        {
+            throw new ExitException("A task cannot depend on itself.");
+        }
+
+        var existingCount = await connection.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM dependencies WHERE task_id = @id AND depends_on_id = @dependsOnId",
+            new { id, dependsOnId, cancellationToken },
+            transaction);
+
+        if (existingCount > 0)
+        {
+            throw new ExitException("Dependency already exists.");
+        }
+
+        await connection.ExecuteAsync(
+            "INSERT INTO dependencies "
+            + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
+            + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+            new TaskDependency
+            {
+                TaskId = id,
+                DependsOnId = dependsOnId,
+                Type = type,
+                CreatedAt = now,
+                CreatedBy = actor
+            },
+            transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET updated_at = @updatedAt WHERE id = @id",
+            new { updatedAt = now, id, cancellationToken },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = id,
+                Type = TaskEventTypes.DependencyAdded,
+                Actor = actor,
+                OldValue = null,
+                NewValue = $"{type}:{dependsOnId}",
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        List<string>? cycle = null;
+
+        if (TaskDependencyTypes.IsBlocking(type))
+        {
+            cycle = await FindBlockingCycleAsync(connection, transaction, id, dependsOnId);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TaskDependencyAddResult { Cycle = cycle };
+    }
+
+    public async Task RemoveDependencyAsync(
         string id,
         string dependsOnId,
         string actor,
         CancellationToken cancellationToken)
-        => throw NotImplemented();
+    {
+        var now = timeProvider.GetUtcNow();
 
-    private static NotSupportedException NotImplemented(
-        [CallerMemberName] string memberName = "")
-        => new(
-            $"ITaskStore.{memberName} is not implemented yet. "
-            + "No command calls the new backend-agnostic surface until the "
-            + "read and write migration work lands.");
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        var existingType = await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT dependency_type FROM dependencies "
+            + "WHERE task_id = @id AND depends_on_id = @dependsOnId",
+            new { id, dependsOnId, cancellationToken },
+            transaction);
+
+        if (existingType is null)
+        {
+            throw new ExitException("Dependency does not exist.");
+        }
+
+        await connection.ExecuteAsync(
+            "DELETE FROM dependencies WHERE task_id = @id AND depends_on_id = @dependsOnId",
+            new { id, dependsOnId, cancellationToken },
+            transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET updated_at = @updatedAt WHERE id = @id",
+            new { updatedAt = now, id, cancellationToken },
+            transaction);
+
+        await RecordEventAsync(
+            connection,
+            new TaskEvent
+            {
+                TaskId = id,
+                Type = TaskEventTypes.DependencyRemoved,
+                Actor = actor,
+                OldValue = null,
+                NewValue = $"{existingType}:{dependsOnId}",
+                CreatedAt = now
+            },
+            cancellationToken,
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    // Searches the blocking-dependency graph for a path from dependsOnId
+    // back to id. Combined with the edge just inserted (id -> dependsOnId),
+    // such a path closes a cycle. Runs inside the same transaction as the
+    // insert so the check sees a consistent snapshot.
+    private static async Task<List<string>?> FindBlockingCycleAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        string id,
+        string dependsOnId)
+    {
+        var edges = (await connection.QueryAsync<DependencyEdgeRow>(
+            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
+            + "FROM dependencies",
+            transaction: transaction))
+            .Where(e => TaskDependencyTypes.IsBlocking(e.Type))
+            .ToList();
+
+        var adjacency = edges
+            .GroupBy(e => e.TaskId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.DependsOnId).OrderBy(x => x, StringComparer.Ordinal).ToList());
+
+        var predecessor = new Dictionary<string, string?> { [dependsOnId] = null };
+        var queue = new Queue<string>();
+        queue.Enqueue(dependsOnId);
+
+        while (queue.TryDequeue(out var current))
+        {
+            if (current == id)
+            {
+                var path = new List<string>();
+                string? node = current;
+
+                while (node is not null)
+                {
+                    path.Add(node);
+                    node = predecessor[node];
+                }
+
+                path.Reverse();
+
+                // path runs dependsOnId..id; drop the trailing id (already the
+                // list's head) and close the loop by repeating the dependent
+                // task at the end, so the cycle both starts and ends at id.
+                var cycle = new List<string> { id };
+                cycle.AddRange(path.Take(path.Count - 1));
+                cycle.Add(id);
+
+                return cycle;
+            }
+
+            if (!adjacency.TryGetValue(current, out var neighbors))
+            {
+                continue;
+            }
+
+            foreach (var next in neighbors)
+            {
+                if (!predecessor.ContainsKey(next))
+                {
+                    predecessor[next] = current;
+                    queue.Enqueue(next);
+                }
+            }
+        }
+
+        return null;
+    }
 
     private static (string WhereClause, DynamicParameters Parameters) BuildTaskFilterClause(
         TaskFilter filter)
@@ -1032,5 +2063,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         public required string Label { get; init; }
         public required int Count { get; init; }
+    }
+
+    /// <summary>
+    /// A dependency edge's task pair and type, for the blocking-cycle walk in
+    /// <see cref="AddDependencyAsync"/>.
+    /// </summary>
+    private sealed class DependencyEdgeRow
+    {
+        public required string TaskId { get; init; }
+        public required string DependsOnId { get; init; }
+        public required string Type { get; init; }
     }
 }
