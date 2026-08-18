@@ -1,0 +1,65 @@
+namespace ChilliCream.Nitro.CommandLine.Tui.Theming;
+
+/// <summary>
+/// Looks up styles and colors by dotted token name (for example
+/// <c>board.column.border.focused</c> or <c>badge.priority.p0</c>). One
+/// built-in theme is registered; unknown tokens resolve to
+/// <see cref="Style.Plain"/> so callers never need to null-check.
+/// </summary>
+internal static class ThemeTokens
+{
+    private static readonly IReadOnlyDictionary<string, Style> Active = DefaultTheme.Tokens;
+
+    /// <summary>
+    /// Resolves <paramref name="token"/> to a style, or <see cref="Style.Plain"/>
+    /// if the token is not registered.
+    /// </summary>
+    public static Style GetStyle(string token)
+        => Active.TryGetValue(token, out var style) ? style : Style.Plain;
+
+    /// <summary>
+    /// Resolves <paramref name="token"/> to a foreground color, or
+    /// <see cref="Color.Default"/> if the token is not registered.
+    /// </summary>
+    public static Color GetColor(string token)
+        => GetStyle(token).Foreground;
+}
+
+/// <summary>
+/// The single built-in token set backing <see cref="ThemeTokens"/>.
+/// </summary>
+internal static class DefaultTheme
+{
+    public static readonly IReadOnlyDictionary<string, Style> Tokens = new Dictionary<string, Style>
+    {
+        ["board.column.border"] = new Style(Color.Grey),
+        ["board.column.border.focused"] = new Style(Color.Aqua),
+
+        ["badge.priority.p0"] = new Style(Color.Red),
+        ["badge.priority.p1"] = new Style(Color.Orange1),
+        ["badge.priority.p2"] = new Style(Color.Yellow),
+        ["badge.priority.p3"] = new Style(Color.Grey70),
+        ["badge.priority.p4"] = new Style(Color.Grey50),
+
+        ["badge.type.bug"] = new Style(Color.Red3),
+        ["badge.type.feature"] = new Style(Color.SkyBlue1),
+        ["badge.type.task"] = new Style(Color.Grey70),
+        ["badge.type.epic"] = new Style(Color.MediumPurple1),
+        ["badge.type.chore"] = new Style(Color.Grey50),
+        ["badge.type.docs"] = new Style(Color.Grey58),
+        ["badge.type.question"] = new Style(Color.Gold1),
+
+        ["status.glyph.closed"] = new Style(Color.Green),
+        ["status.glyph.in_progress"] = new Style(Color.Yellow),
+        ["status.glyph.open"] = new Style(Color.Grey70),
+        ["status.glyph.deferred"] = new Style(Color.Grey50),
+        ["status.glyph.blocked"] = new Style(Color.Red),
+
+        ["selection.highlight"] = new Style(Color.Black, Color.Aqua),
+
+        ["toast.info.border"] = new Style(Color.SkyBlue1),
+        ["toast.success.border"] = new Style(Color.Green),
+        ["toast.warn.border"] = new Style(Color.Orange1),
+        ["toast.error.border"] = new Style(Color.Red)
+    };
+}
