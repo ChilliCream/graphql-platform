@@ -33,19 +33,19 @@ internal sealed class RabbitMQMessageEnvelopeParser
         {
             MessageId = props.MessageId,
             CorrelationId = props.CorrelationId,
-            ConversationId = headers.GetString(RabbitMQMessageHeaders.ConversationId),
-            CausationId = headers.GetString(RabbitMQMessageHeaders.CausationId),
-            SourceAddress = headers.GetString(RabbitMQMessageHeaders.SourceAddress),
-            DestinationAddress = headers.GetString(RabbitMQMessageHeaders.DestinationAddress),
+            ConversationId = headers.GetString(MessageHeaders.Transport.ConversationId),
+            CausationId = headers.GetString(MessageHeaders.Transport.CausationId),
+            SourceAddress = headers.GetString(MessageHeaders.Transport.SourceAddress),
+            DestinationAddress = headers.GetString(MessageHeaders.Transport.DestinationAddress),
             ResponseAddress = props.ReplyTo,
-            FaultAddress = headers.GetString(RabbitMQMessageHeaders.FaultAddress),
+            FaultAddress = headers.GetString(MessageHeaders.Transport.FaultAddress),
             ContentType = props.ContentType,
-            MessageType = props.Type ?? headers.GetString(RabbitMQMessageHeaders.MessageType),
+            MessageType = props.Type ?? headers.GetString(MessageHeaders.Transport.MessageType),
             SentAt = sentAt,
             DeliverBy = props.Expiration.ParseExpiration(sentAt, timeProvider),
             DeliveryCount = headers.GetDeliveryCount(eventArgs.Redelivered),
             Headers = headers,
-            EnclosedMessageTypes = headers.GetStringArray(RabbitMQMessageHeaders.EnclosedMessageTypes),
+            EnclosedMessageTypes = headers.GetStringArray(MessageHeaders.Transport.EnclosedMessageTypes),
             Body = eventArgs.Body
         };
 
