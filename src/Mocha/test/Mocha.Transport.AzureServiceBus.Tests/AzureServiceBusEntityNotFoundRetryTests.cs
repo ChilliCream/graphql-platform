@@ -1,4 +1,5 @@
 using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
@@ -15,18 +16,11 @@ public class AzureServiceBusEntityNotFoundRetryTests
     public async Task SendAsync_Should_RecreateSenderAndRetryOnce_When_EntityWasDeleted()
     {
         // arrange
-        var client = new FakeServiceBusClient(
+        var (client, admin, bus) = CreateBus(
             senderIndex => senderIndex == 0
                 ? new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound)
                 : null);
-        var services = new ServiceCollection();
-        services.AddSingleton<ServiceBusClient>(client);
-        var builder = services
-            .AddMessageBus()
-            .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
-        var provider = builder.Services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await using var bus = new TestBus(provider, runtime);
+        await using var _ = bus;
 
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -47,22 +41,16 @@ public class AzureServiceBusEntityNotFoundRetryTests
         Assert.Equal(1, replacementSender.SendMessageCallCount);
         Assert.True(originalSender.IsClosed);
         Assert.False(replacementSender.IsClosed);
+        Assert.Equal(2, admin.CreateQueueCallCount);
     }
 
     [Fact]
     public async Task SendAsync_Should_PropagateException_When_SecondMessagingEntityNotFoundOccurs()
     {
         // arrange
-        var client = new FakeServiceBusClient(
+        var (client, admin, bus) = CreateBus(
             _ => new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound));
-        var services = new ServiceCollection();
-        services.AddSingleton<ServiceBusClient>(client);
-        var builder = services
-            .AddMessageBus()
-            .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
-        var provider = builder.Services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await using var bus = new TestBus(provider, runtime);
+        await using var _ = bus;
 
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -77,24 +65,18 @@ public class AzureServiceBusEntityNotFoundRetryTests
         Assert.Equal(ServiceBusFailureReason.MessagingEntityNotFound, exception.Reason);
         Assert.Equal(2, client.CreatedSenders.Count);
         Assert.All(client.CreatedSenders, sender => Assert.Equal(1, sender.SendMessageCallCount));
+        Assert.Equal(2, admin.CreateQueueCallCount);
     }
 
     [Fact]
     public async Task ScheduleSendAsync_Should_RecreateSenderAndRetryOnce_When_EntityWasDeleted()
     {
         // arrange
-        var client = new FakeServiceBusClient(
+        var (client, admin, bus) = CreateBus(
             senderIndex => senderIndex == 0
                 ? new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound)
                 : null);
-        var services = new ServiceCollection();
-        services.AddSingleton<ServiceBusClient>(client);
-        var builder = services
-            .AddMessageBus()
-            .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
-        var provider = builder.Services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await using var bus = new TestBus(provider, runtime);
+        await using var _ = bus;
 
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -115,22 +97,16 @@ public class AzureServiceBusEntityNotFoundRetryTests
         Assert.Equal(1, originalSender.ScheduleMessageCallCount);
         Assert.Equal(1, replacementSender.ScheduleMessageCallCount);
         Assert.StartsWith("asb:v1:", result.Token, StringComparison.Ordinal);
+        Assert.Equal(2, admin.CreateQueueCallCount);
     }
 
     [Fact]
     public async Task ScheduleSendAsync_Should_PropagateException_When_SecondMessagingEntityNotFoundOccurs()
     {
         // arrange
-        var client = new FakeServiceBusClient(
+        var (client, admin, bus) = CreateBus(
             _ => new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound));
-        var services = new ServiceCollection();
-        services.AddSingleton<ServiceBusClient>(client);
-        var builder = services
-            .AddMessageBus()
-            .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
-        var provider = builder.Services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await using var bus = new TestBus(provider, runtime);
+        await using var _ = bus;
 
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -146,5 +122,23 @@ public class AzureServiceBusEntityNotFoundRetryTests
         Assert.Equal(ServiceBusFailureReason.MessagingEntityNotFound, exception.Reason);
         Assert.Equal(2, client.CreatedSenders.Count);
         Assert.All(client.CreatedSenders, sender => Assert.Equal(1, sender.ScheduleMessageCallCount));
+        Assert.Equal(2, admin.CreateQueueCallCount);
+    }
+
+    private static (FakeServiceBusClient Client, FakeServiceBusAdministrationClient Admin, TestBus Bus) CreateBus(
+        Func<int, Exception?> failureAt)
+    {
+        var client = new FakeServiceBusClient(failureAt);
+        var admin = new FakeServiceBusAdministrationClient();
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(admin);
+        var builder = services
+            .AddMessageBus()
+            .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
+        var provider = builder.Services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        return (client, admin, new TestBus(provider, runtime));
     }
 }

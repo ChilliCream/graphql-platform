@@ -20,6 +20,18 @@ internal sealed class FakeServiceBusClient : ServiceBusClient
 
     public List<FakeServiceBusSender> CreatedSenders { get; } = [];
 
+    public List<CreatedProcessor> CreatedProcessors { get; } = [];
+
+    public List<CreatedSessionProcessor> CreatedSessionProcessors { get; } = [];
+
+    public List<FakeServiceBusReceiver> CreatedReceivers { get; } = [];
+
+    /// <summary>
+    /// When set, <see cref="CreateReceiver(string)"/> throws the returned exception instead of
+    /// returning a receiver, simulating a failure while acquiring the reply queue receiver.
+    /// </summary>
+    public Func<string, Exception?>? ReceiverFailure { get; set; }
+
     public override ServiceBusSender CreateSender(string queueOrTopicName)
     {
         var senderIndex = _senderCount++;
@@ -28,58 +40,105 @@ internal sealed class FakeServiceBusClient : ServiceBusClient
         return sender;
     }
 
+    public override ServiceBusSender CreateSender(string queueOrTopicName, ServiceBusSenderOptions options)
+        => CreateSender(queueOrTopicName);
+
+    public override ServiceBusProcessor CreateProcessor(string queueName, ServiceBusProcessorOptions options)
+    {
+        var processor = new FakeServiceBusProcessor();
+        CreatedProcessors.Add(new CreatedProcessor(queueName, options, processor));
+        return processor;
+    }
+
+    public override ServiceBusSessionProcessor CreateSessionProcessor(
+        string queueName,
+        ServiceBusSessionProcessorOptions options)
+    {
+        var processor = new FakeServiceBusSessionProcessor();
+        CreatedSessionProcessors.Add(new CreatedSessionProcessor(queueName, options, processor));
+        return processor;
+    }
+
+    public override ServiceBusReceiver CreateReceiver(string queueName)
+    {
+        if (ReceiverFailure?.Invoke(queueName) is { } exception)
+        {
+            throw exception;
+        }
+
+        var receiver = new FakeServiceBusReceiver();
+        CreatedReceivers.Add(receiver);
+        return receiver;
+    }
+
     public override ValueTask DisposeAsync() => default;
 }
 
 /// <summary>
-/// A <see cref="ServiceBusSender"/> test double that counts send and schedule calls and optionally
-/// throws a caller-supplied exception on each call.
+/// Records a <see cref="ServiceBusProcessor"/> created through <see cref="FakeServiceBusClient"/>,
+/// pairing it with the queue name and options it was created with.
 /// </summary>
-internal sealed class FakeServiceBusSender : ServiceBusSender
+internal sealed record CreatedProcessor(string QueueName, ServiceBusProcessorOptions Options, FakeServiceBusProcessor Processor);
+
+/// <summary>
+/// Records a <see cref="ServiceBusSessionProcessor"/> created through <see cref="FakeServiceBusClient"/>,
+/// pairing it with the queue name and options it was created with.
+/// </summary>
+internal sealed record CreatedSessionProcessor(
+    string QueueName,
+    ServiceBusSessionProcessorOptions Options,
+    FakeServiceBusSessionProcessor Processor);
+
+/// <summary>
+/// A <see cref="ServiceBusProcessor"/> test double whose processing loop never runs; start and stop
+/// complete immediately, and <see cref="RaiseProcessErrorAsync"/> lets tests invoke the handler
+/// registered via <see cref="ServiceBusProcessor.ProcessErrorAsync"/> without a live namespace.
+/// </summary>
+internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
 {
-    private readonly Func<Exception?> _failureFactory;
-    private bool _closed;
+    public Action? OnStopProcessing { get; set; }
 
-    public FakeServiceBusSender(Func<Exception?> failureFactory)
+    public override Task StartProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public override Task StopProcessingAsync(CancellationToken cancellationToken = default)
     {
-        _failureFactory = failureFactory;
-    }
-
-    public int SendMessageCallCount { get; private set; }
-
-    public int ScheduleMessageCallCount { get; private set; }
-
-    public override bool IsClosed => _closed;
-
-    public override Task SendMessageAsync(ServiceBusMessage message, CancellationToken cancellationToken = default)
-    {
-        SendMessageCallCount++;
-
-        if (_failureFactory() is { } exception)
-        {
-            throw exception;
-        }
-
+        OnStopProcessing?.Invoke();
         return Task.CompletedTask;
     }
 
-    public override Task<long> ScheduleMessageAsync(
-        ServiceBusMessage message,
-        DateTimeOffset scheduledEnqueueTime,
-        CancellationToken cancellationToken = default)
-    {
-        ScheduleMessageCallCount++;
+    public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
+}
 
-        if (_failureFactory() is { } exception)
-        {
-            throw exception;
-        }
+/// <summary>
+/// A <see cref="ServiceBusSessionProcessor"/> test double whose processing loop never runs; start
+/// and stop complete immediately, and <see cref="RaiseProcessErrorAsync"/> lets tests invoke the
+/// handler registered via <see cref="ServiceBusSessionProcessor.ProcessErrorAsync"/> without a live
+/// namespace.
+/// </summary>
+internal sealed class FakeServiceBusSessionProcessor : ServiceBusSessionProcessor
+{
+    public override Task StartProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        return Task.FromResult(1L);
-    }
+    public override Task StopProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
+}
+
+/// <summary>
+/// A <see cref="ServiceBusReceiver"/> test double used for the reply queue heartbeat; disposal
+/// completes immediately without contacting a live namespace.
+/// </summary>
+internal sealed class FakeServiceBusReceiver : ServiceBusReceiver
+{
+    private bool _closed;
+
+    public Action? OnDisposing { get; set; }
+
+    public override bool IsClosed => _closed;
 
     public override ValueTask DisposeAsync()
     {
+        OnDisposing?.Invoke();
         _closed = true;
         return default;
     }
