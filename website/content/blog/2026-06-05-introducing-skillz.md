@@ -10,6 +10,9 @@ authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 featuredImage: "header.png"
 ---
 
+> [!NOTE]
+> `skillz` was the product's launch name. The current package, command, and documentation use `skills`; see the [Skills documentation](../docs/skills/index.md).
+
 Over the past year, everyone who has worked with coding agents has probably had their <span className="wow-wobble" aria-label="wow"><em><span>w</span><span>o</span><span>w</span></em></span> moment. Mine came when I pasted an error message (`unterminated string`) from an HTTP response into Codex. We knew the issue had something to do with the parser, but had no idea how it was even possible. Yet five minutes later, Codex pointed me to this code in the HTTP middleware:
 
 ```csharp

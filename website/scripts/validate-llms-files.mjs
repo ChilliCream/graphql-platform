@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { generateLlmsFiles } from "./generate-llms-files.mjs";
+import {
+  generateLlmsFiles,
+  isLlmsEligibleUrl,
+} from "./generate-llms-files.mjs";
 import { parseSitemapUrls } from "./parse-sitemap.mjs";
 
 const PROJECT_ROOT = path.resolve(
@@ -15,7 +18,9 @@ const EXCLUDED_PATHS = [
   "/services/support/thank-you",
   "/404",
   "/blog/tags/",
+  "/docs/skillz",
 ];
+const BLOG_POST_PATH = /^\/blog\/\d{4}-\d{2}-\d{2}-/;
 const FORBIDDEN_BUILD_MARKERS = [
   "self.__next_f",
   "data-nextjs-scroll-focus-boundary",
@@ -132,9 +137,27 @@ async function generatedHashes(markdownFiles) {
   );
 }
 
-const urls = await sitemapUrls();
-if (urls.length === 0 || new Set(urls).size !== urls.length) {
+const allSitemapUrls = await sitemapUrls();
+if (
+  allSitemapUrls.length === 0 ||
+  new Set(allSitemapUrls).size !== allSitemapUrls.length
+) {
   throw new Error("The sitemap must contain a nonempty set of unique URLs.");
+}
+if (
+  allSitemapUrls.some((url) =>
+    new URL(url).pathname.match(/^\/docs\/skillz(?:\/|$)/),
+  )
+) {
+  throw new Error("The sitemap contains legacy /docs/skillz URLs.");
+}
+
+const urls = allSitemapUrls.filter(isLlmsEligibleUrl);
+for (const url of allSitemapUrls) {
+  const pathname = new URL(url).pathname;
+  if (BLOG_POST_PATH.test(pathname) && !isLlmsEligibleUrl(url)) {
+    throw new Error(`Public blog post was excluded from LLM export: ${url}`);
+  }
 }
 
 const perPageMarkdownFiles = urls.map((url) =>
@@ -169,6 +192,19 @@ for (let index = 0; index < urls.length; index += 1) {
   }
 }
 
+for (const url of allSitemapUrls.filter(
+  (candidate) => !isLlmsEligibleUrl(candidate),
+)) {
+  const pathname = decodeURIComponent(new URL(url).pathname);
+  const htmlPath = path.join(OUTPUT_ROOT, `${pathname.slice(1)}.html`);
+  const html = await fs.readFile(htmlPath, "utf8");
+  if (html.includes('data-llms-generated="true"')) {
+    throw new Error(
+      `${path.relative(OUTPUT_ROOT, htmlPath)} advertises redundant archive Markdown.`,
+    );
+  }
+}
+
 const rootCatalog = await fs.readFile(
   path.join(OUTPUT_ROOT, "llms.txt"),
   "utf8",
@@ -182,6 +218,13 @@ const catalogFiles = await listFiles(
   (name) => name === "llms.txt",
 );
 const discoveredMarkdownUrls = new Set();
+
+for (const file of catalogFiles) {
+  const relative = path.relative(OUTPUT_ROOT, file);
+  if (/^docs[\\/]skillz(?:[\\/]|$)/.test(relative)) {
+    throw new Error(`Generated legacy Skills catalog ${relative}`);
+  }
+}
 
 for (const file of catalogFiles) {
   const relative = path.relative(OUTPUT_ROOT, file);
@@ -251,5 +294,5 @@ const totalMarkdownBytes = (
 ).reduce((sum, stat) => sum + stat.size, 0);
 
 console.log(
-  `[llms] Validated ${urls.length} sitemap pages, ${catalogFiles.length} catalogs, ${perPageMarkdownFiles.length} Markdown pages, and ${(totalMarkdownBytes / 1024 / 1024).toFixed(2)} MiB of page content.`,
+  `[llms] Validated ${allSitemapUrls.length} sitemap URLs, ${urls.length} substantive pages, ${catalogFiles.length} catalogs, ${perPageMarkdownFiles.length} Markdown pages, and ${(totalMarkdownBytes / 1024 / 1024).toFixed(2)} MiB of page content.`,
 );

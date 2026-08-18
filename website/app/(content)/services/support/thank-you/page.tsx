@@ -11,7 +11,7 @@ export const metadata: Metadata = {
       "Your message has been sent to ChilliCream. Explore the Hot Chocolate documentation or join the community Slack while you wait for a reply.",
     path: "/services/support/thank-you",
   }),
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: true },
 };
 
 export default function ThankYouPage() {

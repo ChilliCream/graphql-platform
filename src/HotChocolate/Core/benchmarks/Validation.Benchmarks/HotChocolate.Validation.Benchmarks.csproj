@@ -8,7 +8,6 @@
     <AssemblyName>HotChocolate.Validation.Benchmarks</AssemblyName>
     <RootNamespace>HotChocolate.Validation.Benchmarks</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -31,7 +31,7 @@ export const PRODUCTS: readonly Product[] = [
     description: "Messaging Bus for .NET",
   },
   {
-    slug: "skillz",
+    slug: "skills",
     title: "Skills",
     description: "Agent Skills CLI for .NET",
   },

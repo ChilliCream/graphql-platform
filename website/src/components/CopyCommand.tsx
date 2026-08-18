@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 interface CopyCommandProps {
   /** The full shell command, without the leading "$". */
@@ -67,6 +68,10 @@ export function CopyCommand({
     try {
       await navigator.clipboard.writeText(command);
       setCopied(true);
+      sendAnalyticsEvent("copy_command", {
+        command_prefix: command.trim().split(/\s+/).slice(0, 2).join(" "),
+        page_path: window.location.pathname,
+      });
       window.clearTimeout(resetTimer.current);
       resetTimer.current = window.setTimeout(() => setCopied(false), 1600);
     } catch {
