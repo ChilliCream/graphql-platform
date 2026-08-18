@@ -250,6 +250,53 @@ public sealed class BoardModeTests
     }
 
     [Fact]
+    public void Render_Should_ShowMoreBelowIndicator_When_TasksExceedColumnHeight()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        for (var i = 1; i <= 15; i++)
+        {
+            store.Tasks.Add(TaskItemBuilder.Create(
+                $"t-{i:D2}", status: TaskStates.Open, createdAt: Now.AddMinutes(i)));
+        }
+
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(12);
+
+        // act
+        console.Write(mode.Render(80, 12));
+
+        // assert
+        Assert.Contains("more below", console.Output);
+        Assert.DoesNotContain("t-15", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowMoreAboveIndicator_And_SelectedTask_When_MovedToBottom()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        for (var i = 1; i <= 15; i++)
+        {
+            store.Tasks.Add(TaskItemBuilder.Create(
+                $"t-{i:D2}", status: TaskStates.Open, createdAt: Now.AddMinutes(i)));
+        }
+
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(12);
+
+        // act
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
+        console.Write(mode.Render(80, 12));
+
+        // assert
+        Assert.Contains("more above", console.Output);
+        Assert.Contains("t-15", console.Output);
+    }
+
+    [Fact]
     public void OnEnter_Should_LoadEveryColumnOfDefaultView_ThroughLoader()
     {
         // arrange: BoardView.Default loaded end-to-end through BoardDataLoader
