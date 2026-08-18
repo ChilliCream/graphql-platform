@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
@@ -277,6 +278,194 @@ internal sealed class TaskStore(IFileSystem fileSystem) : ITaskStore
             IReadOnlyList<string> (pair) =>
                 [.. pair.Value.Order(StringComparer.Ordinal).Distinct()]);
     }
+
+    // -------------------------------------------------------------------
+    // New surface: backend-agnostic, no ADO.NET or SQLite types. Every
+    // member below is a temporary stub; bd-oyf.2 and bd-oyf.3 replace them
+    // with real implementations. No command calls this surface yet.
+    // -------------------------------------------------------------------
+
+    public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
+        TaskFilter filter,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskItem?> GetTaskAsync(
+        string id,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskItem> GetRequiredTaskAsync(
+        string id,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<string>> GetLabelsAsync(
+        string taskId,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(
+        string taskId,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(
+        string taskId,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(
+        string taskId,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<int> CountTasksAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskCount>> CountTasksByAsync(
+        TaskCountDimension dimension,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskStats> GetStatsAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<string?> GetConfigAsync(
+        string key,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task SetConfigAsync(
+        string key,
+        string value,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskConfigEntry>> ListConfigAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<string> GetPrefixAsync(
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task InitializeWorkspaceAsync(
+        string workspaceDirectory,
+        string prefix,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskCreationResult> CreateTaskAsync(
+        TaskCreation creation,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskUpdateResult> UpdateTaskAsync(
+        string id,
+        TaskUpdate update,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskItem>> CloseTaskAsync(
+        IReadOnlyList<string> ids,
+        string reason,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskItem> ReopenTaskAsync(
+        string id,
+        string reason,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskItem> DeferTaskAsync(
+        string id,
+        DateTimeOffset until,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskItem> UndeferTaskAsync(
+        string id,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskItem> DeleteTaskAsync(
+        string id,
+        string reason,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskComment> AddCommentAsync(
+        string id,
+        string text,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<IReadOnlyList<TaskLabelChange>> AddLabelAsync(
+        string id,
+        IReadOnlyList<string> labels,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task RemoveLabelAsync(
+        string id,
+        string label,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task<TaskDependencyAddResult> AddDependencyAsync(
+        string id,
+        string dependsOnId,
+        string type,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    public Task RemoveDependencyAsync(
+        string id,
+        string dependsOnId,
+        string actor,
+        CancellationToken cancellationToken)
+        => throw NotImplemented();
+
+    private static NotSupportedException NotImplemented(
+        [CallerMemberName] string memberName = "")
+        => new(
+            $"ITaskStore.{memberName} is not implemented yet. "
+            + "No command calls the new backend-agnostic surface until the "
+            + "read and write migration work lands.");
 
     private static void AddBlocker(
         Dictionary<string, List<string>> blocked,
