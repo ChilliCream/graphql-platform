@@ -26,13 +26,14 @@ public sealed class SearchModeTests
     }
 
     [Fact]
-    public async Task TickAsync_Should_LoadAllNonTerminalTasks_When_QueryIsEmpty()
+    public async Task TickAsync_Should_LoadAllNonTombstoneTasks_When_QueryIsEmpty()
     {
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("t-1"));
         store.Tasks.Add(TaskItemBuilder.Create("t-2"));
         store.Tasks.Add(TaskItemBuilder.Create("t-3", status: TaskStates.Closed));
+        store.Tasks.Add(TaskItemBuilder.Create("t-4", status: TaskStates.Tombstone));
         var mode = new SearchMode(store);
 
         // act
@@ -41,7 +42,7 @@ public sealed class SearchModeTests
 
         // assert
         Assert.True(ran);
-        Assert.Equal(["t-1", "t-2"], mode.Results.Select(t => t.Id));
+        Assert.Equal(["t-1", "t-2", "t-3"], mode.Results.Select(t => t.Id));
         Assert.Equal("t-1", mode.SelectedTaskId);
     }
 

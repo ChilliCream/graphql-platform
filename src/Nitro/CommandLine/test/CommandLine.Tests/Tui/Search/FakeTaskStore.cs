@@ -42,6 +42,11 @@ internal sealed class FakeTaskStore : ITaskStore
             query = query.Where(t => t.Status != TaskStates.Tombstone && t.Status != TaskStates.Closed);
         }
 
+        if (filter.ExcludeTombstones)
+        {
+            query = query.Where(t => t.Status != TaskStates.Tombstone);
+        }
+
         if (filter.Type is { } type)
         {
             query = query.Where(t => t.Type == type);

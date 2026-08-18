@@ -87,6 +87,8 @@ internal sealed record TaskQuery
         var filter = new TaskFilter
         {
             Statuses = Statuses?.ToArray(),
+            IncludeAll = Statuses is null,
+            ExcludeTombstones = true,
             Type = Type,
             Priority = Priority,
             Assignee = Assignee,
