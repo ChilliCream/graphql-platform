@@ -53,19 +53,22 @@ internal static class TaskBadge
         var escapedTitle = Markup.Escape(truncatedTitle);
 
         var line =
-            $"{Markup.Escape(prefix)}[{glyphStyle}]{glyph}[/] "
-            + $"[{typeStyle}][{typeCode}][/] "
-            + $"[{priorityStyle}]{priorityText}[/] "
+            $"{Markup.Escape(prefix)}{Stylize(glyphStyle, glyph)} "
+            + $"{Stylize(typeStyle, $"[[{typeCode}]]")} "
+            + $"{Stylize(priorityStyle, priorityText)} "
             + $"{Markup.Escape(id)} {escapedTitle}";
 
         if (selected)
         {
             var highlightStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
-            line = $"[{highlightStyle}]{line}[/]";
+            line = Stylize(highlightStyle, line);
         }
 
         return line;
     }
+
+    private static string Stylize(string styleMarkup, string content) =>
+        styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
 
     private static string Truncate(string value, int width)
     {

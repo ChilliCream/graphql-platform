@@ -1,5 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
+using Spectre.Console;
+using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Widgets;
 
@@ -20,7 +22,7 @@ public sealed class TaskBadgeTests
 
         // assert
         line.MatchInlineSnapshot(
-            "  [grey70]○[/] [grey70][T][/] [yellow]P2[/] T-1 Fix bug");
+            "  [grey70]○[/] [grey70][[T]][/] [yellow]P2[/] T-1 Fix bug");
     }
 
     [Fact]
@@ -38,7 +40,7 @@ public sealed class TaskBadgeTests
 
         // assert
         line.MatchInlineSnapshot(
-            "[black on aqua]> [grey70]○[/] [grey70][T][/] [yellow]P2[/] T-1 Fix bug[/]");
+            "[black on aqua]> [grey70]○[/] [grey70][[T]][/] [yellow]P2[/] T-1 Fix bug[/]");
     }
 
     [Theory]
@@ -84,7 +86,7 @@ public sealed class TaskBadgeTests
             maxWidth: 80);
 
         // assert
-        Assert.Contains($"[{expectedCode}]", line);
+        Assert.Contains($"[[{expectedCode}]]", line);
     }
 
     [Fact]
@@ -101,7 +103,7 @@ public sealed class TaskBadgeTests
             maxWidth: 80);
 
         // assert
-        Assert.Contains("[D]", line);
+        Assert.Contains("[[D]]", line);
     }
 
     [Fact]
@@ -119,7 +121,7 @@ public sealed class TaskBadgeTests
 
         // assert
         line.MatchInlineSnapshot(
-            "  [grey70]○[/] [grey70][T][/] [yellow]P2[/] T-1 Fix …");
+            "  [grey70]○[/] [grey70][[T]][/] [yellow]P2[/] T-1 Fix …");
     }
 
     [Fact]
@@ -137,7 +139,7 @@ public sealed class TaskBadgeTests
 
         // assert
         line.MatchInlineSnapshot(
-            "  [grey70]○[/] [grey70][T][/] [yellow]P2[/] T-1 [[U…");
+            "  [grey70]○[/] [grey70][[T]][/] [yellow]P2[/] T-1 [[U…");
     }
 
     [Fact]
@@ -155,5 +157,93 @@ public sealed class TaskBadgeTests
 
         // assert
         Assert.Equal(string.Empty, line);
+    }
+
+    [Fact]
+    public void Render_Should_RenderAsValidMarkup_When_TypeIsKnownAndSelected()
+    {
+        // arrange
+        var console = new TestConsole().Width(80);
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Fix bug",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: true,
+            maxWidth: 80);
+
+        // act
+        var exception = Record.Exception(() => console.Write(new Markup(line)));
+
+        // assert
+        Assert.Null(exception);
+        Assert.Contains("Fix bug", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_RenderAsValidMarkup_When_TypeIsUnknown()
+    {
+        // arrange
+        var console = new TestConsole().Width(80);
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Title",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: "design",
+            selected: false,
+            maxWidth: 80);
+
+        // act
+        var exception = Record.Exception(() => console.Write(new Markup(line)));
+
+        // assert
+        Assert.Null(exception);
+        Assert.Contains("D", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_RenderAsValidMarkup_When_StatusIsTombstone()
+    {
+        // arrange
+        var console = new TestConsole().Width(80);
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Title",
+            status: TaskStates.Tombstone,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: 80);
+
+        // act
+        var exception = Record.Exception(() => console.Write(new Markup(line)));
+
+        // assert
+        Assert.Null(exception);
+        Assert.Contains("Title", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_RenderAsValidMarkup_When_PriorityIsOutOfRange()
+    {
+        // arrange
+        var console = new TestConsole().Width(80);
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Title",
+            status: TaskStates.Open,
+            priority: 7,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: 80);
+
+        // act
+        var exception = Record.Exception(() => console.Write(new Markup(line)));
+
+        // assert
+        Assert.Null(exception);
+        Assert.Contains("P7", console.Output);
     }
 }
