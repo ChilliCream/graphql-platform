@@ -118,26 +118,6 @@ With this configuration, Mocha resolves Aspire's singleton `ServiceBusClient` fr
 
 The emulator supports runtime entity management through [`ServiceBusAdministrationClient`](https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus.administration.servicebusadministrationclient), so no queues, topics, or subscriptions need to be pre-declared in its configuration. For production, grant the application an appropriate Azure Service Bus data role and provision topology through Aspire or another infrastructure deployment process.
 
-## Verify it works
-
-Add an endpoint that publishes through the bus and verify the handler executes:
-
-```csharp
-app.MapPost("/orders", async (IMessageBus bus) =>
-{
-    await bus.PublishAsync(new OrderPlacedEvent
-    {
-        OrderId = Guid.NewGuid(),
-        CustomerId = "customer-1",
-        TotalAmount = 99.99m
-    }, CancellationToken.None);
-
-    return Results.Ok();
-});
-```
-
-Send a POST request to `/orders` and check your application logs. You should see the handler process the event. You can also inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
-
 # How topology works
 
 The transport maps Mocha's routing model onto Azure Service Bus [queues, topics, and subscriptions](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-queues-topics-subscriptions):
@@ -173,6 +153,8 @@ Each handler-bound receive endpoint provisions three queues by convention - the 
 | `{service}.{handler}_skipped` | Destination of `ReceiveDeadLetterMiddleware` (unmatched)     |
 
 This naming is identical across transports - see [Routing and Endpoints](../routing-and-endpoints.md) for the full convention.
+
+You can inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
 
 # Configure transport-level defaults
 
