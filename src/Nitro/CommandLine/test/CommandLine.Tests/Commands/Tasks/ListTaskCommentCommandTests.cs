@@ -1,0 +1,123 @@
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
+
+public sealed class ListTaskCommentCommandTests(NitroCommandFixture fixture)
+    : TasksCommandTestBase(fixture)
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("task", "comment", "list", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              List a task's comments.
+
+            Usage:
+              nitro task comment list <id> [options]
+
+            Arguments:
+              <id>  The task ID
+
+            Options:
+              -?, -h, --help  Show help and usage information
+
+            Example:
+              nitro task comment list "acme-1a2"
+            """);
+    }
+
+    [Fact]
+    public async Task NoComments_PrintsNoComments()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", id);
+
+        // assert
+        result.AssertSuccess("No comments.");
+    }
+
+    [Fact]
+    public async Task SingleComment_DisplaysFormattedEntry()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "comment", "add", id, "Looks good to me.");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            """
+              [1] test-agent 2026-01-01 00:00
+                Looks good to me.
+            """);
+    }
+
+    [Fact]
+    public async Task MultipleComments_DisplaysInOrderWithBlankLineBetween()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "comment", "add", id, "Looks good to me.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await ExecuteCommandAsync(
+            "task", "comment", "add", id, "Thanks, merging.", "--actor", "alice");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            """
+              [1] test-agent 2026-01-01 00:00
+                Looks good to me.
+
+              [2] alice 2026-01-01 00:01
+                Thanks, merging.
+            """);
+    }
+
+    [Fact]
+    public async Task MultiLineCommentText_IndentsEveryLine()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "comment", "add", id, "Line one\nLine two");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", id);
+
+        // assert
+        result.AssertSuccess(
+            """
+              [1] test-agent 2026-01-01 00:00
+                Line one
+                Line two
+            """);
+    }
+
+    [Fact]
+    public async Task TaskNotFound_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("task", "comment", "list", "acme-999");
+
+        // assert
+        result.AssertError("Task 'acme-999' does not exist.");
+    }
+}

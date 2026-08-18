@@ -1,0 +1,108 @@
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
+
+public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
+    : TasksCommandTestBase(fixture)
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("task", "epic", "status", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Show epics with their child completion counts.
+
+            Usage:
+              nitro task epic status [options]
+
+            Options:
+              -?, -h, --help  Show help and usage information
+
+            Example:
+              nitro task epic status
+            """);
+    }
+
+    [Fact]
+    public async Task NoWorkspace_ReturnsError()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertError(
+            """
+            No task workspace found. Run `nitro task init` first.
+            """);
+    }
+
+    [Fact]
+    public async Task NoEpics_ReturnsEmptyMessage()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Standalone task");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No epics found.
+            """);
+    }
+
+    [Fact]
+    public async Task EpicWithOpenAndClosedChildren_ShowsPartialCompletion()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var epicId = await CreateTaskAsync("Ship v2", "--type", "epic");
+        var child1Id = await CreateTaskAsync("Design API", "--parent", epicId);
+        await CreateTaskAsync("Implement API", "--parent", epicId);
+        await ExecuteCommandAsync("task", "close", child1Id);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertSuccess($"{epicId}  1/2  Ship v2");
+    }
+
+    [Fact]
+    public async Task EpicWithAllChildrenClosed_ShowsEligibleSuffix()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var epicId = await CreateTaskAsync("Ship v3", "--type", "epic");
+        var childId = await CreateTaskAsync("Design API v3", "--parent", epicId);
+        await ExecuteCommandAsync("task", "close", childId);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertSuccess($"{epicId}  1/1  Ship v3  (eligible for close)");
+    }
+
+    [Fact]
+    public async Task EpicAlreadyClosed_SuffixOmitted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var epicId = await CreateTaskAsync("Ship v4", "--type", "epic");
+        var childId = await CreateTaskAsync("Design API v4", "--parent", epicId);
+        await ExecuteCommandAsync("task", "close", childId);
+        await ExecuteCommandAsync("task", "close", epicId);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "status");
+
+        // assert
+        result.AssertSuccess($"{epicId}  1/1  Ship v4");
+    }
+}

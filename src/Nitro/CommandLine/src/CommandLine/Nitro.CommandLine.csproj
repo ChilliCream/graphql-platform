@@ -10,6 +10,9 @@
     <AssemblyName>nitro</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
     <NoWarn>$(NoWarn);CS0618</NoWarn>
+    <!-- Dapper.AOT rewrites Dapper calls via C# interceptors; without this its generator cannot intercept and calls fall back to reflection-based Dapper. -->
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -42,8 +45,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Dapper.AOT" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="Spectre.Console.Json" />

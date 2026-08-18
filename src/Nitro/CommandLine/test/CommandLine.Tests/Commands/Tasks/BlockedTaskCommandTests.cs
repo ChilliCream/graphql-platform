@@ -1,0 +1,111 @@
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
+
+public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
+    : TasksCommandTestBase(fixture)
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("task", "blocked", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              List tasks that are blocked by unfinished dependencies.
+
+            Usage:
+              nitro task blocked [options]
+
+            Options:
+              -?, -h, --help  Show help and usage information
+
+            Example:
+              nitro task blocked
+            """);
+    }
+
+    [Fact]
+    public async Task NoWorkspace_ReturnsError()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("task", "blocked");
+
+        // assert
+        result.AssertError(
+            """
+            No task workspace found. Run `nitro task init` first.
+            """);
+    }
+
+    [Fact]
+    public async Task NoBlockedTasks_ReturnsEmptyMessage()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("task", "create", "Standalone task");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "blocked");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No blocked tasks.
+            """);
+    }
+
+    [Fact]
+    public async Task BlockedTask_ReturnsRowWithBlockerList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
+        var dependentId = ExtractTaskId(
+            await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId));
+
+        // act
+        var result = await ExecuteCommandAsync("task", "blocked");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {dependentId}  P2  task  open  Dependent task  (blocked by: {baseId}:open)
+
+            1 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task ClosedBlockedTask_IsExcludedFromBlockedList()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
+        var dependentId = ExtractTaskId(
+            await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId));
+        await ExecuteCommandAsync("task", "close", dependentId);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "blocked");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No blocked tasks.
+            """);
+    }
+
+    /// <summary>
+    /// Pulls the task ID out of a `task create` confirmation line
+    /// ("Created task 'ID': Title.") so dependent commands can use it
+    /// without predicting the hash-derived ID ahead of time.
+    /// </summary>
+    private static string ExtractTaskId(CommandResult result)
+    {
+        var start = result.StdOut.IndexOf('\'') + 1;
+        var end = result.StdOut.IndexOf('\'', start);
+        return result.StdOut[start..end];
+    }
+}

@@ -1,0 +1,223 @@
+using Microsoft.Data.Sqlite;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
+
+public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
+    : TasksCommandTestBase(fixture)
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("task", "show", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Show a task's details.
+
+            Usage:
+              nitro task show <id> [options]
+
+            Arguments:
+              <id>  The task ID
+
+            Options:
+              -?, -h, --help  Show help and usage information
+
+            Example:
+              nitro task show "acme-1a2"
+            """);
+    }
+
+    [Fact]
+    public async Task TaskNotFound_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", "acme-999");
+
+        // assert
+        result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task MinimalTask_DisplaysHeaderOnly()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", id);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {id}: Fix the parser
+
+            Status: open  Priority: P2  Type: task
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-01 00:00
+            """);
+    }
+
+    [Fact]
+    public async Task TaskWithOptionalFields_DisplaysAllHeaderLinesAndDescription()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync(
+            "Ship the release",
+            "--description", "Coordinate the release checklist.",
+            "--priority", "p1",
+            "--type", "feature",
+            "--assignee", "alice",
+            "--label", "api",
+            "--label", "parser",
+            "--due", "2026-01-05T00:00:00Z",
+            "--defer-until", "2026-01-03T00:00:00Z",
+            "--estimate", "90");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", id);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {id}: Ship the release
+
+            Status: open  Priority: P1  Type: feature
+            Assignee: alice
+            Due: 2026-01-05 00:00
+            Deferred until: 2026-01-03 00:00
+            Estimate: 90m
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-01 00:00
+            Labels: api, parser
+
+            Description:
+              Coordinate the release checklist.
+            """);
+    }
+
+    [Fact]
+    public async Task ClosedTask_DisplaysClosedLineWithReason()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Investigate flaky test");
+        var closeResult = await ExecuteCommandAsync(
+            "task", "close", id, "--reason", "Fixed by retry logic");
+        Assert.Equal(0, closeResult.ExitCode);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", id);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {id}: Investigate flaky test
+
+            Status: closed  Priority: P2  Type: task
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-01 00:00
+            Closed: 2026-01-01 00:00 (Fixed by retry logic)
+            """);
+    }
+
+    [Fact]
+    public async Task TaskWithDependency_DisplaysDependenciesBlocksAndBlockedBy()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var baseId = await CreateTaskAsync("Fix the parser");
+        var dependentId = await CreateTaskAsync("Fix the lexer", "--depends-on", baseId);
+
+        // act
+        var dependent = await ExecuteCommandAsync("task", "show", dependentId);
+        var dependency = await ExecuteCommandAsync("task", "show", baseId);
+
+        // assert
+        dependent.AssertSuccess(
+            $"""
+            {dependentId}: Fix the lexer
+
+            Status: open  Priority: P2  Type: task
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-01 00:00
+            Blocked by: {baseId}:open
+
+            Dependencies:
+              blocks -> {baseId} (open) Fix the parser
+            """);
+        dependency.AssertSuccess(
+            $"""
+            {baseId}: Fix the parser
+
+            Status: open  Priority: P2  Type: task
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-01 00:00
+
+            Blocks:
+              {dependentId} (open) Fix the lexer
+            """);
+    }
+
+    [Fact]
+    public async Task TaskWithComments_DisplaysComments()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Document the API");
+        await InsertCommentAsync(id, "alice", "Looks good to me.", cancellationToken);
+        await InsertCommentAsync(id, "test-agent", "Thanks, merging.", cancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "show", id);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {id}: Document the API
+
+            Status: open  Priority: P2  Type: task
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-01 00:00
+
+            Comments:
+              [1] alice 2026-01-01 00:00
+                Looks good to me.
+
+              [2] test-agent 2026-01-01 00:00
+                Thanks, merging.
+            """);
+    }
+
+    /// <summary>
+    /// Inserts a comment directly, since this wave has no `task comment` command
+    /// to create one through.
+    /// </summary>
+    private async Task InsertCommentAsync(
+        string taskId, string author, string text, CancellationToken cancellationToken)
+    {
+        await using var connection =
+            new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "INSERT INTO comments (task_id, author, text, created_at) "
+            + "VALUES (@taskId, @author, @text, @createdAt)";
+        command.Parameters.AddWithValue("@taskId", taskId);
+        command.Parameters.AddWithValue("@author", author);
+        command.Parameters.AddWithValue("@text", text);
+        command.Parameters.AddWithValue("@createdAt", FakeTime.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+}
