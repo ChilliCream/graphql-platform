@@ -4,9 +4,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
 
 /// <summary>
 /// An in-memory <see cref="ITaskStore"/> exercising only the write surface
-/// <see cref="TaskLifecycleActions"/> and <see cref="TaskEditorForm"/> consume
-/// (close, reopen, delete, update, add label, remove label). Every other
-/// member throws <see cref="NotSupportedException"/>.
+/// <see cref="TaskLifecycleActions"/>, <see cref="TaskEditorForm"/>, and
+/// <see cref="TaskCreateForm"/> consume (close, reopen, delete, update, add
+/// label, remove label, create). Every other member throws
+/// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
@@ -31,6 +32,10 @@ internal sealed class FakeTaskStore : ITaskStore
     public string? Actor { get; private set; }
 
     public TaskItem ResultTask { get; set; } = null!;
+
+    public TaskCreation? CreationReceived { get; private set; }
+
+    public TaskCreationResult CreationResult { get; set; } = new() { Id = "a1" };
 
     public string? UpdatedId { get; private set; }
 
@@ -151,7 +156,17 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<TaskCreationResult> CreateTaskAsync(TaskCreation creation, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        CreationReceived = creation;
+        Actor = creation.Actor;
+
+        if (ThrowOnWrite is { } exception)
+        {
+            throw exception;
+        }
+
+        return Task.FromResult(CreationResult);
+    }
 
     public Task<TaskUpdateResult> UpdateTaskAsync(string id, TaskUpdate update, CancellationToken cancellationToken)
     {

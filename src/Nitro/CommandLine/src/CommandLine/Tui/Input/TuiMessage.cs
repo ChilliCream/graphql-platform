@@ -130,6 +130,19 @@ internal abstract record TuiMessage
     /// popped task.
     /// </summary>
     public sealed record NavigateTreeBack : TuiMessage;
+
+    /// <summary>
+    /// The task create form should open, preset to the task type. When the
+    /// active mode has a currently selected task, the new task is created as
+    /// a child of it; otherwise it is created top-level.
+    /// </summary>
+    public sealed record CreateTaskRequested : TuiMessage;
+
+    /// <summary>
+    /// The task create form should open the same way as
+    /// <see cref="CreateTaskRequested"/>, preset to the epic type.
+    /// </summary>
+    public sealed record CreateEpicRequested : TuiMessage;
 }
 
 /// <summary>

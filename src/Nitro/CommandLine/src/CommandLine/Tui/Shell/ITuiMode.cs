@@ -42,4 +42,13 @@ internal interface ITuiMode
     /// close/reopen, delete) for whichever mode is active.
     /// </summary>
     string? SelectedTaskId => null;
+
+    /// <summary>
+    /// Asks the mode to move its selection onto the task with the given id,
+    /// when it tracks one. The default no-op leaves modes that do not (or do
+    /// not yet) support moving their selection unaffected.
+    /// </summary>
+    void SelectTask(string id)
+    {
+    }
 }

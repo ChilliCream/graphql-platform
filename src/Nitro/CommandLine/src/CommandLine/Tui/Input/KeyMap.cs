@@ -37,7 +37,9 @@ internal sealed class KeyMap
     /// maximized layout, / to jump into search, t to open the dependency tree on
     /// the current selection, e to edit it, x to close or reopen it, X to delete
     /// it, s to open the status quick picker on it, p to open the priority quick
-    /// picker on it, and Escape to leave the active mode.
+    /// picker on it, c to open the task create form (as a child of the current
+    /// selection when there is one), C to open it preset to the epic type, and
+    /// Escape to leave the active mode.
     /// </summary>
     public static KeyMap CreateDefaultGlobal() => new(
     [
@@ -116,6 +118,12 @@ internal sealed class KeyMap
         new KeyBinding(
             new KeyChord(ConsoleKey.P, ConsoleModifiers.None, 'p'),
             () => new TuiMessage.PriorityPickerRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.C, ConsoleModifiers.None, 'c'),
+            () => new TuiMessage.CreateTaskRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.C, ConsoleModifiers.Shift, 'C'),
+            () => new TuiMessage.CreateEpicRequested()),
         new KeyBinding(
             new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, ''),
             () => new TuiMessage.Back())

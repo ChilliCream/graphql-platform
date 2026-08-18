@@ -15,7 +15,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// The root handler and renderer for <see cref="TuiApplication"/>. Owns the mode
 /// stack and composites the shell-level overlays (the quit confirmation, the task
 /// editor, the close/reopen/delete confirmation, the status and priority quick
-/// pickers, and the toast row) over whichever mode is active.
+/// pickers, the task create form, and the toast row) over whichever mode is active.
 /// </summary>
 internal sealed class TuiShell
 {
@@ -39,6 +39,7 @@ internal sealed class TuiShell
     private QuickPicker? _picker;
     private TaskItem? _pickerTask;
     private PickerKind _pickerKind;
+    private TaskCreateForm? _createForm;
     private int _width;
     private int _height;
 
@@ -103,7 +104,9 @@ internal sealed class TuiShell
                     ? lifecycleDialog.Render(_width, contentHeight)
                     : _picker is { } picker
                         ? picker.Render(_width, contentHeight)
-                        : _activeMode.Render(_width, contentHeight);
+                        : _createForm is { } createForm
+                            ? createForm.Render(_width, contentHeight)
+                            : _activeMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render() ?? (IRenderable)new Markup(string.Empty);
 
@@ -132,10 +135,11 @@ internal sealed class TuiShell
 
     private bool HandleKey(ConsoleKeyInfo info)
     {
-        // The task editor and the close/reopen/delete confirmation are modal:
-        // while one is active it consumes every key itself, and unresolved
-        // keys are swallowed rather than falling through to the active mode
-        // or the global table. The quit confirmation keeps its original
+        // The task editor, the close/reopen/delete confirmation, and the task
+        // create form are modal: while one is active it consumes every key
+        // itself, and unresolved keys are swallowed rather than falling
+        // through to the active mode or the global table. The quit confirmation
+        // keeps its original
         // dialog-priority-with-global-fallback behavior: a key unresolved by
         // its own key map falls through to dispatch against the active
         // mode's key map.
@@ -158,6 +162,11 @@ internal sealed class TuiShell
         if (_picker is not null)
         {
             return HandlePickerKey(info);
+        }
+
+        if (_createForm is not null)
+        {
+            return HandleCreateFormKey(info);
         }
 
         if (_searchMode is { } searchMode
@@ -302,6 +311,45 @@ internal sealed class TuiShell
         return true;
     }
 
+    private bool HandleCreateFormKey(ConsoleKeyInfo info)
+    {
+        var result = _createForm!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case FormResult.Cancelled:
+            case FormResult.ButtonActivated { ButtonId: TaskCreateForm.CancelButtonId }:
+                _createForm = null;
+                return true;
+
+            case FormResult.Submitted submitted:
+                return SubmitCreateForm(submitted);
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitCreateForm(FormResult.Submitted submitted)
+    {
+        var outcome = _createForm!.SubmitAsync(_store!, submitted.Values, _actor!, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        _createForm = null;
+        HandleMessage(outcome.ToShowToast());
+        HandleMessage(new TuiMessage.RefreshRequested());
+
+        if (outcome is TaskCreateOutcome.Succeeded succeeded)
+        {
+            _activeMode.SelectTask(succeeded.TaskId);
+        }
+
+        return true;
+    }
+
     private bool HandleMessage(TuiMessage message)
     {
         switch (message)
@@ -354,6 +402,12 @@ internal sealed class TuiShell
 
             case TuiMessage.PriorityPickerRequested:
                 return TryOpenPicker(PickerKind.Priority);
+
+            case TuiMessage.CreateTaskRequested:
+                return TryOpenCreateForm(TaskTypes.Task);
+
+            case TuiMessage.CreateEpicRequested:
+                return TryOpenCreateForm(TaskTypes.Epic);
 
             default:
                 foreach (var followUp in _activeMode.Handle(message))
@@ -467,6 +521,20 @@ internal sealed class TuiShell
         _pickerTask = task;
         _pickerKind = kind;
         _picker = kind == PickerKind.Status ? StatusPicker.Create(task) : PriorityPicker.Create(task);
+        return true;
+    }
+
+    private bool TryOpenCreateForm(string typePreset)
+    {
+        if (_store is null)
+        {
+            return false;
+        }
+
+        // A selected task becomes the new task's parent: creating unconditionally
+        // requires no selection (unlike edit, lifecycle, and the pickers), so no
+        // "no task selected" toast gates this on the active mode's selection.
+        _createForm = new TaskCreateForm(typePreset, _activeMode.SelectedTaskId);
         return true;
     }
 
