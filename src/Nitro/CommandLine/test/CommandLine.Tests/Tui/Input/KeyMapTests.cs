@@ -304,4 +304,85 @@ public sealed class KeyMapTests
         Assert.False(resolved);
         Assert.Null(message);
     }
+
+    [Fact]
+    public void CreateDefaultGlobal_Should_MapOem2_ToFocusSearchRequested()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.FocusSearchRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefaultGlobal_Should_MapDivide_ToFocusSearchRequested()
+    {
+        // arrange: some terminals report ConsoleKey.Divide (not Oem2) for a typed '/'.
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.Divide, ConsoleModifiers.None, '/'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.FocusSearchRequested>(message);
+    }
+
+    [Fact]
+    public void TryResolve_Should_FallBackToKeyChar_When_ConsoleKeyDiffersButCharAndModifiersMatch()
+    {
+        // arrange
+        var chord = new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/');
+        var keyMap = new KeyMap([new KeyBinding(chord, () => new TuiMessage.FocusSearchRequested())]);
+        var otherKeyReportingSameChar = new KeyChord(ConsoleKey.Divide, ConsoleModifiers.None, '/');
+
+        // act
+        var resolved = keyMap.TryResolve(otherKeyReportingSameChar, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.FocusSearchRequested>(message);
+    }
+
+    [Fact]
+    public void TryResolve_Should_NotFallBackToKeyChar_When_ModifiersDiffer()
+    {
+        // arrange
+        var chord = new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/');
+        var keyMap = new KeyMap([new KeyBinding(chord, () => new TuiMessage.FocusSearchRequested())]);
+        var sameCharDifferentModifiers = new KeyChord(ConsoleKey.Divide, ConsoleModifiers.Shift, '/');
+
+        // act
+        var resolved = keyMap.TryResolve(sameCharDifferentModifiers, out var message);
+
+        // assert
+        Assert.False(resolved);
+        Assert.Null(message);
+    }
+
+    [Fact]
+    public void TryResolve_Should_NotFallBackToKeyChar_When_CharIsControlChar()
+    {
+        // arrange: Ctrl+C reports KeyChar '\u0003', which is a control char and must not
+        // fall back onto an unrelated binding that happens to share the char.
+        var chord = new KeyChord(ConsoleKey.C, ConsoleModifiers.Control, '\u0003');
+        var keyMap = new KeyMap([new KeyBinding(chord, () => new TuiMessage.QuitRequested())]);
+        var differentKeySameControlChar = new KeyChord(ConsoleKey.D3, ConsoleModifiers.Control, '\u0003');
+
+        // act
+        var resolved = keyMap.TryResolve(differentKeySameControlChar, out var message);
+
+        // assert
+        Assert.False(resolved);
+        Assert.Null(message);
+    }
 }

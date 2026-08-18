@@ -3,20 +3,36 @@ using System.Diagnostics.CodeAnalysis;
 namespace ChilliCream.Nitro.CommandLine.Tui.Input;
 
 /// <summary>
-/// A table of key bindings, looked up by the key chord that triggers them.
+/// A table of key bindings, looked up primarily by key chord. Bindings whose key char
+/// is a printable character also resolve when the console key differs but the
+/// modifiers and produced character match, so a binding is reachable regardless of
+/// which <see cref="ConsoleKey"/> a terminal reports for that character.
 /// </summary>
 internal sealed class KeyMap
 {
     private readonly Dictionary<KeyChord, Func<TuiMessage>> _bindings;
+    private readonly Dictionary<(char KeyChar, ConsoleModifiers Modifiers), Func<TuiMessage>> _charFallback;
 
     public KeyMap(IEnumerable<KeyBinding> bindings)
     {
-        _bindings = bindings.ToDictionary(b => b.Chord, b => b.CreateMessage);
+        var bindingList = bindings as IReadOnlyCollection<KeyBinding> ?? bindings.ToList();
+        _bindings = bindingList.ToDictionary(b => b.Chord, b => b.CreateMessage);
+
+        _charFallback = new Dictionary<(char, ConsoleModifiers), Func<TuiMessage>>();
+        foreach (var binding in bindingList)
+        {
+            if (IsPrintable(binding.Chord.KeyChar))
+            {
+                _charFallback.TryAdd((binding.Chord.KeyChar, binding.Chord.Modifiers), binding.CreateMessage);
+            }
+        }
     }
 
     /// <summary>
-    /// Resolves the <see cref="TuiMessage"/> bound to <paramref name="chord"/>. Returns
-    /// <see langword="false"/> when <paramref name="chord"/> is unbound.
+    /// Resolves the <see cref="TuiMessage"/> bound to <paramref name="chord"/>, falling
+    /// back to a char-based match for printable characters when no binding matches the
+    /// exact chord. Returns <see langword="false"/> when <paramref name="chord"/> is
+    /// unbound in both.
     /// </summary>
     public bool TryResolve(KeyChord chord, [NotNullWhen(true)] out TuiMessage? message)
     {
@@ -26,9 +42,18 @@ internal sealed class KeyMap
             return true;
         }
 
+        if (IsPrintable(chord.KeyChar)
+            && _charFallback.TryGetValue((chord.KeyChar, chord.Modifiers), out var fallbackMessage))
+        {
+            message = fallbackMessage();
+            return true;
+        }
+
         message = null;
         return false;
     }
+
+    private static bool IsPrintable(char keyChar) => keyChar is not '\0' && !char.IsControl(keyChar);
 
     /// <summary>
     /// The hardcoded global key bindings: vim-style navigation (j/k/h/l and arrow
