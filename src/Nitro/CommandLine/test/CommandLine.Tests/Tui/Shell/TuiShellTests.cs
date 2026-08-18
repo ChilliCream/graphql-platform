@@ -442,42 +442,6 @@ public sealed class TuiShellTests
     }
 
     [Fact]
-    public void Handle_Should_SwallowUnboundGlobalKeys_When_QuitConfirmActive()
-    {
-        // arrange: 'r' is bound globally to RefreshRequested but not on the
-        // quit confirm dialog's own key table; while the dialog is active it
-        // must not leak through to the active mode.
-        var mode = new FakeTuiMode();
-        var shell = CreateShell(mode);
-        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
-
-        // act
-        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
-
-        // assert
-        Assert.DoesNotContain(mode.HandledMessages, m => m is TuiMessage.RefreshRequested);
-    }
-
-    [Fact]
-    public void Handle_Should_CapRecursionDepth_When_ModeKeepsProducingFollowUpMessages()
-    {
-        // arrange: a misbehaving mode that answers every message with another
-        // message must not overflow the stack.
-        var mode = new FakeTuiMode
-        {
-            HandleResult = _ => [new TuiMessage.MoveCursor(CursorDirection.Down)]
-        };
-        var shell = CreateShell(mode);
-
-        // act
-        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
-
-        // assert
-        Assert.True(dirty);
-        Assert.True(mode.HandledMessages.Count is > 1 and < 100);
-    }
-
-    [Fact]
     public void Handle_Should_RouteRawKeyToSearchQueryInput_When_SearchModeHasInputFocus()
     {
         // arrange

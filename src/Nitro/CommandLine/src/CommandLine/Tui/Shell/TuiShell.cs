@@ -21,13 +21,6 @@ internal sealed class TuiShell
     private const string QuitConfirmMessage = "Quit? (y/n)";
     private const int StatusRowHeight = 1;
 
-    /// <summary>
-    /// Bounds how many times a mode's follow-up messages can recurse through
-    /// message handling in one call, so a mode that keeps producing follow-ups
-    /// cannot overflow the stack.
-    /// </summary>
-    private const int MaxMessageDepth = 8;
-
     private readonly KeyDispatcher _dispatcher;
     private readonly Stack<ITuiMode> _modeStack = new();
     private readonly Toaster _toaster = new();
@@ -133,12 +126,17 @@ internal sealed class TuiShell
 
     private bool HandleKey(ConsoleKeyInfo info)
     {
-        // Every overlay is modal: while one is active it consumes every key
-        // itself, and unresolved keys are swallowed rather than falling
-        // through to the active mode or the global table.
+        // The task editor and the close/reopen/delete confirmation are modal:
+        // while one is active it consumes every key itself, and unresolved
+        // keys are swallowed rather than falling through to the active mode
+        // or the global table. The quit confirmation keeps its original
+        // dialog-priority-with-global-fallback behavior: a key unresolved by
+        // its own key map falls through to dispatch against the active
+        // mode's key map.
         if (_confirmDialog is { } quitDialog)
         {
-            return HandleQuitConfirmKey(info, quitDialog);
+            var quitMessage = _dispatcher.Dispatch(info, quitDialog.KeyMap);
+            return quitMessage is not null && HandleMessage(quitMessage);
         }
 
         if (_editorForm is not null)
@@ -161,12 +159,6 @@ internal sealed class TuiShell
         }
 
         var message = _dispatcher.Dispatch(info, _activeMode.KeyMap);
-        return message is not null && HandleMessage(message);
-    }
-
-    private bool HandleQuitConfirmKey(ConsoleKeyInfo info, ConfirmDialog dialog)
-    {
-        var message = dialog.KeyMap.TryResolve(KeyChord.From(info), out var resolved) ? resolved : null;
         return message is not null && HandleMessage(message);
     }
 
@@ -246,15 +238,8 @@ internal sealed class TuiShell
         return true;
     }
 
-    private bool HandleMessage(TuiMessage message) => HandleMessage(message, depth: 0);
-
-    private bool HandleMessage(TuiMessage message, int depth)
+    private bool HandleMessage(TuiMessage message)
     {
-        if (depth >= MaxMessageDepth)
-        {
-            return true;
-        }
-
         switch (message)
         {
             case TuiMessage.QuitRequested:
@@ -303,7 +288,7 @@ internal sealed class TuiShell
             default:
                 foreach (var followUp in _activeMode.Handle(message))
                 {
-                    HandleMessage(followUp, depth + 1);
+                    HandleMessage(followUp);
                 }
 
                 return true;
