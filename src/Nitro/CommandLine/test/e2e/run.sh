@@ -105,6 +105,42 @@ mkdir -p "$REPORT_DIR"
 : > "$REPORT_DIR/status.tsv"
 : > "$REPORT_DIR/changed.txt"
 
+# 1b. Prepare a deterministic fixture task workspace (fixed IDs, timestamps,
+#     actors: see fixtures/README.md) that tapes `cp -r` into their own
+#     throwaway /tmp/work rather than seeding state live inside a Hide block.
+#     Rebuilt unconditionally on every run (not cached like the binary) so
+#     schema drift between TaskStoreSchema and fixtures/seed.sql fails fast
+#     here, with a message pointing at fixtures/README.md, instead of turning
+#     into a confusing golden diff once a task flow tape lands.
+if ! command -v sqlite3 >/dev/null 2>&1; then
+  echo "sqlite3 is required to prepare the fixture workspace" >&2
+  exit 3
+fi
+
+FIXTURE_DIR="$OUT_DIR/fixture/acme"
+# Matches TaskWorkspace.RootDirectoryName/TasksDirectoryName/DatabaseFileName.
+FIXTURE_DB="$FIXTURE_DIR/.nitro/tasks/tasks.db"
+FIXTURE_MARKER="acme-epic1"
+
+echo "==> preparing fixture workspace (out/fixture/acme)"
+rm -rf "$FIXTURE_DIR"
+mkdir -p "$FIXTURE_DIR"
+if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" task init >/dev/null ); then
+  echo "==> fixture prepare FAILED: 'nitro task init' did not succeed" >&2
+  exit 2
+fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/seed.sql"; then
+  echo "==> fixture prepare FAILED: seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" task list ) | grep -q "$FIXTURE_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro task list' did not show '$FIXTURE_MARKER'" >&2
+  echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+echo "    fixture ready, guard passed"
+
 overall=0
 declare -a SUMMARY=()
 
