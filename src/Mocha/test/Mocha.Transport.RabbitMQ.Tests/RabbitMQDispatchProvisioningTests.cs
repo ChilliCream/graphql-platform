@@ -32,15 +32,13 @@ public class RabbitMQDispatchProvisioningTests
         // per-endpoint provisioning that happens on first dispatch is under test here
         channelMock.Invocations.Clear();
 
-        // act - fire the first dispatches concurrently so they race on the endpoint's
-        // provisioning latch
-        await Task.WhenAll(Enumerable.Range(0, 8)
-            .Select(i => messageBus.PublishAsync(
-                new OrderCreated { OrderId = $"RACE-{i}" },
-                TestContext.Current.CancellationToken).AsTask()));
-
-        channelMock.Verify(
-            c => c.ExchangeDeclareAsync(
+        // gate the exchange declare so every dispatch that reads the endpoint's
+        // unsynchronized _isProvisioned field before the gate opens is genuinely still
+        // in flight when the next one starts, instead of each finishing before the next begins
+        var declareGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var declareCount = 0;
+        channelMock
+            .Setup(c => c.ExchangeDeclareAsync(
                 "concurrent-ex",
                 It.IsAny<string>(),
                 It.IsAny<bool>(),
@@ -48,14 +46,39 @@ public class RabbitMQDispatchProvisioningTests
                 It.IsAny<IDictionary<string, object?>>(),
                 It.IsAny<bool>(),
                 It.IsAny<bool>(),
-                It.IsAny<CancellationToken>()),
-            Times.AtLeastOnce());
+                It.IsAny<CancellationToken>()))
+            .Returns(async () =>
+            {
+                Interlocked.Increment(ref declareCount);
+                await declareGate.Task;
+            });
 
-        // assert - once the race has settled, provisioning must not repeat on later dispatches
+        // act - start the first dispatches without awaiting them so each one reaches the
+        // gated declare call while _isProvisioned is still false, proving they overlap,
+        // then release them together so they genuinely race on that check
+        var raceTasks = Enumerable.Range(0, 8)
+            .Select(i => messageBus.PublishAsync(
+                new OrderCreated { OrderId = $"RACE-{i}" },
+                TestContext.Current.CancellationToken).AsTask())
+            .ToArray();
+
+        Assert.All(raceTasks, task => Assert.False(task.IsCompleted));
+
+        declareGate.SetResult();
+
+        await Task.WhenAll(raceTasks);
+
+        // assert - the endpoint's unsynchronized _isProvisioned field lets more than one of
+        // the racing dispatches observe it as false, so the exchange may be declared more
+        // than once during the race; the settling below is what has teeth
+        Assert.InRange(declareCount, 1, 8);
+
+        // act - once the race has settled, provisioning must not repeat on later dispatches
         channelMock.Invocations.Clear();
 
         await messageBus.PublishAsync(new OrderCreated { OrderId = "RACE-SETTLED" }, TestContext.Current.CancellationToken);
 
+        // assert
         channelMock.Verify(
             c => c.ExchangeDeclareAsync(
                 "concurrent-ex",
