@@ -504,12 +504,18 @@ public sealed class TuiShellTests
 
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
-        // assert: the form is still open with the edited value, and the
-        // store's error is shown as a toast rather than silently discarded.
+        // assert: the form is still open, and the store's error is shown as a
+        // toast rather than silently discarded.
         var rendered = RenderToText(shell);
         Assert.Contains("Edit Task", rendered);
-        Assert.Contains("Old title!", rendered);
         Assert.Contains("rejected", rendered);
+
+        // act: one more Tab wraps focus from the button row back to the title
+        // field, scrolling it into view.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+
+        // assert: the edited value survived the rejected save.
+        Assert.Contains("Old title!", RenderToText(shell));
     }
 
     [Fact]

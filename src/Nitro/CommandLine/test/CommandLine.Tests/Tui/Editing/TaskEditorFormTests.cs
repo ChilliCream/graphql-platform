@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
 
@@ -308,5 +309,36 @@ public sealed class TaskEditorFormTests
         // assert
         Assert.Equal("rejected", toast.Text);
         Assert.Equal(ToastStyle.Error, toast.Style);
+    }
+
+    [Fact]
+    public void HandleKey_Should_ReachEveryFieldAndSave_When_FrameIsMinimumViableSize()
+    {
+        // arrange: the 80x24 frame (23 content rows once the status row is
+        // reserved) the UX spec requires to stay fully operable, with the
+        // default seven-field set.
+        var task = TaskItemBuilder.Create("a1", "Title");
+        var form = new TaskEditorForm(task, ["alpha"]);
+        var console = new TestConsole().Width(80).Height(23);
+        var fieldLabels = new[] { "Title", "Status", "Priority", "Type", "Labels", "Description", "Notes" };
+
+        // act & assert: every field is reachable by Tab and, once focused,
+        // scrolled fully into view.
+        foreach (var label in fieldLabels)
+        {
+            console.Write(form.Render(80, 23));
+            Assert.Contains(label, console.Output);
+            form.HandleKey(Key(ConsoleKey.Tab));
+        }
+
+        // act: the button row is the next and final stop.
+        console.Write(form.Render(80, 23));
+        Assert.Contains("Save", console.Output);
+
+        // act
+        var result = form.HandleKey(Key(ConsoleKey.Enter));
+
+        // assert: save works from the fully-scrolled button row.
+        Assert.IsType<FormResult.Submitted>(result);
     }
 }

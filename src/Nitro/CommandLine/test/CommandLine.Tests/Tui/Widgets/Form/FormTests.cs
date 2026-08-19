@@ -382,4 +382,99 @@ public sealed class FormTests
         Assert.DoesNotContain("Status", lineAboveButtons);
         Assert.DoesNotContain("(o)", lineAboveButtons);
     }
+
+    private static FormUnderTest CreateTallForm(int fieldCount)
+    {
+        var fields = new List<FormField>();
+
+        for (var i = 0; i < fieldCount; i++)
+        {
+            fields.Add(new TextAreaField($"field{i}", $"Field {i}"));
+        }
+
+        var buttonRow = new FormButtons([
+            new FormButtonSpec("save", "Save", ButtonKind.Primary),
+            new FormButtonSpec("cancel", "Cancel", ButtonKind.Secondary)
+        ]);
+
+        return new FormUnderTest("Edit Task", fields, buttonRow);
+    }
+
+    [Fact]
+    public void Render_Should_NeverExceedFrameHeight_When_FieldsTallerThanFrame()
+    {
+        // arrange: 7 text areas (5 rows each = 35) far exceed a 23-row frame.
+        var form = CreateTallForm(7);
+        var console = new TestConsole().Width(80).Height(30);
+
+        // act
+        console.Write(form.Render(80, 23));
+
+        // assert
+        var lineCount = console.Output.Split('\n').Length;
+        Assert.True(lineCount <= 23, $"expected at most 23 lines, got {lineCount}.");
+    }
+
+    [Fact]
+    public void Render_Should_ShowFocusedField_When_ScrolledPastTheFirstScreen()
+    {
+        // arrange: the same oversized form, focus moved to the last field.
+        var form = CreateTallForm(7);
+        var console = new TestConsole().Width(80).Height(30);
+
+        for (var i = 0; i < 6; i++)
+        {
+            form.HandleKey(Key(ConsoleKey.Tab));
+        }
+
+        // act
+        console.Write(form.Render(80, 23));
+
+        // assert: the focused field's label is visible even though it is the
+        // seventh of seven fields and the frame cannot show them all at once.
+        Assert.Contains("Field 6", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_KeepButtonRowVisible_When_FieldsDoNotAllFit()
+    {
+        // arrange
+        var form = CreateTallForm(7);
+        var console = new TestConsole().Width(80).Height(30);
+
+        // act: focus stays on the first field, far from the button row.
+        console.Write(form.Render(80, 23));
+
+        // assert: the button row is pinned, not scrolled out of view.
+        Assert.Contains("Save", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTooSmallNotice_When_FrameBelowHardFloor()
+    {
+        // arrange
+        var form = CreateForm();
+        var console = new TestConsole().Width(10).Height(5);
+
+        // act
+        console.Write(form.Render(10, 5));
+
+        // assert: the narrow frame wraps the notice onto several lines, so
+        // only a fragment that survives wrapping is checked.
+        Assert.Contains("too small", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_NotShowTooSmallNotice_When_FrameAtMinimumViableSize()
+    {
+        // arrange: the frame that must remain fully operable per spec.
+        var form = CreateForm();
+        var console = new TestConsole().Width(80).Height(23);
+
+        // act
+        console.Write(form.Render(80, 23));
+
+        // assert
+        Assert.DoesNotContain("Terminal too small", console.Output);
+    }
 }
