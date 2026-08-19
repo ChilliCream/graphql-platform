@@ -83,6 +83,14 @@ internal abstract class FormField
     public bool Required { get; }
 
     /// <summary>
+    /// Whether <see cref="Render"/> should surface this field's validation
+    /// error, if any. The hosting <see cref="Form"/> sets this once the field
+    /// has been touched or a submit was attempted, so a required field stays
+    /// quiet until the user has had a chance to fill it in.
+    /// </summary>
+    public bool ShowErrors { get; set; }
+
+    /// <summary>
     /// The current value, in the closed <see cref="FormValue"/> shape for its field type.
     /// </summary>
     public abstract FormValue GetValue();
@@ -115,7 +123,7 @@ internal abstract class FormField
     protected IRenderable RenderPanel(IRenderable content, int width, bool focused)
     {
         var title = Required ? $"{Label} *" : Label;
-        var error = Validate();
+        var error = ShowErrors ? Validate() : null;
 
         var borderStyle = error is not null
             ? ErrorBorderStyle

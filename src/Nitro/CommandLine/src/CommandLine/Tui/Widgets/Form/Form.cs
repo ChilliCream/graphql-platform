@@ -40,8 +40,10 @@ internal sealed class Form
     private readonly IReadOnlyList<FormField> _fields;
     private readonly FormButtons _buttons;
     private readonly int _stopCount;
+    private readonly bool[] _touched;
 
     private int _focusIndex;
+    private bool _submitAttempted;
 
     public Form(string title, IReadOnlyList<FormField> fields, FormButtons buttons)
     {
@@ -57,6 +59,7 @@ internal sealed class Form
         _title = title;
         _fields = fields;
         _buttons = buttons;
+        _touched = new bool[_fields.Count];
 
         // Every field is one focus stop, plus one more for the button row.
         _stopCount = _fields.Count + 1;
@@ -82,6 +85,7 @@ internal sealed class Form
 
             if (field.HandleKey(info))
             {
+                _touched[_focusIndex] = true;
                 return null;
             }
 
@@ -114,6 +118,7 @@ internal sealed class Form
 
         for (var i = 0; i < _fields.Count; i++)
         {
+            _fields[i].ShowErrors = _submitAttempted || _touched[i];
             sections.Add(_fields[i].Render(formWidth, focused: IsFieldFocused && i == _focusIndex));
         }
 
@@ -162,6 +167,8 @@ internal sealed class Form
         {
             return new FormResult.ButtonActivated(id);
         }
+
+        _submitAttempted = true;
 
         if (_fields.Any(field => field.Validate() is not null))
         {

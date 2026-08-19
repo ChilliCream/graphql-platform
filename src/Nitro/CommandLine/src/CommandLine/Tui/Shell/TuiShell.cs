@@ -40,6 +40,8 @@ internal sealed class TuiShell
     private TaskItem? _pickerTask;
     private PickerKind _pickerKind;
     private TaskCreateForm? _createForm;
+    private EditingConfirmDialog? _discardDialog;
+    private DiscardTarget _discardTarget;
     private int _width;
     private int _height;
 
@@ -98,15 +100,17 @@ internal sealed class TuiShell
 
         IRenderable content = _confirmDialog is { } quitDialog
             ? quitDialog.Render(_width, contentHeight)
-            : _editorForm is { } form
-                ? form.Render(_width, contentHeight)
-                : _lifecycleDialog is { } lifecycleDialog
-                    ? lifecycleDialog.Render(_width, contentHeight)
-                    : _picker is { } picker
-                        ? picker.Render(_width, contentHeight)
-                        : _createForm is { } createForm
-                            ? createForm.Render(_width, contentHeight)
-                            : _activeMode.Render(_width, contentHeight);
+            : _discardDialog is { } discardDialog
+                ? discardDialog.Render(_width, contentHeight)
+                : _editorForm is { } form
+                    ? form.Render(_width, contentHeight)
+                    : _lifecycleDialog is { } lifecycleDialog
+                        ? lifecycleDialog.Render(_width, contentHeight)
+                        : _picker is { } picker
+                            ? picker.Render(_width, contentHeight)
+                            : _createForm is { } createForm
+                                ? createForm.Render(_width, contentHeight)
+                                : _activeMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render() ?? (IRenderable)new Markup(string.Empty);
 
@@ -147,6 +151,11 @@ internal sealed class TuiShell
         {
             var quitMessage = _dispatcher.Dispatch(info, quitDialog.KeyMap);
             return quitMessage is not null && HandleMessage(quitMessage);
+        }
+
+        if (_discardDialog is not null)
+        {
+            return HandleDiscardDialogKey(info);
         }
 
         if (_editorForm is not null)
@@ -193,8 +202,7 @@ internal sealed class TuiShell
 
             case FormResult.Cancelled:
             case FormResult.ButtonActivated { ButtonId: TaskEditorForm.CancelButtonId }:
-                _editorForm = null;
-                return true;
+                return TryDiscardEditorForm();
 
             case FormResult.Submitted submitted:
                 return SubmitEditorForm(submitted);
@@ -202,6 +210,19 @@ internal sealed class TuiShell
             default:
                 return true;
         }
+    }
+
+    private bool TryDiscardEditorForm()
+    {
+        if (_editorForm!.IsDirty)
+        {
+            _discardTarget = DiscardTarget.EditorForm;
+            _discardDialog = CreateDiscardDialog();
+            return true;
+        }
+
+        _editorForm = null;
+        return true;
     }
 
     private bool SubmitEditorForm(FormResult.Submitted submitted)
@@ -257,6 +278,46 @@ internal sealed class TuiShell
         HandleMessage(new TuiMessage.RefreshRequested());
         return true;
     }
+
+    private bool HandleDiscardDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _discardDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                _discardDialog = null;
+
+                if (_discardTarget == DiscardTarget.EditorForm)
+                {
+                    _editorForm = null;
+                }
+                else
+                {
+                    _createForm = null;
+                }
+
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _discardDialog = null;
+                return true;
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Builds the confirmation dialog shown when Esc is pressed on a dirty
+    /// task editor or create form: confirming discards the form's edits,
+    /// cancelling returns to it with its values intact.
+    /// </summary>
+    private static EditingConfirmDialog CreateDiscardDialog()
+        => new("Discard unsaved changes?", "Discard", ButtonKind.Danger);
 
     private bool HandlePickerKey(ConsoleKeyInfo info)
     {
@@ -322,8 +383,7 @@ internal sealed class TuiShell
 
             case FormResult.Cancelled:
             case FormResult.ButtonActivated { ButtonId: TaskCreateForm.CancelButtonId }:
-                _createForm = null;
-                return true;
+                return TryDiscardCreateForm();
 
             case FormResult.Submitted submitted:
                 return SubmitCreateForm(submitted);
@@ -331,6 +391,19 @@ internal sealed class TuiShell
             default:
                 return true;
         }
+    }
+
+    private bool TryDiscardCreateForm()
+    {
+        if (_createForm!.IsDirty)
+        {
+            _discardTarget = DiscardTarget.CreateForm;
+            _discardDialog = CreateDiscardDialog();
+            return true;
+        }
+
+        _createForm = null;
+        return true;
     }
 
     private bool SubmitCreateForm(FormResult.Submitted submitted)
@@ -600,4 +673,14 @@ internal enum PickerKind
 {
     Status,
     Priority
+}
+
+/// <summary>
+/// Which form a <see cref="TuiShell"/>'s active discard confirmation applies
+/// to.
+/// </summary>
+internal enum DiscardTarget
+{
+    EditorForm,
+    CreateForm
 }

@@ -306,7 +306,9 @@ internal sealed class TaskEditorForm
     }
 
     private static string? RequireNonEmptyTitle(FormValue value)
-        => value is FormValue.Text { Value.Length: 0 } ? "Title is required." : null;
+        => value is FormValue.Text { Value: var text } && text.Trim().Length == 0
+            ? "Title is required."
+            : null;
 
     /// <summary>
     /// Returns <paramref name="wellKnown"/> as-is when it already contains

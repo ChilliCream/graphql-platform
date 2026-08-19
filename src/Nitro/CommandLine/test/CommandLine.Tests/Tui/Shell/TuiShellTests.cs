@@ -439,6 +439,105 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Handle_Should_OpenDiscardConfirmation_When_EscapePressedWhileEditingDirtyEditorForm()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", "Title");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert: the editor stays open behind the confirmation, unwritten.
+        Assert.Null(store.UpdatedId);
+        Assert.Contains("Discard unsaved changes?", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ReturnToEditorFormWithValuesIntact_When_DiscardCancelled()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", "Title");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // act: Escape on the discard confirmation cancels it, not the editor.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        var text = RenderToText(shell);
+        Assert.DoesNotContain("Discard unsaved changes?", text);
+        Assert.Contains("Edit Task", text);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseEditorWithoutWriting_When_DiscardConfirmed()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", "Title");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // act: Enter on the discard confirmation's focused reason field confirms it.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Null(store.UpdatedId);
+        var text = RenderToText(shell);
+        Assert.DoesNotContain("Discard unsaved changes?", text);
+        Assert.DoesNotContain("Edit Task", text);
+    }
+
+    [Fact]
+    public void Handle_Should_OpenDiscardConfirmation_When_EscapePressedWhileCreatingDirtyCreateForm()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert: the create form stays open behind the confirmation.
+        Assert.Null(store.CreationReceived);
+        Assert.Contains("Discard unsaved changes?", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_CloseCreateFormWithoutCreating_When_DiscardConfirmed()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Null(store.CreationReceived);
+        var text = RenderToText(shell);
+        Assert.DoesNotContain("Discard unsaved changes?", text);
+        Assert.DoesNotContain("Create Task", text);
+    }
+
+    [Fact]
     public void Handle_Should_CloseTask_When_CloseOrReopenRequestedOnOpenTask()
     {
         // arrange

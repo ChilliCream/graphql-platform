@@ -262,6 +262,54 @@ public sealed class FormTests
     }
 
     [Fact]
+    public void Render_Should_NotShowValidationError_Initially_When_RequiredFieldEmpty()
+    {
+        // arrange
+        var form = CreateForm(titleValidator: _ => "Title is required.");
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(form.Render(80, 20));
+
+        // assert: the field has neither been touched nor has a submit been
+        // attempted, so the error stays hidden.
+        Assert.DoesNotContain("Title is required.", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowValidationError_When_FieldTouched()
+    {
+        // arrange
+        var form = CreateForm(titleValidator: _ => "always invalid");
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act: typing into the title field touches it even though the
+        // validator still fails afterwards.
+        form.HandleKey(Key('h'));
+        console.Write(form.Render(80, 20));
+
+        // assert
+        Assert.Contains("always invalid", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowValidationError_When_SubmitAttempted_Even_When_FieldUntouched()
+    {
+        // arrange: never type into the title field, only tab past it.
+        var form = CreateForm(titleValidator: _ => "Title is required.");
+        var console = new TestConsole().Width(80).Height(20);
+        form.HandleKey(Key(ConsoleKey.Tab));
+        form.HandleKey(Key(ConsoleKey.Tab));
+
+        // act
+        form.HandleKey(Key(ConsoleKey.Enter));
+        console.Write(form.Render(80, 20));
+
+        // assert
+        Assert.Contains("Title is required.", console.Output);
+    }
+
+    [Fact]
     public void Render_Should_IncludeTitleAndFieldLabels()
     {
         // arrange

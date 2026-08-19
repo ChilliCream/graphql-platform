@@ -155,6 +155,24 @@ public sealed class TaskEditorFormTests
     }
 
     [Fact]
+    public void HandleKey_Should_ReturnNull_When_EnterOnSaveWithWhitespaceOnlyTitle()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "T");
+        var form = new TaskEditorForm(task, []);
+        form.HandleKey(Key(ConsoleKey.Backspace));
+        Type(form, "   ");
+        TabTo(form, 7);
+
+        // act
+        var result = form.HandleKey(Key(ConsoleKey.Enter));
+
+        // assert: the form stays open because a whitespace-only title is
+        // rejected, matching TaskCreateForm's title validator.
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void HandleKey_Should_ReturnCancelled_When_Escape()
     {
         // arrange

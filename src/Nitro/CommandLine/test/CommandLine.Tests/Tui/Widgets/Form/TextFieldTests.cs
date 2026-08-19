@@ -106,6 +106,37 @@ public sealed class TextFieldTests
     }
 
     [Fact]
+    public void Render_Should_NotShowValidationError_When_ShowErrorsIsFalse()
+    {
+        // arrange
+        var field = new TextField("title", "Title", validator: _ => "Title is required.");
+        var console = new TestConsole().Width(60);
+
+        // act: ShowErrors defaults to false until the hosting Form sets it.
+        console.Write(field.Render(40, focused: false));
+
+        // assert
+        Assert.DoesNotContain("Title is required.", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowValidationError_When_ShowErrorsIsTrue()
+    {
+        // arrange
+        var field = new TextField("title", "Title", validator: _ => "Title is required.")
+        {
+            ShowErrors = true
+        };
+        var console = new TestConsole().Width(60);
+
+        // act
+        console.Write(field.Render(40, focused: false));
+
+        // assert
+        Assert.Contains("Title is required.", console.Output);
+    }
+
+    [Fact]
     public void Render_Should_ScrollHorizontally_When_TextOverflowsWidth()
     {
         // arrange
