@@ -188,6 +188,34 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task RoundTrip_FlushDeleteDatabaseImport_NextChildGetsNextId()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var parentId = await CreateTaskAsync("Design the schema");
+        var firstChildId = await CreateTaskAsync(
+            "Implement the schema", "--parent", parentId);
+
+        // act
+        var flushResult = await ExecuteCommandAsync("task", "sync", "--flush-only");
+        Assert.Equal(0, flushResult.ExitCode);
+
+        File.Delete(DatabasePath);
+        File.Delete(DatabasePath + "-wal");
+        File.Delete(DatabasePath + "-shm");
+
+        var importResult = await ExecuteCommandAsync("task", "sync", "--import-only");
+        Assert.Equal(0, importResult.ExitCode);
+
+        var secondChildId = await CreateTaskAsync(
+            "Write the tests", "--parent", parentId);
+
+        // assert
+        Assert.Equal($"{parentId}.1", firstChildId);
+        Assert.Equal($"{parentId}.2", secondChildId);
+    }
+
+    [Fact]
     public async Task Status_InSync_ReturnsSuccess()
     {
         // arrange

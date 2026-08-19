@@ -2214,9 +2214,61 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             applied++;
         }
 
+        await RestoreChildCountersAsync(connection, transaction, cancellationToken);
+
         await transaction.CommitAsync(cancellationToken);
 
         return new TaskImportResult(applied, skipped, records.Count);
+    }
+
+    // Import writes task rows directly and never calls CreateTaskIdAsync, so
+    // child_counters is never populated for the imported tasks. Without this,
+    // the next child created for an imported parent collides with a child id
+    // that already exists (e.g. after "flush, delete db, import", creating a
+    // second child for the same parent reuses ".1"). Rebuild each parent's
+    // counter from the highest numeric child suffix present in the tasks
+    // table, never lowering a counter that is already ahead.
+    private static async Task RestoreChildCountersAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        var taskIds = await connection.QueryAsync<string>(
+            "SELECT id FROM tasks",
+            transaction: transaction);
+
+        var maxChildByParent = new Dictionary<string, long>();
+
+        foreach (var id in taskIds)
+        {
+            var dotIndex = id.LastIndexOf('.');
+
+            if (dotIndex <= 0
+                || !long.TryParse(
+                    id.AsSpan(dotIndex + 1),
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out var childNumber))
+            {
+                continue;
+            }
+
+            var parentId = id[..dotIndex];
+
+            if (!maxChildByParent.TryGetValue(parentId, out var current) || childNumber > current)
+            {
+                maxChildByParent[parentId] = childNumber;
+            }
+        }
+
+        foreach (var (parentId, lastChild) in maxChildByParent)
+        {
+            await connection.ExecuteAsync(
+                "INSERT INTO child_counters (parent_id, last_child) VALUES (@parentId, @lastChild) "
+                + "ON CONFLICT (parent_id) DO UPDATE SET last_child = MAX(last_child, excluded.last_child)",
+                new { parentId, lastChild, cancellationToken },
+                transaction);
+        }
     }
 
     public async Task<TaskIntegrityReport> CheckIntegrityAsync(
