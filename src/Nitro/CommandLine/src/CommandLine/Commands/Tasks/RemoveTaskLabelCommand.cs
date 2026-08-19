@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class RemoveTaskLabelCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Arguments.Add(Opt<LabelArgument>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task label remove \"acme-1a2\" api");
 
@@ -28,6 +30,7 @@ internal sealed class RemoveTaskLabelCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var label = parseResult.GetRequiredValue(Opt<LabelArgument>.Instance).Trim().ToLowerInvariant();
@@ -36,8 +39,16 @@ internal sealed class RemoveTaskLabelCommand : Command
 
         await store.RemoveLabelAsync(id, label, actor, cancellationToken);
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskLabelRemovedResult(id, label)));
+            return ExitCodes.Success;
+        }
+
         console.OkLine($"Removed label '{label.EscapeMarkup()}' from '{id.EscapeMarkup()}'.");
 
         return ExitCodes.Success;
     }
+
+    public sealed record TaskLabelRemovedResult(string Id, string Label);
 }

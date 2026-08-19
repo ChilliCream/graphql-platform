@@ -20,6 +20,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
 
             Options:
               --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
@@ -78,6 +79,49 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
             $"SELECT close_reason FROM tasks WHERE id = '{epicId}'"));
         Assert.Equal("closed", await QueryScalarAsync(
             $"SELECT new_value FROM events WHERE task_id = '{epicId}' AND event_type = 'closed'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsClosedEpics()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var epicId = await CreateTaskAsync("Ship v10", "--type", "epic");
+        var childId = await CreateTaskAsync("Design API v10", "--parent", epicId);
+        await ExecuteCommandAsync("task", "close", childId);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items");
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(1, items.GetArrayLength());
+        Assert.Equal(epicId, items[0].GetProperty("id").GetString());
+        Assert.Equal("closed", items[0].GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task JsonOutput_NoEligibleEpics_ReturnsEmptyItems()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": []
+            }
+            """);
     }
 
     [Fact]

@@ -23,6 +23,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
             Options:
               --prefix <prefix>  The task ID prefix (defaults to the current directory name)
               --force            Reinitialize an existing task workspace
+              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help     Show help and usage information
 
             Example:
@@ -56,6 +57,25 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
                 tasks.db-wal
                 tasks.db-shm
                 """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsWorkspacePathAndPrefix()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "init");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(WorkspaceDirectory, root.GetProperty("path").GetString());
+        Assert.Equal("acme", root.GetProperty("prefix").GetString());
     }
 
     [Fact]

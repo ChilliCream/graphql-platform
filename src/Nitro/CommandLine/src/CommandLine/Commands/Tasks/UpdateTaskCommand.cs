@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -25,6 +26,7 @@ internal sealed class UpdateTaskCommand : Command
         Options.Add(Opt<TaskDeferUntilOption>.Instance);
         Options.Add(Opt<TaskEstimateOption>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task update \"app-1a2\" --status in_progress",
@@ -41,6 +43,7 @@ internal sealed class UpdateTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var actor = TaskActor.Resolve(
@@ -141,6 +144,15 @@ internal sealed class UpdateTaskCommand : Command
                 EstimatedMinutesGiven = estimateGiven
             },
             cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            var updatedTask = await store.GetRequiredTaskAsync(id, cancellationToken);
+
+            resultHolder.SetResult(new ObjectResult(TaskSnapshotResult.From(updatedTask)));
+
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Updated task '{id.EscapeMarkup()}'.");
 

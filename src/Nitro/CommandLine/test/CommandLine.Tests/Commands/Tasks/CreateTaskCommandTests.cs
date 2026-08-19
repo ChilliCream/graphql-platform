@@ -33,6 +33,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
               --actor <actor>              The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
               --depends-on <depends-on>    A dependency as 'id' or 'type:id'; can be used multiple times
               --parent <parent>            The parent task ID; the new task becomes its child
+              --output <json>              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help               Show help and usage information
 
             Example:
@@ -57,6 +58,64 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
             await QueryScalarAsync(
                 "SELECT status || '|' || priority || '|' || task_type || '|' || created_by "
                 + "FROM tasks WHERE id = 'acme-n5z'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_MinimalArgs_ReturnsCreatedTaskSnapshot()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "create", "Fix the parser");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "id": "acme-n5z",
+              "title": "Fix the parser",
+              "status": "open",
+              "priority": 2,
+              "type": "task",
+              "assignee": null,
+              "estimatedMinutes": null,
+              "dueAt": null,
+              "deferUntil": null,
+              "createdAt": "2026-01-01T00:00:00+00:00",
+              "createdBy": "test-agent",
+              "updatedAt": "2026-01-01T00:00:00+00:00",
+              "closedAt": null,
+              "closeReason": null,
+              "description": "",
+              "design": "",
+              "acceptanceCriteria": "",
+              "notes": "",
+              "blockers": []
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_WithDependency_IncludesComputedBlockers()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var blockerId = await CreateTaskAsync("Write the tokenizer tests");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "create", "Fix the parser", "--depends-on", blockerId);
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(blockerId, root.GetProperty("blockers")[0].GetString());
     }
 
     [Fact]

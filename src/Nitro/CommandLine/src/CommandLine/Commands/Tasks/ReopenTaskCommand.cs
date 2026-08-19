@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class ReopenTaskCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Options.Add(Opt<TaskReasonOption>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task reopen \"app-1a2\"");
 
@@ -28,6 +30,7 @@ internal sealed class ReopenTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var reason = parseResult.GetValue(Opt<TaskReasonOption>.Instance) ?? "";
@@ -35,6 +38,12 @@ internal sealed class ReopenTaskCommand : Command
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
 
         var task = await store.ReopenTaskAsync(id, reason, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(TaskSnapshotResult.From(task)));
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Reopened task '{task.Id.EscapeMarkup()}'.");
 

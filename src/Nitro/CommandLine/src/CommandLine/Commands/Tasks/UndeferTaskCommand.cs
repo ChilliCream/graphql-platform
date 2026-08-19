@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -13,6 +14,7 @@ internal sealed class UndeferTaskCommand : Command
 
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task undefer \"acme-1a2\"");
 
@@ -27,12 +29,19 @@ internal sealed class UndeferTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var actor = TaskActor.Resolve(
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
 
         var task = await store.UndeferTaskAsync(id, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(TaskSnapshotResult.From(task)));
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Undeferred task '{task.Id.EscapeMarkup()}'.");
 

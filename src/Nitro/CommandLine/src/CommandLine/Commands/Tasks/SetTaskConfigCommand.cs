@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -15,6 +16,7 @@ internal sealed class SetTaskConfigCommand : Command
 
         Arguments.Add(Opt<ConfigKeyArgument>.Instance);
         Arguments.Add(Opt<ConfigValueArgument>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task config set prefix \"app\"");
 
@@ -28,6 +30,7 @@ internal sealed class SetTaskConfigCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var key = parseResult.GetRequiredValue(Opt<ConfigKeyArgument>.Instance);
         var value = parseResult.GetRequiredValue(Opt<ConfigValueArgument>.Instance);
@@ -38,6 +41,12 @@ internal sealed class SetTaskConfigCommand : Command
         }
 
         await store.SetConfigAsync(key, value, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskConfigEntry(key, value)));
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Set '{key.EscapeMarkup()}' to '{value.EscapeMarkup()}'.");
 

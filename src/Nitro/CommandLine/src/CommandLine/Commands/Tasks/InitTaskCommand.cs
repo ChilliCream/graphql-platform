@@ -1,6 +1,7 @@
 using System.Text;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class InitTaskCommand : Command
 
         Options.Add(Opt<TaskPrefixOption>.Instance);
         Options.Add(Opt<ForceReinitializeOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task init", "task init --prefix \"app\"");
 
@@ -28,6 +30,7 @@ internal sealed class InitTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var store = services.GetRequiredService<ITaskStore>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var currentDirectory = fileSystem.GetCurrentDirectory();
         var workspaceDirectory = TaskWorkspace.GetDirectory(currentDirectory);
@@ -63,9 +66,17 @@ internal sealed class InitTaskCommand : Command
                 cancellationToken);
         }
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskWorkspaceInitResult(workspaceDirectory, prefix)));
+            return ExitCodes.Success;
+        }
+
         console.OkLine($"Initialized task workspace at '{TaskWorkspace.DisplayPath}'.");
         console.OkLine($"Task ID prefix set to '{prefix}'.");
 
         return ExitCodes.Success;
     }
+
+    public sealed record TaskWorkspaceInitResult(string Path, string Prefix);
 }

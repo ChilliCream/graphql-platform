@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class CloseTaskCommand : Command
         Arguments.Add(Opt<TaskIdsArgument>.Instance);
         Options.Add(Opt<TaskReasonOption>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task close \"app-1a2\"",
@@ -30,6 +32,7 @@ internal sealed class CloseTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var ids = parseResult.GetRequiredValue(Opt<TaskIdsArgument>.Instance)
             .Distinct()
@@ -39,6 +42,14 @@ internal sealed class CloseTaskCommand : Command
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
 
         var tasks = await store.CloseTaskAsync(ids, reason, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(
+                new ListResult<TaskSnapshotResult>(tasks.Select(task => TaskSnapshotResult.From(task)).ToArray()));
+
+            return ExitCodes.Success;
+        }
 
         foreach (var task in tasks)
         {

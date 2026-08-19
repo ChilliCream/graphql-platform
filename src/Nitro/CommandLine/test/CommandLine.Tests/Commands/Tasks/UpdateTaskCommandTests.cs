@@ -35,6 +35,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
               --defer-until <defer-until>                  Hide the task from ready work until this ISO 8601 date or timestamp
               --estimate <estimate>                        The estimated effort in minutes
               --actor <actor>                              The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                               Show help and usage information
 
             Example:
@@ -184,6 +185,29 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         Assert.Equal(
             "1",
             await QueryScalarAsync($"SELECT assignee IS NULL FROM tasks WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsUpdatedTaskSnapshot()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "update", id, "--title", "Fix the parser properly", "--priority", "p1");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(id, root.GetProperty("id").GetString());
+        Assert.Equal("Fix the parser properly", root.GetProperty("title").GetString());
+        Assert.Equal(1, root.GetProperty("priority").GetInt32());
     }
 
     [Fact]

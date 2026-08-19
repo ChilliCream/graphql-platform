@@ -25,6 +25,7 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
 
             Options:
               --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
@@ -62,6 +63,28 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess($"✓ Removed label 'api' from '{id}'.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsMinimalLabelChange()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "label", "add", id, "api");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "label", "remove", id, "api");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{id}}",
+              "label": "api"
+            }
+            """);
     }
 
     [Fact]

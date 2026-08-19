@@ -25,6 +25,7 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
 
             Options:
               --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
@@ -72,6 +73,29 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
             await QueryScalarAsync(
                 "SELECT new_value FROM events "
                 + $"WHERE task_id = '{id}' AND event_type = 'dependency_removed'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsMinimalDependencyChange()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        var dependsOnId = await CreateTaskAsync("Write the tokenizer");
+        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "remove", id, dependsOnId);
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{id}}",
+              "dependsOnId": "{{dependsOnId}}"
+            }
+            """);
     }
 
     [Fact]

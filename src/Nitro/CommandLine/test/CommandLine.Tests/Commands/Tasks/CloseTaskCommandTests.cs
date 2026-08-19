@@ -25,6 +25,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
             Options:
               --reason <reason>  The reason recorded for this change
               --actor <actor>    The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help     Show help and usage information
 
             Example:
@@ -110,6 +111,30 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsClosedTaskSnapshots()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id1 = await CreateTaskAsync("Fix the parser");
+        var id2 = await CreateTaskAsync("Write the docs");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "close", id1, id2);
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items");
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(2, items.GetArrayLength());
+        Assert.Equal(id1, items[0].GetProperty("id").GetString());
+        Assert.Equal("closed", items[0].GetProperty("status").GetString());
+        Assert.Equal(id2, items[1].GetProperty("id").GetString());
     }
 
     [Fact]

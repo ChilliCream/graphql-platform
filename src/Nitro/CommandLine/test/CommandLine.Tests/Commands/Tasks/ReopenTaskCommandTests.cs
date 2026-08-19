@@ -25,6 +25,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
             Options:
               --reason <reason>  The reason recorded for this change
               --actor <actor>    The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help     Show help and usage information
 
             Example:
@@ -86,6 +87,29 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess($"✓ Reopened task '{id}'.");
         Assert.Equal("alice", await QueryScalarAsync(
             $"SELECT actor FROM events WHERE task_id = '{id}' AND event_type = 'reopened'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsReopenedTaskSnapshot()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        await ExecuteCommandAsync("task", "close", id);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "reopen", id);
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(id, root.GetProperty("id").GetString());
+        Assert.Equal("open", root.GetProperty("status").GetString());
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("closedAt").ValueKind);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class AddTaskCommentCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Arguments.Add(Opt<CommentTextArgument>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task comment add \"acme-1a2\" \"Looks good to me.\"");
 
@@ -28,6 +30,7 @@ internal sealed class AddTaskCommentCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var text = parseResult.GetRequiredValue(Opt<CommentTextArgument>.Instance);
@@ -35,6 +38,12 @@ internal sealed class AddTaskCommentCommand : Command
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
 
         var comment = await store.AddCommentAsync(id, text, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(comment));
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Added comment to '{comment.TaskId.EscapeMarkup()}'.");
 

@@ -26,6 +26,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
             Options:
               --type <type>    The dependency type (blocks, parent-child, waits-for, related, ...; default blocks)
               --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
@@ -73,6 +74,54 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
             await QueryScalarAsync(
                 "SELECT new_value FROM events "
                 + $"WHERE task_id = '{id}' AND event_type = 'dependency_added'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsMinimalDependencyChange()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        var dependsOnId = await CreateTaskAsync("Write the tokenizer");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "dep", "add", id, dependsOnId, "--type", "waits-for");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{id}}",
+              "dependsOnId": "{{dependsOnId}}",
+              "type": "waits-for",
+              "cycle": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_CreatesCycle_IncludesCycleInResult()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var a = await CreateTaskAsync("Task A");
+        var b = await CreateTaskAsync("Task B");
+        await ExecuteCommandAsync("task", "dep", "add", a, b);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "dep", "add", b, a);
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(System.Text.Json.JsonValueKind.Array, root.GetProperty("cycle").ValueKind);
+        Assert.True(root.GetProperty("cycle").GetArrayLength() > 0);
     }
 
     [Fact]

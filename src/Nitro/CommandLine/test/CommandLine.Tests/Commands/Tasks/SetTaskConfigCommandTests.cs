@@ -24,7 +24,8 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
               <value>  The configuration value
 
             Options:
-              -?, -h, --help  Show help and usage information
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro task config set prefix "app"
@@ -60,6 +61,26 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess("✓ Set 'reviewer' to 'bob'.");
         Assert.Equal("bob", await QueryScalarAsync(
             "SELECT value FROM config WHERE key = 'reviewer'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsSetKeyAndValue()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "config", "set", "reviewer", "alice");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "key": "reviewer",
+              "value": "alice"
+            }
+            """);
     }
 
     [Fact]

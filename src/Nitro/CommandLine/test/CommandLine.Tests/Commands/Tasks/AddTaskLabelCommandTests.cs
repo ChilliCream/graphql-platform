@@ -25,6 +25,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
 
             Options:
               --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
@@ -97,6 +98,36 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess($"Label 'api' is already on '{id}'.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsMinimalLabelChanges()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "label", "add", id, "api", "parser");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{id}}",
+              "labels": [
+                {
+                  "label": "api",
+                  "added": true
+                },
+                {
+                  "label": "parser",
+                  "added": true
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]

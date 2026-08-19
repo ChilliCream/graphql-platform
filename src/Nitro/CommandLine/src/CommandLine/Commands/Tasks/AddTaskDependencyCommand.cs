@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -16,6 +17,7 @@ internal sealed class AddTaskDependencyCommand : Command
 
         Options.Add(Opt<TaskDependencyTypeOption>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task dep add \"acme-1a2\" \"acme-9z8\"",
@@ -32,6 +34,7 @@ internal sealed class AddTaskDependencyCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var dependsOnId = parseResult.GetRequiredValue(Opt<DependsOnIdArgument>.Instance);
@@ -43,6 +46,19 @@ internal sealed class AddTaskDependencyCommand : Command
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
 
         var result = await store.AddDependencyAsync(id, dependsOnId, type, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskDependencyAddedResult
+            {
+                Id = id,
+                DependsOnId = dependsOnId,
+                Type = type,
+                Cycle = result.Cycle
+            }));
+
+            return ExitCodes.Success;
+        }
 
         console.OkLine(
             $"Added {type.EscapeMarkup()} dependency: "
@@ -76,5 +92,13 @@ internal sealed class AddTaskDependencyCommand : Command
         rotated.Add(rotated[0]);
 
         return string.Join(" -> ", rotated);
+    }
+
+    public sealed record TaskDependencyAddedResult
+    {
+        public required string Id { get; init; }
+        public required string DependsOnId { get; init; }
+        public required string Type { get; init; }
+        public IReadOnlyList<string>? Cycle { get; init; }
     }
 }

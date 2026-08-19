@@ -25,6 +25,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
             Options:
               --until <until> (REQUIRED)  Hide the task from ready work until this ISO 8601 date or timestamp
               --actor <actor>             The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
 
             Example:
@@ -62,6 +63,29 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess($"✓ Deferred task '{id}' until 2026-03-15 10:30.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsDeferredTaskSnapshot()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "defer", id, "--until", "2026-02-01");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(id, root.GetProperty("id").GetString());
+        Assert.Equal("deferred", root.GetProperty("status").GetString());
+        Assert.Equal(
+            "2026-02-01T00:00:00+00:00", root.GetProperty("deferUntil").GetString());
     }
 
     [Fact]

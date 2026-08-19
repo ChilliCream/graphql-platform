@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -15,6 +16,7 @@ internal sealed class DeleteTaskCommand : Command
         Options.Add(Opt<TaskReasonOption>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task delete \"app-1a2\"",
@@ -31,6 +33,7 @@ internal sealed class DeleteTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var reason = parseResult.GetValue(Opt<TaskReasonOption>.Instance) ?? "";
@@ -62,6 +65,12 @@ internal sealed class DeleteTaskCommand : Command
         }
 
         var task = await store.DeleteTaskAsync(id, reason, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(TaskSnapshotResult.From(task)));
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Deleted task '{task.Id.EscapeMarkup()}'.");
 

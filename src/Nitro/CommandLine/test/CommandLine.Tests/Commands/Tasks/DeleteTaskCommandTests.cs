@@ -26,6 +26,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
               --reason <reason>  The reason recorded for this change
               --actor <actor>    The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
               --force            Skip confirmation prompts for deletes and overwrites
+              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help     Show help and usage information
 
             Example:
@@ -65,6 +66,27 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess($"✓ Deleted task '{id}'.");
         Assert.Equal("Duplicate of acme-1", await QueryScalarAsync(
             $"SELECT delete_reason FROM tasks WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsDeletedTaskSnapshot()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "delete", id, "--force");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(id, root.GetProperty("id").GetString());
+        Assert.Equal("tombstone", root.GetProperty("status").GetString());
     }
 
     [Fact]

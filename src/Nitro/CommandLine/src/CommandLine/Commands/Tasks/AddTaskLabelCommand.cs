@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -14,6 +15,7 @@ internal sealed class AddTaskLabelCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Arguments.Add(Opt<LabelsArgument>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("task label add \"acme-1a2\" api parser");
 
@@ -28,6 +30,7 @@ internal sealed class AddTaskLabelCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var labels = parseResult.GetRequiredValue(Opt<LabelsArgument>.Instance);
@@ -35,6 +38,12 @@ internal sealed class AddTaskLabelCommand : Command
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
 
         var results = await store.AddLabelAsync(id, labels, actor, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new TaskLabelAddResult(id, results)));
+            return ExitCodes.Success;
+        }
 
         foreach (var result in results)
         {
@@ -50,4 +59,6 @@ internal sealed class AddTaskLabelCommand : Command
 
         return ExitCodes.Success;
     }
+
+    public sealed record TaskLabelAddResult(string Id, IReadOnlyList<TaskLabelChange> Labels);
 }

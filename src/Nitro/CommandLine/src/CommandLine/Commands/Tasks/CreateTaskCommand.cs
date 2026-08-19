@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -24,6 +25,7 @@ internal sealed class CreateTaskCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<TaskDependsOnOption>.Instance);
         Options.Add(Opt<TaskParentOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task create \"Fix the parser\"",
@@ -40,6 +42,7 @@ internal sealed class CreateTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var title = parseResult.GetRequiredValue(Opt<TaskTitleArgument>.Instance);
 
@@ -113,6 +116,16 @@ internal sealed class CreateTaskCommand : Command
                 Actor = actor
             },
             cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            var createdTask = await store.GetRequiredTaskAsync(result.Id, cancellationToken);
+
+            resultHolder.SetResult(
+                new ObjectResult(TaskSnapshotResult.From(createdTask, result.BlockedBy)));
+
+            return ExitCodes.Success;
+        }
 
         console.OkLine($"Created task '{result.Id}': {title.EscapeMarkup()}.");
 
