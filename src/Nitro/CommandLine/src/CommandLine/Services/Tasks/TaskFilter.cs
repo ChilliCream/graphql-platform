@@ -67,7 +67,8 @@ internal sealed record TaskFilter
 
     /// <summary>
     /// Text matched against a task's title, description, design, acceptance
-    /// criteria, and notes.
+    /// criteria, notes, and comment text. A task matching on several
+    /// comments still appears once.
     /// </summary>
     public string? Text { get; init; }
 

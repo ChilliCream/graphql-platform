@@ -88,6 +88,48 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task MatchesComment_ReturnsTask()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Improve error messages");
+        await ExecuteCommandAsync(
+            "task", "comment", "add", id, "Decided to use the tokenizer approach.");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "search", "tokenizer");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {id}  P2  task  open  Improve error messages
+
+            1 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task MatchesMultipleComments_ReturnsTaskOnce()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Improve error messages");
+        await ExecuteCommandAsync("task", "comment", "add", id, "The tokenizer needs work.");
+        await ExecuteCommandAsync("task", "comment", "add", id, "Tokenizer fix landed.");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "search", "tokenizer");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {id}  P2  task  open  Improve error messages
+
+            1 task(s)
+            """);
+    }
+
+    [Fact]
     public async Task TombstonedTask_ExcludedFromResults()
     {
         // arrange

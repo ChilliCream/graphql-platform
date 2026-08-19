@@ -2134,7 +2134,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 + "LOWER(description) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
                 + "LOWER(design) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
                 + "LOWER(acceptance_criteria) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-                + "LOWER(notes) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\')");
+                + "LOWER(notes) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
+                + "EXISTS (SELECT 1 FROM comments WHERE task_id = tasks.id "
+                + "AND LOWER(text) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\'))");
         }
 
         if (filter.UpdatedBefore is { } updatedBefore)
