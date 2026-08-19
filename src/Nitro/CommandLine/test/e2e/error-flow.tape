@@ -1,4 +1,4 @@
-# End-to-end recording of a failing `nitro task` command against the fixture
+# End-to-end recording of a failing `nitro agent tasks` command against the fixture
 # workspace.
 #
 # Exercises the non-zero-exit UX for a task ID that does not exist
@@ -32,7 +32,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task show acme-nope; echo "[nitro exit: $?]"` Enter
+Type `nitro agent tasks show acme-nope; echo "[nitro exit: $?]"` Enter
 
 Wait+Screen@30s /\[nitro exit: 1\]/
 Sleep 1500ms

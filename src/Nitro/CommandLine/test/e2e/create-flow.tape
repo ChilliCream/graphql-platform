@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task create` against the fixture workspace.
+# End-to-end recording of `nitro agent tasks create` against the fixture workspace.
 #
 # Exercises task creation with no dependencies/parent, the simplest write
 # path. The minted ID is seeded from the task title and wall-clock time (see
@@ -30,7 +30,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task create "Write onboarding docs"` Enter
+Type `nitro agent tasks create "Write onboarding docs"` Enter
 
 Wait+Screen@30s /Created task '/
 Sleep 1500ms

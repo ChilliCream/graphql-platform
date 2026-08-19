@@ -58,7 +58,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task board` Enter
+Type `nitro agent tasks board` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape).
 Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/

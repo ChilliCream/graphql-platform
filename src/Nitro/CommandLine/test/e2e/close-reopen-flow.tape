@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task close` then `nitro task reopen` against
+# End-to-end recording of `nitro agent tasks close` then `nitro agent tasks reopen` against
 # the fixture workspace.
 #
 # Exercises the close/reopen write paths on a fixture task that starts open
@@ -30,12 +30,12 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task close acme-a1b --reason "Won't fix, unreproducible"` Enter
+Type `nitro agent tasks close acme-a1b --reason "Won't fix, unreproducible"` Enter
 
 Wait+Screen@30s /Closed task 'acme-a1b'/
 Sleep 500ms
 
-Type `nitro task reopen acme-a1b` Enter
+Type `nitro agent tasks reopen acme-a1b` Enter
 
 Wait+Screen@30s /Reopened task 'acme-a1b'/
 Sleep 1500ms

@@ -22,19 +22,16 @@ layer: a handful of representative flows, not exhaustive.
 
 | Flow | Drives | Validates |
 | --- | --- | --- |
-| `help` | `nitro task list --help` | the pipeline itself: publish, record, extract, diff, end to end |
+| `help` | `nitro agent tasks list --help` | the pipeline itself: publish, record, extract, diff, end to end |
 
-This is a trivial smoke flow, shipped so the pipeline is testable before the
-fixture-backed `nitro task` flows land (separate bead). `task` is a hidden
-top-level command (`Hidden = true` on `TaskCommand`): `nitro task --help`
-renders nothing at all (System.CommandLine exits 0 with empty output for a
-hidden command's own `--help`), so this flow asks for help on one of its
-visible subcommands instead. Task commands need no auth, they never call the
-Nitro backend.
+This is a trivial smoke flow that proves the pipeline itself, independently of
+the fixture-backed `nitro agent tasks` flows. It asks for help on `list`, a
+leaf subcommand, since its help output is the more informative pipeline check
+than the `agent`/`tasks` group commands' own help. Task commands need no
+auth, they never call the Nitro backend.
 
-Real task flows (`create`, `list`, `show`, ...) against a deterministic fixture
-workspace land in a separate bead; keep `MARKERS`/`ALL_FLOWS` in
-[`run.sh`](run.sh) in sync with the tape set as they are added.
+Keep `MARKERS`/`ALL_FLOWS` in [`run.sh`](run.sh) in sync with the tape set as
+flows are added.
 
 ## How it works
 
@@ -109,7 +106,5 @@ working. Re-run with `--update <flow>` and commit the new golden + GIF.
 | `extract-frame.sh` | VHS `.txt` -> final frame (per-flow marker) |
 | `bin/`, `out/` | gitignored: published binary, raw recordings, report |
 
-Non-goals of this bead: fixture seeding, the real task flows and their tapes,
-and CI wiring all land in separate beads. Linux `linux-x64` only, no
-Windows/macOS support, matching the upstream skillz e2e tier this pipeline was
-ported from.
+Linux `linux-x64` only, no Windows/macOS support, matching the upstream skillz
+e2e tier this pipeline was ported from.

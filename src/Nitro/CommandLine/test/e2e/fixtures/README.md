@@ -1,6 +1,6 @@
 # Fixture task workspace
 
-`seed.sql` is a deterministic dataset for the `nitro task` e2e tapes. IDs,
+`seed.sql` is a deterministic dataset for the `nitro agent tasks` e2e tapes. IDs,
 timestamps, and actors are all hardcoded so a recording that reads this data
 is byte-stable across runs, wall-clock time, and machines.
 
@@ -10,14 +10,14 @@ Before recording any flow, `run.sh` prepares `out/fixture/acme/` on the host
 (not inside the VHS container):
 
 1. `rm -rf` + `mkdir -p out/fixture/acme` for a clean slate.
-2. Run the freshly published `bin/nitro task init` inside it, with
+2. Run the freshly published `bin/nitro agent tasks init` inside it, with
    `NITRO_TASK_ACTOR=e2e-agent` set. This creates the real `.nitro/tasks/`
    schema (via `TaskStore.InitializeAsync`/`TaskStoreSchema`) and sets the
    `acme` task ID prefix (via `TaskWorkspace.NormalizePrefix`, derived from the
    `acme` directory name, matching `TasksCommandTestBase`).
 3. Apply `seed.sql` with the `sqlite3` CLI against
    `out/fixture/acme/.nitro/tasks/tasks.db`.
-4. Guard: run `bin/nitro task list` inside `out/fixture/acme` and grep for
+4. Guard: run `bin/nitro agent tasks list` inside `out/fixture/acme` and grep for
    `acme-epic1`. If the marker is missing, schema drift is failing fast here,
    with a pointer back to this file, instead of surfacing later as a
    confusing golden diff inside a tape's `Hide` block.

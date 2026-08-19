@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task board`, keystroke-driven, against the
+# End-to-end recording of `nitro agent tasks board`, keystroke-driven, against the
 # fixture workspace.
 #
 # The board TUI (raw-key event loop, full-screen alternate-screen rendering)
@@ -44,7 +44,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task board` Enter
+Type `nitro agent tasks board` Enter
 
 # Initial frame: focus starts on "Blocked" (index 0, 3 cards), selection on
 # its first row (acme-a1b, P0, sorted ahead of acme-epic1 P1 and

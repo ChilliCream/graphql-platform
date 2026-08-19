@@ -1,7 +1,7 @@
 -- Deterministic task workspace fixture for e2e tapes.
 --
 -- Applied by run.sh with the sqlite3 CLI against a workspace database that
--- `nitro task init` already created (so the schema, PRAGMA user_version, and
+-- `nitro agent tasks init` already created (so the schema, PRAGMA user_version, and
 -- the `config` prefix row come from the real binary, not from this file).
 -- Every ID, timestamp, and actor here is hardcoded so recordings that read
 -- this data are byte-stable across runs. See README.md in this directory for

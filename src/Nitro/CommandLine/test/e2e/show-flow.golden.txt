@@ -1,4 +1,4 @@
-$ nitro task show acme-epic1.1
+$ nitro agent tasks show acme-epic1.1
 acme-epic1.1: Draft new pricing copy
 
 Status: in_progress  Priority: P2  Type: task

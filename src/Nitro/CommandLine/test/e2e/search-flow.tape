@@ -4,7 +4,7 @@
 # Search mode (perles-net-4j7.3) is reached from the board TUI via the '/'
 # gesture (TuiMessage.FocusSearchRequested, KeyMap.CreateDefaultGlobal): it
 # is the only entry point, there is no dedicated interactive search command
-# (`nitro task search` is a separate, non-interactive text-search command
+# (`nitro agent tasks search` is a separate, non-interactive text-search command
 # that never touches Tui/Search/SearchMode.cs). Drives the query input's
 # live-filtering (TaskQueryParser/TaskQuery.ToFilter against
 # fixtures/seed.sql) through one incremental narrowing step, then Tab
@@ -50,7 +50,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task board` Enter
+Type `nitro agent tasks board` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape): focus starts on
 # "Blocked", selection on its first row, acme-a1b.

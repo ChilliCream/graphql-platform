@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task board`'s maximize toggle ('z'),
+# End-to-end recording of `nitro agent tasks board`'s maximize toggle ('z'),
 # keystroke-driven, against the fixture workspace.
 #
 # Exercises BoardLayoutKind.Maximized: 'z' collapses the grid to the focused
@@ -36,7 +36,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task board` Enter
+Type `nitro agent tasks board` Enter
 
 # Initial frame: five-column grid, focus on "Blocked" (index 0), selection
 # on its first row (acme-a1b).

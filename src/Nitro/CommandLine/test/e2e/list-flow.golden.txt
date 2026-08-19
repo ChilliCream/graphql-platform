@@ -1,4 +1,4 @@
-$ nitro task list
+$ nitro agent tasks list
 acme-a1b  P0  bug  open  Checkout crashes on Safari
 acme-epic1  P1  epic  open  Launch v2 pricing page
 acme-epic1.1  P2  task  in_progress  Draft new pricing copy

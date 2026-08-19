@@ -142,8 +142,8 @@ FIXTURE_MARKER="acme-epic1"
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
 mkdir -p "$FIXTURE_DIR"
-if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" task init >/dev/null ); then
-  echo "==> fixture prepare FAILED: 'nitro task init' did not succeed" >&2
+if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" agent tasks init >/dev/null ); then
+  echo "==> fixture prepare FAILED: 'nitro agent tasks init' did not succeed" >&2
   exit 2
 fi
 if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/seed.sql"; then
@@ -151,8 +151,8 @@ if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/seed.sql"; then
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
-if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" task list ) | grep -q "$FIXTURE_MARKER"; then
-  echo "==> fixture guard FAILED: 'nitro task list' did not show '$FIXTURE_MARKER'" >&2
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_MARKER'" >&2
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
   exit 2
 fi

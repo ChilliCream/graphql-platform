@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task dep tree` against the fixture
+# End-to-end recording of `nitro agent tasks dep tree` against the fixture
 # workspace.
 #
 # `dep tree` walks a task's *outgoing* dependencies (what it depends on), not
@@ -32,7 +32,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task dep tree acme-epic1.2` Enter
+Type `nitro agent tasks dep tree acme-epic1.2` Enter
 
 Wait+Screen@30s /acme-epic1\.1/
 Sleep 1500ms

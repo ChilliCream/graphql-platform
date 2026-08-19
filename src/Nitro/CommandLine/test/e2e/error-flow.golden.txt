@@ -1,4 +1,4 @@
-$ nitro task show acme-nope; echo "[nitro exit: $?]"
+$ nitro agent tasks show acme-nope; echo "[nitro exit: $?]"
 Task 'acme-nope' does not exist.
 [nitro exit: 1]
 $

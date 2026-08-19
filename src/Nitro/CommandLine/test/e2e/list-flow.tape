@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task list` against the fixture workspace.
+# End-to-end recording of `nitro agent tasks list` against the fixture workspace.
 #
 # Exercises the default (open, non-tombstone) listing over a real
 # `.nitro/tasks/tasks.db`, ordered by priority/created_at/id, against the
@@ -29,7 +29,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task list` Enter
+Type `nitro agent tasks list` Enter
 
 Wait+Screen@30s /acme-e5f/
 Sleep 1500ms

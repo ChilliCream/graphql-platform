@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task init` in a fresh directory.
+# End-to-end recording of `nitro agent tasks init` in a fresh directory.
 #
 # Exercises the write path that creates the on-disk `.nitro/tasks/` schema and
 # derives the task ID prefix from the current directory name, ahead of the
@@ -30,7 +30,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task init` Enter
+Type `nitro agent tasks init` Enter
 
 Wait+Screen@30s /Initialized task workspace/
 Sleep 1500ms

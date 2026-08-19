@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro task show` against the fixture workspace.
+# End-to-end recording of `nitro agent tasks show` against the fixture workspace.
 #
 # Exercises the detail render: header, dependencies, and blocks sections, over
 # a task with both an outgoing parent-child dependency and an incoming block
@@ -30,7 +30,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro task show acme-epic1.1` Enter
+Type `nitro agent tasks show acme-epic1.1` Enter
 
 Wait+Screen@30s /Draft new pricing copy/
 Sleep 1500ms
