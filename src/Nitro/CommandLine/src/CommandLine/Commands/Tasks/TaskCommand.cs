@@ -26,6 +26,7 @@ internal sealed class TaskCommand : Command
         Subcommands.Add(new ShowTaskCommand());
         Subcommands.Add(new StaleTaskCommand());
         Subcommands.Add(new StatsTaskCommand());
+        Subcommands.Add(new SyncTaskCommand());
         Subcommands.Add(new UndeferTaskCommand());
         Subcommands.Add(new UpdateTaskCommand());
         Subcommands.Add(new WhereTaskCommand());

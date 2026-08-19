@@ -8,17 +8,24 @@ internal static class TaskWorkspace
     public const string RootDirectoryName = ".nitro";
     public const string TasksDirectoryName = "tasks";
     public const string DatabaseFileName = "tasks.db";
+    public const string JsonlFileName = "tasks.jsonl";
     public const string GitIgnoreFileName = ".gitignore";
     public const string FallbackPrefix = "task";
     public const string DisplayPath = RootDirectoryName + "/" + TasksDirectoryName;
 
     private const int MaxPrefixLength = 64;
 
+    /// <summary>
+    /// Ignores only the SQLite database files, which are local state; the
+    /// JSONL export and this file itself are the tracker's committed,
+    /// durable state and must not be ignored.
+    /// </summary>
     public const string GitIgnoreContent =
         """
-        # The task database is local state and must not be committed.
-        *
-        !.gitignore
+        # The task database is local state; tasks.jsonl is the source of truth in git.
+        tasks.db
+        tasks.db-wal
+        tasks.db-shm
         """;
 
     public static string GetDirectory(string baseDirectory)
@@ -26,6 +33,9 @@ internal static class TaskWorkspace
 
     public static string GetDatabasePath(string workspaceDirectory)
         => Path.Combine(workspaceDirectory, DatabaseFileName);
+
+    public static string GetJsonlPath(string workspaceDirectory)
+        => Path.Combine(workspaceDirectory, JsonlFileName);
 
     /// <summary>
     /// Finds the nearest workspace directory at or above the given directory.
@@ -40,6 +50,29 @@ internal static class TaskWorkspace
             var workspaceDirectory = GetDirectory(directory);
 
             if (fileSystem.FileExists(GetDatabasePath(workspaceDirectory)))
+            {
+                return workspaceDirectory;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the nearest workspace directory at or above the given directory
+    /// that has either a task database or a committed tasks.jsonl. Returns
+    /// null when neither exists.
+    /// </summary>
+    public static string? FindDatabaseOrJsonl(IFileSystem fileSystem, string startDirectory)
+    {
+        for (var directory = startDirectory;
+            !string.IsNullOrEmpty(directory);
+            directory = Path.GetDirectoryName(directory))
+        {
+            var workspaceDirectory = GetDirectory(directory);
+
+            if (fileSystem.FileExists(GetDatabasePath(workspaceDirectory))
+                || fileSystem.FileExists(GetJsonlPath(workspaceDirectory)))
             {
                 return workspaceDirectory;
             }

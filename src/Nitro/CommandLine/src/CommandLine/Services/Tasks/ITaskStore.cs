@@ -287,4 +287,32 @@ internal interface ITaskStore
         string dependsOnId,
         string actor,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns every task, including tombstones, with its labels, outgoing
+    /// dependencies, and comments embedded, ordered by id.
+    /// </summary>
+    Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Upserts each record by id: a record whose updated_at is at or after
+    /// the stored task's updated_at, or whose task does not exist yet,
+    /// replaces the stored task together with its labels, outgoing
+    /// dependencies, and comments. A record whose stored task is newer is
+    /// left untouched. Tombstoned records are stored as tombstones.
+    /// </summary>
+    Task<TaskImportResult> ImportTasksAsync(
+        IReadOnlyList<TaskSyncRecord> records,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates the workspace database and schema in the given directory when
+    /// it does not already exist. Does nothing when the database already
+    /// exists. Unlike <see cref="InitializeWorkspaceAsync"/>, this does not
+    /// set a task ID prefix.
+    /// </summary>
+    Task EnsureWorkspaceAsync(
+        string workspaceDirectory,
+        CancellationToken cancellationToken);
 }

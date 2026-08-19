@@ -1758,6 +1758,226 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await transaction.CommitAsync(cancellationToken);
     }
 
+    public async Task EnsureWorkspaceAsync(
+        string workspaceDirectory,
+        CancellationToken cancellationToken)
+    {
+        if (fileSystem.FileExists(TaskWorkspace.GetDatabasePath(workspaceDirectory)))
+        {
+            return;
+        }
+
+        if (!fileSystem.DirectoryExists(workspaceDirectory))
+        {
+            fileSystem.CreateDirectory(workspaceDirectory);
+        }
+
+        await using var connection = await InitializeAsync(workspaceDirectory, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
+        CancellationToken cancellationToken)
+    {
+        // Every query below runs against a whole table and takes no filter
+        // parameters, so there is nothing for @-placeholder analysis to key
+        // on; cancellation is checked up front instead of plumbed through a
+        // parameter object (see ComputeBlockedAsync).
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var taskRows = await connection.QueryAsync<TaskRow>(
+            $"SELECT {TaskItem.Columns} FROM tasks ORDER BY id");
+
+        var labelsByTask = (await connection.QueryAsync<TaskLabelRow>(
+                "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label"))
+            .GroupBy(row => row.TaskId)
+            .ToDictionary(
+                group => group.Key,
+                IReadOnlyList<string> (group) => [.. group.Select(row => row.Label)]);
+
+        var dependenciesByTask = (await connection.QueryAsync<TaskDependencyRow>(
+                $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
+                + "ORDER BY task_id, depends_on_id"))
+            .GroupBy(row => row.TaskId)
+            .ToDictionary(
+                group => group.Key,
+                IReadOnlyList<TaskSyncDependency> (group) =>
+                    [.. group.Select(row => new TaskSyncDependency
+                    {
+                        DependsOnId = row.DependsOnId,
+                        Type = row.Type,
+                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture),
+                        CreatedBy = row.CreatedBy
+                    })]);
+
+        var commentsByTask = (await connection.QueryAsync<TaskCommentRow>(
+                $"SELECT {TaskComment.Columns} FROM comments ORDER BY task_id, created_at, id"))
+            .GroupBy(row => row.TaskId)
+            .ToDictionary(
+                group => group.Key,
+                IReadOnlyList<TaskSyncComment> (group) =>
+                    [.. group.Select(row => new TaskSyncComment
+                    {
+                        Id = row.Id,
+                        Author = row.Author,
+                        Text = row.Text,
+                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture)
+                    })]);
+
+        return taskRows.Select(row =>
+        {
+            var task = row.ToTaskItem();
+
+            return new TaskSyncRecord
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                Design = task.Design,
+                AcceptanceCriteria = task.AcceptanceCriteria,
+                Notes = task.Notes,
+                Status = task.Status,
+                Priority = task.Priority,
+                Type = task.Type,
+                Assignee = task.Assignee,
+                EstimatedMinutes = task.EstimatedMinutes,
+                DueAt = task.DueAt,
+                DeferUntil = task.DeferUntil,
+                CreatedAt = task.CreatedAt,
+                CreatedBy = task.CreatedBy,
+                UpdatedAt = task.UpdatedAt,
+                ClosedAt = task.ClosedAt,
+                CloseReason = task.CloseReason,
+                DeletedAt = task.DeletedAt,
+                DeleteReason = task.DeleteReason,
+                Labels = labelsByTask.GetValueOrDefault(task.Id, []),
+                Dependencies = dependenciesByTask.GetValueOrDefault(task.Id, []),
+                Comments = commentsByTask.GetValueOrDefault(task.Id, [])
+            };
+        }).ToList();
+    }
+
+    public async Task<TaskImportResult> ImportTasksAsync(
+        IReadOnlyList<TaskSyncRecord> records,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var applied = 0;
+        var skipped = 0;
+
+        foreach (var record in records)
+        {
+            var existing = await GetTaskAsync(connection, record.Id, cancellationToken, transaction);
+
+            if (existing is not null && existing.UpdatedAt > record.UpdatedAt)
+            {
+                skipped++;
+                continue;
+            }
+
+            await connection.ExecuteAsync(
+                """
+                INSERT INTO tasks (id, title, description, design, acceptance_criteria, notes,
+                    status, priority, task_type, assignee, estimated_minutes, due_at, defer_until,
+                    created_at, created_by, updated_at, closed_at, close_reason, deleted_at,
+                    delete_reason)
+                VALUES (@Id, @Title, @Description, @Design, @AcceptanceCriteria, @Notes,
+                    @Status, @Priority, @Type, @Assignee, @EstimatedMinutes, @DueAt, @DeferUntil,
+                    @CreatedAt, @CreatedBy, @UpdatedAt, @ClosedAt, @CloseReason, @DeletedAt,
+                    @DeleteReason)
+                ON CONFLICT (id) DO UPDATE SET
+                    title = excluded.title,
+                    description = excluded.description,
+                    design = excluded.design,
+                    acceptance_criteria = excluded.acceptance_criteria,
+                    notes = excluded.notes,
+                    status = excluded.status,
+                    priority = excluded.priority,
+                    task_type = excluded.task_type,
+                    assignee = excluded.assignee,
+                    estimated_minutes = excluded.estimated_minutes,
+                    due_at = excluded.due_at,
+                    defer_until = excluded.defer_until,
+                    created_at = excluded.created_at,
+                    created_by = excluded.created_by,
+                    updated_at = excluded.updated_at,
+                    closed_at = excluded.closed_at,
+                    close_reason = excluded.close_reason,
+                    deleted_at = excluded.deleted_at,
+                    delete_reason = excluded.delete_reason
+                """,
+                record,
+                transaction);
+
+            await connection.ExecuteAsync(
+                "DELETE FROM labels WHERE task_id = @TaskId",
+                new { TaskId = record.Id, cancellationToken },
+                transaction);
+
+            foreach (var label in record.Labels)
+            {
+                await connection.ExecuteAsync(
+                    "INSERT INTO labels (task_id, label) VALUES (@TaskId, @Label)",
+                    new { TaskId = record.Id, Label = label, cancellationToken },
+                    transaction);
+            }
+
+            await connection.ExecuteAsync(
+                "DELETE FROM dependencies WHERE task_id = @TaskId",
+                new { TaskId = record.Id, cancellationToken },
+                transaction);
+
+            foreach (var dependency in record.Dependencies)
+            {
+                await connection.ExecuteAsync(
+                    "INSERT INTO dependencies "
+                    + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
+                    + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+                    new
+                    {
+                        TaskId = record.Id,
+                        dependency.DependsOnId,
+                        dependency.Type,
+                        dependency.CreatedAt,
+                        dependency.CreatedBy,
+                        cancellationToken
+                    },
+                    transaction);
+            }
+
+            await connection.ExecuteAsync(
+                "DELETE FROM comments WHERE task_id = @TaskId",
+                new { TaskId = record.Id, cancellationToken },
+                transaction);
+
+            foreach (var comment in record.Comments)
+            {
+                await connection.ExecuteAsync(
+                    "INSERT INTO comments (id, task_id, author, text, created_at) "
+                    + "VALUES (@Id, @TaskId, @Author, @Text, @CreatedAt)",
+                    new
+                    {
+                        comment.Id,
+                        TaskId = record.Id,
+                        comment.Author,
+                        comment.Text,
+                        comment.CreatedAt,
+                        cancellationToken
+                    },
+                    transaction);
+            }
+
+            applied++;
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TaskImportResult(applied, skipped, records.Count);
+    }
+
     // Searches the blocking-dependency graph for a path from dependsOnId
     // back to id. Combined with the edge just inserted (id -> dependsOnId),
     // such a path closes a cycle. Runs inside the same transaction as the
@@ -2164,5 +2384,15 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         public required string TaskId { get; init; }
         public required string DependsOnId { get; init; }
         public required string Type { get; init; }
+    }
+
+    /// <summary>
+    /// A task-label pair, for grouping labels by task in
+    /// <see cref="ExportTasksAsync"/>.
+    /// </summary>
+    internal sealed class TaskLabelRow
+    {
+        public required string TaskId { get; init; }
+        public required string Label { get; init; }
     }
 }

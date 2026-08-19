@@ -55,7 +55,7 @@ internal sealed class InitTaskCommand : Command
         var gitIgnorePath = Path.Combine(
             workspaceDirectory, TaskWorkspace.GitIgnoreFileName);
 
-        if (!fileSystem.FileExists(gitIgnorePath))
+        if (force || !fileSystem.FileExists(gitIgnorePath))
         {
             await using var gitIgnoreStream = fileSystem.CreateFile(gitIgnorePath);
             await gitIgnoreStream.WriteAsync(

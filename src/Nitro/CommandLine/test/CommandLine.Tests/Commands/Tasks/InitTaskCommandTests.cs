@@ -51,9 +51,10 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
             TestContext.Current.CancellationToken))
             .MatchInlineSnapshot(
                 """
-                # The task database is local state and must not be committed.
-                *
-                !.gitignore
+                # The task database is local state; tasks.jsonl is the source of truth in git.
+                tasks.db
+                tasks.db-wal
+                tasks.db-shm
                 """);
     }
 
@@ -104,5 +105,29 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
             """);
         Assert.Equal("core", await QueryScalarAsync(
             "SELECT value FROM config WHERE key = 'prefix'"));
+    }
+
+    [Fact]
+    public async Task AlreadyInitialized_Force_RefreshesStaleGitIgnore()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var gitIgnorePath = Path.Combine(WorkspaceDirectory, TaskWorkspace.GitIgnoreFileName);
+        await File.WriteAllTextAsync(
+            gitIgnorePath, "*\n!.gitignore\n", TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "init", "--force");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        (await File.ReadAllTextAsync(gitIgnorePath, TestContext.Current.CancellationToken))
+            .MatchInlineSnapshot(
+                """
+                # The task database is local state; tasks.jsonl is the source of truth in git.
+                tasks.db
+                tasks.db-wal
+                tasks.db-shm
+                """);
     }
 }

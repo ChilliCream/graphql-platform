@@ -189,4 +189,13 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public Task RemoveDependencyAsync(string id, string dependsOnId, string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<TaskImportResult> ImportTasksAsync(IReadOnlyList<TaskSyncRecord> records, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task EnsureWorkspaceAsync(string workspaceDirectory, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 }
