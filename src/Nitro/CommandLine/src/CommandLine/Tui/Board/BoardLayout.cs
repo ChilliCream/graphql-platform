@@ -12,8 +12,10 @@ internal enum BoardLayoutKind
     Maximized,
 
     /// <summary>
-    /// Columns are stacked vertically: the focused column is expanded and the
-    /// rest collapse to a single title line.
+    /// Columns are stacked vertically, each sharing an equal slice of the
+    /// available height. On frames too short to give every column a usable
+    /// slice, the focused column expands instead and the rest collapse to a
+    /// single title line.
     /// </summary>
     Stacked
 }
@@ -62,9 +64,28 @@ internal static class BoardLayout
 
     /// <summary>
     /// The height, in rows, a collapsed column takes in
-    /// <see cref="BoardLayoutKind.Stacked"/>.
+    /// <see cref="BoardLayoutKind.Stacked"/>'s too-short-to-share fallback.
     /// </summary>
     private const int CollapsedStackedHeight = 1;
+
+    /// <summary>
+    /// The border/padding rows a column's panel spends above and below its
+    /// content, mirroring <c>BoardMode.PanelChromeHeight</c>.
+    /// </summary>
+    private const int StackedPanelChromeHeight = 2;
+
+    /// <summary>
+    /// The fewest content rows an equally-shared stacked column needs to be
+    /// usable, below which every column sharing the height equally would be
+    /// too cramped to read.
+    /// </summary>
+    private const int MinStackedInteriorHeight = 3;
+
+    /// <summary>
+    /// The smallest per-column height <see cref="BuildStacked"/> requires
+    /// before it shares the frame equally across every column.
+    /// </summary>
+    private const int MinEqualStackedHeight = MinStackedInteriorHeight + StackedPanelChromeHeight;
 
     /// <summary>
     /// Decides the layout for a frame of the given size over
@@ -141,7 +162,36 @@ internal static class BoardLayout
         return columns;
     }
 
+    /// <summary>
+    /// Stacks every column vertically, sharing the frame's height equally
+    /// among them so all are visible at once. Falls back to expanding only
+    /// the focused column, with the rest collapsed to a title line, when the
+    /// frame is too short to give every column a usable slice.
+    /// </summary>
     private static IReadOnlyList<BoardColumnLayout> BuildStacked(
+        int width, int height, int columnCount, int focused)
+    {
+        return height >= columnCount * MinEqualStackedHeight
+            ? BuildStackedEqual(width, height, columnCount)
+            : BuildStackedFocusedFallback(width, height, columnCount, focused);
+    }
+
+    private static IReadOnlyList<BoardColumnLayout> BuildStackedEqual(int width, int height, int columnCount)
+    {
+        var baseHeight = height / columnCount;
+        var remainder = height % columnCount;
+        var columns = new BoardColumnLayout[columnCount];
+
+        for (var i = 0; i < columnCount; i++)
+        {
+            var columnHeight = baseHeight + (i < remainder ? 1 : 0);
+            columns[i] = new BoardColumnLayout(width, columnHeight, Expanded: true);
+        }
+
+        return columns;
+    }
+
+    private static IReadOnlyList<BoardColumnLayout> BuildStackedFocusedFallback(
         int width, int height, int columnCount, int focused)
     {
         var columns = new BoardColumnLayout[columnCount];

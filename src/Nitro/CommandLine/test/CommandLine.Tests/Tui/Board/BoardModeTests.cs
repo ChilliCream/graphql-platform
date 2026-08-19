@@ -560,7 +560,8 @@ public sealed class BoardModeTests
     public void Render_Should_FillRequestedHeight_When_Stacked()
     {
         // arrange: width/columnCount below the stacked threshold forces the
-        // stacked layout kind.
+        // stacked layout kind, and 24 rows over 2 columns clears the
+        // equal-share minimum, so both columns render expanded.
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -569,13 +570,13 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(40, 24));
 
-        // assert: the collapsed column takes exactly its one row at the
-        // bottom, and the focused, expanded column's bottom border reaches
-        // the row directly above it, no blank rows in between.
+        // assert: both columns get an equal 12-row slice, so the first
+        // column's bottom border sits at row 11 and the second column's
+        // bottom border reaches the last requested row, no blank gap.
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
-        Assert.Contains("Closed (0)", lines[^1]);
-        Assert.Contains('╰', lines[^2]);
+        Assert.Contains('╰', lines[11]);
+        Assert.Contains('╰', lines[^1]);
     }
 
     /// <summary>

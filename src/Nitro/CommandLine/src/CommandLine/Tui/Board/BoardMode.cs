@@ -175,7 +175,7 @@ internal sealed class BoardMode : ITuiMode
 
             rows.Add(slot.Expanded
                 ? RenderColumnPanel(i, slot.Width, slot.Height, focused: i == _state.FocusedColumnIndex, headerSuffix: null)
-                : new Markup($"{columns[i].Definition.Name} ({columns[i].Tasks.Count})"));
+                : new Markup(Markup.Escape($"{columns[i].Definition.Name} ({columns[i].Tasks.Count})")));
         }
 
         return new Rows(rows);

@@ -76,10 +76,49 @@ public sealed class BoardLayoutTests
     }
 
     [Fact]
-    public void Decide_Should_ExpandFocusedColumnOnly_When_Stacked()
+    public void Decide_Should_ExpandEveryColumn_When_StackedWithRoomToShareEqually()
+    {
+        // act: 30 rows over 3 columns clears the equal-share minimum
+        // (3 columns * 5 rows), so every column expands rather than only
+        // the focused one.
+        var decision = BoardLayout.Decide(40, 30, 3, focusedColumnIndex: 1, maximized: false);
+
+        // assert
+        Assert.Equal(BoardLayoutKind.Stacked, decision.Kind);
+        Assert.All(decision.Columns, c => Assert.True(c.Expanded));
+    }
+
+    [Fact]
+    public void Decide_Should_ShareHeightEqually_When_StackedWithRoomToShareEqually()
     {
         // act
         var decision = BoardLayout.Decide(40, 30, 3, focusedColumnIndex: 1, maximized: false);
+
+        // assert: 30 / 3 divides evenly, so every column gets the same slice.
+        Assert.All(decision.Columns, c => Assert.Equal(10, c.Height));
+        Assert.Equal(30, decision.Columns.Sum(c => c.Height));
+    }
+
+    [Fact]
+    public void Decide_Should_GiveRemainderRowsToFirstColumns_When_StackedHeightDoesNotDivideEvenly()
+    {
+        // act: 31 rows over 3 columns leaves a remainder of 1.
+        var decision = BoardLayout.Decide(40, 31, 3, focusedColumnIndex: 0, maximized: false);
+
+        // assert
+        Assert.Equal(11, decision.Columns[0].Height);
+        Assert.Equal(10, decision.Columns[1].Height);
+        Assert.Equal(10, decision.Columns[2].Height);
+        Assert.Equal(31, decision.Columns.Sum(c => c.Height));
+    }
+
+    [Fact]
+    public void Decide_Should_ExpandFocusedColumnOnly_When_StackedTooShortToShareEqually()
+    {
+        // act: 12 rows over 3 columns (4 rows each) is below the 5-row-per
+        // column minimum an equal share needs to stay usable, so this falls
+        // back to expanding only the focused column.
+        var decision = BoardLayout.Decide(40, 12, 3, focusedColumnIndex: 1, maximized: false);
 
         // assert
         Assert.Equal(BoardLayoutKind.Stacked, decision.Kind);
