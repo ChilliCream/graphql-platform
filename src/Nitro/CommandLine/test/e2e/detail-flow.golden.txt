@@ -5,3 +5,31 @@
 │ └─   ○ [T] P2 acme-epic1.2 Wire up billing API            │
 │    └─   ○ [B] P0 acme-a1b Checkout crashes on Safari      │
 ╰───────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+f follow  m edge mode  d direction  u back  hjkl move  enter open  r refresh  y copy id  …
