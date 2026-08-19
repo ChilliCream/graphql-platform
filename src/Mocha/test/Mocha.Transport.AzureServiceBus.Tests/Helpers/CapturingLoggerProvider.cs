@@ -38,7 +38,7 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
     public ILogger CreateLogger(string categoryName) =>
         categoryName == category ? new CapturingLogger(this) : NullLogger.Instance;
 
-    public void Dispose() { }
+    public void Dispose() => _semaphore.Dispose();
 
     /// <summary>
     /// Waits until an entry matching <paramref name="predicate"/> has been captured, or the
@@ -50,7 +50,7 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
 
         while (true)
         {
-            if (Entries.Any(predicate))
+            if (Contains(predicate))
             {
                 return true;
             }
@@ -58,8 +58,16 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
             var remaining = deadline - DateTimeOffset.UtcNow;
             if (remaining <= TimeSpan.Zero || !await _semaphore.WaitAsync(remaining))
             {
-                return Entries.Any(predicate);
+                return Contains(predicate);
             }
+        }
+    }
+
+    private bool Contains(Func<CapturedLogEntry, bool> predicate)
+    {
+        lock (_lock)
+        {
+            return _entries.Any(predicate);
         }
     }
 
