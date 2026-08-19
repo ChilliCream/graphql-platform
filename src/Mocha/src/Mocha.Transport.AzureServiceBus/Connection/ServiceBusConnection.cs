@@ -109,6 +109,12 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
         AzureServiceBusTransportConfiguration configuration,
         ServiceBusClientOptions clientOptions)
     {
+        if (configuration.ConnectionString is not null
+            && (configuration.FullyQualifiedNamespace is not null || configuration.Credential is not null))
+        {
+            throw ThrowHelper.ConnectionStringAndNamespaceCredentialMutuallyExclusive();
+        }
+
         if (configuration.ConnectionString is not null)
         {
             return new ServiceBusConnection(

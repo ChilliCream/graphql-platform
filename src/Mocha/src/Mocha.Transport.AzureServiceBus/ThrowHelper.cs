@@ -7,6 +7,11 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             "Either ConnectionString or FullyQualifiedNamespace + Credential must be provided");
 
+    public static Exception ConnectionStringAndNamespaceCredentialMutuallyExclusive()
+        => new InvalidOperationException(
+            "ConnectionString is mutually exclusive with FullyQualifiedNamespace + Credential. "
+            + "Configure only one connection mode.");
+
     // Convention
     public static Exception ReceiveEndpointQueueNameRequired()
         => new InvalidOperationException("Queue name is required");
