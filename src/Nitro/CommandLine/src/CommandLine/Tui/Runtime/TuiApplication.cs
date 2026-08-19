@@ -15,6 +15,16 @@ internal delegate bool TuiEventHandler(TuiEvent tuiEvent);
 internal delegate IRenderable TuiFrameRenderer();
 
 /// <summary>
+/// Runs until <paramref name="cancellationToken"/> is cancelled, writing
+/// <see cref="TuiEvent"/>s into <paramref name="writer"/> as they occur.
+/// Merged into the event loop alongside key input and ticks; a source that
+/// cannot start (for example an unsupported file system) should return
+/// without writing anything rather than throwing, so the loop degrades to
+/// its other event sources instead of failing to start.
+/// </summary>
+internal delegate Task TuiEventSource(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken);
+
+/// <summary>
 /// Runs the TUI event loop: merges raw key input and periodic ticks into a single
 /// event stream, dispatches each event to a root handler, and repaints the live
 /// display only when the handler reports the frame changed.
@@ -44,10 +54,20 @@ internal sealed class TuiApplication
     /// Runs the event loop until <paramref name="cancellationToken"/> is cancelled or
     /// the terminal delivers Ctrl+C, restoring the terminal before returning.
     /// </summary>
+    /// <param name="rootHandler">Handles each merged event and reports whether the frame is dirty.</param>
+    /// <param name="rootRenderer">Produces the renderable for the current frame.</param>
+    /// <param name="cancellationToken">Stops the loop and restores the terminal when cancelled.</param>
+    /// <param name="eventSources">
+    /// Additional event sources (for example a data-change watcher) merged into the
+    /// same channel as key input and ticks. Each runs for the lifetime of the loop
+    /// and is cancelled and awaited alongside the built-in sources on every exit
+    /// path, including when <paramref name="rootHandler"/> throws.
+    /// </param>
     public async Task RunAsync(
         TuiEventHandler rootHandler,
         TuiFrameRenderer rootRenderer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<TuiEventSource>? eventSources = null)
     {
         ArgumentNullException.ThrowIfNull(rootHandler);
         ArgumentNullException.ThrowIfNull(rootRenderer);
@@ -81,6 +101,9 @@ internal sealed class TuiApplication
             var tickTask = Task.Run(
                 () => ProduceTicksAsync(channel.Writer, loopCts.Token),
                 CancellationToken.None);
+            var additionalTasks = (eventSources ?? [])
+                .Select(source => Task.Run(() => source(channel.Writer, loopCts.Token), CancellationToken.None))
+                .ToArray();
 
             try
             {
@@ -111,15 +134,16 @@ internal sealed class TuiApplication
             }
             finally
             {
-                // Ensure the background key-reader and tick tasks are always stopped
-                // and awaited, even if the handler or renderer throws, so stdin is
-                // never left being consumed by this loop after the method returns.
+                // Ensure the background key-reader, tick, and additional event-source
+                // tasks are always stopped and awaited, even if the handler or
+                // renderer throws, so stdin is never left being consumed and no
+                // watcher outlives this loop after the method returns.
                 loopCts.Cancel();
                 channel.Writer.TryComplete();
 
                 try
                 {
-                    await Task.WhenAll(keyReaderTask, tickTask).ConfigureAwait(false);
+                    await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks]).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

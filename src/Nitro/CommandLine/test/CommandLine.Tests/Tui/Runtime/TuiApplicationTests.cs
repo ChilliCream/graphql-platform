@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using Spectre.Console;
 using Spectre.Console.Rendering;
@@ -161,6 +162,54 @@ public sealed class TuiApplicationTests
 
         // assert
         Assert.Contains("initial-frame-marker", console.Output);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_MergeAdditionalEventSource_IntoRootHandler()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole();
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var received = new ConcurrentQueue<TuiEvent>();
+        var sawDataChanged = new TaskCompletionSource();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        bool Handler(TuiEvent tuiEvent)
+        {
+            received.Enqueue(tuiEvent);
+            if (tuiEvent is TuiEvent.DataChangedEvent)
+            {
+                sawDataChanged.TrySetResult();
+            }
+
+            return false;
+        }
+
+        async Task Source(ChannelWriter<TuiEvent> writer, CancellationToken sourceToken)
+        {
+            try
+            {
+                await Task.Delay(TickInterval, sourceToken);
+                writer.TryWrite(new TuiEvent.DataChangedEvent());
+                await Task.Delay(Timeout.InfiniteTimeSpan, sourceToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected on shutdown.
+            }
+        }
+
+        // act
+        var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token, [Source]);
+        await Task.WhenAny(sawDataChanged.Task, Task.Delay(TestTimeout, testToken));
+        cts.Cancel();
+        var completed = await Task.WhenAny(runTask, Task.Delay(TestTimeout, testToken));
+
+        // assert
+        Assert.Contains(received, e => e is TuiEvent.DataChangedEvent);
+        Assert.Same(runTask, completed);
+        await runTask;
     }
 
     [Fact]

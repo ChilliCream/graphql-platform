@@ -36,7 +36,7 @@ internal sealed class BoardTaskCommand : Command
             throw new ExitException("task board requires an interactive terminal.");
         }
 
-        _ = store.FindWorkspaceDirectory()
+        var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException("No task workspace found. Run `nitro task init` first.");
 
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
@@ -55,11 +55,12 @@ internal sealed class BoardTaskCommand : Command
             store,
             actor);
         var application = new TuiApplication(console);
+        var dbWatcher = new TaskDbWatcher(TaskWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();
 
-        await application.RunAsync(shell.Handle, shell.Render, quitCts.Token);
+        await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
 
         return ExitCodes.Success;
     }
