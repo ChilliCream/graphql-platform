@@ -81,13 +81,17 @@ public class AzureServiceBusDescriptorOptionsTests
         {
             dispatch.Name,
             dispatch.QueueName,
-            dispatch.TopicName
+            dispatch.TopicName,
+            Routes = dispatch.Routes.Select(r => $"{r.RuntimeType.Name}:{r.Kind}").ToList()
         }.MatchInlineSnapshot(
             """
             {
               "Name": "out",
               "QueueName": null,
-              "TopicName": "out-topic"
+              "TopicName": "out-topic",
+              "Routes": [
+                "OrderMessage:Publish"
+              ]
             }
             """);
     }

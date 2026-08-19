@@ -73,10 +73,10 @@ public class AzureServiceBusTopologyDescribeTests
     }
 
     [Fact]
-    public void AddQueue_Should_RetainForwardTo_When_QueueForwardsToAnotherQueue()
+    public void DeclareQueue_Should_RetainForwardTo_When_QueueForwardsToAnotherQueue()
     {
         // arrange
-        var (_, _, topology) = CreateTopology(t =>
+        var (_, transport, topology) = CreateTopology(t =>
         {
             t.DeclareQueue("staging").ForwardTo("archive");
             t.DeclareQueue("archive");
@@ -85,11 +85,15 @@ public class AzureServiceBusTopologyDescribeTests
         // act
         var staging = topology.Queues.Single(q => q.Name == "staging");
         var archive = topology.Queues.Single(q => q.Name == "archive");
+        var description = transport.Describe();
 
         // assert - forwarding is a plain queue attribute, not a topology link, so both queues exist
-        // as independent entities and only the source queue carries the forward target.
+        // as independent entities and only the source queue carries the forward target. Describe()
+        // does not emit ForwardTo, so the snapshot below pins the two-queue Describe() shape and the
+        // Assert.Equal/Assert.Null pair above cover the forward target itself.
         Assert.Equal("archive", staging.ForwardTo);
         Assert.Null(archive.ForwardTo);
+        AzureServiceBusDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
     private static (

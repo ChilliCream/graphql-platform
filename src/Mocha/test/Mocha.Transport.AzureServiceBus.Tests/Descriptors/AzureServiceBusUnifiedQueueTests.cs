@@ -201,10 +201,30 @@ public class AzureServiceBusUnifiedQueueTests
             t.Queue("orders").MaxConcurrency(2);
             t.Endpoint("orders").MaxConcurrency(9);
         });
+
+        // act
         var endpoint = configuration.ReceiveEndpoints.Single();
 
         // assert
         Assert.Equal(9, endpoint.MaxConcurrency);
+    }
+
+    [Fact]
+    public void QueueEndpointMerge_Should_PreferExplicitEndpointPrefetchCount_When_QueueAlsoSetsIt()
+    {
+        // arrange
+        var (_, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").PrefetchCount(2);
+            t.Endpoint("orders").PrefetchCount(9);
+        });
+
+        // act
+        var endpoint = Assert.IsType<AzureServiceBusReceiveEndpointConfiguration>(configuration.ReceiveEndpoints.Single());
+
+        // assert
+        Assert.Equal(9, endpoint.PrefetchCount);
     }
 
     [Fact]
@@ -217,6 +237,8 @@ public class AzureServiceBusUnifiedQueueTests
             t.Queue("orders").FaultEndpoint(new Uri("queue:from-queue-error"));
             t.Endpoint("orders").FaultEndpoint(new Uri("queue:from-endpoint-error"));
         });
+
+        // act
         var endpoint = configuration.ReceiveEndpoints.Single();
         var fault = endpoint.Features.Get<ReceiveFaultEndpointFeature>();
 
@@ -234,6 +256,8 @@ public class AzureServiceBusUnifiedQueueTests
             t.Queue("orders").SkippedEndpoint(new Uri("queue:from-queue-skipped"));
             t.Endpoint("orders").SkippedEndpoint(new Uri("queue:from-endpoint-skipped"));
         });
+
+        // act
         var endpoint = configuration.ReceiveEndpoints.Single();
         var skipped = endpoint.Features.Get<ReceiveSkippedEndpointFeature>();
 
@@ -252,6 +276,8 @@ public class AzureServiceBusUnifiedQueueTests
             t.Queue("orders").FaultEndpoint(new Uri("queue:from-queue-error"));
             t.Endpoint("orders").DisableFaultEndpoint();
         });
+
+        // act
         var endpoint = configuration.ReceiveEndpoints.Single();
         var fault = endpoint.Features.Get<ReceiveFaultEndpointFeature>();
 
@@ -261,7 +287,7 @@ public class AzureServiceBusUnifiedQueueTests
     }
 
     [Fact]
-    public void Describe_Should_StayByteIdentical_When_ConfigurationUsesNoUnifiedQueueApi()
+    public void Describe_Should_ShowSameTopology_When_ConfigurationUsesNoUnifiedQueueApi()
     {
         // arrange
         // A configuration declared entirely through DeclareQueue()/Endpoint() (no Queue() API)
