@@ -392,4 +392,25 @@ internal interface ITaskStore
     Task EnsureWorkspaceAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Runs the workspace integrity checks used by <c>task doctor</c>: an
+    /// SQLite quick_check, dependency/label/comment rows referencing a
+    /// missing task, and parent-child edges whose parent is a tombstone. The
+    /// default implementation here reports no problems, appropriate for a
+    /// store that cannot become inconsistent through its own API;
+    /// implementations backed by a mutable external store should override
+    /// it.
+    /// </summary>
+    Task<TaskIntegrityReport> CheckIntegrityAsync(
+        CancellationToken cancellationToken)
+        => Task.FromResult(new TaskIntegrityReport
+        {
+            QuickCheckOk = true,
+            QuickCheckMessage = "ok",
+            OrphanDependencies = [],
+            OrphanLabels = [],
+            OrphanComments = [],
+            TombstonedParentEdges = []
+        });
 }

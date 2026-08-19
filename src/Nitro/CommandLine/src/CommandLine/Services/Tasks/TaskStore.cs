@@ -2188,6 +2188,70 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return new TaskImportResult(applied, skipped, records.Count);
     }
 
+    public async Task<TaskIntegrityReport> CheckIntegrityAsync(
+        CancellationToken cancellationToken)
+    {
+        // Every query below except the tombstoned-parent-edge check runs
+        // against a whole table and takes no filter parameters, so there is
+        // nothing for @-placeholder analysis to key on; cancellation is
+        // checked up front instead of plumbed through a parameter object
+        // (see ComputeBlockedAsync).
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var quickCheckMessage = await connection.ExecuteScalarAsync<string?>("PRAGMA quick_check;")
+            ?? "ok";
+
+        var orphanDependencies = (await connection.QueryAsync<DependencyEdgeRow>(
+                "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
+                + "d.dependency_type AS Type FROM dependencies d "
+                + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.task_id) "
+                + "OR NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.depends_on_id) "
+                + "ORDER BY d.task_id, d.depends_on_id"))
+            .Select(row => new TaskDependencyReference(row.TaskId, row.DependsOnId))
+            .ToList();
+
+        var orphanLabels = (await connection.QueryAsync<TaskLabelRow>(
+                "SELECT l.task_id AS TaskId, l.label AS Label FROM labels l "
+                + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = l.task_id) "
+                + "ORDER BY l.task_id, l.label"))
+            .Select(row => new TaskOrphanLabel(row.TaskId, row.Label))
+            .ToList();
+
+        var orphanComments = (await connection.QueryAsync<CommentOrphanRow>(
+                "SELECT c.task_id AS TaskId, c.id AS CommentId FROM comments c "
+                + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = c.task_id) "
+                + "ORDER BY c.task_id, c.id"))
+            .Select(row => new TaskOrphanComment(row.TaskId, row.CommentId))
+            .ToList();
+
+        var tombstonedParentEdges = (await connection.QueryAsync<DependencyEdgeRow>(
+                "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
+                + "d.dependency_type AS Type FROM dependencies d "
+                + "JOIN tasks t ON t.id = d.depends_on_id "
+                + "WHERE d.dependency_type = @parentChild AND t.status = @tombstone "
+                + "ORDER BY d.task_id",
+                new
+                {
+                    parentChild = TaskDependencyTypes.ParentChild,
+                    tombstone = TaskStates.Tombstone,
+                    cancellationToken
+                }))
+            .Select(row => new TaskDependencyReference(row.TaskId, row.DependsOnId))
+            .ToList();
+
+        return new TaskIntegrityReport
+        {
+            QuickCheckOk = quickCheckMessage == "ok",
+            QuickCheckMessage = quickCheckMessage,
+            OrphanDependencies = orphanDependencies,
+            OrphanLabels = orphanLabels,
+            OrphanComments = orphanComments,
+            TombstonedParentEdges = tombstonedParentEdges
+        };
+    }
+
     // Searches the blocking-dependency graph for a path from dependsOnId
     // back to id. Combined with the edge just inserted (id -> dependsOnId),
     // such a path closes a cycle. Runs inside the same transaction as the
@@ -2596,13 +2660,24 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
     /// <summary>
     /// A dependency edge's task pair and type, for the blocking-cycle walk in
-    /// <see cref="AddDependencyAsync"/>.
+    /// <see cref="AddDependencyAsync"/> and the integrity checks in
+    /// <see cref="CheckIntegrityAsync"/>.
     /// </summary>
     internal sealed class DependencyEdgeRow
     {
         public required string TaskId { get; init; }
         public required string DependsOnId { get; init; }
         public required string Type { get; init; }
+    }
+
+    /// <summary>
+    /// A comment's task ID and row ID, for the orphan-comment check in
+    /// <see cref="CheckIntegrityAsync"/>.
+    /// </summary>
+    internal sealed class CommentOrphanRow
+    {
+        public required string TaskId { get; init; }
+        public required long CommentId { get; init; }
     }
 
     /// <summary>

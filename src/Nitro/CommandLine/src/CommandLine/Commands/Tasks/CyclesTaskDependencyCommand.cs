@@ -67,7 +67,10 @@ internal sealed class CyclesTaskDependencyCommand : Command
     // a given node only continues through nodes ordinally greater than or
     // equal to it, so a cycle is only ever found while starting from its
     // smallest member.
-    private static List<List<string>> FindCycles(IReadOnlyDictionary<string, List<string>> adjacency)
+    //
+    // Internal, not private: DoctorTaskCommand reuses this to report
+    // blocking-dependency cycles as part of its workspace health check.
+    internal static List<List<string>> FindCycles(IReadOnlyDictionary<string, List<string>> adjacency)
     {
         var cycles = new List<List<string>>();
 

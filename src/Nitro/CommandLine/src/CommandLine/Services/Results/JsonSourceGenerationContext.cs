@@ -69,4 +69,6 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(TaskComment))]
 [JsonSerializable(typeof(TaskConfigEntry))]
 [JsonSerializable(typeof(InitTaskCommand.TaskWorkspaceInitResult))]
+[JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
+[JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;
