@@ -17,6 +17,7 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
 #endif
     private readonly List<CapturedLogEntry> _entries = [];
     private readonly SemaphoreSlim _semaphore = new(0);
+    private volatile bool _disposed;
 
     /// <summary>
     /// A stable snapshot of the entries captured so far. Safe to enumerate while log entries are
@@ -38,7 +39,11 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
     public ILogger CreateLogger(string categoryName) =>
         categoryName == category ? new CapturingLogger(this) : NullLogger.Instance;
 
-    public void Dispose() => _semaphore.Dispose();
+    public void Dispose()
+    {
+        _disposed = true;
+        _semaphore.Dispose();
+    }
 
     /// <summary>
     /// Waits until an entry matching <paramref name="predicate"/> has been captured, or the
@@ -93,7 +98,16 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
                 provider._entries.Add(entry);
             }
 
-            provider._semaphore.Release();
+            if (!provider._disposed)
+            {
+                try
+                {
+                    provider._semaphore.Release();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
         }
     }
 }
