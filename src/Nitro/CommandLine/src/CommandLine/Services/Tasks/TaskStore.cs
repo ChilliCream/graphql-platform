@@ -2165,19 +2165,50 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
             foreach (var comment in record.Comments)
             {
-                await connection.ExecuteAsync(
-                    "INSERT INTO comments (id, task_id, author, text, created_at) "
-                    + "VALUES (@Id, @TaskId, @Author, @Text, @CreatedAt)",
-                    new
-                    {
-                        comment.Id,
-                        TaskId = record.Id,
-                        comment.Author,
-                        comment.Text,
-                        comment.CreatedAt,
-                        cancellationToken
-                    },
+                // comments.id is a database-global AUTOINCREMENT counter, so
+                // the same numeric id can be assigned independently by two
+                // clones to comments on different tasks. Reusing the
+                // exported id verbatim would collide with an unrelated
+                // comment already occupying that id in this database (from
+                // an earlier record in this same import or from a task
+                // outside the imported set); detect that case and let
+                // SQLite assign a fresh id instead of failing the import.
+                var idOwner = await connection.ExecuteScalarAsync<string?>(
+                    "SELECT task_id FROM comments WHERE id = @Id",
+                    new { comment.Id, cancellationToken },
                     transaction);
+
+                if (idOwner is null || idOwner == record.Id)
+                {
+                    await connection.ExecuteAsync(
+                        "INSERT INTO comments (id, task_id, author, text, created_at) "
+                        + "VALUES (@Id, @TaskId, @Author, @Text, @CreatedAt)",
+                        new
+                        {
+                            comment.Id,
+                            TaskId = record.Id,
+                            comment.Author,
+                            comment.Text,
+                            comment.CreatedAt,
+                            cancellationToken
+                        },
+                        transaction);
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        "INSERT INTO comments (task_id, author, text, created_at) "
+                        + "VALUES (@TaskId, @Author, @Text, @CreatedAt)",
+                        new
+                        {
+                            TaskId = record.Id,
+                            comment.Author,
+                            comment.Text,
+                            comment.CreatedAt,
+                            cancellationToken
+                        },
+                        transaction);
+                }
             }
 
             applied++;

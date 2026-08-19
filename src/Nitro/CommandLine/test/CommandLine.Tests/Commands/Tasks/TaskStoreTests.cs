@@ -720,6 +720,93 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ImportTasksAsync_CrossCloneCommentIdCollision_KeepsBothComments()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SeedAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+
+        // Two clones each independently assigned id 1 to a comment on a
+        // different task; merging their exports produces two records that
+        // collide on the same comments.id.
+        var records = new List<TaskSyncRecord>
+        {
+            NewTaskSyncRecord(
+                "acme-1",
+                now,
+                comments: [NewTaskSyncComment(1, "from-clone-a", now)]),
+            NewTaskSyncRecord(
+                "acme-2",
+                now,
+                comments: [NewTaskSyncComment(1, "from-clone-b", now)])
+        };
+
+        // act
+        var result = await _store.ImportTasksAsync(records, cancellationToken);
+
+        // assert
+        Assert.Equal(2, result.Applied);
+        Assert.Equal(0, result.Skipped);
+
+        var commentsOnAcme1 = await _store.GetCommentsAsync("acme-1", cancellationToken);
+        var commentsOnAcme2 = await _store.GetCommentsAsync("acme-2", cancellationToken);
+
+        Assert.Equal(["from-clone-a"], commentsOnAcme1.Select(c => c.Text));
+        Assert.Equal(["from-clone-b"], commentsOnAcme2.Select(c => c.Text));
+    }
+
+    [Fact]
+    public async Task ImportTasksAsync_ReimportingSameRecord_PreservesCommentId()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SeedAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        var record = NewTaskSyncRecord(
+            "acme-1",
+            now,
+            comments: [NewTaskSyncComment(7, "note", now)]);
+
+        await _store.ImportTasksAsync([record], cancellationToken);
+
+        // act: re-importing the exact same record must not be treated as a
+        // collision against its own previously-imported comment.
+        var result = await _store.ImportTasksAsync([record], cancellationToken);
+
+        // assert
+        Assert.Equal(1, result.Applied);
+        var comments = await _store.GetCommentsAsync("acme-1", cancellationToken);
+        var comment = Assert.Single(comments);
+        Assert.Equal("note", comment.Text);
+        Assert.Equal(7, comment.Id);
+    }
+
+    private static TaskSyncRecord NewTaskSyncRecord(
+        string id,
+        DateTimeOffset now,
+        IReadOnlyList<TaskSyncComment>? comments = null) =>
+        new()
+        {
+            Id = id,
+            Title = "Task",
+            Status = TaskStates.Open,
+            Type = TaskTypes.Task,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Comments = comments ?? []
+        };
+
+    private static TaskSyncComment NewTaskSyncComment(long id, string author, DateTimeOffset now) =>
+        new()
+        {
+            Id = id,
+            Author = author,
+            Text = author,
+            CreatedAt = now
+        };
+
+    [Fact]
     public async Task SetConfigAsync_UpsertsValue()
     {
         // arrange
