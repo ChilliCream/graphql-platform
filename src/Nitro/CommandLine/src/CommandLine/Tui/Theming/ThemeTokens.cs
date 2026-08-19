@@ -55,7 +55,7 @@ internal static class DefaultTheme
         ["status.glyph.deferred"] = new Style(Color.Grey50),
         ["status.glyph.blocked"] = new Style(Color.Red),
 
-        ["selection.highlight"] = new Style(Color.Default, Color.Aqua),
+        ["selection.highlight"] = new Style(Color.Default, Color.Grey35),
 
         ["toast.info.border"] = new Style(Color.SkyBlue1),
         ["toast.success.border"] = new Style(Color.Green),

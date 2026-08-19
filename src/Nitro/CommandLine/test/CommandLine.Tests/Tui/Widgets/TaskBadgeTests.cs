@@ -40,7 +40,7 @@ public sealed class TaskBadgeTests
 
         // assert
         line.MatchInlineSnapshot(
-            "[default on aqua]> [grey70]○[/] [grey70][[T]][/] [yellow]P2[/] T-1 Fix bug[/]");
+            "[default on grey35]> [grey70]○[/] [grey70][[T]][/] [yellow]P2[/] T-1 Fix bug[/]");
     }
 
     [Theory]
