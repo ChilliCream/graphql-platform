@@ -125,14 +125,29 @@ public sealed class FormTests
     }
 
     [Fact]
-    public void HandleKey_Should_NotTraverseFocus_When_DownArrowChangesSelectFieldValue()
+    public void HandleKey_Should_TraverseFocus_When_DownArrowOnSelectField()
+    {
+        // arrange: the select field itself moves with left and right, so down
+        // arrow is left for the form to interpret as field-to-field traversal.
+        var form = CreateForm();
+        form.HandleKey(Key(ConsoleKey.Tab));
+
+        // act
+        form.HandleKey(Key(ConsoleKey.DownArrow));
+
+        // assert
+        Assert.Null(form.FocusedField);
+    }
+
+    [Fact]
+    public void HandleKey_Should_NotTraverseFocus_When_RightArrowChangesSelectFieldValue()
     {
         // arrange
         var form = CreateForm();
         form.HandleKey(Key(ConsoleKey.Tab));
 
-        // act: the select field consumes down arrow to change its own selection.
-        form.HandleKey(Key(ConsoleKey.DownArrow));
+        // act: the select field consumes right arrow to change its own selection.
+        form.HandleKey(Key(ConsoleKey.RightArrow));
 
         // assert
         Assert.Equal("status", form.FocusedField?.Id);
@@ -324,5 +339,47 @@ public sealed class FormTests
         Assert.Contains("Title", console.Output);
         Assert.Contains("Status", console.Output);
         Assert.Contains("Save", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_CapContentWidth_When_FrameIsWiderThanEightyColumns()
+    {
+        // arrange
+        var form = CreateForm();
+        var console = new TestConsole().Width(160).Height(20);
+
+        // act
+        console.Write(form.Render(160, 20));
+
+        // assert: the outer panel border is centered and never wider than 80
+        // columns, however wide the frame around it is.
+        var borderLine = console.Output
+            .Split('\n')
+            .First(line => line.Contains("Edit Task"));
+        var leading = borderLine.Length - borderLine.TrimStart(' ').Length;
+        var panelWidth = borderLine.Trim().Length;
+
+        Assert.True(panelWidth <= 80);
+        Assert.Equal(leading, 160 - leading - panelWidth);
+    }
+
+    [Fact]
+    public void Render_Should_SeparateFieldsFromButtons_With_BlankLine()
+    {
+        // arrange
+        var form = CreateForm();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(form.Render(80, 20));
+
+        // assert: the line directly above the button row carries no field
+        // content, only the panel's side borders.
+        var lines = console.Output.Split('\n');
+        var buttonLineIndex = Array.FindIndex(lines, line => line.Contains("Save"));
+        var lineAboveButtons = lines[buttonLineIndex - 1];
+
+        Assert.DoesNotContain("Status", lineAboveButtons);
+        Assert.DoesNotContain("(o)", lineAboveButtons);
     }
 }

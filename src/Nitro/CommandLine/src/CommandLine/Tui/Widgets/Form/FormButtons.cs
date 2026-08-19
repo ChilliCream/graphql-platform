@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
@@ -100,15 +101,15 @@ internal sealed class FormButtons
 
     private static string RenderButton(FormButtonSpec button, bool selected)
     {
-        var baseStyle = button.Kind switch
+        var tokenPrefix = button.Kind switch
         {
-            ButtonKind.Primary => "black on green",
-            ButtonKind.Danger => "white on red",
-            _ => "black on grey70"
+            ButtonKind.Primary => "form.button.primary",
+            ButtonKind.Danger => "form.button.danger",
+            _ => "form.button.secondary"
         };
 
-        var style = selected ? $"bold {baseStyle}" : baseStyle;
+        var style = ThemeTokens.GetStyle(selected ? $"{tokenPrefix}.focused" : tokenPrefix);
 
-        return $"[{style}] {Markup.Escape(button.Label)} [/]";
+        return $"[{style.ToMarkup()}] {Markup.Escape(button.Label)} [/]";
     }
 }

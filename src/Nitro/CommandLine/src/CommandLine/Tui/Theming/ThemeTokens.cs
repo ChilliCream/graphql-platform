@@ -57,9 +57,18 @@ internal static class DefaultTheme
 
         ["selection.highlight"] = new Style(Color.Default, Color.Grey35),
 
+        ["detail.section.header"] = new Style(decoration: Decoration.Bold),
+
         ["toast.info.border"] = new Style(Color.SkyBlue1),
         ["toast.success.border"] = new Style(Color.Green),
         ["toast.warn.border"] = new Style(Color.Orange1),
-        ["toast.error.border"] = new Style(Color.Red)
+        ["toast.error.border"] = new Style(Color.Red),
+
+        ["form.button.primary"] = new Style(Color.Black, Color.Green),
+        ["form.button.primary.focused"] = new Style(Color.Black, Color.Green, Decoration.Bold),
+        ["form.button.secondary"] = new Style(Color.Black, Color.Grey70),
+        ["form.button.secondary.focused"] = new Style(Color.Black, Color.Grey70, Decoration.Bold),
+        ["form.button.danger"] = new Style(Color.White, Color.Red),
+        ["form.button.danger.focused"] = new Style(Color.White, Color.Red, Decoration.Bold)
     };
 }

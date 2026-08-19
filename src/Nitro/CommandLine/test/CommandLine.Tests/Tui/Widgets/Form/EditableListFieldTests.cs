@@ -166,4 +166,19 @@ public sealed class EditableListFieldTests
         Assert.Contains("bug", console.Output);
         Assert.Contains("urgent", console.Output);
     }
+
+    [Fact]
+    public void Render_Should_ShowPlaceholder_When_Empty()
+    {
+        // arrange
+        var field = new EditableListField("labels", "Labels");
+        var console = new TestConsole().Width(60);
+
+        // act
+        console.Write(field.Render(40, focused: false));
+
+        // assert: an interior line is present instead of a collapsed border pair.
+        Assert.Contains("no labels - type to add", console.Output);
+        Assert.Equal(3, console.Output.TrimEnd('\n').Split('\n').Length);
+    }
 }

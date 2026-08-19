@@ -199,4 +199,33 @@ public sealed class TextFieldTests
         // assert
         Assert.Null(error);
     }
+
+    [Fact]
+    public void Render_Should_ShowPlaceholder_When_EmptyAndUnfocused()
+    {
+        // arrange
+        var field = new TextField("title", "Title");
+        var console = new TestConsole().Width(60);
+
+        // act
+        console.Write(field.Render(40, focused: false));
+
+        // assert: an interior line is present instead of a collapsed border pair.
+        Assert.Contains("empty", console.Output);
+        Assert.Equal(3, console.Output.TrimEnd('\n').Split('\n').Length);
+    }
+
+    [Fact]
+    public void Render_Should_NotShowPlaceholder_When_EmptyAndFocused()
+    {
+        // arrange: an active cursor already gives the field an interior line.
+        var field = new TextField("title", "Title");
+        var console = new TestConsole().Width(60);
+
+        // act
+        console.Write(field.Render(40, focused: true));
+
+        // assert
+        Assert.DoesNotContain("empty", console.Output);
+    }
 }

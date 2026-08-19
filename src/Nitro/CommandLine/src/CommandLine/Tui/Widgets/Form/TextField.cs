@@ -50,7 +50,9 @@ internal sealed class TextField : FormField
 
         var content = focused
             ? RenderWithCursor(visibleText, visibleCursor)
-            : Markup.Escape(visibleText);
+            : visibleText.Length == 0
+                ? RenderPlaceholder("empty")
+                : Markup.Escape(visibleText);
 
         return RenderPanel(new Markup(content), width, focused);
     }

@@ -97,7 +97,7 @@ internal sealed class EditableListField : FormField
     {
         if (_entries.Count == 0)
         {
-            return RenderPanel(new Markup(string.Empty), width, focused);
+            return RenderPanel(new Markup(RenderPlaceholder("no labels - type to add")), width, focused);
         }
 
         var rows = new List<IRenderable>();

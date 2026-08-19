@@ -36,6 +36,12 @@ internal abstract record FormResult
 /// </summary>
 internal sealed class Form
 {
+    /// <summary>
+    /// The widest a form's content is ever rendered, regardless of how much
+    /// wider the frame around it is.
+    /// </summary>
+    private const int MaxFormWidth = 80;
+
     private readonly string _title;
     private readonly IReadOnlyList<FormField> _fields;
     private readonly FormButtons _buttons;
@@ -112,9 +118,9 @@ internal sealed class Form
     /// </summary>
     public IRenderable Render(int width, int height)
     {
-        var formWidth = Math.Clamp(width - 4, 20, 96);
+        var formWidth = Math.Clamp(width - 4, 20, MaxFormWidth - 4);
 
-        var sections = new List<IRenderable>(_stopCount);
+        var sections = new List<IRenderable>(_stopCount + 1);
 
         for (var i = 0; i < _fields.Count; i++)
         {
@@ -122,6 +128,9 @@ internal sealed class Form
             sections.Add(_fields[i].Render(formWidth, focused: IsFieldFocused && i == _focusIndex));
         }
 
+        // A blank line separates the fields from the button row so the buttons
+        // don't read as crowded against the last field.
+        sections.Add(new Markup(" "));
         sections.Add(_buttons.Render(focused: !IsFieldFocused));
 
         var panel = new Panel(new Rows(sections))

@@ -15,6 +15,13 @@ internal sealed class TextAreaField : FormField
 
     private const string CursorStyle = "black on white";
 
+    /// <summary>
+    /// The fewest interior lines a text area ever renders, even when its
+    /// content is empty or shorter than its configured visible-lines count:
+    /// keeps the field from collapsing to a cramped one-line box.
+    /// </summary>
+    private const int MinVisibleLines = 3;
+
     private readonly List<string> _lines;
     private readonly Viewport _rowViewport;
     private readonly Viewport _columnViewport = new(0, 1);
@@ -28,12 +35,12 @@ internal sealed class TextAreaField : FormField
         string label,
         bool required = false,
         string initialValue = "",
-        int visibleLines = 4,
+        int visibleLines = MinVisibleLines,
         Func<FormValue, string?>? validator = null)
         : base(id, label, required, validator)
     {
         _lines = initialValue.Length == 0 ? [""] : [.. initialValue.Split('\n')];
-        _visibleLines = Math.Max(1, visibleLines);
+        _visibleLines = Math.Max(MinVisibleLines, visibleLines);
         _rowViewport = new Viewport(_lines.Count, _visibleLines);
         _columnIndex = _lines[^1].Length;
         _lineIndex = _lines.Count - 1;
@@ -113,6 +120,7 @@ internal sealed class TextAreaField : FormField
         _rowViewport.EnsureVisible(_lineIndex);
 
         var (start, count) = _rowViewport.Slice();
+        var isWhollyEmpty = !focused && _lines.Count == 1 && _lines[0].Length == 0;
         var rows = new List<IRenderable>();
 
         for (var i = start; i < start + count; i++)
@@ -120,14 +128,21 @@ internal sealed class TextAreaField : FormField
             var isCursorRow = focused && i == _lineIndex;
             var markup = isCursorRow
                 ? RenderCursorLine(_lines[i], _columnIndex, innerWidth)
-                : Markup.Escape(Truncate(_lines[i], innerWidth));
+                : isWhollyEmpty
+                    ? RenderPlaceholder("empty")
+                    : Markup.Escape(Truncate(_lines[i], innerWidth));
 
             rows.Add(new Markup(markup));
         }
 
-        var content = rows.Count == 0 ? (IRenderable)new Markup(string.Empty) : new Rows(rows);
+        // Pads short content up to the configured visible-lines height so the
+        // field always renders as a fixed-size box instead of shrinking to fit.
+        while (rows.Count < _visibleLines)
+        {
+            rows.Add(new Markup(" "));
+        }
 
-        return RenderPanel(content, width, focused);
+        return RenderPanel(new Rows(rows), width, focused);
     }
 
     private string CurrentLine => _lines[_lineIndex];

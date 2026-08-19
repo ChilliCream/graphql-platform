@@ -116,6 +116,13 @@ internal abstract class FormField
     public string? Validate() => _validator?.Invoke(GetValue());
 
     /// <summary>
+    /// Renders <paramref name="text"/> as the dim placeholder line a field body
+    /// shows in place of a blank line, so an empty field never collapses to a
+    /// border pair with no interior line.
+    /// </summary>
+    protected static string RenderPlaceholder(string text) => $"[grey italic]{Markup.Escape(text)}[/]";
+
+    /// <summary>
     /// Wraps <paramref name="content"/> in the bordered panel shared by every field
     /// renderer, with the field's title, focus-and-validation-driven border style,
     /// and validation error line appended underneath when present.

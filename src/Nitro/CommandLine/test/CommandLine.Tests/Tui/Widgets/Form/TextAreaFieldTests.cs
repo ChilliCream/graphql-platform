@@ -124,4 +124,33 @@ public sealed class TextAreaFieldTests
         // assert
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void Render_Should_ShowPlaceholder_When_EmptyAndUnfocused()
+    {
+        // arrange
+        var field = new TextAreaField("notes", "Notes");
+        var console = new TestConsole().Width(60);
+
+        // act
+        console.Write(field.Render(40, focused: false));
+
+        // assert: border (2 lines) plus at least 3 interior lines.
+        Assert.Contains("empty", console.Output);
+        Assert.True(console.Output.TrimEnd('\n').Split('\n').Length >= 5);
+    }
+
+    [Fact]
+    public void Render_Should_PadToAtLeastThreeInteriorLines_When_ContentIsShort()
+    {
+        // arrange: one line of real content, well under the minimum height.
+        var field = new TextAreaField("notes", "Notes", initialValue: "hi");
+        var console = new TestConsole().Width(60);
+
+        // act
+        console.Write(field.Render(40, focused: false));
+
+        // assert
+        Assert.True(console.Output.TrimEnd('\n').Split('\n').Length >= 5);
+    }
 }
