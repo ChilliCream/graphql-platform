@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
@@ -22,7 +23,7 @@ public sealed class TuiShellTests
         new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height);
 
     private static TuiShell CreateShellWithModes(
-        FakeTuiMode initialMode,
+        ITuiMode initialMode,
         FakeTaskStore store,
         out SearchMode searchMode,
         out DependencyTreeView treeView)
@@ -363,6 +364,60 @@ public sealed class TuiShellTests
         Assert.Equal("Old title!", store.UpdateReceived!.Title);
         Assert.Equal("tester", store.Actor);
         Assert.Contains("Updated task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_OpenEditorFromBoardSelection_When_BoardModeIsActive()
+    {
+        // arrange: a real BoardMode (not FakeTuiMode) supplies SelectedTaskId
+        // from its focused column's selected row.
+        var store = new FakeTaskStore();
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+        };
+        var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
+        var shell = CreateShellWithModes(board, store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.Contains("Edit Task", rendered);
+        Assert.DoesNotContain("No task selected.", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_CreateChildTaskFromBoardSelection_When_BoardModeIsActive()
+    {
+        // arrange: create-as-child reads the active mode's SelectedTaskId as
+        // the new task's parent id.
+        var store = new FakeTaskStore();
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+        };
+        var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
+        var shell = CreateShellWithModes(board, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+
+        // act: fill the required title field, tab to the button row, submit.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 5; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Equal("a-1", store.CreationReceived!.ParentId);
     }
 
     [Fact]

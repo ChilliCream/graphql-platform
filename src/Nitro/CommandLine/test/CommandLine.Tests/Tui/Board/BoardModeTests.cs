@@ -133,6 +133,90 @@ public sealed class BoardModeTests
     }
 
     [Fact]
+    public void SelectedTaskId_Should_ReturnFocusedColumnsSelectedTask_When_TaskPresent()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+
+        // act
+        var selected = ((ITuiMode)mode).SelectedTaskId;
+
+        // assert
+        Assert.Equal("a-1", selected);
+    }
+
+    [Fact]
+    public void SelectedTaskId_Should_ReturnNull_When_FocusedColumnEmpty()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+
+        // act
+        var selected = ((ITuiMode)mode).SelectedTaskId;
+
+        // assert
+        Assert.Null(selected);
+    }
+
+    [Fact]
+    public void SelectedTaskId_Should_FollowFocus_When_FocusedColumnChanges()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Equal("a-2", ((ITuiMode)mode).SelectedTaskId);
+    }
+
+    [Fact]
+    public void SelectTask_Should_FocusColumnAndSelectRow_When_TaskExists()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+
+        // act
+        ((ITuiMode)mode).SelectTask("a-2");
+
+        // assert
+        Assert.Equal(1, mode.State.FocusedColumnIndex);
+        Assert.Equal(0, mode.State.Columns[1].SelectedRow);
+        Assert.Equal("a-2", ((ITuiMode)mode).SelectedTaskId);
+    }
+
+    [Fact]
+    public void SelectTask_Should_LeaveSelectionUnchanged_When_TaskDoesNotExist()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+
+        // act
+        ((ITuiMode)mode).SelectTask("does-not-exist");
+
+        // assert
+        Assert.Equal(0, mode.State.FocusedColumnIndex);
+        Assert.Equal("a-1", ((ITuiMode)mode).SelectedTaskId);
+    }
+
+    [Fact]
     public void OpenSelected_Should_ReturnDetailViewNotAvailableToast()
     {
         // arrange

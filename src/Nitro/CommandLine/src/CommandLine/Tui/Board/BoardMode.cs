@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
@@ -62,6 +63,29 @@ internal sealed class BoardMode : ITuiMode
 
     /// <inheritdoc />
     public KeyMap? KeyMap => null;
+
+    /// <inheritdoc />
+    public string? SelectedTaskId => FocusedColumn()?.SelectedTaskId;
+
+    /// <inheritdoc />
+    public void SelectTask(string id)
+    {
+        var columns = _state.Columns;
+
+        for (var i = 0; i < columns.Count; i++)
+        {
+            var row = IndexOfTask(columns[i].Tasks, id);
+
+            if (row < 0)
+            {
+                continue;
+            }
+
+            _state.FocusColumn(i);
+            columns[i].SelectedRow = row;
+            return;
+        }
+    }
 
     /// <inheritdoc />
     public void OnEnter() => RefreshBlocking();
@@ -332,4 +356,17 @@ internal sealed class BoardMode : ITuiMode
     }
 
     private static string FormatIndicator(int hiddenCount, string direction) => $"  {hiddenCount} more {direction}";
+
+    private static int IndexOfTask(IReadOnlyList<TaskItem> tasks, string id)
+    {
+        for (var i = 0; i < tasks.Count; i++)
+        {
+            if (tasks[i].Id == id)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 }
