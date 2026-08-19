@@ -37,9 +37,8 @@ internal sealed class ConfirmDialog
     public KeyMap KeyMap { get; }
 
     /// <summary>
-    /// The footer hints for this dialog, shown ahead of the global hints
-    /// this dialog's key table falls back to for anything it does not bind
-    /// itself.
+    /// The footer hints for this dialog. While the dialog is active it
+    /// consumes every key itself, so no global hints follow these.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [

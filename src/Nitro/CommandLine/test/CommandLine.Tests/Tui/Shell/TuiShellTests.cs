@@ -141,6 +141,47 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Handle_Should_SwallowUnboundKey_When_QuitConfirmIsActive()
+    {
+        // The quit confirmation is fully modal: a key unresolved by its own
+        // key map (y/n/Esc) must not fall through to the active mode or the
+        // global table, so no overlay opens and no mode change happens.
+        var mode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShell(mode);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+
+        // assert
+        Assert.False(dirty);
+        Assert.Empty(mode.HandledMessages);
+        var text = RenderToText(shell);
+        Assert.Contains("Quit?", text);
+    }
+
+    [Fact]
+    public void Handle_Should_NotDelegateToActiveMode_When_EnterPressedWhileQuitConfirmIsActive()
+    {
+        // Enter (OpenSelected) must not reach the active mode while the quit
+        // confirmation is open, so it cannot switch the mode underneath the
+        // dialog.
+        var mode = new FakeTuiMode { SelectedTaskId = "a", RenderText = "board" };
+        var shell = CreateShell(mode);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false)));
+
+        // assert
+        Assert.False(dirty);
+        Assert.Empty(mode.HandledMessages);
+        var text = RenderToText(shell);
+        Assert.Contains("Quit?", text);
+        Assert.DoesNotContain("board", text);
+    }
+
+    [Fact]
     public void Handle_Should_ForwardRefreshRequested_ToActiveMode()
     {
         // arrange
@@ -994,7 +1035,7 @@ public sealed class TuiShellTests
     }
 
     [Fact]
-    public void Render_Should_ShowQuitDialogHints_PlusGlobalHints_When_QuitConfirmIsActive()
+    public void Render_Should_ShowOnlyQuitDialogHints_NoGlobalHints_When_QuitConfirmIsActive()
     {
         // arrange
         var shell = CreateShell(new FakeTuiMode());
@@ -1003,11 +1044,11 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell);
 
-        // assert: the quit dialog's own hints, plus the global table it
-        // still falls back to for anything it does not bind itself.
+        // assert: the quit dialog swallows every key itself, so the global
+        // hints (which would not actually work) are not shown alongside it.
         Assert.Contains("confirm", text);
         Assert.Contains("cancel", text);
-        Assert.Contains("move", text);
+        Assert.DoesNotContain("move", text);
     }
 
     [Fact]

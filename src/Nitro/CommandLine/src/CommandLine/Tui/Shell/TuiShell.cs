@@ -144,18 +144,15 @@ internal sealed class TuiShell
 
     private bool HandleKey(ConsoleKeyInfo info)
     {
-        // The task editor, the close/reopen/delete confirmation, and the task
-        // create form are modal: while one is active it consumes every key
-        // itself, and unresolved keys are swallowed rather than falling
-        // through to the active mode or the global table. The quit confirmation
-        // keeps its original
-        // dialog-priority-with-global-fallback behavior: a key unresolved by
-        // its own key map falls through to dispatch against the active
-        // mode's key map.
+        // The quit confirmation, the task editor, the close/reopen/delete
+        // confirmation, and the task create form are modal: while one is
+        // active it consumes every key itself, and unresolved keys are
+        // swallowed rather than falling through to the active mode or the
+        // global table.
         if (_confirmDialog is { } quitDialog)
         {
-            var quitMessage = _dispatcher.Dispatch(info, quitDialog.KeyMap);
-            return quitMessage is not null && HandleMessage(quitMessage);
+            var chord = KeyChord.From(info);
+            return quitDialog.KeyMap.TryResolve(chord, out var quitMessage) && HandleMessage(quitMessage);
         }
 
         if (_discardDialog is not null)
@@ -701,20 +698,21 @@ internal sealed class TuiShell
     /// Builds the footer's hint list for whichever context currently owns
     /// key input, mirroring <see cref="HandleKey"/>'s own priority order so
     /// the footer can never show a hint the active input context would not
-    /// actually honor. The fully modal overlays (the discard confirmation,
-    /// the task editor, the lifecycle confirmation, the quick pickers, and
-    /// the task create form) show only their own hints, since they consume
-    /// every key themselves; the search mode's query input is treated the
-    /// same way while it has focus, since <see cref="SearchMode.HandleQueryKey"/>
-    /// swallows every key that is not one of its own bindings into the query
-    /// rather than falling through to the global table. Every other
-    /// context's hints are followed by the global table's, with quit last.
+    /// actually honor. The fully modal overlays (the quit confirmation, the
+    /// discard confirmation, the task editor, the lifecycle confirmation,
+    /// the quick pickers, and the task create form) show only their own
+    /// hints, since they consume every key themselves; the search mode's
+    /// query input is treated the same way while it has focus, since
+    /// <see cref="SearchMode.HandleQueryKey"/> swallows every key that is
+    /// not one of its own bindings into the query rather than falling
+    /// through to the global table. Every other context's hints are
+    /// followed by the global table's, with quit last.
     /// </summary>
     private IReadOnlyList<KeyHint> BuildFooterHints()
     {
         if (_confirmDialog is not null)
         {
-            return Combine(ConfirmDialog.Hints);
+            return ConfirmDialog.Hints;
         }
 
         if (_discardDialog is not null)
