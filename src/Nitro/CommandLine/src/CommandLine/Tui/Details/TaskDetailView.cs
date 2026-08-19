@@ -43,6 +43,7 @@ internal sealed class TaskDetailView
 
     private readonly TaskDetailModel _model;
     private readonly Viewport _bodyViewport = new(0, 0);
+    private int _lastSelectedRowIndex = -1;
 
     public TaskDetailView(TaskDetailModel model)
     {
@@ -183,12 +184,13 @@ internal sealed class TaskDetailView
     /// Slices the body's visible window, reserving rows for "N more
     /// above/below" indicators once the lines no longer fit
     /// <paramref name="interiorHeight"/>, keeping the selected dependency or
-    /// blocks row visible, and padding the result with blank lines so the
-    /// panel's border reaches the bottom.
+    /// blocks row visible when the row selection changes, and padding the
+    /// result with blank lines so the panel's border reaches the bottom.
     /// </summary>
     private IReadOnlyList<string> RenderBodyLines(IReadOnlyList<TaskDetailBodyLine> lines, int interiorHeight)
     {
         var selectedLineIndex = IndexOfSelectedRow(lines);
+        var selectionChanged = _model.SelectedRowIndex != _lastSelectedRowIndex;
         var reservedRows = 0;
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
@@ -196,7 +198,7 @@ internal sealed class TaskDetailView
             var windowHeight = Math.Max(0, interiorHeight - reservedRows);
             _bodyViewport.Update(lines.Count, windowHeight);
 
-            if (selectedLineIndex >= 0)
+            if (selectionChanged && selectedLineIndex >= 0)
             {
                 _bodyViewport.EnsureVisible(selectedLineIndex);
             }
@@ -210,6 +212,8 @@ internal sealed class TaskDetailView
 
             reservedRows = needed;
         }
+
+        _lastSelectedRowIndex = _model.SelectedRowIndex;
 
         var (start, count) = _bodyViewport.Slice();
         var visible = new List<string>(interiorHeight);
