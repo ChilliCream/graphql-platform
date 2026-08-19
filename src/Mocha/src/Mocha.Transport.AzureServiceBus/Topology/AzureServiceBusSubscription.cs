@@ -117,7 +117,9 @@ public sealed class AzureServiceBusSubscription
     /// Computes the deterministic broker subscription name used by a topic-to-queue forwarding subscription
     /// for the specified destination queue. Infrastructure-as-code tooling can use this method to pre-create
     /// the subscription with the identical name. The result never exceeds 50 characters and never contains
-    /// slashes, even when the queue name is hierarchical.
+    /// slashes, even when the queue name is hierarchical. The hash suffix used for names requiring
+    /// sanitization or truncation widened from 4 to 8 bytes; pre-created subscriptions relying on the
+    /// former 4-byte suffix must be recreated under the new name.
     /// </summary>
     /// <param name="queueName">The destination queue name.</param>
     /// <returns>The forwarding subscription name.</returns>
@@ -200,16 +202,40 @@ public sealed class AzureServiceBusSubscription
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
-            var existing = await clientManager.GetSubscriptionAsync(Source.Name, Name, cancellationToken);
+            SubscriptionProperties existing;
 
-            if (!string.Equals(existing.Value.ForwardTo, options.ForwardTo, StringComparison.Ordinal))
+            try
+            {
+                existing = await clientManager.GetSubscriptionAsync(Source.Name, Name, cancellationToken);
+            }
+            catch (ServiceBusException getEx) when (getEx.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+            {
+                // The subscription that triggered the AlreadyExists conflict was deleted concurrently.
+                // Safe to ignore, mirroring the AlreadyExists handling on the topic and queue.
+                return;
+            }
+
+            if (!string.Equals(
+                GetForwardToEntityPath(existing.ForwardTo),
+                GetForwardToEntityPath(options.ForwardTo),
+                StringComparison.OrdinalIgnoreCase))
             {
                 throw ThrowHelper.SubscriptionForwardToDrift(
                     Source.Name,
                     Name,
                     options.ForwardTo,
-                    existing.Value.ForwardTo);
+                    existing.ForwardTo);
             }
         }
     }
+
+    /// <summary>
+    /// Normalizes a ForwardTo value to the bare entity path it addresses. The broker returns ForwardTo
+    /// as an absolute URI even when it was set as a bare entity name, so the drift comparison must
+    /// operate on the entity path rather than the raw string.
+    /// </summary>
+    private static string? GetForwardToEntityPath(string? forwardTo)
+        => Uri.TryCreate(forwardTo, UriKind.Absolute, out var uri)
+            ? uri.AbsolutePath.Trim('/')
+            : forwardTo?.Trim('/');
 }

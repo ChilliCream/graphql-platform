@@ -227,9 +227,13 @@ public class AutoProvisionIntegrationTests
             })
             .BuildTestBusAsync();
 
-        // assert - no exception was thrown and the subscription still forwards to the intended queue
+        // assert - no exception was thrown and the subscription still forwards to the intended queue.
+        // The broker returns ForwardTo as an absolute URI, so compare on the entity path it addresses.
         var properties = await adminClient.GetSubscriptionAsync(topicName, subscriptionName, cancellationToken);
-        Assert.Equal(queueName, properties.Value.ForwardTo);
+        var forwardToEntityPath = Uri.TryCreate(properties.Value.ForwardTo, UriKind.Absolute, out var forwardToUri)
+            ? forwardToUri.AbsolutePath.Trim('/')
+            : properties.Value.ForwardTo?.Trim('/');
+        Assert.Equal(queueName, forwardToEntityPath);
     }
 
     [Fact]

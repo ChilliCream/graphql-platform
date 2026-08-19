@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Azure;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 
@@ -214,7 +213,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// <summary>
     /// Retrieves the properties of an existing subscription using the administration client.
     /// </summary>
-    public Task<Response<SubscriptionProperties>> GetSubscriptionAsync(
+    public Task<SubscriptionProperties> GetSubscriptionAsync(
         string topicName,
         string subscriptionName,
         CancellationToken cancellationToken)

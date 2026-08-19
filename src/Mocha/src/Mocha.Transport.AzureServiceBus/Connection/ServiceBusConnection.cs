@@ -1,4 +1,3 @@
-using Azure;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,11 +56,11 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
     public Task CreateSubscriptionAsync(CreateSubscriptionOptions options, CancellationToken cancellationToken)
         => AdministrationClient.CreateSubscriptionAsync(options, cancellationToken);
 
-    public Task<Response<SubscriptionProperties>> GetSubscriptionAsync(
+    public async Task<SubscriptionProperties> GetSubscriptionAsync(
         string topicName,
         string subscriptionName,
         CancellationToken cancellationToken)
-        => AdministrationClient.GetSubscriptionAsync(topicName, subscriptionName, cancellationToken);
+        => (await AdministrationClient.GetSubscriptionAsync(topicName, subscriptionName, cancellationToken)).Value;
 
     public ValueTask DisposeAsync() => _ownsClient ? _client.DisposeAsync() : ValueTask.CompletedTask;
 
