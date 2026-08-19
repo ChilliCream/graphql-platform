@@ -704,8 +704,11 @@ internal sealed class TuiShell
     /// actually honor. The fully modal overlays (the discard confirmation,
     /// the task editor, the lifecycle confirmation, the quick pickers, and
     /// the task create form) show only their own hints, since they consume
-    /// every key themselves; every other context's hints are followed by the
-    /// global table's, with quit last.
+    /// every key themselves; the search mode's query input is treated the
+    /// same way while it has focus, since <see cref="SearchMode.HandleQueryKey"/>
+    /// swallows every key that is not one of its own bindings into the query
+    /// rather than falling through to the global table. Every other
+    /// context's hints are followed by the global table's, with quit last.
     /// </summary>
     private IReadOnlyList<KeyHint> BuildFooterHints()
     {
@@ -745,7 +748,7 @@ internal sealed class TuiShell
             && ReferenceEquals(_activeMode, search)
             && search.Focus == SearchFocus.Input)
         {
-            contextHints = [SearchMode.TypingHint, .. contextHints];
+            return [SearchMode.TypingHint, .. contextHints, SearchMode.EnterHint];
         }
 
         return Combine(contextHints);

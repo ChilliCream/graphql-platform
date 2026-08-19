@@ -104,6 +104,12 @@ internal sealed class SearchMode : ITuiMode
     /// </summary>
     public static readonly KeyHint TypingHint = new("type", "search");
 
+    /// <summary>
+    /// The footer hint for Enter while the query input has focus: the one
+    /// global gesture that still falls through while typing.
+    /// </summary>
+    public static readonly KeyHint EnterHint = new("enter", "open");
+
     public void OnEnter()
     {
         _pendingQuery = _lastAppliedQuery;

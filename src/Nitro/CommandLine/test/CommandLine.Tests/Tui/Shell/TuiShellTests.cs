@@ -1052,6 +1052,49 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Render_Should_ShowOnlySearchInputHints_When_QueryInputHasFocus()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+
+        // act: '/' switches to search mode with the query input focused.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+        var text = RenderToText(shell);
+
+        // assert: only the hints the query input actually honors are shown
+        // (typing, esc back, tab open, enter open); every other key,
+        // including the global table's hjkl/r/y/z/e/q, is swallowed into
+        // the query instead, so those hints must not appear.
+        Assert.Contains("type search  esc back  tab open  enter open", text);
+        Assert.DoesNotContain("move", text);
+        Assert.DoesNotContain("refresh", text);
+        Assert.DoesNotContain("copy id", text);
+        Assert.DoesNotContain("zoom", text);
+        Assert.DoesNotContain("edit", text);
+        Assert.DoesNotContain("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowContextAndGlobalHints_When_SearchFocusLeavesInput()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+        // act: Tab opens the selected result, moving focus from Input to
+        // List, so the query is no longer swallowing every key.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        var text = RenderToText(shell);
+
+        // assert
+        Assert.Equal(SearchFocus.List, search.Focus);
+        Assert.DoesNotContain("type search", text);
+        Assert.Contains("move", text);
+    }
+
+    [Fact]
     public void Render_Should_TruncateFooterWithEllipsis_When_WidthCannotFitEveryHint()
     {
         // arrange
