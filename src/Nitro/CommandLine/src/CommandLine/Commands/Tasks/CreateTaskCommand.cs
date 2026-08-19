@@ -46,7 +46,7 @@ internal sealed class CreateTaskCommand : Command
 
         var title = parseResult.GetRequiredValue(Opt<TaskTitleArgument>.Instance);
 
-        if (title.Length is 0 or > 500)
+        if (title.Trim().Length is 0 || title.Length > 500)
         {
             throw new ExitException("The title must be 1-500 characters.");
         }

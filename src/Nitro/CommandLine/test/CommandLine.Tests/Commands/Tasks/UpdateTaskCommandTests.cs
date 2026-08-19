@@ -101,6 +101,24 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task WhitespaceOnlyTitle_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var createResult = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var id = createResult.StdOut.Split('\'')[1];
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--title", "   ");
+
+        // assert
+        result.AssertError(
+            """
+            The title must be 1-500 characters.
+            """);
+    }
+
+    [Fact]
     public async Task SimpleFields_UpdatesTask_RecordsUpdatedEvent()
     {
         // arrange

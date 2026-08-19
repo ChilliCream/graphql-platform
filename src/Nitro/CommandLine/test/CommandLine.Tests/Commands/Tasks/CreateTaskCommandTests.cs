@@ -223,4 +223,17 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError("The title must be 1-500 characters.");
     }
+
+    [Fact]
+    public async Task WhitespaceOnlyTitle_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("task", "create", "   ");
+
+        // assert
+        result.AssertError("The title must be 1-500 characters.");
+    }
 }
