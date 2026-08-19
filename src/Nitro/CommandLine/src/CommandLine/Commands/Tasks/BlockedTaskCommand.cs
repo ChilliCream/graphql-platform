@@ -13,7 +13,7 @@ internal sealed class BlockedTaskCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task blocked");
+        this.AddExamples("agent tasks blocked");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -8,7 +8,7 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "undefer", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "undefer", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
               Make a deferred task ready again.
 
             Usage:
-              nitro task undefer <id> [options]
+              nitro agent tasks undefer <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -28,7 +28,7 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task undefer "acme-1a2"
+              nitro agent tasks undefer "acme-1a2"
             """);
     }
 
@@ -38,10 +38,10 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "defer", id, "--until", "2026-02-01");
+        await ExecuteCommandAsync("agent", "tasks", "defer", id, "--until", "2026-02-01");
 
         // act
-        var result = await ExecuteCommandAsync("task", "undefer", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "undefer", id);
 
         // assert
         result.AssertSuccess($"✓ Undeferred task '{id}'.");
@@ -57,11 +57,11 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "defer", id, "--until", "2026-02-01");
+        await ExecuteCommandAsync("agent", "tasks", "defer", id, "--until", "2026-02-01");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "undefer", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "undefer", id);
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -82,7 +82,7 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "undefer", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "undefer", id);
 
         // assert
         result.AssertError($"Task '{id}' is not deferred.");
@@ -94,10 +94,10 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id);
+        await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // act
-        var result = await ExecuteCommandAsync("task", "undefer", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "undefer", id);
 
         // assert
         result.AssertError($"Task '{id}' is not deferred.");
@@ -110,7 +110,7 @@ public sealed class UndeferTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "undefer", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "undefer", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

@@ -15,7 +15,7 @@ internal sealed class CloseEligibleTaskEpicCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task epic close-eligible");
+        this.AddExamples("agent tasks epic close-eligible");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

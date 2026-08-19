@@ -15,7 +15,7 @@ internal sealed class StaleTaskCommand : Command
         Options.Add(Opt<TaskDaysOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task stale", "task stale --days 14");
+        this.AddExamples("agent tasks stale", "agent tasks stale --days 14");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

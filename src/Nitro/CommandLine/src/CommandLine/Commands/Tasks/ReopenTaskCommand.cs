@@ -17,7 +17,7 @@ internal sealed class ReopenTaskCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task reopen \"app-1a2\"");
+        this.AddExamples("agent tasks reopen \"app-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

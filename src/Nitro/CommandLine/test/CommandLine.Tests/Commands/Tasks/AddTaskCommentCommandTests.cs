@@ -8,7 +8,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "comment", "add", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "comment", "add", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
               Add a comment to a task.
 
             Usage:
-              nitro task comment add <id> <text> [options]
+              nitro agent tasks comment add <id> <text> [options]
 
             Arguments:
               <id>    The task ID
@@ -29,7 +29,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task comment add "acme-1a2" "Looks good to me."
+              nitro agent tasks comment add "acme-1a2" "Looks good to me."
             """);
     }
 
@@ -42,7 +42,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "comment", "add", id, "Looks good to me.");
+            "agent", "tasks", "comment", "add", id, "Looks good to me.");
 
         // assert
         result.AssertSuccess($"✓ Added comment to '{id}'.");
@@ -59,7 +59,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "comment", "add", id, "Reviewed.", "--actor", "alice");
+            "agent", "tasks", "comment", "add", id, "Reviewed.", "--actor", "alice");
 
         // assert
         result.AssertSuccess($"✓ Added comment to '{id}'.");
@@ -77,7 +77,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "comment", "add", id, "Looks good to me.", "--actor", "alice");
+            "agent", "tasks", "comment", "add", id, "Looks good to me.", "--actor", "alice");
 
         // assert
         result.AssertSuccess(
@@ -102,7 +102,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "comment", "add", id, text);
+        var result = await ExecuteCommandAsync("agent", "tasks", "comment", "add", id, text);
 
         // assert
         result.AssertError("The comment text must not be empty.");
@@ -116,7 +116,7 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "comment", "add", "acme-999", "Looks good to me.");
+            "agent", "tasks", "comment", "add", "acme-999", "Looks good to me.");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

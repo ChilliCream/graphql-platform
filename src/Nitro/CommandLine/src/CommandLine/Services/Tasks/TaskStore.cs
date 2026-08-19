@@ -47,7 +47,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         var workspaceDirectory = FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro task init` first.");
+                "No task workspace found. Run `nitro agent tasks init` first.");
 
         var connection = await OpenAsync(
             TaskWorkspace.GetDatabasePath(workspaceDirectory),
@@ -1037,17 +1037,17 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
             if (status == TaskStates.Closed)
             {
-                throw new ExitException("Use `nitro task close` to close a task.");
+                throw new ExitException("Use `nitro agent tasks close` to close a task.");
             }
 
             if (status == TaskStates.Tombstone)
             {
-                throw new ExitException("Use `nitro task delete` to delete a task.");
+                throw new ExitException("Use `nitro agent tasks delete` to delete a task.");
             }
 
             if (task.Status == TaskStates.Closed)
             {
-                throw new ExitException("Use `nitro task reopen` to reopen a task.");
+                throw new ExitException("Use `nitro agent tasks reopen` to reopen a task.");
             }
 
             if (status != task.Status)

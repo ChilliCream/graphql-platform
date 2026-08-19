@@ -46,7 +46,7 @@ public sealed class StatusPickerTests
     {
         // arrange
         var task = TaskItemBuilder.Create("a1", status: TaskStates.Closed);
-        var store = new FakeTaskStore { ThrowOnWrite = new ExitException("Use `nitro task reopen` to reopen a task.") };
+        var store = new FakeTaskStore { ThrowOnWrite = new ExitException("Use `nitro agent tasks reopen` to reopen a task.") };
 
         // act
         var outcome = await StatusPicker.ApplyAsync(
@@ -54,6 +54,6 @@ public sealed class StatusPickerTests
 
         // assert
         var failed = Assert.IsType<TaskEditorOutcome.Failed>(outcome);
-        Assert.Equal("Use `nitro task reopen` to reopen a task.", failed.ToastText);
+        Assert.Equal("Use `nitro agent tasks reopen` to reopen a task.", failed.ToastText);
     }
 }

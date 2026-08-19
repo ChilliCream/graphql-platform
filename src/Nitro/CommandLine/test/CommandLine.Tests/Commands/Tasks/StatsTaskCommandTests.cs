@@ -9,7 +9,7 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "stats", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -18,14 +18,14 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
               Show summary statistics for the task workspace.
 
             Usage:
-              nitro task stats [options]
+              nitro agent tasks stats [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task stats
+              nitro agent tasks stats
             """);
     }
 
@@ -33,12 +33,12 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "stats");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 
@@ -49,7 +49,7 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "stats");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats");
 
         // assert
         result.AssertSuccess(
@@ -71,11 +71,11 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Fix the parser");
         var id2 = await CreateTaskAsync("Write the docs");
         var id3 = await CreateTaskAsync("Deploy service");
-        await ExecuteCommandAsync("task", "update", id2, "--status", "in_progress");
-        await ExecuteCommandAsync("task", "close", id3);
+        await ExecuteCommandAsync("agent", "tasks", "update", id2, "--status", "in_progress");
+        await ExecuteCommandAsync("agent", "tasks", "close", id3);
 
         // act
-        var result = await ExecuteCommandAsync("task", "stats");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats");
 
         // assert
         result.AssertSuccess(
@@ -101,7 +101,7 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Dependent task", "--depends-on", baseId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "stats");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats");
 
         // assert
         result.AssertSuccess(
@@ -128,7 +128,7 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
         await InsertCommentAsync(id1, "test-agent", "Thanks.", cancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("task", "stats");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats");
 
         // assert
         result.AssertSuccess(
@@ -153,7 +153,7 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "stats");
+        var result = await ExecuteCommandAsync("agent", "tasks", "stats");
 
         // assert
         result.AssertSuccess(

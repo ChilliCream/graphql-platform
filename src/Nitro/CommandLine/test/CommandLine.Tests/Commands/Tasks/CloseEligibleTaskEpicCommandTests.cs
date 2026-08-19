@@ -7,7 +7,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
               Close every epic whose children are all closed.
 
             Usage:
-              nitro task epic close-eligible [options]
+              nitro agent tasks epic close-eligible [options]
 
             Options:
               --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
@@ -24,7 +24,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task epic close-eligible
+              nitro agent tasks epic close-eligible
             """);
     }
 
@@ -32,12 +32,12 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 
@@ -50,7 +50,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         await CreateTaskAsync("Design API v5", "--parent", epicId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         result.AssertSuccess(
@@ -66,10 +66,10 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         await InitWorkspaceAsync();
         var epicId = await CreateTaskAsync("Ship v6", "--type", "epic");
         var childId = await CreateTaskAsync("Design API v6", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", childId);
+        await ExecuteCommandAsync("agent", "tasks", "close", childId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         result.AssertSuccess($"✓ Closed epic '{epicId}'.");
@@ -88,11 +88,11 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         await InitWorkspaceAsync();
         var epicId = await CreateTaskAsync("Ship v10", "--type", "epic");
         var childId = await CreateTaskAsync("Design API v10", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", childId);
+        await ExecuteCommandAsync("agent", "tasks", "close", childId);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -113,7 +113,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         result.AssertSuccess(
@@ -131,16 +131,16 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         await InitWorkspaceAsync();
         var epicAId = await CreateTaskAsync("Ship v7", "--type", "epic");
         var childAId = await CreateTaskAsync("Design v7", "--parent", epicAId);
-        await ExecuteCommandAsync("task", "close", childAId);
+        await ExecuteCommandAsync("agent", "tasks", "close", childAId);
         var epicBId = await CreateTaskAsync("Ship v8", "--type", "epic");
         var childBId = await CreateTaskAsync("Design v8", "--parent", epicBId);
-        await ExecuteCommandAsync("task", "close", childBId);
+        await ExecuteCommandAsync("agent", "tasks", "close", childBId);
         var (firstId, secondId) = string.CompareOrdinal(epicAId, epicBId) < 0
             ? (epicAId, epicBId)
             : (epicBId, epicAId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         result.AssertSuccess(
@@ -157,11 +157,11 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         await InitWorkspaceAsync();
         var epicId = await CreateTaskAsync("Ship v9", "--type", "epic");
         var childId = await CreateTaskAsync("Design API v9", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", childId);
-        await ExecuteCommandAsync("task", "epic", "close-eligible");
+        await ExecuteCommandAsync("agent", "tasks", "close", childId);
+        await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "close-eligible");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "close-eligible");
 
         // assert
         result.AssertSuccess(

@@ -8,7 +8,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
               Show a task's outgoing dependency tree.
 
             Usage:
-              nitro task dep tree <id> [options]
+              nitro agent tasks dep tree <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -27,7 +27,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task dep tree "acme-1a2"
+              nitro agent tasks dep tree "acme-1a2"
             """);
     }
 
@@ -39,7 +39,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", id);
 
         // assert
         result.AssertSuccess($"{id} (open) Fix the parser");
@@ -53,11 +53,11 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         var root = await CreateTaskAsync("Root task");
         var child = await CreateTaskAsync("Child task");
         var grandchild = await CreateTaskAsync("Grandchild task");
-        await ExecuteCommandAsync("task", "dep", "add", root, child);
-        await ExecuteCommandAsync("task", "dep", "add", child, grandchild);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", root, child);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", child, grandchild);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", root);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", root);
 
         // assert
         result.AssertSuccess(
@@ -77,13 +77,13 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         var left = await CreateTaskAsync("Left branch");
         var right = await CreateTaskAsync("Right branch");
         var shared = await CreateTaskAsync("Shared dependency");
-        await ExecuteCommandAsync("task", "dep", "add", root, left);
-        await ExecuteCommandAsync("task", "dep", "add", root, right);
-        await ExecuteCommandAsync("task", "dep", "add", left, shared);
-        await ExecuteCommandAsync("task", "dep", "add", right, shared);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", root, left);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", root, right);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", left, shared);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", right, shared);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", root);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", root);
 
         // assert
         // Children of the root are sorted by (type, depends-on-id); both edges
@@ -111,7 +111,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -124,11 +124,11 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var root = await CreateTaskAsync("Root task");
         var child = await CreateTaskAsync("Child task");
-        await ExecuteCommandAsync("task", "dep", "add", root, child);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", root, child);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", root);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", root);
 
         // assert
         result.AssertSuccess(
@@ -162,7 +162,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "tree", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", id);
 
         // assert
         result.AssertSuccess(

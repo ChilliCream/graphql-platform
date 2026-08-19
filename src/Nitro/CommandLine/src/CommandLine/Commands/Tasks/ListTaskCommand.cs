@@ -22,9 +22,9 @@ internal sealed class ListTaskCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task list",
-            "task list --status open --status in_progress",
-            "task list --assignee alice --priority p1");
+            "agent tasks list",
+            "agent tasks list --status open --status in_progress",
+            "agent tasks list --assignee alice --priority p1");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

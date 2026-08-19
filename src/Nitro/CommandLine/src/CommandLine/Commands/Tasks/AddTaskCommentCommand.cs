@@ -17,7 +17,7 @@ internal sealed class AddTaskCommentCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task comment add \"acme-1a2\" \"Looks good to me.\"");
+        this.AddExamples("agent tasks comment add \"acme-1a2\" \"Looks good to me.\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

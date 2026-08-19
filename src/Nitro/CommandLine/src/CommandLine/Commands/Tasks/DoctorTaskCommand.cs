@@ -13,7 +13,7 @@ internal sealed class DoctorTaskCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task doctor");
+        this.AddExamples("agent tasks doctor");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -29,7 +29,7 @@ internal sealed class DoctorTaskCommand : Command
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro task init` first.");
+                "No task workspace found. Run `nitro agent tasks init` first.");
 
         var prefix = await store.GetPrefixAsync(cancellationToken);
         var taskCount = await store.CountTasksAsync(cancellationToken);

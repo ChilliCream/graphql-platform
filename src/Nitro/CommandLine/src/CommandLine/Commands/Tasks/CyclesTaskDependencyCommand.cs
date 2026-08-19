@@ -13,7 +13,7 @@ internal sealed class CyclesTaskDependencyCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task dep cycles");
+        this.AddExamples("agent tasks dep cycles");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

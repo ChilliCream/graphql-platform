@@ -7,7 +7,7 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "blocked", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,14 +16,14 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
               List tasks that are blocked by unfinished dependencies.
 
             Usage:
-              nitro task blocked [options]
+              nitro agent tasks blocked [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task blocked
+              nitro agent tasks blocked
             """);
     }
 
@@ -31,12 +31,12 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "blocked");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 
@@ -45,10 +45,10 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("task", "create", "Standalone task");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Standalone task");
 
         // act
-        var result = await ExecuteCommandAsync("task", "blocked");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked");
 
         // assert
         result.AssertSuccess(
@@ -62,12 +62,12 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("agent", "tasks", "create", "Base task"));
         var dependentId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId));
+            await ExecuteCommandAsync("agent", "tasks", "create", "Dependent task", "--depends-on", baseId));
 
         // act
-        var result = await ExecuteCommandAsync("task", "blocked");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked");
 
         // assert
         result.AssertSuccess(
@@ -83,13 +83,13 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("agent", "tasks", "create", "Base task"));
         var dependentId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId));
-        await ExecuteCommandAsync("task", "close", dependentId);
+            await ExecuteCommandAsync("agent", "tasks", "create", "Dependent task", "--depends-on", baseId));
+        await ExecuteCommandAsync("agent", "tasks", "close", dependentId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "blocked");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked");
 
         // assert
         result.AssertSuccess(
@@ -103,13 +103,13 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("agent", "tasks", "create", "Base task"));
         var dependentId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId));
+            await ExecuteCommandAsync("agent", "tasks", "create", "Dependent task", "--depends-on", baseId));
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "blocked");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked");
 
         // assert
         result.AssertSuccess(
@@ -136,11 +136,11 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("task", "create", "Standalone task");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Standalone task");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "blocked");
+        var result = await ExecuteCommandAsync("agent", "tasks", "blocked");
 
         // assert
         result.AssertSuccess(

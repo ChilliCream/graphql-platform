@@ -8,7 +8,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,14 +17,14 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
               Detect cycles among blocking dependencies.
 
             Usage:
-              nitro task dep cycles [options]
+              nitro agent tasks dep cycles [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task dep cycles
+              nitro agent tasks dep cycles
             """);
     }
 
@@ -35,7 +35,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
         // assert
         result.AssertSuccess("No cycles found.");
@@ -55,7 +55,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         await InsertDependencyAsync(b, a);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
         // assert
         var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
@@ -70,11 +70,11 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-        await ExecuteCommandAsync("task", "dep", "add", a, b, "--type", "related");
-        await ExecuteCommandAsync("task", "dep", "add", b, a, "--type", "related");
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", a, b, "--type", "related");
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", b, a, "--type", "related");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
         // assert
         result.AssertSuccess("No cycles found.");
@@ -88,7 +88,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
         // assert
         result.AssertSuccess(
@@ -114,7 +114,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
         // assert
         var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
@@ -150,7 +150,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         await InsertDependencyAsync(c, a);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "cycles");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
         // assert
         // The cycle is the fixed chain a -> b -> c -> a; rotate that circular

@@ -15,7 +15,7 @@ internal sealed class GetTaskConfigCommand : Command
         Arguments.Add(Opt<ConfigKeyArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task config get prefix");
+        this.AddExamples("agent tasks config get prefix");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -8,7 +8,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "defer", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "defer", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
               Defer a task until a future date.
 
             Usage:
-              nitro task defer <id> [options]
+              nitro agent tasks defer <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -29,7 +29,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help              Show help and usage information
 
             Example:
-              nitro task defer "acme-1a2" --until "2026-02-01"
+              nitro agent tasks defer "acme-1a2" --until "2026-02-01"
             """);
     }
 
@@ -41,7 +41,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "defer", id, "--until", "2026-02-01");
+        var result = await ExecuteCommandAsync("agent", "tasks", "defer", id, "--until", "2026-02-01");
 
         // assert
         result.AssertSuccess($"✓ Deferred task '{id}' until 2026-02-01 00:00.");
@@ -55,11 +55,11 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "update", id, "--status", "in_progress");
+        await ExecuteCommandAsync("agent", "tasks", "update", id, "--status", "in_progress");
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "defer", id, "--until", "2026-03-15T10:30:00Z");
+            "agent", "tasks", "defer", id, "--until", "2026-03-15T10:30:00Z");
 
         // assert
         result.AssertSuccess($"✓ Deferred task '{id}' until 2026-03-15 10:30.");
@@ -74,7 +74,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "defer", id, "--until", "2026-02-01");
+        var result = await ExecuteCommandAsync("agent", "tasks", "defer", id, "--until", "2026-02-01");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -94,10 +94,10 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id);
+        await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // act
-        var result = await ExecuteCommandAsync("task", "defer", id, "--until", "2026-02-01");
+        var result = await ExecuteCommandAsync("agent", "tasks", "defer", id, "--until", "2026-02-01");
 
         // assert
         result.AssertError("Only open or in-progress tasks can be deferred.");
@@ -111,7 +111,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "defer", "acme-999", "--until", "2026-02-01");
+            "agent", "tasks", "defer", "acme-999", "--until", "2026-02-01");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -125,7 +125,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "defer", id, "--until", "not-a-date");
+        var result = await ExecuteCommandAsync("agent", "tasks", "defer", id, "--until", "not-a-date");
 
         // assert
         result.AssertError(

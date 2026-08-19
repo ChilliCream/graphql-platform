@@ -32,17 +32,17 @@ public abstract class TasksCommandTestBase : CommandTestBase
 
     protected async Task InitWorkspaceAsync()
     {
-        var result = await ExecuteCommandAsync("task", "init");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init");
         Assert.Equal(0, result.ExitCode);
     }
 
     /// <summary>
     /// Creates a task via the create command, passing the given arguments
-    /// after "task create", and returns the generated task ID.
+    /// after "agent tasks create", and returns the generated task ID.
     /// </summary>
     protected async Task<string> CreateTaskAsync(params string[] args)
     {
-        var result = await ExecuteCommandAsync(["task", "create", .. args]);
+        var result = await ExecuteCommandAsync(["agent", "tasks", "create", .. args]);
         Assert.Equal(0, result.ExitCode);
 
         var start = result.StdOut.IndexOf('\'') + 1;

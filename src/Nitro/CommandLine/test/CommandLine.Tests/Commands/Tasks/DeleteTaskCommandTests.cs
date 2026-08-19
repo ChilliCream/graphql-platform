@@ -8,7 +8,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "delete", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "delete", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
               Delete a task.
 
             Usage:
-              nitro task delete <id> [options]
+              nitro agent tasks delete <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -30,8 +30,8 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help     Show help and usage information
 
             Example:
-              nitro task delete "app-1a2"
-              nitro task delete "app-1a2" --force
+              nitro agent tasks delete "app-1a2"
+              nitro agent tasks delete "app-1a2" --force
             """);
     }
 
@@ -43,7 +43,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "delete", id, "--force");
+        var result = await ExecuteCommandAsync("agent", "tasks", "delete", id, "--force");
 
         // assert
         result.AssertSuccess($"✓ Deleted task '{id}'.");
@@ -60,7 +60,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "delete", id, "--force", "--reason", "Duplicate of acme-1");
+            "agent", "tasks", "delete", id, "--force", "--reason", "Duplicate of acme-1");
 
         // assert
         result.AssertSuccess($"✓ Deleted task '{id}'.");
@@ -77,7 +77,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "delete", id, "--force");
+        var result = await ExecuteCommandAsync("agent", "tasks", "delete", id, "--force");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -97,7 +97,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "delete", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "delete", id);
 
         // assert
         result.AssertError("Use --force to delete without confirmation.");
@@ -111,7 +111,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
         SetupInteractionMode(InteractionMode.Interactive);
 
-        var command = StartInteractiveCommand("task", "delete", id);
+        var command = StartInteractiveCommand("agent", "tasks", "delete", id);
 
         // act
         command.Confirm(true);
@@ -133,7 +133,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
         SetupInteractionMode(InteractionMode.Interactive);
 
-        var command = StartInteractiveCommand("task", "delete", id);
+        var command = StartInteractiveCommand("agent", "tasks", "delete", id);
 
         // act
         command.Confirm(false);
@@ -156,7 +156,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "delete", "acme-999", "--force");
+        var result = await ExecuteCommandAsync("agent", "tasks", "delete", "acme-999", "--force");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

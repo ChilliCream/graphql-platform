@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -13,7 +14,6 @@ using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Status;
-using ChilliCream.Nitro.CommandLine.Commands.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
@@ -36,6 +36,7 @@ internal sealed class NitroRootCommand : RootCommand
     {
         Description = "Nitro CLI";
 
+        Subcommands.Add(new AgentCommand());
         Subcommands.Add(new ApiKeyCommand());
         Subcommands.Add(new ApiCommand());
         Subcommands.Add(new ClientCommand());
@@ -51,7 +52,6 @@ internal sealed class NitroRootCommand : RootCommand
         Subcommands.Add(new SchemaCommand());
         Subcommands.Add(new StageCommand());
         Subcommands.Add(new StatusCommand());
-        Subcommands.Add(new TaskCommand());
         Subcommands.Add(new WorkspaceCommand());
 
         CommandExamples.Install(this);

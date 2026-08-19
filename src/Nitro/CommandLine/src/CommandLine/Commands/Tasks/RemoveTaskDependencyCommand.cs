@@ -18,7 +18,7 @@ internal sealed class RemoveTaskDependencyCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task dep remove \"acme-1a2\" \"acme-9z8\"");
+        this.AddExamples("agent tasks dep remove \"acme-1a2\" \"acme-9z8\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

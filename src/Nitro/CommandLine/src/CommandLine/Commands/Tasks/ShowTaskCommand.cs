@@ -15,7 +15,7 @@ internal sealed class ShowTaskCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task show \"acme-1a2\"");
+        this.AddExamples("agent tasks show \"acme-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

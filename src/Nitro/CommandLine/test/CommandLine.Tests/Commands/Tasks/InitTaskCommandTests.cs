@@ -9,7 +9,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "init", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -18,7 +18,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
               Initialize a task workspace in the current directory.
 
             Usage:
-              nitro task init [options]
+              nitro agent tasks init [options]
 
             Options:
               --prefix <prefix>  The task ID prefix (defaults to the current directory name)
@@ -27,8 +27,8 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help     Show help and usage information
 
             Example:
-              nitro task init
-              nitro task init --prefix "app"
+              nitro agent tasks init
+              nitro agent tasks init --prefix "app"
             """);
     }
 
@@ -36,7 +36,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
     public async Task EmptyDirectory_InitializesWorkspace()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "init");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init");
 
         // assert
         result.AssertSuccess(
@@ -66,7 +66,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "init");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -82,7 +82,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
     public async Task PrefixOption_NormalizesValue()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "init", "--prefix", "My App!");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init", "--prefix", "My App!");
 
         // assert
         result.AssertSuccess(
@@ -99,7 +99,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "init");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init");
 
         // assert
         result.AssertError(
@@ -115,7 +115,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "init", "--force", "--prefix", "core");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init", "--force", "--prefix", "core");
 
         // assert
         result.AssertSuccess(
@@ -137,7 +137,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
             gitIgnorePath, "*\n!.gitignore\n", TestContext.Current.CancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("task", "init", "--force");
+        var result = await ExecuteCommandAsync("agent", "tasks", "init", "--force");
 
         // assert
         Assert.Equal(0, result.ExitCode);

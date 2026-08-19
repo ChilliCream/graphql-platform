@@ -15,7 +15,7 @@ internal sealed class ListTaskDependencyCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task dep list \"acme-1a2\"");
+        this.AddExamples("agent tasks dep list \"acme-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

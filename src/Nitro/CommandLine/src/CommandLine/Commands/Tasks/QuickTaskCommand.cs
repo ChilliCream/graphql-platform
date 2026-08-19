@@ -21,8 +21,8 @@ internal sealed class QuickTaskCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task q \"Fix the parser\"",
-            "task q \"Fix the parser\" --priority p1 --type bug --label api");
+            "agent tasks q \"Fix the parser\"",
+            "agent tasks q \"Fix the parser\" --priority p1 --type bug --label api");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -8,7 +8,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "close", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
               Close one or more tasks.
 
             Usage:
-              nitro task close <ids>... [options]
+              nitro agent tasks close <ids>... [options]
 
             Arguments:
               <ids>  One or more task IDs
@@ -29,8 +29,8 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help     Show help and usage information
 
             Example:
-              nitro task close "app-1a2"
-              nitro task close "app-1a2" "app-9z8" --reason "Fixed in v2"
+              nitro agent tasks close "app-1a2"
+              nitro agent tasks close "app-1a2" "app-9z8" --reason "Fixed in v2"
             """);
     }
 
@@ -42,7 +42,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // assert
         result.AssertSuccess($"✓ Closed task '{id}'.");
@@ -59,7 +59,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         var id2 = await CreateTaskAsync("Write the docs");
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", id1, id2);
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", id1, id2);
 
         // assert
         result.AssertSuccess(
@@ -77,7 +77,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", id, "--reason", "Fixed in v2");
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", id, "--reason", "Fixed in v2");
 
         // assert
         result.AssertSuccess($"✓ Closed task '{id}'.");
@@ -91,10 +91,10 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id);
+        await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // assert
         result.AssertError($"Task '{id}' is already closed.");
@@ -107,7 +107,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -123,7 +123,7 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", id1, id2);
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", id1, id2);
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -144,10 +144,10 @@ public sealed class CloseTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id1 = await CreateTaskAsync("Fix the parser");
         var id2 = await CreateTaskAsync("Write the docs");
-        await ExecuteCommandAsync("task", "close", id2);
+        await ExecuteCommandAsync("agent", "tasks", "close", id2);
 
         // act
-        var result = await ExecuteCommandAsync("task", "close", id1, id2);
+        var result = await ExecuteCommandAsync("agent", "tasks", "close", id1, id2);
 
         // assert
         result.AssertError($"Task '{id2}' is already closed.");

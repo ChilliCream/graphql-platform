@@ -17,7 +17,7 @@ internal sealed class AddTaskLabelCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task label add \"acme-1a2\" api parser");
+        this.AddExamples("agent tasks label add \"acme-1a2\" api parser");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -19,8 +19,8 @@ internal sealed class DeleteTaskCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task delete \"app-1a2\"",
-            "task delete \"app-1a2\" --force");
+            "agent tasks delete \"app-1a2\"",
+            "agent tasks delete \"app-1a2\" --force");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

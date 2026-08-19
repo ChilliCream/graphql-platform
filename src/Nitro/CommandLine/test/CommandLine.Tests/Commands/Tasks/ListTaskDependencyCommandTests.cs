@@ -8,7 +8,7 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "dep", "list", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
               List a task's dependencies.
 
             Usage:
-              nitro task dep list <id> [options]
+              nitro agent tasks dep list <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -27,7 +27,7 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task dep list "acme-1a2"
+              nitro agent tasks dep list "acme-1a2"
             """);
     }
 
@@ -39,7 +39,7 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", id);
 
         // assert
         result.AssertSuccess("No dependencies.");
@@ -52,10 +52,10 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", id);
 
         // assert
         result.AssertSuccess(
@@ -72,10 +72,10 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependentId = await CreateTaskAsync("Write the docs");
-        await ExecuteCommandAsync("task", "dep", "add", dependentId, id);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", dependentId, id);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", id);
 
         // assert
         result.AssertSuccess(
@@ -92,7 +92,7 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "list", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -105,11 +105,11 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", id);
 
         // assert
         result.AssertSuccess(
@@ -137,7 +137,7 @@ public sealed class ListTaskDependencyCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "list", id);
 
         // assert
         result.AssertSuccess(

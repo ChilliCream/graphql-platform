@@ -8,7 +8,7 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "config", "list", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "list", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,14 +17,14 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
               List all configuration values.
 
             Usage:
-              nitro task config list [options]
+              nitro agent tasks config list [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task config list
+              nitro agent tasks config list
             """);
     }
 
@@ -35,7 +35,7 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "list");
 
         // assert
         result.AssertSuccess("prefix = acme");
@@ -46,11 +46,11 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("task", "config", "set", "zzz", "last");
-        await ExecuteCommandAsync("task", "config", "set", "aaa", "first");
+        await ExecuteCommandAsync("agent", "tasks", "config", "set", "zzz", "last");
+        await ExecuteCommandAsync("agent", "tasks", "config", "set", "aaa", "first");
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "list");
 
         // assert
         result.AssertSuccess(
@@ -65,12 +65,12 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "config", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "list");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 
@@ -82,7 +82,7 @@ public sealed class ListTaskConfigCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "list");
 
         // assert
         result.AssertSuccess(

@@ -2,7 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
 /// One node of a task's outgoing dependency tree, as returned by the
-/// structured (JSON) output of <c>task dep tree</c>. Null <see cref="Status"/>
+/// structured (JSON) output of <c>agent tasks dep tree</c>. Null <see cref="Status"/>
 /// and <see cref="Title"/> mean the task no longer exists. A node whose
 /// <see cref="Repeated"/> is <c>true</c> was already printed elsewhere in the
 /// tree and is not expanded further.

@@ -18,7 +18,7 @@ internal sealed class SetTaskConfigCommand : Command
         Arguments.Add(Opt<ConfigValueArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task config set prefix \"app\"");
+        this.AddExamples("agent tasks config set prefix \"app\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

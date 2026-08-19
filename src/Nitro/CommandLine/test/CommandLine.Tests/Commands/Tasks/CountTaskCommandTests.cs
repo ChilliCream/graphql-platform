@@ -8,7 +8,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "count", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
               Count tasks.
 
             Usage:
-              nitro task count [options]
+              nitro agent tasks count [options]
 
             Options:
               --by <by>        Group counts by: status, type, priority, assignee, or label
@@ -25,8 +25,8 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task count
-              nitro task count --by status
+              nitro agent tasks count
+              nitro agent tasks count --by status
             """);
     }
 
@@ -37,12 +37,12 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await CreateTaskAsync("Fix the parser");
         var closedId = await CreateTaskAsync("Write the docs");
-        await ExecuteCommandAsync("task", "close", closedId);
+        await ExecuteCommandAsync("agent", "tasks", "close", closedId);
         var deletedId = await CreateTaskAsync("Old task");
-        await ExecuteCommandAsync("task", "delete", deletedId, "--force");
+        await ExecuteCommandAsync("agent", "tasks", "delete", deletedId, "--force");
 
         // act
-        var result = await ExecuteCommandAsync("task", "count");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count");
 
         // assert
         result.AssertSuccess("2");
@@ -55,10 +55,10 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await CreateTaskAsync("Fix the parser");
         var closedId = await CreateTaskAsync("Write the docs");
-        await ExecuteCommandAsync("task", "close", closedId);
+        await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "count", "--by", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--by", "status");
 
         // assert
         result.AssertSuccess(
@@ -78,7 +78,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Old task", "--priority", "p3");
 
         // act
-        var result = await ExecuteCommandAsync("task", "count", "--by", "priority");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--by", "priority");
 
         // assert
         result.AssertSuccess(
@@ -97,7 +97,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Write the docs");
 
         // act
-        var result = await ExecuteCommandAsync("task", "count", "--by", "assignee");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--by", "assignee");
 
         // assert
         result.AssertSuccess(
@@ -116,7 +116,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Write the docs", "--label", "api");
 
         // act
-        var result = await ExecuteCommandAsync("task", "count", "--by", "label");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--by", "label");
 
         // assert
         result.AssertSuccess(
@@ -135,7 +135,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "count");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count");
 
         // assert
         result.AssertSuccess(
@@ -155,7 +155,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "count", "--by", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--by", "status");
 
         // assert
         result.AssertSuccess(
@@ -178,7 +178,7 @@ public sealed class CountTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "count", "--by", "bogus");
+        var result = await ExecuteCommandAsync("agent", "tasks", "count", "--by", "bogus");
 
         // assert
         result.AssertError(

@@ -1,8 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
-internal sealed class TaskCommand : Command
+internal sealed class TasksCommand : Command
 {
-    public TaskCommand() : base("task")
+    public TasksCommand() : base("tasks")
     {
         Description = "Create and manage tasks for coding agents.";
 

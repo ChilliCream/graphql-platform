@@ -7,7 +7,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "q", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "q", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
               Quickly create a task and print only its ID.
 
             Usage:
-              nitro task q <title> [options]
+              nitro agent tasks q <title> [options]
 
             Arguments:
               <title>  The task title
@@ -30,8 +30,8 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help         Show help and usage information
 
             Example:
-              nitro task q "Fix the parser"
-              nitro task q "Fix the parser" --priority p1 --type bug --label api
+              nitro agent tasks q "Fix the parser"
+              nitro agent tasks q "Fix the parser" --priority p1 --type bug --label api
             """);
     }
 
@@ -42,7 +42,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "q", "Fix the parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "q", "Fix the parser");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -63,7 +63,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "q", "Fix the parser",
+            "agent", "tasks", "q", "Fix the parser",
             "--priority", "p1",
             "--type", "bug",
             "--label", "api",
@@ -94,7 +94,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "q", "Fix the parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "q", "Fix the parser");
 
         // assert
         result.AssertSuccess(
@@ -131,7 +131,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "q", "Fix the parser", "--priority", "p9");
+            "agent", "tasks", "q", "Fix the parser", "--priority", "p9");
 
         // assert
         result.AssertError("Invalid priority 'p9'. Use 0-4 or p0-p4 (0 = critical, 4 = backlog).");
@@ -145,7 +145,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
         var title = new string('a', 501);
 
         // act
-        var result = await ExecuteCommandAsync("task", "q", title);
+        var result = await ExecuteCommandAsync("agent", "tasks", "q", title);
 
         // assert
         result.AssertError("The title must be 1-500 characters.");
@@ -158,7 +158,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "q", "   ");
+        var result = await ExecuteCommandAsync("agent", "tasks", "q", "   ");
 
         // assert
         result.AssertError("The title must be 1-500 characters.");

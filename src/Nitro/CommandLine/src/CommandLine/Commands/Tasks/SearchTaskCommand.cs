@@ -16,7 +16,7 @@ internal sealed class SearchTaskCommand : Command
         Options.Add(Opt<TaskLimitOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task search \"parser\"", "task search \"parser\" --limit 5");
+        this.AddExamples("agent tasks search \"parser\"", "agent tasks search \"parser\" --limit 5");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

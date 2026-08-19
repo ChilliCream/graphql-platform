@@ -8,7 +8,7 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "config", "set", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "set", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
               Set a configuration value.
 
             Usage:
-              nitro task config set <key> <value> [options]
+              nitro agent tasks config set <key> <value> [options]
 
             Arguments:
               <key>    The configuration key
@@ -28,7 +28,7 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task config set prefix "app"
+              nitro agent tasks config set prefix "app"
             """);
     }
 
@@ -39,7 +39,7 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "set", "reviewer", "alice");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "set", "reviewer", "alice");
 
         // assert
         result.AssertSuccess("✓ Set 'reviewer' to 'alice'.");
@@ -52,10 +52,10 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("task", "config", "set", "reviewer", "alice");
+        await ExecuteCommandAsync("agent", "tasks", "config", "set", "reviewer", "alice");
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "set", "reviewer", "bob");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "set", "reviewer", "bob");
 
         // assert
         result.AssertSuccess("✓ Set 'reviewer' to 'bob'.");
@@ -71,7 +71,7 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "set", "reviewer", "alice");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "set", "reviewer", "alice");
 
         // assert
         result.AssertSuccess(
@@ -90,7 +90,7 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "config", "set", "prefix", "My App!");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "set", "prefix", "My App!");
 
         // assert
         result.AssertSuccess("✓ Set 'prefix' to 'myapp'.");
@@ -102,12 +102,12 @@ public sealed class SetTaskConfigCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "config", "set", "reviewer", "alice");
+        var result = await ExecuteCommandAsync("agent", "tasks", "config", "set", "reviewer", "alice");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 }

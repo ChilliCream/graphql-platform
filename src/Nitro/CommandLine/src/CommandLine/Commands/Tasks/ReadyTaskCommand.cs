@@ -19,7 +19,7 @@ internal sealed class ReadyTaskCommand : Command
         Options.Add(Opt<TaskIncludeDeferredOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task ready", "task ready --assignee alice --limit 5");
+        this.AddExamples("agent tasks ready", "agent tasks ready --assignee alice --limit 5");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

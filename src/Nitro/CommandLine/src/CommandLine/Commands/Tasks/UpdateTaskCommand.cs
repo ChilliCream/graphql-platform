@@ -33,12 +33,12 @@ internal sealed class UpdateTaskCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task update \"app-1a2\" --status in_progress",
-            "task update \"app-1a2\" --priority p1 --assignee alice",
-            "task update \"app-1a2\" \"app-9z8\" --priority p1",
-            "task update \"app-1a2\" --claim",
-            "task update \"app-1a2\" --add-label api --remove-label triage",
-            "task update \"app-1a2\" --parent \"app-9z8\"");
+            "agent tasks update \"app-1a2\" --status in_progress",
+            "agent tasks update \"app-1a2\" --priority p1 --assignee alice",
+            "agent tasks update \"app-1a2\" \"app-9z8\" --priority p1",
+            "agent tasks update \"app-1a2\" --claim",
+            "agent tasks update \"app-1a2\" --add-label api --remove-label triage",
+            "agent tasks update \"app-1a2\" --parent \"app-9z8\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

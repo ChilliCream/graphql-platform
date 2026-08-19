@@ -9,7 +9,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "doctor", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -18,14 +18,14 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
               Check the task workspace for integrity problems.
 
             Usage:
-              nitro task doctor [options]
+              nitro agent tasks doctor [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task doctor
+              nitro agent tasks doctor
             """);
     }
 
@@ -37,7 +37,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         result.AssertSuccess(
@@ -69,7 +69,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await InsertDependencyAsync(b, a);
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
@@ -88,7 +88,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await InsertOrphanDependencyAsync(taskId, "missing-task", TestContext.Current.CancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -105,7 +105,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await DeleteTaskRowAsync(taskId, TestContext.Current.CancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -123,7 +123,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await DeleteTaskRowAsync(taskId, TestContext.Current.CancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -138,10 +138,10 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var parentId = await CreateTaskAsync("Parent epic", "--type", "epic");
         var childId = await CreateTaskAsync("Child task", "--parent", parentId);
-        await ExecuteCommandAsync("task", "delete", parentId, "--force");
+        await ExecuteCommandAsync("agent", "tasks", "delete", parentId, "--force");
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -158,7 +158,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "doctor");
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
 
         // assert
         Assert.Equal(0, result.ExitCode);

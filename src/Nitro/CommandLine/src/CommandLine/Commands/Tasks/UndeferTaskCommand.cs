@@ -16,7 +16,7 @@ internal sealed class UndeferTaskCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task undefer \"acme-1a2\"");
+        this.AddExamples("agent tasks undefer \"acme-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

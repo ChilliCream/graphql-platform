@@ -15,7 +15,7 @@ internal sealed class CountTaskCommand : Command
         Options.Add(Opt<TaskByOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task count", "task count --by status");
+        this.AddExamples("agent tasks count", "agent tasks count --by status");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

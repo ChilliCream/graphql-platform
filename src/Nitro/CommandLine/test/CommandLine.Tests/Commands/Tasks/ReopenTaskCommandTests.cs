@@ -8,7 +8,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "reopen", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "reopen", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
               Reopen a closed task.
 
             Usage:
-              nitro task reopen <id> [options]
+              nitro agent tasks reopen <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -29,7 +29,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help     Show help and usage information
 
             Example:
-              nitro task reopen "app-1a2"
+              nitro agent tasks reopen "app-1a2"
             """);
     }
 
@@ -39,10 +39,10 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id, "--reason", "Not needed");
+        await ExecuteCommandAsync("agent", "tasks", "close", id, "--reason", "Not needed");
 
         // act
-        var result = await ExecuteCommandAsync("task", "reopen", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "reopen", id);
 
         // assert
         result.AssertSuccess($"✓ Reopened task '{id}'.");
@@ -60,11 +60,11 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id);
+        await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "reopen", id, "--reason", "Needed after all");
+            "agent", "tasks", "reopen", id, "--reason", "Needed after all");
 
         // assert
         result.AssertSuccess($"✓ Reopened task '{id}'.");
@@ -78,10 +78,10 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id);
+        await ExecuteCommandAsync("agent", "tasks", "close", id);
 
         // act
-        var result = await ExecuteCommandAsync("task", "reopen", id, "--actor", "alice");
+        var result = await ExecuteCommandAsync("agent", "tasks", "reopen", id, "--actor", "alice");
 
         // assert
         result.AssertSuccess($"✓ Reopened task '{id}'.");
@@ -95,11 +95,11 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "close", id);
+        await ExecuteCommandAsync("agent", "tasks", "close", id);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "reopen", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "reopen", id);
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -120,7 +120,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "reopen", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "reopen", id);
 
         // assert
         result.AssertError($"Task '{id}' is not closed.");
@@ -133,7 +133,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "reopen", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "reopen", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

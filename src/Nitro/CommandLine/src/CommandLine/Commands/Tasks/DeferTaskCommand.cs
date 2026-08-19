@@ -17,7 +17,7 @@ internal sealed class DeferTaskCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task defer \"acme-1a2\" --until \"2026-02-01\"");
+        this.AddExamples("agent tasks defer \"acme-1a2\" --until \"2026-02-01\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

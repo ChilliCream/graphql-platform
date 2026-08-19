@@ -7,7 +7,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "list", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
               List tasks.
 
             Usage:
-              nitro task list [options]
+              nitro agent tasks list [options]
 
             Options:
               --status <status>      Filter by status; can be used multiple times
@@ -30,9 +30,9 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help         Show help and usage information
 
             Example:
-              nitro task list
-              nitro task list --status open --status in_progress
-              nitro task list --assignee alice --priority p1
+              nitro agent tasks list
+              nitro agent tasks list --status open --status in_progress
+              nitro agent tasks list --assignee alice --priority p1
             """);
     }
 
@@ -43,7 +43,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list");
 
         // assert
         result.AssertSuccess("No tasks found.");
@@ -55,19 +55,19 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
 
-        await ExecuteCommandAsync("task", "create", "Bravo task", "--priority", "p0");
-        await ExecuteCommandAsync("task", "create", "Alpha task");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Bravo task", "--priority", "p0");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Alpha task");
 
         var closedId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Closed task")).StdOut);
-        await ExecuteCommandAsync("task", "close", closedId);
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Closed task")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
         var deletedId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Deleted task")).StdOut);
-        await ExecuteCommandAsync("task", "delete", deletedId, "--force");
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Deleted task")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "delete", deletedId, "--force");
 
         // act
-        var result = await ExecuteCommandAsync("task", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list");
 
         // assert
         result.AssertSuccess(
@@ -85,14 +85,14 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
 
-        await ExecuteCommandAsync("task", "create", "Open task");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Open task");
 
         var closedId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Closed task")).StdOut);
-        await ExecuteCommandAsync("task", "close", closedId);
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Closed task")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "list", "--status", "closed");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--status", "closed");
 
         // assert
         result.AssertSuccess(
@@ -109,18 +109,18 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
 
-        await ExecuteCommandAsync("task", "create", "Open task");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Open task");
 
         var closedId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Closed task")).StdOut);
-        await ExecuteCommandAsync("task", "close", closedId);
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Closed task")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
         var deletedId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Deleted task")).StdOut);
-        await ExecuteCommandAsync("task", "delete", deletedId, "--force");
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Deleted task")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "delete", deletedId, "--force");
 
         // act
-        var result = await ExecuteCommandAsync("task", "list", "--all");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--all");
 
         // assert
         result.AssertSuccess(
@@ -140,20 +140,20 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         await ExecuteCommandAsync(
-            "task", "create", "Target task",
+            "agent", "tasks", "create", "Target task",
             "--type", "bug", "--priority", "p1", "--assignee", "alice",
             "--label", "api", "--label", "parser");
         await ExecuteCommandAsync(
-            "task", "create", "Missing label task",
+            "agent", "tasks", "create", "Missing label task",
             "--type", "bug", "--priority", "p1", "--assignee", "alice", "--label", "api");
         await ExecuteCommandAsync(
-            "task", "create", "Different type task",
+            "agent", "tasks", "create", "Different type task",
             "--type", "feature", "--priority", "p1", "--assignee", "alice",
             "--label", "api", "--label", "parser");
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "list",
+            "agent", "tasks", "list",
             "--type", "bug", "--priority", "p1", "--assignee", "alice",
             "--label", "api", "--label", "parser");
 
@@ -175,7 +175,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list");
 
         // assert
         result.AssertSuccess(
@@ -202,7 +202,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list");
 
         // assert
         result.AssertSuccess(
@@ -220,7 +220,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "list", "--priority", "p9");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--priority", "p9");
 
         // assert
         result.AssertError(
@@ -234,14 +234,14 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         var criticalId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Critical task", "--priority", "p0")).StdOut);
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Critical task", "--priority", "p0")).StdOut);
         var highId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "High task", "--priority", "p1")).StdOut);
-        await ExecuteCommandAsync("task", "create", "Medium task", "--priority", "p2");
-        await ExecuteCommandAsync("task", "create", "Backlog task", "--priority", "p4");
+            (await ExecuteCommandAsync("agent", "tasks", "create", "High task", "--priority", "p1")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "create", "Medium task", "--priority", "p2");
+        await ExecuteCommandAsync("agent", "tasks", "create", "Backlog task", "--priority", "p4");
 
         // act
-        var result = await ExecuteCommandAsync("task", "list", "--priority", "p0-p1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--priority", "p0-p1");
 
         // assert
         result.AssertSuccess(
@@ -260,13 +260,13 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         var criticalId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "Critical task", "--priority", "p0")).StdOut);
+            (await ExecuteCommandAsync("agent", "tasks", "create", "Critical task", "--priority", "p0")).StdOut);
         var highId = ExtractTaskId(
-            (await ExecuteCommandAsync("task", "create", "High task", "--priority", "p1")).StdOut);
-        await ExecuteCommandAsync("task", "create", "Medium task", "--priority", "p2");
+            (await ExecuteCommandAsync("agent", "tasks", "create", "High task", "--priority", "p1")).StdOut);
+        await ExecuteCommandAsync("agent", "tasks", "create", "Medium task", "--priority", "p2");
 
         // act
-        var result = await ExecuteCommandAsync("task", "list", "--priority", "0-1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--priority", "0-1");
 
         // assert
         result.AssertSuccess(
@@ -285,7 +285,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "list", "--priority", "3-1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "list", "--priority", "3-1");
 
         // assert
         result.AssertError(

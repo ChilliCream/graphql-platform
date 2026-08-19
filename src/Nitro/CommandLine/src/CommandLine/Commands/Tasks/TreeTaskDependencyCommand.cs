@@ -17,7 +17,7 @@ internal sealed class TreeTaskDependencyCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task dep tree \"acme-1a2\"");
+        this.AddExamples("agent tasks dep tree \"acme-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

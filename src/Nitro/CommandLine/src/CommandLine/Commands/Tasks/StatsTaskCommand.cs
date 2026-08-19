@@ -13,7 +13,7 @@ internal sealed class StatsTaskCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task stats");
+        this.AddExamples("agent tasks stats");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

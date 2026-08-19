@@ -13,7 +13,7 @@ internal sealed class LintTaskCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task lint");
+        this.AddExamples("agent tasks lint");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -41,7 +41,7 @@ public class SmokeTests
         try
         {
             // act
-            var result = await RunNitroAsync("task init", workingDirectory: tempDir);
+            var result = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
 
             // assert
             Assert.Equal(0, result.ExitCode);
@@ -60,11 +60,11 @@ public class SmokeTests
         var tempDir = CreateTempDirectory();
         try
         {
-            var initResult = await RunNitroAsync("task init", workingDirectory: tempDir);
+            var initResult = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
             Assert.Equal(0, initResult.ExitCode);
 
             // act
-            var result = await RunNitroAsync("task list", workingDirectory: tempDir);
+            var result = await RunNitroAsync("agent tasks list", workingDirectory: tempDir);
 
             // assert
             Assert.Equal(0, result.ExitCode);

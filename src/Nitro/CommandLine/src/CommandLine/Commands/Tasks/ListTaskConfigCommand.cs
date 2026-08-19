@@ -13,7 +13,7 @@ internal sealed class ListTaskConfigCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task config list");
+        this.AddExamples("agent tasks config list");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

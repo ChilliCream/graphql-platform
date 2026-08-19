@@ -8,7 +8,7 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "dep", "remove", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "remove", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
               Remove a dependency between two tasks.
 
             Usage:
-              nitro task dep remove <id> <depends-on-id> [options]
+              nitro agent tasks dep remove <id> <depends-on-id> [options]
 
             Arguments:
               <id>             The task ID
@@ -29,7 +29,7 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task dep remove "acme-1a2" "acme-9z8"
+              nitro agent tasks dep remove "acme-1a2" "acme-9z8"
             """);
     }
 
@@ -40,10 +40,10 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "remove", id, dependsOnId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "remove", id, dependsOnId);
 
         // assert
         result.AssertSuccess($"✓ Removed dependency: '{id}' -> '{dependsOnId}'.");
@@ -61,10 +61,10 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId, "--type", "related");
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId, "--type", "related");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "remove", id, dependsOnId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "remove", id, dependsOnId);
 
         // assert
         result.AssertSuccess($"✓ Removed dependency: '{id}' -> '{dependsOnId}'.");
@@ -82,11 +82,11 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "remove", id, dependsOnId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "remove", id, dependsOnId);
 
         // assert
         result.AssertSuccess(
@@ -107,7 +107,7 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "remove", id, dependsOnId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "remove", id, dependsOnId);
 
         // assert
         result.AssertError("Dependency does not exist.");
@@ -120,7 +120,7 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "remove", "acme-999", "acme-998");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "remove", "acme-999", "acme-998");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

@@ -8,7 +8,7 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "label", "list", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
               List a task's labels, or every label in use.
 
             Usage:
-              nitro task label list [<id>] [options]
+              nitro agent tasks label list [<id>] [options]
 
             Arguments:
               <id>  The task ID
@@ -27,8 +27,8 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task label list
-              nitro task label list "acme-1a2"
+              nitro agent tasks label list
+              nitro agent tasks label list "acme-1a2"
             """);
     }
 
@@ -38,10 +38,10 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "label", "add", id, "parser", "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "parser", "api");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list", id);
 
         // assert
         result.AssertSuccess(
@@ -59,7 +59,7 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list", id);
 
         // assert
         result.AssertSuccess("No labels.");
@@ -72,11 +72,11 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id1 = await CreateTaskAsync("Fix the parser");
         var id2 = await CreateTaskAsync("Write the docs");
-        await ExecuteCommandAsync("task", "label", "add", id1, "api", "parser");
-        await ExecuteCommandAsync("task", "label", "add", id2, "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id1, "api", "parser");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id2, "api");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list");
 
         // assert
         result.AssertSuccess(
@@ -94,7 +94,7 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list");
 
         // assert
         result.AssertSuccess("No labels.");
@@ -107,7 +107,7 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -119,11 +119,11 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "label", "add", id, "parser", "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "parser", "api");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list", id);
 
         // assert
         result.AssertSuccess(
@@ -150,12 +150,12 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id1 = await CreateTaskAsync("Fix the parser");
         var id2 = await CreateTaskAsync("Write the docs");
-        await ExecuteCommandAsync("task", "label", "add", id1, "api", "parser");
-        await ExecuteCommandAsync("task", "label", "add", id2, "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id1, "api", "parser");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id2, "api");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "list");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "list");
 
         // assert
         result.AssertSuccess(

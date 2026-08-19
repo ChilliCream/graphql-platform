@@ -20,8 +20,8 @@ internal sealed class AddTaskDependencyCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task dep add \"acme-1a2\" \"acme-9z8\"",
-            "task dep add \"acme-1a2\" \"acme-9z8\" --type waits-for");
+            "agent tasks dep add \"acme-1a2\" \"acme-9z8\"",
+            "agent tasks dep add \"acme-1a2\" \"acme-9z8\" --type waits-for");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

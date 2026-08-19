@@ -16,7 +16,7 @@ internal sealed class BoardTaskCommand : Command
     {
         Description = "Open the interactive task board.";
 
-        this.AddExamples("task board");
+        this.AddExamples("agent tasks board");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -33,11 +33,11 @@ internal sealed class BoardTaskCommand : Command
 
         if (!console.IsInteractive)
         {
-            throw new ExitException("task board requires an interactive terminal.");
+            throw new ExitException("agent tasks board requires an interactive terminal.");
         }
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
-            ?? throw new ExitException("No task workspace found. Run `nitro task init` first.");
+            ?? throw new ExitException("No task workspace found. Run `nitro agent tasks init` first.");
 
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
         var loader = new BoardDataLoader(store, timeProvider);

@@ -7,7 +7,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "create", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "create", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
               Create a task.
 
             Usage:
-              nitro task create <title> [options]
+              nitro agent tasks create <title> [options]
 
             Arguments:
               <title>  The task title
@@ -37,8 +37,8 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help               Show help and usage information
 
             Example:
-              nitro task create "Fix the parser"
-              nitro task create "Fix the parser" --priority p1 --type bug --depends-on "acme-9z8"
+              nitro agent tasks create "Fix the parser"
+              nitro agent tasks create "Fix the parser" --priority p1 --type bug --depends-on "acme-9z8"
             """);
     }
 
@@ -49,7 +49,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
 
         // assert
         result.AssertSuccess("✓ Created task 'acme-n5z': Fix the parser.");
@@ -68,7 +68,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
 
         // assert
         result.AssertSuccess(
@@ -107,7 +107,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "create", "Fix the parser", "--depends-on", blockerId);
+            "agent", "tasks", "create", "Fix the parser", "--depends-on", blockerId);
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -124,14 +124,14 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
 
-        var blocker = await ExecuteCommandAsync("task", "create", "Write the tokenizer tests");
+        var blocker = await ExecuteCommandAsync("agent", "tasks", "create", "Write the tokenizer tests");
         blocker.AssertSuccess();
-        var parent = await ExecuteCommandAsync("task", "create", "Rewrite the parser");
+        var parent = await ExecuteCommandAsync("agent", "tasks", "create", "Rewrite the parser");
         parent.AssertSuccess();
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "create", "Fix the parser",
+            "agent", "tasks", "create", "Fix the parser",
             "--description", "Handle edge cases in the tokenizer",
             "--priority", "p1",
             "--type", "bug",
@@ -176,7 +176,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "create", "Fix the parser", "--parent", "acme-999");
+            "agent", "tasks", "create", "Fix the parser", "--parent", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -190,7 +190,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "create", "Fix the parser", "--depends-on", "acme-999");
+            "agent", "tasks", "create", "Fix the parser", "--depends-on", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -204,7 +204,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "create", "Fix the parser", "--priority", "p9");
+            "agent", "tasks", "create", "Fix the parser", "--priority", "p9");
 
         // assert
         result.AssertError("Invalid priority 'p9'. Use 0-4 or p0-p4 (0 = critical, 4 = backlog).");
@@ -218,7 +218,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
         var title = new string('a', 501);
 
         // act
-        var result = await ExecuteCommandAsync("task", "create", title);
+        var result = await ExecuteCommandAsync("agent", "tasks", "create", title);
 
         // assert
         result.AssertError("The title must be 1-500 characters.");
@@ -231,7 +231,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "create", "   ");
+        var result = await ExecuteCommandAsync("agent", "tasks", "create", "   ");
 
         // assert
         result.AssertError("The title must be 1-500 characters.");

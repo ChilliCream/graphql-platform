@@ -8,7 +8,7 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "label", "remove", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "remove", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
               Remove a label from a task.
 
             Usage:
-              nitro task label remove <id> <label> [options]
+              nitro agent tasks label remove <id> <label> [options]
 
             Arguments:
               <id>     The task ID
@@ -29,7 +29,7 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task label remove "acme-1a2" api
+              nitro agent tasks label remove "acme-1a2" api
             """);
     }
 
@@ -39,10 +39,10 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "label", "add", id, "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "remove", id, "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "remove", id, "api");
 
         // assert
         result.AssertSuccess($"✓ Removed label 'api' from '{id}'.");
@@ -56,10 +56,10 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "label", "add", id, "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "remove", id, "API");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "remove", id, "API");
 
         // assert
         result.AssertSuccess($"✓ Removed label 'api' from '{id}'.");
@@ -71,11 +71,11 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "label", "add", id, "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "remove", id, "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "remove", id, "api");
 
         // assert
         result.AssertSuccess(
@@ -95,7 +95,7 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "remove", id, "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "remove", id, "api");
 
         // assert
         result.AssertError($"Label 'api' is not on '{id}'.");
@@ -108,7 +108,7 @@ public sealed class RemoveTaskLabelCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "remove", "acme-999", "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "remove", "acme-999", "api");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

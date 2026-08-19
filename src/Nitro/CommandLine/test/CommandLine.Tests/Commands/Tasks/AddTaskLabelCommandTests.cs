@@ -8,7 +8,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "label", "add", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
               Add one or more labels to a task.
 
             Usage:
-              nitro task label add <id> <labels>... [options]
+              nitro agent tasks label add <id> <labels>... [options]
 
             Arguments:
               <id>      The task ID
@@ -29,7 +29,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task label add "acme-1a2" api parser
+              nitro agent tasks label add "acme-1a2" api parser
             """);
     }
 
@@ -41,7 +41,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", id, "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api");
 
         // assert
         result.AssertSuccess($"✓ Added label 'api' to '{id}'.");
@@ -57,7 +57,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", id, "api", "parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api", "parser");
 
         // assert
         result.AssertSuccess(
@@ -77,7 +77,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", id, "  API  ");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "  API  ");
 
         // assert
         result.AssertSuccess($"✓ Added label 'api' to '{id}'.");
@@ -91,10 +91,10 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        await ExecuteCommandAsync("task", "label", "add", id, "api");
+        await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", id, "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api");
 
         // assert
         result.AssertSuccess($"Label 'api' is already on '{id}'.");
@@ -109,7 +109,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", id, "api", "parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "api", "parser");
 
         // assert
         result.AssertSuccess(
@@ -138,7 +138,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", id, "   ");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", id, "   ");
 
         // assert
         result.AssertError("Labels must be non-empty.");
@@ -151,7 +151,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "label", "add", "acme-999", "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "label", "add", "acme-999", "api");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");

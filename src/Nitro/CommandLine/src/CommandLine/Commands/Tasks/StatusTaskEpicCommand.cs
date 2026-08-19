@@ -13,7 +13,7 @@ internal sealed class StatusTaskEpicCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task epic status");
+        this.AddExamples("agent tasks epic status");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

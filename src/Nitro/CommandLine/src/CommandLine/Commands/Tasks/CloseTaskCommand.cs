@@ -18,8 +18,8 @@ internal sealed class CloseTaskCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task close \"app-1a2\"",
-            "task close \"app-1a2\" \"app-9z8\" --reason \"Fixed in v2\"");
+            "agent tasks close \"app-1a2\"",
+            "agent tasks close \"app-1a2\" \"app-9z8\" --reason \"Fixed in v2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

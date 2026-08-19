@@ -28,8 +28,8 @@ internal sealed class CreateTaskCommand : Command
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "task create \"Fix the parser\"",
-            "task create \"Fix the parser\" --priority p1 --type bug --depends-on \"acme-9z8\"");
+            "agent tasks create \"Fix the parser\"",
+            "agent tasks create \"Fix the parser\" --priority p1 --type bug --depends-on \"acme-9z8\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

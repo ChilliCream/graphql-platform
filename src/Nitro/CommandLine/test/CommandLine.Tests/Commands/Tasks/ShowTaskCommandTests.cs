@@ -9,7 +9,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "show", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -18,7 +18,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
               Show a task's details.
 
             Usage:
-              nitro task show <id> [options]
+              nitro agent tasks show <id> [options]
 
             Arguments:
               <id>  The task ID
@@ -28,7 +28,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task show "acme-1a2"
+              nitro agent tasks show "acme-1a2"
             """);
     }
 
@@ -39,7 +39,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -53,7 +53,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
 
         // assert
         result.AssertSuccess(
@@ -84,7 +84,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
             "--estimate", "90");
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
 
         // assert
         result.AssertSuccess(
@@ -112,11 +112,11 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Investigate flaky test");
         var closeResult = await ExecuteCommandAsync(
-            "task", "close", id, "--reason", "Fixed by retry logic");
+            "agent", "tasks", "close", id, "--reason", "Fixed by retry logic");
         Assert.Equal(0, closeResult.ExitCode);
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
 
         // assert
         result.AssertSuccess(
@@ -139,8 +139,8 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         var dependentId = await CreateTaskAsync("Fix the lexer", "--depends-on", baseId);
 
         // act
-        var dependent = await ExecuteCommandAsync("task", "show", dependentId);
-        var dependency = await ExecuteCommandAsync("task", "show", baseId);
+        var dependent = await ExecuteCommandAsync("agent", "tasks", "show", dependentId);
+        var dependency = await ExecuteCommandAsync("agent", "tasks", "show", baseId);
 
         // assert
         dependent.AssertSuccess(
@@ -179,7 +179,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         await InsertCommentAsync(id, "test-agent", "Thanks, merging.", cancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
 
         // assert
         result.AssertSuccess(
@@ -208,7 +208,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
 
         // assert
         result.AssertSuccess(
@@ -251,7 +251,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "show", dependentId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", dependentId);
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);

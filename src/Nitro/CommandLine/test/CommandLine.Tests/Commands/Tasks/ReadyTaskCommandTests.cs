@@ -7,7 +7,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "ready", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
               List tasks that are ready to work on.
 
             Usage:
-              nitro task ready [options]
+              nitro agent tasks ready [options]
 
             Options:
               --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog); list/ready also accept a range like 0-1 or p0-p1
@@ -28,8 +28,8 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help         Show help and usage information
 
             Example:
-              nitro task ready
-              nitro task ready --assignee alice --limit 5
+              nitro agent tasks ready
+              nitro agent tasks ready --assignee alice --limit 5
             """);
     }
 
@@ -37,12 +37,12 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "ready");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 
@@ -53,7 +53,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready");
 
         // assert
         result.AssertSuccess(
@@ -68,12 +68,12 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var lowPriorityId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "Low priority task", "--priority", "3"));
+            await ExecuteCommandAsync("agent", "tasks", "create", "Low priority task", "--priority", "3"));
         var highPriorityId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "High priority task", "--priority", "1"));
+            await ExecuteCommandAsync("agent", "tasks", "create", "High priority task", "--priority", "1"));
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready");
 
         // assert
         result.AssertSuccess(
@@ -90,11 +90,11 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var baseId = ExtractTaskId(await ExecuteCommandAsync("task", "create", "Base task"));
-        await ExecuteCommandAsync("task", "create", "Dependent task", "--depends-on", baseId);
+        var baseId = ExtractTaskId(await ExecuteCommandAsync("agent", "tasks", "create", "Base task"));
+        await ExecuteCommandAsync("agent", "tasks", "create", "Dependent task", "--depends-on", baseId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready");
 
         // assert
         result.AssertSuccess(
@@ -112,12 +112,12 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var deferredId = ExtractTaskId(
             await ExecuteCommandAsync(
-                "task", "create", "Deferred task", "--defer-until", "2026-06-01T00:00:00Z"));
+                "agent", "tasks", "create", "Deferred task", "--defer-until", "2026-06-01T00:00:00Z"));
 
         // act
-        var defaultResult = await ExecuteCommandAsync("task", "ready");
+        var defaultResult = await ExecuteCommandAsync("agent", "tasks", "ready");
         var includeDeferredResult = await ExecuteCommandAsync(
-            "task", "ready", "--include-deferred");
+            "agent", "tasks", "ready", "--include-deferred");
 
         // assert
         defaultResult.AssertSuccess(
@@ -138,13 +138,13 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var criticalId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "Critical task", "--priority", "p0"));
+            await ExecuteCommandAsync("agent", "tasks", "create", "Critical task", "--priority", "p0"));
         var highId = ExtractTaskId(
-            await ExecuteCommandAsync("task", "create", "High task", "--priority", "p1"));
-        await ExecuteCommandAsync("task", "create", "Medium task", "--priority", "p2");
+            await ExecuteCommandAsync("agent", "tasks", "create", "High task", "--priority", "p1"));
+        await ExecuteCommandAsync("agent", "tasks", "create", "Medium task", "--priority", "p2");
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready", "--priority", "p0-p1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready", "--priority", "p0-p1");
 
         // assert
         result.AssertSuccess(
@@ -163,7 +163,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready", "--priority", "3-1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready", "--priority", "3-1");
 
         // assert
         result.AssertError(
@@ -179,7 +179,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready");
 
         // assert
         result.AssertSuccess(
@@ -206,7 +206,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "ready");
+        var result = await ExecuteCommandAsync("agent", "tasks", "ready");
 
         // assert
         result.AssertSuccess(

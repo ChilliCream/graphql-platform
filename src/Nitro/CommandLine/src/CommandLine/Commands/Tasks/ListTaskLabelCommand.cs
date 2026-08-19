@@ -15,7 +15,7 @@ internal sealed class ListTaskLabelCommand : Command
         Arguments.Add(Opt<OptionalTaskIdArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task label list", "task label list \"acme-1a2\"");
+        this.AddExamples("agent tasks label list", "agent tasks label list \"acme-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

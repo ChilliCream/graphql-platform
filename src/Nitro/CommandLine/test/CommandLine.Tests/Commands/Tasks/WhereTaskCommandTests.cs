@@ -8,7 +8,7 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "where", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "where", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,14 +17,14 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
               Print the absolute path of the current task workspace.
 
             Usage:
-              nitro task where [options]
+              nitro agent tasks where [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task where
+              nitro agent tasks where
             """);
     }
 
@@ -35,7 +35,7 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "where");
+        var result = await ExecuteCommandAsync("agent", "tasks", "where");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -47,10 +47,10 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "where");
+        var result = await ExecuteCommandAsync("agent", "tasks", "where");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro task init` first.");
+        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "where");
+        var result = await ExecuteCommandAsync("agent", "tasks", "where");
 
         // assert
         result.AssertSuccess(

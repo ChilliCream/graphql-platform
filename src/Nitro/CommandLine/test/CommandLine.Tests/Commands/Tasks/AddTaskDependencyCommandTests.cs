@@ -8,7 +8,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "dep", "add", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
               Add a dependency between two tasks.
 
             Usage:
-              nitro task dep add <id> <depends-on-id> [options]
+              nitro agent tasks dep add <id> <depends-on-id> [options]
 
             Arguments:
               <id>             The task ID
@@ -30,8 +30,8 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task dep add "acme-1a2" "acme-9z8"
-              nitro task dep add "acme-1a2" "acme-9z8" --type waits-for
+              nitro agent tasks dep add "acme-1a2" "acme-9z8"
+              nitro agent tasks dep add "acme-1a2" "acme-9z8" --type waits-for
             """);
     }
 
@@ -44,7 +44,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
 
         // assert
         result.AssertSuccess($"✓ Added blocks dependency: '{id}' -> '{dependsOnId}'.");
@@ -65,7 +65,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "dep", "add", id, dependsOnId, "--type", "waits-for");
+            "agent", "tasks", "dep", "add", id, dependsOnId, "--type", "waits-for");
 
         // assert
         result.AssertSuccess($"✓ Added waits-for dependency: '{id}' -> '{dependsOnId}'.");
@@ -87,7 +87,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "dep", "add", id, dependsOnId, "--type", "waits-for");
+            "agent", "tasks", "dep", "add", id, dependsOnId, "--type", "waits-for");
 
         // assert
         result.AssertSuccess(
@@ -108,11 +108,11 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-        await ExecuteCommandAsync("task", "dep", "add", a, b);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", a, b);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "add", b, a);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", b, a);
 
         // assert
         result.AssertError($"Adding this dependency would create a cycle: {b} -> {a} -> {b}.");
@@ -131,7 +131,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "add", id, id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, id);
 
         // assert
         result.AssertError("A task cannot depend on itself.");
@@ -144,10 +144,10 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var dependsOnId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "add", id, dependsOnId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, dependsOnId);
 
         // assert
         result.AssertError("Dependency already exists.");
@@ -161,7 +161,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "add", id, "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -174,10 +174,10 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-        await ExecuteCommandAsync("task", "dep", "add", a, b);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", a, b);
 
         // act
-        var result = await ExecuteCommandAsync("task", "dep", "add", b, a);
+        var result = await ExecuteCommandAsync("agent", "tasks", "dep", "add", b, a);
 
         // assert
         result.AssertError($"Adding this dependency would create a cycle: {b} -> {a} -> {b}.");

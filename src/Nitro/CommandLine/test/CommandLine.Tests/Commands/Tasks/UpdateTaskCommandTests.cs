@@ -7,7 +7,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "update", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
               Update one or more tasks' fields.
 
             Usage:
-              nitro task update <ids>... [options]
+              nitro agent tasks update <ids>... [options]
 
             Arguments:
               <ids>  One or more task IDs
@@ -43,12 +43,12 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help                               Show help and usage information
 
             Example:
-              nitro task update "app-1a2" --status in_progress
-              nitro task update "app-1a2" --priority p1 --assignee alice
-              nitro task update "app-1a2" "app-9z8" --priority p1
-              nitro task update "app-1a2" --claim
-              nitro task update "app-1a2" --add-label api --remove-label triage
-              nitro task update "app-1a2" --parent "app-9z8"
+              nitro agent tasks update "app-1a2" --status in_progress
+              nitro agent tasks update "app-1a2" --priority p1 --assignee alice
+              nitro agent tasks update "app-1a2" "app-9z8" --priority p1
+              nitro agent tasks update "app-1a2" --claim
+              nitro agent tasks update "app-1a2" --add-label api --remove-label triage
+              nitro agent tasks update "app-1a2" --parent "app-9z8"
             """);
     }
 
@@ -56,7 +56,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     public async Task NoOptionsGiven_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "update", "acme-1a2");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", "acme-1a2");
 
         // assert
         result.AssertError(
@@ -73,7 +73,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", "acme-9z9", "--title", "New title");
+            "agent", "tasks", "update", "acme-9z9", "--title", "New title");
 
         // assert
         result.AssertError(
@@ -87,11 +87,11 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var createResult = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var createResult = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
         var id = createResult.StdOut.Split('\'')[1];
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--title", "");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--title", "");
 
         // assert
         result.AssertError(
@@ -105,11 +105,11 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var createResult = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var createResult = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
         var id = createResult.StdOut.Split('\'')[1];
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--title", "   ");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--title", "   ");
 
         // assert
         result.AssertError(
@@ -123,12 +123,12 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var createResult = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var createResult = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
         var id = createResult.StdOut.Split('\'')[1];
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id,
+            "agent", "tasks", "update", id,
             "--title", "Fix the parser properly",
             "--description", "Investigate the tokenizer",
             "--type", "bug",
@@ -161,12 +161,12 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var createResult = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var createResult = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
         var id = createResult.StdOut.Split('\'')[1];
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id,
+            "agent", "tasks", "update", id,
             "--status", "in_progress",
             "--priority", "p1",
             "--assignee", "alice");
@@ -197,11 +197,11 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var createResult = await ExecuteCommandAsync(
-            "task", "create", "Fix the parser", "--assignee", "alice");
+            "agent", "tasks", "create", "Fix the parser", "--assignee", "alice");
         var id = createResult.StdOut.Split('\'')[1];
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--assignee", "");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--assignee", "");
 
         // assert
         result.AssertSuccess(
@@ -223,7 +223,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id, "--title", "Fix the parser properly", "--priority", "p1");
+            "agent", "tasks", "update", id, "--title", "Fix the parser properly", "--priority", "p1");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -247,7 +247,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id1, id2, "--priority", "p1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id1, id2, "--priority", "p1");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -271,7 +271,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var id2 = await CreateTaskAsync("Write the docs");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id1, id2, "--priority", "p1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id1, id2, "--priority", "p1");
 
         // assert
         result.AssertSuccess(
@@ -299,7 +299,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id1, "acme-999", id2, "--priority", "p1");
+            "agent", "tasks", "update", id1, "acme-999", id2, "--priority", "p1");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -328,7 +328,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--claim");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--claim");
 
         // assert
         result.AssertSuccess(
@@ -349,7 +349,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--claim", "--priority", "p1");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--claim", "--priority", "p1");
 
         // assert
         result.AssertSuccess(
@@ -371,7 +371,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id, "--claim", "--assignee", "alice");
+            "agent", "tasks", "update", id, "--claim", "--assignee", "alice");
 
         // assert
         result.AssertSuccess(
@@ -393,7 +393,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id, "--add-label", "api", "--remove-label", "triage");
+            "agent", "tasks", "update", id, "--add-label", "api", "--remove-label", "triage");
 
         // assert
         result.AssertSuccess(
@@ -425,7 +425,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--add-label", "api");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--add-label", "api");
 
         // assert
         result.AssertSuccess(
@@ -447,7 +447,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var childId = await CreateTaskAsync("Child");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", childId, "--parent", parentId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", childId, "--parent", parentId);
 
         // assert
         result.AssertSuccess(
@@ -473,7 +473,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var childId = await CreateTaskAsync("Child", "--parent", oldParentId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", childId, "--parent", newParentId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", childId, "--parent", newParentId);
 
         // assert
         result.AssertSuccess(
@@ -505,7 +505,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var childId = await CreateTaskAsync("Child", "--parent", parentId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", childId, "--parent", "");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", childId, "--parent", "");
 
         // assert
         result.AssertSuccess(
@@ -529,7 +529,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--parent", id);
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--parent", id);
 
         // assert
         result.AssertError("A task cannot be its own parent.");
@@ -543,7 +543,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--parent", "acme-999");
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--parent", "acme-999");
 
         // assert
         result.AssertError("Task 'acme-999' does not exist.");
@@ -556,10 +556,10 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
         var otherId = await CreateTaskAsync("Write the tokenizer");
-        await ExecuteCommandAsync("task", "dep", "add", id, otherId);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", id, otherId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", id, "--parent", otherId);
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", id, "--parent", otherId);
 
         // assert
         result.AssertError("Dependency already exists.");
@@ -572,10 +572,10 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-        await ExecuteCommandAsync("task", "dep", "add", a, b);
+        await ExecuteCommandAsync("agent", "tasks", "dep", "add", a, b);
 
         // act
-        var result = await ExecuteCommandAsync("task", "update", b, "--parent", a);
+        var result = await ExecuteCommandAsync("agent", "tasks", "update", b, "--parent", a);
 
         // assert
         result.AssertError($"Setting this parent would create a cycle: {b} -> {a} -> {b}.");
@@ -597,7 +597,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "task", "update", id1, id2, "--add-label", "triage", "--parent", parentId);
+            "agent", "tasks", "update", id1, id2, "--add-label", "triage", "--parent", parentId);
 
         // assert
         result.AssertSuccess(
@@ -627,28 +627,28 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var createResult = await ExecuteCommandAsync("task", "create", "Fix the parser");
+        var createResult = await ExecuteCommandAsync("agent", "tasks", "create", "Fix the parser");
         var id = createResult.StdOut.Split('\'')[1];
-        var closeResult = await ExecuteCommandAsync("task", "close", id);
+        var closeResult = await ExecuteCommandAsync("agent", "tasks", "close", id);
         Assert.Equal(0, closeResult.ExitCode);
 
         // act
-        var closeAttempt = await ExecuteCommandAsync("task", "update", id, "--status", "closed");
-        var deleteAttempt = await ExecuteCommandAsync("task", "update", id, "--status", "tombstone");
-        var reopenAttempt = await ExecuteCommandAsync("task", "update", id, "--status", "open");
+        var closeAttempt = await ExecuteCommandAsync("agent", "tasks", "update", id, "--status", "closed");
+        var deleteAttempt = await ExecuteCommandAsync("agent", "tasks", "update", id, "--status", "tombstone");
+        var reopenAttempt = await ExecuteCommandAsync("agent", "tasks", "update", id, "--status", "open");
 
         // assert
         closeAttempt.AssertError(
             """
-            Use `nitro task close` to close a task.
+            Use `nitro agent tasks close` to close a task.
             """);
         deleteAttempt.AssertError(
             """
-            Use `nitro task delete` to delete a task.
+            Use `nitro agent tasks delete` to delete a task.
             """);
         reopenAttempt.AssertError(
             """
-            Use `nitro task reopen` to reopen a task.
+            Use `nitro agent tasks reopen` to reopen a task.
             """);
     }
 }

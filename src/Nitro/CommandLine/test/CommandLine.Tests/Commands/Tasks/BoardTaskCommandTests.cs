@@ -7,7 +7,7 @@ public sealed class BoardTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "board", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "board", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,13 +16,13 @@ public sealed class BoardTaskCommandTests(NitroCommandFixture fixture)
               Open the interactive task board.
 
             Usage:
-              nitro task board [options]
+              nitro agent tasks board [options]
 
             Options:
               -?, -h, --help  Show help and usage information
 
             Example:
-              nitro task board
+              nitro agent tasks board
             """);
     }
 
@@ -33,10 +33,10 @@ public sealed class BoardTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("task", "board");
+        var result = await ExecuteCommandAsync("agent", "tasks", "board");
 
         // assert
-        result.AssertError("task board requires an interactive terminal.");
+        result.AssertError("agent tasks board requires an interactive terminal.");
     }
 
     [Fact]
@@ -46,9 +46,9 @@ public sealed class BoardTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.Interactive);
 
         // act
-        var result = await ExecuteCommandAsync("task", "board");
+        var result = await ExecuteCommandAsync("agent", "tasks", "board");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro task init` first.");
+        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
     }
 }

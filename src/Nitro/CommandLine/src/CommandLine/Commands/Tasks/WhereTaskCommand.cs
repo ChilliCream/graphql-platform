@@ -12,7 +12,7 @@ internal sealed class WhereTaskCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task where");
+        this.AddExamples("agent tasks where");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -28,7 +28,7 @@ internal sealed class WhereTaskCommand : Command
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro task init` first.");
+                "No task workspace found. Run `nitro agent tasks init` first.");
 
         if (!console.IsHumanReadable)
         {

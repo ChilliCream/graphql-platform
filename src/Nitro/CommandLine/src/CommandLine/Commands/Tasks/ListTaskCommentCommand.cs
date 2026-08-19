@@ -15,7 +15,7 @@ internal sealed class ListTaskCommentCommand : Command
         Arguments.Add(Opt<TaskIdArgument>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task comment list \"acme-1a2\"");
+        this.AddExamples("agent tasks comment list \"acme-1a2\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

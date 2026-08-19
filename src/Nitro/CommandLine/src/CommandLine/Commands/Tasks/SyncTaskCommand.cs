@@ -32,9 +32,9 @@ internal sealed class SyncTaskCommand : Command
         });
 
         this.AddExamples(
-            "task sync --flush-only",
-            "task sync --import-only",
-            "task sync --status");
+            "agent tasks sync --flush-only",
+            "agent tasks sync --import-only",
+            "agent tasks sync --status");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -69,7 +69,7 @@ internal sealed class SyncTaskCommand : Command
     {
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro task init` first.");
+                "No task workspace found. Run `nitro agent tasks init` first.");
 
         var config = await store.ListConfigAsync(cancellationToken);
         var records = await store.ExportTasksAsync(cancellationToken);
@@ -95,7 +95,7 @@ internal sealed class SyncTaskCommand : Command
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? TaskWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro task init` first.");
+                "No task workspace found. Run `nitro agent tasks init` first.");
 
         var jsonlPath = TaskWorkspace.GetJsonlPath(workspaceDirectory);
 
@@ -134,7 +134,7 @@ internal sealed class SyncTaskCommand : Command
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? TaskWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro task init` first.");
+                "No task workspace found. Run `nitro agent tasks init` first.");
 
         var jsonlPath = TaskWorkspace.GetJsonlPath(workspaceDirectory);
         var hasDatabase = fileSystem.FileExists(TaskWorkspace.GetDatabasePath(workspaceDirectory));
@@ -143,7 +143,7 @@ internal sealed class SyncTaskCommand : Command
         if (!hasDatabase)
         {
             console.WriteLine(
-                "No task database. Run `nitro task sync --import-only` to create it from "
+                "No task database. Run `nitro agent tasks sync --import-only` to create it from "
                 + $"'{TaskWorkspace.JsonlFileName}'.");
 
             return ExitCodes.Error;
@@ -155,7 +155,7 @@ internal sealed class SyncTaskCommand : Command
         if (!hasJsonl)
         {
             console.WriteLine(
-                $"No '{TaskWorkspace.JsonlFileName}'. Run `nitro task sync --flush-only` to "
+                $"No '{TaskWorkspace.JsonlFileName}'. Run `nitro agent tasks sync --flush-only` to "
                 + $"create it from {records.Count} "
                 + $"{(records.Count == 1 ? "task" : "tasks")} in the database.");
 
@@ -176,7 +176,7 @@ internal sealed class SyncTaskCommand : Command
 
         console.WriteLine(
             $"'{TaskWorkspace.JsonlFileName}' and the task database have diverged. Run "
-            + "`nitro task sync --flush-only` or `nitro task sync --import-only` to reconcile.");
+            + "`nitro agent tasks sync --flush-only` or `nitro agent tasks sync --import-only` to reconcile.");
 
         return ExitCodes.Error;
     }

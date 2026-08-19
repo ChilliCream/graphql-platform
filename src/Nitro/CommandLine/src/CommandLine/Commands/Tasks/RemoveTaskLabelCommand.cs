@@ -17,7 +17,7 @@ internal sealed class RemoveTaskLabelCommand : Command
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task label remove \"acme-1a2\" api");
+        this.AddExamples("agent tasks label remove \"acme-1a2\" api");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -7,7 +7,7 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "lint", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,14 +16,14 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
               Report task quality findings.
 
             Usage:
-              nitro task lint [options]
+              nitro agent tasks lint [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task lint
+              nitro agent tasks lint
             """);
     }
 
@@ -35,7 +35,7 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Fix the parser", "--description", "Some detail.");
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess("No lint findings.");
@@ -49,7 +49,7 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         var id = await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess(
@@ -62,11 +62,11 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser", "--description", "Some detail.");
-        var updateResult = await ExecuteCommandAsync("task", "update", id, "--status", "deferred");
+        var updateResult = await ExecuteCommandAsync("agent", "tasks", "update", id, "--status", "deferred");
         Assert.Equal(0, updateResult.ExitCode);
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess(
@@ -79,11 +79,11 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser", "--description", "Some detail.");
-        var updateResult = await ExecuteCommandAsync("task", "update", id, "--status", "in_progress");
+        var updateResult = await ExecuteCommandAsync("agent", "tasks", "update", id, "--status", "in_progress");
         Assert.Equal(0, updateResult.ExitCode);
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess(
@@ -99,7 +99,7 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
             "Parent epic", "--type", "epic", "--description", "Some detail.");
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess($"{epicId}  epic-no-children: Epic has zero children.");
@@ -113,11 +113,11 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         var epicId = await CreateTaskAsync(
             "Parent epic", "--type", "epic", "--description", "Some detail.");
         await CreateTaskAsync("Child task", "--parent", epicId, "--description", "Some detail.");
-        var closeResult = await ExecuteCommandAsync("task", "close", epicId);
+        var closeResult = await ExecuteCommandAsync("agent", "tasks", "close", epicId);
         Assert.Equal(0, closeResult.ExitCode);
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess(
@@ -130,11 +130,11 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Fix the parser");
-        var deleteResult = await ExecuteCommandAsync("task", "delete", id, "--force");
+        var deleteResult = await ExecuteCommandAsync("agent", "tasks", "delete", id, "--force");
         Assert.Equal(0, deleteResult.ExitCode);
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess("No lint findings.");
@@ -149,7 +149,7 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "lint");
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
 
         // assert
         result.AssertSuccess(

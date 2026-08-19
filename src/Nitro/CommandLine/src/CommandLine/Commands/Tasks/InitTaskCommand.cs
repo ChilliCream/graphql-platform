@@ -17,7 +17,7 @@ internal sealed class InitTaskCommand : Command
         Options.Add(Opt<ForceReinitializeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("task init", "task init --prefix \"app\"");
+        this.AddExamples("agent tasks init", "agent tasks init --prefix \"app\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

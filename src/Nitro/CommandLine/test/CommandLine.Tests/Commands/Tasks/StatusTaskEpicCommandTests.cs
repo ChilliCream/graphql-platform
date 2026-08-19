@@ -7,7 +7,7 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "epic", "status", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,14 +16,14 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
               Show epics with their child completion counts.
 
             Usage:
-              nitro task epic status [options]
+              nitro agent tasks epic status [options]
 
             Options:
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task epic status
+              nitro agent tasks epic status
             """);
     }
 
@@ -31,12 +31,12 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro task init` first.
+            No task workspace found. Run `nitro agent tasks init` first.
             """);
     }
 
@@ -48,7 +48,7 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Standalone task");
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertSuccess(
@@ -65,10 +65,10 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
         var epicId = await CreateTaskAsync("Ship v2", "--type", "epic");
         var child1Id = await CreateTaskAsync("Design API", "--parent", epicId);
         await CreateTaskAsync("Implement API", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", child1Id);
+        await ExecuteCommandAsync("agent", "tasks", "close", child1Id);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertSuccess($"{epicId}  1/2  Ship v2");
@@ -81,10 +81,10 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var epicId = await CreateTaskAsync("Ship v3", "--type", "epic");
         var childId = await CreateTaskAsync("Design API v3", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", childId);
+        await ExecuteCommandAsync("agent", "tasks", "close", childId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertSuccess($"{epicId}  1/1  Ship v3  (eligible for close)");
@@ -97,11 +97,11 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var epicId = await CreateTaskAsync("Ship v4", "--type", "epic");
         var childId = await CreateTaskAsync("Design API v4", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", childId);
-        await ExecuteCommandAsync("task", "close", epicId);
+        await ExecuteCommandAsync("agent", "tasks", "close", childId);
+        await ExecuteCommandAsync("agent", "tasks", "close", epicId);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertSuccess($"{epicId}  1/1  Ship v4");
@@ -115,11 +115,11 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
         var epicId = await CreateTaskAsync("Ship v2", "--type", "epic");
         var child1Id = await CreateTaskAsync("Design API", "--parent", epicId);
         await CreateTaskAsync("Implement API", "--parent", epicId);
-        await ExecuteCommandAsync("task", "close", child1Id);
+        await ExecuteCommandAsync("agent", "tasks", "close", child1Id);
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertSuccess(
@@ -148,7 +148,7 @@ public sealed class StatusTaskEpicCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "epic", "status");
+        var result = await ExecuteCommandAsync("agent", "tasks", "epic", "status");
 
         // assert
         result.AssertSuccess(

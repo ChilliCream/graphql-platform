@@ -8,7 +8,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("task", "search", "--help");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -17,7 +17,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
               Search tasks by text.
 
             Usage:
-              nitro task search <text> [options]
+              nitro agent tasks search <text> [options]
 
             Arguments:
               <text>  The search text
@@ -28,8 +28,8 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro task search "parser"
-              nitro task search "parser" --limit 5
+              nitro agent tasks search "parser"
+              nitro agent tasks search "parser" --limit 5
             """);
     }
 
@@ -41,7 +41,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Fix the parser");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "nonexistent");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "nonexistent");
 
         // assert
         result.AssertSuccess("No tasks found.");
@@ -56,7 +56,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Write the docs");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "parser");
 
         // assert
         result.AssertSuccess(
@@ -76,7 +76,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
             "Improve error messages", "--description", "Handle edge cases in the tokenizer");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "tokenizer");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "tokenizer");
 
         // assert
         result.AssertSuccess(
@@ -94,10 +94,10 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Improve error messages");
         await ExecuteCommandAsync(
-            "task", "comment", "add", id, "Decided to use the tokenizer approach.");
+            "agent", "tasks", "comment", "add", id, "Decided to use the tokenizer approach.");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "tokenizer");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "tokenizer");
 
         // assert
         result.AssertSuccess(
@@ -114,11 +114,11 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var id = await CreateTaskAsync("Improve error messages");
-        await ExecuteCommandAsync("task", "comment", "add", id, "The tokenizer needs work.");
-        await ExecuteCommandAsync("task", "comment", "add", id, "Tokenizer fix landed.");
+        await ExecuteCommandAsync("agent", "tasks", "comment", "add", id, "The tokenizer needs work.");
+        await ExecuteCommandAsync("agent", "tasks", "comment", "add", id, "Tokenizer fix landed.");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "tokenizer");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "tokenizer");
 
         // assert
         result.AssertSuccess(
@@ -135,10 +135,10 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         var deletedId = await CreateTaskAsync("Widget cleanup");
-        await ExecuteCommandAsync("task", "delete", deletedId, "--force");
+        await ExecuteCommandAsync("agent", "tasks", "delete", deletedId, "--force");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "widget");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "widget");
 
         // assert
         result.AssertSuccess("No tasks found.");
@@ -154,7 +154,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Widget gamma", "--priority", "p2");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "widget", "--limit", "2");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "widget", "--limit", "2");
 
         // assert
         result.AssertSuccess(
@@ -175,7 +175,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "parser");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "parser");
 
         // assert
         result.AssertSuccess(
@@ -203,7 +203,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "nonexistent");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "nonexistent");
 
         // assert
         result.AssertSuccess(
@@ -223,7 +223,7 @@ public sealed class SearchTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Something else");
 
         // act
-        var result = await ExecuteCommandAsync("task", "search", "100%");
+        var result = await ExecuteCommandAsync("agent", "tasks", "search", "100%");
 
         // assert
         result.AssertSuccess(
