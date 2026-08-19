@@ -220,11 +220,12 @@ internal sealed class DependencyTreeView : ITuiMode
     {
         var innerWidth = Math.Max(1, width - 4);
         var innerHeight = Math.Max(1, height - 2);
-        var lines = RenderLines(innerWidth, innerHeight);
+        var (lines, maxRowWidth) = RenderLines(innerWidth, innerHeight);
+        var headerBudget = maxRowWidth == 0 ? innerWidth : Math.Min(innerWidth, maxRowWidth);
 
         return new Panel(lines.Count == 0 ? new Markup(string.Empty) : new Rows(lines))
         {
-            Header = new PanelHeader(BuildTitle(innerWidth)),
+            Header = new PanelHeader(BuildTitle(headerBudget)),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle("board.column.border.focused")
         };
@@ -355,11 +356,18 @@ internal sealed class DependencyTreeView : ITuiMode
             : text[..head] + "…";
     }
 
-    private IReadOnlyList<IRenderable> RenderLines(int width, int height)
+    /// <summary>
+    /// Renders the visible tree rows (and the "N more above/below" marker
+    /// rows, when the viewport hides part of the tree) at the given width
+    /// and height. Also returns the widest line's plain (markup-stripped)
+    /// character width, so the header can be budgeted against what the
+    /// panel actually renders rather than the raw inner width.
+    /// </summary>
+    private (IReadOnlyList<IRenderable> Lines, int MaxRowWidth) RenderLines(int width, int height)
     {
         if (height <= 0)
         {
-            return [];
+            return ([], 0);
         }
 
         var reservedRows = 0;
@@ -382,23 +390,30 @@ internal sealed class DependencyTreeView : ITuiMode
 
         var (start, count) = _viewport.Slice();
         var lines = new List<IRenderable>(count + 2);
+        var maxRowWidth = 0;
 
         if (_viewport.HiddenAbove > 0)
         {
-            lines.Add(new Markup(Markup.Escape($"  {_viewport.HiddenAbove} more above")));
+            var markup = Markup.Escape($"  {_viewport.HiddenAbove} more above");
+            maxRowWidth = Math.Max(maxRowWidth, Markup.Remove(markup).Length);
+            lines.Add(new Markup(markup));
         }
 
         for (var i = start; i < start + count; i++)
         {
-            lines.Add(new Markup(RenderRow(_rows[i], selected: i == _cursorIndex, width)));
+            var markup = RenderRow(_rows[i], selected: i == _cursorIndex, width);
+            maxRowWidth = Math.Max(maxRowWidth, Markup.Remove(markup).Length);
+            lines.Add(new Markup(markup));
         }
 
         if (_viewport.HiddenBelow > 0)
         {
-            lines.Add(new Markup(Markup.Escape($"  {_viewport.HiddenBelow} more below")));
+            var markup = Markup.Escape($"  {_viewport.HiddenBelow} more below");
+            maxRowWidth = Math.Max(maxRowWidth, Markup.Remove(markup).Length);
+            lines.Add(new Markup(markup));
         }
 
-        return lines;
+        return (lines, maxRowWidth);
     }
 
     private string RenderRow(TreeNodeRow row, bool selected, int width)

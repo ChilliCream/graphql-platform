@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using Spectre.Console;
+using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Tree;
@@ -392,11 +393,15 @@ public sealed class DependencyTreeViewTests
     {
         // arrange: a two-id breadcrumb (a pushed root plus the current root)
         // wide enough on its own to overflow the panel at the narrower
-        // widths below, regardless of how wide the tree's own rows are.
+        // widths below. The sole visible row (the tree has no edges once
+        // refocused on "z") carries a long title so the panel's own,
+        // content-driven width never becomes the binding constraint on the
+        // header budget at any of the widths under test, matching the
+        // pre-refactor header sizing exactly.
         var longRootId = new string('a', 30);
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create(longRootId));
-        store.Tasks.Add(TaskItemBuilder.Create("z"));
+        store.Tasks.Add(TaskItemBuilder.Create("z", title: new string('x', 60)));
         store.Edges.Add(Edge(longRootId, "z"));
         var view = new DependencyTreeView(store, longRootId);
         view.OnEnter();
@@ -406,12 +411,49 @@ public sealed class DependencyTreeViewTests
 
         // act
         var panel = Assert.IsType<Panel>(view.Render(width, 10));
+        var console = new TestConsole().Width(120);
+        console.Write(panel);
 
         // assert: the header degrades deterministically (middle-truncating
         // the id chain, then dropping the edge mode, then the direction)
         // instead of being cut wherever Spectre's own panel-header ellipsis
-        // lands.
-        Assert.Equal(expectedHeader, panel.Header!.Text);
+        // lands. Asserted against the rendered top border line rather than
+        // panel.Header.Text, since Spectre may still re-truncate a header
+        // that does not fit the panel's actual (content-driven) width.
+        Assert.Contains(expectedHeader, console.Lines[0]);
+    }
+
+    [Fact]
+    public void Render_Should_TruncateHeaderToPanelWidth_When_ContentRowsAreNarrowerThanHeader()
+    {
+        // arrange: the exact two-id breadcrumb from bd-595's repro (53 chars
+        // fully expanded: "acme-epic1 > acme-epic1.1 · blocking · depended
+        // on by"), but the only visible row after refocusing is the short,
+        // untitled "acme-epic1.1" node itself, so the panel's actual
+        // (content-driven) width is only 36 columns, well under the full
+        // header. The header must degrade to fit that panel width via this
+        // view's own deterministic middle-truncation, not via Spectre's
+        // PanelHeader ellipsis, which would otherwise cut it mid-word before
+        // " by".
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("acme-epic1"));
+        store.Tasks.Add(TaskItemBuilder.Create("acme-epic1.1"));
+        store.Edges.Add(Edge("acme-epic1", "acme-epic1.1"));
+        var view = new DependencyTreeView(store, "acme-epic1");
+        view.OnEnter();
+        view.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+        view.Refocus();
+        Assert.Equal("acme-epic1.1", view.RootId);
+        view.Handle(new TuiMessage.ToggleTreeDirection());
+        Assert.Equal(TreeDirection.Down, view.Direction);
+
+        // act
+        var panel = Assert.IsType<Panel>(view.Render(95, 10));
+        var console = new TestConsole().Width(120);
+        console.Write(panel);
+
+        // assert
+        Assert.Contains("acme…1.1 · blocking · depended on by", console.Lines[0]);
     }
 
     private static TaskDependency Edge(string taskId, string dependsOnId, string type = TaskDependencyTypes.Blocks)
