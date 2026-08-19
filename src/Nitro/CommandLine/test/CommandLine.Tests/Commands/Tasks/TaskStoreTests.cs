@@ -649,7 +649,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task AddDependencyAsync_DetectsBlockingCycle()
+    public async Task AddDependencyAsync_DetectsBlockingCycle_RejectsBeforeCommit()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -659,11 +659,16 @@ public sealed class TaskStoreTests : IAsyncDisposable
         await InsertDependencyAsync(connection, "acme-2", "acme-1", TaskDependencyTypes.Blocks);
 
         // act
-        var result = await _store.AddDependencyAsync(
-            "acme-1", "acme-2", TaskDependencyTypes.Blocks, "tester", cancellationToken);
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => _store.AddDependencyAsync(
+                "acme-1", "acme-2", TaskDependencyTypes.Blocks, "tester", cancellationToken));
 
         // assert
-        Assert.Equal(["acme-1", "acme-2", "acme-1"], result.Cycle);
+        Assert.Equal(
+            "Adding this dependency would create a cycle: acme-1 -> acme-2 -> acme-1.",
+            exception.Message);
+        Assert.Empty(await _store.GetDependenciesAsync("acme-1", cancellationToken));
+        Assert.Empty(await QueryEventTypesAsync(connection, "acme-1"));
     }
 
     [Fact]

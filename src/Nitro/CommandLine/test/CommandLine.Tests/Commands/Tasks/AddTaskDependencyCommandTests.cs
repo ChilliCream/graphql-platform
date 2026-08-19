@@ -102,7 +102,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JsonOutput_CreatesCycle_IncludesCycleInResult()
+    public async Task JsonOutput_CreatesCycle_ReturnsError()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -115,13 +115,12 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("task", "dep", "add", b, a);
 
         // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal(System.Text.Json.JsonValueKind.Array, root.GetProperty("cycle").ValueKind);
-        Assert.True(root.GetProperty("cycle").GetArrayLength() > 0);
+        result.AssertError($"Adding this dependency would create a cycle: {b} -> {a} -> {b}.");
+        Assert.Equal(
+            "0",
+            await QueryScalarAsync(
+                "SELECT COUNT(*) FROM dependencies "
+                + $"WHERE task_id = '{b}' AND depends_on_id = '{a}'"));
     }
 
     [Fact]
@@ -169,7 +168,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task CreatesCycle_PrintsWarning()
+    public async Task CreatesCycle_RejectsBeforeCommit()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -181,12 +180,16 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("task", "dep", "add", b, a);
 
         // assert
-        var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
-        var larger = smaller == a ? b : a;
-        result.AssertSuccess(
-            $"""
-            ✓ Added blocks dependency: '{b}' -> '{a}'.
-            Warning: dependency cycle: {smaller} -> {larger} -> {smaller}
-            """);
+        result.AssertError($"Adding this dependency would create a cycle: {b} -> {a} -> {b}.");
+        Assert.Equal(
+            "0",
+            await QueryScalarAsync(
+                "SELECT COUNT(*) FROM dependencies "
+                + $"WHERE task_id = '{b}' AND depends_on_id = '{a}'"));
+        Assert.Equal(
+            "1",
+            await QueryScalarAsync(
+                "SELECT COUNT(*) FROM dependencies "
+                + $"WHERE task_id = '{a}' AND depends_on_id = '{b}'"));
     }
 }

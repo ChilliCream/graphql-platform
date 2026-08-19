@@ -297,14 +297,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return (result, tasks);
     }
 
-    // -------------------------------------------------------------------
-    // New surface: backend-agnostic, no ADO.NET or SQLite types. Both the
-    // read members (bd-oyf.2) and the write members (bd-oyf.3) below are
-    // real implementations, each owning its own transaction and audit
-    // events. No command calls this surface yet; that migration is done by
-    // bd-oyf.4/bd-oyf.5.
-    // -------------------------------------------------------------------
-
     public async Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
         TaskFilter filter,
         CancellationToken cancellationToken)
@@ -1783,16 +1775,20 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             cancellationToken,
             transaction);
 
-        List<string>? cycle = null;
-
         if (TaskDependencyTypes.IsBlocking(type))
         {
-            cycle = await FindBlockingCycleAsync(connection, transaction, id, dependsOnId);
+            var cycle = await FindBlockingCycleAsync(connection, transaction, id, dependsOnId);
+
+            if (cycle is { Count: > 0 })
+            {
+                throw new ExitException(
+                    $"Adding this dependency would create a cycle: {FormatCycle(cycle)}.");
+            }
         }
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new TaskDependencyAddResult { Cycle = cycle };
+        return new TaskDependencyAddResult { Cycle = null };
     }
 
     public async Task RemoveDependencyAsync(
@@ -1913,8 +1909,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 transaction);
         }
 
-        List<string>? cycle = null;
-
         if (normalizedParentId is not null)
         {
             var existingCount = await connection.ExecuteScalarAsync<long>(
@@ -1955,7 +1949,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 cancellationToken,
                 transaction);
 
-            cycle = await FindBlockingCycleAsync(connection, transaction, id, normalizedParentId);
+            var cycle = await FindBlockingCycleAsync(connection, transaction, id, normalizedParentId);
+
+            if (cycle is { Count: > 0 })
+            {
+                throw new ExitException(
+                    $"Setting this parent would create a cycle: {FormatCycle(cycle)}.");
+            }
         }
 
         await connection.ExecuteAsync(
@@ -1965,7 +1965,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new TaskDependencyAddResult { Cycle = cycle };
+        return new TaskDependencyAddResult { Cycle = null };
     }
 
     public async Task EnsureWorkspaceAsync(
@@ -2404,6 +2404,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         return null;
     }
+
+    // Formats a cycle as returned by FindBlockingCycleAsync, which already
+    // starts and ends at the dependent task.
+    private static string FormatCycle(IReadOnlyList<string> cycle) => string.Join(" -> ", cycle);
 
     // Builds a plain ADO.NET-ready SQL fragment and parameter map. The
     // "statuses" filter expands its own IN-list placeholders (rather than

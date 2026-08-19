@@ -548,7 +548,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Parent_CreatesCycle_PrintsWarning()
+    public async Task Parent_CreatesCycle_RejectsBeforeCommit()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -560,13 +560,12 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("task", "update", b, "--parent", a);
 
         // assert
-        var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
-        var larger = smaller == a ? b : a;
-        result.AssertSuccess(
-            $"""
-            ✓ Updated task '{b}'.
-            Warning: dependency cycle: {smaller} -> {larger} -> {smaller}
-            """);
+        result.AssertError($"Setting this parent would create a cycle: {b} -> {a} -> {b}.");
+        Assert.Equal(
+            "0",
+            await QueryScalarAsync(
+                "SELECT COUNT(*) FROM dependencies "
+                + $"WHERE task_id = '{b}' AND depends_on_id = '{a}' AND dependency_type = 'parent-child'"));
     }
 
     [Fact]

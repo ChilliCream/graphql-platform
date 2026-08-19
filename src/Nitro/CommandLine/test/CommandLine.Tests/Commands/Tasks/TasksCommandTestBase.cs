@@ -72,6 +72,32 @@ public abstract class TasksCommandTestBase : CommandTestBase
         return result is null or DBNull ? null : result.ToString();
     }
 
+    /// <summary>
+    /// Inserts a dependency edge directly into the workspace database,
+    /// bypassing ITaskStore's cycle rejection. Used to seed a cycle that
+    /// reached the database some other way (a stale sync import, a manual
+    /// edit) so cycle-detection commands have something to find.
+    /// </summary>
+    protected async Task InsertDependencyAsync(string taskId, string dependsOnId, string type = "blocks")
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection =
+            new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "INSERT INTO dependencies (task_id, depends_on_id, dependency_type, created_at) "
+            + "VALUES (@taskId, @dependsOnId, @type, @now)";
+        command.Parameters.AddWithValue("@taskId", taskId);
+        command.Parameters.AddWithValue("@dependsOnId", dependsOnId);
+        command.Parameters.AddWithValue("@type", type);
+        command.Parameters.AddWithValue("@now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();

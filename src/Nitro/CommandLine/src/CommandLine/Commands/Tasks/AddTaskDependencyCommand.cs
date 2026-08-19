@@ -64,34 +64,7 @@ internal sealed class AddTaskDependencyCommand : Command
             $"Added {type.EscapeMarkup()} dependency: "
             + $"'{id.EscapeMarkup()}' -> '{dependsOnId.EscapeMarkup()}'.");
 
-        if (result.Cycle is { Count: > 0 } cycle)
-        {
-            // The store's cycle already closes the loop (starts and ends at
-            // id); drop the repeated closing id before handing it to
-            // FormatCycle, which closes the loop itself when printing.
-            console.WriteLine(
-                $"Warning: dependency cycle: {FormatCycle(cycle.Take(cycle.Count - 1).ToList())}");
-        }
-
         return ExitCodes.Success;
-    }
-
-    private static string FormatCycle(IReadOnlyList<string> cycle)
-    {
-        var minIndex = 0;
-
-        for (var i = 1; i < cycle.Count; i++)
-        {
-            if (string.CompareOrdinal(cycle[i], cycle[minIndex]) < 0)
-            {
-                minIndex = i;
-            }
-        }
-
-        var rotated = cycle.Skip(minIndex).Concat(cycle.Take(minIndex)).ToList();
-        rotated.Add(rotated[0]);
-
-        return string.Join(" -> ", rotated);
     }
 
     public sealed record TaskDependencyAddedResult

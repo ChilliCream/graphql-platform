@@ -293,7 +293,9 @@ internal interface ITaskStore
     /// Adds a dependency between two tasks, bumps the dependent's updated_at,
     /// and records a dependency-added event. Throws
     /// <see cref="ExitException"/> when either task does not exist, they are
-    /// the same task, or the dependency already exists.
+    /// the same task, the dependency already exists, or (for a blocking
+    /// dependency type) adding it would close a cycle; a rejected write is
+    /// rolled back before it commits.
     /// </summary>
     Task<TaskDependencyAddResult> AddDependencyAsync(
         string id,
@@ -321,10 +323,12 @@ internal interface ITaskStore
     /// and a dependency-added event for the new edge. Does nothing when the
     /// task's parent is already <paramref name="parentId"/>. Throws
     /// <see cref="ExitException"/> when the task or the new parent does not
-    /// exist, or the new parent is the task itself. The default
-    /// implementation here composes <see cref="RemoveDependencyAsync"/> and
-    /// <see cref="AddDependencyAsync"/>, non-atomically; implementations
-    /// should prefer a single-transaction override.
+    /// exist, the new parent is the task itself, or the new edge would close
+    /// a blocking-dependency cycle; a rejected write is rolled back before it
+    /// commits. The default implementation here composes
+    /// <see cref="RemoveDependencyAsync"/> and <see cref="AddDependencyAsync"/>,
+    /// non-atomically; implementations should prefer a single-transaction
+    /// override.
     /// </summary>
     async Task<TaskDependencyAddResult> SetParentAsync(
         string id,

@@ -198,18 +198,11 @@ internal sealed class UpdateTaskCommand : Command
                 cancellationToken);
         }
 
-        var parentCycles = new Dictionary<string, IReadOnlyList<string>>();
-
         foreach (var id in ids)
         {
             if (parentGiven)
             {
-                var parentResult = await store.SetParentAsync(id, parentValue, actor, cancellationToken);
-
-                if (parentResult.Cycle is { Count: > 0 } cycle)
-                {
-                    parentCycles[id] = cycle;
-                }
+                await store.SetParentAsync(id, parentValue, actor, cancellationToken);
             }
 
             if (addLabelsGiven)
@@ -241,36 +234,8 @@ internal sealed class UpdateTaskCommand : Command
         foreach (var task in tasks)
         {
             console.OkLine($"Updated task '{task.Id.EscapeMarkup()}'.");
-
-            if (parentCycles.TryGetValue(task.Id, out var cycle))
-            {
-                // The store's cycle already closes the loop (starts and ends
-                // at the task's id); drop the repeated closing id before
-                // handing it to FormatCycle, which closes the loop itself
-                // when printing.
-                console.WriteLine(
-                    $"Warning: dependency cycle: {FormatCycle(cycle.Take(cycle.Count - 1).ToList())}");
-            }
         }
 
         return ExitCodes.Success;
-    }
-
-    private static string FormatCycle(IReadOnlyList<string> cycle)
-    {
-        var minIndex = 0;
-
-        for (var i = 1; i < cycle.Count; i++)
-        {
-            if (string.CompareOrdinal(cycle[i], cycle[minIndex]) < 0)
-            {
-                minIndex = i;
-            }
-        }
-
-        var rotated = cycle.Skip(minIndex).Concat(cycle.Take(minIndex)).ToList();
-        rotated.Add(rotated[0]);
-
-        return string.Join(" -> ", rotated);
     }
 }
