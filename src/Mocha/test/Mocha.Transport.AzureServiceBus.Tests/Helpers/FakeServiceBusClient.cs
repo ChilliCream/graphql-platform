@@ -99,10 +99,19 @@ internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
 {
     public Action? OnStopProcessing { get; set; }
 
-    public override Task StartProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public int StartProcessingCallCount { get; private set; }
+
+    public int StopProcessingCallCount { get; private set; }
+
+    public override Task StartProcessingAsync(CancellationToken cancellationToken = default)
+    {
+        StartProcessingCallCount++;
+        return Task.CompletedTask;
+    }
 
     public override Task StopProcessingAsync(CancellationToken cancellationToken = default)
     {
+        StopProcessingCallCount++;
         OnStopProcessing?.Invoke();
         return Task.CompletedTask;
     }
