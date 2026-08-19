@@ -1,6 +1,8 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
+using Spectre.Console;
+using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Tree;
 
@@ -379,6 +381,37 @@ public sealed class DependencyTreeViewTests
 
         // assert
         Assert.Equal("a", view.RootId);
+    }
+
+    [Theory]
+    [InlineData(64, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa > z · blocking · depends on")]
+    [InlineData(44, "aaaaaaaa…aaa > z · blocking · depends on")]
+    [InlineData(24, "aaa…> z · depends on")]
+    [InlineData(10, "aaa… z")]
+    public void Render_Should_DegradeBreadcrumbHeader_When_PanelIsNarrow(int width, string expectedHeader)
+    {
+        // arrange: a two-id breadcrumb (a pushed root plus the current root)
+        // wide enough on its own to overflow the panel at the narrower
+        // widths below, regardless of how wide the tree's own rows are.
+        var longRootId = new string('a', 30);
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create(longRootId));
+        store.Tasks.Add(TaskItemBuilder.Create("z"));
+        store.Edges.Add(Edge(longRootId, "z"));
+        var view = new DependencyTreeView(store, longRootId);
+        view.OnEnter();
+        view.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+        view.Refocus();
+        Assert.Equal("z", view.RootId);
+
+        // act
+        var panel = Assert.IsType<Panel>(view.Render(width, 10));
+
+        // assert: the header degrades deterministically (middle-truncating
+        // the id chain, then dropping the edge mode, then the direction)
+        // instead of being cut wherever Spectre's own panel-header ellipsis
+        // lands.
+        Assert.Equal(expectedHeader, panel.Header!.Text);
     }
 
     private static TaskDependency Edge(string taskId, string dependsOnId, string type = TaskDependencyTypes.Blocks)

@@ -224,7 +224,7 @@ internal sealed class DependencyTreeView : ITuiMode
 
         return new Panel(lines.Count == 0 ? new Markup(string.Empty) : new Rows(lines))
         {
-            Header = new PanelHeader(BuildTitle()),
+            Header = new PanelHeader(BuildTitle(innerWidth)),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle("board.column.border.focused")
         };
@@ -287,14 +287,72 @@ internal sealed class DependencyTreeView : ITuiMode
         return -1;
     }
 
-    private string BuildTitle()
+    /// <summary>
+    /// Builds the panel header: the breadcrumb of ids the tree has been
+    /// refocused through, followed by the edge mode and direction. Degrades
+    /// deterministically as <paramref name="maxWidth"/> shrinks, middle-
+    /// truncating the id chain first and, if that alone still does not fit,
+    /// dropping the edge mode and then the direction, so the header never
+    /// depends on the panel's own ellipsis truncation.
+    /// </summary>
+    private string BuildTitle(int maxWidth)
     {
         var trail = _breadcrumbs.Reverse().Append(_rootId);
         var trailText = string.Join(" > ", trail);
         var edgeLabel = _edgeMode == TreeEdgeMode.Blocking ? "blocking" : "parent-child";
         var directionLabel = _direction == TreeDirection.Up ? "depends on" : "depended on by";
 
-        return Markup.Escape($"{trailText} · {edgeLabel} · {directionLabel}");
+        const string separator = " · ";
+        var suffixFull = separator + edgeLabel + separator + directionLabel;
+        var suffixDirectionOnly = separator + directionLabel;
+
+        string title;
+
+        if (maxWidth >= suffixFull.Length)
+        {
+            title = MiddleTruncate(trailText, maxWidth - suffixFull.Length) + suffixFull;
+        }
+        else if (maxWidth >= suffixDirectionOnly.Length)
+        {
+            title = MiddleTruncate(trailText, maxWidth - suffixDirectionOnly.Length) + suffixDirectionOnly;
+        }
+        else
+        {
+            title = MiddleTruncate(trailText, maxWidth);
+        }
+
+        return Markup.Escape(title);
+    }
+
+    /// <summary>
+    /// Truncates <paramref name="text"/> to at most <paramref name="maxLength"/>
+    /// characters, replacing the middle with a single ellipsis so both the
+    /// start and the end of an id chain stay legible.
+    /// </summary>
+    private static string MiddleTruncate(string text, int maxLength)
+    {
+        if (maxLength <= 0)
+        {
+            return string.Empty;
+        }
+
+        if (text.Length <= maxLength)
+        {
+            return text;
+        }
+
+        if (maxLength == 1)
+        {
+            return "…";
+        }
+
+        var keep = maxLength - 1;
+        var head = (keep + 1) / 2;
+        var tail = keep - head;
+
+        return tail > 0
+            ? text[..head] + "…" + text[(text.Length - tail)..]
+            : text[..head] + "…";
     }
 
     private IReadOnlyList<IRenderable> RenderLines(int width, int height)
