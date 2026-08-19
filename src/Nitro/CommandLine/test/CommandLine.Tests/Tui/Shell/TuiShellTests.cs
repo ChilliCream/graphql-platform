@@ -323,6 +323,75 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Handle_Should_ShowToast_When_EnterPressedOnBoardWithNoSelection()
+    {
+        // arrange: an empty board has no focused-column selection.
+        var store = new FakeTaskStore();
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+        };
+        var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
+        var shell = CreateShellWithModes(board, store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Contains("No task selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTaskDetail_When_EnterPressedOnBoardSelection()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+        };
+        var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
+        var shell = CreateShellWithModes(board, store, out _, out _);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.True(dirty);
+        Assert.Contains("Board task", rendered);
+        Assert.DoesNotContain("Detail view not available yet.", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReturnToBoardWithSelectionPreserved_When_EscapePressedAfterOpeningDetailFromBoard()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+        };
+        var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
+        var shell = CreateShellWithModes(board, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        Assert.Contains("Board task", RenderToText(shell));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Equal("a-1", board.State.Columns[0].SelectedTaskId);
+        Assert.DoesNotContain("Detail view not available yet.", RenderToText(shell));
+    }
+
+    [Fact]
     public void Handle_Should_ShowToast_When_EditRequestedWithNoSelection()
     {
         // arrange

@@ -5,11 +5,12 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising only the query surface
-/// the board model consumes (<see cref="QueryTasksAsync"/> and
-/// <see cref="ComputeBlockedAsync(CancellationToken)"/>). Every other member
-/// throws <see cref="NotSupportedException"/>: the board model never calls
-/// them.
+/// An in-memory <see cref="ITaskStore"/> exercising the query surface the
+/// board model consumes (<see cref="QueryTasksAsync"/> and
+/// <see cref="ComputeBlockedAsync(CancellationToken)"/>), plus the task
+/// detail surface <see cref="ChilliCream.Nitro.CommandLine.Tui.Board.BoardDetailMode"/>
+/// consumes (task by id, labels, dependencies, blocks, comments). Every
+/// other member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
@@ -88,6 +89,21 @@ internal sealed class FakeTaskStore : ITaskStore
         CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyDictionary<string, IReadOnlyList<string>>>(Blocked);
 
+    public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
+        => Task.FromResult(Tasks.FirstOrDefault(t => t.Id == id));
+
+    public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<string>>(Labels.TryGetValue(taskId, out var labels) ? labels : []);
+
+    public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(string taskId, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskComment>>([]);
+
+    public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(string taskId, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskDependencyDetail>>([]);
+
+    public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(string taskId, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskDependentDetail>>([]);
+
     public Task<SqliteConnection> InitializeAsync(string workspaceDirectory, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
@@ -129,25 +145,10 @@ internal sealed class FakeTaskStore : ITaskStore
         SqliteConnection connection, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
-    public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
     public Task<TaskItem> GetRequiredTaskAsync(string id, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
-    public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
     public Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(string taskId, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(CancellationToken cancellationToken)

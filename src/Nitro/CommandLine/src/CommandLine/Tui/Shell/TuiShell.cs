@@ -1,5 +1,6 @@
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
@@ -31,6 +32,7 @@ internal sealed class TuiShell
     private readonly string? _actor;
 
     private ITuiMode _activeMode;
+    private BoardDetailMode? _detailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
     private EditingConfirmDialog? _lifecycleDialog;
@@ -448,6 +450,9 @@ internal sealed class TuiShell
                 PopMode();
                 return true;
 
+            case TuiMessage.OpenSelected when _activeMode is BoardMode:
+                return TryOpenDetail();
+
             case TuiMessage.FocusSearchRequested:
                 if (_searchMode is not { } search)
                 {
@@ -490,6 +495,30 @@ internal sealed class TuiShell
 
                 return true;
         }
+    }
+
+    /// <summary>
+    /// Switches to the board's task detail mode, rooted on the board's
+    /// currently selected task. Reuses the same mode-stack semantics as
+    /// <see cref="TryOpenTree"/>: Back returns to the board with its
+    /// selection untouched.
+    /// </summary>
+    private bool TryOpenDetail()
+    {
+        if (_store is null)
+        {
+            return false;
+        }
+
+        if (_activeMode.SelectedTaskId is not { } id)
+        {
+            return ShowToastNow("No task selected.", ToastStyle.Warn);
+        }
+
+        _detailMode ??= new BoardDetailMode(_store);
+        _detailMode.OpenOnTask(id);
+        SwitchTo(_detailMode);
+        return true;
     }
 
     private bool TryOpenTree()

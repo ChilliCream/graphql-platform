@@ -217,9 +217,11 @@ public sealed class BoardModeTests
     }
 
     [Fact]
-    public void OpenSelected_Should_ReturnDetailViewNotAvailableToast()
+    public void OpenSelected_Should_ReturnEmpty()
     {
-        // arrange
+        // arrange: TuiShell intercepts OpenSelected for the board before it
+        // ever reaches BoardMode.Handle, switching to BoardDetailMode itself
+        // (see TuiShellTests). BoardMode's own handling is a no-op.
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -228,9 +230,7 @@ public sealed class BoardModeTests
         var messages = mode.Handle(new TuiMessage.OpenSelected());
 
         // assert
-        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(messages));
-        Assert.Equal("Detail view not available yet.", toast.Text);
-        Assert.Equal(ToastStyle.Info, toast.Style);
+        Assert.Empty(messages);
     }
 
     [Fact]

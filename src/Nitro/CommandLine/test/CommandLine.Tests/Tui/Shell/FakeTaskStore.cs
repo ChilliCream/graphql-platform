@@ -3,9 +3,11 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising only the surface
+/// An in-memory <see cref="ITaskStore"/> exercising the surface
 /// <see cref="TuiShell"/>'s cross-mode gestures consume (task by id, labels,
-/// close, reopen, delete, update, create). Every other member throws
+/// close, reopen, delete, update, create), plus the task detail surface
+/// <c>BoardDetailMode</c> consumes (dependencies, blocks, comments, computed
+/// blocked-by), which return empty. Every other member throws
 /// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
@@ -127,16 +129,16 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskComment>>([]);
 
     public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskDependencyDetail>>([]);
 
     public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(string taskId, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskDependentDetail>>([]);
 
     public Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyDictionary<string, IReadOnlyList<string>>>(new Dictionary<string, IReadOnlyList<string>>());
 
     public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();

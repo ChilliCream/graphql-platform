@@ -110,7 +110,9 @@ internal sealed class BoardMode : ITuiMode
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CycleView(var delta) => CycleView(delta),
         TuiMessage.ToggleMaximize => ToggleMaximize(),
-        TuiMessage.OpenSelected => [new TuiMessage.ShowToast("Detail view not available yet.", ToastStyle.Info)],
+        // OpenSelected on the board is handled by TuiShell before it ever
+        // reaches here: the shell switches to a BoardDetailMode showing the
+        // selection, mirroring how 't' opens the dependency tree.
         TuiMessage.CopySelectedId => CopySelectedId(),
         _ => []
     };
