@@ -239,6 +239,32 @@ public class AzureServiceBusDestinationsTests
     }
 
     [Fact]
+    public void GetDispatchEndpoint_Should_ResolveQueue_When_DirectAddressNameContainsSlash()
+    {
+        // arrange
+        var runtime = CreateRuntime(_ => { });
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(new Uri("azuresb:q/orders/eu"));
+
+        // assert
+        Assert.Equal("q/orders/eu", endpoint.Name);
+    }
+
+    [Fact]
+    public void GetDispatchEndpoint_Should_ResolveTopic_When_DirectAddressNameContainsSlash()
+    {
+        // arrange
+        var runtime = CreateRuntime(_ => { });
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(new Uri("azuresb:t/orders/eu"));
+
+        // assert
+        Assert.Equal("t/orders/eu", endpoint.Name);
+    }
+
+    [Fact]
     public void GetDispatchEndpoint_Should_Throw_When_AddressIsOnAnotherNamespace()
     {
         var runtime = CreateRuntime(_ => { });
