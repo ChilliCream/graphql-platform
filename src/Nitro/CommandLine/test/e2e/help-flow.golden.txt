@@ -9,11 +9,14 @@ Options:
   --status <status>      Filter by status; can be used multiple times
   --type <type>          The task type (task, bug, feature, epic, chore, docs, question, or
                          custom)
-  --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog)
+  --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog);
+                         list/ready also accept a range like 0-1 or p0-p1
   --assignee <assignee>  The assignee
   --label <label>        A label; can be used multiple times
   --limit <limit>        The maximum number of tasks to show
   --all                  Include closed and tombstoned tasks
+  --output <json>        The output format (enables non-interactive mode) [env:
+                         NITRO_OUTPUT_FORMAT]
   -?, -h, --help         Show help and usage information
 
 Example:
