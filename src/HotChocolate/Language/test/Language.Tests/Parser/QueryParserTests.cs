@@ -766,11 +766,11 @@ public class QueryParserTests
         document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
-    [Fact(Skip = "Implement Parse Variable Directives")]
+    [Fact]
     public void ParseVariablesWithDirective()
     {
         // arrange
-        var sourceText = @"query ($a: String! @foo) a(a: $a)"u8.ToArray();
+        var sourceText = "query ($a: String! @foo) { a(a: $a) }"u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
