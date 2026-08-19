@@ -20,6 +20,7 @@ internal sealed class TaskCommand : Command
         Subcommands.Add(new InitTaskCommand());
         Subcommands.Add(new TaskLabelCommand());
         Subcommands.Add(new ListTaskCommand());
+        Subcommands.Add(new QuickTaskCommand());
         Subcommands.Add(new ReadyTaskCommand());
         Subcommands.Add(new ReopenTaskCommand());
         Subcommands.Add(new SearchTaskCommand());
