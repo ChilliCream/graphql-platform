@@ -38,7 +38,8 @@ internal sealed class ListTaskLabelCommand : Command
 
             if (!console.IsHumanReadable)
             {
-                resultHolder.SetResult(new ListResult<string>(labels));
+                var items = labels.Select(label => new TaskLabelCount(label, 1)).ToList();
+                resultHolder.SetResult(new ListResult<TaskLabelCount>(items));
                 return ExitCodes.Success;
             }
 

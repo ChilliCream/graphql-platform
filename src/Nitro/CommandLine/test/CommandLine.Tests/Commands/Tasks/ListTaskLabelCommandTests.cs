@@ -130,8 +130,14 @@ public sealed class ListTaskLabelCommandTests(NitroCommandFixture fixture)
             """
             {
               "items": [
-                "api",
-                "parser"
+                {
+                  "label": "api",
+                  "count": 1
+                },
+                {
+                  "label": "parser",
+                  "count": 1
+                }
               ]
             }
             """);

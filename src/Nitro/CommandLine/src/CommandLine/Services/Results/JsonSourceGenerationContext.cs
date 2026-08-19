@@ -53,7 +53,6 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(TaskDependenciesResult))]
 [JsonSerializable(typeof(TaskDependencyTreeNode))]
 [JsonSerializable(typeof(ListResult<TaskCycleResult>))]
-[JsonSerializable(typeof(ListResult<string>))]
 [JsonSerializable(typeof(ListResult<TaskLabelCount>))]
 [JsonSerializable(typeof(ListResult<TaskComment>))]
 [JsonSerializable(typeof(GetTaskConfigCommand.TaskConfigValueResult))]
