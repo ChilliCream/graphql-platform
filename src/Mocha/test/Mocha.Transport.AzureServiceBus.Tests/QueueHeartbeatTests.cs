@@ -27,6 +27,22 @@ public class QueueHeartbeatTests
     }
 
     [Fact]
+    public async Task DisposeAsync_Should_BeNoOp_When_CalledTwice()
+    {
+        // arrange
+        await using var client = new ServiceBusClient(FakeConnectionString);
+        var receiver = client.CreateReceiver("test-queue");
+        var heartbeat = new QueueHeartbeat(receiver, NullLogger.Instance, "test-queue");
+
+        // act
+        await heartbeat.DisposeAsync();
+        await heartbeat.DisposeAsync();
+
+        // assert
+        Assert.True(receiver.IsClosed);
+    }
+
+    [Fact]
     public async Task DisposeAsync_Should_CompleteWithinStopTimeout_When_PeekIgnoresCancellation()
     {
         // arrange
