@@ -1,3 +1,4 @@
+using System.Reflection;
 using Azure.Messaging.ServiceBus;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Helpers;
@@ -117,11 +118,29 @@ internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
 /// </summary>
 internal sealed class FakeServiceBusSessionProcessor : ServiceBusSessionProcessor
 {
+    // The SDK forwards ProcessMessageAsync/ProcessErrorAsync subscriptions to an inner
+    // ServiceBusProcessor that the mocking-only parameterless constructor never assigns;
+    // without one, subscribing throws a NullReferenceException.
+    private static readonly FieldInfo s_innerProcessorField = typeof(ServiceBusSessionProcessor)
+        .GetField("<InnerProcessor>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+    public FakeServiceBusSessionProcessor()
+    {
+        s_innerProcessorField.SetValue(this, new FakeInnerProcessor());
+    }
+
     public override Task StartProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public override Task StopProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
+
+    private sealed class FakeInnerProcessor : ServiceBusProcessor
+    {
+        public override Task StartProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public override Task StopProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
 }
 
 /// <summary>

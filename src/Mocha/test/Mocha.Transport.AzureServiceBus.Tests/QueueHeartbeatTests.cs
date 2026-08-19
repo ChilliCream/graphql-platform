@@ -29,17 +29,19 @@ public class QueueHeartbeatTests
     [Fact]
     public async Task DisposeAsync_Should_CompleteWithinStopTimeout_When_PeekIgnoresCancellation()
     {
+        // arrange
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var blockedPeek = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         async Task PeekAsync(CancellationToken cancellationToken)
         {
             started.TrySetResult();
 
-            // Ignores the cancellation token and blocks well past the heartbeat's internal stop timeout.
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            // Ignores the cancellation token and blocks past the heartbeat's internal stop timeout,
+            // until the test releases it below.
+            await blockedPeek.Task;
         }
 
-        // arrange
         var heartbeat = new QueueHeartbeat(
             PeekAsync,
             TimeSpan.FromMilliseconds(10),
@@ -54,6 +56,7 @@ public class QueueHeartbeatTests
         var stopwatch = Stopwatch.StartNew();
         await heartbeat.DisposeAsync();
         stopwatch.Stop();
+        blockedPeek.TrySetResult();
 
         // assert - disposal falls back to the internal stop timeout instead of hanging on the stuck peek
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"DisposeAsync took {stopwatch.Elapsed}");
