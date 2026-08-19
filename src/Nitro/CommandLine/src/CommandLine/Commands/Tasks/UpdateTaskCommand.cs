@@ -10,9 +10,9 @@ internal sealed class UpdateTaskCommand : Command
 {
     public UpdateTaskCommand() : base("update")
     {
-        Description = "Update a task's fields.";
+        Description = "Update one or more tasks' fields.";
 
-        Arguments.Add(Opt<TaskIdArgument>.Instance);
+        Arguments.Add(Opt<TaskIdsArgument>.Instance);
         Options.Add(Opt<TaskTitleOption>.Instance);
         Options.Add(Opt<TaskDescriptionOption>.Instance);
         Options.Add(Opt<TaskStatusOption>.Instance);
@@ -30,7 +30,8 @@ internal sealed class UpdateTaskCommand : Command
 
         this.AddExamples(
             "task update \"app-1a2\" --status in_progress",
-            "task update \"app-1a2\" --priority p1 --assignee alice");
+            "task update \"app-1a2\" --priority p1 --assignee alice",
+            "task update \"app-1a2\" \"app-9z8\" --priority p1");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -45,7 +46,9 @@ internal sealed class UpdateTaskCommand : Command
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
+        var ids = parseResult.GetRequiredValue(Opt<TaskIdsArgument>.Instance)
+            .Distinct()
+            .ToArray();
         var actor = TaskActor.Resolve(
             parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariables);
 
@@ -109,8 +112,8 @@ internal sealed class UpdateTaskCommand : Command
             priority = TaskPriorities.Parse(parseResult.GetValue(Opt<TaskPriorityOption>.Instance) ?? "");
         }
 
-        await store.UpdateTaskAsync(
-            id,
+        var tasks = await store.UpdateTasksAsync(
+            ids,
             new TaskUpdate
             {
                 Actor = actor,
@@ -147,14 +150,16 @@ internal sealed class UpdateTaskCommand : Command
 
         if (!console.IsHumanReadable)
         {
-            var updatedTask = await store.GetRequiredTaskAsync(id, cancellationToken);
-
-            resultHolder.SetResult(new ObjectResult(TaskSnapshotResult.From(updatedTask)));
+            resultHolder.SetResult(
+                new ListResult<TaskSnapshotResult>(tasks.Select(task => TaskSnapshotResult.From(task)).ToArray()));
 
             return ExitCodes.Success;
         }
 
-        console.OkLine($"Updated task '{id.EscapeMarkup()}'.");
+        foreach (var task in tasks)
+        {
+            console.OkLine($"Updated task '{task.Id.EscapeMarkup()}'.");
+        }
 
         return ExitCodes.Success;
     }

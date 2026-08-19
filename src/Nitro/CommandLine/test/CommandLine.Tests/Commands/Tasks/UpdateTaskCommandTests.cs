@@ -13,13 +13,13 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
         result.AssertHelpOutput(
             """
             Description:
-              Update a task's fields.
+              Update one or more tasks' fields.
 
             Usage:
-              nitro task update <id> [options]
+              nitro task update <ids>... [options]
 
             Arguments:
-              <id>  The task ID
+              <ids>  One or more task IDs
 
             Options:
               --title <title>                              The task title
@@ -41,6 +41,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
             Example:
               nitro task update "app-1a2" --status in_progress
               nitro task update "app-1a2" --priority p1 --assignee alice
+              nitro task update "app-1a2" "app-9z8" --priority p1
             """);
     }
 
@@ -201,13 +202,97 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
+        var items = document.RootElement.GetProperty("items");
 
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal(id, root.GetProperty("id").GetString());
-        Assert.Equal("Fix the parser properly", root.GetProperty("title").GetString());
-        Assert.Equal(1, root.GetProperty("priority").GetInt32());
+        Assert.Equal(1, items.GetArrayLength());
+        Assert.Equal(id, items[0].GetProperty("id").GetString());
+        Assert.Equal("Fix the parser properly", items[0].GetProperty("title").GetString());
+        Assert.Equal(1, items[0].GetProperty("priority").GetInt32());
+    }
+
+    [Fact]
+    public async Task JsonOutput_MultipleTasks_ReturnsAllSnapshots()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id1 = await CreateTaskAsync("Fix the parser");
+        var id2 = await CreateTaskAsync("Write the docs");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id1, id2, "--priority", "p1");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items");
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(2, items.GetArrayLength());
+        Assert.Equal(id1, items[0].GetProperty("id").GetString());
+        Assert.Equal(id2, items[1].GetProperty("id").GetString());
+        Assert.Equal(1, items[0].GetProperty("priority").GetInt32());
+        Assert.Equal(1, items[1].GetProperty("priority").GetInt32());
+    }
+
+    [Fact]
+    public async Task MultipleTasks_UpdatesAllTasks()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id1 = await CreateTaskAsync("Fix the parser");
+        var id2 = await CreateTaskAsync("Write the docs");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id1, id2, "--priority", "p1");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id1}'.
+            ✓ Updated task '{id2}'.
+            """);
+        Assert.Equal(
+            "1|1",
+            await QueryScalarAsync(
+                $"""
+                SELECT group_concat(priority, '|') FROM (
+                    SELECT priority FROM tasks WHERE id IN ('{id1}', '{id2}') ORDER BY id
+                )
+                """));
+    }
+
+    [Fact]
+    public async Task AtomicFailure_OneBadId_UpdatesNothing()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id1 = await CreateTaskAsync("Fix the parser");
+        var id2 = await CreateTaskAsync("Write the docs");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "update", id1, "acme-999", id2, "--priority", "p1");
+
+        // assert
+        result.AssertError("Task 'acme-999' does not exist.");
+        Assert.Equal(
+            "2|2",
+            await QueryScalarAsync(
+                $"""
+                SELECT group_concat(priority, '|') FROM (
+                    SELECT priority FROM tasks WHERE id IN ('{id1}', '{id2}') ORDER BY id
+                )
+                """));
+        Assert.Equal(
+            "0",
+            await QueryScalarAsync(
+                $"""
+                SELECT COUNT(*) FROM events
+                WHERE task_id IN ('{id1}', '{id2}') AND event_type = 'priority_changed'
+                """));
     }
 
     [Fact]

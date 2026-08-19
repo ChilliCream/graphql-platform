@@ -169,6 +169,31 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Applies the given field changes to every task and records the
+    /// corresponding events for each. Throws <see cref="ExitException"/> when
+    /// any task does not exist, is a tombstone, or a status guard is
+    /// violated. Implementations should validate every task before writing
+    /// any, mirroring <see cref="CloseTaskAsync"/>'s all-or-nothing
+    /// behavior; the default implementation here instead applies the update
+    /// one task at a time via <see cref="UpdateTaskAsync"/>.
+    /// </summary>
+    async Task<IReadOnlyList<TaskItem>> UpdateTasksAsync(
+        IReadOnlyList<string> ids,
+        TaskUpdate update,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<TaskItem>(ids.Count);
+
+        foreach (var id in ids)
+        {
+            await UpdateTaskAsync(id, update, cancellationToken);
+            results.Add(await GetRequiredTaskAsync(id, cancellationToken));
+        }
+
+        return results;
+    }
+
+    /// <summary>
     /// Closes every given task and records a closed event for each. All
     /// tasks are validated before any is written: either every task closes
     /// or none does. Throws <see cref="ExitException"/> when any task does

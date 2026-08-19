@@ -839,6 +839,20 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return new TaskCreationResult { Id = id, BlockedBy = blockedBy };
     }
 
+    /// <summary>
+    /// The in-memory outcome of validating and applying a
+    /// <see cref="TaskUpdate"/> to a single task, before it is written.
+    /// </summary>
+    private sealed record TaskUpdateChange(
+        TaskItem Task,
+        List<string> ChangedFields,
+        string? OldStatus,
+        string? NewStatus,
+        string? OldPriority,
+        string? NewPriority,
+        string? OldAssignee,
+        string? NewAssignee);
+
     public async Task<TaskUpdateResult> UpdateTaskAsync(
         string id,
         TaskUpdate update,
@@ -850,6 +864,67 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
+        var change = ApplyUpdate(task, update);
+        task.UpdatedAt = now;
+
+        await WriteUpdateAsync(connection, transaction, task, change, update.Actor, now, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TaskUpdateResult { ChangedFields = change.ChangedFields };
+    }
+
+    /// <summary>
+    /// Applies the given field changes to every task and records the
+    /// corresponding events for each. Every task is loaded and validated
+    /// before any is written: either every task updates or none does,
+    /// mirroring <see cref="CloseTaskAsync"/>. Throws
+    /// <see cref="ExitException"/> when any task does not exist, is a
+    /// tombstone, or a status guard is violated.
+    /// </summary>
+    public async Task<IReadOnlyList<TaskItem>> UpdateTasksAsync(
+        IReadOnlyList<string> ids,
+        TaskUpdate update,
+        CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        // Every task is loaded and validated (and has the update applied
+        // in-memory) before any write happens, which gives the bulk update
+        // its all-or-nothing behavior: nothing is written until every id has
+        // passed.
+        var changes = new List<TaskUpdateChange>();
+
+        foreach (var id in ids)
+        {
+            var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+            changes.Add(ApplyUpdate(task, update));
+        }
+
+        foreach (var change in changes)
+        {
+            change.Task.UpdatedAt = now;
+
+            await WriteUpdateAsync(
+                connection, transaction, change.Task, change, update.Actor, now, cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return changes.Select(change => change.Task).ToArray();
+    }
+
+    /// <summary>
+    /// Validates the given update against the task's current state and
+    /// applies the resulting field changes to <paramref name="task"/> in
+    /// memory. Performs no I/O. Throws <see cref="ExitException"/> when a
+    /// status guard is violated.
+    /// </summary>
+    private static TaskUpdateChange ApplyUpdate(TaskItem task, TaskUpdate update)
+    {
         var changedFields = new List<string>();
         string? oldStatus = null;
         string? newStatus = null;
@@ -1007,8 +1082,25 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             }
         }
 
-        task.UpdatedAt = now;
+        return new TaskUpdateChange(
+            task, changedFields, oldStatus, newStatus, oldPriority, newPriority, oldAssignee, newAssignee);
+    }
 
+    /// <summary>
+    /// Persists a previously-computed <see cref="TaskUpdateChange"/> and
+    /// records the corresponding events. Performs no validation, since
+    /// <see cref="ApplyUpdate"/> already validated and applied the change to
+    /// <paramref name="task"/> in memory.
+    /// </summary>
+    private async Task WriteUpdateAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        TaskItem task,
+        TaskUpdateChange change,
+        string actor,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
         await connection.ExecuteAsync(
             """
             UPDATE tasks
@@ -1047,76 +1139,72 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             },
             transaction);
 
-        if (oldStatus is not null)
+        if (change.OldStatus is not null)
         {
             await RecordEventAsync(
                 connection,
                 new TaskEvent
                 {
-                    TaskId = id,
+                    TaskId = task.Id,
                     Type = TaskEventTypes.StatusChanged,
-                    Actor = update.Actor,
-                    OldValue = oldStatus,
-                    NewValue = newStatus,
+                    Actor = actor,
+                    OldValue = change.OldStatus,
+                    NewValue = change.NewStatus,
                     CreatedAt = now
                 },
                 cancellationToken,
                 transaction);
         }
 
-        if (oldPriority is not null)
+        if (change.OldPriority is not null)
         {
             await RecordEventAsync(
                 connection,
                 new TaskEvent
                 {
-                    TaskId = id,
+                    TaskId = task.Id,
                     Type = TaskEventTypes.PriorityChanged,
-                    Actor = update.Actor,
-                    OldValue = oldPriority,
-                    NewValue = newPriority,
+                    Actor = actor,
+                    OldValue = change.OldPriority,
+                    NewValue = change.NewPriority,
                     CreatedAt = now
                 },
                 cancellationToken,
                 transaction);
         }
 
-        if (oldAssignee is not null)
+        if (change.OldAssignee is not null)
         {
             await RecordEventAsync(
                 connection,
                 new TaskEvent
                 {
-                    TaskId = id,
+                    TaskId = task.Id,
                     Type = TaskEventTypes.AssigneeChanged,
-                    Actor = update.Actor,
-                    OldValue = oldAssignee,
-                    NewValue = newAssignee,
+                    Actor = actor,
+                    OldValue = change.OldAssignee,
+                    NewValue = change.NewAssignee,
                     CreatedAt = now
                 },
                 cancellationToken,
                 transaction);
         }
 
-        if (changedFields.Count > 0)
+        if (change.ChangedFields.Count > 0)
         {
             await RecordEventAsync(
                 connection,
                 new TaskEvent
                 {
-                    TaskId = id,
+                    TaskId = task.Id,
                     Type = TaskEventTypes.Updated,
-                    Actor = update.Actor,
-                    Comment = string.Join(", ", changedFields),
+                    Actor = actor,
+                    Comment = string.Join(", ", change.ChangedFields),
                     CreatedAt = now
                 },
                 cancellationToken,
                 transaction);
         }
-
-        await transaction.CommitAsync(cancellationToken);
-
-        return new TaskUpdateResult { ChangedFields = changedFields };
     }
 
     public async Task<IReadOnlyList<TaskItem>> CloseTaskAsync(
