@@ -25,7 +25,7 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
               --title <title>                              The task title
               --description <description>                  The task description
               --status <status>                            The task status (open, in_progress, blocked, deferred, closed, or custom)
-              --priority <priority>                        The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog)
+              --priority <priority>                        The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog); list/ready also accept a range like 0-1 or p0-p1
               --type <type>                                The task type (task, bug, feature, epic, chore, docs, question, or custom)
               --assignee <assignee>                        The assignee
               --notes <notes>                              The task notes

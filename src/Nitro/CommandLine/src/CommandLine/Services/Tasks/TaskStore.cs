@@ -2097,6 +2097,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             conditions.Add("priority = @priority");
         }
 
+        if (filter.PriorityMin is { } priorityMin && filter.PriorityMax is { } priorityMax)
+        {
+            parameters["priorityMin"] = priorityMin;
+            parameters["priorityMax"] = priorityMax;
+            conditions.Add("priority BETWEEN @priorityMin AND @priorityMax");
+        }
+
         if (filter.Unassigned)
         {
             conditions.Add("(assignee IS NULL OR assignee = '')");

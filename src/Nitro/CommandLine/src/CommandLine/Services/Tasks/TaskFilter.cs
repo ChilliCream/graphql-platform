@@ -37,6 +37,18 @@ internal sealed record TaskFilter
     public int? Priority { get; init; }
 
     /// <summary>
+    /// The inclusive low bound of a priority range a task's priority must
+    /// fall within. Ignored unless <see cref="PriorityMax"/> is also set.
+    /// </summary>
+    public int? PriorityMin { get; init; }
+
+    /// <summary>
+    /// The inclusive high bound of a priority range a task's priority must
+    /// fall within. Ignored unless <see cref="PriorityMin"/> is also set.
+    /// </summary>
+    public int? PriorityMax { get; init; }
+
+    /// <summary>
     /// An assignee a task must have. Ignored when <see cref="Unassigned"/>
     /// is true.
     /// </summary>

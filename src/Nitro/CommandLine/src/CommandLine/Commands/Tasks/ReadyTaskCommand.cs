@@ -43,10 +43,15 @@ internal sealed class ReadyTaskCommand : Command
         var unassigned = !string.IsNullOrEmpty(assignee)
             && string.Equals(assignee, "unassigned", StringComparison.OrdinalIgnoreCase);
 
+        var priorityRange = priorityValue is null
+            ? default((int Min, int Max)?)
+            : TaskPriorities.ParseRange(priorityValue);
+
         var filter = new TaskFilter
         {
             Statuses = [TaskStates.Open],
-            Priority = priorityValue is null ? null : TaskPriorities.Parse(priorityValue),
+            PriorityMin = priorityRange?.Min,
+            PriorityMax = priorityRange?.Max,
             Unassigned = unassigned,
             Assignee = unassigned ? null : assignee,
             Labels = labels,

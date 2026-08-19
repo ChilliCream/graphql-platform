@@ -46,12 +46,15 @@ internal sealed class ListTaskCommand : Command
         var limit = parseResult.GetValue(Opt<TaskLimitOption>.Instance);
         var all = parseResult.GetValue(Opt<TaskAllOption>.Instance);
 
+        var priorityRange = priority is null ? default((int Min, int Max)?) : TaskPriorities.ParseRange(priority);
+
         var filter = new TaskFilter
         {
             Statuses = statuses,
             IncludeAll = all,
             Type = type,
-            Priority = priority is null ? null : TaskPriorities.Parse(priority),
+            PriorityMin = priorityRange?.Min,
+            PriorityMax = priorityRange?.Max,
             Assignee = assignee,
             Labels = labels,
             Limit = limit

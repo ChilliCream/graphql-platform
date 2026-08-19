@@ -34,4 +34,34 @@ internal static class TaskPriorities
         throw new ExitException(
             $"Invalid priority '{value}'. Use 0-4 or p0-p4 (0 = critical, 4 = backlog).");
     }
+
+    /// <summary>
+    /// Parses a single priority or an inclusive range "N-M" / "pN-pM"
+    /// (each bound accepted in the same forms as <see cref="Parse"/>). A
+    /// single value returns a range with equal bounds. Throws
+    /// <see cref="ExitException"/> when a bound is invalid or the low
+    /// bound is greater than the high bound.
+    /// </summary>
+    public static (int Min, int Max) ParseRange(string value)
+    {
+        var trimmed = value.Trim();
+        var dashIndex = trimmed.IndexOf('-');
+
+        if (dashIndex > 0)
+        {
+            var min = Parse(trimmed[..dashIndex]);
+            var max = Parse(trimmed[(dashIndex + 1)..]);
+
+            if (min > max)
+            {
+                throw new ExitException(
+                    $"Invalid priority range '{value}'. The low bound must be <= the high bound.");
+            }
+
+            return (min, max);
+        }
+
+        var single = Parse(trimmed);
+        return (single, single);
+    }
 }

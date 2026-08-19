@@ -19,7 +19,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
               nitro task ready [options]
 
             Options:
-              --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog)
+              --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog); list/ready also accept a range like 0-1 or p0-p1
               --assignee <assignee>  The assignee
               --label <label>        A label; can be used multiple times
               --limit <limit>        The maximum number of tasks to show
@@ -130,6 +130,44 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
 
             1 task(s)
             """);
+    }
+
+    [Fact]
+    public async Task PriorityRange_ReturnsTasksWithinBounds()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var criticalId = ExtractTaskId(
+            await ExecuteCommandAsync("task", "create", "Critical task", "--priority", "p0"));
+        var highId = ExtractTaskId(
+            await ExecuteCommandAsync("task", "create", "High task", "--priority", "p1"));
+        await ExecuteCommandAsync("task", "create", "Medium task", "--priority", "p2");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "ready", "--priority", "p0-p1");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {criticalId}  P0  task  open  Critical task
+            {highId}  P1  task  open  High task
+
+            2 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task PriorityRange_LowGreaterThanHigh_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("task", "ready", "--priority", "3-1");
+
+        // assert
+        result.AssertError(
+            "Invalid priority range '3-1'. The low bound must be <= the high bound.");
     }
 
     [Fact]
