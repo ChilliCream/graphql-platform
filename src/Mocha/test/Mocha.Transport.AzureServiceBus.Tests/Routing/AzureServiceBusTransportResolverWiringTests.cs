@@ -1,3 +1,4 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
@@ -79,44 +80,46 @@ public class AzureServiceBusTransportResolverWiringTests
         Assert.Equal("t/orders-topic", endpoint.Name);
     }
 
-    [Fact]
-    public void NeutralScheme_Should_BeClaimed_When_TransportIsDefault()
+    [Theory]
+    [InlineData("primary")]
+    [InlineData("secondary")]
+    public void CreateEndpointConfiguration_Should_ClaimNeutralSchemes_When_TransportIsAzureServiceBus(
+        string transportName)
     {
         // arrange
-        // Two Azure Service Bus transports; the one under test carries IsDefaultTransport().
-        // queue: and topic: are neutral schemes supported by Azure Service Bus transports.
+        // Two Azure Service Bus transports, one default and one not. queue: and topic: are neutral
+        // schemes both transports must be able to claim; EndpointRouter decides which one is selected.
         var runtime = CreateMultiTransportRuntime();
-        var primary = runtime.Transports
+        var transport = runtime.Transports
             .OfType<AzureServiceBusMessagingTransport>()
-            .Single(t => t.Name == "primary");
+            .Single(t => t.Name == transportName);
 
         // act
-        var queueConfig = primary.CreateEndpointConfiguration(runtime, new Uri("queue:order-commands"));
-        var topicConfig = primary.CreateEndpointConfiguration(runtime, new Uri("topic:orders"));
+        var queueConfig = (AzureServiceBusDispatchEndpointConfiguration)transport.CreateEndpointConfiguration(
+            runtime, new Uri("queue:order-commands"))!;
+        var topicConfig = (AzureServiceBusDispatchEndpointConfiguration)transport.CreateEndpointConfiguration(
+            runtime, new Uri("topic:orders"))!;
 
         // assert
-        Assert.NotNull(queueConfig);
-        Assert.NotNull(topicConfig);
-    }
-
-    [Fact]
-    public void NeutralScheme_Should_BeClaimable_When_TransportIsNotDefault()
-    {
-        // arrange
-        // Two Azure Service Bus transports; the one under test is not the default. It still
-        // advertises capability, while EndpointRouter decides whether this candidate is selected.
-        var runtime = CreateMultiTransportRuntime();
-        var secondary = runtime.Transports
-            .OfType<AzureServiceBusMessagingTransport>()
-            .Single(t => t.Name == "secondary");
-
-        // act
-        var queueConfig = secondary.CreateEndpointConfiguration(runtime, new Uri("queue:order-commands"));
-        var topicConfig = secondary.CreateEndpointConfiguration(runtime, new Uri("topic:orders"));
-
-        // assert
-        Assert.NotNull(queueConfig);
-        Assert.NotNull(topicConfig);
+        new
+        {
+            Queue = new { queueConfig.QueueName, queueConfig.TopicName, queueConfig.Name },
+            Topic = new { topicConfig.QueueName, topicConfig.TopicName, topicConfig.Name }
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Queue": {
+                "QueueName": "order-commands",
+                "TopicName": null,
+                "Name": "q/order-commands"
+              },
+              "Topic": {
+                "QueueName": null,
+                "TopicName": "orders",
+                "Name": "t/orders"
+              }
+            }
+            """);
     }
 
     private static MessagingRuntime CreateMultiTransportRuntime()
