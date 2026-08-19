@@ -570,12 +570,15 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(40, 24));
 
-        // assert: both columns get an equal 12-row slice, so the first
-        // column's bottom border sits at row 11 and the second column's
-        // bottom border reaches the last requested row, no blank gap.
+        // assert: the 1 separator row between the 2 columns leaves 23 rows to
+        // share, an uneven split of 12 and 11, so the first column's bottom
+        // border sits at row 11, row 12 is the blank separator, and the
+        // second column's bottom border reaches the last requested row, no
+        // blank gap left over below it.
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[11]);
+        Assert.Equal(string.Empty, lines[12]);
         Assert.Contains('╰', lines[^1]);
     }
 

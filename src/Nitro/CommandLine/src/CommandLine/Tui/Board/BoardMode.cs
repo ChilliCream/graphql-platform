@@ -167,10 +167,19 @@ internal sealed class BoardMode : ITuiMode
     private IRenderable RenderStacked(BoardLayoutDecision decision)
     {
         var columns = _state.Columns;
-        var rows = new List<IRenderable>(columns.Count);
+        var rows = new List<IRenderable>(Math.Max(0, columns.Count * 2 - 1));
 
         for (var i = 0; i < columns.Count; i++)
         {
+            if (i > 0)
+            {
+                // One blank row between consecutive column panels, mirroring
+                // the separator rows BoardLayout reserves for stacked heights.
+                // An empty Markup collapses to nothing inside Rows, so Text is
+                // used here to force a real blank line.
+                rows.Add(new Text(string.Empty));
+            }
+
             var slot = decision.Columns[i];
 
             rows.Add(slot.Expanded

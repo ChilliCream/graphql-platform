@@ -88,6 +88,13 @@ internal static class BoardLayout
     private const int MinEqualStackedHeight = MinStackedInteriorHeight + StackedPanelChromeHeight;
 
     /// <summary>
+    /// The blank rows <see cref="BoardLayoutKind.Stacked"/> reserves between
+    /// consecutive column panels: one row per gap, so <paramref name="columnCount"/>
+    /// panels need <c>columnCount - 1</c> separator rows.
+    /// </summary>
+    private static int SeparatorRows(int columnCount) => Math.Max(0, columnCount - 1);
+
+    /// <summary>
     /// Decides the layout for a frame of the given size over
     /// <paramref name="columnCount"/> columns, with
     /// <paramref name="focusedColumnIndex"/> focused and
@@ -171,15 +178,19 @@ internal static class BoardLayout
     private static IReadOnlyList<BoardColumnLayout> BuildStacked(
         int width, int height, int columnCount, int focused)
     {
-        return height >= columnCount * MinEqualStackedHeight
-            ? BuildStackedEqual(width, height, columnCount)
-            : BuildStackedFocusedFallback(width, height, columnCount, focused);
+        var separatorRows = SeparatorRows(columnCount);
+
+        return height >= columnCount * MinEqualStackedHeight + separatorRows
+            ? BuildStackedEqual(width, height, columnCount, separatorRows)
+            : BuildStackedFocusedFallback(width, height, columnCount, focused, separatorRows);
     }
 
-    private static IReadOnlyList<BoardColumnLayout> BuildStackedEqual(int width, int height, int columnCount)
+    private static IReadOnlyList<BoardColumnLayout> BuildStackedEqual(
+        int width, int height, int columnCount, int separatorRows)
     {
-        var baseHeight = height / columnCount;
-        var remainder = height % columnCount;
+        var distributable = height - separatorRows;
+        var baseHeight = distributable / columnCount;
+        var remainder = distributable % columnCount;
         var columns = new BoardColumnLayout[columnCount];
 
         for (var i = 0; i < columnCount; i++)
@@ -192,11 +203,11 @@ internal static class BoardLayout
     }
 
     private static IReadOnlyList<BoardColumnLayout> BuildStackedFocusedFallback(
-        int width, int height, int columnCount, int focused)
+        int width, int height, int columnCount, int focused, int separatorRows)
     {
         var columns = new BoardColumnLayout[columnCount];
         var collapsedTotal = CollapsedStackedHeight * (columnCount - 1);
-        var expandedHeight = Math.Max(1, height - collapsedTotal);
+        var expandedHeight = Math.Max(1, height - collapsedTotal - separatorRows);
 
         for (var i = 0; i < columnCount; i++)
         {

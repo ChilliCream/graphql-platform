@@ -91,10 +91,11 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_ShareHeightEqually_When_StackedWithRoomToShareEqually()
     {
-        // act
-        var decision = BoardLayout.Decide(40, 30, 3, focusedColumnIndex: 1, maximized: false);
+        // act: 3 columns need 2 separator rows, so 32 rows leaves 30
+        // distributable rows, which divides evenly by 3.
+        var decision = BoardLayout.Decide(40, 32, 3, focusedColumnIndex: 1, maximized: false);
 
-        // assert: 30 / 3 divides evenly, so every column gets the same slice.
+        // assert
         Assert.All(decision.Columns, c => Assert.Equal(10, c.Height));
         Assert.Equal(30, decision.Columns.Sum(c => c.Height));
     }
@@ -102,14 +103,15 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_GiveRemainderRowsToFirstColumns_When_StackedHeightDoesNotDivideEvenly()
     {
-        // act: 31 rows over 3 columns leaves a remainder of 1.
+        // act: 3 columns need 2 separator rows, leaving 29 distributable rows
+        // over 3 columns, a remainder of 2.
         var decision = BoardLayout.Decide(40, 31, 3, focusedColumnIndex: 0, maximized: false);
 
         // assert
-        Assert.Equal(11, decision.Columns[0].Height);
+        Assert.Equal(10, decision.Columns[0].Height);
         Assert.Equal(10, decision.Columns[1].Height);
-        Assert.Equal(10, decision.Columns[2].Height);
-        Assert.Equal(31, decision.Columns.Sum(c => c.Height));
+        Assert.Equal(9, decision.Columns[2].Height);
+        Assert.Equal(29, decision.Columns.Sum(c => c.Height));
     }
 
     [Fact]
@@ -126,6 +128,21 @@ public sealed class BoardLayoutTests
         Assert.True(decision.Columns[1].Expanded);
         Assert.False(decision.Columns[2].Expanded);
         Assert.True(decision.Columns[1].Height > decision.Columns[0].Height);
+    }
+
+    [Fact]
+    public void Decide_Should_FallBackDeterministically_When_SeparatorRowsMakeFiveColumnsTooTightAt24Rows()
+    {
+        // act: 5 columns need 25 rows to share equally on top of 4 separator
+        // rows (29 total), so a 24-row terminal falls back to expanding only
+        // the focused column instead of throwing or producing negative
+        // heights.
+        var decision = BoardLayout.Decide(40, 24, 5, focusedColumnIndex: 2, maximized: false);
+
+        // assert
+        Assert.Equal(BoardLayoutKind.Stacked, decision.Kind);
+        Assert.True(decision.Columns[2].Expanded);
+        Assert.All(decision.Columns, c => Assert.True(c.Height >= 1));
     }
 
     [Fact]
