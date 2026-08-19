@@ -1846,6 +1846,112 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await transaction.CommitAsync(cancellationToken);
     }
 
+    public async Task SetParentAsync(
+        string id,
+        string? parentId,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var normalizedParentId = string.IsNullOrEmpty(parentId) ? null : parentId;
+
+        if (normalizedParentId == id)
+        {
+            throw new ExitException("A task cannot be its own parent.");
+        }
+
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
+
+        if (normalizedParentId is not null)
+        {
+            await GetRequiredTaskAsync(connection, normalizedParentId, cancellationToken, transaction);
+        }
+
+        var existingParentIds = (await connection.QueryAsync<string>(
+                "SELECT depends_on_id FROM dependencies "
+                + "WHERE task_id = @id AND dependency_type = @type",
+                new { id, type = TaskDependencyTypes.ParentChild, cancellationToken },
+                transaction))
+            .ToList();
+
+        if (existingParentIds.Count == 1 && existingParentIds[0] == normalizedParentId)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return;
+        }
+
+        if (existingParentIds.Count == 0 && normalizedParentId is null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return;
+        }
+
+        foreach (var existingParentId in existingParentIds)
+        {
+            await connection.ExecuteAsync(
+                "DELETE FROM dependencies "
+                + "WHERE task_id = @id AND depends_on_id = @existingParentId AND dependency_type = @type",
+                new { id, existingParentId, type = TaskDependencyTypes.ParentChild, cancellationToken },
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.DependencyRemoved,
+                    Actor = actor,
+                    OldValue = null,
+                    NewValue = $"{TaskDependencyTypes.ParentChild}:{existingParentId}",
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        if (normalizedParentId is not null)
+        {
+            await connection.ExecuteAsync(
+                "INSERT INTO dependencies "
+                + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
+                + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+                new TaskDependency
+                {
+                    TaskId = id,
+                    DependsOnId = normalizedParentId,
+                    Type = TaskDependencyTypes.ParentChild,
+                    CreatedAt = now,
+                    CreatedBy = actor
+                },
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.DependencyAdded,
+                    Actor = actor,
+                    OldValue = null,
+                    NewValue = $"{TaskDependencyTypes.ParentChild}:{normalizedParentId}",
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        await connection.ExecuteAsync(
+            "UPDATE tasks SET updated_at = @updatedAt WHERE id = @id",
+            new { updatedAt = now, id, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
     public async Task EnsureWorkspaceAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)

@@ -25,13 +25,20 @@ internal sealed class UpdateTaskCommand : Command
         Options.Add(Opt<TaskDueOption>.Instance);
         Options.Add(Opt<TaskDeferUntilOption>.Instance);
         Options.Add(Opt<TaskEstimateOption>.Instance);
+        Options.Add(Opt<TaskAddLabelOption>.Instance);
+        Options.Add(Opt<TaskRemoveLabelOption>.Instance);
+        Options.Add(Opt<TaskParentOption>.Instance);
+        Options.Add(Opt<TaskClaimOption>.Instance);
         Options.Add(Opt<TaskActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "task update \"app-1a2\" --status in_progress",
             "task update \"app-1a2\" --priority p1 --assignee alice",
-            "task update \"app-1a2\" \"app-9z8\" --priority p1");
+            "task update \"app-1a2\" \"app-9z8\" --priority p1",
+            "task update \"app-1a2\" --claim",
+            "task update \"app-1a2\" --add-label api --remove-label triage",
+            "task update \"app-1a2\" --parent \"app-9z8\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -67,12 +74,29 @@ internal sealed class UpdateTaskCommand : Command
         var deferUntilGiven =
             parseResult.GetResult(Opt<TaskDeferUntilOption>.Instance) is { Implicit: false };
         var estimateGiven = parseResult.GetResult(Opt<TaskEstimateOption>.Instance) is { Implicit: false };
+        var addLabelsGiven = parseResult.GetResult(Opt<TaskAddLabelOption>.Instance) is { Implicit: false };
+        var removeLabelsGiven =
+            parseResult.GetResult(Opt<TaskRemoveLabelOption>.Instance) is { Implicit: false };
+        var parentGiven = parseResult.GetResult(Opt<TaskParentOption>.Instance) is { Implicit: false };
+        var claimGiven = parseResult.GetResult(Opt<TaskClaimOption>.Instance) is { Implicit: false };
 
         if (!titleGiven && !descriptionGiven && !statusGiven && !priorityGiven && !typeGiven
             && !assigneeGiven && !notesGiven && !designGiven && !acceptanceCriteriaGiven
-            && !dueGiven && !deferUntilGiven && !estimateGiven)
+            && !dueGiven && !deferUntilGiven && !estimateGiven && !addLabelsGiven
+            && !removeLabelsGiven && !parentGiven && !claimGiven)
         {
             throw new ExitException("Nothing to update. Pass at least one option.");
+        }
+
+        // --claim is shorthand for "--status in_progress --assignee <actor>";
+        // an explicit --status or --assignee on the same call wins.
+        var explicitStatusGiven = statusGiven;
+        var explicitAssigneeGiven = assigneeGiven;
+
+        if (claimGiven)
+        {
+            statusGiven = true;
+            assigneeGiven = true;
         }
 
         string? title = null;
@@ -112,41 +136,92 @@ internal sealed class UpdateTaskCommand : Command
             priority = TaskPriorities.Parse(parseResult.GetValue(Opt<TaskPriorityOption>.Instance) ?? "");
         }
 
-        var tasks = await store.UpdateTasksAsync(
-            ids,
-            new TaskUpdate
+        var addLabels = parseResult.GetValue(Opt<TaskAddLabelOption>.Instance) ?? [];
+        var removeLabels = parseResult.GetValue(Opt<TaskRemoveLabelOption>.Instance) ?? [];
+        var parentValue = parseResult.GetValue(Opt<TaskParentOption>.Instance);
+
+        var coreFieldGiven = titleGiven || descriptionGiven || statusGiven || priorityGiven
+            || typeGiven || assigneeGiven || notesGiven || designGiven || acceptanceCriteriaGiven
+            || dueGiven || deferUntilGiven || estimateGiven;
+
+        // Every id is validated up front so a bad id fails before any write,
+        // including the --add-label/--remove-label/--parent writes below,
+        // which go through the existing per-id store methods rather than the
+        // bulk-update transaction.
+        foreach (var id in ids)
+        {
+            await store.GetRequiredTaskAsync(id, cancellationToken);
+        }
+
+        if (coreFieldGiven)
+        {
+            await store.UpdateTasksAsync(
+                ids,
+                new TaskUpdate
+                {
+                    Actor = actor,
+                    Title = title,
+                    TitleGiven = titleGiven,
+                    Description = parseResult.GetValue(Opt<TaskDescriptionOption>.Instance),
+                    DescriptionGiven = descriptionGiven,
+                    Status = statusGiven
+                        ? (explicitStatusGiven
+                            ? TaskStates.Normalize(parseResult.GetValue(Opt<TaskStatusOption>.Instance) ?? "")
+                            : TaskStates.InProgress)
+                        : null,
+                    StatusGiven = statusGiven,
+                    Priority = priority,
+                    PriorityGiven = priorityGiven,
+                    Type = typeGiven
+                        ? TaskTypes.Normalize(parseResult.GetValue(Opt<TaskTypeOption>.Instance) ?? "")
+                        : null,
+                    TypeGiven = typeGiven,
+                    Assignee = assigneeGiven
+                        ? (explicitAssigneeGiven
+                            ? parseResult.GetValue(Opt<TaskAssigneeOption>.Instance)
+                            : actor)
+                        : null,
+                    AssigneeGiven = assigneeGiven,
+                    Notes = parseResult.GetValue(Opt<TaskNotesOption>.Instance),
+                    NotesGiven = notesGiven,
+                    Design = parseResult.GetValue(Opt<TaskDesignOption>.Instance),
+                    DesignGiven = designGiven,
+                    AcceptanceCriteria = parseResult.GetValue(Opt<TaskAcceptanceCriteriaOption>.Instance),
+                    AcceptanceCriteriaGiven = acceptanceCriteriaGiven,
+                    DueAt = due,
+                    DueAtGiven = dueGiven,
+                    DeferUntil = deferUntil,
+                    DeferUntilGiven = deferUntilGiven,
+                    EstimatedMinutes = parseResult.GetValue(Opt<TaskEstimateOption>.Instance),
+                    EstimatedMinutesGiven = estimateGiven
+                },
+                cancellationToken);
+        }
+
+        foreach (var id in ids)
+        {
+            if (parentGiven)
             {
-                Actor = actor,
-                Title = title,
-                TitleGiven = titleGiven,
-                Description = parseResult.GetValue(Opt<TaskDescriptionOption>.Instance),
-                DescriptionGiven = descriptionGiven,
-                Status = statusGiven
-                    ? TaskStates.Normalize(parseResult.GetValue(Opt<TaskStatusOption>.Instance) ?? "")
-                    : null,
-                StatusGiven = statusGiven,
-                Priority = priority,
-                PriorityGiven = priorityGiven,
-                Type = typeGiven
-                    ? TaskTypes.Normalize(parseResult.GetValue(Opt<TaskTypeOption>.Instance) ?? "")
-                    : null,
-                TypeGiven = typeGiven,
-                Assignee = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance),
-                AssigneeGiven = assigneeGiven,
-                Notes = parseResult.GetValue(Opt<TaskNotesOption>.Instance),
-                NotesGiven = notesGiven,
-                Design = parseResult.GetValue(Opt<TaskDesignOption>.Instance),
-                DesignGiven = designGiven,
-                AcceptanceCriteria = parseResult.GetValue(Opt<TaskAcceptanceCriteriaOption>.Instance),
-                AcceptanceCriteriaGiven = acceptanceCriteriaGiven,
-                DueAt = due,
-                DueAtGiven = dueGiven,
-                DeferUntil = deferUntil,
-                DeferUntilGiven = deferUntilGiven,
-                EstimatedMinutes = parseResult.GetValue(Opt<TaskEstimateOption>.Instance),
-                EstimatedMinutesGiven = estimateGiven
-            },
-            cancellationToken);
+                await store.SetParentAsync(id, parentValue, actor, cancellationToken);
+            }
+
+            if (addLabelsGiven)
+            {
+                await store.AddLabelAsync(id, addLabels, actor, cancellationToken);
+            }
+
+            foreach (var label in removeLabels)
+            {
+                await store.RemoveLabelAsync(id, label, actor, cancellationToken);
+            }
+        }
+
+        var tasks = new List<TaskItem>(ids.Length);
+
+        foreach (var id in ids)
+        {
+            tasks.Add(await store.GetRequiredTaskAsync(id, cancellationToken));
+        }
 
         if (!console.IsHumanReadable)
         {

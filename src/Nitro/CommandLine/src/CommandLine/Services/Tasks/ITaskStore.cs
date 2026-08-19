@@ -314,6 +314,56 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Replaces a task's parent-child edge: removes any existing parent-child
+    /// edge from the task and, when <paramref name="parentId"/> is not null
+    /// or empty, adds a new one to that parent, bumping the task's
+    /// updated_at and recording a dependency-removed event per edge removed
+    /// and a dependency-added event for the new edge. Does nothing when the
+    /// task's parent is already <paramref name="parentId"/>. Throws
+    /// <see cref="ExitException"/> when the task or the new parent does not
+    /// exist, or the new parent is the task itself. The default
+    /// implementation here composes <see cref="RemoveDependencyAsync"/> and
+    /// <see cref="AddDependencyAsync"/>, non-atomically; implementations
+    /// should prefer a single-transaction override.
+    /// </summary>
+    async Task SetParentAsync(
+        string id,
+        string? parentId,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var normalizedParentId = string.IsNullOrEmpty(parentId) ? null : parentId;
+
+        if (normalizedParentId == id)
+        {
+            throw new ExitException("A task cannot be its own parent.");
+        }
+
+        await GetRequiredTaskAsync(id, cancellationToken);
+
+        var existingParentIds = (await GetDependenciesAsync(id, cancellationToken))
+            .Where(dependency => dependency.Type == TaskDependencyTypes.ParentChild)
+            .Select(dependency => dependency.DependsOnId)
+            .ToList();
+
+        if (existingParentIds.Count == 1 && existingParentIds[0] == normalizedParentId)
+        {
+            return;
+        }
+
+        foreach (var existingParentId in existingParentIds)
+        {
+            await RemoveDependencyAsync(id, existingParentId, actor, cancellationToken);
+        }
+
+        if (normalizedParentId is not null)
+        {
+            await AddDependencyAsync(
+                id, normalizedParentId, TaskDependencyTypes.ParentChild, actor, cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// Returns every task, including tombstones, with its labels, outgoing
     /// dependencies, and comments embedded, ordered by id.
     /// </summary>

@@ -34,6 +34,10 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
               --due <due>                                  The due date as an ISO 8601 date or timestamp
               --defer-until <defer-until>                  Hide the task from ready work until this ISO 8601 date or timestamp
               --estimate <estimate>                        The estimated effort in minutes
+              --add-label <add-label>                      A label to add; can be used multiple times
+              --remove-label <remove-label>                A label to remove; can be used multiple times
+              --parent <parent>                            The parent task ID; the new task becomes its child
+              --claim                                      Shorthand for --status in_progress --assignee <actor>
               --actor <actor>                              The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
               --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                               Show help and usage information
@@ -42,6 +46,9 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
               nitro task update "app-1a2" --status in_progress
               nitro task update "app-1a2" --priority p1 --assignee alice
               nitro task update "app-1a2" "app-9z8" --priority p1
+              nitro task update "app-1a2" --claim
+              nitro task update "app-1a2" --add-label api --remove-label triage
+              nitro task update "app-1a2" --parent "app-9z8"
             """);
     }
 
@@ -292,6 +299,271 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
                 $"""
                 SELECT COUNT(*) FROM events
                 WHERE task_id IN ('{id1}', '{id2}') AND event_type = 'priority_changed'
+                """));
+    }
+
+    [Fact]
+    public async Task Claim_SetsStatusInProgressAndAssigneeToActor()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--claim");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id}'.
+            """);
+        Assert.Equal(
+            "in_progress|test-agent",
+            await QueryScalarAsync(
+                $"SELECT status || '|' || assignee FROM tasks WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task Claim_ComposesWithOtherOptions()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--claim", "--priority", "p1");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id}'.
+            """);
+        Assert.Equal(
+            "in_progress|test-agent|1",
+            await QueryScalarAsync(
+                $"SELECT status || '|' || assignee || '|' || priority FROM tasks WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task Claim_ExplicitAssigneeWins()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "update", id, "--claim", "--assignee", "alice");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id}'.
+            """);
+        Assert.Equal(
+            "in_progress|alice",
+            await QueryScalarAsync(
+                $"SELECT status || '|' || assignee FROM tasks WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task AddLabelRemoveLabel_UpdatesLabelsAndRecordsEvents()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser", "--label", "triage");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "update", id, "--add-label", "api", "--remove-label", "triage");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id}'.
+            """);
+        Assert.Equal(
+            "api",
+            await QueryScalarAsync(
+                $"SELECT group_concat(label, ',') FROM labels WHERE task_id = '{id}'"));
+        Assert.Equal(
+            "label_added:api;label_removed:triage",
+            await QueryScalarAsync(
+                $"""
+                SELECT group_concat(entry, ';') FROM (
+                    SELECT event_type || ':' || COALESCE(new_value, old_value) AS entry
+                    FROM events
+                    WHERE task_id = '{id}' AND event_type IN ('label_added', 'label_removed')
+                    ORDER BY id
+                )
+                """));
+    }
+
+    [Fact]
+    public async Task AddLabelOnly_SatisfiesNothingToUpdateGuard()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--add-label", "api");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id}'.
+            """);
+        Assert.Equal(
+            "api",
+            await QueryScalarAsync(
+                $"SELECT group_concat(label, ',') FROM labels WHERE task_id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task Parent_SetsParentChildEdge()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var parentId = await CreateTaskAsync("Epic");
+        var childId = await CreateTaskAsync("Child");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", childId, "--parent", parentId);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{childId}'.
+            """);
+        Assert.Equal(
+            parentId,
+            await QueryScalarAsync(
+                $"""
+                SELECT depends_on_id FROM dependencies
+                WHERE task_id = '{childId}' AND dependency_type = 'parent-child'
+                """));
+    }
+
+    [Fact]
+    public async Task Parent_ReplacesExistingParent()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var oldParentId = await CreateTaskAsync("Old epic");
+        var newParentId = await CreateTaskAsync("New epic");
+        var childId = await CreateTaskAsync("Child", "--parent", oldParentId);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", childId, "--parent", newParentId);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{childId}'.
+            """);
+        Assert.Equal(
+            newParentId,
+            await QueryScalarAsync(
+                $"""
+                SELECT depends_on_id FROM dependencies
+                WHERE task_id = '{childId}' AND dependency_type = 'parent-child'
+                """));
+        Assert.Equal(
+            "1",
+            await QueryScalarAsync(
+                $"""
+                SELECT COUNT(*) FROM dependencies
+                WHERE task_id = '{childId}' AND dependency_type = 'parent-child'
+                """));
+    }
+
+    [Fact]
+    public async Task EmptyParent_ClearsParent()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var parentId = await CreateTaskAsync("Epic");
+        var childId = await CreateTaskAsync("Child", "--parent", parentId);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", childId, "--parent", "");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{childId}'.
+            """);
+        Assert.Equal(
+            "0",
+            await QueryScalarAsync(
+                $"""
+                SELECT COUNT(*) FROM dependencies
+                WHERE task_id = '{childId}' AND dependency_type = 'parent-child'
+                """));
+    }
+
+    [Fact]
+    public async Task Parent_SelfParent_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--parent", id);
+
+        // assert
+        result.AssertError("A task cannot be its own parent.");
+    }
+
+    [Fact]
+    public async Task Parent_UnknownParent_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--parent", "acme-999");
+
+        // assert
+        result.AssertError("Task 'acme-999' does not exist.");
+    }
+
+    [Fact]
+    public async Task MultipleIds_AppliesAddLabelAndParentToEach()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var parentId = await CreateTaskAsync("Epic");
+        var id1 = await CreateTaskAsync("Fix the parser");
+        var id2 = await CreateTaskAsync("Write the docs");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "task", "update", id1, id2, "--add-label", "triage", "--parent", parentId);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{id1}'.
+            ✓ Updated task '{id2}'.
+            """);
+        Assert.Equal(
+            "2",
+            await QueryScalarAsync(
+                $"""
+                SELECT COUNT(*) FROM labels
+                WHERE task_id IN ('{id1}', '{id2}') AND label = 'triage'
+                """));
+        Assert.Equal(
+            "2",
+            await QueryScalarAsync(
+                $"""
+                SELECT COUNT(*) FROM dependencies
+                WHERE task_id IN ('{id1}', '{id2}') AND dependency_type = 'parent-child'
+                    AND depends_on_id = '{parentId}'
                 """));
     }
 
