@@ -89,11 +89,20 @@ internal sealed class SearchMode : ITuiMode
     [
         new KeyBinding(
             new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, '\u001b'),
-            () => new TuiMessage.MoveCursor(CursorDirection.Left)),
+            () => new TuiMessage.MoveCursor(CursorDirection.Left),
+            new KeyHint("esc", "back")),
         new KeyBinding(
             new KeyChord(ConsoleKey.Tab, ConsoleModifiers.None, '\t'),
-            () => new TuiMessage.OpenSelected())
+            () => new TuiMessage.OpenSelected(),
+            new KeyHint("tab", "open"))
     ]);
+
+    /// <summary>
+    /// The footer hint shown in addition to <see cref="KeyMap"/>'s while the
+    /// query input has focus: every other printable key is typed into the
+    /// query rather than dispatched.
+    /// </summary>
+    public static readonly KeyHint TypingHint = new("type", "search");
 
     public void OnEnter()
     {

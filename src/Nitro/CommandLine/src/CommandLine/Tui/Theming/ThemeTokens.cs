@@ -69,6 +69,9 @@ internal static class DefaultTheme
         ["form.button.secondary"] = new Style(Color.Black, Color.Grey70),
         ["form.button.secondary.focused"] = new Style(Color.Black, Color.Grey70, Decoration.Bold),
         ["form.button.danger"] = new Style(Color.White, Color.Red),
-        ["form.button.danger.focused"] = new Style(Color.White, Color.Red, Decoration.Bold)
+        ["form.button.danger.focused"] = new Style(Color.White, Color.Red, Decoration.Bold),
+
+        ["footer.key"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["footer.action"] = new Style(Color.Grey70)
     };
 }

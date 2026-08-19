@@ -370,6 +370,75 @@ public sealed class KeyMapTests
     }
 
     [Fact]
+    public void Hints_Should_BeEmpty_When_NoBindingCarriesAHint()
+    {
+        // arrange
+        var keyMap = new KeyMap([new KeyBinding(new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a'), () => new TuiMessage.RefreshRequested())]);
+
+        // assert
+        Assert.Empty(keyMap.Hints);
+    }
+
+    [Fact]
+    public void Hints_Should_OmitBindings_Without_AHint()
+    {
+        // arrange: only the second binding carries a hint.
+        var keyMap = new KeyMap(
+        [
+            new KeyBinding(new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a'), () => new TuiMessage.RefreshRequested()),
+            new KeyBinding(
+                new KeyChord(ConsoleKey.B, ConsoleModifiers.None, 'b'),
+                () => new TuiMessage.RefreshRequested(),
+                new KeyHint("b", "refresh"))
+        ]);
+
+        // assert
+        Assert.Equal([new KeyHint("b", "refresh")], keyMap.Hints);
+    }
+
+    [Fact]
+    public void Hints_Should_PreserveConstructorOrder()
+    {
+        // arrange
+        var keyMap = new KeyMap(
+        [
+            new KeyBinding(
+                new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a'),
+                () => new TuiMessage.RefreshRequested(),
+                new KeyHint("a", "first")),
+            new KeyBinding(
+                new KeyChord(ConsoleKey.B, ConsoleModifiers.None, 'b'),
+                () => new TuiMessage.RefreshRequested(),
+                new KeyHint("b", "second"))
+        ]);
+
+        // assert
+        Assert.Equal([new KeyHint("a", "first"), new KeyHint("b", "second")], keyMap.Hints);
+    }
+
+    [Fact]
+    public void CreateDefaultGlobal_Should_EndItsHints_With_Quit()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // assert
+        Assert.NotEmpty(keyMap.Hints);
+        Assert.Equal(new KeyHint("q", "quit"), keyMap.Hints[^1]);
+    }
+
+    [Fact]
+    public void CreateDefaultGlobal_Should_Hint_TheFourDirectionKeys_AsOneMoveEntry()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // assert: j/k/h/l and their arrow-key equivalents collapse into a
+        // single "move" hint rather than one entry per key.
+        Assert.Single(keyMap.Hints, h => h.Action == "move");
+    }
+
+    [Fact]
     public void TryResolve_Should_NotFallBackToKeyChar_When_CharIsControlChar()
     {
         // arrange: Ctrl+C reports KeyChar '\u0003', which is a control char and must not

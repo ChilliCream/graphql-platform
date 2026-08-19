@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Tui.Input;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
@@ -68,6 +69,17 @@ internal sealed class QuickPicker
     /// The title shown above the option list.
     /// </summary>
     public string Title { get; }
+
+    /// <summary>
+    /// The footer hints for a quick picker: its keys are consumed entirely
+    /// while it is active, so no global hints follow.
+    /// </summary>
+    public static readonly IReadOnlyList<KeyHint> Hints =
+    [
+        new KeyHint("j/k", "select"),
+        new KeyHint("enter", "apply"),
+        new KeyHint("esc", "cancel")
+    ];
 
     /// <summary>
     /// Handles one raw key. Returns <see langword="null"/> while the picker is

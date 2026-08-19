@@ -26,7 +26,19 @@ internal sealed class KeyMap
                 _charFallback.TryAdd((binding.Chord.KeyChar, binding.Chord.Modifiers), binding.CreateMessage);
             }
         }
+
+        Hints = bindingList
+            .Where(b => b.Hint is not null)
+            .Select(b => b.Hint!.Value)
+            .ToList();
     }
+
+    /// <summary>
+    /// The footer hints carried by this map's bindings, in the order they were
+    /// given to the constructor. Bindings without a <see cref="KeyBinding.Hint"/>
+    /// are omitted.
+    /// </summary>
+    public IReadOnlyList<KeyHint> Hints { get; }
 
     /// <summary>
     /// Resolves the <see cref="TuiMessage"/> bound to <paramref name="chord"/>, falling
@@ -66,11 +78,23 @@ internal sealed class KeyMap
     /// selection when there is one), C to open it preset to the epic type, and
     /// Escape to leave the active mode.
     /// </summary>
+    /// <remarks>
+    /// Only a curated subset carries a <see cref="KeyBinding.Hint"/>, so the
+    /// footer stays a short-help bar rather than a full binding dump: the four
+    /// direction keys collapse into one <c>hjkl move</c> hint (their arrow-key
+    /// equivalents stay unhinted), and the rarer or currently inert gestures
+    /// (g/G, /, t, x, X, s, p, c, C, Ctrl+C, and Ctrl+N/P, which cycles
+    /// between views but has nothing to cycle to until a second board view
+    /// exists) stay hidden from the footer while remaining fully bound. Quit's
+    /// binding is declared last so it is also the last global hint, per the
+    /// footer's display order.
+    /// </remarks>
     public static KeyMap CreateDefaultGlobal() => new(
     [
         new KeyBinding(
             new KeyChord(ConsoleKey.J, ConsoleModifiers.None, 'j'),
-            () => new TuiMessage.MoveCursor(CursorDirection.Down)),
+            () => new TuiMessage.MoveCursor(CursorDirection.Down),
+            new KeyHint("hjkl", "move")),
         new KeyBinding(
             new KeyChord(ConsoleKey.DownArrow, ConsoleModifiers.None, '\0'),
             () => new TuiMessage.MoveCursor(CursorDirection.Down)),
@@ -100,16 +124,16 @@ internal sealed class KeyMap
             () => new TuiMessage.MoveToEdge(EdgeTarget.Bottom)),
         new KeyBinding(
             new KeyChord(ConsoleKey.Enter, ConsoleModifiers.None, '\r'),
-            () => new TuiMessage.OpenSelected()),
+            () => new TuiMessage.OpenSelected(),
+            new KeyHint("enter", "open")),
         new KeyBinding(
             new KeyChord(ConsoleKey.R, ConsoleModifiers.None, 'r'),
-            () => new TuiMessage.RefreshRequested()),
+            () => new TuiMessage.RefreshRequested(),
+            new KeyHint("r", "refresh")),
         new KeyBinding(
             new KeyChord(ConsoleKey.Y, ConsoleModifiers.None, 'y'),
-            () => new TuiMessage.CopySelectedId()),
-        new KeyBinding(
-            new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'),
-            () => new TuiMessage.QuitRequested()),
+            () => new TuiMessage.CopySelectedId(),
+            new KeyHint("y", "copy id")),
         new KeyBinding(
             new KeyChord(ConsoleKey.C, ConsoleModifiers.Control, '\u0003'),
             () => new TuiMessage.QuitRequested()),
@@ -121,7 +145,8 @@ internal sealed class KeyMap
             () => new TuiMessage.CycleView(-1)),
         new KeyBinding(
             new KeyChord(ConsoleKey.Z, ConsoleModifiers.None, 'z'),
-            () => new TuiMessage.ToggleMaximize()),
+            () => new TuiMessage.ToggleMaximize(),
+            new KeyHint("z", "zoom")),
         new KeyBinding(
             new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/'),
             () => new TuiMessage.FocusSearchRequested()),
@@ -130,7 +155,8 @@ internal sealed class KeyMap
             () => new TuiMessage.OpenTreeRequested()),
         new KeyBinding(
             new KeyChord(ConsoleKey.E, ConsoleModifiers.None, 'e'),
-            () => new TuiMessage.EditRequested()),
+            () => new TuiMessage.EditRequested(),
+            new KeyHint("e", "edit")),
         new KeyBinding(
             new KeyChord(ConsoleKey.X, ConsoleModifiers.None, 'x'),
             () => new TuiMessage.CloseOrReopenRequested()),
@@ -151,6 +177,11 @@ internal sealed class KeyMap
             () => new TuiMessage.CreateEpicRequested()),
         new KeyBinding(
             new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, ''),
-            () => new TuiMessage.Back())
+            () => new TuiMessage.Back(),
+            new KeyHint("esc", "back")),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'),
+            () => new TuiMessage.QuitRequested(),
+            new KeyHint("q", "quit"))
     ]);
 }

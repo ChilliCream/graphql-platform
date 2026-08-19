@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Rendering;
@@ -22,6 +23,8 @@ internal sealed class TuiShell
 {
     private const string QuitConfirmMessage = "Quit? (y/n)";
     private const int StatusRowHeight = 1;
+    private const string FooterSeparator = "  ";
+    private const string FooterEllipsis = "…";
 
     private readonly KeyDispatcher _dispatcher;
     private readonly Stack<ITuiMode> _modeStack = new();
@@ -114,7 +117,7 @@ internal sealed class TuiShell
                                 ? createForm.Render(_width, contentHeight)
                                 : _activeMode.Render(_width, contentHeight);
 
-        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(string.Empty);
+        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width));
 
         return new Layout("root").SplitRows(
             new Layout("content", content),
@@ -692,6 +695,155 @@ internal sealed class TuiShell
         _activeMode = _modeStack.Pop();
         _activeMode.OnResize(_width, ContentHeight);
         _activeMode.OnEnter();
+    }
+
+    /// <summary>
+    /// Builds the footer's hint list for whichever context currently owns
+    /// key input, mirroring <see cref="HandleKey"/>'s own priority order so
+    /// the footer can never show a hint the active input context would not
+    /// actually honor. The fully modal overlays (the discard confirmation,
+    /// the task editor, the lifecycle confirmation, the quick pickers, and
+    /// the task create form) show only their own hints, since they consume
+    /// every key themselves; every other context's hints are followed by the
+    /// global table's, with quit last.
+    /// </summary>
+    private IReadOnlyList<KeyHint> BuildFooterHints()
+    {
+        if (_confirmDialog is not null)
+        {
+            return Combine(ConfirmDialog.Hints);
+        }
+
+        if (_discardDialog is not null)
+        {
+            return EditingConfirmDialog.Hints;
+        }
+
+        if (_editorForm is not null)
+        {
+            return TaskEditorForm.Hints;
+        }
+
+        if (_lifecycleDialog is not null)
+        {
+            return EditingConfirmDialog.Hints;
+        }
+
+        if (_picker is not null)
+        {
+            return QuickPicker.Hints;
+        }
+
+        if (_createForm is not null)
+        {
+            return TaskCreateForm.Hints;
+        }
+
+        var contextHints = _activeMode.KeyMap?.Hints ?? [];
+
+        if (_searchMode is { } search
+            && ReferenceEquals(_activeMode, search)
+            && search.Focus == SearchFocus.Input)
+        {
+            contextHints = [SearchMode.TypingHint, .. contextHints];
+        }
+
+        return Combine(contextHints);
+    }
+
+    /// <summary>
+    /// Appends the global key table's hints after <paramref name="contextHints"/>,
+    /// matching how <see cref="KeyDispatcher.Dispatch"/> falls back to the
+    /// global table for anything a context-specific key table does not bind.
+    /// A global hint already present among <paramref name="contextHints"/>
+    /// (for example a mode's own back-to-global Escape binding) is not
+    /// repeated.
+    /// </summary>
+    private IReadOnlyList<KeyHint> Combine(IReadOnlyList<KeyHint> contextHints)
+    {
+        var globalHints = _dispatcher.GlobalKeyMap.Hints;
+
+        if (contextHints.Count == 0)
+        {
+            return globalHints;
+        }
+
+        if (globalHints.Count == 0)
+        {
+            return contextHints;
+        }
+
+        var seen = new HashSet<KeyHint>(contextHints);
+        var combined = new List<KeyHint>(contextHints.Count + globalHints.Count);
+        combined.AddRange(contextHints);
+
+        foreach (var hint in globalHints)
+        {
+            if (seen.Add(hint))
+            {
+                combined.Add(hint);
+            }
+        }
+
+        return combined;
+    }
+
+    /// <summary>
+    /// Formats <paramref name="hints"/> as the footer's single status-row
+    /// line: dimmed key labels, normal-weight action labels, separated hint
+    /// entries, truncated with a trailing ellipsis once <paramref name="width"/>
+    /// cannot fit every hint.
+    /// </summary>
+    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width)
+    {
+        if (width <= 0 || hints.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var keyStyle = ThemeTokens.GetStyle("footer.key").ToMarkup();
+        var actionStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
+
+        var plainItems = new string[hints.Count];
+        var markupItems = new string[hints.Count];
+
+        for (var i = 0; i < hints.Count; i++)
+        {
+            plainItems[i] = $"{hints[i].Key} {hints[i].Action}";
+            markupItems[i] =
+                $"[{keyStyle}]{Markup.Escape(hints[i].Key)}[/] [{actionStyle}]{Markup.Escape(hints[i].Action)}[/]";
+        }
+
+        var fullPlainWidth = plainItems.Sum(item => item.Length) + FooterSeparator.Length * (hints.Count - 1);
+
+        if (fullPlainWidth <= width)
+        {
+            return string.Join(FooterSeparator, markupItems);
+        }
+
+        var included = 0;
+        var usedWidth = 0;
+        var trailerWidth = FooterSeparator.Length + FooterEllipsis.Length;
+
+        for (var i = 0; i < hints.Count; i++)
+        {
+            var itemWidth = (i == 0 ? 0 : FooterSeparator.Length) + plainItems[i].Length;
+
+            if (usedWidth + itemWidth + trailerWidth > width)
+            {
+                break;
+            }
+
+            usedWidth += itemWidth;
+            included++;
+        }
+
+        if (included == 0)
+        {
+            return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
+        }
+
+        return string.Join(FooterSeparator, markupItems.Take(included)) + FooterSeparator + FooterEllipsis;
     }
 }
 

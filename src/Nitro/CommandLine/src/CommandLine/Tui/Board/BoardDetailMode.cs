@@ -32,8 +32,18 @@ internal sealed class BoardDetailMode : ITuiMode
         _view = new TaskDetailView(_model);
     }
 
-    /// <inheritdoc />
-    public KeyMap? KeyMap => null;
+    /// <summary>
+    /// Escape's binding mirrors the global table's (leave the mode) and
+    /// exists only to carry a footer hint: detail has no other bindings of
+    /// its own, scroll and edit come from the global table.
+    /// </summary>
+    public KeyMap? KeyMap { get; } = new KeyMap(
+    [
+        new KeyBinding(
+            new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, ''),
+            () => new TuiMessage.Back(),
+            new KeyHint("esc", "back"))
+    ]);
 
     /// <inheritdoc />
     public string? SelectedTaskId => _model.CurrentTaskId;

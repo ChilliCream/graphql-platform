@@ -95,6 +95,17 @@ internal sealed class TaskEditorForm
     public const string SaveButtonId = "save";
     public const string CancelButtonId = "cancel";
 
+    /// <summary>
+    /// The footer hints for the task editor: its keys are consumed entirely
+    /// while it is active, so no global hints follow.
+    /// </summary>
+    public static readonly IReadOnlyList<KeyHint> Hints =
+    [
+        new KeyHint("tab", "next field"),
+        new KeyHint("enter", "save"),
+        new KeyHint("esc", "cancel")
+    ];
+
     private static readonly SelectOption[] WellKnownStatuses =
     [
         new(TaskStates.Open, "Open"),

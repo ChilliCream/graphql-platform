@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Rendering;
 
@@ -67,6 +68,16 @@ internal sealed class ConfirmDialog
     /// The confirmation prompt shown above the reason field.
     /// </summary>
     public string Message { get; }
+
+    /// <summary>
+    /// The footer hints for this dialog: its keys are consumed entirely
+    /// while it is active, so no global hints follow.
+    /// </summary>
+    public static readonly IReadOnlyList<KeyHint> Hints =
+    [
+        new KeyHint("enter", "confirm"),
+        new KeyHint("esc", "cancel")
+    ];
 
     /// <summary>
     /// Handles one raw key. Returns <see langword="null"/> while the dialog is

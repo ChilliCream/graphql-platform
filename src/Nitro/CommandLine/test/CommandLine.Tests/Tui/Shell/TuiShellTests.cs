@@ -49,6 +49,13 @@ public sealed class TuiShellTests
         return console.Output;
     }
 
+    private static string RenderToText(TuiShell shell, int width)
+    {
+        var console = new TestConsole().Width(width);
+        console.Write(shell.Render());
+        return console.Output;
+    }
+
     [Fact]
     public void Constructor_Should_CallOnEnter_OnActiveMode()
     {
@@ -923,5 +930,140 @@ public sealed class TuiShellTests
 
         // assert
         Assert.Equal("j", search.QueryText);
+    }
+
+    [Fact]
+    public void Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive()
+    {
+        // arrange
+        var shell = CreateShell(new FakeTuiMode());
+
+        // act
+        var text = RenderToText(shell);
+
+        // assert: the curated global hint set fits an 80-column footer
+        // untruncated.
+        Assert.Contains("move", text);
+        Assert.Contains("open", text);
+        Assert.Contains("refresh", text);
+        Assert.Contains("copy id", text);
+        Assert.Contains("zoom", text);
+        Assert.Contains("edit", text);
+        Assert.Contains("back", text);
+        Assert.Contains("quit", text);
+        Assert.DoesNotContain("…", text);
+    }
+
+    [Fact]
+    public void Render_Should_ReplaceFooterWithToast_When_ToastIsActive()
+    {
+        // arrange
+        var mode = new FakeTuiMode
+        {
+            HandleResult = _ => [new TuiMessage.ShowToast("saved", ToastStyle.Success)]
+        };
+        var shell = CreateShell(mode);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+        var text = RenderToText(shell);
+
+        // assert: the toast is showing, so the footer's own hints are not.
+        Assert.Contains("saved", text);
+        Assert.DoesNotContain("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFooterAgain_When_ToastExpires()
+    {
+        // arrange
+        var mode = new FakeTuiMode
+        {
+            HandleResult = _ => [new TuiMessage.ShowToast("saved", ToastStyle.Success)]
+        };
+        var shell = CreateShell(mode);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+
+        // act
+        shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow.AddSeconds(4)));
+        var text = RenderToText(shell);
+
+        // assert
+        Assert.DoesNotContain("saved", text);
+        Assert.Contains("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowQuitDialogHints_PlusGlobalHints_When_QuitConfirmIsActive()
+    {
+        // arrange
+        var shell = CreateShell(new FakeTuiMode());
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
+
+        // act
+        var text = RenderToText(shell);
+
+        // assert: the quit dialog's own hints, plus the global table it
+        // still falls back to for anything it does not bind itself.
+        Assert.Contains("confirm", text);
+        Assert.Contains("cancel", text);
+        Assert.Contains("move", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowOnlyFormHints_NoGlobalHints_When_TaskEditorFormIsActive()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+        var text = RenderToText(shell);
+
+        // assert: the editor form swallows every key itself, so the global
+        // hints (which would not actually work) are not shown alongside it.
+        Assert.Contains("next field", text);
+        Assert.Contains("save", text);
+        Assert.Contains("cancel", text);
+        Assert.DoesNotContain("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowOnlyPickerHints_NoGlobalHints_When_QuickPickerIsActive()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S)));
+        var text = RenderToText(shell);
+
+        // assert
+        Assert.Contains("select", text);
+        Assert.Contains("apply", text);
+        Assert.Contains("cancel", text);
+        Assert.DoesNotContain("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_TruncateFooterWithEllipsis_When_WidthCannotFitEveryHint()
+    {
+        // arrange
+        var shell = CreateShell(new FakeTuiMode(), width: 15);
+
+        // act
+        var text = RenderToText(shell, width: 15);
+
+        // assert: the first (and narrowest-fitting) hint survives, later
+        // ones are dropped behind a trailing ellipsis.
+        Assert.Contains("move", text);
+        Assert.Contains("…", text);
+        Assert.DoesNotContain("quit", text);
     }
 }

@@ -61,6 +61,17 @@ internal sealed class TaskCreateForm
     public const string CreateButtonId = "create";
     public const string CancelButtonId = "cancel";
 
+    /// <summary>
+    /// The footer hints for the task create form: its keys are consumed
+    /// entirely while it is active, so no global hints follow.
+    /// </summary>
+    public static readonly IReadOnlyList<KeyHint> Hints =
+    [
+        new KeyHint("tab", "next field"),
+        new KeyHint("enter", "create"),
+        new KeyHint("esc", "cancel")
+    ];
+
     private const string DefaultPriorityId = "2";
 
     private static readonly SelectOption[] WellKnownTypes =

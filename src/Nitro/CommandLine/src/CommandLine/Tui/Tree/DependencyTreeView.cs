@@ -87,16 +87,20 @@ internal sealed class DependencyTreeView : ITuiMode
     [
         new KeyBinding(
             new KeyChord(ConsoleKey.F, ConsoleModifiers.None, 'f'),
-            () => new TuiMessage.OpenSelected()),
+            () => new TuiMessage.OpenSelected(),
+            new KeyHint("f", "follow")),
         new KeyBinding(
             new KeyChord(ConsoleKey.M, ConsoleModifiers.None, 'm'),
-            () => new TuiMessage.ToggleTreeEdgeMode()),
+            () => new TuiMessage.ToggleTreeEdgeMode(),
+            new KeyHint("m", "edge mode")),
         new KeyBinding(
             new KeyChord(ConsoleKey.D, ConsoleModifiers.None, 'd'),
-            () => new TuiMessage.ToggleTreeDirection()),
+            () => new TuiMessage.ToggleTreeDirection(),
+            new KeyHint("d", "direction")),
         new KeyBinding(
             new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u'),
-            () => new TuiMessage.NavigateTreeBack())
+            () => new TuiMessage.NavigateTreeBack(),
+            new KeyHint("u", "back"))
     ]);
 
     public void OnEnter() => RefreshBlocking();

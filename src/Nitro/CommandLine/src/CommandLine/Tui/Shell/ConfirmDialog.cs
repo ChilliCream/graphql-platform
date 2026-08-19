@@ -37,6 +37,17 @@ internal sealed class ConfirmDialog
     public KeyMap KeyMap { get; }
 
     /// <summary>
+    /// The footer hints for this dialog, shown ahead of the global hints
+    /// this dialog's key table falls back to for anything it does not bind
+    /// itself.
+    /// </summary>
+    public static readonly IReadOnlyList<KeyHint> Hints =
+    [
+        new KeyHint("y", "confirm"),
+        new KeyHint("n/esc", "cancel")
+    ];
+
+    /// <summary>
     /// Renders the dialog as a panel centered within the given area, replacing the
     /// mode content it covers.
     /// </summary>
