@@ -136,17 +136,32 @@ public class AzureServiceBusUnifiedQueueTests
     {
         // arrange
         Action action = () =>
-            CreateTransport(t =>
-            {
-                t.BindExplicitly();
-                t.Queue("forwarding-consumer-source").ForwardTo("forwarding-consumer-target").Consumer<OrderConsumer>();
-            });
+        {
+            var services = new ServiceCollection();
+            services
+                .AddMessageBus()
+                .AddConsumer<OrderConsumer>()
+                .AddAzureServiceBus(t =>
+                {
+                    t.ConnectionString(DummyConnectionString);
+                    t.BindExplicitly();
+                    t.Queue("forwarding-consumer-source")
+                        .ForwardTo("forwarding-consumer-target")
+                        .Consumer<OrderConsumer>();
+                })
+                .BuildRuntime();
+        };
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(action);
 
         // assert
-        Assert.Contains("DeclareQueue", exception.Message);
+        Assert.Equal(
+            "Receive endpoint 'forwarding-consumer-source' cannot target queue 'forwarding-consumer-source' "
+                + "configured with auto-forwarding (ForwardTo). The broker rejects receivers on an "
+                + "auto-forwarding source. Declare forwarding-only queues with DeclareQueue instead of "
+                + "Queue or Endpoint.",
+            exception.Message);
     }
 
     [Fact]
