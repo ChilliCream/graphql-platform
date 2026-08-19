@@ -73,14 +73,21 @@ Wait+Screen@30s /6 task\(s\)/
 # (P1), the next row by priority.
 Tab
 Down
-Wait+Screen@30s /> ○ \[E\] P1 acme-epic1 Launch v2 pricing page/
+# The Results panel wraps this row's trailing "page" word onto its own line
+# at this fixed geometry, so the wait anchors on the row's text up to the
+# wrap point rather than the full title (see search-flow.tape).
+Wait+Screen@30s /> ○ \[E\] P1 acme-epic1 Launch v2 pricing/
 
 # Tab again: List -> Detail focus, landing on acme-epic1's detail pane. Its
 # body has no Description/Design/Acceptance criteria/Notes/Comments (all
 # empty in the fixture), so the "Blocks:" section -- its two parent-child
-# children -- is visible without scrolling.
+# children -- is visible without scrolling. Detail focus puts the selection
+# cursor on the first Blocks row; at this fixed geometry the body panel is
+# narrow enough that the row's target id/title wrap onto their own line
+# (see search-flow.tape), so the wait anchors on the unwrapped prefix +
+# dependency type.
 Tab
-Wait+Screen@30s /parent-child <- acme-epic1\.1 Draft new pricing copy/
+Wait+Screen@30s /> ● parent-child <-/
 
 # 't' opens the dependency tree explorer on the selected task (acme-epic1).
 # Default Up direction ("depends on") shows only the root: acme-epic1 has no
@@ -93,10 +100,14 @@ Wait+Screen@30s /acme-epic1 · blocking · depended on by/
 # Down selects the first child (acme-epic1.1); Enter refocuses the tree on
 # it (DependencyTreeView.Refocus), pushing acme-epic1 onto the breadcrumb
 # stack. Its own Down tree (still Blocking/Down) shows acme-epic1.2, which
-# blocks-depends-on acme-epic1.1 per fixtures/seed.sql.
+# blocks-depends-on acme-epic1.1 per fixtures/seed.sql, and transitively
+# acme-a1b beneath it. The panel header carries the breadcrumb, but at this
+# fixed geometry the two-id breadcrumb text overflows the header and gets
+# ellipsis-truncated by Spectre's PanelHeader before it reaches " by", so the
+# wait anchors on the unwrapped, untruncated root row instead.
 Down
 Enter
-Wait+Screen@30s /acme-epic1 > acme-epic1\.1 · blocking · depended on by/
+Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
 
 # 'u' pops the breadcrumb stack (DependencyTreeView.NavigateBack), back to
 # the tree rooted on acme-epic1 with its two children again -- the tree

@@ -54,8 +54,10 @@ declare -A MARKERS=(
   [error]="[nitro exit: 1]"
   [board]="> ● [T] P2 acme-epic1.1 Draft new pricing copy"
   [board-maximize]="In Progress (1)"
+  [search]="> ● parent-child <-"
+  [detail]="acme-epic1 · blocking · depended on by"
 )
-ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-maximize)
+ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-maximize search detail)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.

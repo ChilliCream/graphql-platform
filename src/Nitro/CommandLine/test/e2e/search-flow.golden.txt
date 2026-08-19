@@ -1,0 +1,16 @@
+> status:open pricing
+╭─Results─────────────────────────────────────╮╭─Details──────────╮╭─Launch v2 pricing page───╮
+│   ○ [E] P1 acme-epic1 Launch v2 pricing     ││ ○ open           ││ Blocks:                  │
+│ page                                        ││ Priority: P1     ││ > ● parent-child <-      │
+│ 1 task(s)                                   ││ Type: epic       ││ acme-epic1.1             │
+╰─────────────────────────────────────────────╯│ Created:         ││   ○ parent-child <-      │
+                                               │ 2026-01-01 09:00 ││ acme-epic1.2             │
+                                               │ by e2e-agent     │╰──────────────────────────╯
+                                               │ Updated:         │
+                                               │ 2026-01-01 09:00 │
+                                               │ Blocked by:      │
+                                               │ acme-epic1.1:chi │
+                                               │ ld-open,         │
+                                               │ acme-epic1.2:chi │
+                                               │ ld-open          │
+                                               ╰──────────────────╯

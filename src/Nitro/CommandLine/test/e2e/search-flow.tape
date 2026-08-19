@@ -68,18 +68,26 @@ Type `status:open`
 Wait+Screen@30s /3 task\(s\)/
 
 # Incremental step 2: extending the query with a free-text word narrows to
-# exactly one hit, still selected (its row carries the "> " selection prefix).
+# exactly one hit.
 Type ` pricing`
-Wait+Screen@30s /> ○ \[E\] P1 acme-epic1 Launch v2 pricing page/
+# Focus is still on the query input (no Tab yet), so the Results list has no
+# selection cursor to anchor on (SearchResultsList only renders "> " when the
+# list itself is focused); the narrowing to exactly one hit is what this step
+# exercises, so anchor on the result count, same as the previous step.
+Wait+Screen@30s /1 task\(s\)/
 
 # Tab moves focus Input -> List (SearchMode's own Tab binding mirrors
 # Enter/OpenSelected); a second Tab moves List -> Detail, landing on the
-# selected task's detail pane. The metadata sidebar's Created/Updated lines
-# come straight from the fixture's fixed 2026-01-01 timestamps. Final state
-# for the golden.
+# selected task's detail pane. Detail focus puts the selection cursor on the
+# body's first Blocks row (TaskDetailBody.BuildRowSection, selected when
+# focused && row.Index == SelectedRowIndex); at this fixed geometry the body
+# panel is narrow enough that the row's target id/title wrap onto their own
+# line (TaskDetailRowRenderer's single logical line gets soft-wrapped by
+# Spectre), so the wait anchors on the unwrapped prefix + dependency type.
+# Final state for the golden.
 Tab
 Tab
-Wait+Screen@30s /Created: 2026-01-01 09:00 by e2e-agent/
+Wait+Screen@30s /> ● parent-child <-/
 
 Sleep 1500ms
 Screenshot search-flow-final.png
