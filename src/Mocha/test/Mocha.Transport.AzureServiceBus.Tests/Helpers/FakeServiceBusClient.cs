@@ -35,7 +35,7 @@ internal sealed class FakeServiceBusClient : ServiceBusClient
     public override ServiceBusSender CreateSender(string queueOrTopicName)
     {
         var senderIndex = _senderCount++;
-        var sender = new FakeServiceBusSender(() => _failureAt(senderIndex));
+        var sender = new FakeServiceBusSender(queueOrTopicName, () => _failureAt(senderIndex));
         CreatedSenders.Add(sender);
         return sender;
     }

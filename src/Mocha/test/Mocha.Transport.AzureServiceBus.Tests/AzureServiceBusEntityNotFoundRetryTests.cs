@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
@@ -20,9 +21,9 @@ public class AzureServiceBusEntityNotFoundRetryTests
             senderIndex => senderIndex == 0
                 ? new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound)
                 : null);
-        await using var _ = bus;
+        await using var busScope = bus;
 
-        using var scope = bus.Provider.CreateScope();
+        using var scope = busScope.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
@@ -31,17 +32,38 @@ public class AzureServiceBusEntityNotFoundRetryTests
             CancellationToken.None);
 
         // assert
-        Assert.Equal(2, client.CreatedSenders.Count);
-
         var originalSender = client.CreatedSenders[0];
         var replacementSender = client.CreatedSenders[1];
 
-        Assert.NotSame(originalSender, replacementSender);
-        Assert.Equal(1, originalSender.SendMessageCallCount);
-        Assert.Equal(1, replacementSender.SendMessageCallCount);
-        Assert.True(originalSender.IsClosed);
-        Assert.False(replacementSender.IsClosed);
-        Assert.Equal(2, admin.CreateQueueCallCount);
+        new
+        {
+            client.CreatedSenders.Count,
+            Original = new
+            {
+                originalSender.EntityPath, originalSender.SendMessageCallCount, originalSender.IsClosed
+            },
+            Replacement = new
+            {
+                replacementSender.EntityPath, replacementSender.SendMessageCallCount, replacementSender.IsClosed
+            },
+            admin.CreateQueueCallCount
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Count": 2,
+              "Original": {
+                "EntityPath": "payments",
+                "SendMessageCallCount": 1,
+                "IsClosed": true
+              },
+              "Replacement": {
+                "EntityPath": "payments",
+                "SendMessageCallCount": 1,
+                "IsClosed": false
+              },
+              "CreateQueueCallCount": 2
+            }
+            """);
     }
 
     [Fact]
@@ -50,9 +72,9 @@ public class AzureServiceBusEntityNotFoundRetryTests
         // arrange
         var (client, admin, bus) = CreateBus(
             _ => new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound));
-        await using var _ = bus;
+        await using var busScope = bus;
 
-        using var scope = bus.Provider.CreateScope();
+        using var scope = busScope.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
@@ -76,9 +98,9 @@ public class AzureServiceBusEntityNotFoundRetryTests
             senderIndex => senderIndex == 0
                 ? new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound)
                 : null);
-        await using var _ = bus;
+        await using var busScope = bus;
 
-        using var scope = bus.Provider.CreateScope();
+        using var scope = busScope.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
@@ -88,16 +110,40 @@ public class AzureServiceBusEntityNotFoundRetryTests
             CancellationToken.None);
 
         // assert
-        Assert.Equal(2, client.CreatedSenders.Count);
+        Assert.StartsWith("asb:v1:", result.Token, StringComparison.Ordinal);
 
         var originalSender = client.CreatedSenders[0];
         var replacementSender = client.CreatedSenders[1];
 
-        Assert.NotSame(originalSender, replacementSender);
-        Assert.Equal(1, originalSender.ScheduleMessageCallCount);
-        Assert.Equal(1, replacementSender.ScheduleMessageCallCount);
-        Assert.StartsWith("asb:v1:", result.Token, StringComparison.Ordinal);
-        Assert.Equal(2, admin.CreateQueueCallCount);
+        new
+        {
+            client.CreatedSenders.Count,
+            Original = new
+            {
+                originalSender.EntityPath, originalSender.ScheduleMessageCallCount, originalSender.IsClosed
+            },
+            Replacement = new
+            {
+                replacementSender.EntityPath, replacementSender.ScheduleMessageCallCount, replacementSender.IsClosed
+            },
+            admin.CreateQueueCallCount
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Count": 2,
+              "Original": {
+                "EntityPath": "payments",
+                "ScheduleMessageCallCount": 1,
+                "IsClosed": true
+              },
+              "Replacement": {
+                "EntityPath": "payments",
+                "ScheduleMessageCallCount": 1,
+                "IsClosed": false
+              },
+              "CreateQueueCallCount": 2
+            }
+            """);
     }
 
     [Fact]
@@ -106,9 +152,9 @@ public class AzureServiceBusEntityNotFoundRetryTests
         // arrange
         var (client, admin, bus) = CreateBus(
             _ => new ServiceBusException("entity deleted", ServiceBusFailureReason.MessagingEntityNotFound));
-        await using var _ = bus;
+        await using var busScope = bus;
 
-        using var scope = bus.Provider.CreateScope();
+        using var scope = busScope.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act

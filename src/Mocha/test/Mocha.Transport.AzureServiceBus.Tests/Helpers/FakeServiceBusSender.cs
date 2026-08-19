@@ -11,14 +11,17 @@ internal sealed class FakeServiceBusSender : ServiceBusSender
     private readonly Func<Exception?> _failureFactory;
     private bool _closed;
 
-    public FakeServiceBusSender(Func<Exception?> failureFactory)
+    public FakeServiceBusSender(string entityPath, Func<Exception?> failureFactory)
     {
+        EntityPath = entityPath;
         _failureFactory = failureFactory;
     }
 
     public int SendMessageCallCount { get; private set; }
 
     public int ScheduleMessageCallCount { get; private set; }
+
+    public override string EntityPath { get; }
 
     public override bool IsClosed => _closed;
 
