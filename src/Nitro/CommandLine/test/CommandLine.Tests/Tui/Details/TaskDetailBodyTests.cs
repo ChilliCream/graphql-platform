@@ -38,9 +38,19 @@ public sealed partial class TaskDetailBodyTests
             .ToList();
 
         // assert: Design, Acceptance criteria, Dependencies, Blocks, Comments are all
-        // empty and must not appear; each header is followed by a blank line, and a
-        // second blank line separates the two present sections.
-        Assert.Equal(["Description", "", "desc", "", "Notes", "", "note"], lines);
+        // empty and must not appear; each present section renders as a 3-line box
+        // (top border, content, bottom border), with a blank line separating them.
+        Assert.Equal(
+            [
+                BoxTop("Description", 40),
+                BoxContent("desc", 40),
+                BoxBottom(40),
+                "",
+                BoxTop("Notes", 40),
+                BoxContent("note", 40),
+                BoxBottom(40)
+            ],
+            lines);
     }
 
     [Fact]
@@ -69,13 +79,15 @@ public sealed partial class TaskDetailBodyTests
         var model = new TaskDetailModel(store);
         await model.LoadAsync("t-1", CancellationToken.None);
 
-        var knownHeaders = new HashSet<string>(
-            ["Description", "Design", "Acceptance criteria", "Notes", "Dependencies", "Blocks", "Comments"]);
+        var listStyleHeaders = new HashSet<string>(["Dependencies", "Blocks", "Comments"]);
 
-        // act
+        // act: Description, Design, Acceptance criteria, and Notes render as boxes,
+        // so their names are extracted from the box's top border; Dependencies,
+        // Blocks, and Comments stay a plain header line.
         var headers = TaskDetailBody.Build(model, 40, focused: true)
             .Select(l => StripMarkupTags(l.Content))
-            .Where(knownHeaders.Contains)
+            .Where(l => l.StartsWith("╭─", StringComparison.Ordinal) || listStyleHeaders.Contains(l))
+            .Select(l => l.StartsWith("╭─", StringComparison.Ordinal) ? BoxTitle(l) : l)
             .ToList();
 
         // assert
@@ -96,12 +108,13 @@ public sealed partial class TaskDetailBodyTests
         // act
         var lines = TaskDetailBody.Build(model, 40, focused: true);
 
-        // assert: the header is styled markup, followed by a blank separator, then
-        // the plain-text content.
-        Assert.Equal("Description", StripMarkupTags(lines[0].Content));
+        // assert: the box's top and bottom borders are styled markup carrying the
+        // section name; the content row is plain, unescaped text.
+        Assert.Equal(BoxTop("Description", 40), StripMarkupTags(lines[0].Content));
         Assert.True(lines[0].IsMarkup);
-        Assert.Equal(new TaskDetailBodyLine(string.Empty, false), lines[1]);
-        Assert.Equal(new TaskDetailBodyLine("desc", false), lines[2]);
+        Assert.Equal(new TaskDetailBodyLine(BoxContent("desc", 40), false), lines[1]);
+        Assert.Equal(BoxBottom(40), StripMarkupTags(lines[2].Content));
+        Assert.True(lines[2].IsMarkup);
     }
 
     [Fact]
@@ -154,6 +167,31 @@ public sealed partial class TaskDetailBodyTests
     }
 
     private static string StripMarkupTags(string line) => MarkupTagPattern().Replace(line, "");
+
+    /// <summary>
+    /// The unstyled top border line <see cref="TaskDetailSectionBox"/> renders
+    /// for <paramref name="title"/> at <paramref name="width"/> columns.
+    /// </summary>
+    private static string BoxTop(string title, int width)
+        => $"╭─{title}{new string('─', Math.Max(0, width - 3 - title.Length))}╮";
+
+    /// <summary>
+    /// The content row <see cref="TaskDetailSectionBox"/> renders for one
+    /// already-wrapped <paramref name="line"/> at <paramref name="width"/>
+    /// columns.
+    /// </summary>
+    private static string BoxContent(string line, int width) => $"│ {line.PadRight(width - 4)} │";
+
+    /// <summary>
+    /// The unstyled bottom border line <see cref="TaskDetailSectionBox"/>
+    /// renders at <paramref name="width"/> columns.
+    /// </summary>
+    private static string BoxBottom(int width) => $"╰{new string('─', Math.Max(0, width - 2))}╯";
+
+    /// <summary>
+    /// Recovers a section box's title from its unstyled top border line.
+    /// </summary>
+    private static string BoxTitle(string topBorderLine) => topBorderLine[2..^1].TrimEnd('─');
 
     [GeneratedRegex(@"\[[^\]]*\]")]
     private static partial Regex MarkupTagPattern();

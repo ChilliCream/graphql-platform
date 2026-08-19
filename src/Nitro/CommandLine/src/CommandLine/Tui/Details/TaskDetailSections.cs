@@ -24,6 +24,18 @@ internal static class TaskDetailSections
         }
 
         var lines = new List<string> { header };
+        lines.AddRange(WrapText(text, width));
+        return lines;
+    }
+
+    /// <summary>
+    /// Word-wraps <paramref name="text"/> to <paramref name="width"/> display
+    /// columns, one entry per display line, preserving the source paragraph
+    /// breaks (each line of <paramref name="text"/> wraps independently).
+    /// </summary>
+    public static IReadOnlyList<string> WrapText(string text, int width)
+    {
+        var lines = new List<string>();
 
         foreach (var paragraphLine in text.ReplaceLineEndings("\n").Split('\n'))
         {

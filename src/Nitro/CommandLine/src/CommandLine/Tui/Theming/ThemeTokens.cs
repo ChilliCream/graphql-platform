@@ -69,6 +69,7 @@ internal static class DefaultTheme
         ["selection.highlight"] = new Style(Color.Default, Color.Grey35),
 
         ["detail.section.header"] = new Style(decoration: Decoration.Bold),
+        ["detail.section.border"] = new Style(Color.Grey),
 
         ["toast.info.border"] = new Style(Color.SkyBlue1),
         ["toast.success.border"] = new Style(Color.Green),

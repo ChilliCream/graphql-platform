@@ -5,20 +5,23 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
 /// One rendered line of a task detail body. <see cref="IsMarkup"/>
-/// distinguishes section headers, dependency rows, and blocks rows, which
-/// already carry Spectre markup, from plain-text section lines that still
-/// need <c>Markup.Escape</c> before display. <see cref="IsSelectedRow"/>
-/// marks the single dependency or blocks row the body's scroll position
-/// keeps visible.
+/// distinguishes section headers, section box borders, dependency rows, and
+/// blocks rows, which already carry Spectre markup, from plain-text section
+/// lines, including a section box's content rows, that still need
+/// <c>Markup.Escape</c> before display. <see cref="IsSelectedRow"/> marks
+/// the single dependency or blocks row the body's scroll position keeps
+/// visible.
 /// </summary>
 internal readonly record struct TaskDetailBodyLine(string Content, bool IsMarkup, bool IsSelectedRow = false);
 
 /// <summary>
 /// Composes a task detail body's sections, in the order Description, Design,
 /// Acceptance criteria, Notes, Dependencies, Blocks, Comments, with a blank
-/// line between consecutive non-empty sections and a blank line between each
-/// section's header and its content. Empty sections are omitted entirely,
-/// including their header.
+/// line between consecutive non-empty sections. Description, Design,
+/// Acceptance criteria, and Notes each render as their own bordered box, see
+/// <see cref="TaskDetailSectionBox"/>; Dependencies, Blocks, and Comments
+/// stay a styled header line followed by a blank line and their rows. Empty
+/// sections are omitted entirely, including their header.
 /// </summary>
 internal static class TaskDetailBody
 {
@@ -68,7 +71,7 @@ internal static class TaskDetailBody
     }
 
     private static IReadOnlyList<TaskDetailBodyLine> TextSection(string header, string text, int width)
-        => WithStyledHeader(header, PlainBody(TaskDetailSections.BuildTextSection(header, text, width)));
+        => TaskDetailSectionBox.Render(header, text, width);
 
     private static IReadOnlyList<TaskDetailBodyLine> CommentsSection(IReadOnlyList<TaskComment> comments, int width)
         => WithStyledHeader("Comments", PlainBody(TaskDetailSections.BuildCommentsSection(comments, width)));
