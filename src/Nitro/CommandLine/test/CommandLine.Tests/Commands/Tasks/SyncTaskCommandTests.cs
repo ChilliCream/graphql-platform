@@ -100,7 +100,7 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task FlushOnly_WritesOneLinePerTask()
+    public async Task FlushOnly_WritesOneLinePerTaskAndConfigEntry()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -117,8 +117,9 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
 
         var content = await File.ReadAllTextAsync(jsonlPath, TestContext.Current.CancellationToken);
         var lines = content.TrimEnd('\n').Split('\n');
-        Assert.Single(lines);
-        Assert.Contains($"\"id\":\"{id}\"", lines[0]);
+        Assert.Equal(2, lines.Length);
+        Assert.Contains("\"key\":\"prefix\"", lines[0]);
+        Assert.Contains($"\"id\":\"{id}\"", lines[1]);
     }
 
     [Fact]
@@ -158,6 +159,32 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         Assert.Equal(beforeParent.StdOut, afterParent.StdOut);
         Assert.Equal(beforeChild.StdOut, afterChild.StdOut);
         Assert.Equal("tombstone", deletedStatus);
+    }
+
+    [Fact]
+    public async Task RoundTrip_FlushDeleteDatabaseImport_PrefixSurvives()
+    {
+        // arrange
+        var initResult = await ExecuteCommandAsync("task", "init", "--prefix", "widget");
+        Assert.Equal(0, initResult.ExitCode);
+        var firstId = await CreateTaskAsync("First task");
+        Assert.StartsWith("widget-", firstId);
+
+        // act
+        var flushResult = await ExecuteCommandAsync("task", "sync", "--flush-only");
+        Assert.Equal(0, flushResult.ExitCode);
+
+        File.Delete(DatabasePath);
+        File.Delete(DatabasePath + "-wal");
+        File.Delete(DatabasePath + "-shm");
+
+        var importResult = await ExecuteCommandAsync("task", "sync", "--import-only");
+        Assert.Equal(0, importResult.ExitCode);
+
+        var secondId = await CreateTaskAsync("Second task");
+
+        // assert
+        Assert.StartsWith("widget-", secondId);
     }
 
     [Fact]

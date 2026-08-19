@@ -71,11 +71,12 @@ internal sealed class SyncTaskCommand : Command
             ?? throw new ExitException(
                 "No task workspace found. Run `nitro task init` first.");
 
+        var config = await store.ListConfigAsync(cancellationToken);
         var records = await store.ExportTasksAsync(cancellationToken);
 
         await fileSystem.WriteAllTextAsync(
             TaskWorkspace.GetJsonlPath(workspaceDirectory),
-            SerializeJsonl(records),
+            SerializeJsonl(config, records),
             cancellationToken);
 
         console.OkLine(
@@ -105,9 +106,14 @@ internal sealed class SyncTaskCommand : Command
                 + $"'{TaskWorkspace.DisplayPath}/{TaskWorkspace.JsonlFileName}'.");
         }
 
-        var records = await ReadJsonlAsync(fileSystem, jsonlPath, cancellationToken);
+        var (config, records) = await ReadJsonlAsync(fileSystem, jsonlPath, cancellationToken);
 
         await store.EnsureWorkspaceAsync(workspaceDirectory, cancellationToken);
+
+        foreach (var entry in config)
+        {
+            await store.SetConfigAsync(entry.Key, entry.Value, cancellationToken);
+        }
 
         var result = await store.ImportTasksAsync(records, cancellationToken);
 
@@ -143,6 +149,7 @@ internal sealed class SyncTaskCommand : Command
             return ExitCodes.Error;
         }
 
+        var config = await store.ListConfigAsync(cancellationToken);
         var records = await store.ExportTasksAsync(cancellationToken);
 
         if (!hasJsonl)
@@ -155,7 +162,7 @@ internal sealed class SyncTaskCommand : Command
             return ExitCodes.Error;
         }
 
-        var expectedContent = SerializeJsonl(records);
+        var expectedContent = SerializeJsonl(config, records);
         var actualContent = await fileSystem.ReadAllTextAsync(jsonlPath, cancellationToken);
 
         if (NormalizeLineEndings(expectedContent) == NormalizeLineEndings(actualContent))
@@ -175,12 +182,21 @@ internal sealed class SyncTaskCommand : Command
     }
 
     /// <summary>
-    /// Serializes one compact JSON object per record, newline-separated, so
-    /// the result is valid JSONL: one task per line.
+    /// Serializes one compact JSON object per line, newline-separated, so the
+    /// result is valid JSONL: one workspace config entry per line, ordered by
+    /// key, followed by one task per line.
     /// </summary>
-    private static string SerializeJsonl(IReadOnlyList<TaskSyncRecord> records)
+    private static string SerializeJsonl(
+        IReadOnlyList<TaskConfigEntry> config,
+        IReadOnlyList<TaskSyncRecord> records)
     {
         var builder = new StringBuilder();
+
+        foreach (var entry in config)
+        {
+            builder.Append(JsonSerializer.Serialize(entry, TaskSyncJsonContext.Default.TaskConfigEntry));
+            builder.Append('\n');
+        }
 
         foreach (var record in records)
         {
@@ -191,12 +207,20 @@ internal sealed class SyncTaskCommand : Command
         return builder.ToString();
     }
 
-    private static async Task<IReadOnlyList<TaskSyncRecord>> ReadJsonlAsync(
-        IFileSystem fileSystem,
-        string jsonlPath,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Parses tasks.jsonl, splitting its lines into workspace config entries
+    /// and task records. A line is a config entry when it has no "id"
+    /// property, which every task line carries; a config line instead
+    /// carries "key" and "value".
+    /// </summary>
+    private static async Task<(IReadOnlyList<TaskConfigEntry> Config, IReadOnlyList<TaskSyncRecord> Records)>
+        ReadJsonlAsync(
+            IFileSystem fileSystem,
+            string jsonlPath,
+            CancellationToken cancellationToken)
     {
         var content = await fileSystem.ReadAllTextAsync(jsonlPath, cancellationToken);
+        var config = new List<TaskConfigEntry>();
         var records = new List<TaskSyncRecord>();
         var lineNumber = 0;
 
@@ -209,12 +233,24 @@ internal sealed class SyncTaskCommand : Command
                 continue;
             }
 
-            TaskSyncRecord? record;
-
             try
             {
-                record = JsonSerializer.Deserialize(
-                    line, TaskSyncJsonContext.Default.TaskSyncRecord);
+                using var document = JsonDocument.Parse(line);
+
+                if (document.RootElement.TryGetProperty("id", out _))
+                {
+                    records.Add(
+                        JsonSerializer.Deserialize(line, TaskSyncJsonContext.Default.TaskSyncRecord)
+                        ?? throw new ExitException(
+                            $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is empty."));
+                }
+                else
+                {
+                    config.Add(
+                        JsonSerializer.Deserialize(line, TaskSyncJsonContext.Default.TaskConfigEntry)
+                        ?? throw new ExitException(
+                            $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is empty."));
+                }
             }
             catch (JsonException exception)
             {
@@ -222,17 +258,9 @@ internal sealed class SyncTaskCommand : Command
                     $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is not valid JSON: "
                     + exception.Message);
             }
-
-            if (record is null)
-            {
-                throw new ExitException(
-                    $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is empty.");
-            }
-
-            records.Add(record);
         }
 
-        return records;
+        return (config, records);
     }
 
     private static string NormalizeLineEndings(string value) => value.ReplaceLineEndings("\n");

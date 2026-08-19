@@ -38,8 +38,10 @@ internal sealed class TaskSyncRecord
 /// AOT source-generated (de)serialization for tasks.jsonl. Kept separate
 /// from <c>JsonSourceGenerationContext</c>, whose options are indented for
 /// pretty-printed `--output json` results: JSONL requires exactly one
-/// compact JSON object per line.
+/// compact JSON object per line. Also serializes <see cref="TaskConfigEntry"/>,
+/// which shares tasks.jsonl with task records as its own line per key.
 /// </summary>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(TaskSyncRecord))]
+[JsonSerializable(typeof(TaskConfigEntry))]
 internal partial class TaskSyncJsonContext : JsonSerializerContext;
