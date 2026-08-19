@@ -36,7 +36,9 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
         if (column.ComputedFilter == ColumnComputedFilter.Blocked)
         {
             var blocked = await store.ComputeBlockedAsync(cancellationToken);
-            tasks = tasks.Where(t => blocked.ContainsKey(t.Id) && !TaskStates.IsTerminal(t.Status));
+            tasks = tasks.Where(t =>
+                !TaskStates.IsTerminal(t.Status)
+                && (t.Status == TaskStates.Blocked || blocked.ContainsKey(t.Id)));
         }
         else if (column.ComputedFilter == ColumnComputedFilter.Deferred)
         {

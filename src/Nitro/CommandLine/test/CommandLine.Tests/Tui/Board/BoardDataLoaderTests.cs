@@ -29,6 +29,85 @@ public sealed class BoardDataLoaderTests
     }
 
     [Fact]
+    public async Task LoadColumnAsync_Should_IncludeManualStatusBlockedTask_When_NoUnfinishedDependencies()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Blocked));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var column = new ColumnDefinition { Name = "Blocked", ComputedFilter = ColumnComputedFilter.Blocked };
+
+        // act
+        var tasks = await loader.LoadColumnAsync(column, CancellationToken.None);
+
+        // assert
+        Assert.Equal(["a-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task LoadColumnAsync_Should_ReturnTaskOnce_When_StatusBlockedAndDependencyComputedBlocked()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Blocked));
+        store.Blocked["a-1"] = ["a-9:open"];
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var column = new ColumnDefinition { Name = "Blocked", ComputedFilter = ColumnComputedFilter.Blocked };
+
+        // act
+        var tasks = await loader.LoadColumnAsync(column, CancellationToken.None);
+
+        // assert
+        Assert.Equal(["a-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task LoadColumnAsync_Should_CoverEveryNonTerminalTask_When_LoadingAllDefaultViewColumns()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var statuses = new[]
+        {
+            TaskStates.Open,
+            TaskStates.InProgress,
+            TaskStates.Blocked,
+            TaskStates.Deferred,
+            TaskStates.Closed,
+            TaskStates.Tombstone
+        };
+
+        foreach (var status in statuses)
+        {
+            store.Tasks.Add(TaskItemBuilder.Create($"{status}-nodep", status: status));
+
+            var dependencyBlockedId = $"{status}-dep";
+            store.Tasks.Add(TaskItemBuilder.Create(dependencyBlockedId, status: status));
+            store.Blocked[dependencyBlockedId] = ["dep-1:open"];
+        }
+
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+
+        // act
+        var visible = new HashSet<string>();
+        foreach (var column in BoardView.Default.Columns)
+        {
+            var tasks = await loader.LoadColumnAsync(column, CancellationToken.None);
+            foreach (var task in tasks)
+            {
+                visible.Add(task.Id);
+            }
+        }
+
+        // assert
+        var nonTerminalIds = store.Tasks
+            .Where(t => !TaskStates.IsTerminal(t.Status))
+            .Select(t => t.Id)
+            .ToList();
+        Assert.All(nonTerminalIds, id => Assert.Contains(id, visible));
+    }
+
+    [Fact]
     public async Task LoadColumnAsync_Should_ReturnDeferredStatusOrFutureDeferUntil_When_ComputedFilterIsDeferred()
     {
         // arrange
