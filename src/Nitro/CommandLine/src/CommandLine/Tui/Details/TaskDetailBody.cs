@@ -1,18 +1,24 @@
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
+
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
 /// One rendered line of a task detail body. <see cref="IsMarkup"/>
-/// distinguishes dependency and blocks rows, which already carry Spectre
-/// markup, from plain-text section lines that still need <c>Markup.Escape</c>
-/// before display.
+/// distinguishes section headers, dependency rows, and blocks rows, which
+/// already carry Spectre markup, from plain-text section lines that still
+/// need <c>Markup.Escape</c> before display. <see cref="IsSelectedRow"/>
+/// marks the single dependency or blocks row the body's scroll position
+/// keeps visible.
 /// </summary>
-internal readonly record struct TaskDetailBodyLine(string Content, bool IsMarkup);
+internal readonly record struct TaskDetailBodyLine(string Content, bool IsMarkup, bool IsSelectedRow = false);
 
 /// <summary>
 /// Composes a task detail body's sections, in the order Description, Design,
 /// Acceptance criteria, Notes, Dependencies, Blocks, Comments, with a blank
-/// line between consecutive non-empty sections. Empty sections are omitted
-/// entirely, including their header.
+/// line between consecutive non-empty sections and a blank line between each
+/// section's header and its content. Empty sections are omitted entirely,
+/// including their header.
 /// </summary>
 internal static class TaskDetailBody
 {
@@ -30,13 +36,13 @@ internal static class TaskDetailBody
 
         var sections = new List<IReadOnlyList<TaskDetailBodyLine>>
         {
-            Plain(TaskDetailSections.BuildTextSection("Description:", task.Description, width)),
-            Plain(TaskDetailSections.BuildTextSection("Design:", task.Design, width)),
-            Plain(TaskDetailSections.BuildTextSection("Acceptance criteria:", task.AcceptanceCriteria, width)),
-            Plain(TaskDetailSections.BuildTextSection("Notes:", task.Notes, width)),
-            BuildRowSection("Dependencies:", dependencyRows, model.SelectedRowIndex, width, focused),
-            BuildRowSection("Blocks:", blockRows, model.SelectedRowIndex, width, focused),
-            Plain(TaskDetailSections.BuildCommentsSection(model.Comments, width))
+            TextSection("Description", task.Description, width),
+            TextSection("Design", task.Design, width),
+            TextSection("Acceptance criteria", task.AcceptanceCriteria, width),
+            TextSection("Notes", task.Notes, width),
+            RowSection("Dependencies", dependencyRows, model.SelectedRowIndex, width, focused),
+            RowSection("Blocks", blockRows, model.SelectedRowIndex, width, focused),
+            CommentsSection(model.Comments, width)
         };
 
         var lines = new List<TaskDetailBodyLine>();
@@ -61,19 +67,13 @@ internal static class TaskDetailBody
         return lines;
     }
 
-    private static IReadOnlyList<TaskDetailBodyLine> Plain(IReadOnlyList<string> lines)
-    {
-        var result = new List<TaskDetailBodyLine>(lines.Count);
+    private static IReadOnlyList<TaskDetailBodyLine> TextSection(string header, string text, int width)
+        => WithStyledHeader(header, PlainBody(TaskDetailSections.BuildTextSection(header, text, width)));
 
-        foreach (var line in lines)
-        {
-            result.Add(new TaskDetailBodyLine(line, false));
-        }
+    private static IReadOnlyList<TaskDetailBodyLine> CommentsSection(IReadOnlyList<TaskComment> comments, int width)
+        => WithStyledHeader("Comments", PlainBody(TaskDetailSections.BuildCommentsSection(comments, width)));
 
-        return result;
-    }
-
-    private static IReadOnlyList<TaskDetailBodyLine> BuildRowSection(
+    private static IReadOnlyList<TaskDetailBodyLine> RowSection(
         string header,
         IReadOnlyList<TaskDetailRow> rows,
         int selectedIndex,
@@ -85,15 +85,70 @@ internal static class TaskDetailBody
             return [];
         }
 
-        var lines = new List<TaskDetailBodyLine>(rows.Count + 1) { new(header, false) };
+        var body = new List<TaskDetailBodyLine>(rows.Count);
 
         foreach (var row in rows)
         {
-            lines.Add(new TaskDetailBodyLine(
-                TaskDetailRowRenderer.Render(row, selected: focused && row.Index == selectedIndex, width),
-                IsMarkup: true));
+            var selected = focused && row.Index == selectedIndex;
+
+            body.Add(new TaskDetailBodyLine(
+                TaskDetailRowRenderer.Render(row, selected, width),
+                IsMarkup: true,
+                IsSelectedRow: selected));
         }
 
+        return WithStyledHeader(header, body);
+    }
+
+    /// <summary>
+    /// Drops a raw section's leading header line, since the caller re-adds
+    /// it styled, and wraps the remaining lines as plain, unescaped body
+    /// content.
+    /// </summary>
+    private static IReadOnlyList<TaskDetailBodyLine> PlainBody(IReadOnlyList<string> rawLines)
+    {
+        if (rawLines.Count == 0)
+        {
+            return [];
+        }
+
+        var body = new List<TaskDetailBodyLine>(rawLines.Count - 1);
+
+        for (var i = 1; i < rawLines.Count; i++)
+        {
+            body.Add(new TaskDetailBodyLine(rawLines[i], false));
+        }
+
+        return body;
+    }
+
+    /// <summary>
+    /// Prefixes non-empty section content with a bold header line and a
+    /// blank separator line. Empty content stays empty, so the caller omits
+    /// the section entirely, header included.
+    /// </summary>
+    private static IReadOnlyList<TaskDetailBodyLine> WithStyledHeader(string header, IReadOnlyList<TaskDetailBodyLine> body)
+    {
+        if (body.Count == 0)
+        {
+            return [];
+        }
+
+        var lines = new List<TaskDetailBodyLine>(body.Count + 2)
+        {
+            StyledHeader(header),
+            new TaskDetailBodyLine(string.Empty, false)
+        };
+
+        lines.AddRange(body);
         return lines;
+    }
+
+    private static TaskDetailBodyLine StyledHeader(string header)
+    {
+        var style = ThemeTokens.GetStyle("detail.section.header").ToMarkup();
+        var text = Markup.Escape(header);
+        var content = style.Length == 0 ? $"[bold]{text}[/]" : $"[{style}]{text}[/]";
+        return new TaskDetailBodyLine(content, IsMarkup: true);
     }
 }

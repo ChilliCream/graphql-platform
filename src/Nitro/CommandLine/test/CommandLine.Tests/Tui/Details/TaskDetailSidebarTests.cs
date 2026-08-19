@@ -16,12 +16,14 @@ public sealed partial class TaskDetailSidebarTests
         var lines = TaskDetailSidebar.Build(task, [], []).Select(StripMarkupTags);
 
         // assert: only the always-present status/priority/type/created/updated
-        // lines remain, none of the optional fields.
+        // lines remain, none of the optional fields; the state and dates
+        // groups are separated by a blank line.
         Assert.Equal(
             [
                 "○ open",
                 "Priority: P2",
                 "Type: task",
+                "",
                 $"Created: {TaskDates.Format(task.CreatedAt)} by alice",
                 $"Updated: {TaskDates.Format(task.UpdatedAt)}"
             ],
@@ -46,12 +48,14 @@ public sealed partial class TaskDetailSidebarTests
         // act
         var lines = TaskDetailSidebar.Build(task, ["backend"], ["t-0:not closed"]).Select(StripMarkupTags);
 
-        // assert
+        // assert: state, dates/people, labels, and blocked-by are separated
+        // by a blank line.
         Assert.Equal(
             [
                 "✓ closed",
                 "Priority: P2",
                 "Type: task",
+                "",
                 "Assignee: bob",
                 $"Due: {TaskDates.Format(task.DueAt!.Value)}",
                 $"Deferred until: {TaskDates.Format(task.DeferUntil!.Value)}",
@@ -59,7 +63,9 @@ public sealed partial class TaskDetailSidebarTests
                 $"Created: {TaskDates.Format(task.CreatedAt)} by alice",
                 $"Updated: {TaskDates.Format(task.UpdatedAt)}",
                 $"Closed: {TaskDates.Format(task.ClosedAt!.Value)} (done)",
+                "",
                 "Labels: backend",
+                "",
                 "Blocked by: t-0:not closed"
             ],
             lines);
@@ -80,6 +86,7 @@ public sealed partial class TaskDetailSidebarTests
                 "○ open",
                 "Priority: P2",
                 "Type: task",
+                "",
                 $"Created: {TaskDates.Format(task.CreatedAt)} by ",
                 $"Updated: {TaskDates.Format(task.UpdatedAt)}"
             ],

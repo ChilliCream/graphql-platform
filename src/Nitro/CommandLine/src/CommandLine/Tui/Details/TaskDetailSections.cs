@@ -46,7 +46,7 @@ internal static class TaskDetailSections
             return [];
         }
 
-        var lines = new List<string> { "Comments:" };
+        var lines = new List<string> { "Comments" };
 
         for (var i = 0; i < comments.Count; i++)
         {

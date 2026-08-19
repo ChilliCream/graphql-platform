@@ -113,7 +113,7 @@ public sealed class TaskDetailSectionsTests
         // assert
         Assert.Equal(
             [
-                "Comments:",
+                "Comments",
                 $"alice - {TaskDates.Format(DateTimeOffset.UnixEpoch)}",
                 "hello world",
                 "",
