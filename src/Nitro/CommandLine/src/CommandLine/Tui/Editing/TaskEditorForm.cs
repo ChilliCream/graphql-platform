@@ -97,12 +97,14 @@ internal sealed class TaskEditorForm
 
     /// <summary>
     /// The footer hints for the task editor: its keys are consumed entirely
-    /// while it is active, so no global hints follow.
+    /// while it is active, so no global hints follow. The save hint advertises
+    /// Ctrl+S rather than Ctrl+Enter because it is the chord reliably
+    /// distinguishable from a plain Enter across terminals.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
         new KeyHint("tab", "next field"),
-        new KeyHint("enter", "save"),
+        new KeyHint("ctrl+s", "save"),
         new KeyHint("esc", "cancel")
     ];
 

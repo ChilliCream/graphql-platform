@@ -78,12 +78,14 @@ internal sealed class TaskCreateForm
 
     /// <summary>
     /// The footer hints for the task create form: its keys are consumed
-    /// entirely while it is active, so no global hints follow.
+    /// entirely while it is active, so no global hints follow. The create
+    /// hint advertises Ctrl+S rather than Ctrl+Enter because it is the chord
+    /// reliably distinguishable from a plain Enter across terminals.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
         new KeyHint("tab", "next field"),
-        new KeyHint("enter", "create"),
+        new KeyHint("ctrl+s", "create"),
         new KeyHint("esc", "cancel")
     ];
 

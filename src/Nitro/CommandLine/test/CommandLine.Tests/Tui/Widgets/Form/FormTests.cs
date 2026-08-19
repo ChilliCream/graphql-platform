@@ -10,6 +10,8 @@ public sealed class FormTests
 
     private static ConsoleKeyInfo Key(ConsoleKey key, bool shift = false) => new('\0', key, shift, false, false);
 
+    private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
     private static FormUnderTest CreateForm(
         Func<FormValue, string?>? titleValidator = null,
         IReadOnlyList<FormButtonSpec>? buttons = null)
@@ -241,6 +243,107 @@ public sealed class FormTests
 
         // assert
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void HandleKey_Should_Submit_When_CtrlEnterWhileFieldFocused()
+    {
+        // arrange: focus stays on the first field, no Tab to the button row.
+        var form = CreateForm();
+        form.HandleKey(Key('h'));
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("h"), submitted.Values["title"]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_Submit_When_CtrlSWhileFieldFocused()
+    {
+        // arrange: Ctrl+S is the fallback chord for terminals that deliver
+        // Ctrl+Enter identically to a plain Enter.
+        var form = CreateForm();
+        form.HandleKey(Key('h'));
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.S));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("h"), submitted.Values["title"]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_NotInsertNewline_When_CtrlEnterInTextAreaField()
+    {
+        // arrange: a plain Enter in a text area inserts a newline, but the
+        // save chord must take priority over the field's own key handling.
+        var fields = new FormField[] { new TextAreaField("notes", "Notes") };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", fields, buttons);
+        form.HandleKey(Key('h'));
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("h"), submitted.Values["notes"]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_NotSubmit_When_PlainEnterInTextAreaField()
+    {
+        // arrange: confirms the save chord is Ctrl-gated, not a change to
+        // the text area's own plain-Enter newline behavior.
+        var fields = new FormField[] { new TextAreaField("notes", "Notes") };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", fields, buttons);
+
+        // act
+        var result = form.HandleKey(Key(ConsoleKey.Enter));
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(new FormValue.Text("\n"), form.FocusedField?.GetValue());
+    }
+
+    [Fact]
+    public void HandleKey_Should_FocusFirstInvalidField_When_CtrlEnterAndValidatorFails()
+    {
+        // arrange: focus sits on the status field, away from the invalid title.
+        var form = CreateForm(titleValidator: value =>
+            value is FormValue.Text { Value.Length: 0 } ? "Title is required." : null);
+        form.HandleKey(Key(ConsoleKey.Tab));
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal("title", form.FocusedField?.Id);
+    }
+
+    [Fact]
+    public void HandleKey_Should_IgnoreSelectedButton_When_CtrlEnterOnSecondaryButton()
+    {
+        // arrange: focus sits on Cancel, but the save chord always targets
+        // the primary action, not whichever button is currently selected.
+        var form = CreateForm();
+        form.HandleKey(Key('h'));
+        form.HandleKey(Key(ConsoleKey.Tab));
+        form.HandleKey(Key(ConsoleKey.Tab));
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("h"), submitted.Values["title"]);
     }
 
     [Fact]

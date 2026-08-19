@@ -137,6 +137,11 @@ internal sealed class Form
     /// </summary>
     public FormResult? HandleKey(ConsoleKeyInfo info)
     {
+        if (IsSaveChord(info))
+        {
+            return TrySave();
+        }
+
         if (IsFieldFocused)
         {
             var field = _fields[_focusIndex];
@@ -318,11 +323,48 @@ internal sealed class Form
     {
         var id = _buttons.SelectedId;
 
-        if (_buttons.SelectedKind != ButtonKind.Primary)
+        return _buttons.SelectedKind != ButtonKind.Primary
+            ? new FormResult.ButtonActivated(id)
+            : TryValidateAndSubmit();
+    }
+
+    /// <summary>
+    /// Whether <paramref name="info"/> is the save chord that submits the form
+    /// from any focus position, as if the primary button were activated:
+    /// Ctrl+Enter, or Ctrl+S as a fallback for terminals whose legacy input
+    /// mode reports Ctrl+Enter identically to a plain Enter.
+    /// </summary>
+    private static bool IsSaveChord(ConsoleKeyInfo info)
+        => info.Modifiers.HasFlag(ConsoleModifiers.Control)
+        && info.Key is ConsoleKey.Enter or ConsoleKey.S;
+
+    /// <summary>
+    /// Submits the form as if the primary button were activated, regardless of
+    /// which field or button currently has focus. On validation failure,
+    /// moves focus to the first invalid field instead of leaving focus
+    /// wherever the chord was pressed, so the surfaced error is immediately
+    /// visible.
+    /// </summary>
+    private FormResult? TrySave()
+    {
+        var result = TryValidateAndSubmit();
+
+        if (result is null)
         {
-            return new FormResult.ButtonActivated(id);
+            _focusIndex = FirstInvalidFieldIndex();
         }
 
+        return result;
+    }
+
+    /// <summary>
+    /// Validates every field, marking the form as having attempted a submit so
+    /// every field's error becomes visible; returns the submitted values when
+    /// all fields are valid, or <see langword="null"/> to keep the form open
+    /// otherwise.
+    /// </summary>
+    private FormResult? TryValidateAndSubmit()
+    {
         _submitAttempted = true;
 
         if (_fields.Any(field => field.Validate() is not null))
@@ -331,5 +373,20 @@ internal sealed class Form
         }
 
         return new FormResult.Submitted(_fields.ToDictionary(field => field.Id, field => field.GetValue()));
+    }
+
+    private int FirstInvalidFieldIndex()
+    {
+        for (var i = 0; i < _fields.Count; i++)
+        {
+            if (_fields[i].Validate() is not null)
+            {
+                return i;
+            }
+        }
+
+        // TrySave only calls this after TryValidateAndSubmit found an invalid
+        // field, so one is always present here.
+        throw new InvalidOperationException("Expected an invalid field.");
     }
 }

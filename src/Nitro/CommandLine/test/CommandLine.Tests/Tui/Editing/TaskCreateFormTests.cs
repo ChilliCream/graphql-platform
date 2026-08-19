@@ -11,6 +11,8 @@ public sealed class TaskCreateFormTests
 
     private static ConsoleKeyInfo Key(ConsoleKey key) => new('\0', key, false, false, false);
 
+    private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
     private static void Type(TaskCreateForm form, string text)
     {
         foreach (var c in text)
@@ -144,6 +146,52 @@ public sealed class TaskCreateFormTests
 
         // assert
         Assert.IsType<FormResult.Cancelled>(result);
+    }
+
+    [Fact]
+    public void HandleKey_Should_Create_When_CtrlEnterFromTitleField()
+    {
+        // arrange: focus never leaves the title field, no Tab to Create.
+        var form = new TaskCreateForm(TaskTypes.Task);
+        Type(form, "New task");
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("New task"), submitted.Values[TaskCreateForm.TitleFieldId]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_Create_When_CtrlSFromTitleField()
+    {
+        // arrange: Ctrl+S is the fallback save chord for terminals that
+        // deliver Ctrl+Enter identically to a plain Enter.
+        var form = new TaskCreateForm(TaskTypes.Task);
+        Type(form, "New task");
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.S));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("New task"), submitted.Values[TaskCreateForm.TitleFieldId]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_NotClose_When_CtrlEnterWithEmptyTitle()
+    {
+        // arrange
+        var form = new TaskCreateForm(TaskTypes.Task);
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert: the form stays open and focus moves to the invalid title
+        // field instead of closing.
+        Assert.Null(result);
+        Assert.Equal(TaskCreateForm.TitleFieldId, form.FocusedField?.Id);
     }
 
     [Fact]

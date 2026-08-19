@@ -12,6 +12,8 @@ public sealed class TaskEditorFormTests
 
     private static ConsoleKeyInfo Key(ConsoleKey key) => new('\0', key, false, false, false);
 
+    private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
     private static void Type(TaskEditorForm form, string text)
     {
         foreach (var c in text)
@@ -171,6 +173,56 @@ public sealed class TaskEditorFormTests
         // assert: the form stays open because a whitespace-only title is
         // rejected, matching TaskCreateForm's title validator.
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void HandleKey_Should_Submit_When_CtrlEnterFromTitleField()
+    {
+        // arrange: focus never leaves the title field, no Tab to Save.
+        var task = TaskItemBuilder.Create("a1", "Title");
+        var form = new TaskEditorForm(task, []);
+        Type(form, "!");
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("Title!"), submitted.Values[TaskEditorForm.TitleFieldId]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_Submit_When_CtrlSFromTitleField()
+    {
+        // arrange: Ctrl+S is the fallback save chord for terminals that
+        // deliver Ctrl+Enter identically to a plain Enter.
+        var task = TaskItemBuilder.Create("a1", "Title");
+        var form = new TaskEditorForm(task, []);
+        Type(form, "!");
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.S));
+
+        // assert
+        var submitted = Assert.IsType<FormResult.Submitted>(result);
+        Assert.Equal(new FormValue.Text("Title!"), submitted.Values[TaskEditorForm.TitleFieldId]);
+    }
+
+    [Fact]
+    public void HandleKey_Should_NotClose_When_CtrlEnterWithEmptyTitle()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "T");
+        var form = new TaskEditorForm(task, []);
+        form.HandleKey(Key(ConsoleKey.Backspace));
+
+        // act
+        var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
+
+        // assert: the form stays open and focus moves to the invalid title
+        // field instead of closing.
+        Assert.Null(result);
+        Assert.Equal(TaskEditorForm.TitleFieldId, form.FocusedField?.Id);
     }
 
     [Fact]
