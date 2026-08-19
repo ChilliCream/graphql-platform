@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Azure;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 
@@ -208,6 +209,18 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         return _connection.CreateSubscriptionAsync(options, cancellationToken);
+    }
+
+    /// <summary>
+    /// Retrieves the properties of an existing subscription using the administration client.
+    /// </summary>
+    public Task<Response<SubscriptionProperties>> GetSubscriptionAsync(
+        string topicName,
+        string subscriptionName,
+        CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _connection.GetSubscriptionAsync(topicName, subscriptionName, cancellationToken);
     }
 
     /// <inheritdoc />

@@ -84,6 +84,17 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Subscription from topic '{source}' to queue '{destination}' already exists");
 
+    public static Exception SubscriptionForwardToDrift(
+        string topicName,
+        string subscriptionName,
+        string expectedForwardTo,
+        string? actualForwardTo)
+        => new InvalidOperationException(
+            $"Subscription '{subscriptionName}' on topic '{topicName}' already exists on the broker, "
+            + $"but forwards to '{actualForwardTo}' instead of the expected '{expectedForwardTo}'. "
+            + "This can happen when two different destination queues derive the same subscription name. "
+            + "Rename one of the destination queues or the subscription.");
+
     public static Exception TopicCannotEnablePartitioningWithOrdering(string topicName)
         => new InvalidOperationException(
             $"Azure Service Bus topic '{topicName}' cannot enable partitioning and support ordering.");

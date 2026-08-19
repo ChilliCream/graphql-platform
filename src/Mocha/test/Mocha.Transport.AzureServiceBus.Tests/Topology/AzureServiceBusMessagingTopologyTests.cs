@@ -298,8 +298,24 @@ public class AzureServiceBusMessagingTopologyTests
 
         // assert
         Assert.Equal("fwd-accounting", shortName);
-        Assert.Equal("fwd-orders-processing-and-fulfillment-not-a0c46eb0", longName);
+        Assert.Equal("fwd-orders-processing-and-fulfill-a0c46eb0270a10f6", longName);
         Assert.Equal(50, longName.Length);
+    }
+
+    [Fact]
+    public void GetForwardingSubscriptionName_Should_NotCollide_When_QueueNamesShareLegacyFourByteHashPrefix()
+    {
+        // arrange - these two queue names share the same first 4 SHA-256 bytes, which was the
+        // entire hash suffix previously used, but diverge in the next 4 bytes.
+        const string queueName1 = "orders-processing-and-fulfillment-not-47578-queue";
+        const string queueName2 = "orders-processing-and-fulfillment-not-177000-queue";
+
+        // act
+        var name1 = AzureServiceBusSubscription.GetForwardingSubscriptionName(queueName1);
+        var name2 = AzureServiceBusSubscription.GetForwardingSubscriptionName(queueName2);
+
+        // assert
+        Assert.NotEqual(name1, name2);
     }
 
     [Fact]
@@ -310,7 +326,7 @@ public class AzureServiceBusMessagingTopologyTests
         var flatName = AzureServiceBusSubscription.GetForwardingSubscriptionName("orders-eu");
 
         // assert
-        Assert.Equal("fwd-orders-eu-df09ed59", hierarchicalName);
+        Assert.Equal("fwd-orders-eu-df09ed5999ef8fa2", hierarchicalName);
         Assert.Equal("fwd-orders-eu", flatName);
     }
 
@@ -330,7 +346,7 @@ public class AzureServiceBusMessagingTopologyTests
         });
 
         // assert
-        Assert.Equal("fwd-orders-eu-df09ed59", subscription.Name);
+        Assert.Equal("fwd-orders-eu-df09ed5999ef8fa2", subscription.Name);
     }
 
     [Fact]

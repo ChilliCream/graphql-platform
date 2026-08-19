@@ -138,7 +138,7 @@ public sealed class AzureServiceBusSubscription
         var hash = Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(queueName)),
             0,
-            4).ToLowerInvariant();
+            8).ToLowerInvariant();
         var prefixLength = Math.Min(candidate.Length, MaxSubscriptionNameLength - hash.Length - 1);
         return candidate[..prefixLength] + "-" + hash;
     }
@@ -200,7 +200,16 @@ public sealed class AzureServiceBusSubscription
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
-            // Already provisioned by another instance, safe to ignore.
+            var existing = await clientManager.GetSubscriptionAsync(Source.Name, Name, cancellationToken);
+
+            if (!string.Equals(existing.Value.ForwardTo, options.ForwardTo, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.SubscriptionForwardToDrift(
+                    Source.Name,
+                    Name,
+                    options.ForwardTo,
+                    existing.Value.ForwardTo);
+            }
         }
     }
 }
