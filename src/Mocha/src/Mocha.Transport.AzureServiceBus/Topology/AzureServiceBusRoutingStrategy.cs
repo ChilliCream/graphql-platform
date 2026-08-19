@@ -245,9 +245,9 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
                     continue;
                 }
 
-                EnsureTopic(publishDestination.Name);
                 if (autoBind)
                 {
+                    EnsureTopic(publishDestination.Name);
                     EnsureSubscription(publishDestination.Name, azureConfiguration.QueueName);
                 }
 
