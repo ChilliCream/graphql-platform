@@ -36,30 +36,35 @@ internal sealed record BoardView
             new ColumnDefinition
             {
                 Name = "Blocked",
-                ComputedFilter = ColumnComputedFilter.Blocked
+                ComputedFilter = ColumnComputedFilter.Blocked,
+                BorderToken = "board.column.status.blocked"
             },
             new ColumnDefinition
             {
                 Name = "Deferred",
-                ComputedFilter = ColumnComputedFilter.Deferred
+                ComputedFilter = ColumnComputedFilter.Deferred,
+                BorderToken = "board.column.status.deferred"
             },
             new ColumnDefinition
             {
                 Name = "Ready",
                 Statuses = [TaskStates.Open],
-                ComputedFilter = ColumnComputedFilter.Ready
+                ComputedFilter = ColumnComputedFilter.Ready,
+                BorderToken = "board.column.status.ready"
             },
             new ColumnDefinition
             {
                 Name = "In Progress",
-                Statuses = [TaskStates.InProgress]
+                Statuses = [TaskStates.InProgress],
+                BorderToken = "board.column.status.inprogress"
             },
             new ColumnDefinition
             {
                 Name = "Closed",
                 Statuses = [TaskStates.Closed],
                 Sort = BoardColumnSort.RecentFirst,
-                Limit = ClosedColumnLimit
+                Limit = ClosedColumnLimit,
+                BorderToken = "board.column.status.closed"
             }
         ]
     };

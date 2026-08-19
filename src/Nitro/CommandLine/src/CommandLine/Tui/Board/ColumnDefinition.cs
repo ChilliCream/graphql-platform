@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
@@ -100,4 +101,25 @@ internal sealed record ColumnDefinition
     /// The maximum number of tasks kept after sorting. Null means unlimited.
     /// </summary>
     public int? Limit { get; init; }
+
+    /// <summary>
+    /// The theme token for this column's border and header accent color, for
+    /// example <c>board.column.status.blocked</c>. Null falls back to the
+    /// board's default neutral border tokens.
+    /// </summary>
+    public string? BorderToken { get; init; }
+
+    /// <summary>
+    /// Resolves this column's border and header style: its own accent token,
+    /// brightened when <paramref name="focused"/> is true, or the default
+    /// neutral border tokens when no accent is assigned.
+    /// </summary>
+    public Style ResolveBorderStyle(bool focused)
+    {
+        var token = BorderToken is { } accent
+            ? focused ? $"{accent}.focused" : accent
+            : focused ? "board.column.border.focused" : "board.column.border";
+
+        return ThemeTokens.GetStyle(token);
+    }
 }

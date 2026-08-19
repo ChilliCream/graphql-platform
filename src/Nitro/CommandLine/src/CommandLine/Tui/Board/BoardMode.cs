@@ -197,6 +197,14 @@ internal sealed class BoardMode : ITuiMode
         var lines = RenderColumnLines(column, _viewports[index], contentWidth, interiorHeight, focused);
         var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
         var panel = ColumnPane.Render(name, column.Tasks.Count, lines, focused);
+
+        // Panel header title inherits the same accent color as its border,
+        // per column, rather than the global focused-border override
+        // ColumnPane computes for itself.
+        var borderStyle = column.Definition.ResolveBorderStyle(focused);
+        panel.BorderStyle = borderStyle;
+        panel.Header = panel.Header!.SetStyle(borderStyle);
+
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, panelHeight);
 

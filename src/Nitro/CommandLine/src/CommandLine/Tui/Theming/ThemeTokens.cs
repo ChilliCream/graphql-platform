@@ -35,6 +35,17 @@ internal static class DefaultTheme
         ["board.column.border"] = new Style(Color.Grey),
         ["board.column.border.focused"] = new Style(Color.Aqua),
 
+        ["board.column.status.blocked"] = new Style(Color.Red),
+        ["board.column.status.blocked.focused"] = new Style(Color.Red, decoration: Decoration.Bold),
+        ["board.column.status.deferred"] = new Style(Color.Yellow),
+        ["board.column.status.deferred.focused"] = new Style(Color.Yellow, decoration: Decoration.Bold),
+        ["board.column.status.ready"] = new Style(Color.Green),
+        ["board.column.status.ready.focused"] = new Style(Color.Green, decoration: Decoration.Bold),
+        ["board.column.status.inprogress"] = new Style(Color.Blue),
+        ["board.column.status.inprogress.focused"] = new Style(Color.Blue, decoration: Decoration.Bold),
+        ["board.column.status.closed"] = new Style(Color.Grey, decoration: Decoration.Dim),
+        ["board.column.status.closed.focused"] = new Style(Color.Grey, decoration: Decoration.Bold),
+
         ["badge.priority.p0"] = new Style(Color.Red),
         ["badge.priority.p1"] = new Style(Color.Orange1),
         ["badge.priority.p2"] = new Style(Color.Yellow),
