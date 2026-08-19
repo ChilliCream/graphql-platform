@@ -125,8 +125,9 @@ public sealed class TaskDetailViewTests
     public async Task Render_Should_KeepScrollOffset_When_TaskHasDependencyRows_And_BodyScrolledToBottom()
     {
         // arrange: a task with a dependency row (which claims a fixed,
-        // unmoving selected-row line index) and enough notes lines that the
-        // body overflows a short viewport.
+        // unmoving selected-row line index) and enough notes and comment
+        // lines that the body overflows a short viewport, with content after
+        // the dependency row so scrolling past it is observable.
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create(
             "t-1", notes: string.Join('\n', Enumerable.Range(1, 30).Select(i => $"line {i}")));
@@ -140,6 +141,16 @@ public sealed class TaskDetailViewTests
                 Title = "Dep 0"
             }
         ];
+        store.Comments["t-1"] = Enumerable.Range(1, 7)
+            .Select(i => new TaskComment
+            {
+                Id = i,
+                TaskId = "t-1",
+                Author = "user",
+                Text = $"comment {i}",
+                CreatedAt = DateTimeOffset.UnixEpoch
+            })
+            .ToList();
         var view = await CreateViewAsync(store, "t-1");
         RenderToText(view, width: 110, height: 10);
 
@@ -150,7 +161,7 @@ public sealed class TaskDetailViewTests
 
         // assert: the bottom of the body stays in view instead of snapping
         // back up to the dependency row.
-        Assert.Contains("line 30", text);
+        Assert.Contains("comment 5", text);
         Assert.Contains("more above", text);
     }
 
