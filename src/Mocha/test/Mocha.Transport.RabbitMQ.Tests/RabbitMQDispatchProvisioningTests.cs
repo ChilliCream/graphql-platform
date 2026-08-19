@@ -211,18 +211,18 @@ public class RabbitMQDispatchProvisioningTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act - RabbitMQ.Client only surfaces an unroutable mandatory publish through the
-        // BasicReturnAsync event; publisher confirmations are not enabled on dispatch
-        // channels, so nothing in this call path can observe a broker-side basic.return
+        // act - no BasicReturnAsync handler is attached to dispatch channels, and publisher
+        // confirmations are not enabled on them either, so an unroutable mandatory publish
+        // would go unnoticed; the mandatory flag is dropped rather than left as dead signal
         await messageBus.PublishAsync(new OrderCreated { OrderId = "MANDATORY-1" }, TestContext.Current.CancellationToken);
 
-        // assert - the publish is sent with mandatory=true, but no BasicReturnAsync handler
-        // is ever attached to the channel, so a broker return would go unnoticed
+        // assert - the publish is sent with mandatory=false, and no BasicReturnAsync handler
+        // is ever attached to the channel
         channelMock.Verify(
             c => c.BasicPublishAsync(
                 It.IsAny<CachedString>(),
                 It.IsAny<CachedString>(),
-                true,
+                false,
                 It.IsAny<BasicProperties>(),
                 It.IsAny<ReadOnlyMemory<byte>>(),
                 It.IsAny<CancellationToken>()),
