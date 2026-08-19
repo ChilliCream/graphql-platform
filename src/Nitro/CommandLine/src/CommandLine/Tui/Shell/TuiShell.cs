@@ -232,9 +232,16 @@ internal sealed class TuiShell
         var outcome = _editorForm!.SubmitAsync(_store!, submitted.Values, _actor!, CancellationToken.None)
             .GetAwaiter().GetResult();
 
-        _editorForm = null;
         HandleMessage(outcome.ToShowToast());
         HandleMessage(new TuiMessage.RefreshRequested());
+
+        // A failed save leaves the form open with its entered values so the
+        // user can see the error and retry; only a successful save closes it.
+        if (outcome is TaskEditorOutcome.Succeeded)
+        {
+            _editorForm = null;
+        }
+
         return true;
     }
 
@@ -413,12 +420,14 @@ internal sealed class TuiShell
         var outcome = _createForm!.SubmitAsync(_store!, submitted.Values, _actor!, CancellationToken.None)
             .GetAwaiter().GetResult();
 
-        _createForm = null;
         HandleMessage(outcome.ToShowToast());
         HandleMessage(new TuiMessage.RefreshRequested());
 
+        // A failed save leaves the form open with its entered values so the
+        // user can see the error and retry; only a successful save closes it.
         if (outcome is TaskCreateOutcome.Succeeded succeeded)
         {
+            _createForm = null;
             _activeMode.SelectTask(succeeded.TaskId);
         }
 

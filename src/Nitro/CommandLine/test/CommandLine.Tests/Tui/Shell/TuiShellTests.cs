@@ -484,6 +484,35 @@ public sealed class TuiShellTests
     }
 
     [Fact]
+    public void Handle_Should_KeepEditorFormOpenWithValuesAndShowError_When_StoreRejectsSave()
+    {
+        // arrange
+        var store = new FakeTaskStore { ThrowOnWrite = new ExitException("rejected") };
+        store.Tasks["a"] = TaskItemBuilder.Create("a", "Old title");
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+
+        // act: append a character to the focused title field, tab to the
+        // button row, and activate the default-selected Save button.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 7; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert: the form is still open with the edited value, and the
+        // store's error is shown as a toast rather than silently discarded.
+        var rendered = RenderToText(shell);
+        Assert.Contains("Edit Task", rendered);
+        Assert.Contains("Old title!", rendered);
+        Assert.Contains("rejected", rendered);
+    }
+
+    [Fact]
     public void Handle_Should_OpenEditorFromBoardSelection_When_BoardModeIsActive()
     {
         // arrange: a real BoardMode (not FakeTuiMode) supplies SelectedTaskId
@@ -939,6 +968,31 @@ public sealed class TuiShellTests
         Assert.Contains("Created task 'a2'.", RenderToText(shell));
         Assert.Contains(mode.HandledMessages, m => m is TuiMessage.RefreshRequested);
         Assert.Equal(["a2"], mode.SelectTaskCalls);
+    }
+
+    [Fact]
+    public void Handle_Should_KeepCreateFormOpenWithValuesAndShowError_When_StoreRejectsCreate()
+    {
+        // arrange
+        var store = new FakeTaskStore { ThrowOnWrite = new ExitException("rejected") };
+        var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+
+        for (var i = 0; i < 5; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert: the form is still open with the entered title, and the
+        // store's error is shown as a toast rather than silently discarded.
+        Assert.Equal("!", store.CreationReceived!.Title);
+        var rendered = RenderToText(shell);
+        Assert.Contains("Create Task", rendered);
+        Assert.Contains("rejected", rendered);
     }
 
     [Fact]

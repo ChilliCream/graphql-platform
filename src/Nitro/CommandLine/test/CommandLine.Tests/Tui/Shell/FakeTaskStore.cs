@@ -12,6 +12,12 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
+    /// <summary>
+    /// When set, the next write call throws this instead of returning a
+    /// result.
+    /// </summary>
+    public ExitException? ThrowOnWrite { get; set; }
+
     public Dictionary<string, TaskItem> Tasks { get; } = [];
 
     public Dictionary<string, string[]> Labels { get; } = [];
@@ -77,6 +83,11 @@ internal sealed class FakeTaskStore : ITaskStore
         UpdatedId = id;
         UpdateReceived = update;
         Actor = update.Actor;
+
+        if (ThrowOnWrite is { } exception)
+        {
+            throw exception;
+        }
 
         var changedFields = new List<string>();
         if (update.TitleGiven)
@@ -171,6 +182,12 @@ internal sealed class FakeTaskStore : ITaskStore
     {
         CreationReceived = creation;
         Actor = creation.Actor;
+
+        if (ThrowOnWrite is { } exception)
+        {
+            throw exception;
+        }
+
         return Task.FromResult(CreationResult);
     }
 
