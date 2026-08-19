@@ -552,10 +552,11 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(board, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
 
-        // act: fill the required title field, tab to the button row, submit.
+        // act: fill the required title field, tab past the parent field
+        // (left on its default "child" option) to the button row, submit.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
         }
@@ -907,10 +908,11 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
 
-        // act
+        // act: a selection adds a parent field (title/type/parent/priority/
+        // labels/description), left on its default "child" option.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
         }
@@ -919,6 +921,35 @@ public sealed class TuiShellTests
 
         // assert
         Assert.Equal("a", store.CreationReceived!.ParentId);
+    }
+
+    [Fact]
+    public void Handle_Should_CreateTopLevelTask_When_ParentFieldSwitchedToNoParentWithSelection()
+    {
+        // arrange: TryOpenCreateForm always passes the active mode's
+        // SelectedTaskId as parent, and a populated board column always has
+        // a selection, so switching the parent field is the only board
+        // gesture that creates a root task while a row is selected.
+        var store = new FakeTaskStore();
+        var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var shell = CreateShellWithModes(initialMode, store, out _, out _);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\0', ConsoleKey.RightArrow)));
+
+        for (var i = 0; i < 4; i++)
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Null(store.CreationReceived!.ParentId);
     }
 
     [Fact]

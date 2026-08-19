@@ -43,10 +43,12 @@ internal abstract record TaskCreateOutcome
 /// The task create form: title, type, priority, labels, and description.
 /// Status is always open on create and is not a field; due, defer, and
 /// estimate are not fields either. Built with an optional parent task id: when
-/// given, submitting passes it through to <see cref="ITaskStore.CreateTaskAsync"/>
-/// so the store allocates a hierarchical child id and records the parent-child
-/// dependency, the same as the CLI's <c>task create --parent</c>. The host is
-/// expected to feed it raw key input via <see cref="HandleKey"/> and call
+/// given, the form gains a parent field defaulted to that parent, letting the
+/// user switch it to create a root task instead. Submitting passes the
+/// resulting parent id (or <see langword="null"/>) through to
+/// <see cref="ITaskStore.CreateTaskAsync"/>, the same as the CLI's
+/// <c>task create --parent</c> when a parent is kept. The host is expected to
+/// feed it raw key input via <see cref="HandleKey"/> and call
 /// <see cref="SubmitAsync"/> once it returns <see cref="FormResult.Submitted"/>
 /// on the primary button.
 /// </summary>
@@ -54,12 +56,25 @@ internal sealed class TaskCreateForm
 {
     public const string TitleFieldId = "title";
     public const string TypeFieldId = "type";
+    public const string ParentFieldId = "parent";
     public const string PriorityFieldId = "priority";
     public const string LabelsFieldId = "labels";
     public const string DescriptionFieldId = "description";
 
     public const string CreateButtonId = "create";
     public const string CancelButtonId = "cancel";
+
+    /// <summary>
+    /// The <see cref="ParentFieldId"/> option that keeps the parent this form
+    /// was built with.
+    /// </summary>
+    public const string ChildParentOptionId = "child";
+
+    /// <summary>
+    /// The <see cref="ParentFieldId"/> option that clears the parent this
+    /// form was built with, creating a root task instead.
+    /// </summary>
+    public const string NoParentOptionId = "none";
 
     /// <summary>
     /// The footer hints for the task create form: its keys are consumed
@@ -99,6 +114,7 @@ internal sealed class TaskCreateForm
     private readonly Form _form;
     private readonly TextField _titleField;
     private readonly SelectField _typeField;
+    private readonly SelectField? _parentField;
     private readonly SelectField _priorityField;
     private readonly EditableListField _labelsField;
     private readonly TextAreaField _descriptionField;
@@ -122,6 +138,21 @@ internal sealed class TaskCreateForm
             WellKnownTypes,
             initialSelectedId: typePreset);
 
+        // A selected board row becomes the new task's parent by default, but
+        // this field lets the user clear it and create a root task instead:
+        // without it, a populated board column (which always has a
+        // selection) could never create a top-level task from the board.
+        _parentField = parentId is null
+            ? null
+            : new SelectField(
+                ParentFieldId,
+                "Parent",
+                [
+                    new SelectOption(ChildParentOptionId, $"Child of '{parentId}'"),
+                    new SelectOption(NoParentOptionId, "No parent (top-level)")
+                ],
+                initialSelectedId: ChildParentOptionId);
+
         _priorityField = new SelectField(
             PriorityFieldId,
             "Priority",
@@ -137,10 +168,11 @@ internal sealed class TaskCreateForm
             new FormButtonSpec(CancelButtonId, "Cancel", ButtonKind.Secondary)
         ]);
 
-        _form = new Form(
-            Title(typePreset, parentId),
-            [_titleField, _typeField, _priorityField, _labelsField, _descriptionField],
-            buttons);
+        IReadOnlyList<FormField> fields = _parentField is null
+            ? [_titleField, _typeField, _priorityField, _labelsField, _descriptionField]
+            : [_titleField, _typeField, _parentField, _priorityField, _labelsField, _descriptionField];
+
+        _form = new Form(Title(typePreset, parentId), fields, buttons);
     }
 
     /// <summary>
@@ -150,6 +182,7 @@ internal sealed class TaskCreateForm
     public bool IsDirty
         => Text(_titleField).Length != 0
         || Text(_typeField) != _typePreset
+        || (_parentField is not null && Text(_parentField) != ChildParentOptionId)
         || Text(_priorityField) != DefaultPriorityId
         || Text(_descriptionField).Length != 0
         || List(_labelsField).Count != 0;
@@ -193,6 +226,9 @@ internal sealed class TaskCreateForm
         var priority = int.Parse(Text(values, PriorityFieldId), CultureInfo.InvariantCulture);
         var labels = List(values, LabelsFieldId);
         var description = Text(values, DescriptionFieldId);
+        var parentId = _parentField is null
+            ? _parentId
+            : Text(values, ParentFieldId) == NoParentOptionId ? null : _parentId;
 
         try
         {
@@ -204,7 +240,7 @@ internal sealed class TaskCreateForm
                     Priority = priority,
                     Type = type,
                     Labels = labels,
-                    ParentId = _parentId,
+                    ParentId = parentId,
                     Actor = actor
                 },
                 cancellationToken);

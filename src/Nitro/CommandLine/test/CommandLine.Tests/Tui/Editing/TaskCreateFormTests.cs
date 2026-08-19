@@ -189,6 +189,55 @@ public sealed class TaskCreateFormTests
     }
 
     [Fact]
+    public void Constructor_Should_DefaultParentField_ToChild_When_ParentIdGiven()
+    {
+        // arrange
+        var form = new TaskCreateForm(TaskTypes.Task, parentId: "app-1a2");
+
+        // act
+        TabTo(form, 2);
+
+        // assert
+        Assert.Equal(new FormValue.Text(TaskCreateForm.ChildParentOptionId), form.FocusedField?.GetValue());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_Should_CreateTopLevelTask_When_ParentFieldSwitchedToNoParent()
+    {
+        // arrange: the board always has a selection once a column is
+        // populated, so this is the only gesture that lets a root task be
+        // created while a row is selected.
+        var form = new TaskCreateForm(TaskTypes.Task, parentId: "app-1a2");
+        Type(form, "Root task");
+        TabTo(form, 2);
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+        var submitted = Save(form);
+        var store = new FakeTaskStore { CreationResult = new TaskCreationResult { Id = "a2" } };
+
+        // act
+        var outcome = await form.SubmitAsync(store, submitted.Values, "me", CancellationToken.None);
+
+        // assert
+        Assert.Null(store.CreationReceived!.ParentId);
+        var succeeded = Assert.IsType<TaskCreateOutcome.Succeeded>(outcome);
+        Assert.Equal("a2", succeeded.TaskId);
+    }
+
+    [Fact]
+    public void IsDirty_Should_BeTrue_When_ParentFieldSwitchedToNoParent()
+    {
+        // arrange
+        var form = new TaskCreateForm(TaskTypes.Task, parentId: "app-1a2");
+        TabTo(form, 2);
+
+        // act
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+
+        // assert
+        Assert.True(form.IsDirty);
+    }
+
+    [Fact]
     public async Task SubmitAsync_Should_CreateEpic_When_BuiltWithEpicPreset()
     {
         // arrange
