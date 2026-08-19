@@ -1846,7 +1846,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await transaction.CommitAsync(cancellationToken);
     }
 
-    public async Task SetParentAsync(
+    public async Task<TaskDependencyAddResult> SetParentAsync(
         string id,
         string? parentId,
         string actor,
@@ -1881,13 +1881,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         if (existingParentIds.Count == 1 && existingParentIds[0] == normalizedParentId)
         {
             await transaction.CommitAsync(cancellationToken);
-            return;
+            return new TaskDependencyAddResult { Cycle = null };
         }
 
         if (existingParentIds.Count == 0 && normalizedParentId is null)
         {
             await transaction.CommitAsync(cancellationToken);
-            return;
+            return new TaskDependencyAddResult { Cycle = null };
         }
 
         foreach (var existingParentId in existingParentIds)
@@ -1913,8 +1913,20 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 transaction);
         }
 
+        List<string>? cycle = null;
+
         if (normalizedParentId is not null)
         {
+            var existingCount = await connection.ExecuteScalarAsync<long>(
+                "SELECT COUNT(*) FROM dependencies WHERE task_id = @id AND depends_on_id = @normalizedParentId",
+                new { id, normalizedParentId, cancellationToken },
+                transaction);
+
+            if (existingCount > 0)
+            {
+                throw new ExitException("Dependency already exists.");
+            }
+
             await connection.ExecuteAsync(
                 "INSERT INTO dependencies "
                 + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
@@ -1942,6 +1954,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 },
                 cancellationToken,
                 transaction);
+
+            cycle = await FindBlockingCycleAsync(connection, transaction, id, normalizedParentId);
         }
 
         await connection.ExecuteAsync(
@@ -1950,6 +1964,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             transaction);
 
         await transaction.CommitAsync(cancellationToken);
+
+        return new TaskDependencyAddResult { Cycle = cycle };
     }
 
     public async Task EnsureWorkspaceAsync(

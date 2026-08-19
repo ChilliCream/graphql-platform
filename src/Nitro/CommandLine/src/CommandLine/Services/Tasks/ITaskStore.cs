@@ -326,7 +326,7 @@ internal interface ITaskStore
     /// <see cref="AddDependencyAsync"/>, non-atomically; implementations
     /// should prefer a single-transaction override.
     /// </summary>
-    async Task SetParentAsync(
+    async Task<TaskDependencyAddResult> SetParentAsync(
         string id,
         string? parentId,
         string actor,
@@ -348,7 +348,7 @@ internal interface ITaskStore
 
         if (existingParentIds.Count == 1 && existingParentIds[0] == normalizedParentId)
         {
-            return;
+            return new TaskDependencyAddResult { Cycle = null };
         }
 
         foreach (var existingParentId in existingParentIds)
@@ -358,9 +358,11 @@ internal interface ITaskStore
 
         if (normalizedParentId is not null)
         {
-            await AddDependencyAsync(
+            return await AddDependencyAsync(
                 id, normalizedParentId, TaskDependencyTypes.ParentChild, actor, cancellationToken);
         }
+
+        return new TaskDependencyAddResult { Cycle = null };
     }
 
     /// <summary>

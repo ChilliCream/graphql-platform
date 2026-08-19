@@ -532,6 +532,44 @@ public sealed class UpdateTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Parent_ExistingDependencyOfAnyTypeForSamePair_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var id = await CreateTaskAsync("Fix the parser");
+        var otherId = await CreateTaskAsync("Write the tokenizer");
+        await ExecuteCommandAsync("task", "dep", "add", id, otherId);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", id, "--parent", otherId);
+
+        // assert
+        result.AssertError("Dependency already exists.");
+    }
+
+    [Fact]
+    public async Task Parent_CreatesCycle_PrintsWarning()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var a = await CreateTaskAsync("Task A");
+        var b = await CreateTaskAsync("Task B");
+        await ExecuteCommandAsync("task", "dep", "add", a, b);
+
+        // act
+        var result = await ExecuteCommandAsync("task", "update", b, "--parent", a);
+
+        // assert
+        var smaller = string.CompareOrdinal(a, b) < 0 ? a : b;
+        var larger = smaller == a ? b : a;
+        result.AssertSuccess(
+            $"""
+            ✓ Updated task '{b}'.
+            Warning: dependency cycle: {smaller} -> {larger} -> {smaller}
+            """);
+    }
+
+    [Fact]
     public async Task MultipleIds_AppliesAddLabelAndParentToEach()
     {
         // arrange
