@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
@@ -9,9 +10,28 @@ namespace Mocha.Transport.AzureServiceBus.Tests.Helpers;
 /// </summary>
 internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
+    private readonly List<CapturedLogEntry> _entries = [];
     private readonly SemaphoreSlim _semaphore = new(0);
 
-    public List<CapturedLogEntry> Entries { get; } = [];
+    /// <summary>
+    /// A stable snapshot of the entries captured so far. Safe to enumerate while log entries are
+    /// concurrently captured on other threads.
+    /// </summary>
+    public IReadOnlyList<CapturedLogEntry> Entries
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return [.. _entries];
+            }
+        }
+    }
 
     public static CapturingLoggerProvider For<T>() => new(typeof(T).FullName!);
 
@@ -45,7 +65,8 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
 
     private sealed class CapturingLogger(CapturingLoggerProvider provider) : ILogger
     {
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoOpDisposable.Instance;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull =>
+            NullLogger.Instance.BeginScope(state);
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -57,35 +78,15 @@ internal sealed class CapturingLoggerProvider(string category) : ILoggerProvider
             Func<TState, Exception?, string> formatter)
         {
             var structuredState = state as IReadOnlyList<KeyValuePair<string, object?>> ?? [];
+            var entry = new CapturedLogEntry(logLevel, exception, new List<KeyValuePair<string, object?>>(structuredState));
 
-            provider.Entries.Add(
-                new CapturedLogEntry(logLevel, exception, new List<KeyValuePair<string, object?>>(structuredState)));
+            lock (provider._lock)
+            {
+                provider._entries.Add(entry);
+            }
+
             provider._semaphore.Release();
         }
-    }
-
-    private sealed class NullLogger : ILogger
-    {
-        public static NullLogger Instance { get; } = new();
-
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoOpDisposable.Instance;
-
-        public bool IsEnabled(LogLevel logLevel) => false;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        { }
-    }
-
-    private sealed class NoOpDisposable : IDisposable
-    {
-        public static NoOpDisposable Instance { get; } = new();
-
-        public void Dispose() { }
     }
 }
 

@@ -40,32 +40,13 @@ public sealed class ProcessorErrorHandlingTests
         Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
     }
 
-    [Fact]
-    public async Task OnProcessorError_Should_LogWarningWithEntityPath_When_ExceptionIsOperationCanceled()
-    {
-        // arrange - cancellation is treated as a transient/recoverable condition
-        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
-        var exception = new OperationCanceledException("cancelled");
-        var (client, bus) = await CreateStartedBusAsync(provider);
-        await using var busScope = bus;
-        var processor = client.CreatedProcessors.Single(p => p.QueueName == "orders").Processor;
-
-        // act
-        await processor.RaiseProcessErrorAsync(CreateArgs(client, exception));
-
-        // assert
-        var entry = Assert.Single(provider.Entries, e => e.Exception is not null);
-        Assert.Equal(LogLevel.Warning, entry.Level);
-        Assert.Same(exception, entry.Exception);
-        Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
-    }
-
-    [Fact]
-    public async Task OnProcessorError_Should_LogErrorWithEntityPath_When_ServiceBusReasonIsNotTransient()
+    [Theory]
+    [MemberData(nameof(NonReasonExceptions))]
+    public async Task OnProcessorError_Should_LogAtExpectedLevelWithEntityPath_When_ExceptionIsNotAReasonMatch(
+        Exception exception, LogLevel expectedLevel)
     {
         // arrange
         var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
-        var exception = new ServiceBusException("general failure", ServiceBusFailureReason.GeneralError);
         var (client, bus) = await CreateStartedBusAsync(provider);
         await using var busScope = bus;
         var processor = client.CreatedProcessors.Single(p => p.QueueName == "orders").Processor;
@@ -75,31 +56,24 @@ public sealed class ProcessorErrorHandlingTests
 
         // assert
         var entry = Assert.Single(provider.Entries, e => e.Exception is not null);
-        Assert.Equal(LogLevel.Error, entry.Level);
+        Assert.Equal(expectedLevel, entry.Level);
         Assert.Same(exception, entry.Exception);
         Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
     }
 
-    [Fact]
-    public async Task OnProcessorError_Should_LogErrorWithEntityPath_When_ExceptionIsNotServiceBusException()
-    {
-        // arrange
-        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
-        var exception = new InvalidOperationException("unexpected failure");
-        var (client, bus) = await CreateStartedBusAsync(provider);
-        await using var busScope = bus;
-        var processor = client.CreatedProcessors.Single(p => p.QueueName == "orders").Processor;
+    public static TheoryData<Exception, LogLevel> NonReasonExceptions()
+        => new()
+        {
+            // cancellation is treated as a transient/recoverable condition
+            { new OperationCanceledException("cancelled"), LogLevel.Warning },
+            { new ServiceBusException("general failure", ServiceBusFailureReason.GeneralError), LogLevel.Error },
+            { new InvalidOperationException("unexpected failure"), LogLevel.Error }
+        };
 
-        // act
-        await processor.RaiseProcessErrorAsync(CreateArgs(client, exception));
-
-        // assert
-        var entry = Assert.Single(provider.Entries, e => e.Exception is not null);
-        Assert.Equal(LogLevel.Error, entry.Level);
-        Assert.Same(exception, entry.Exception);
-        Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
-    }
-
+    /// <summary>
+    /// See also <see cref="ReceiveEndpointLifecycleUnitTests.OnProcessorError_Should_NotResurrectEndpoint_When_RaisedAfterStop"/>,
+    /// which covers the same no-recovery-loop contract from the stop direction.
+    /// </summary>
     [Fact]
     public async Task OnProcessorError_Should_NotRestartProcessor_When_MessagingEntityNotFoundReported()
     {
