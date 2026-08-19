@@ -114,7 +114,7 @@ internal sealed class TaskDetailView
     {
         const int minSidebarHeight = PanelChromeHeight + 1;
         var maxSidebarHeight = Math.Max(minSidebarHeight, height - minSidebarHeight);
-        var desiredSidebarHeight = SidebarLineCount() + PanelChromeHeight;
+        var desiredSidebarHeight = SidebarLineCount(width) + PanelChromeHeight;
         var sidebarHeight = Math.Clamp(desiredSidebarHeight, minSidebarHeight, maxSidebarHeight);
         var bodyHeight = Math.Max(1, height - sidebarHeight);
 
@@ -123,8 +123,25 @@ internal sealed class TaskDetailView
             RenderSidebarPanel(width, sidebarHeight, focused));
     }
 
-    private int SidebarLineCount()
-        => _model.Task is { } task ? TaskDetailSidebar.Build(task, _model.Labels, _model.BlockedBy).Count : 1;
+    /// <summary>
+    /// The number of rows the sidebar's content occupies once its lines wrap
+    /// to the interior width the sidebar panel renders at <paramref name="width"/>,
+    /// matching the wrapping <see cref="RenderSidebarPanel"/>'s underlying
+    /// panel applies so the fixed panel height it is sized against never
+    /// clips a wrapped line.
+    /// </summary>
+    private int SidebarLineCount(int width)
+    {
+        if (_model.Task is not { } task)
+        {
+            return 1;
+        }
+
+        var interiorWidth = Math.Max(1, width - PanelChromeWidth);
+
+        return TaskDetailSidebar.Build(task, _model.Labels, _model.BlockedBy)
+            .Sum(line => TaskDetailSections.WrapLine(Markup.Remove(line), interiorWidth).Count);
+    }
 
     private Panel RenderSidebarPanel(int width, int height, bool focused)
     {

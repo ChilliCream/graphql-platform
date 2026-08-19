@@ -166,6 +166,26 @@ public sealed class TaskDetailViewTests
     }
 
     [Fact]
+    public async Task Render_Should_NotClipLastSidebarGroup_When_StackedAndAFieldWraps()
+    {
+        // arrange: a stacked-layout width narrow enough that "Created:
+        // 2026-01-01 09:00 by e2e-agent" wraps to two rows in the sidebar
+        // panel, with a "Blocked by" group after it whose fixed panel Height
+        // must grow to account for that wrap instead of clipping the group.
+        var store = new FakeTaskStore();
+        store.Tasks["t-1"] = TaskItemBuilder.Create(
+            "t-1", createdAt: DateTimeOffset.UnixEpoch, createdBy: "e2e-agent");
+        store.Blocked["t-1"] = ["some-other-task"];
+        var view = await CreateViewAsync(store, "t-1");
+
+        // act
+        var text = RenderToText(view, width: 40, height: 20);
+
+        // assert
+        Assert.Contains("Blocked by", text);
+    }
+
+    [Fact]
     public async Task Render_Should_ShowIdAndTitle_InBodyHeader()
     {
         // arrange

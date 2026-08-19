@@ -18,9 +18,6 @@
                                                │                                    │
                                                │                                    │
                                                │                                    │
-                                               │                                    │
-                                               │                                    │
-                                               │                                    │
                                                ╰────────────────────────────────────╯
                                                ╭─Details────────────────────────────╮
                                                │ ○ open                             │
@@ -31,5 +28,8 @@
                                                │ e2e-agent                          │
                                                │ Updated: 2026-01-01 09:00          │
                                                │                                    │
+                                               │ Blocked by:                        │
+                                               │ acme-epic1.1:child-open,           │
+                                               │ acme-epic1.2:child-open            │
                                                ╰────────────────────────────────────╯
 esc back  tab open  hjkl move  enter open  r refresh  y copy id  z zoom  e edit  q quit
