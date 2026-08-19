@@ -23,8 +23,7 @@ public sealed class QueueDeletionRecoveryTests
         _fixture = fixture;
     }
 
-    [Theory(Skip = "ASB emulator cannot start in this environment (MSSQL companion container exits with code 1); "
-        + "the ServiceBusFailureReason observed by the SDK for a mid-connection queue deletion is unconfirmed, see hc5-2xa")]
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task Processor_Should_ReportMessagingEntityNotFound_When_QueueDeletedWhileConnected(
@@ -54,11 +53,10 @@ public sealed class QueueDeletionRecoveryTests
         // act - delete the queue while the receive connection stays open
         await adminClient.DeleteQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
 
-        // assert - expected but unverified: the SDK is presumed to detect the missing entity on
-        // the live connection and report it through ProcessErrorAsync with
+        // assert - confirmed against the live emulator: the SDK detects the missing entity on the
+        // live connection and reports it through ProcessErrorAsync with
         // ServiceBusFailureReason.MessagingEntityNotFound, with AutoProvision having no bearing on
-        // it since it only governs provisioning at startup, not receive-side recovery. This has
-        // not been empirically confirmed; the test is skipped until the emulator can run it.
+        // it since it only governs provisioning at startup, not receive-side recovery.
         var reported = await loggerProvider.WaitForEntryAsync(
             e => e.Exception is ServiceBusException { Reason: ServiceBusFailureReason.MessagingEntityNotFound },
             s_timeout);
