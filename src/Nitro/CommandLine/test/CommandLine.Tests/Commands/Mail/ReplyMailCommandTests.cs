@@ -19,7 +19,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
               nitro agent mail reply <message-id> [options]
 
             Arguments:
-              <message-id>  The ID of the message being replied to
+              <message-id>  The message ID
 
             Options:
               --body <body>            The message body. Exactly one of --body or --body-file is required

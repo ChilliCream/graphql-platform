@@ -38,6 +38,40 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
+    /// Creates an <see cref="IMailStore"/> bound to this test's workspace and
+    /// clock, for seeding data without going through the CLI.
+    /// </summary>
+    internal MailStore CreateStore()
+        => new(new TestFileSystem(WorkingDirectory), FakeTime);
+
+    /// <summary>
+    /// Registers an agent directly against the store.
+    /// </summary>
+    internal Task<MailAgent> SeedAgentAsync(string name)
+        => CreateStore().RegisterAgentAsync(name, TestContext.Current.CancellationToken);
+
+    /// <summary>
+    /// Sends a message directly against the store, starting a new thread.
+    /// The sender and every recipient must already be registered.
+    /// </summary>
+    internal Task<MailMessage> SeedMessageAsync(
+        string sender,
+        string subject,
+        IReadOnlyList<string> to,
+        IReadOnlyList<string>? cc = null,
+        string body = "body")
+        => CreateStore().SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = sender,
+                Subject = subject,
+                Body = body,
+                To = to,
+                Cc = cc ?? []
+            },
+            TestContext.Current.CancellationToken);
+
+    /// <summary>
     /// Runs a scalar query against the workspace database and returns the
     /// first column of the first row as a string.
     /// </summary>

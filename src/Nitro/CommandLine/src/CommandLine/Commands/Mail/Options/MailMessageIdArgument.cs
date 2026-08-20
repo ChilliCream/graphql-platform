@@ -4,6 +4,6 @@ internal sealed class MailMessageIdArgument : Argument<string>
 {
     public MailMessageIdArgument() : base("message-id")
     {
-        Description = "The ID of the message being replied to";
+        Description = "The message ID";
     }
 }
