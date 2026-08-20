@@ -337,14 +337,17 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNode(node.Name, context);
+        var arguments = RewriteList(node.Arguments, context);
         var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(arguments, node.Arguments)
             || !ReferenceEquals(directives, node.Directives))
         {
             return new FragmentSpreadNode(
                 node.Location,
                 name,
+                arguments,
                 directives);
         }
 
