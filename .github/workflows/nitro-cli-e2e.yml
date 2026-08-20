@@ -60,10 +60,10 @@ jobs:
           cd "$work_dir"
           export NITRO_TASK_ACTOR=ci
 
-          "$nitro_bin" task init
-          "$nitro_bin" task list
+          "$nitro_bin" agent tasks init
+          "$nitro_bin" agent tasks list
 
-          create_output="$("$nitro_bin" task create "AOT smoke test task")"
+          create_output="$("$nitro_bin" agent tasks create "AOT smoke test task")"
           echo "$create_output"
           task_id=$(printf '%s' "$create_output" | sed -n "s/.*'\([^']*\)'.*/\1/p")
           if [ -z "$task_id" ]; then
@@ -71,7 +71,7 @@ jobs:
             exit 1
           fi
 
-          "$nitro_bin" task show "$task_id"
+          "$nitro_bin" agent tasks show "$task_id"
 
   record-and-verify:
     runs-on: ubuntu-latest
