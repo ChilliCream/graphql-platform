@@ -81,4 +81,5 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MailMessageDetailResult))]
 [JsonSerializable(typeof(ListResult<MailMessageDetailResult>))]
 [JsonSerializable(typeof(MailIdsResult))]
+[JsonSerializable(typeof(ListResult<MailThreadRowResult>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

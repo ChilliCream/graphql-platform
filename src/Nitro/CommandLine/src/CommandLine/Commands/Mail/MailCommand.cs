@@ -17,5 +17,7 @@ internal sealed class MailCommand : Command
         Subcommands.Add(new ReadMailCommand());
         Subcommands.Add(new AckMailCommand());
         Subcommands.Add(new ArchiveMailCommand());
+        Subcommands.Add(new ThreadsMailCommand());
+        Subcommands.Add(new SearchMailCommand());
     }
 }
