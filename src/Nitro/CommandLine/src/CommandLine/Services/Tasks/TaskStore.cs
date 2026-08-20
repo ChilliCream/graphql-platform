@@ -38,7 +38,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         await connection.ExecuteAsync(TaskStoreSchema.Create);
         await connection.ExecuteAsync(
-            "PRAGMA user_version = " + TaskStoreSchema.CurrentVersion + ";");
+            $"""PRAGMA user_version = {TaskStoreSchema.CurrentVersion};""");
 
         return connection;
     }
@@ -86,8 +86,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
         => await connection.ExecuteAsync(
-            "INSERT INTO config (key, value) VALUES (@key, @value) "
-            + "ON CONFLICT (key) DO UPDATE SET value = @value",
+            """
+            INSERT INTO config (key, value)
+            VALUES (@key, @value)
+            ON CONFLICT (key) DO UPDATE SET value = @value
+            """,
             new { key, value, cancellationToken },
             transaction);
 
@@ -108,9 +111,12 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         if (parentId is not null)
         {
             var childNumber = await connection.ExecuteScalarAsync<long>(
-                "INSERT INTO child_counters (parent_id, last_child) VALUES (@parentId, 1) "
-                + "ON CONFLICT (parent_id) DO UPDATE SET last_child = last_child + 1 "
-                + "RETURNING last_child",
+                """
+                INSERT INTO child_counters (parent_id, last_child)
+                VALUES (@parentId, 1)
+                ON CONFLICT (parent_id) DO UPDATE SET last_child = last_child + 1
+                RETURNING last_child
+                """,
                 new { parentId, cancellationToken },
                 transaction);
 
@@ -146,8 +152,26 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
         => await connection.ExecuteAsync(
-            "INSERT INTO events (task_id, event_type, actor, old_value, new_value, comment, created_at) "
-            + "VALUES (@TaskId, @Type, @Actor, @OldValue, @NewValue, @Comment, @CreatedAt)",
+            """
+            INSERT INTO events (
+                task_id,
+                event_type,
+                actor,
+                old_value,
+                new_value,
+                comment,
+                created_at
+            )
+            VALUES (
+                @TaskId,
+                @Type,
+                @Actor,
+                @OldValue,
+                @NewValue,
+                @Comment,
+                @CreatedAt
+            )
+            """,
             new
             {
                 taskEvent.TaskId,
@@ -210,8 +234,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var tasks = taskRows.ToDictionary(t => t.Id);
 
         var dependencyRows = await connection.QueryAsync<TaskGraphEdge>(
-            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-            + "FROM dependencies");
+            """
+            SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type
+            FROM dependencies
+            """);
         var dependencies = dependencyRows.ToList();
 
         var blocked = new Dictionary<string, List<string>>();
@@ -437,8 +463,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // column to DateTimeOffset, so this materializes an all-primitives
         // row and parses the timestamp itself.
         var rows = await connection.QueryAsync<TaskCommentRow>(
-            $"SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId "
-            + "ORDER BY created_at, id",
+            $"""
+            SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId
+            ORDER BY created_at, id
+            """,
             new { taskId, cancellationToken });
 
         return rows.Select(r => r.ToTaskComment()).ToList();
@@ -494,8 +522,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // takes no filter parameters, so cancellation here is best-effort
         // rather than plumbed through a parameter object.
         var rows = await connection.QueryAsync<TaskDependencyRow>(
-            $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
-            + "ORDER BY task_id, depends_on_id");
+            $"""
+            SELECT {TaskDependencyRow.Columns} FROM dependencies
+            ORDER BY task_id, depends_on_id
+            """);
 
         return rows.Select(r => r.ToTaskDependency()).ToList();
     }
@@ -572,8 +602,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             case TaskCountDimension.Status:
             {
                 var rows = await connection.QueryAsync<CountRow>(
-                    "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-                    + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
+                    """
+                    SELECT status AS Value, COUNT(*) AS Count FROM tasks
+                    WHERE status != @tombstone GROUP BY status ORDER BY status ASC
+                    """,
                     new { tombstone = TaskStates.Tombstone, cancellationToken });
 
                 return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
@@ -582,8 +614,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             case TaskCountDimension.Type:
             {
                 var rows = await connection.QueryAsync<CountRow>(
-                    "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
-                    + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
+                    """
+                    SELECT task_type AS Value, COUNT(*) AS Count FROM tasks
+                    WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC
+                    """,
                     new { tombstone = TaskStates.Tombstone, cancellationToken });
 
                 return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
@@ -592,8 +626,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             case TaskCountDimension.Priority:
             {
                 var rows = await connection.QueryAsync<PriorityCountRow>(
-                    "SELECT priority AS Priority, COUNT(*) AS Count FROM tasks "
-                    + "WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC",
+                    """
+                    SELECT priority AS Priority, COUNT(*) AS Count FROM tasks
+                    WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC
+                    """,
                     new { tombstone = TaskStates.Tombstone, cancellationToken });
 
                 return rows.Select(r => new TaskCount(TaskPriorities.Format(r.Priority), r.Count)).ToList();
@@ -602,10 +638,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             case TaskCountDimension.Assignee:
             {
                 var rows = await connection.QueryAsync<CountRow>(
-                    "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
-                    + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
-                    + "GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned') "
-                    + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
+                    """
+                    SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value,
+                        COUNT(*) AS Count
+                    FROM tasks
+                    WHERE status != @tombstone
+                    GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned')
+                    ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC
+                    """,
                     new { tombstone = TaskStates.Tombstone, cancellationToken });
 
                 return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
@@ -614,9 +654,12 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             case TaskCountDimension.Label:
             {
                 var rows = await connection.QueryAsync<CountRow>(
-                    "SELECT label AS Value, COUNT(*) AS Count FROM labels "
-                    + "INNER JOIN tasks ON tasks.id = labels.task_id "
-                    + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
+                    """
+                    SELECT label AS Value, COUNT(*) AS Count
+                    FROM labels
+                    INNER JOIN tasks ON tasks.id = labels.task_id
+                    WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC
+                    """,
                     new { tombstone = TaskStates.Tombstone, cancellationToken });
 
                 return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
@@ -637,8 +680,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
         // settable property tolerates the narrowing.
         var statusCountRows = await connection.QueryAsync<CountRow>(
-            "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-            + "WHERE status != @tombstone GROUP BY status",
+            """
+            SELECT status AS Value, COUNT(*) AS Count FROM tasks
+            WHERE status != @tombstone GROUP BY status
+            """,
             new { tombstone = TaskStates.Tombstone, cancellationToken });
         var statusCounts = statusCountRows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
 
@@ -646,8 +691,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var (blocked, tasksById) = await ComputeBlockedAsync(connection, cancellationToken);
 
         var readyIds = await connection.QueryAsync<string>(
-            "SELECT id FROM tasks WHERE status = @status "
-            + "AND (defer_until IS NULL OR defer_until <= @now)",
+            """
+            SELECT id FROM tasks WHERE status = @status
+            AND (defer_until IS NULL OR defer_until <= @now)
+            """,
             new { status = TaskStates.Open, now, cancellationToken });
 
         var readyCount = readyIds.Count(id => !blocked.ContainsKey(id));
@@ -666,8 +713,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         var labelCount = await connection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(DISTINCT l.label) FROM labels l "
-            + "INNER JOIN tasks t ON t.id = l.task_id WHERE t.status != @tombstone",
+            """
+            SELECT COUNT(DISTINCT l.label) FROM labels l
+            INNER JOIN tasks t ON t.id = l.task_id WHERE t.status != @tombstone
+            """,
             new { tombstone = TaskStates.Tombstone, cancellationToken });
 
         var commentCount = await connection.ExecuteScalarAsync<int>(
@@ -797,14 +846,52 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         };
 
         await connection.ExecuteAsync(
-            "INSERT INTO tasks (id, title, description, design, acceptance_criteria, notes, "
-            + "status, priority, task_type, assignee, estimated_minutes, due_at, defer_until, "
-            + "created_at, created_by, updated_at, closed_at, close_reason, deleted_at, "
-            + "delete_reason) "
-            + "VALUES (@Id, @Title, @Description, @Design, @AcceptanceCriteria, @Notes, "
-            + "@Status, @Priority, @Type, @Assignee, @EstimatedMinutes, @DueAt, @DeferUntil, "
-            + "@CreatedAt, @CreatedBy, @UpdatedAt, @ClosedAt, @CloseReason, @DeletedAt, "
-            + "@DeleteReason)",
+            """
+            INSERT INTO tasks (
+                id,
+                title,
+                description,
+                design,
+                acceptance_criteria,
+                notes,
+                status,
+                priority,
+                task_type,
+                assignee,
+                estimated_minutes,
+                due_at,
+                defer_until,
+                created_at,
+                created_by,
+                updated_at,
+                closed_at,
+                close_reason,
+                deleted_at,
+                delete_reason
+            )
+            VALUES (
+                @Id,
+                @Title,
+                @Description,
+                @Design,
+                @AcceptanceCriteria,
+                @Notes,
+                @Status,
+                @Priority,
+                @Type,
+                @Assignee,
+                @EstimatedMinutes,
+                @DueAt,
+                @DeferUntil,
+                @CreatedAt,
+                @CreatedBy,
+                @UpdatedAt,
+                @ClosedAt,
+                @CloseReason,
+                @DeletedAt,
+                @DeleteReason
+            )
+            """,
             task,
             transaction);
 
@@ -819,9 +906,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         foreach (var (targetId, dependencyType, _) in resolvedDependencies)
         {
             await connection.ExecuteAsync(
-                "INSERT OR IGNORE INTO dependencies "
-                + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
-                + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+                """
+                INSERT OR IGNORE INTO dependencies (
+                    task_id,
+                    depends_on_id,
+                    dependency_type,
+                    created_at,
+                    created_by
+                )
+                VALUES (
+                    @TaskId,
+                    @DependsOnId,
+                    @Type,
+                    @CreatedAt,
+                    @CreatedBy
+                )
+                """,
                 new TaskDependency
                 {
                     TaskId = id,
@@ -1261,8 +1361,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             var oldStatus = task.Status;
 
             await connection.ExecuteAsync(
-                "UPDATE tasks SET status = @status, closed_at = @closedAt, "
-                + "close_reason = @closeReason, updated_at = @updatedAt WHERE id = @id",
+                """
+                UPDATE tasks
+                SET status = @status,
+                    closed_at = @closedAt,
+                    close_reason = @closeReason,
+                    updated_at = @updatedAt
+                WHERE id = @id
+                """,
                 new
                 {
                     status = TaskStates.Closed,
@@ -1320,8 +1426,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var oldStatus = task.Status;
 
         await connection.ExecuteAsync(
-            "UPDATE tasks SET status = @status, closed_at = NULL, "
-            + "close_reason = @closeReason, updated_at = @updatedAt WHERE id = @id",
+            """
+            UPDATE tasks
+            SET status = @status,
+                closed_at = NULL,
+                close_reason = @closeReason,
+                updated_at = @updatedAt
+            WHERE id = @id
+            """,
             new
             {
                 status = TaskStates.Open,
@@ -1377,8 +1489,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var oldStatus = task.Status;
 
         await connection.ExecuteAsync(
-            "UPDATE tasks SET status = @status, defer_until = @deferUntil, "
-            + "updated_at = @updatedAt WHERE id = @id",
+            """
+            UPDATE tasks
+            SET status = @status,
+                defer_until = @deferUntil,
+                updated_at = @updatedAt
+            WHERE id = @id
+            """,
             new
             {
                 status = TaskStates.Deferred,
@@ -1431,8 +1548,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var oldStatus = task.Status;
 
         await connection.ExecuteAsync(
-            "UPDATE tasks SET status = @status, defer_until = NULL, "
-            + "updated_at = @updatedAt WHERE id = @id",
+            """
+            UPDATE tasks
+            SET status = @status,
+                defer_until = NULL,
+                updated_at = @updatedAt
+            WHERE id = @id
+            """,
             new
             {
                 status = TaskStates.Open,
@@ -1480,8 +1602,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var oldStatus = task.Status;
 
         await connection.ExecuteAsync(
-            "UPDATE tasks SET status = @status, deleted_at = @deletedAt, "
-            + "delete_reason = @deleteReason, updated_at = @updatedAt WHERE id = @id",
+            """
+            UPDATE tasks
+            SET status = @status,
+                deleted_at = @deletedAt,
+                delete_reason = @deleteReason,
+                updated_at = @updatedAt
+            WHERE id = @id
+            """,
             new
             {
                 status = TaskStates.Tombstone,
@@ -1543,8 +1671,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         foreach (var epic in eligible)
         {
             await connection.ExecuteAsync(
-                "UPDATE tasks SET status = @status, closed_at = @closedAt, "
-                + "close_reason = @closeReason, updated_at = @updatedAt WHERE id = @id",
+                """
+                UPDATE tasks
+                SET status = @status,
+                    closed_at = @closedAt,
+                    close_reason = @closeReason,
+                    updated_at = @updatedAt
+                WHERE id = @id
+                """,
                 new
                 {
                     status = TaskStates.Closed,
@@ -1595,8 +1729,21 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
         var commentId = await connection.ExecuteScalarAsync<long>(
-            "INSERT INTO comments (task_id, author, text, created_at) "
-            + "VALUES (@TaskId, @Author, @Text, @CreatedAt) RETURNING id",
+            """
+            INSERT INTO comments (
+                task_id,
+                author,
+                text,
+                created_at
+            )
+            VALUES (
+                @TaskId,
+                @Author,
+                @Text,
+                @CreatedAt
+            )
+            RETURNING id
+            """,
             new { TaskId = task.Id, Author = actor, Text = text, CreatedAt = now, cancellationToken },
             transaction);
 
@@ -1772,9 +1919,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         await connection.ExecuteAsync(
-            "INSERT INTO dependencies "
-            + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
-            + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+            """
+            INSERT INTO dependencies (
+                task_id,
+                depends_on_id,
+                dependency_type,
+                created_at,
+                created_by
+            )
+            VALUES (
+                @TaskId,
+                @DependsOnId,
+                @Type,
+                @CreatedAt,
+                @CreatedBy
+            )
+            """,
             new TaskDependency
             {
                 TaskId = id,
@@ -1834,8 +1994,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
         var existingType = await connection.QueryFirstOrDefaultAsync<string>(
-            "SELECT dependency_type FROM dependencies "
-            + "WHERE task_id = @id AND depends_on_id = @dependsOnId",
+            """
+            SELECT dependency_type FROM dependencies
+            WHERE task_id = @id AND depends_on_id = @dependsOnId
+            """,
             new { id, dependsOnId, cancellationToken },
             transaction);
 
@@ -1897,8 +2059,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         var existingParentIdRows = await connection.QueryAsync<string>(
-            "SELECT depends_on_id FROM dependencies "
-            + "WHERE task_id = @id AND dependency_type = @type",
+            """
+            SELECT depends_on_id FROM dependencies
+            WHERE task_id = @id AND dependency_type = @type
+            """,
             new { id, type = TaskDependencyTypes.ParentChild, cancellationToken },
             transaction);
         var existingParentIds = existingParentIdRows.ToList();
@@ -1918,8 +2082,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         foreach (var existingParentId in existingParentIds)
         {
             await connection.ExecuteAsync(
-                "DELETE FROM dependencies "
-                + "WHERE task_id = @id AND depends_on_id = @existingParentId AND dependency_type = @type",
+                """
+                DELETE FROM dependencies
+                WHERE task_id = @id AND depends_on_id = @existingParentId AND dependency_type = @type
+                """,
                 new { id, existingParentId, type = TaskDependencyTypes.ParentChild, cancellationToken },
                 transaction);
 
@@ -1951,9 +2117,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             }
 
             await connection.ExecuteAsync(
-                "INSERT INTO dependencies "
-                + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
-                + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+                """
+                INSERT INTO dependencies (
+                    task_id,
+                    depends_on_id,
+                    dependency_type,
+                    created_at,
+                    created_by
+                )
+                VALUES (
+                    @TaskId,
+                    @DependsOnId,
+                    @Type,
+                    @CreatedAt,
+                    @CreatedBy
+                )
+                """,
                 new TaskDependency
                 {
                     TaskId = id,
@@ -2037,8 +2216,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 IReadOnlyList<string> (group) => [.. group.Select(row => row.Label)]);
 
         var dependencyRows = await connection.QueryAsync<TaskDependencyRow>(
-            $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
-            + "ORDER BY task_id, depends_on_id");
+            $"""
+            SELECT {TaskDependencyRow.Columns} FROM dependencies
+            ORDER BY task_id, depends_on_id
+            """);
         var dependenciesByTask = dependencyRows
             .GroupBy(row => row.TaskId)
             .ToDictionary(
@@ -2175,9 +2356,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             foreach (var dependency in record.Dependencies)
             {
                 await connection.ExecuteAsync(
-                    "INSERT INTO dependencies "
-                    + "(task_id, depends_on_id, dependency_type, created_at, created_by) "
-                    + "VALUES (@TaskId, @DependsOnId, @Type, @CreatedAt, @CreatedBy)",
+                    """
+                    INSERT INTO dependencies (
+                        task_id,
+                        depends_on_id,
+                        dependency_type,
+                        created_at,
+                        created_by
+                    )
+                    VALUES (
+                        @TaskId,
+                        @DependsOnId,
+                        @Type,
+                        @CreatedAt,
+                        @CreatedBy
+                    )
+                    """,
                     new
                     {
                         TaskId = record.Id,
@@ -2213,8 +2407,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 if (idOwner is null || idOwner == record.Id)
                 {
                     await connection.ExecuteAsync(
-                        "INSERT INTO comments (id, task_id, author, text, created_at) "
-                        + "VALUES (@Id, @TaskId, @Author, @Text, @CreatedAt)",
+                        """
+                        INSERT INTO comments (
+                            id,
+                            task_id,
+                            author,
+                            text,
+                            created_at
+                        )
+                        VALUES (
+                            @Id,
+                            @TaskId,
+                            @Author,
+                            @Text,
+                            @CreatedAt
+                        )
+                        """,
                         new
                         {
                             comment.Id,
@@ -2229,8 +2437,20 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 else
                 {
                     await connection.ExecuteAsync(
-                        "INSERT INTO comments (task_id, author, text, created_at) "
-                        + "VALUES (@TaskId, @Author, @Text, @CreatedAt)",
+                        """
+                        INSERT INTO comments (
+                            task_id,
+                            author,
+                            text,
+                            created_at
+                        )
+                        VALUES (
+                            @TaskId,
+                            @Author,
+                            @Text,
+                            @CreatedAt
+                        )
+                        """,
                         new
                         {
                             TaskId = record.Id,
@@ -2296,8 +2516,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         foreach (var (parentId, lastChild) in maxChildByParent)
         {
             await connection.ExecuteAsync(
-                "INSERT INTO child_counters (parent_id, last_child) VALUES (@parentId, @lastChild) "
-                + "ON CONFLICT (parent_id) DO UPDATE SET last_child = MAX(last_child, excluded.last_child)",
+                """
+                INSERT INTO child_counters (parent_id, last_child)
+                VALUES (@parentId, @lastChild)
+                ON CONFLICT (parent_id) DO UPDATE SET last_child = MAX(last_child, excluded.last_child)
+                """,
                 new { parentId, lastChild, cancellationToken },
                 transaction);
         }
@@ -2319,37 +2542,47 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             ?? "ok";
 
         var orphanDependencyRows = await connection.QueryAsync<DependencyEdgeRow>(
-            "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
-            + "d.dependency_type AS Type FROM dependencies d "
-            + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.task_id) "
-            + "OR NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.depends_on_id) "
-            + "ORDER BY d.task_id, d.depends_on_id");
+            """
+            SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, d.dependency_type AS Type
+            FROM dependencies d
+            WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.task_id)
+            OR NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.depends_on_id)
+            ORDER BY d.task_id, d.depends_on_id
+            """);
         var orphanDependencies = orphanDependencyRows
             .Select(row => new TaskDependencyReference(row.TaskId, row.DependsOnId))
             .ToList();
 
         var orphanLabelRows = await connection.QueryAsync<TaskLabelRow>(
-            "SELECT l.task_id AS TaskId, l.label AS Label FROM labels l "
-            + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = l.task_id) "
-            + "ORDER BY l.task_id, l.label");
+            """
+            SELECT l.task_id AS TaskId, l.label AS Label
+            FROM labels l
+            WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = l.task_id)
+            ORDER BY l.task_id, l.label
+            """);
         var orphanLabels = orphanLabelRows
             .Select(row => new TaskOrphanLabel(row.TaskId, row.Label))
             .ToList();
 
         var orphanCommentRows = await connection.QueryAsync<CommentOrphanRow>(
-            "SELECT c.task_id AS TaskId, c.id AS CommentId FROM comments c "
-            + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = c.task_id) "
-            + "ORDER BY c.task_id, c.id");
+            """
+            SELECT c.task_id AS TaskId, c.id AS CommentId
+            FROM comments c
+            WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = c.task_id)
+            ORDER BY c.task_id, c.id
+            """);
         var orphanComments = orphanCommentRows
             .Select(row => new TaskOrphanComment(row.TaskId, row.CommentId))
             .ToList();
 
         var tombstonedParentEdgeRows = await connection.QueryAsync<DependencyEdgeRow>(
-            "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
-            + "d.dependency_type AS Type FROM dependencies d "
-            + "JOIN tasks t ON t.id = d.depends_on_id "
-            + "WHERE d.dependency_type = @parentChild AND t.status = @tombstone "
-            + "ORDER BY d.task_id",
+            """
+            SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, d.dependency_type AS Type
+            FROM dependencies d
+            JOIN tasks t ON t.id = d.depends_on_id
+            WHERE d.dependency_type = @parentChild AND t.status = @tombstone
+            ORDER BY d.task_id
+            """,
             new
             {
                 parentChild = TaskDependencyTypes.ParentChild,
@@ -2382,8 +2615,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         string dependsOnId)
     {
         var edgeRows = await connection.QueryAsync<DependencyEdgeRow>(
-            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-            + "FROM dependencies",
+            """
+            SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type
+            FROM dependencies
+            """,
             transaction: transaction);
         var edges = edgeRows.Where(e => TaskDependencyTypes.IsBlocking(e.Type)).ToList();
 
@@ -2517,8 +2752,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 var parameterName = $"label{i}";
                 parameters[parameterName] = filter.Labels[i].Trim().ToLowerInvariant();
                 conditions.Add(
-                    "EXISTS (SELECT 1 FROM labels WHERE task_id = tasks.id "
-                    + $"AND label = @{parameterName})");
+                    $"""EXISTS (SELECT 1 FROM labels WHERE task_id = tasks.id AND label = @{parameterName})""");
             }
         }
 
@@ -2526,13 +2760,15 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         {
             parameters["text"] = EscapeLikeText(filter.Text);
             conditions.Add(
-                "(LOWER(title) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-                + "LOWER(description) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-                + "LOWER(design) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-                + "LOWER(acceptance_criteria) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-                + "LOWER(notes) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\' OR "
-                + "EXISTS (SELECT 1 FROM comments WHERE task_id = tasks.id "
-                + "AND LOWER(text) LIKE '%' || LOWER(@text) || '%' ESCAPE '\\'))");
+                """
+                (LOWER(title) LIKE '%' || LOWER(@text) || '%' ESCAPE '\' OR
+                LOWER(description) LIKE '%' || LOWER(@text) || '%' ESCAPE '\' OR
+                LOWER(design) LIKE '%' || LOWER(@text) || '%' ESCAPE '\' OR
+                LOWER(acceptance_criteria) LIKE '%' || LOWER(@text) || '%' ESCAPE '\' OR
+                LOWER(notes) LIKE '%' || LOWER(@text) || '%' ESCAPE '\' OR
+                EXISTS (SELECT 1 FROM comments WHERE task_id = tasks.id
+                AND LOWER(text) LIKE '%' || LOWER(@text) || '%' ESCAPE '\'))
+                """);
         }
 
         if (filter.UpdatedBefore is { } updatedBefore)
