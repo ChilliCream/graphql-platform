@@ -13,7 +13,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         result.AssertHelpOutput(
             """
             Description:
-              Search the acting agent's sent and received messages by subject and body, case-insensitively. Archived messages are included.
+              Search the acting agent's sent and received messages by subject, body, and sender, case-insensitively. Archived messages are included.
 
             Usage:
               nitro agent mail search <text> [options]

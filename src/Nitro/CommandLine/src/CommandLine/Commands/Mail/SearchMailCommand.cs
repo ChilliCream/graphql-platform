@@ -10,8 +10,8 @@ internal sealed class SearchMailCommand : Command
 {
     public SearchMailCommand() : base("search")
     {
-        Description = "Search the acting agent's sent and received messages by subject and "
-            + "body, case-insensitively. Archived messages are included.";
+        Description = "Search the acting agent's sent and received messages by subject, body, "
+            + "and sender, case-insensitively. Archived messages are included.";
 
         Arguments.Add(Opt<MailSearchTextArgument>.Instance);
 
