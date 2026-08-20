@@ -1,0 +1,34 @@
+$ nitro agent mail init
+✓ Initialized mail workspace at '.nitro/mail'.
+$ nitro agent mail register --actor agent-a
+✓ Registered 'agent-a'.
+$ nitro agent mail register --actor agent-b
+✓ Registered 'agent-b'.
+$ nitro agent mail send agent-b --actor agent-a --cc agent-a --subject Status --body All-good
+✓ Sent 'm-XXX' to agent-b, agent-a.
+$ nitro agent mail inbox --actor agent-b
+m-XXX  *  agent-a  Status  now
+
+1 message(s)
+$ MSG_ID=$(nitro agent mail inbox --actor agent-b | awk 'NR==1{print $1}')
+$ echo "captured $MSG_ID"
+captured m-XXX
+$ nitro agent mail reply "$MSG_ID" --actor agent-b --body Thanks-noted
+✓ Sent 'm-XXX' to agent-a.
+$ nitro agent mail read "$MSG_ID" --thread --actor agent-a
+From: agent-a
+To: agent-b
+Cc: agent-a
+Date: DATE
+Subject: Status
+Thread: m-XXX
+
+All-good
+
+---
+
+From: agent-b
+To: agent-a
+Date: DATE
+Subject: Status
+Thread: m-XXX

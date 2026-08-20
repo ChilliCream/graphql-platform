@@ -1,0 +1,5 @@
+$ nitro agent mail send nope-agent --subject "Status update" --body "All good."; echo "[nitro e
+xit: $?]"
+Unknown recipient(s): nope-agent.
+[nitro exit: 1]
+$

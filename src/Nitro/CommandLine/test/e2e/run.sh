@@ -56,8 +56,11 @@ declare -A MARKERS=(
   [board-maximize]="In Progress (1)"
   [search]="> ● parent-child <-"
   [detail]="acme-epic1 · blocking · depended on by"
+  [mail-send]="Thanks-noted"
+  [mail-error]="[nitro exit: 1]"
+  [mail-board]="Thanks, looks good to me."
 )
-ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-maximize search detail)
+ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.
@@ -69,6 +72,7 @@ ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-ma
 # fail on a well-formed frame.
 declare -A SCRUBS=(
   [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
+  [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g'
 )
 
 # --- args: optional --update plus an optional subset of flow names ------------
@@ -157,6 +161,37 @@ if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXT
   exit 2
 fi
 echo "    fixture ready, guard passed"
+
+# 1c. Prepare a deterministic seeded mailbox fixture (fixed ids, timestamps,
+#     agents: see fixtures/mail-seed.sql) for mail-board-flow, the same
+#     `cp -r`-into-/tmp/work pattern as the task fixture above. Rebuilt
+#     unconditionally on every run so schema drift between MailStoreSchema
+#     and fixtures/mail-seed.sql fails fast here instead of as a confusing
+#     golden diff once the tape records against stale data.
+MAIL_FIXTURE_DIR="$OUT_DIR/fixture/mailbox"
+# Matches MailWorkspace.RootDirectoryName/MailDirectoryName/DatabaseFileName.
+MAIL_FIXTURE_DB="$MAIL_FIXTURE_DIR/.nitro/mail/mail.db"
+MAIL_FIXTURE_MARKER="Retro notes"
+
+echo "==> preparing mail fixture workspace (out/fixture/mailbox)"
+rm -rf "$MAIL_FIXTURE_DIR"
+mkdir -p "$MAIL_FIXTURE_DIR"
+if ! ( cd "$MAIL_FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent mail init >/dev/null ); then
+  echo "==> mail fixture prepare FAILED: 'nitro agent mail init' did not succeed" >&2
+  exit 2
+fi
+if ! sqlite3 "$MAIL_FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
+  echo "==> mail fixture prepare FAILED: mail-seed.sql did not apply cleanly to $MAIL_FIXTURE_DB" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql" >&2
+  exit 2
+fi
+if ! ( cd "$MAIL_FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent mail inbox ) \
+    | grep -q "$MAIL_FIXTURE_MARKER"; then
+  echo "==> mail fixture guard FAILED: 'nitro agent mail inbox' did not show '$MAIL_FIXTURE_MARKER'" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql" >&2
+  exit 2
+fi
+echo "    mail fixture ready, guard passed"
 
 overall=0
 declare -a SUMMARY=()

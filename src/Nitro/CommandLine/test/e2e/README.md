@@ -23,12 +23,26 @@ layer: a handful of representative flows, not exhaustive.
 | Flow | Drives | Validates |
 | --- | --- | --- |
 | `help` | `nitro agent tasks list --help` | the pipeline itself: publish, record, extract, diff, end to end |
+| `mail-send` | `nitro agent mail init/register/send/inbox/reply/read --thread` | the mail send/inbox/reply/read round trip in a live workspace |
+| `mail-error` | `nitro agent mail send` to an unregistered recipient | the "Unknown recipient(s)" error and non-zero exit rendering |
+| `mail-board` | `nitro agent mail board` over `fixtures/mail-seed.sql` | unread styling, the detail pane, and the thread toggle |
 
 This is a trivial smoke flow that proves the pipeline itself, independently of
 the fixture-backed `nitro agent tasks` flows. It asks for help on `list`, a
 leaf subcommand, since its help output is the more informative pipeline check
 than the `agent`/`tasks` group commands' own help. Task commands need no
 auth, they never call the Nitro backend.
+
+The `mail-*` flows are a handful of representative mail flows, not exhaustive
+per-command coverage (that is the unit tier's job): `mail-send` runs live
+against a fresh workspace (init, register two actors, send with `--cc`,
+inbox as the recipient, read with `--thread` after a reply), so its ids and
+dates need the `mail-send` SCRUBS entry in [`run.sh`](run.sh); `mail-board`
+runs against its own seeded mailbox fixture
+([`fixtures/mail-seed.sql`](fixtures/mail-seed.sql)) with timestamps fixed
+far enough in the past that the board's age column always renders a fixed
+date, so it needs no SCRUBS entry. Mail commands need no auth, they never
+call the Nitro backend.
 
 Keep `MARKERS`/`ALL_FLOWS` in [`run.sh`](run.sh) in sync with the tape set as
 flows are added.
