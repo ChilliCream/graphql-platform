@@ -404,6 +404,7 @@
   </Folder>
   <Folder Name="/Nitro/CommandLine/test/">
     <Project Path="Nitro/CommandLine/test/CommandLine.Tests/Nitro.CommandLine.Tests.csproj" />
+    <Project Path="Nitro/CommandLine/test/CommandLine.Smoke.Tests/Nitro.CommandLine.Smoke.Tests.csproj" />
   </Folder>
   <Folder Name="/Nitro/Common/" />
   <Folder Name="/Nitro/Common/src/">
