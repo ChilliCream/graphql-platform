@@ -751,6 +751,7 @@ internal sealed class MailStore(IFileSystem fileSystem, TimeProvider timeProvide
             AND (
                 LOWER(m.subject) LIKE '%' || LOWER(@text) || '%' ESCAPE '\'
                 OR LOWER(m.body) LIKE '%' || LOWER(@text) || '%' ESCAPE '\'
+                OR LOWER(m.sender) LIKE '%' || LOWER(@text) || '%' ESCAPE '\'
             )
             ORDER BY m.created_at DESC, m.id DESC
             """,

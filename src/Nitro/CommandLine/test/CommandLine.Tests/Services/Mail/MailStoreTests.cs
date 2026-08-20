@@ -502,6 +502,39 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task SearchAsync_Should_MatchSender_CaseInsensitive()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await _store.RegisterAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "unrelated subject", ["bob"], null, cancellationToken);
+
+        // act
+        var results = await _store.SearchAsync("bob", "CLAUDE", cancellationToken);
+
+        // assert
+        var message = Assert.Single(results);
+        Assert.Equal("claude", message.Sender);
+    }
+
+    [Fact]
+    public async Task SearchAsync_Should_NotMatch_When_TextNotInSubjectBodyOrSender()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await _store.RegisterAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "unrelated subject", ["bob"], null, cancellationToken);
+
+        // act
+        var results = await _store.SearchAsync("bob", "nomatch", cancellationToken);
+
+        // assert
+        Assert.Empty(results);
+    }
+
+    [Fact]
     public async Task CountUnreadAsync_Should_CountOnlyUnreadAndNotArchived()
     {
         // arrange
