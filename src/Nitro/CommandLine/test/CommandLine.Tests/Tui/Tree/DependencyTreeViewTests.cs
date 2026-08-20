@@ -426,7 +426,7 @@ public sealed class DependencyTreeViewTests
     [Fact]
     public void Render_Should_TruncateHeaderToPanelWidth_When_ContentRowsAreNarrowerThanHeader()
     {
-        // arrange: the exact two-id breadcrumb from bd-595's repro (53 chars
+        // arrange: a two-id breadcrumb (53 chars
         // fully expanded: "acme-epic1 > acme-epic1.1 · blocking · depended
         // on by"), but the only visible row after refocusing is the short,
         // untitled "acme-epic1.1" node itself, so the panel's actual

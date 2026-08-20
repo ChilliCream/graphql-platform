@@ -177,8 +177,7 @@ public sealed class StatsTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Inserts a comment directly, since this wave has no `task comment` command
-    /// to create one through.
+    /// Inserts a comment directly so the test controls created_at.
     /// </summary>
     private async Task InsertCommentAsync(
         string taskId, string author, string text, CancellationToken cancellationToken)

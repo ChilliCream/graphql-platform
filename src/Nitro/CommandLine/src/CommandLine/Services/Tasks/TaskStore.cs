@@ -323,14 +323,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return (result, tasks);
     }
 
-    // -------------------------------------------------------------------
-    // New surface: backend-agnostic, no ADO.NET or SQLite types. Both the
-    // read members (bd-oyf.2) and the write members (bd-oyf.3) below are
-    // real implementations, each owning its own transaction and audit
-    // events. No command calls this surface yet; that migration is done by
-    // bd-oyf.4/bd-oyf.5.
-    // -------------------------------------------------------------------
-
     public async Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
         TaskFilter filter,
         CancellationToken cancellationToken)

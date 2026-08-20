@@ -22,7 +22,8 @@
 # incoming here, see TaskDetailModel.BuildRows/GetDependentsAsync) lists
 # exactly those two children, and it is also the fixture task whose Created
 # and Updated sidebar lines both land on 2026-01-01 (it was created and
-# never touched again), the deterministic marker the bead calls for.
+# never touched again), the deterministic marker this flow's frame
+# extraction keys on.
 #
 # The dependency tree explorer defaults to TreeEdgeMode.Blocking (which
 # includes parent-child edges, TaskDependencyTypes.IsBlocking) and

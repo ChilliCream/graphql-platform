@@ -2,8 +2,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
 /// The parameters for <see cref="ITaskStore.QueryTasksAsync"/>. This is the
-/// backend-agnostic shape the TUI's filter query parser (perles-net-4j7.2)
-/// targets; its "TaskQuery" record maps onto this type. Every filter applies
+/// backend-agnostic shape the TUI's filter query parser targets; its
+/// "TaskQuery" record maps onto this type. Every filter applies
 /// as AND with the others; <see cref="Labels"/> apply as AND across labels.
 /// </summary>
 internal sealed record TaskFilter

@@ -1,7 +1,7 @@
 # End-to-end recording of the tasks TUI's search mode against the fixture
 # workspace.
 #
-# Search mode (perles-net-4j7.3) is reached from the board TUI via the '/'
+# Search mode is reached from the board TUI via the '/'
 # gesture (TuiMessage.FocusSearchRequested, KeyMap.CreateDefaultGlobal): it
 # is the only entry point, there is no dedicated interactive search command
 # (`nitro agent tasks search` is a separate, non-interactive text-search command
