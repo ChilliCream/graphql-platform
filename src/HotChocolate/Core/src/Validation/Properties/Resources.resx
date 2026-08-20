@@ -173,6 +173,9 @@
   <data name="ErrorHelper_FragmentOnlyCompositeType" xml:space="preserve">
     <value>Fragments can only be declared on unions, interfaces, and objects.</value>
   </data>
+  <data name="ErrorHelper_FragmentVariableNotUsed" xml:space="preserve">
+    <value>The following variables of fragment `{0}` were not used: {1}.</value>
+  </data>
   <data name="ErrorHelper_InputFieldAmbiguous" xml:space="preserve">
     <value>There can be only one input field named `{0}`.</value>
   </data>

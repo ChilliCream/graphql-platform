@@ -605,8 +605,8 @@ internal sealed class FusionComposeCommand : Command
 
             if (removeSourceSchemas.Count > 0)
             {
-                var existing = (await archive.GetSourceSchemaNamesAsync(cancellationToken))
-                    .ToHashSet(StringComparer.Ordinal);
+                var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync(cancellationToken);
+                var existing = sourceSchemaNames.ToHashSet(StringComparer.Ordinal);
 
                 var missingSourceSchema =
                     removeSourceSchemas.FirstOrDefault(name => !existing.Contains(name));

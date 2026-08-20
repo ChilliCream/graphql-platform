@@ -15,6 +15,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -33,6 +34,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -52,6 +54,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -71,6 +74,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -160,6 +164,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -181,6 +186,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -233,6 +239,32 @@ public class AzureServiceBusDestinationsTests
     }
 
     [Fact]
+    public void GetDispatchEndpoint_Should_ResolveQueue_When_DirectAddressNameContainsSlash()
+    {
+        // arrange
+        var runtime = CreateRuntime(_ => { });
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(new Uri("azuresb:q/orders/eu"));
+
+        // assert
+        Assert.Equal("q/orders/eu", endpoint.Name);
+    }
+
+    [Fact]
+    public void GetDispatchEndpoint_Should_ResolveTopic_When_DirectAddressNameContainsSlash()
+    {
+        // arrange
+        var runtime = CreateRuntime(_ => { });
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(new Uri("azuresb:t/orders/eu"));
+
+        // assert
+        Assert.Equal("t/orders/eu", endpoint.Name);
+    }
+
+    [Fact]
     public void GetDispatchEndpoint_Should_Throw_When_AddressIsOnAnotherNamespace()
     {
         var runtime = CreateRuntime(_ => { });
@@ -258,6 +290,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
             runtime.Naming,
             route);
 
@@ -267,9 +300,95 @@ public class AzureServiceBusDestinationsTests
         Assert.Equal("q/orders/eu", resolution.EndpointName);
     }
 
+    [Fact]
+    public void Resolve_Should_UseExplicitQueue_When_DestinationTargetsCurrentNamespace()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddMessage<OrderCreated>(d =>
+                d.Send(r => r.Destination(new Uri("azuresb://localhost/q/orders")))));
+        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
+        var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
+
+        // act
+        var resolution = AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            LocalNamespace,
+            runtime.Naming,
+            route);
+
+        // assert
+        Assert.Equal(AzureServiceBusDestinationKind.Queue, resolution.Kind);
+        Assert.Equal("orders", resolution.Name);
+        Assert.Equal("q/orders", resolution.EndpointName);
+    }
+
+    [Fact]
+    public void Resolve_Should_Throw_When_DestinationTargetsAnotherNamespace()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddMessage<OrderCreated>(d =>
+                d.Send(r => r.Destination(new Uri("azuresb://localhost/q/orders")))));
+        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
+        var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
+        var otherNamespace = new Uri("azuresb://other-namespace/");
+
+        // act
+        var exception = Record.Exception(() => AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            otherNamespace,
+            runtime.Naming,
+            route));
+
+        // assert
+        Assert.Equal(
+            "Explicit destination 'azuresb://localhost/q/orders' targets Azure Service Bus namespace "
+            + "'localhost', but this transport is connected to namespace 'other-namespace'. Route the "
+            + "message through a transport connected to that namespace, or omit the host to target the "
+            + "current namespace implicitly.",
+            Assert.IsType<InvalidOperationException>(exception).Message);
+    }
+
+    [Fact]
+    public void Resolve_Should_TreatExplicitDestination_When_NamespacesDifferAcrossTwoTransports()
+    {
+        // arrange
+        var primaryRuntime = CreateRuntime(
+            b => b.AddMessage<OrderCreated>(d =>
+                d.Send(r => r.Destination(new Uri("azuresb://primary-namespace/q/orders")))),
+            connectionString: "Endpoint=sb://primary-namespace/;SharedAccessKeyName=test;SharedAccessKey=test");
+        var secondaryRuntime = CreateRuntime(
+            _ => { },
+            connectionString: "Endpoint=sb://secondary-namespace/;SharedAccessKeyName=test;SharedAccessKey=test");
+
+        var primaryTransport = primaryRuntime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var secondaryTransport = secondaryRuntime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var messageType = primaryRuntime.Messages.GetMessageType(typeof(OrderCreated))!;
+        var route = primaryRuntime.Router.GetOutboundByMessageType(messageType).Single();
+
+        // act
+        var resolvedOnOwningTransport = AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            primaryTransport.Topology.Address,
+            primaryRuntime.Naming,
+            route);
+        var exception = Record.Exception(() => AzureServiceBusDestinations.Resolve(
+            AzureServiceBusTransportConfiguration.DefaultSchema,
+            secondaryTransport.Topology.Address,
+            primaryRuntime.Naming,
+            route));
+
+        // assert
+        Assert.Equal(AzureServiceBusDestinationKind.Queue, resolvedOnOwningTransport.Kind);
+        Assert.Equal("orders", resolvedOnOwningTransport.Name);
+        Assert.IsType<InvalidOperationException>(exception);
+    }
+
     private static MessagingRuntime CreateRuntime(
         Action<IMessageBusHostBuilder> configure,
-        Action<IAzureServiceBusMessagingTransportDescriptor>? configureTransport = null)
+        Action<IAzureServiceBusMessagingTransportDescriptor>? configureTransport = null,
+        string connectionString = DummyConnectionString)
     {
         var services = new ServiceCollection();
         services.AddSingleton(new MessageRecorder());
@@ -278,7 +397,7 @@ public class AzureServiceBusDestinationsTests
         return builder
             .AddAzureServiceBus(t =>
             {
-                t.ConnectionString(DummyConnectionString);
+                t.ConnectionString(connectionString);
                 configureTransport?.Invoke(t);
             })
             .BuildRuntime();
@@ -286,4 +405,6 @@ public class AzureServiceBusDestinationsTests
 
     private const string DummyConnectionString =
         "Endpoint=sb://localhost/;SharedAccessKeyName=test;SharedAccessKey=test";
+
+    private static readonly Uri LocalNamespace = new("azuresb://localhost/");
 }

@@ -436,6 +436,22 @@ public class Utf8SyntaxFormatterTests
     }
 
     [Fact]
+    public void Format_Should_EmitVariableDefinitions_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        var document = Utf8GraphQLOperationParser.Parse(
+            Encoding.UTF8.GetBytes("fragment F($a: Int = 1) on Thing { id(x: $a) }"),
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // act
+        var writer = new ArrayBufferWriter<byte>();
+        document.Format(writer, indented: false);
+
+        // assert
+        Text(writer).MatchInlineSnapshot("fragment F($a:Int=1)on Thing{id(x:$a)}");
+    }
+
+    [Fact]
     public void Format_Should_EmitKeyword_When_OperationIsShorthandOrMutation()
     {
         // arrange

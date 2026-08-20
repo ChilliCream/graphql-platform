@@ -68,6 +68,28 @@ public sealed class ServiceBusConnectionTests
     }
 
     [Fact]
+    public void Create_Should_Throw_When_ConnectionStringAndNamespaceCredentialConfigured()
+    {
+        // arrange
+        var configuration = new AzureServiceBusTransportConfiguration
+        {
+            ConnectionString =
+                "Endpoint=sb://127.0.0.1:5672/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true",
+            FullyQualifiedNamespace = "localhost",
+            Credential = new TestTokenCredential()
+        };
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => ServiceBusConnection.Create(configuration, new ServiceBusClientOptions()));
+
+        // assert
+        Assert.Contains("ConnectionString", exception.Message);
+        Assert.Contains("FullyQualifiedNamespace", exception.Message);
+        Assert.Contains("Credential", exception.Message);
+    }
+
+    [Fact]
     public async Task Create_Should_UseConfiguredAdministrationConnectionWithRegisteredMessagingClient()
     {
         // arrange

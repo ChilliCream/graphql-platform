@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -25,6 +26,9 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IResultFormatter, JsonResultFormatter>();
 
         services.TryAddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
+
+        services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<ITaskStore, TaskStore>();
 
         return services;
     }

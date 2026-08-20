@@ -7,14 +7,21 @@ internal static class AzureServiceBusDestinations
 {
     public static AzureServiceBusDestination Resolve(
         string schema,
+        Uri topologyAddress,
         IBusNamingConventions naming,
         OutboundRoute route)
     {
-        if (route.HasExplicitDestination
-            && route.Destination is { } destination
-            && TryResolveExplicit(schema, destination, out var explicitDestination))
+        if (route.HasExplicitDestination && route.Destination is { } destination)
         {
-            return explicitDestination;
+            if (destination.Scheme == schema && TargetsAnotherNamespace(destination, topologyAddress))
+            {
+                throw ThrowHelper.ExplicitDestinationTargetsAnotherNamespace(destination, topologyAddress);
+            }
+
+            if (TryResolveExplicit(schema, destination, out var explicitDestination))
+            {
+                return explicitDestination;
+            }
         }
 
         return ResolveConvention(naming, route.Kind, route.MessageType);
@@ -30,6 +37,26 @@ internal static class AzureServiceBusDestinations
             OutboundRouteKind.Publish => Topic(naming.GetPublishEndpointName(messageType.RuntimeType)),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
+
+    /// <summary>
+    /// Resolves the destination that a dispatch endpoint configuration was directed to, based on
+    /// the topic or queue name recorded on the configuration.
+    /// </summary>
+    public static AzureServiceBusDestination? FromDispatchEndpoint(
+        AzureServiceBusDispatchEndpointConfiguration configuration)
+    {
+        if (configuration.TopicName is { } topicName)
+        {
+            return Topic(topicName);
+        }
+
+        if (configuration.QueueName is { } queueName)
+        {
+            return Queue(queueName);
+        }
+
+        return null;
+    }
 
     public static bool TryResolveSourceTopic(
         string schema,
@@ -120,6 +147,26 @@ internal static class AzureServiceBusDestinations
 
         name = null;
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether a transport-scheme destination carries a host that identifies a different
+    /// Azure Service Bus namespace than the one this transport's topology is connected to. Hostless
+    /// destinations (e.g. <c>azuresb:q/orders</c>) are always considered local.
+    /// </summary>
+    private static bool TargetsAnotherNamespace(Uri destination, Uri topologyAddress)
+    {
+        if (string.IsNullOrEmpty(destination.Host))
+        {
+            return false;
+        }
+
+        if (!destination.Host.EqualsOrdinalIgnoreCase(topologyAddress.Host))
+        {
+            return true;
+        }
+
+        return destination.Port != -1 && destination.Port != topologyAddress.Port;
     }
 
     private static AzureServiceBusDestination Topic(string name)

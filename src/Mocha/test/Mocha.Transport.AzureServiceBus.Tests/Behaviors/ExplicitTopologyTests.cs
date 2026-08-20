@@ -54,6 +54,41 @@ public class ExplicitTopologyTests
     }
 
     [Fact]
+    public async Task PublishAsync_Should_RouteToImplicitConsumer_When_CustomDispatchTopicConfigured()
+    {
+        // arrange
+        var capture = new OrderCapture();
+        await using var ctx = _fixture.CreateTestContext();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddConsumer<OrderSpyConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
+                t.BindImplicitly();
+
+                t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-TOPO" }, CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await capture.WaitAsync(s_timeout),
+            "Implicit consumer did not receive the message published through the custom dispatch topic");
+
+        var message = Assert.Single(capture.Messages);
+        Assert.Equal("ORD-TOPO", message.OrderId);
+    }
+
+    [Fact]
     public async Task PublishAsync_Should_RouteToQueue_When_ExplicitTopologyDeclared_WithImplicit()
     {
         // arrange

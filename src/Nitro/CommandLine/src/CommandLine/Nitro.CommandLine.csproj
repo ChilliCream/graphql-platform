@@ -9,7 +9,14 @@
     <RootNamespace>ChilliCream.Nitro.CommandLine</RootNamespace>
     <AssemblyName>nitro</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
-    <NoWarn>$(NoWarn);CS0618</NoWarn>
+    <!-- IL3053/IL2104: the raw Dapper package reference (kept alongside Dapper.AOT for its interceptors) is not
+         itself marked AOT/trim compatible, so ILC reports its reflection-based fallback surface under these two
+         codes. Dapper.AOT's interceptors replace the actual call sites, and these are the only ILC warnings this
+         project produces, so they are suppressed here rather than in a shared build file. -->
+    <NoWarn>$(NoWarn);CS0618;IL3053;IL2104</NoWarn>
+    <!-- Dapper.AOT rewrites Dapper calls via C# interceptors; without this its generator cannot intercept and calls fall back to reflection-based Dapper. -->
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -42,8 +49,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Dapper.AOT" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="Spectre.Console.Json" />
