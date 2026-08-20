@@ -205,14 +205,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // parameter object.
         cancellationToken.ThrowIfCancellationRequested();
 
-        var tasks = (await connection.QueryAsync<TaskGraphNode>(
-                "SELECT id AS Id, status AS Status, task_type AS Type FROM tasks"))
-            .ToDictionary(t => t.Id);
+        var taskRows = await connection.QueryAsync<TaskGraphNode>(
+            "SELECT id AS Id, status AS Status, task_type AS Type FROM tasks");
+        var tasks = taskRows.ToDictionary(t => t.Id);
 
-        var dependencies = (await connection.QueryAsync<TaskGraphEdge>(
-                "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
-                + "FROM dependencies"))
-            .ToList();
+        var dependencyRows = await connection.QueryAsync<TaskGraphEdge>(
+            "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
+            + "FROM dependencies");
+        var dependencies = dependencyRows.ToList();
 
         var blocked = new Dictionary<string, List<string>>();
 
@@ -398,9 +398,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return (await connection.QueryAsync<string>(
+        var labels = await connection.QueryAsync<string>(
             "SELECT label FROM labels WHERE task_id = @taskId ORDER BY label",
-            new { taskId, cancellationToken })).ToList();
+            new { taskId, cancellationToken });
+
+        return labels.ToList();
     }
 
     public async Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(
@@ -411,18 +413,18 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // A row class, not the TaskLabelCount record, receives the COUNT(*)
         // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
         // settable property tolerates the narrowing.
-        return (await connection.QueryAsync<LabelCountRow>(
-                """
-                SELECT l.label AS Label, COUNT(*) AS Count
-                FROM labels l
-                JOIN tasks t ON t.id = l.task_id
-                WHERE t.status != @tombstoneStatus
-                GROUP BY l.label
-                ORDER BY l.label
-                """,
-                new { tombstoneStatus = TaskStates.Tombstone, cancellationToken }))
-            .Select(r => new TaskLabelCount(r.Label, r.Count))
-            .ToList();
+        var rows = await connection.QueryAsync<LabelCountRow>(
+            """
+            SELECT l.label AS Label, COUNT(*) AS Count
+            FROM labels l
+            JOIN tasks t ON t.id = l.task_id
+            WHERE t.status != @tombstoneStatus
+            GROUP BY l.label
+            ORDER BY l.label
+            """,
+            new { tombstoneStatus = TaskStates.Tombstone, cancellationToken });
+
+        return rows.Select(r => new TaskLabelCount(r.Label, r.Count)).ToList();
     }
 
     public async Task<IReadOnlyList<TaskComment>> GetCommentsAsync(
@@ -434,12 +436,12 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // The intercepted read path cannot convert the TEXT-stored timestamp
         // column to DateTimeOffset, so this materializes an all-primitives
         // row and parses the timestamp itself.
-        return (await connection.QueryAsync<TaskCommentRow>(
-                $"SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId "
-                + "ORDER BY created_at, id",
-                new { taskId, cancellationToken }))
-            .Select(r => r.ToTaskComment())
-            .ToList();
+        var rows = await connection.QueryAsync<TaskCommentRow>(
+            $"SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId "
+            + "ORDER BY created_at, id",
+            new { taskId, cancellationToken });
+
+        return rows.Select(r => r.ToTaskComment()).ToList();
     }
 
     public async Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(
@@ -448,7 +450,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return (await connection.QueryAsync<TaskDependencyDetail>(
+        var rows = await connection.QueryAsync<TaskDependencyDetail>(
             """
             SELECT d.dependency_type AS Type, d.depends_on_id AS DependsOnId,
                    t.status AS Status, t.title AS Title
@@ -457,7 +459,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             WHERE d.task_id = @taskId
             ORDER BY d.created_at, d.depends_on_id
             """,
-            new { taskId, cancellationToken })).ToList();
+            new { taskId, cancellationToken });
+
+        return rows.ToList();
     }
 
     public async Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(
@@ -466,7 +470,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return (await connection.QueryAsync<TaskDependentDetail>(
+        var rows = await connection.QueryAsync<TaskDependentDetail>(
             """
             SELECT d.task_id AS TaskId, d.dependency_type AS Type,
                    t.status AS Status, t.title AS Title
@@ -475,7 +479,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             WHERE d.depends_on_id = @taskId
             ORDER BY d.created_at, d.task_id
             """,
-            new { taskId, cancellationToken })).ToList();
+            new { taskId, cancellationToken });
+
+        return rows.ToList();
     }
 
     public async Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(
@@ -487,11 +493,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // itself, since the created_at column is stored as TEXT. The query
         // takes no filter parameters, so cancellation here is best-effort
         // rather than plumbed through a parameter object.
-        return (await connection.QueryAsync<TaskDependencyRow>(
-                $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
-                + "ORDER BY task_id, depends_on_id"))
-            .Select(r => r.ToTaskDependency())
-            .ToList();
+        var rows = await connection.QueryAsync<TaskDependencyRow>(
+            $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
+            + "ORDER BY task_id, depends_on_id");
+
+        return rows.Select(r => r.ToTaskDependency()).ToList();
     }
 
     public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(
@@ -515,7 +521,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     private static async Task<IReadOnlyList<TaskEpicStatus>> QueryEpicStatusesAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken)
-        => (await connection.QueryAsync<TaskEpicStatus>(
+    {
+        var rows = await connection.QueryAsync<TaskEpicStatus>(
             """
             SELECT e.id AS Id, e.title AS Title, e.status AS Status,
                    COUNT(c.id) AS Total,
@@ -536,7 +543,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 tombstone = TaskStates.Tombstone,
                 epic = TaskTypes.Epic,
                 cancellationToken
-            })).ToList();
+            });
+
+        return rows.ToList();
+    }
 
     public async Task<int> CountTasksAsync(
         CancellationToken cancellationToken)
@@ -560,47 +570,57 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         switch (dimension)
         {
             case TaskCountDimension.Status:
-                return (await connection.QueryAsync<CountRow>(
-                        "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-                        + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
-                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
-                    .Select(r => new TaskCount(r.Value, r.Count))
-                    .ToList();
+            {
+                var rows = await connection.QueryAsync<CountRow>(
+                    "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+                    + "WHERE status != @tombstone GROUP BY status ORDER BY status ASC",
+                    new { tombstone = TaskStates.Tombstone, cancellationToken });
+
+                return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
+            }
 
             case TaskCountDimension.Type:
-                return (await connection.QueryAsync<CountRow>(
-                        "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
-                        + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
-                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
-                    .Select(r => new TaskCount(r.Value, r.Count))
-                    .ToList();
+            {
+                var rows = await connection.QueryAsync<CountRow>(
+                    "SELECT task_type AS Value, COUNT(*) AS Count FROM tasks "
+                    + "WHERE status != @tombstone GROUP BY task_type ORDER BY task_type ASC",
+                    new { tombstone = TaskStates.Tombstone, cancellationToken });
+
+                return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
+            }
 
             case TaskCountDimension.Priority:
-                return (await connection.QueryAsync<PriorityCountRow>(
-                        "SELECT priority AS Priority, COUNT(*) AS Count FROM tasks "
-                        + "WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC",
-                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
-                    .Select(r => new TaskCount(TaskPriorities.Format(r.Priority), r.Count))
-                    .ToList();
+            {
+                var rows = await connection.QueryAsync<PriorityCountRow>(
+                    "SELECT priority AS Priority, COUNT(*) AS Count FROM tasks "
+                    + "WHERE status != @tombstone GROUP BY priority ORDER BY priority ASC",
+                    new { tombstone = TaskStates.Tombstone, cancellationToken });
+
+                return rows.Select(r => new TaskCount(TaskPriorities.Format(r.Priority), r.Count)).ToList();
+            }
 
             case TaskCountDimension.Assignee:
-                return (await connection.QueryAsync<CountRow>(
-                        "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
-                        + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
-                        + "GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned') "
-                        + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
-                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
-                    .Select(r => new TaskCount(r.Value, r.Count))
-                    .ToList();
+            {
+                var rows = await connection.QueryAsync<CountRow>(
+                    "SELECT COALESCE(NULLIF(assignee, ''), 'unassigned') AS Value, "
+                    + "COUNT(*) AS Count FROM tasks WHERE status != @tombstone "
+                    + "GROUP BY COALESCE(NULLIF(assignee, ''), 'unassigned') "
+                    + "ORDER BY COALESCE(NULLIF(assignee, ''), 'unassigned') ASC",
+                    new { tombstone = TaskStates.Tombstone, cancellationToken });
+
+                return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
+            }
 
             case TaskCountDimension.Label:
-                return (await connection.QueryAsync<CountRow>(
-                        "SELECT label AS Value, COUNT(*) AS Count FROM labels "
-                        + "INNER JOIN tasks ON tasks.id = labels.task_id "
-                        + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
-                        new { tombstone = TaskStates.Tombstone, cancellationToken }))
-                    .Select(r => new TaskCount(r.Value, r.Count))
-                    .ToList();
+            {
+                var rows = await connection.QueryAsync<CountRow>(
+                    "SELECT label AS Value, COUNT(*) AS Count FROM labels "
+                    + "INNER JOIN tasks ON tasks.id = labels.task_id "
+                    + "WHERE tasks.status != @tombstone GROUP BY label ORDER BY label ASC",
+                    new { tombstone = TaskStates.Tombstone, cancellationToken });
+
+                return rows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
+            }
 
             default:
                 throw new ArgumentOutOfRangeException(
@@ -616,12 +636,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         // A row class, not the TaskCount record, receives the COUNT(*)
         // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
         // settable property tolerates the narrowing.
-        var statusCounts = (await connection.QueryAsync<CountRow>(
-                "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
-                + "WHERE status != @tombstone GROUP BY status",
-                new { tombstone = TaskStates.Tombstone, cancellationToken }))
-            .Select(r => new TaskCount(r.Value, r.Count))
-            .ToList();
+        var statusCountRows = await connection.QueryAsync<CountRow>(
+            "SELECT status AS Value, COUNT(*) AS Count FROM tasks "
+            + "WHERE status != @tombstone GROUP BY status",
+            new { tombstone = TaskStates.Tombstone, cancellationToken });
+        var statusCounts = statusCountRows.Select(r => new TaskCount(r.Value, r.Count)).ToList();
 
         var now = timeProvider.GetUtcNow();
         var (blocked, tasksById) = await ComputeBlockedAsync(connection, cancellationToken);
@@ -698,8 +717,10 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return (await connection.QueryAsync<TaskConfigEntry>(
-            "SELECT key AS Key, value AS Value FROM config ORDER BY key ASC")).ToList();
+        var rows = await connection.QueryAsync<TaskConfigEntry>(
+            "SELECT key AS Key, value AS Value FROM config ORDER BY key ASC");
+
+        return rows.ToList();
     }
 
     public async Task<string> GetPrefixAsync(
@@ -1875,12 +1896,12 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             await GetRequiredTaskAsync(connection, normalizedParentId, cancellationToken, transaction);
         }
 
-        var existingParentIds = (await connection.QueryAsync<string>(
-                "SELECT depends_on_id FROM dependencies "
-                + "WHERE task_id = @id AND dependency_type = @type",
-                new { id, type = TaskDependencyTypes.ParentChild, cancellationToken },
-                transaction))
-            .ToList();
+        var existingParentIdRows = await connection.QueryAsync<string>(
+            "SELECT depends_on_id FROM dependencies "
+            + "WHERE task_id = @id AND dependency_type = @type",
+            new { id, type = TaskDependencyTypes.ParentChild, cancellationToken },
+            transaction);
+        var existingParentIds = existingParentIdRows.ToList();
 
         if (existingParentIds.Count == 1 && existingParentIds[0] == normalizedParentId)
         {
@@ -2007,16 +2028,18 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var taskRows = await connection.QueryAsync<TaskRow>(
             $"SELECT {TaskItem.Columns} FROM tasks ORDER BY id");
 
-        var labelsByTask = (await connection.QueryAsync<TaskLabelRow>(
-                "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label"))
+        var labelRows = await connection.QueryAsync<TaskLabelRow>(
+            "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label");
+        var labelsByTask = labelRows
             .GroupBy(row => row.TaskId)
             .ToDictionary(
                 group => group.Key,
                 IReadOnlyList<string> (group) => [.. group.Select(row => row.Label)]);
 
-        var dependenciesByTask = (await connection.QueryAsync<TaskDependencyRow>(
-                $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
-                + "ORDER BY task_id, depends_on_id"))
+        var dependencyRows = await connection.QueryAsync<TaskDependencyRow>(
+            $"SELECT {TaskDependencyRow.Columns} FROM dependencies "
+            + "ORDER BY task_id, depends_on_id");
+        var dependenciesByTask = dependencyRows
             .GroupBy(row => row.TaskId)
             .ToDictionary(
                 group => group.Key,
@@ -2029,8 +2052,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                         CreatedBy = row.CreatedBy
                     })]);
 
-        var commentsByTask = (await connection.QueryAsync<TaskCommentRow>(
-                $"SELECT {TaskComment.Columns} FROM comments ORDER BY task_id, created_at, id"))
+        var commentRows = await connection.QueryAsync<TaskCommentRow>(
+            $"SELECT {TaskComment.Columns} FROM comments ORDER BY task_id, created_at, id");
+        var commentsByTask = commentRows
             .GroupBy(row => row.TaskId)
             .ToDictionary(
                 group => group.Key,
@@ -2294,41 +2318,45 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var quickCheckMessage = await connection.ExecuteScalarAsync<string?>("PRAGMA quick_check;")
             ?? "ok";
 
-        var orphanDependencies = (await connection.QueryAsync<DependencyEdgeRow>(
-                "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
-                + "d.dependency_type AS Type FROM dependencies d "
-                + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.task_id) "
-                + "OR NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.depends_on_id) "
-                + "ORDER BY d.task_id, d.depends_on_id"))
+        var orphanDependencyRows = await connection.QueryAsync<DependencyEdgeRow>(
+            "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
+            + "d.dependency_type AS Type FROM dependencies d "
+            + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.task_id) "
+            + "OR NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = d.depends_on_id) "
+            + "ORDER BY d.task_id, d.depends_on_id");
+        var orphanDependencies = orphanDependencyRows
             .Select(row => new TaskDependencyReference(row.TaskId, row.DependsOnId))
             .ToList();
 
-        var orphanLabels = (await connection.QueryAsync<TaskLabelRow>(
-                "SELECT l.task_id AS TaskId, l.label AS Label FROM labels l "
-                + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = l.task_id) "
-                + "ORDER BY l.task_id, l.label"))
+        var orphanLabelRows = await connection.QueryAsync<TaskLabelRow>(
+            "SELECT l.task_id AS TaskId, l.label AS Label FROM labels l "
+            + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = l.task_id) "
+            + "ORDER BY l.task_id, l.label");
+        var orphanLabels = orphanLabelRows
             .Select(row => new TaskOrphanLabel(row.TaskId, row.Label))
             .ToList();
 
-        var orphanComments = (await connection.QueryAsync<CommentOrphanRow>(
-                "SELECT c.task_id AS TaskId, c.id AS CommentId FROM comments c "
-                + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = c.task_id) "
-                + "ORDER BY c.task_id, c.id"))
+        var orphanCommentRows = await connection.QueryAsync<CommentOrphanRow>(
+            "SELECT c.task_id AS TaskId, c.id AS CommentId FROM comments c "
+            + "WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = c.task_id) "
+            + "ORDER BY c.task_id, c.id");
+        var orphanComments = orphanCommentRows
             .Select(row => new TaskOrphanComment(row.TaskId, row.CommentId))
             .ToList();
 
-        var tombstonedParentEdges = (await connection.QueryAsync<DependencyEdgeRow>(
-                "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
-                + "d.dependency_type AS Type FROM dependencies d "
-                + "JOIN tasks t ON t.id = d.depends_on_id "
-                + "WHERE d.dependency_type = @parentChild AND t.status = @tombstone "
-                + "ORDER BY d.task_id",
-                new
-                {
-                    parentChild = TaskDependencyTypes.ParentChild,
-                    tombstone = TaskStates.Tombstone,
-                    cancellationToken
-                }))
+        var tombstonedParentEdgeRows = await connection.QueryAsync<DependencyEdgeRow>(
+            "SELECT d.task_id AS TaskId, d.depends_on_id AS DependsOnId, "
+            + "d.dependency_type AS Type FROM dependencies d "
+            + "JOIN tasks t ON t.id = d.depends_on_id "
+            + "WHERE d.dependency_type = @parentChild AND t.status = @tombstone "
+            + "ORDER BY d.task_id",
+            new
+            {
+                parentChild = TaskDependencyTypes.ParentChild,
+                tombstone = TaskStates.Tombstone,
+                cancellationToken
+            });
+        var tombstonedParentEdges = tombstonedParentEdgeRows
             .Select(row => new TaskDependencyReference(row.TaskId, row.DependsOnId))
             .ToList();
 
@@ -2353,12 +2381,11 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         string id,
         string dependsOnId)
     {
-        var edges = (await connection.QueryAsync<DependencyEdgeRow>(
+        var edgeRows = await connection.QueryAsync<DependencyEdgeRow>(
             "SELECT task_id AS TaskId, depends_on_id AS DependsOnId, dependency_type AS Type "
             + "FROM dependencies",
-            transaction: transaction))
-            .Where(e => TaskDependencyTypes.IsBlocking(e.Type))
-            .ToList();
+            transaction: transaction);
+        var edges = edgeRows.Where(e => TaskDependencyTypes.IsBlocking(e.Type)).ToList();
 
         var adjacency = edges
             .GroupBy(e => e.TaskId)

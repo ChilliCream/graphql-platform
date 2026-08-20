@@ -345,7 +345,8 @@ internal interface ITaskStore
 
         await GetRequiredTaskAsync(id, cancellationToken);
 
-        var existingParentIds = (await GetDependenciesAsync(id, cancellationToken))
+        var dependencies = await GetDependenciesAsync(id, cancellationToken);
+        var existingParentIds = dependencies
             .Where(dependency => dependency.Type == TaskDependencyTypes.ParentChild)
             .Select(dependency => dependency.DependsOnId)
             .ToList();

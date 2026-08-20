@@ -47,16 +47,16 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(DatabasePath));
         Assert.Equal("acme", await QueryScalarAsync(
             "SELECT value FROM config WHERE key = 'prefix'"));
-        (await File.ReadAllTextAsync(
+        var gitIgnoreText = await File.ReadAllTextAsync(
             Path.Combine(WorkspaceDirectory, TaskWorkspace.GitIgnoreFileName),
-            TestContext.Current.CancellationToken))
-            .MatchInlineSnapshot(
-                """
-                # The task database is local state; tasks.jsonl is the source of truth in git.
-                tasks.db
-                tasks.db-wal
-                tasks.db-shm
-                """);
+            TestContext.Current.CancellationToken);
+        gitIgnoreText.MatchInlineSnapshot(
+            """
+            # The task database is local state; tasks.jsonl is the source of truth in git.
+            tasks.db
+            tasks.db-wal
+            tasks.db-shm
+            """);
     }
 
     [Fact]
@@ -141,13 +141,14 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        (await File.ReadAllTextAsync(gitIgnorePath, TestContext.Current.CancellationToken))
-            .MatchInlineSnapshot(
-                """
-                # The task database is local state; tasks.jsonl is the source of truth in git.
-                tasks.db
-                tasks.db-wal
-                tasks.db-shm
-                """);
+        var gitIgnoreText = await File.ReadAllTextAsync(
+            gitIgnorePath, TestContext.Current.CancellationToken);
+        gitIgnoreText.MatchInlineSnapshot(
+            """
+            # The task database is local state; tasks.jsonl is the source of truth in git.
+            tasks.db
+            tasks.db-wal
+            tasks.db-shm
+            """);
     }
 }

@@ -129,9 +129,8 @@ internal sealed class DoctorTaskCommand : Command
         ITaskStore store,
         CancellationToken cancellationToken)
     {
-        var edges = (await store.GetDependencyEdgesAsync(cancellationToken))
-            .Where(edge => TaskDependencyTypes.IsBlocking(edge.Type))
-            .ToList();
+        var dependencyEdges = await store.GetDependencyEdgesAsync(cancellationToken);
+        var edges = dependencyEdges.Where(edge => TaskDependencyTypes.IsBlocking(edge.Type)).ToList();
 
         var adjacency = edges
             .GroupBy(edge => edge.TaskId)

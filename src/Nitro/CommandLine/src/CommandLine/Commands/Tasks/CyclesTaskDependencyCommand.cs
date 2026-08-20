@@ -27,9 +27,8 @@ internal sealed class CyclesTaskDependencyCommand : Command
         var store = services.GetRequiredService<ITaskStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var edges = (await store.GetDependencyEdgesAsync(cancellationToken))
-            .Where(e => TaskDependencyTypes.IsBlocking(e.Type))
-            .ToList();
+        var dependencyEdges = await store.GetDependencyEdgesAsync(cancellationToken);
+        var edges = dependencyEdges.Where(e => TaskDependencyTypes.IsBlocking(e.Type)).ToList();
 
         var adjacency = edges
             .GroupBy(e => e.TaskId)

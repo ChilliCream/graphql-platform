@@ -58,12 +58,12 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         await ExecuteCommandAsync("agent", "tasks", "create", "Bravo task", "--priority", "p0");
         await ExecuteCommandAsync("agent", "tasks", "create", "Alpha task");
 
-        var closedId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Closed task")).StdOut);
+        var closedCreateResult = await ExecuteCommandAsync("agent", "tasks", "create", "Closed task");
+        var closedId = ExtractTaskId(closedCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
-        var deletedId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Deleted task")).StdOut);
+        var deletedCreateResult = await ExecuteCommandAsync("agent", "tasks", "create", "Deleted task");
+        var deletedId = ExtractTaskId(deletedCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "delete", deletedId, "--force");
 
         // act
@@ -87,8 +87,8 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
 
         await ExecuteCommandAsync("agent", "tasks", "create", "Open task");
 
-        var closedId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Closed task")).StdOut);
+        var closedCreateResult = await ExecuteCommandAsync("agent", "tasks", "create", "Closed task");
+        var closedId = ExtractTaskId(closedCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
         // act
@@ -111,12 +111,12 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
 
         await ExecuteCommandAsync("agent", "tasks", "create", "Open task");
 
-        var closedId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Closed task")).StdOut);
+        var closedCreateResult = await ExecuteCommandAsync("agent", "tasks", "create", "Closed task");
+        var closedId = ExtractTaskId(closedCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "close", closedId);
 
-        var deletedId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Deleted task")).StdOut);
+        var deletedCreateResult = await ExecuteCommandAsync("agent", "tasks", "create", "Deleted task");
+        var deletedId = ExtractTaskId(deletedCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "delete", deletedId, "--force");
 
         // act
@@ -233,10 +233,12 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
 
-        var criticalId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Critical task", "--priority", "p0")).StdOut);
-        var highId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "High task", "--priority", "p1")).StdOut);
+        var criticalCreateResult = await ExecuteCommandAsync(
+            "agent", "tasks", "create", "Critical task", "--priority", "p0");
+        var criticalId = ExtractTaskId(criticalCreateResult.StdOut);
+        var highCreateResult = await ExecuteCommandAsync(
+            "agent", "tasks", "create", "High task", "--priority", "p1");
+        var highId = ExtractTaskId(highCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "create", "Medium task", "--priority", "p2");
         await ExecuteCommandAsync("agent", "tasks", "create", "Backlog task", "--priority", "p4");
 
@@ -259,10 +261,12 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
 
-        var criticalId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "Critical task", "--priority", "p0")).StdOut);
-        var highId = ExtractTaskId(
-            (await ExecuteCommandAsync("agent", "tasks", "create", "High task", "--priority", "p1")).StdOut);
+        var criticalCreateResult = await ExecuteCommandAsync(
+            "agent", "tasks", "create", "Critical task", "--priority", "p0");
+        var criticalId = ExtractTaskId(criticalCreateResult.StdOut);
+        var highCreateResult = await ExecuteCommandAsync(
+            "agent", "tasks", "create", "High task", "--priority", "p1");
+        var highId = ExtractTaskId(highCreateResult.StdOut);
         await ExecuteCommandAsync("agent", "tasks", "create", "Medium task", "--priority", "p2");
 
         // act

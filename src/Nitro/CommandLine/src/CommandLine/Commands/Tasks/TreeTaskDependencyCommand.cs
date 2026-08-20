@@ -35,8 +35,8 @@ internal sealed class TreeTaskDependencyCommand : Command
 
         var root = await store.GetRequiredTaskAsync(id, cancellationToken);
 
-        var tasks = (await store.QueryTasksAsync(new TaskFilter { IncludeAll = true }, cancellationToken))
-            .ToDictionary(t => t.Id);
+        var taskList = await store.QueryTasksAsync(new TaskFilter { IncludeAll = true }, cancellationToken);
+        var tasks = taskList.ToDictionary(t => t.Id);
 
         var edges = await store.GetDependencyEdgesAsync(cancellationToken);
 
