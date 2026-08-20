@@ -68,6 +68,8 @@ internal static class DefaultTheme
 
         ["selection.highlight"] = new Style(Color.Default, Color.Grey35),
 
+        ["mail.message.unread"] = new Style(decoration: Decoration.Bold),
+
         ["detail.section.header"] = new Style(decoration: Decoration.Bold),
         ["detail.section.border"] = new Style(Color.Grey),
 
