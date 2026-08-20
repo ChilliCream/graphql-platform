@@ -1,5 +1,5 @@
-# End-to-end recording of a failing `nitro agent mail send` in a fresh mail
-# workspace.
+# End-to-end recording of a failing `nitro agent mail send` in a fresh
+# agent workspace (initialized via the unified `nitro agent init`).
 #
 # Exercises the non-zero-exit UX for sending to a recipient that was never
 # registered (MailStore.ValidateRecipientsExistAsync -> ExitException, caught
@@ -31,7 +31,7 @@ Type `export HOME=/tmp/home` Enter
 Type `export NITRO_MAIL_ACTOR=agent-a` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cd /tmp/work` Enter
-Type `nitro agent mail init >/dev/null` Enter
+Type `nitro agent init >/dev/null` Enter
 Type `clear` Enter
 Show
 

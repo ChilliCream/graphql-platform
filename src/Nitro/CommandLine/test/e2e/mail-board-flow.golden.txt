@@ -1,3 +1,4 @@
+ Tasks   Mail (1)
 ╭─Inbox (3)──────────────────────────╮╭─Thread: Retro notes───────────────────────────────────╮
 │     bob Billing review 2026-01-01  ││ alice - 2026-01-01 08:00                              │
 │   * alice Pricing page 2026-01-01  ││ Notes are attached, take a look.                      │
@@ -5,7 +6,6 @@
 │                                    ││ ----------------------------------------              │
 │                                    ││ e2e-agent - 2026-01-01 08:30                          │
 │                                    ││ Thanks, looks good to me.                             │
-│                                    ││                                                       │
 │                                    ││                                                       │
 │                                    ││                                                       │
 │                                    ││                                                       │

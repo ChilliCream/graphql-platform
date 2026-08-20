@@ -1,6 +1,12 @@
-# End-to-end recording of `nitro agent mail board`, keystroke-driven, against
-# the seeded mail fixture (see fixtures/mail-seed.sql), mirroring
-# board-flow.tape's structure for the task board.
+# End-to-end recording of the Mail tab's board, keystroke-driven, against
+# the unified fixture workspace (task data from fixtures/seed.sql, mail data
+# from fixtures/mail-seed.sql, both in the one out/fixture/acme agents.db),
+# mirroring board-flow.tape's structure for the task board.
+#
+# Launched via bare `nitro agent` (not `agent mail board`), landing on the
+# Tasks tab first, then TabSwitchKeys (']') moves to Mail -- the same
+# round trip board-flow.tape demonstrates in the other direction, and the
+# tab strip is on screen throughout.
 #
 # The mail board TUI (raw-key event loop, full-screen alternate-screen
 # rendering) cannot be exercised by the in-process test tier; this is the
@@ -44,15 +50,20 @@ Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
 Type `export NITRO_MAIL_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
-Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/mailbox /tmp/work/mailbox && cd /tmp/work/mailbox` Enter
+Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent mail board` Enter
+Type `nitro agent` Enter
 
-# Initial frame: list pane titled "Inbox (3)", selection on the first row
-# (m-fix002, bob, newest, already read).
+# Initial frame: the Tasks tab's board (same sentinel as board-flow.tape's
+# first Wait+Screen).
+Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+
+# ']': TabSwitchKeys moves to the Mail tab. List pane titled "Inbox (3)",
+# selection on the first row (m-fix002, bob, newest, already read).
+Type "]"
 Wait+Screen@30s /Inbox \(3\)/
 
 # Down, Down: onto the third row (m-fix003, alice, unread -- the thread

@@ -1,10 +1,11 @@
--- Deterministic mail workspace fixture for the mail-board-flow e2e tape.
+-- Deterministic mail workspace fixture for the mail-board-flow (and the
+-- Mail-tab portions of board-flow/agent-root-flow) e2e tapes.
 --
--- Applied by run.sh with the sqlite3 CLI against a workspace database that
--- `nitro agent mail init` already created (so the schema and PRAGMA
--- user_version come from the real binary, not from this file). Every ID,
--- timestamp, and actor here is hardcoded so a recording that reads this data
--- is byte-stable across runs.
+-- Applied by run.sh with the sqlite3 CLI against the same unified agent
+-- workspace database seed.sql seeds, that `nitro agent init` already
+-- created (so the schema and PRAGMA user_version come from the real binary,
+-- not from this file). Every ID, timestamp, and actor here is hardcoded so
+-- a recording that reads this data is byte-stable across runs.
 --
 -- All timestamps use the exact text format MailStore/Microsoft.Data.Sqlite
 -- writes for a DateTimeOffset ("yyyy-MM-dd HH:mm:ss.fffffff+00:00"), UTC, on

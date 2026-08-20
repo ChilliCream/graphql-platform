@@ -45,7 +45,8 @@ VHS_IMAGE="${VHS_IMAGE:-ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212
 # against the deterministic fixture prepared below (out/fixture/acme).
 declare -A MARKERS=(
   [help]="List tasks."
-  [init]="Initialized task workspace"
+  [init]="Initialized agent workspace"
+  [agent-root]="agent-root-flow: back at the shell"
   [list]="acme-e5f"
   [show]="Draft new pricing copy"
   [create]="Created task '"
@@ -60,7 +61,7 @@ declare -A MARKERS=(
   [mail-error]="[nitro exit: 1]"
   [mail-board]="Thanks, looks good to me."
 )
-ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board)
+ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.
@@ -126,72 +127,67 @@ mkdir -p "$REPORT_DIR"
 : > "$REPORT_DIR/status.tsv"
 : > "$REPORT_DIR/changed.txt"
 
-# 1b. Prepare a deterministic fixture task workspace (fixed IDs, timestamps,
+# 1b. Prepare a deterministic fixture agent workspace (fixed IDs, timestamps,
 #     actors: see fixtures/README.md) that tapes `cp -r` into their own
 #     throwaway /tmp/work rather than seeding state live inside a Hide block.
-#     Rebuilt unconditionally on every run (not cached like the binary) so
-#     schema drift between TaskStoreSchema and fixtures/seed.sql fails fast
-#     here, with a message pointing at fixtures/README.md, instead of turning
-#     into a confusing golden diff once a task flow tape lands.
+#     One unified .nitro/agents/agents.db serves both the task flows and the
+#     mail flows. Rebuilt unconditionally on every run (not cached like the
+#     binary) so schema drift between AgentDatabase/TaskStoreSchema/
+#     MailStoreSchema and fixtures/seed.sql|mail-seed.sql fails fast here,
+#     with a message pointing at fixtures/README.md, instead of turning into
+#     a confusing golden diff once a flow tape lands.
 if ! command -v sqlite3 >/dev/null 2>&1; then
   echo "sqlite3 is required to prepare the fixture workspace" >&2
   exit 3
 fi
 
 FIXTURE_DIR="$OUT_DIR/fixture/acme"
-# Matches TaskWorkspace.RootDirectoryName/TasksDirectoryName/DatabaseFileName.
-FIXTURE_DB="$FIXTURE_DIR/.nitro/tasks/tasks.db"
-FIXTURE_MARKER="acme-epic1"
+# Matches AgentWorkspace.RootDirectoryName/AgentsDirectoryName/DatabaseFileName.
+FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
+# Matches AgentDatabase.CurrentVersion. The binary is the schema owner: this
+# is a version-number guard, never a schema-shape comparison.
+FIXTURE_SCHEMA_VERSION=2
+FIXTURE_TASK_MARKER="acme-epic1"
+FIXTURE_MAIL_MARKER="Retro notes"
 
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
 mkdir -p "$FIXTURE_DIR"
-if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" agent tasks init >/dev/null ); then
-  echo "==> fixture prepare FAILED: 'nitro agent tasks init' did not succeed" >&2
+if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" agent init >/dev/null ); then
+  echo "==> fixture prepare FAILED: 'nitro agent init' did not succeed" >&2
   exit 2
 fi
+
+fixture_version="$(sqlite3 "$FIXTURE_DB" 'PRAGMA user_version;')"
+if [[ "$fixture_version" != "$FIXTURE_SCHEMA_VERSION" ]]; then
+  echo "==> fixture prepare FAILED: agents.db has schema v$fixture_version, expected v$FIXTURE_SCHEMA_VERSION" >&2
+  echo "    the unified workspace schema version moved; see fixtures/README.md" >&2
+  exit 2
+fi
+
 if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/seed.sql"; then
   echo "==> fixture prepare FAILED: seed.sql did not apply cleanly to $FIXTURE_DB" >&2
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
-if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_MARKER"; then
-  echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_MARKER'" >&2
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
+  echo "==> fixture prepare FAILED: mail-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_TASK_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_TASK_MARKER'" >&2
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
+if ! ( cd "$FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent mail inbox ) \
+    | grep -q "$FIXTURE_MAIL_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent mail inbox' did not show '$FIXTURE_MAIL_MARKER'" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
 echo "    fixture ready, guard passed"
-
-# 1c. Prepare a deterministic seeded mailbox fixture (fixed ids, timestamps,
-#     agents: see fixtures/mail-seed.sql) for mail-board-flow, the same
-#     `cp -r`-into-/tmp/work pattern as the task fixture above. Rebuilt
-#     unconditionally on every run so schema drift between MailStoreSchema
-#     and fixtures/mail-seed.sql fails fast here instead of as a confusing
-#     golden diff once the tape records against stale data.
-MAIL_FIXTURE_DIR="$OUT_DIR/fixture/mailbox"
-# Matches MailWorkspace.RootDirectoryName/MailDirectoryName/DatabaseFileName.
-MAIL_FIXTURE_DB="$MAIL_FIXTURE_DIR/.nitro/mail/mail.db"
-MAIL_FIXTURE_MARKER="Retro notes"
-
-echo "==> preparing mail fixture workspace (out/fixture/mailbox)"
-rm -rf "$MAIL_FIXTURE_DIR"
-mkdir -p "$MAIL_FIXTURE_DIR"
-if ! ( cd "$MAIL_FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent mail init >/dev/null ); then
-  echo "==> mail fixture prepare FAILED: 'nitro agent mail init' did not succeed" >&2
-  exit 2
-fi
-if ! sqlite3 "$MAIL_FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
-  echo "==> mail fixture prepare FAILED: mail-seed.sql did not apply cleanly to $MAIL_FIXTURE_DB" >&2
-  echo "    the mail schema likely drifted from fixtures/mail-seed.sql" >&2
-  exit 2
-fi
-if ! ( cd "$MAIL_FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent mail inbox ) \
-    | grep -q "$MAIL_FIXTURE_MARKER"; then
-  echo "==> mail fixture guard FAILED: 'nitro agent mail inbox' did not show '$MAIL_FIXTURE_MARKER'" >&2
-  echo "    the mail schema likely drifted from fixtures/mail-seed.sql" >&2
-  exit 2
-fi
-echo "    mail fixture ready, guard passed"
 
 overall=0
 declare -a SUMMARY=()

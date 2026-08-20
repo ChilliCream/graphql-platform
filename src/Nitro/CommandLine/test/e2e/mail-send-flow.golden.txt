@@ -1,5 +1,6 @@
-$ nitro agent mail init
-✓ Initialized mail workspace at '.nitro/mail'.
+$ nitro agent init
+✓ Initialized agent workspace at '.nitro/agents'.
+✓ Task ID prefix set to 'work'.
 $ nitro agent mail register --actor agent-a
 ✓ Registered 'agent-a'.
 $ nitro agent mail register --actor agent-b

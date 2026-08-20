@@ -1,5 +1,12 @@
-# End-to-end recording of the tasks TUI's search mode against the fixture
-# workspace.
+# End-to-end recording of the Tasks tab's search mode against the fixture
+# workspace, launched via `nitro agent tasks board` rather than bare
+# `nitro agent`, so no tab strip is on screen (see bd-agent-unify-814.5's
+# NEEDS-PASCAL comment / bd-agent-unify-814.7): typing a query into the
+# search box while the Mail tab is also hosted never applies (a Mail-tab
+# refresh loop races out and always wins against SearchMode's own debounced
+# query reset), reproduced 4/4 times against bare `nitro agent`, absent 1/1
+# time against this single-tab entry point. Swap the launch command back to
+# `nitro agent` once bd-agent-unify-814.7 lands.
 #
 # Search mode is reached from the board TUI via the '/'
 # gesture (TuiMessage.FocusSearchRequested, KeyMap.CreateDefaultGlobal): it

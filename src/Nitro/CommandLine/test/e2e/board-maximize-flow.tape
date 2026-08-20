@@ -1,4 +1,4 @@
-# End-to-end recording of `nitro agent tasks board`'s maximize toggle ('z'),
+# End-to-end recording of the Tasks tab board's maximize toggle ('z'),
 # keystroke-driven, against the fixture workspace.
 #
 # Exercises BoardLayoutKind.Maximized: 'z' collapses the grid to the focused
@@ -11,6 +11,10 @@
 # Fixed geometry (Width/Height below) is the stability lever for this
 # full-screen layout: changing it requires `--update` of every board-flow*
 # golden.
+#
+# Launched via bare `nitro agent` (not `agent tasks board`), same as
+# board-flow.tape, so the tab strip is on screen throughout; this flow's own
+# job is the maximize toggle, so it does not also drive a tab switch.
 # Produces board-maximize-flow.gif + board-maximize-flow.txt.
 
 Output board-maximize-flow.gif
@@ -36,7 +40,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks board` Enter
+Type `nitro agent` Enter
 
 # Initial frame: five-column grid, focus on "Blocked" (index 0), selection
 # on its first row (acme-a1b).

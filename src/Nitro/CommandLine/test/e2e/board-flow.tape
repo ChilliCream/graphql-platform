@@ -1,5 +1,5 @@
-# End-to-end recording of `nitro agent tasks board`, keystroke-driven, against the
-# fixture workspace.
+# End-to-end recording of bare `nitro agent`'s Tasks tab (the board), against
+# the fixture workspace.
 #
 # The board TUI (raw-key event loop, full-screen alternate-screen rendering)
 # cannot be exercised by the in-process test tier; this is the VHS tier's job.
@@ -19,6 +19,13 @@
 # open but blocked by the still-in_progress acme-epic1.1, so it is also in
 # "Blocked"; acme-a1b is blocked by acme-epic1.2. That leaves the "Ready"
 # column empty for this fixture.
+#
+# Launched via bare `nitro agent` (not `agent tasks board`) so the tab strip
+# is on screen throughout, and closes by demonstrating the epic's visible
+# feature: TabSwitchKeys ('[' / ']') moves to the Mail tab and back, landing
+# on the same "In Progress" selection the board-only recording used to end
+# on, proving each tab's mode stack (here, board selection) survives the
+# round trip.
 # Produces board-flow.gif + board-flow.txt.
 
 Output board-flow.gif
@@ -44,7 +51,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks board` Enter
+Type `nitro agent` Enter
 
 # Initial frame: focus starts on "Blocked" (index 0, 3 cards), selection on
 # its first row (acme-a1b, P0, sorted ahead of acme-epic1 P1 and
@@ -82,8 +89,19 @@ Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
 Right
 Wait+Screen@30s /> ✓ \[F\] P3 acme-c3d Add dark mode toggle/
 
-# Left: back to "In Progress". Final state for the golden.
+# Left: back to "In Progress".
 Left
+Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
+
+# ']': TabSwitchKeys moves to the next tab (Mail), whose inbox comes from
+# the same fixture's mail-seed.sql (see mail-board-flow.tape).
+Type "]"
+Wait+Screen@30s /Inbox \(3\)/
+
+# '[': back to the Tasks tab. The board's mode stack was never touched while
+# Mail was active, so the selection is exactly where it was left ("In
+# Progress", acme-epic1.1). Final state for the golden.
+Type "["
 Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
 
 Sleep 1500ms

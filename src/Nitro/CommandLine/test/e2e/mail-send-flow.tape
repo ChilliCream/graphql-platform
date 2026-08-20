@@ -1,10 +1,11 @@
 # End-to-end recording of `nitro agent mail`'s send/inbox/reply round trip in
-# a fresh, live mail workspace (no fixture; unlike mail-board-flow, this flow
-# needs commands to run for real so `send`/`reply` mint their own message
-# ids).
+# a fresh, live agent workspace (no fixture; unlike mail-board-flow, this
+# flow needs commands to run for real so `send`/`reply` mint their own
+# message ids).
 #
-# init -> register two actors (--actor, one invocation each; the persistent
-# NITRO_MAIL_ACTOR env var form is exercised by mail-board-flow instead) ->
+# init (unified `nitro agent init`, the same command tasks use) -> register
+# two actors (--actor, one invocation each; the persistent NITRO_MAIL_ACTOR
+# env var form is exercised by mail-board-flow instead) ->
 # agent-a sends to agent-b, cc'ing itself (--cc) -> agent-b's inbox shows it
 # unread -> agent-b replies (ReplyMessageAsync flattens the original's
 # sender/to/cc into the reply's own "to", deduped, minus the replying actor)
@@ -46,8 +47,8 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent mail init` Enter
-Wait+Screen@30s /Initialized mail workspace/
+Type `nitro agent init` Enter
+Wait+Screen@30s /Initialized agent workspace/
 Sleep 500ms
 
 Type `nitro agent mail register --actor agent-a` Enter
