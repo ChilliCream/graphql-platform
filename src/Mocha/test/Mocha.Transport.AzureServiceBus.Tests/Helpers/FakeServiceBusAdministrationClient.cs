@@ -18,18 +18,6 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
 
     public int CreateSubscriptionCallCount { get; private set; }
 
-    /// <summary>
-    /// When set, <see cref="CreateSubscriptionAsync(CreateSubscriptionOptions, CancellationToken)"/> throws
-    /// the returned exception instead of succeeding, simulating a concurrent provisioning race.
-    /// </summary>
-    public Func<CreateSubscriptionOptions, ServiceBusException?>? CreateSubscriptionFailure { get; set; }
-
-    /// <summary>
-    /// The ForwardTo value returned by <see cref="GetSubscriptionAsync(string, string, CancellationToken)"/>
-    /// for the pre-existing subscription, formatted the way the broker returns it (an absolute URI).
-    /// </summary>
-    public string? ExistingSubscriptionForwardTo { get; set; }
-
     public override Task<Response<QueueProperties>> CreateQueueAsync(
         CreateQueueOptions options,
         CancellationToken cancellationToken = default)
@@ -71,11 +59,6 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
     {
         CreateSubscriptionCallCount++;
 
-        if (CreateSubscriptionFailure?.Invoke(options) is { } exception)
-        {
-            throw exception;
-        }
-
         return Task.FromResult(
             Response.FromValue(
                 ServiceBusModelFactory.SubscriptionProperties(
@@ -86,25 +69,6 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
                     autoDeleteOnIdle: TimeSpan.MaxValue,
                     maxDeliveryCount: 10,
                     forwardTo: options.ForwardTo,
-                    userMetadata: string.Empty),
-                new FakeResponse()));
-    }
-
-    public override Task<Response<SubscriptionProperties>> GetSubscriptionAsync(
-        string topicName,
-        string subscriptionName,
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(
-            Response.FromValue(
-                ServiceBusModelFactory.SubscriptionProperties(
-                    topicName,
-                    subscriptionName,
-                    lockDuration: TimeSpan.FromSeconds(30),
-                    defaultMessageTimeToLive: TimeSpan.FromDays(14),
-                    autoDeleteOnIdle: TimeSpan.MaxValue,
-                    maxDeliveryCount: 10,
-                    forwardTo: ExistingSubscriptionForwardTo,
                     userMetadata: string.Empty),
                 new FakeResponse()));
     }

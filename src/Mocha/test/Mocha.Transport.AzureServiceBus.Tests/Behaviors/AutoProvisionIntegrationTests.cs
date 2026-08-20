@@ -237,49 +237,6 @@ public class AutoProvisionIntegrationTests
     }
 
     [Fact]
-    public async Task DeclareSubscription_Should_Throw_When_ExistingBrokerSubscriptionForwardsToDifferentDestination()
-    {
-        // arrange - a subscription with the derived name already exists on the broker, but forwards
-        // to a different queue than the one the topology declares, simulating a name collision
-        // between two different destination queues
-        await using var ctx = _fixture.CreateTestContext();
-        var topicName = ctx.TopicName("topic");
-        var queueName = ctx.QueueName("q");
-        var driftedQueueName = ctx.QueueName("drifted-q");
-        var subscriptionName = AzureServiceBusSubscription.GetForwardingSubscriptionName(queueName);
-        var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
-        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
-        await adminClient.CreateTopicAsync(topicName, cancellationToken);
-        await adminClient.CreateQueueAsync(queueName, cancellationToken);
-        await adminClient.CreateQueueAsync(driftedQueueName, cancellationToken);
-        await adminClient.CreateSubscriptionAsync(
-            new CreateSubscriptionOptions(topicName, subscriptionName) { ForwardTo = driftedQueueName },
-            cancellationToken);
-
-        // act & assert - provisioning must surface the drift instead of silently leaving the
-        // declared destination queue disconnected
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await using var bus = await new ServiceCollection()
-                .AddMessageBus()
-                .AddAzureServiceBus(t =>
-                {
-                    t.ConnectionString(ctx.ConnectionString);
-                    t.AdministrationConnectionString(ctx.AdminConnectionString);
-                    t.AutoProvision(true);
-                    t.DeclareTopic(topicName);
-                    t.DeclareQueue(queueName);
-                    t.DeclareSubscription(topicName, queueName);
-                })
-                .BuildTestBusAsync();
-        });
-
-        Assert.Contains(subscriptionName, ex.Message);
-        Assert.Contains(queueName, ex.Message);
-        Assert.Contains(driftedQueueName, ex.Message);
-    }
-
-    [Fact]
     public async Task ExplicitTopology_Should_Deliver_When_AutoProvisionEnabledOnResources()
     {
         // arrange - transport auto-provision disabled, but individual resources enabled

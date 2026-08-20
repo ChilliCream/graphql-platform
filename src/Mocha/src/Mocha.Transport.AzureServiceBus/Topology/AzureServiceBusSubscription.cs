@@ -202,40 +202,7 @@ public sealed class AzureServiceBusSubscription
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
-            SubscriptionProperties existing;
-
-            try
-            {
-                existing = await clientManager.GetSubscriptionAsync(Source.Name, Name, cancellationToken);
-            }
-            catch (ServiceBusException getEx) when (getEx.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
-            {
-                // The subscription that triggered the AlreadyExists conflict was deleted concurrently.
-                // Safe to ignore, mirroring the AlreadyExists handling on the topic and queue.
-                return;
-            }
-
-            if (!string.Equals(
-                GetForwardToEntityPath(existing.ForwardTo),
-                GetForwardToEntityPath(options.ForwardTo),
-                StringComparison.OrdinalIgnoreCase))
-            {
-                throw ThrowHelper.SubscriptionForwardToDrift(
-                    Source.Name,
-                    Name,
-                    options.ForwardTo,
-                    existing.ForwardTo);
-            }
+            // Already provisioned by another instance, safe to ignore.
         }
     }
-
-    /// <summary>
-    /// Normalizes a ForwardTo value to the bare entity path it addresses. The broker returns ForwardTo
-    /// as an absolute URI even when it was set as a bare entity name, so the drift comparison must
-    /// operate on the entity path rather than the raw string.
-    /// </summary>
-    private static string? GetForwardToEntityPath(string? forwardTo)
-        => Uri.TryCreate(forwardTo, UriKind.Absolute, out var uri)
-            ? uri.AbsolutePath.Trim('/')
-            : forwardTo?.Trim('/');
 }

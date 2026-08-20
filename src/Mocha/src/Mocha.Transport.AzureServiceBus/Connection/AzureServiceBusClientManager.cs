@@ -210,18 +210,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
         return _connection.CreateSubscriptionAsync(options, cancellationToken);
     }
 
-    /// <summary>
-    /// Retrieves the properties of an existing subscription using the administration client.
-    /// </summary>
-    public Task<SubscriptionProperties> GetSubscriptionAsync(
-        string topicName,
-        string subscriptionName,
-        CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-        return _connection.GetSubscriptionAsync(topicName, subscriptionName, cancellationToken);
-    }
-
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
