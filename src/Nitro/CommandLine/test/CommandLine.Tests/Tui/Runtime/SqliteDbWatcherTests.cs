@@ -138,6 +138,124 @@ public sealed class SqliteDbWatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_When_WalGrowsAndStaysGrown_LikeACheckpointBlockedByAConcurrentReader()
+    {
+        // arrange: a second process (or a concurrent TUI reader) holding a read
+        // lock makes SQLite skip the close-time checkpoint for a real write, so
+        // the frames stay appended in -wal and the main db file's mtime never
+        // moves. This is the exact case bd-g3b restores: -wal growth that is
+        // never rolled back must still surface a change even though the main
+        // db file itself is untouched.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(Debounce, testToken);
+        File.WriteAllText(databasePath + "-wal", new string('w', 64));
+        var received = await ReadOneAsync(channel.Reader, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(received);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_When_WalGrowsPastAPriorGrowth()
+    {
+        // arrange: a second write landing after the first (still uncheckpointed)
+        // one must itself be detected, proving the growth baseline advances
+        // instead of only ever comparing against the original empty state.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(Debounce, testToken);
+        File.WriteAllText(databasePath + "-wal", new string('w', 32));
+        var first = await ReadOneAsync(channel.Reader, testToken);
+        File.WriteAllText(databasePath + "-wal", new string('w', 96));
+        var second = await ReadOneAsync(channel.Reader, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(first);
+        Assert.IsType<TuiEvent.DataChangedEvent>(second);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_NotPublishDataChangedEvent_When_WalIsRewrittenAtTheSameSize()
+    {
+        // arrange: a size-stable rewrite of -wal (touching mtime without
+        // appending frames) must stay silent, since only growth is a proxy for
+        // an uncheckpointed write; matching the old size is not growth.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var walPath = databasePath + "-wal";
+        File.WriteAllText(walPath, new string('w', 32));
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(Debounce, testToken);
+        File.WriteAllText(walPath, new string('x', 32));
+        await Task.Delay(Debounce * 4, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.False(channel.Reader.TryRead(out _));
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_CoalesceBurstOfWalGrowth_IntoSingleEvent()
+    {
+        // arrange: repeated frame appends to -wal within one debounce window,
+        // the shape of a busy uncheckpointed writer, must still coalesce into a
+        // single event rather than one per append.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(Debounce, testToken);
+
+        for (var i = 1; i <= 5; i++)
+        {
+            File.WriteAllText(databasePath + "-wal", new string('w', i * 16));
+            await Task.Delay(Debounce / 5, testToken);
+        }
+
+        var first = await ReadOneAsync(channel.Reader, testToken);
+
+        // No further event should follow once the burst settles.
+        await Task.Delay(Debounce * 4, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(first);
+        Assert.False(channel.Reader.TryRead(out _));
+    }
+
+    [Fact]
     public async Task RunAsync_Should_CoalesceBurstOfWrites_IntoSingleEvent()
     {
         // arrange
