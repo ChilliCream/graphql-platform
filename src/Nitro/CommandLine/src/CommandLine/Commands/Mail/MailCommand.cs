@@ -10,5 +10,8 @@ internal sealed class MailCommand : Command
         Subcommands.Add(new RegisterMailCommand());
         Subcommands.Add(new WhoamiMailCommand());
         Subcommands.Add(new AgentsMailCommand());
+        Subcommands.Add(new SendMailCommand());
+        Subcommands.Add(new ReplyMailCommand());
+        Subcommands.Add(new BroadcastMailCommand());
     }
 }
