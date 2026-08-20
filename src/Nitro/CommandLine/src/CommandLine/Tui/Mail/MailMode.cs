@@ -31,7 +31,7 @@ internal enum MailDiscardTarget
 /// and reply forms, and their shared discard confirmation) rather than
 /// routing through <see cref="TuiShell"/>'s task-specific overlay fields.
 /// </summary>
-internal sealed class MailMode : ITuiMode
+internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 {
     /// <summary>
     /// Border and padding columns the list pane's panel spends on either
@@ -100,6 +100,21 @@ internal sealed class MailMode : ITuiMode
         || _composeForm is not null
         || _replyForm is not null
         || _discardDialog is not null;
+
+    /// <inheritdoc />
+    public IReadOnlyList<KeyHint> CapturingHints
+        => _discardDialog is not null ? ConfirmDialog.Hints
+        : _archiveDialog is not null ? ConfirmDialog.Hints
+        : _composeForm is not null ? MailComposeForm.Hints
+        : _replyForm is not null ? MailReplyForm.Hints
+        : [];
+
+    /// <summary>
+    /// How many messages addressed to the actor are unread and not
+    /// archived, as of the last refresh. Drives a hosting tab's unread
+    /// badge.
+    /// </summary>
+    public int UnreadCount { get; private set; }
 
     /// <inheritdoc />
     public KeyMap? KeyMap => null;
@@ -626,5 +641,9 @@ internal sealed class MailMode : ITuiMode
         _ => "Inbox"
     };
 
-    private void RefreshBlocking() => _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
+    private void RefreshBlocking()
+    {
+        _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
+        UnreadCount = _store.CountUnreadAsync(_state.Actor, CancellationToken.None).GetAwaiter().GetResult();
+    }
 }

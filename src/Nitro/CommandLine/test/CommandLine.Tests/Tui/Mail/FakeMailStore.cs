@@ -210,5 +210,12 @@ internal sealed class FakeMailStore : IMailStore
         => throw new NotSupportedException();
 
     public Task<int> CountUnreadAsync(string actor, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        var count = Messages.Count(m =>
+            MailRecipientView.FindRecipient(m, actor) is not null
+            && MailRecipientView.IsUnread(m, actor)
+            && !MailRecipientView.IsArchived(m, actor));
+
+        return Task.FromResult(count);
+    }
 }
