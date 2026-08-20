@@ -898,7 +898,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         foreach (var label in creation.Labels)
         {
             await connection.ExecuteAsync(
-                "INSERT OR IGNORE INTO labels (task_id, label) VALUES (@TaskId, @Label)",
+                """
+                INSERT OR IGNORE INTO labels (
+                    task_id,
+                    label
+                )
+                VALUES (
+                    @TaskId,
+                    @Label
+                )
+                """,
                 new { TaskId = id, Label = label, cancellationToken },
                 transaction);
         }
@@ -1800,7 +1809,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         foreach (var label in normalizedLabels)
         {
             var rowsAffected = await connection.ExecuteAsync(
-                "INSERT OR IGNORE INTO labels (task_id, label) VALUES (@TaskId, @Label)",
+                """
+                INSERT OR IGNORE INTO labels (
+                    task_id,
+                    label
+                )
+                VALUES (
+                    @TaskId,
+                    @Label
+                )
+                """,
                 new { TaskId = task.Id, Label = label, cancellationToken },
                 transaction);
 
@@ -2343,7 +2361,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             foreach (var label in record.Labels)
             {
                 await connection.ExecuteAsync(
-                    "INSERT INTO labels (task_id, label) VALUES (@TaskId, @Label)",
+                    """
+                    INSERT INTO labels (
+                        task_id,
+                        label
+                    )
+                    VALUES (
+                        @TaskId,
+                        @Label
+                    )
+                    """,
                     new { TaskId = record.Id, Label = label, cancellationToken },
                     transaction);
             }
