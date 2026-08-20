@@ -70,7 +70,7 @@ internal sealed class SyncTaskCommand : Command
     {
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
         var config = await store.ListConfigAsync(cancellationToken);
         var records = await store.ExportTasksAsync(cancellationToken);
@@ -96,7 +96,7 @@ internal sealed class SyncTaskCommand : Command
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? AgentWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
         var jsonlPath = AgentWorkspace.GetJsonlPath(workspaceDirectory);
 
@@ -135,7 +135,7 @@ internal sealed class SyncTaskCommand : Command
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? AgentWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
         var jsonlPath = AgentWorkspace.GetJsonlPath(workspaceDirectory);
         var hasDatabase = fileSystem.FileExists(AgentWorkspace.GetDatabasePath(workspaceDirectory));
@@ -185,9 +185,10 @@ internal sealed class SyncTaskCommand : Command
     /// <summary>
     /// Serializes one compact JSON object per line, newline-separated, so the
     /// result is valid JSONL: one workspace config entry per line, ordered by
-    /// key, followed by one task per line.
+    /// key, followed by one task per line. Shared with <c>InitAgentCommand</c>,
+    /// which flushes a freshly migrated workspace to tasks.jsonl the same way.
     /// </summary>
-    private static string SerializeJsonl(
+    internal static string SerializeJsonl(
         IReadOnlyList<TaskConfigEntry> config,
         IReadOnlyList<TaskSyncRecord> records)
     {
@@ -212,9 +213,10 @@ internal sealed class SyncTaskCommand : Command
     /// Parses tasks.jsonl, splitting its lines into workspace config entries
     /// and task records. A line is a config entry when it has no "id"
     /// property, which every task line carries; a config line instead
-    /// carries "key" and "value".
+    /// carries "key" and "value". Shared with <c>InitAgentCommand</c>, which
+    /// reads a legacy or committed tasks.jsonl the same way during init.
     /// </summary>
-    private static async Task<(IReadOnlyList<TaskConfigEntry> Config, IReadOnlyList<TaskSyncRecord> Records)>
+    internal static async Task<(IReadOnlyList<TaskConfigEntry> Config, IReadOnlyList<TaskSyncRecord> Records)>
         ReadJsonlAsync(
             IFileSystem fileSystem,
             string jsonlPath,

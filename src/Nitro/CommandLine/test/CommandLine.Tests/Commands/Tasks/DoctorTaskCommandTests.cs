@@ -150,6 +150,24 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task LeftoverLegacyDirectories_ReportedAsWarning()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".nitro", "tasks"));
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".nitro", "mail"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "tasks", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("WARN Leftover legacy workspace directories:", result.StdOut);
+        Assert.Contains(Path.Combine(WorkingDirectory, ".nitro", "tasks"), result.StdOut);
+        Assert.Contains(Path.Combine(WorkingDirectory, ".nitro", "mail"), result.StdOut);
+    }
+
+    [Fact]
     public async Task JsonOutput_HealthyWorkspace_ReturnsStructuredReport()
     {
         // arrange

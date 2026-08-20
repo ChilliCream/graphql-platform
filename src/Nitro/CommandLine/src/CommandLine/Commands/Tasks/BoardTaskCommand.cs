@@ -38,7 +38,7 @@ internal sealed class BoardTaskCommand : Command
         }
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
-            ?? throw new ExitException("No task workspace found. Run `nitro agent tasks init` first.");
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
         var loader = new BoardDataLoader(store, timeProvider);

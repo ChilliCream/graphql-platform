@@ -41,11 +41,11 @@ public class SmokeTests
         try
         {
             // act
-            var result = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
+            var result = await RunNitroAsync("agent init", workingDirectory: tempDir);
 
             // assert
             Assert.Equal(0, result.ExitCode);
-            Assert.Contains("Initialized task workspace", result.StandardOutput);
+            Assert.Contains("Initialized agent workspace", result.StandardOutput);
         }
         finally
         {
@@ -60,7 +60,7 @@ public class SmokeTests
         var tempDir = CreateTempDirectory();
         try
         {
-            var initResult = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
+            var initResult = await RunNitroAsync("agent init", workingDirectory: tempDir);
             Assert.Equal(0, initResult.ExitCode);
 
             // act
@@ -85,9 +85,9 @@ public class SmokeTests
         var tempDir = CreateTempDirectory();
         try
         {
-            var initResult = await RunNitroAsync("agent mail init", workingDirectory: tempDir);
+            var initResult = await RunNitroAsync("agent init", workingDirectory: tempDir);
             Assert.Equal(0, initResult.ExitCode);
-            Assert.Contains("Initialized mail workspace", initResult.StandardOutput);
+            Assert.Contains("Initialized agent workspace", initResult.StandardOutput);
 
             var registerResult = await RunNitroAsync("agent mail register", workingDirectory: tempDir);
             Assert.Equal(0, registerResult.ExitCode);

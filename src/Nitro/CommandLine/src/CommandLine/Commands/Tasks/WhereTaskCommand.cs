@@ -28,7 +28,7 @@ internal sealed class WhereTaskCommand : Command
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
         if (!console.IsHumanReadable)
         {

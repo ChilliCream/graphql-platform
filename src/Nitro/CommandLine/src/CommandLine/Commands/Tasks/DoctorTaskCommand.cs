@@ -25,16 +25,18 @@ internal sealed class DoctorTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
         var prefix = await store.GetPrefixAsync(cancellationToken);
         var taskCount = await store.CountTasksAsync(cancellationToken);
         var integrity = await store.CheckIntegrityAsync(cancellationToken);
         var cycles = await FindBlockingCyclesAsync(store, cancellationToken);
+        var legacyDirectories = FindLegacyDirectories(fileSystem, workspaceDirectory);
 
         var healthy = integrity.QuickCheckOk
             && cycles.Count == 0
@@ -56,7 +58,8 @@ internal sealed class DoctorTaskCommand : Command
                 integrity.OrphanLabels,
                 integrity.OrphanComments,
                 integrity.TombstonedParentEdges,
-                healthy)));
+                healthy,
+                legacyDirectories)));
 
             return healthy ? ExitCodes.Success : ExitCodes.Error;
         }
@@ -102,7 +105,44 @@ internal sealed class DoctorTaskCommand : Command
             integrity.TombstonedParentEdges.Count == 0,
             integrity.TombstonedParentEdges.Select(edge => $"{edge.TaskId} -> {edge.DependsOnId}"));
 
+        if (legacyDirectories.Count > 0)
+        {
+            console.WriteLine();
+            console.WriteLine("WARN Leftover legacy workspace directories:");
+
+            foreach (var directory in legacyDirectories)
+            {
+                console.WriteLine($"  {directory}");
+            }
+        }
+
         return healthy ? ExitCodes.Success : ExitCodes.Error;
+    }
+
+    /// <summary>
+    /// Returns the legacy <c>.nitro/tasks</c> and <c>.nitro/mail</c>
+    /// directories, from before the two were unified onto
+    /// <c>.nitro/agents</c>, that still exist alongside the given workspace
+    /// directory.
+    /// </summary>
+    private static IReadOnlyList<string> FindLegacyDirectories(
+        IFileSystem fileSystem,
+        string workspaceDirectory)
+    {
+        var nitroDirectory = Path.GetDirectoryName(workspaceDirectory);
+
+        if (nitroDirectory is null)
+        {
+            return [];
+        }
+
+        var candidates = new[]
+        {
+            Path.Combine(nitroDirectory, "tasks"),
+            Path.Combine(nitroDirectory, "mail")
+        };
+
+        return candidates.Where(fileSystem.DirectoryExists).ToArray();
     }
 
     private static void WriteCheck(
@@ -155,5 +195,6 @@ internal sealed class DoctorTaskCommand : Command
         IReadOnlyList<TaskOrphanLabel> OrphanLabels,
         IReadOnlyList<TaskOrphanComment> OrphanComments,
         IReadOnlyList<TaskDependencyReference> TombstonedParentEdges,
-        bool Healthy);
+        bool Healthy,
+        IReadOnlyList<string> LegacyDirectories);
 }

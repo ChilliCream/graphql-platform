@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
@@ -69,10 +70,9 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(RemoveTaskLabelCommand.TaskLabelRemovedResult))]
 [JsonSerializable(typeof(TaskComment))]
 [JsonSerializable(typeof(TaskConfigEntry))]
-[JsonSerializable(typeof(InitTaskCommand.TaskWorkspaceInitResult))]
+[JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceInitResult))]
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
-[JsonSerializable(typeof(InitMailCommand.MailWorkspaceInitResult))]
 [JsonSerializable(typeof(MailAgent))]
 [JsonSerializable(typeof(ListResult<MailAgent>))]
 [JsonSerializable(typeof(WhoamiMailCommand.MailWhoamiResult))]

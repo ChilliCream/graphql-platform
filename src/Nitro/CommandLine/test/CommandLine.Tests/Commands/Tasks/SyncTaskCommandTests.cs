@@ -72,7 +72,7 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--flush-only");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 
     [Fact]
@@ -82,14 +82,16 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--import-only");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 
     [Fact]
     public async Task ImportOnly_NoJsonl_ReturnsError()
     {
-        // arrange
+        // arrange: init now writes an empty tasks.jsonl itself, so the "no
+        // jsonl" case is produced by removing it afterward.
         await InitWorkspaceAsync();
+        File.Delete(Path.Combine(WorkspaceDirectory, "tasks.jsonl"));
 
         // act
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--import-only");
@@ -165,7 +167,7 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
     public async Task RoundTrip_FlushDeleteDatabaseImport_PrefixSurvives()
     {
         // arrange
-        var initResult = await ExecuteCommandAsync("agent", "tasks", "init", "--prefix", "widget");
+        var initResult = await ExecuteCommandAsync("agent", "init", "--prefix", "widget");
         Assert.Equal(0, initResult.ExitCode);
         var firstId = await CreateTaskAsync("First task");
         Assert.StartsWith("widget-", firstId);

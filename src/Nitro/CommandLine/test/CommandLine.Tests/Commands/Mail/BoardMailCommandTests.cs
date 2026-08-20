@@ -48,6 +48,6 @@ public sealed class BoardMailCommandTests(NitroCommandFixture fixture) : MailCom
         var result = await ExecuteCommandAsync("agent", "mail", "board");
 
         // assert
-        result.AssertError("No mail workspace found. Run `nitro agent mail init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 }

@@ -49,6 +49,6 @@ public sealed class BoardTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "board");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 }

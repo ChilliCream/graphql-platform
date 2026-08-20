@@ -33,7 +33,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
 
     protected async Task InitWorkspaceAsync()
     {
-        var result = await ExecuteCommandAsync("agent", "tasks", "init");
+        var result = await ExecuteCommandAsync("agent", "init");
         Assert.Equal(0, result.ExitCode);
     }
 

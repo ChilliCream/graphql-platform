@@ -34,7 +34,7 @@ public abstract class MailCommandTestBase : CommandTestBase
 
     protected async Task InitWorkspaceAsync()
     {
-        var result = await ExecuteCommandAsync("agent", "mail", "init");
+        var result = await ExecuteCommandAsync("agent", "init");
         Assert.Equal(0, result.ExitCode);
     }
 

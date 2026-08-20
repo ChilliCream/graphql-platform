@@ -36,7 +36,7 @@ internal sealed class BoardMailCommand : Command
         }
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
-            ?? throw new ExitException("No mail workspace found. Run `nitro agent mail init` first.");
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
         var actor = MailActor.Resolve(null, environmentVariableProvider);
         var mode = new MailMode(store, actor, timeProvider);
