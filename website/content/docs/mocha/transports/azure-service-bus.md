@@ -120,21 +120,26 @@ The emulator supports runtime entity management through [`ServiceBusAdministrati
 
 ## Verify it works
 
-Resolve the bus from the service provider and publish an event:
+For a one-off smoke test, replace `app.Run()` with a start-publish-stop sequence. `IMessageBus` is registered as scoped, so resolve it from a service scope:
 
 ```csharp
 await app.StartAsync();
 
-var bus = app.Services.GetRequiredService<IMessageBus>();
+using (var scope = app.Services.CreateScope())
+{
+    var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-await bus.PublishAsync(
-    new OrderPlacedEvent
-    {
-        OrderId = Guid.NewGuid(),
-        CustomerId = "customer-1",
-        TotalAmount = 99.99m
-    },
-    CancellationToken.None);
+    await bus.PublishAsync(
+        new OrderPlacedEvent
+        {
+            OrderId = Guid.NewGuid(),
+            CustomerId = "customer-1",
+            TotalAmount = 99.99m
+        },
+        CancellationToken.None);
+}
+
+await app.StopAsync();
 ```
 
 Check your application logs. You should see the handler process the event. You can also inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
