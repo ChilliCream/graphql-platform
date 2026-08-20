@@ -1,13 +1,10 @@
 import path from "node:path";
 import type { MetadataRoute } from "next";
-import {
-  BLOG_ROOT,
-  blogUrlForStem,
-  listBlogPosts,
-} from "@/src/helpers/blogPaths";
+import { BLOG_ROOT, blogUrlForStem, listBlogPosts } from "@/src/helpers/blogPaths";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import { TEMPLATES } from "@/src/data/templates/templates";
 
 export const dynamic = "force-static";
 
@@ -19,15 +16,13 @@ const CONTENT_PAGES_ROOT = path.join(process.cwd(), "app", "(content)");
 const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 
 // Pages that exist for a user flow but should not be indexed.
-const EXCLUDED_PATHS = new Set([
-  "/platform/continuous-integration",
-  "/services/support/thank-you",
-]);
+const EXCLUDED_PATHS = new Set(["/platform/continuous-integration", "/services/support/thank-you"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...(await rootPages()),
     ...(await staticPages()),
+    ...templatePages(),
     ...(await docsPages()),
     ...(await blogPosts()),
   ];
@@ -51,11 +46,10 @@ async function rootPages(): Promise<MetadataRoute.Sitemap> {
   return Promise.all(
     pages.map(async ({ file, urlPath }) => ({
       url: urlPath === "/" ? `${SITE_URL}/` : `${SITE_URL}${urlPath}`,
-      lastModified:
-        (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+      lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
       changeFrequency: "weekly" as const,
       priority: urlPath === "/" ? 1 : 0.8,
-    })),
+    }))
   );
 }
 
@@ -68,15 +62,23 @@ async function staticPages(): Promise<MetadataRoute.Sitemap> {
         const urlPath = rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
         return { file, urlPath };
       })
+      .filter(({ urlPath }) => !urlPath.includes("["))
       .filter(({ urlPath }) => !EXCLUDED_PATHS.has(urlPath))
       .map(async ({ file, urlPath }) => ({
         url: `${SITE_URL}${urlPath}`,
-        lastModified:
-          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "monthly" as const,
         priority: urlPath === "/" ? 1 : 0.7,
-      })),
+      }))
   );
+}
+
+function templatePages(): MetadataRoute.Sitemap {
+  return TEMPLATES.map((template) => ({
+    url: `${SITE_URL}/templates/${template.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
 }
 
 async function docsPages(): Promise<MetadataRoute.Sitemap> {
@@ -88,18 +90,16 @@ async function docsPages(): Promise<MetadataRoute.Sitemap> {
           .relative(DOCS_CONTENT_ROOT, file)
           .replace(/\.mdx?$/, "")
           .split(path.sep);
-        const slug =
-          parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts;
+        const slug = parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts;
         return { file, slug };
       })
       .filter(({ slug }) => slug.length > 0)
       .map(async ({ file, slug }) => ({
         url: `${SITE_URL}/docs/${slug.join("/")}`,
-        lastModified:
-          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "weekly" as const,
         priority: 0.5,
-      })),
+      }))
   );
 }
 
@@ -110,20 +110,14 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
       const fm = readFrontmatter(file) as Record<string, unknown>;
       // An explicit `updated` frontmatter field wins; otherwise the last git
       // commit touching the post, with file mtime as the no-git fallback.
-      const updated =
-        typeof fm.updated === "string" && fm.updated.length > 0
-          ? new Date(fm.updated)
-          : null;
+      const updated = typeof fm.updated === "string" && fm.updated.length > 0 ? new Date(fm.updated) : null;
       return {
         url: `${SITE_URL}${blogUrlForStem(parsed)}`,
-        lastModified:
-          updated ??
-          (await getLastModifiedFromGit(file)) ??
-          fs.statSync(file).mtime,
+        lastModified: updated ?? (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "yearly" as const,
         priority: 0.5,
       };
-    }),
+    })
   );
 }
 

@@ -29,8 +29,7 @@ export const TOOLS = {
 };
 
 export const CONTACT_HREF = "/services/support/contact";
-export const GITHUB_REPO_URL =
-  "https://github.com/ChilliCream/graphql-platform";
+export const GITHUB_REPO_URL = "https://github.com/ChilliCream/graphql-platform";
 export const GITHUB_STARGAZERS_URL = `${GITHUB_REPO_URL}/stargazers`;
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -169,6 +168,7 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: "Additional Resources",
         links: [
+          { href: "/templates", label: "Templates", icon: RocketIcon },
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },

@@ -9,7 +9,7 @@ import { Mocha } from "@/src/icons/Mocha";
 import { Nitro } from "@/src/icons/Nitro";
 import { StrawberryShake } from "@/src/icons/StrawberryShake";
 
-import { DrinkIcon } from "./DrinkIcon";
+import { DrinkIcon } from "@/src/components/DrinkIcon";
 
 /** Brand spectrum (cyan -> violet -> coral), the card's pitch background. */
 const CARD_GRADIENT =
