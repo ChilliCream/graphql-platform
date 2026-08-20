@@ -1,17 +1,17 @@
 {
-  "message": "The argument \u0060if\u0060 does not exist.",
+  "message": "The argument \u0060unknown\u0060 does not exist.",
   "locations": [
     {
-      "line": 2,
-      "column": 16
+      "line": 3,
+      "column": 25
     }
   ],
   "path": [
     "dog"
   ],
   "extensions": {
-    "directive": "complex",
-    "argument": "if",
+    "fragment": "withVariable",
+    "argument": "unknown",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Names"
   }
 }

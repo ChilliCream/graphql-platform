@@ -195,6 +195,12 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_FragmentVariableNotUsed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_FragmentVariableNotUsed", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_InputFieldAmbiguous {
             get {
                 return ResourceManager.GetString("ErrorHelper_InputFieldAmbiguous", resourceCulture);
