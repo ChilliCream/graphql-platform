@@ -178,6 +178,24 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task AlreadyInitialized_Force_PreservesSeededTaskAndMailRows()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Ship the unified workspace");
+        var registerResult = await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        Assert.Equal(0, registerResult.ExitCode);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--force");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM tasks"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'bob'"));
+    }
+
+    [Fact]
     public async Task LegacyTasksDatabase_MigratesTasksEventsAndChildCounters()
     {
         // arrange: a task-v1 seed with a task, an event, and an advanced
