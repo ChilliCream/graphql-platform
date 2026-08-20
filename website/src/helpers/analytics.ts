@@ -8,6 +8,7 @@ declare global {
       };
     };
     __gtmLoaded?: boolean;
+    dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
   }
 }
@@ -18,13 +19,15 @@ export function canSendAnalytics(): boolean {
     typeof window !== "undefined" &&
     window.Cookiebot?.consent?.statistics === true &&
     window.__gtmLoaded === true &&
+    Array.isArray(window.dataLayer) &&
     typeof window.gtag === "function"
   );
 }
 
 /**
- * Sends a consent-gated GA4 event. Returns whether the event was queued for
- * GTM, which lets callers avoid delaying navigation when analytics is disabled.
+ * Pushes a consent-gated custom event to GTM. Returns whether the event was
+ * queued, which lets callers avoid delaying navigation when analytics is
+ * disabled.
  */
 export function sendAnalyticsEvent(
   name: string,
@@ -34,6 +37,6 @@ export function sendAnalyticsEvent(
     return false;
   }
 
-  window.gtag!("event", name, parameters);
+  window.dataLayer!.push({ ...parameters, event: name });
   return true;
 }
