@@ -1,18 +1,35 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
+using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Rendering;
+using ConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDialog;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
+/// Which form a <see cref="MailMode"/>'s active discard confirmation
+/// applies to.
+/// </summary>
+internal enum MailDiscardTarget
+{
+    Compose,
+    Reply
+}
+
+/// <summary>
 /// The mail board <see cref="ITuiMode"/>: a message list pane next to a
 /// detail pane for the selected message, with a key toggling the detail
-/// pane between one message and its whole thread. Read-only: no gesture
-/// this mode handles marks a message read, archives it, or writes
-/// anything back to the store.
+/// pane between one message and its whole thread. Opening a message in the
+/// detail pane marks it read for the actor; the u, a, r, and c gestures
+/// toggle read/unread, archive (behind a confirmation), reply, and compose,
+/// every write going through the same store operations the CLI uses. This
+/// mode owns its own modal overlays (the archive confirmation, the compose
+/// and reply forms, and their shared discard confirmation) rather than
+/// routing through <see cref="TuiShell"/>'s task-specific overlay fields.
 /// </summary>
 internal sealed class MailMode : ITuiMode
 {
@@ -42,16 +59,25 @@ internal sealed class MailMode : ITuiMode
     private const int ListWidthNumerator = 2;
     private const int ListWidthDenominator = 5;
 
+    private readonly IMailStore _store;
     private readonly MailState _state;
     private readonly MailDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
     private readonly Viewport _listViewport = new(0, 0);
+
+    private ConfirmDialog? _archiveDialog;
+    private MailMessage? _archiveTarget;
+    private MailComposeForm? _composeForm;
+    private MailReplyForm? _replyForm;
+    private ConfirmDialog? _discardDialog;
+    private MailDiscardTarget _discardTarget;
 
     public MailMode(IMailStore store, string actor, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(actor);
 
+        _store = store;
         _state = new MailState(actor, new MailDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -61,6 +87,19 @@ internal sealed class MailMode : ITuiMode
     /// focus.
     /// </summary>
     public MailState State => _state;
+
+    /// <summary>
+    /// Whether this mode currently owns an active overlay (the archive
+    /// confirmation, the compose or reply form, or their shared discard
+    /// confirmation) that must consume raw key input directly rather than
+    /// through the semantic <see cref="TuiMessage"/> dispatch every other
+    /// gesture goes through.
+    /// </summary>
+    public bool IsInputCapturing
+        => _archiveDialog is not null
+        || _composeForm is not null
+        || _replyForm is not null
+        || _discardDialog is not null;
 
     /// <inheritdoc />
     public KeyMap? KeyMap => null;
@@ -89,8 +128,43 @@ internal sealed class MailMode : ITuiMode
         TuiMessage.CycleView(var delta) => CycleFilter(delta),
         TuiMessage.ToggleMaximize => ToggleThreadView(),
         TuiMessage.CopySelectedId => CopySelectedId(),
+        TuiMessage.ToggleReadRequested => ToggleRead(),
+        TuiMessage.ArchiveRequested => OpenArchiveDialog(),
+        TuiMessage.ComposeRequested => OpenComposeForm(),
+        TuiMessage.ReplyRequested => OpenReplyForm(),
         _ => []
     };
+
+    /// <summary>
+    /// Handles one raw key while <see cref="IsInputCapturing"/> is true:
+    /// routed here by the host instead of through the semantic
+    /// <see cref="TuiMessage"/> dispatch, since the active overlay's text
+    /// fields need raw characters, not key-bound intents.
+    /// </summary>
+    public IReadOnlyList<TuiMessage> HandleRawKey(ConsoleKeyInfo info)
+    {
+        if (_discardDialog is not null)
+        {
+            return HandleDiscardDialogKey(info);
+        }
+
+        if (_archiveDialog is not null)
+        {
+            return HandleArchiveDialogKey(info);
+        }
+
+        if (_composeForm is not null)
+        {
+            return HandleComposeFormKey(info);
+        }
+
+        if (_replyForm is not null)
+        {
+            return HandleReplyFormKey(info);
+        }
+
+        return [];
+    }
 
     /// <inheritdoc />
     public IRenderable Render(int width, int height)
@@ -98,6 +172,26 @@ internal sealed class MailMode : ITuiMode
         if (width <= 0 || height <= 0)
         {
             return new Markup(string.Empty);
+        }
+
+        if (_discardDialog is { } discardDialog)
+        {
+            return discardDialog.Render(width, height);
+        }
+
+        if (_archiveDialog is { } archiveDialog)
+        {
+            return archiveDialog.Render(width, height);
+        }
+
+        if (_composeForm is { } composeForm)
+        {
+            return composeForm.Render(width, height);
+        }
+
+        if (_replyForm is { } replyForm)
+        {
+            return replyForm.Render(width, height);
         }
 
         var listWidth = Math.Max(1, width * ListWidthNumerator / ListWidthDenominator);
@@ -161,14 +255,250 @@ internal sealed class MailMode : ITuiMode
     private IReadOnlyList<TuiMessage> TogglePane()
     {
         _state.Focus = _state.Focus == MailFocus.List ? MailFocus.Detail : MailFocus.List;
-        return [];
+        return _state.Focus == MailFocus.Detail ? MaybeMarkSelectedRead() : [];
     }
 
     private IReadOnlyList<TuiMessage> FocusDetail()
     {
         _state.Focus = MailFocus.Detail;
+        return MaybeMarkSelectedRead();
+    }
+
+    /// <summary>
+    /// Marks the selected message read for the actor when it is currently
+    /// unread, aligning the detail pane's "open" gesture with the CLI's
+    /// read semantics. Silent on success; a failed write still surfaces as
+    /// a toast.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> MaybeMarkSelectedRead()
+    {
+        if (_state.SelectedMessage is not { } message || !MailRecipientView.IsUnread(message, _state.Actor))
+        {
+            return [];
+        }
+
+        var outcome = MailLifecycleActions.MarkReadAsync(_store, message, _state.Actor, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        RefreshBlocking();
+
+        return outcome is MailActionOutcome.Failed ? [outcome.ToShowToast()] : [];
+    }
+
+    /// <summary>
+    /// Toggles the selected message between read and unread for the actor.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> ToggleRead()
+    {
+        if (_state.SelectedMessage is not { } message)
+        {
+            return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
+        }
+
+        var outcome = MailLifecycleActions.ToggleReadAsync(_store, message, _state.Actor, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        RefreshBlocking();
+
+        return [outcome.ToShowToast()];
+    }
+
+    /// <summary>
+    /// Opens the archive confirmation for the selected message.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenArchiveDialog()
+    {
+        if (_state.SelectedMessage is not { } message)
+        {
+            return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
+        }
+
+        _archiveTarget = message;
+        _archiveDialog = MailLifecycleActions.CreateArchiveDialog(message);
         return [];
     }
+
+    /// <summary>
+    /// Opens the compose form. Unlike reply and archive, composing needs no
+    /// selected message.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenComposeForm()
+    {
+        _composeForm = new MailComposeForm();
+        return [];
+    }
+
+    /// <summary>
+    /// Opens the reply form for the selected message.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenReplyForm()
+    {
+        if (_state.SelectedMessage is not { } message)
+        {
+            return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
+        }
+
+        _replyForm = new MailReplyForm(message);
+        return [];
+    }
+
+    private IReadOnlyList<TuiMessage> HandleArchiveDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _archiveDialog!.HandleKey(info);
+
+        return result switch
+        {
+            null => [],
+            ConfirmDialogResult.Cancelled => CancelArchiveDialog(),
+            ConfirmDialogResult.Confirmed => SubmitArchive(),
+            _ => []
+        };
+    }
+
+    private IReadOnlyList<TuiMessage> CancelArchiveDialog()
+    {
+        _archiveDialog = null;
+        _archiveTarget = null;
+        return [];
+    }
+
+    private IReadOnlyList<TuiMessage> SubmitArchive()
+    {
+        var target = _archiveTarget!;
+        _archiveDialog = null;
+        _archiveTarget = null;
+
+        var outcome = MailLifecycleActions.ArchiveAsync(_store, target, _state.Actor, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        RefreshBlocking();
+
+        return [outcome.ToShowToast()];
+    }
+
+    private IReadOnlyList<TuiMessage> HandleComposeFormKey(ConsoleKeyInfo info)
+    {
+        var result = _composeForm!.HandleKey(info);
+
+        return result switch
+        {
+            null => [],
+            FormResult.Cancelled => TryDiscardCompose(),
+            FormResult.ButtonActivated { ButtonId: MailComposeForm.CancelButtonId } => TryDiscardCompose(),
+            FormResult.Submitted submitted => SubmitCompose(submitted),
+            _ => []
+        };
+    }
+
+    private IReadOnlyList<TuiMessage> TryDiscardCompose()
+    {
+        if (_composeForm!.IsDirty)
+        {
+            _discardTarget = MailDiscardTarget.Compose;
+            _discardDialog = CreateDiscardDialog();
+            return [];
+        }
+
+        _composeForm = null;
+        return [];
+    }
+
+    private IReadOnlyList<TuiMessage> SubmitCompose(FormResult.Submitted submitted)
+    {
+        var outcome = _composeForm!.SubmitAsync(_store, submitted.Values, _state.Actor, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        if (outcome is not MailSendOutcome.Succeeded)
+        {
+            return [outcome.ToShowToast()];
+        }
+
+        _composeForm = null;
+        RefreshBlocking();
+
+        return [outcome.ToShowToast()];
+    }
+
+    private IReadOnlyList<TuiMessage> HandleReplyFormKey(ConsoleKeyInfo info)
+    {
+        var result = _replyForm!.HandleKey(info);
+
+        return result switch
+        {
+            null => [],
+            FormResult.Cancelled => TryDiscardReply(),
+            FormResult.ButtonActivated { ButtonId: MailReplyForm.CancelButtonId } => TryDiscardReply(),
+            FormResult.Submitted submitted => SubmitReply(submitted),
+            _ => []
+        };
+    }
+
+    private IReadOnlyList<TuiMessage> TryDiscardReply()
+    {
+        if (_replyForm!.IsDirty)
+        {
+            _discardTarget = MailDiscardTarget.Reply;
+            _discardDialog = CreateDiscardDialog();
+            return [];
+        }
+
+        _replyForm = null;
+        return [];
+    }
+
+    private IReadOnlyList<TuiMessage> SubmitReply(FormResult.Submitted submitted)
+    {
+        var outcome = _replyForm!.SubmitAsync(_store, submitted.Values, _state.Actor, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        if (outcome is not MailSendOutcome.Succeeded)
+        {
+            return [outcome.ToShowToast()];
+        }
+
+        _replyForm = null;
+        RefreshBlocking();
+
+        return [outcome.ToShowToast()];
+    }
+
+    private IReadOnlyList<TuiMessage> HandleDiscardDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _discardDialog!.HandleKey(info);
+
+        return result switch
+        {
+            null => [],
+            ConfirmDialogResult.Confirmed => ConfirmDiscard(),
+            ConfirmDialogResult.Cancelled => CancelDiscard(),
+            _ => []
+        };
+    }
+
+    private IReadOnlyList<TuiMessage> ConfirmDiscard()
+    {
+        _discardDialog = null;
+
+        if (_discardTarget == MailDiscardTarget.Compose)
+        {
+            _composeForm = null;
+        }
+        else
+        {
+            _replyForm = null;
+        }
+
+        return [];
+    }
+
+    private IReadOnlyList<TuiMessage> CancelDiscard()
+    {
+        _discardDialog = null;
+        return [];
+    }
+
+    private static ConfirmDialog CreateDiscardDialog()
+        => new("Discard unsaved changes?", "Discard", ButtonKind.Danger);
 
     private IReadOnlyList<TuiMessage> Refresh()
     {

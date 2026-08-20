@@ -143,6 +143,29 @@ internal abstract record TuiMessage
     /// <see cref="CreateTaskRequested"/>, preset to the epic type.
     /// </summary>
     public sealed record CreateEpicRequested : TuiMessage;
+
+    /// <summary>
+    /// The active mode's currently selected item should toggle between read
+    /// and unread.
+    /// </summary>
+    public sealed record ToggleReadRequested : TuiMessage;
+
+    /// <summary>
+    /// The archive confirmation should open for the active mode's currently
+    /// selected item.
+    /// </summary>
+    public sealed record ArchiveRequested : TuiMessage;
+
+    /// <summary>
+    /// The compose form should open.
+    /// </summary>
+    public sealed record ComposeRequested : TuiMessage;
+
+    /// <summary>
+    /// The reply form should open for the active mode's currently selected
+    /// item.
+    /// </summary>
+    public sealed record ReplyRequested : TuiMessage;
 }
 
 /// <summary>

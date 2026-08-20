@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
+using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
@@ -186,6 +187,21 @@ internal sealed class TuiShell
             && info.Key is not (ConsoleKey.Escape or ConsoleKey.Tab or ConsoleKey.Enter))
         {
             searchMode.HandleQueryKey(info, DateTimeOffset.UtcNow);
+            return true;
+        }
+
+        // The mail mode owns its own overlays (the archive confirmation,
+        // the compose and reply forms, and their shared discard
+        // confirmation): while one is active it needs raw key input for
+        // its text fields, the same way the search mode's query input
+        // does above, rather than the semantic TuiMessage dispatch below.
+        if (_activeMode is MailMode { IsInputCapturing: true } mailMode)
+        {
+            foreach (var followUp in mailMode.HandleRawKey(info))
+            {
+                HandleMessage(followUp);
+            }
+
             return true;
         }
 

@@ -18,6 +18,22 @@ public sealed class MailRecipientViewTests
     }
 
     [Fact]
+    public void FindRecipient_Should_MatchCaseInsensitively_When_ActorIsNotNormalized()
+    {
+        // arrange: the store normalizes recipient names to lowercase, but an
+        // actor passed to the mode is not guaranteed to already be
+        // normalized.
+        var message = MailMessageBuilder.Create("m-1", recipients: [MailMessageBuilder.ToRecipient("alice")]);
+
+        // act
+        var recipient = MailRecipientView.FindRecipient(message, "Alice");
+
+        // assert
+        Assert.NotNull(recipient);
+        Assert.Equal("alice", recipient.Name);
+    }
+
+    [Fact]
     public void IsUnread_Should_ReturnTrue_When_ActorHasNotReadTheMessage()
     {
         // arrange

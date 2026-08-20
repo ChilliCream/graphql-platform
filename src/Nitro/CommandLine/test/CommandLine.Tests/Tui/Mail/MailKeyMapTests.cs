@@ -99,6 +99,81 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
+    public void CreateDefault_Should_MapU_ToToggleReadRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var u = new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u');
+
+        // act
+        var resolved = keyMap.TryResolve(u, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.ToggleReadRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapA_ToArchiveRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var a = new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a');
+
+        // act
+        var resolved = keyMap.TryResolve(a, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.ArchiveRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapR_ToReplyRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var r = new KeyChord(ConsoleKey.R, ConsoleModifiers.None, 'r');
+
+        // act
+        var resolved = keyMap.TryResolve(r, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.ReplyRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapC_ToComposeRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var c = new KeyChord(ConsoleKey.C, ConsoleModifiers.None, 'c');
+
+        // act
+        var resolved = keyMap.TryResolve(c, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.ComposeRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapShiftR_ToRefreshRequested()
+    {
+        // arrange: refresh moves off the bare r chord to make room for reply.
+        var keyMap = MailKeyMap.CreateDefault();
+        var shiftR = new KeyChord(ConsoleKey.R, ConsoleModifiers.Shift, 'R');
+
+        // act
+        var resolved = keyMap.TryResolve(shiftR, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.RefreshRequested>(message);
+    }
+
+    [Fact]
     public void CreateDefault_Should_MapQ_ToQuitRequested()
     {
         // arrange
