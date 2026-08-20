@@ -541,24 +541,6 @@ public class RabbitMQTransportTests
         return connectionMock;
     }
 
-    private sealed class FakeConnectionProvider(IConnection connection) : IRabbitMQConnectionProvider
-    {
-        public string Host => "localhost";
-        public string VirtualHost => "/";
-        public int Port => 5672;
-
-        public ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken) => new(connection);
-    }
-
-    public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
-    {
-        public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
-        {
-            recorder.Record(request);
-            return default;
-        }
-    }
-
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();
@@ -581,5 +563,23 @@ public class RabbitMQTransportTests
             .AddRabbitMQ(t => t.ConnectionProvider(_ => connectionProvider).AutoProvision(false))
             .BuildRuntime();
         return runtime;
+    }
+
+    private sealed class FakeConnectionProvider(IConnection connection) : IRabbitMQConnectionProvider
+    {
+        public string Host => "localhost";
+        public string VirtualHost => "/";
+        public int Port => 5672;
+
+        public ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken) => new(connection);
+    }
+
+    public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
+    {
+        public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
+        {
+            recorder.Record(request);
+            return default;
+        }
     }
 }

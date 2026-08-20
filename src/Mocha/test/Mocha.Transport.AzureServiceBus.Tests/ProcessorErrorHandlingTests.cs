@@ -43,7 +43,8 @@ public sealed class ProcessorErrorHandlingTests
     [Theory]
     [MemberData(nameof(NonReasonExceptions))]
     public async Task OnProcessorError_Should_LogAtExpectedLevelWithEntityPath_When_ExceptionIsNotAReasonMatch(
-        Exception exception, LogLevel expectedLevel)
+        Exception exception,
+        LogLevel expectedLevel)
     {
         // arrange
         var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
@@ -60,15 +61,6 @@ public sealed class ProcessorErrorHandlingTests
         Assert.Same(exception, entry.Exception);
         Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
     }
-
-    public static TheoryData<Exception, LogLevel> NonReasonExceptions()
-        => new()
-        {
-            // cancellation is treated as a transient/recoverable condition
-            { new OperationCanceledException("cancelled"), LogLevel.Warning },
-            { new ServiceBusException("general failure", ServiceBusFailureReason.GeneralError), LogLevel.Error },
-            { new InvalidOperationException("unexpected failure"), LogLevel.Error }
-        };
 
     /// <summary>
     /// See also <see cref="ReceiveEndpointLifecycleUnitTests.OnProcessorError_Should_NotResurrectEndpoint_When_RaisedAfterStop"/>,
@@ -97,8 +89,13 @@ public sealed class ProcessorErrorHandlingTests
         Assert.Equal(1, created.Processor.StartProcessingCallCount);
     }
 
-    private static ProcessErrorEventArgs CreateArgs(FakeServiceBusClient client, Exception exception) =>
-        new(exception, ServiceBusErrorSource.Receive, client.FullyQualifiedNamespace, "orders", CancellationToken.None);
+    private static ProcessErrorEventArgs CreateArgs(FakeServiceBusClient client, Exception exception)
+        => new(
+            exception,
+            ServiceBusErrorSource.Receive,
+            client.FullyQualifiedNamespace,
+            "orders",
+            CancellationToken.None);
 
     private static async Task<(FakeServiceBusClient Client, TestBus Bus)> CreateStartedBusAsync(
         CapturingLoggerProvider loggerProvider)
@@ -120,8 +117,17 @@ public sealed class ProcessorErrorHandlingTests
         return (client, bus);
     }
 
-    private static object? GetValue(IReadOnlyList<KeyValuePair<string, object?>> state, string key) =>
-        state.Single(pair => pair.Key == key).Value;
+    private static object? GetValue(IReadOnlyList<KeyValuePair<string, object?>> state, string key)
+        => state.Single(pair => pair.Key == key).Value;
+
+    public static TheoryData<Exception, LogLevel> NonReasonExceptions()
+        => new()
+        {
+            // cancellation is treated as a transient/recoverable condition
+            { new OperationCanceledException("cancelled"), LogLevel.Warning },
+            { new ServiceBusException("general failure", ServiceBusFailureReason.GeneralError), LogLevel.Error },
+            { new InvalidOperationException("unexpected failure"), LogLevel.Error }
+        };
 
     private sealed class NoOpConsumer : IConsumer<OrderCreated>
     {
