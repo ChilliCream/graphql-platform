@@ -115,6 +115,76 @@ internal sealed class ArgumentVisitor()
         return Continue;
     }
 
+    protected override ISyntaxVisitorAction Enter(
+        FragmentSpreadNode node,
+        DocumentValidatorContext context)
+    {
+        if (context.Fragments.TryGet(node, out var fragment))
+        {
+            ValidateFragmentArguments(context, node, fragment);
+            return Continue;
+        }
+
+        context.UnexpectedErrorsDetected = true;
+        return Skip;
+    }
+
+    private static void ValidateFragmentArguments(
+        DocumentValidatorContext context,
+        FragmentSpreadNode node,
+        FragmentDefinitionNode fragment)
+    {
+        var fragmentName = fragment.Name.Value;
+        var variableDefinitions = fragment.VariableDefinitions;
+        var argumentNames = context.Features.GetRequired<ArgumentVisitorFeature>().ArgumentNames;
+        argumentNames.Clear();
+
+        foreach (var argument in node.Arguments)
+        {
+            if (FragmentArguments.TryGetVariableDefinition(
+                context,
+                node,
+                argument.Name.Value,
+                out var variableDefinition))
+            {
+                if (!argumentNames.Add(argument.Name.Value))
+                {
+                    context.ReportError(
+                        context.ArgumentNotUnique(argument, fragment: fragmentName));
+                }
+
+                if (variableDefinition.Type.IsNonNullType()
+                    && variableDefinition.DefaultValue.IsNull()
+                    && argument.Value.IsNull())
+                {
+                    context.ReportError(
+                        context.ArgumentRequired(
+                            argument,
+                            argument.Name.Value,
+                            fragment: fragmentName));
+                }
+            }
+            else
+            {
+                context.ReportError(
+                    context.ArgumentDoesNotExist(argument, fragment: fragmentName));
+            }
+        }
+
+        foreach (var variableDefinition in variableDefinitions)
+        {
+            var variableName = variableDefinition.Variable.Name.Value;
+
+            if (variableDefinition.Type.IsNonNullType()
+                && variableDefinition.DefaultValue.IsNull()
+                && argumentNames.Add(variableName))
+            {
+                context.ReportError(
+                    context.ArgumentRequired(node, variableName, fragment: fragmentName));
+            }
+        }
+    }
+
     private static void ValidateArguments(
         DocumentValidatorContext context,
         ISyntaxNode node,
