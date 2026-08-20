@@ -780,4 +780,73 @@ public class QueryParserTests
         // assert
         document.ToString().MatchSnapshot(extension: ".graphql");
     }
+
+    [Fact]
+    public void Parse_Should_ReadSpreadArguments_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        const string query = "{ ...Bar(baz: 1) }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(allowFragmentArguments: true));
+
+        // assert
+        var operation = (OperationDefinitionNode)document.Definitions[0];
+        var spread = (FragmentSpreadNode)operation.SelectionSet.Selections[0];
+        var argument = Assert.Single(spread.Arguments);
+        Assert.Equal("baz: 1", argument.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_ReadVariableDefinitions_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        const string query = "fragment Bar($baz: Int!) on Foo { id }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(allowFragmentArguments: true));
+
+        // assert
+        var fragment = (FragmentDefinitionNode)document.Definitions[0];
+        var variableDefinition = Assert.Single(fragment.VariableDefinitions);
+        Assert.Equal("$baz: Int!", variableDefinition.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_ReadEmptyArguments_When_SpreadHasNoArguments()
+    {
+        // arrange
+        const string query = "{ ...Bar }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(allowFragmentArguments: true));
+
+        // assert
+        var operation = (OperationDefinitionNode)document.Definitions[0];
+        var spread = (FragmentSpreadNode)operation.SelectionSet.Selections[0];
+        Assert.Empty(spread.Arguments);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_SpreadHasArgumentsAndFragmentArgumentsNotAllowed()
+    {
+        // arrange
+        const string query = "{ ...Bar(baz: 1) }";
+
+        // act
+        static void Action() => Utf8GraphQLParser.Parse(query);
+
+        // assert
+        Assert
+            .Throws<SyntaxException>(Action)
+            .Message
+            .MatchInlineSnapshot(
+                "Expected a `Name`-token, but found a `LeftParenthesis`-token.");
+    }
 }

@@ -9,6 +9,7 @@ namespace HotChocolate.Language;
 public ref partial struct Utf8GraphQLParser
 {
     private readonly bool _createLocation;
+    private readonly bool _allowFragmentArgs;
     private readonly bool _allowFragmentVars;
     private readonly int _maxAllowedNodes;
     private readonly int _maxAllowedFields;
@@ -32,7 +33,8 @@ public ref partial struct Utf8GraphQLParser
 
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
-        _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _allowFragmentArgs = options.Experimental.AllowFragmentArguments;
+        _allowFragmentVars = _allowFragmentArgs || options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
         _maxAllowedDirectives = options.MaxAllowedDirectives;
@@ -52,7 +54,8 @@ public ref partial struct Utf8GraphQLParser
 
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
-        _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _allowFragmentArgs = options.Experimental.AllowFragmentArguments;
+        _allowFragmentVars = _allowFragmentArgs || options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
         _maxAllowedDirectives = options.MaxAllowedDirectives;
@@ -72,7 +75,8 @@ public ref partial struct Utf8GraphQLParser
 
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
-        _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _allowFragmentArgs = options.Experimental.AllowFragmentArguments;
+        _allowFragmentVars = _allowFragmentArgs || options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
         _maxAllowedDirectives = options.MaxAllowedDirectives;

@@ -88,4 +88,93 @@ public class SyntaxVisitorTests
         // assert
         Assert.Equal("@foo", Assert.Single(list));
     }
+
+    [Fact]
+    public void Visit_Should_VisitFragmentSpreadArguments_When_VisitArgumentsIsEnabled()
+    {
+        // arrange
+        var list = new List<string>();
+
+        var document = Parse(
+            "{ ...Foo(bar: 1, baz: 2) }",
+            new ParserOptions(allowFragmentArguments: true));
+
+        var visitor = Create<object?>(
+            enter: (n, _) =>
+            {
+                if (n is ArgumentNode argument)
+                {
+                    list.Add(argument.Name.Value);
+                }
+
+                return SyntaxVisitor.Continue;
+            },
+            defaultAction: SyntaxVisitor.Continue,
+            options: new() { VisitArguments = true });
+
+        // act
+        visitor.Visit(document, null);
+
+        // assert
+        Assert.Equal(["bar", "baz"], list);
+    }
+
+    [Fact]
+    public void Visit_Should_NotVisitFragmentSpreadArguments_When_VisitArgumentsIsDisabled()
+    {
+        // arrange
+        var list = new List<string>();
+
+        var document = Parse(
+            "{ ...Foo(bar: 1) }",
+            new ParserOptions(allowFragmentArguments: true));
+
+        var visitor = Create<object?>(
+            enter: (n, _) =>
+            {
+                if (n is ArgumentNode argument)
+                {
+                    list.Add(argument.Name.Value);
+                }
+
+                return SyntaxVisitor.Continue;
+            },
+            defaultAction: SyntaxVisitor.Continue,
+            options: new() { VisitArguments = false });
+
+        // act
+        visitor.Visit(document, null);
+
+        // assert
+        Assert.Empty(list);
+    }
+
+    [Fact]
+    public void Visit_Should_VisitFragmentDefinitionVariableDefinitions()
+    {
+        // arrange
+        var list = new List<string>();
+
+        var document = Parse(
+            "fragment Foo($bar: Int!, $baz: String) on Thing { id }",
+            new ParserOptions(allowFragmentArguments: true));
+
+        var visitor = Create<object?>(
+            enter: (n, _) =>
+            {
+                if (n is VariableDefinitionNode variableDefinition)
+                {
+                    list.Add(variableDefinition.Variable.Name.Value);
+                }
+
+                return SyntaxVisitor.Continue;
+            },
+            defaultAction: SyntaxVisitor.Continue);
+
+        // act
+        visitor.Visit(document, null);
+
+        // assert
+        Assert.Equal(["bar", "baz"], list);
+    }
 }

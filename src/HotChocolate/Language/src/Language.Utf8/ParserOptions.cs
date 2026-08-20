@@ -14,6 +14,9 @@ public sealed class ParserOptions
     /// <param name="allowFragmentVariables">
     /// Defines that the parser shall parse fragment variables.
     /// </param>
+    /// <param name="allowFragmentArguments">
+    /// Defines that the parser shall parse fragment variables and fragment spread arguments.
+    /// </param>
     /// <param name="maxAllowedNodes">
     /// Parser CPU and memory usage is linear to the number of nodes in a document
     /// however in extreme cases it becomes quadratic due to memory exhaustion.
@@ -43,6 +46,7 @@ public sealed class ParserOptions
     public ParserOptions(
         bool noLocations = false,
         bool allowFragmentVariables = false,
+        bool allowFragmentArguments = false,
         int maxAllowedNodes = int.MaxValue,
         int maxAllowedTokens = int.MaxValue,
         int maxAllowedFields = 2048,
@@ -50,7 +54,7 @@ public sealed class ParserOptions
         int maxAllowedRecursionDepth = 200)
     {
         NoLocations = noLocations;
-        Experimental = new(allowFragmentVariables);
+        Experimental = new(allowFragmentVariables, allowFragmentArguments);
         MaxAllowedTokens = maxAllowedTokens;
         MaxAllowedNodes = maxAllowedNodes;
         MaxAllowedFields = maxAllowedFields;
