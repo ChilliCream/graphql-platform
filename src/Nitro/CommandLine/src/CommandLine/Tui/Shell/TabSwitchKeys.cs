@@ -5,16 +5,13 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// <summary>
 /// The key bindings a tabbed <see cref="TuiShell"/> uses to switch its
 /// active tab: <c>[</c> for the previous tab and <c>]</c> for the next,
-/// wrapping around at either end. Neither chord collides with
+/// wrapping around at either end. Neither character collides with
 /// <see cref="KeyMap.CreateDefaultGlobal"/> or <c>MailKeyMap.CreateDefault</c>.
 /// Checked ahead of the active tab's own dispatch, and never reached while
 /// any shell-level or mode-level overlay is capturing input.
 /// </summary>
 internal static class TabSwitchKeys
 {
-    private static readonly KeyChord PreviousChord = new(ConsoleKey.Oem4, ConsoleModifiers.None, '[');
-    private static readonly KeyChord NextChord = new(ConsoleKey.Oem6, ConsoleModifiers.None, ']');
-
     /// <summary>
     /// The footer hint for tab switching, appended after every other hint
     /// while more than one tab is hosted.
@@ -27,16 +24,16 @@ internal static class TabSwitchKeys
     /// </summary>
     public static int? Resolve(KeyChord chord)
     {
-        if (chord == PreviousChord)
+        if (chord.Modifiers != ConsoleModifiers.None)
         {
-            return -1;
+            return null;
         }
 
-        if (chord == NextChord)
+        return chord.KeyChar switch
         {
-            return 1;
-        }
-
-        return null;
+            '[' => -1,
+            ']' => 1,
+            _ => null
+        };
     }
 }

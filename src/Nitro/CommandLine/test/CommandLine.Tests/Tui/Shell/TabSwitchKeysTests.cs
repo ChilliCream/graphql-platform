@@ -33,6 +33,45 @@ public sealed class TabSwitchKeysTests
     }
 
     [Fact]
+    public void Resolve_Should_ReturnMinusOne_ForOpenBracket_WithNoConsoleKey()
+    {
+        // arrange
+        var chord = new KeyChord(ConsoleKey.None, ConsoleModifiers.None, '[');
+
+        // act
+        var delta = TabSwitchKeys.Resolve(chord);
+
+        // assert
+        Assert.Equal(-1, delta);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnPlusOne_ForCloseBracket_WithNoConsoleKey()
+    {
+        // arrange
+        var chord = new KeyChord(ConsoleKey.None, ConsoleModifiers.None, ']');
+
+        // act
+        var delta = TabSwitchKeys.Resolve(chord);
+
+        // assert
+        Assert.Equal(1, delta);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnNull_ForOpenBracket_WithAModifier()
+    {
+        // arrange
+        var chord = new KeyChord(ConsoleKey.Oem4, ConsoleModifiers.Alt, '[');
+
+        // act
+        var delta = TabSwitchKeys.Resolve(chord);
+
+        // assert
+        Assert.Null(delta);
+    }
+
+    [Fact]
     public void Resolve_Should_ReturnNull_ForAnUnrelatedChord()
     {
         // arrange
