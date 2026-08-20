@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -32,14 +33,14 @@ internal sealed class InitMailCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var currentDirectory = fileSystem.GetCurrentDirectory();
-        var workspaceDirectory = MailWorkspace.GetDirectory(currentDirectory);
-        var databasePath = MailWorkspace.GetDatabasePath(workspaceDirectory);
+        var workspaceDirectory = AgentWorkspace.GetDirectory(currentDirectory);
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
         var force = parseResult.GetValue(Opt<ForceReinitializeMailOption>.Instance);
 
         if (!force && fileSystem.FileExists(databasePath))
         {
             throw new ExitException(
-                $"Already initialized at '{MailWorkspace.DisplayPath}'. "
+                $"Already initialized at '{AgentWorkspace.DisplayPath}'. "
                 + "Use --force to reinitialize.");
         }
 
@@ -51,13 +52,13 @@ internal sealed class InitMailCommand : Command
         await store.InitializeWorkspaceAsync(workspaceDirectory, cancellationToken);
 
         var gitIgnorePath = Path.Combine(
-            workspaceDirectory, MailWorkspace.GitIgnoreFileName);
+            workspaceDirectory, AgentWorkspace.GitIgnoreFileName);
 
         if (force || !fileSystem.FileExists(gitIgnorePath))
         {
             await using var gitIgnoreStream = fileSystem.CreateFile(gitIgnorePath);
             await gitIgnoreStream.WriteAsync(
-                Encoding.UTF8.GetBytes(MailWorkspace.GitIgnoreContent),
+                Encoding.UTF8.GetBytes(AgentWorkspace.GitIgnoreContent),
                 cancellationToken);
         }
 
@@ -67,7 +68,7 @@ internal sealed class InitMailCommand : Command
             return ExitCodes.Success;
         }
 
-        console.OkLine($"Initialized mail workspace at '{MailWorkspace.DisplayPath}'.");
+        console.OkLine($"Initialized mail workspace at '{AgentWorkspace.DisplayPath}'.");
 
         return ExitCodes.Success;
     }

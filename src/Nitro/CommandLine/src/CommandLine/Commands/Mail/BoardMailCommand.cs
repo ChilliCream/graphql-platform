@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
@@ -42,7 +43,7 @@ internal sealed class BoardMailCommand : Command
         var dispatcher = new KeyDispatcher(MailKeyMap.CreateDefault());
         var shell = new TuiShell(dispatcher, mode, console.Profile.Width, console.Profile.Height);
         var application = new TuiApplication(console);
-        var dbWatcher = new TaskDbWatcher(MailWorkspace.GetDatabasePath(workspaceDirectory));
+        var dbWatcher = new TaskDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();

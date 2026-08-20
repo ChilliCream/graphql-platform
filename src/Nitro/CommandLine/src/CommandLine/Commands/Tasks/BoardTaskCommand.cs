@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
@@ -55,7 +56,7 @@ internal sealed class BoardTaskCommand : Command
             store,
             actor);
         var application = new TuiApplication(console);
-        var dbWatcher = new TaskDbWatcher(TaskWorkspace.GetDatabasePath(workspaceDirectory));
+        var dbWatcher = new TaskDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();

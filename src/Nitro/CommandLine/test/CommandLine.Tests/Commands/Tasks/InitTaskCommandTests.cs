@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 
@@ -41,21 +41,21 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            ✓ Initialized task workspace at '.nitro/tasks'.
+            ✓ Initialized task workspace at '.nitro/agents'.
             ✓ Task ID prefix set to 'acme'.
             """);
         Assert.True(File.Exists(DatabasePath));
         Assert.Equal("acme", await QueryScalarAsync(
             "SELECT value FROM config WHERE key = 'prefix'"));
         var gitIgnoreText = await File.ReadAllTextAsync(
-            Path.Combine(WorkspaceDirectory, TaskWorkspace.GitIgnoreFileName),
+            Path.Combine(WorkspaceDirectory, AgentWorkspace.GitIgnoreFileName),
             TestContext.Current.CancellationToken);
         gitIgnoreText.MatchInlineSnapshot(
             """
-            # The task database is local state; tasks.jsonl is the source of truth in git.
-            tasks.db
-            tasks.db-wal
-            tasks.db-shm
+            # The agent database is local state; tasks.jsonl is the source of truth in git.
+            agents.db
+            agents.db-wal
+            agents.db-shm
             """);
     }
 
@@ -87,7 +87,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            ✓ Initialized task workspace at '.nitro/tasks'.
+            ✓ Initialized task workspace at '.nitro/agents'.
             ✓ Task ID prefix set to 'myapp'.
             """);
     }
@@ -104,7 +104,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            Already initialized at '.nitro/tasks'. Use --force to reinitialize.
+            Already initialized at '.nitro/agents'. Use --force to reinitialize.
             """);
     }
 
@@ -120,7 +120,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            ✓ Initialized task workspace at '.nitro/tasks'.
+            ✓ Initialized task workspace at '.nitro/agents'.
             ✓ Task ID prefix set to 'core'.
             """);
         Assert.Equal("core", await QueryScalarAsync(
@@ -132,7 +132,7 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var gitIgnorePath = Path.Combine(WorkspaceDirectory, TaskWorkspace.GitIgnoreFileName);
+        var gitIgnorePath = Path.Combine(WorkspaceDirectory, AgentWorkspace.GitIgnoreFileName);
         await File.WriteAllTextAsync(
             gitIgnorePath, "*\n!.gitignore\n", TestContext.Current.CancellationToken);
 
@@ -145,10 +145,10 @@ public sealed class InitTaskCommandTests(NitroCommandFixture fixture)
             gitIgnorePath, TestContext.Current.CancellationToken);
         gitIgnoreText.MatchInlineSnapshot(
             """
-            # The task database is local state; tasks.jsonl is the source of truth in git.
-            tasks.db
-            tasks.db-wal
-            tasks.db-shm
+            # The agent database is local state; tasks.jsonl is the source of truth in git.
+            agents.db
+            agents.db-wal
+            agents.db-shm
             """);
     }
 }

@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -29,6 +30,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
 
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<AgentDatabase>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
 

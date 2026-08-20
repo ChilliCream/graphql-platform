@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -75,13 +76,13 @@ internal sealed class SyncTaskCommand : Command
         var records = await store.ExportTasksAsync(cancellationToken);
 
         await fileSystem.WriteAllTextAsync(
-            TaskWorkspace.GetJsonlPath(workspaceDirectory),
+            AgentWorkspace.GetJsonlPath(workspaceDirectory),
             SerializeJsonl(config, records),
             cancellationToken);
 
         console.OkLine(
             $"Flushed {records.Count} {(records.Count == 1 ? "task" : "tasks")} to "
-            + $"'{TaskWorkspace.DisplayPath}/{TaskWorkspace.JsonlFileName}'.");
+            + $"'{AgentWorkspace.DisplayPath}/{AgentWorkspace.JsonlFileName}'.");
 
         return ExitCodes.Success;
     }
@@ -93,17 +94,17 @@ internal sealed class SyncTaskCommand : Command
         CancellationToken cancellationToken)
     {
         var workspaceDirectory = store.FindWorkspaceDirectory()
-            ?? TaskWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
+            ?? AgentWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException(
                 "No task workspace found. Run `nitro agent tasks init` first.");
 
-        var jsonlPath = TaskWorkspace.GetJsonlPath(workspaceDirectory);
+        var jsonlPath = AgentWorkspace.GetJsonlPath(workspaceDirectory);
 
         if (!fileSystem.FileExists(jsonlPath))
         {
             throw new ExitException(
-                $"No '{TaskWorkspace.JsonlFileName}' found at "
-                + $"'{TaskWorkspace.DisplayPath}/{TaskWorkspace.JsonlFileName}'.");
+                $"No '{AgentWorkspace.JsonlFileName}' found at "
+                + $"'{AgentWorkspace.DisplayPath}/{AgentWorkspace.JsonlFileName}'.");
         }
 
         var (config, records) = await ReadJsonlAsync(fileSystem, jsonlPath, cancellationToken);
@@ -132,19 +133,19 @@ internal sealed class SyncTaskCommand : Command
         CancellationToken cancellationToken)
     {
         var workspaceDirectory = store.FindWorkspaceDirectory()
-            ?? TaskWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
+            ?? AgentWorkspace.FindDatabaseOrJsonl(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException(
                 "No task workspace found. Run `nitro agent tasks init` first.");
 
-        var jsonlPath = TaskWorkspace.GetJsonlPath(workspaceDirectory);
-        var hasDatabase = fileSystem.FileExists(TaskWorkspace.GetDatabasePath(workspaceDirectory));
+        var jsonlPath = AgentWorkspace.GetJsonlPath(workspaceDirectory);
+        var hasDatabase = fileSystem.FileExists(AgentWorkspace.GetDatabasePath(workspaceDirectory));
         var hasJsonl = fileSystem.FileExists(jsonlPath);
 
         if (!hasDatabase)
         {
             console.WriteLine(
                 "No task database. Run `nitro agent tasks sync --import-only` to create it from "
-                + $"'{TaskWorkspace.JsonlFileName}'.");
+                + $"'{AgentWorkspace.JsonlFileName}'.");
 
             return ExitCodes.Error;
         }
@@ -155,7 +156,7 @@ internal sealed class SyncTaskCommand : Command
         if (!hasJsonl)
         {
             console.WriteLine(
-                $"No '{TaskWorkspace.JsonlFileName}'. Run `nitro agent tasks sync --flush-only` to "
+                $"No '{AgentWorkspace.JsonlFileName}'. Run `nitro agent tasks sync --flush-only` to "
                 + $"create it from {records.Count} "
                 + $"{(records.Count == 1 ? "task" : "tasks")} in the database.");
 
@@ -168,14 +169,14 @@ internal sealed class SyncTaskCommand : Command
         if (NormalizeLineEndings(expectedContent) == NormalizeLineEndings(actualContent))
         {
             console.OkLine(
-                $"'{TaskWorkspace.JsonlFileName}' is in sync with the task database "
+                $"'{AgentWorkspace.JsonlFileName}' is in sync with the task database "
                 + $"({records.Count} {(records.Count == 1 ? "task" : "tasks")}).");
 
             return ExitCodes.Success;
         }
 
         console.WriteLine(
-            $"'{TaskWorkspace.JsonlFileName}' and the task database have diverged. Run "
+            $"'{AgentWorkspace.JsonlFileName}' and the task database have diverged. Run "
             + "`nitro agent tasks sync --flush-only` or `nitro agent tasks sync --import-only` to reconcile.");
 
         return ExitCodes.Error;
@@ -242,20 +243,20 @@ internal sealed class SyncTaskCommand : Command
                     records.Add(
                         JsonSerializer.Deserialize(line, TaskSyncJsonContext.Default.TaskSyncRecord)
                         ?? throw new ExitException(
-                            $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is empty."));
+                            $"'{AgentWorkspace.JsonlFileName}' line {lineNumber} is empty."));
                 }
                 else
                 {
                     config.Add(
                         JsonSerializer.Deserialize(line, TaskSyncJsonContext.Default.TaskConfigEntry)
                         ?? throw new ExitException(
-                            $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is empty."));
+                            $"'{AgentWorkspace.JsonlFileName}' line {lineNumber} is empty."));
                 }
             }
             catch (JsonException exception)
             {
                 throw new ExitException(
-                    $"'{TaskWorkspace.JsonlFileName}' line {lineNumber} is not valid JSON: "
+                    $"'{AgentWorkspace.JsonlFileName}' line {lineNumber} is not valid JSON: "
                     + exception.Message);
             }
         }

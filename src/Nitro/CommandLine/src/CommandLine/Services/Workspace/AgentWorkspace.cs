@@ -1,17 +1,18 @@
-namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Defines the on-disk layout of a task workspace and shared helpers for it.
+/// Defines the on-disk layout of the unified agent workspace, shared by the
+/// task tracker and the mail feature, and shared helpers for it.
 /// </summary>
-internal static class TaskWorkspace
+internal static class AgentWorkspace
 {
     public const string RootDirectoryName = ".nitro";
-    public const string TasksDirectoryName = "tasks";
-    public const string DatabaseFileName = "tasks.db";
+    public const string AgentsDirectoryName = "agents";
+    public const string DatabaseFileName = "agents.db";
     public const string JsonlFileName = "tasks.jsonl";
     public const string GitIgnoreFileName = ".gitignore";
     public const string FallbackPrefix = "task";
-    public const string DisplayPath = RootDirectoryName + "/" + TasksDirectoryName;
+    public const string DisplayPath = RootDirectoryName + "/" + AgentsDirectoryName;
 
     private const int MaxPrefixLength = 64;
 
@@ -22,14 +23,14 @@ internal static class TaskWorkspace
     /// </summary>
     public const string GitIgnoreContent =
         """
-        # The task database is local state; tasks.jsonl is the source of truth in git.
-        tasks.db
-        tasks.db-wal
-        tasks.db-shm
+        # The agent database is local state; tasks.jsonl is the source of truth in git.
+        agents.db
+        agents.db-wal
+        agents.db-shm
         """;
 
     public static string GetDirectory(string baseDirectory)
-        => Path.Combine(baseDirectory, RootDirectoryName, TasksDirectoryName);
+        => Path.Combine(baseDirectory, RootDirectoryName, AgentsDirectoryName);
 
     public static string GetDatabasePath(string workspaceDirectory)
         => Path.Combine(workspaceDirectory, DatabaseFileName);
@@ -60,7 +61,7 @@ internal static class TaskWorkspace
 
     /// <summary>
     /// Finds the nearest workspace directory at or above the given directory
-    /// that has either a task database or a committed tasks.jsonl. Returns
+    /// that has either an agent database or a committed tasks.jsonl. Returns
     /// null when neither exists.
     /// </summary>
     public static string? FindDatabaseOrJsonl(IFileSystem fileSystem, string startDirectory)

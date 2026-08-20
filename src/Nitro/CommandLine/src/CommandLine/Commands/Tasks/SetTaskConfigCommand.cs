@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -37,7 +38,7 @@ internal sealed class SetTaskConfigCommand : Command
 
         if (key == PrefixKey)
         {
-            value = TaskWorkspace.NormalizePrefix(value);
+            value = AgentWorkspace.NormalizePrefix(value);
         }
 
         await store.SetConfigAsync(key, value, cancellationToken);

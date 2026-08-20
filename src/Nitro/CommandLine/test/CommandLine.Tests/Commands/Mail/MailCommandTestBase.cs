@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
 
@@ -26,10 +27,10 @@ public abstract class MailCommandTestBase : CommandTestBase
     protected string WorkingDirectory { get; }
 
     protected string WorkspaceDirectory
-        => MailWorkspace.GetDirectory(WorkingDirectory);
+        => AgentWorkspace.GetDirectory(WorkingDirectory);
 
     protected string DatabasePath
-        => MailWorkspace.GetDatabasePath(WorkspaceDirectory);
+        => AgentWorkspace.GetDatabasePath(WorkspaceDirectory);
 
     protected async Task InitWorkspaceAsync()
     {
@@ -42,7 +43,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// clock, for seeding data without going through the CLI.
     /// </summary>
     internal MailStore CreateStore()
-        => new(new TestFileSystem(WorkingDirectory), FakeTime);
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
 
     /// <summary>
     /// Registers an agent directly against the store.

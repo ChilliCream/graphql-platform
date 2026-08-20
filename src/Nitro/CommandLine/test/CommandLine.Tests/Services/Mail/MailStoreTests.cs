@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -22,12 +23,12 @@ public sealed class MailStoreTests : IAsyncDisposable
         _tempRoot = Directory.CreateTempSubdirectory("nitro-mail-store-tests");
         _workingDirectory = Path.Combine(_tempRoot.FullName, "acme");
         Directory.CreateDirectory(_workingDirectory);
-        _workspaceDirectory = MailWorkspace.GetDirectory(_workingDirectory);
+        _workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
 
         _timeProvider = new FakeTimeProvider(
             new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
 
-        _store = new MailStore(new TestFileSystem(_workingDirectory), _timeProvider);
+        _store = new MailStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
     }
 
     public async ValueTask DisposeAsync()

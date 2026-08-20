@@ -37,7 +37,7 @@ public sealed class CloseEligibleTaskEpicCommandTests(NitroCommandFixture fixtur
         // assert
         result.AssertError(
             """
-            No task workspace found. Run `nitro agent tasks init` first.
+            No agent workspace found. Run `nitro agent init` first.
             """);
     }
 

@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 
@@ -96,7 +96,7 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError(
-            "No 'tasks.jsonl' found at '.nitro/tasks/tasks.jsonl'.");
+            "No 'tasks.jsonl' found at '.nitro/agents/tasks.jsonl'.");
     }
 
     [Fact]
@@ -110,9 +110,9 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--flush-only");
 
         // assert
-        result.AssertSuccess("✓ Flushed 1 task to '.nitro/tasks/tasks.jsonl'.");
+        result.AssertSuccess("✓ Flushed 1 task to '.nitro/agents/tasks.jsonl'.");
 
-        var jsonlPath = TaskWorkspace.GetJsonlPath(WorkspaceDirectory);
+        var jsonlPath = AgentWorkspace.GetJsonlPath(WorkspaceDirectory);
         Assert.True(File.Exists(jsonlPath));
 
         var content = await File.ReadAllTextAsync(jsonlPath, TestContext.Current.CancellationToken);

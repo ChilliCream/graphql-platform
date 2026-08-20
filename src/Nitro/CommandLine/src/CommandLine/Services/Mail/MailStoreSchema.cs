@@ -2,8 +2,6 @@ namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 internal static class MailStoreSchema
 {
-    public const int CurrentVersion = 1;
-
     /// <summary>
     /// The complete schema. Statements are idempotent so applying them to an
     /// existing database is non-destructive.

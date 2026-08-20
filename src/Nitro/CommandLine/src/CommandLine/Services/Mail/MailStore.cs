@@ -2,19 +2,21 @@ using System.Data.Common;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
-internal sealed class MailStore(IFileSystem fileSystem, TimeProvider timeProvider) : IMailStore
+internal sealed class MailStore(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    AgentDatabase database) : IMailStore
 {
     private const string IdPrefix = "m-";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
     private const int MinIdLength = 6;
     private const int MaxIdAttempts = 10;
-
-    static MailStore() => SQLitePCL.Batteries_V2.Init();
 
     /// <summary>
     /// Opens a connection to a new or existing workspace database, applies
@@ -24,43 +26,19 @@ internal sealed class MailStore(IFileSystem fileSystem, TimeProvider timeProvide
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)
-    {
-        var connection = await OpenAsync(
-            MailWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        await connection.ExecuteAsync(MailStoreSchema.Create);
-        await connection.ExecuteAsync(
-            $"""PRAGMA user_version = {MailStoreSchema.CurrentVersion};""");
-
-        return connection;
-    }
+        => await database.InitializeAsync(workspaceDirectory, cancellationToken);
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No mail workspace found. Run `nitro agent mail init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
-        var connection = await OpenAsync(
-            MailWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
-
-        if (version > MailStoreSchema.CurrentVersion)
-        {
-            throw new ExitException(
-                "The mail workspace was created by a newer version of the Nitro CLI "
-                + $"(schema v{version}, supported up to v{MailStoreSchema.CurrentVersion}). "
-                + "Update the CLI to use it.");
-        }
-
-        return connection;
+        return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
     public string? FindWorkspaceDirectory()
-        => MailWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
+        => AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
     public async Task InitializeWorkspaceAsync(
         string workspaceDirectory,
@@ -941,22 +919,6 @@ internal sealed class MailStore(IFileSystem fileSystem, TimeProvider timeProvide
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
-
-    private static async Task<SqliteConnection> OpenAsync(
-        string databasePath,
-        CancellationToken cancellationToken)
-    {
-        // Pooling would keep the database file open after the connection is
-        // disposed; a CLI process runs one command and exits, so it gains
-        // nothing from the pool.
-        var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
-
-        await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
-        return connection;
-    }
 
     // These nested row types are internal, not private: Dapper.AOT's
     // generated interceptors live outside MailStore and cannot reference a

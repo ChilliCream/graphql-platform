@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
 
@@ -40,13 +40,19 @@ public sealed class InitMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            ✓ Initialized mail workspace at '.nitro/mail'.
+            ✓ Initialized mail workspace at '.nitro/agents'.
             """);
         Assert.True(File.Exists(DatabasePath));
         var gitIgnoreText = await File.ReadAllTextAsync(
-            Path.Combine(WorkspaceDirectory, MailWorkspace.GitIgnoreFileName),
+            Path.Combine(WorkspaceDirectory, AgentWorkspace.GitIgnoreFileName),
             TestContext.Current.CancellationToken);
-        Assert.Equal("*", gitIgnoreText);
+        gitIgnoreText.MatchInlineSnapshot(
+            """
+            # The agent database is local state; tasks.jsonl is the source of truth in git.
+            agents.db
+            agents.db-wal
+            agents.db-shm
+            """);
     }
 
     [Fact]
@@ -79,7 +85,7 @@ public sealed class InitMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            Already initialized at '.nitro/mail'. Use --force to reinitialize.
+            Already initialized at '.nitro/agents'. Use --force to reinitialize.
             """);
     }
 
@@ -95,7 +101,7 @@ public sealed class InitMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            ✓ Initialized mail workspace at '.nitro/mail'.
+            ✓ Initialized mail workspace at '.nitro/agents'.
             """);
         Assert.True(File.Exists(DatabasePath));
     }

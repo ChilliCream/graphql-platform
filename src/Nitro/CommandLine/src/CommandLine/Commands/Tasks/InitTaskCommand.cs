@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -33,18 +34,18 @@ internal sealed class InitTaskCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var currentDirectory = fileSystem.GetCurrentDirectory();
-        var workspaceDirectory = TaskWorkspace.GetDirectory(currentDirectory);
-        var databasePath = TaskWorkspace.GetDatabasePath(workspaceDirectory);
+        var workspaceDirectory = AgentWorkspace.GetDirectory(currentDirectory);
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
         var force = parseResult.GetValue(Opt<ForceReinitializeOption>.Instance);
 
         if (!force && fileSystem.FileExists(databasePath))
         {
             throw new ExitException(
-                $"Already initialized at '{TaskWorkspace.DisplayPath}'. "
+                $"Already initialized at '{AgentWorkspace.DisplayPath}'. "
                 + "Use --force to reinitialize.");
         }
 
-        var prefix = TaskWorkspace.NormalizePrefix(
+        var prefix = AgentWorkspace.NormalizePrefix(
             parseResult.GetValue(Opt<TaskPrefixOption>.Instance)
                 ?? Path.GetFileName(Path.TrimEndingDirectorySeparator(currentDirectory)));
 
@@ -56,13 +57,13 @@ internal sealed class InitTaskCommand : Command
         await store.InitializeWorkspaceAsync(workspaceDirectory, prefix, cancellationToken);
 
         var gitIgnorePath = Path.Combine(
-            workspaceDirectory, TaskWorkspace.GitIgnoreFileName);
+            workspaceDirectory, AgentWorkspace.GitIgnoreFileName);
 
         if (force || !fileSystem.FileExists(gitIgnorePath))
         {
             await using var gitIgnoreStream = fileSystem.CreateFile(gitIgnorePath);
             await gitIgnoreStream.WriteAsync(
-                Encoding.UTF8.GetBytes(TaskWorkspace.GitIgnoreContent),
+                Encoding.UTF8.GetBytes(AgentWorkspace.GitIgnoreContent),
                 cancellationToken);
         }
 
@@ -72,7 +73,7 @@ internal sealed class InitTaskCommand : Command
             return ExitCodes.Success;
         }
 
-        console.OkLine($"Initialized task workspace at '{TaskWorkspace.DisplayPath}'.");
+        console.OkLine($"Initialized task workspace at '{AgentWorkspace.DisplayPath}'.");
         console.OkLine($"Task ID prefix set to '{prefix}'.");
 
         return ExitCodes.Success;

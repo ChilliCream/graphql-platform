@@ -135,7 +135,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            No mail workspace found. Run `nitro agent mail init` first.
+            No agent workspace found. Run `nitro agent init` first.
             """);
     }
 }
