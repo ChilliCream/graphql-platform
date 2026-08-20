@@ -120,23 +120,29 @@ The emulator supports runtime entity management through [`ServiceBusAdministrati
 
 ## Verify it works
 
-Add an endpoint that publishes through the bus and verify the handler executes:
+For a one-off smoke test, replace `app.Run()` with a start-publish-stop sequence. `IMessageBus` is registered as scoped, so resolve it from a service scope:
 
 ```csharp
-app.MapPost("/orders", async (IMessageBus bus) =>
-{
-    await bus.PublishAsync(new OrderPlacedEvent
-    {
-        OrderId = Guid.NewGuid(),
-        CustomerId = "customer-1",
-        TotalAmount = 99.99m
-    }, CancellationToken.None);
+await app.StartAsync();
 
-    return Results.Ok();
-});
+using (var scope = app.Services.CreateScope())
+{
+    var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+    await bus.PublishAsync(
+        new OrderPlacedEvent
+        {
+            OrderId = Guid.NewGuid(),
+            CustomerId = "customer-1",
+            TotalAmount = 99.99m
+        },
+        CancellationToken.None);
+}
+
+await app.StopAsync();
 ```
 
-Send a POST request to `/orders` and check your application logs. You should see the handler process the event. You can also inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
+Check your application logs. You should see the handler process the event. You can also inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
 
 # How topology works
 

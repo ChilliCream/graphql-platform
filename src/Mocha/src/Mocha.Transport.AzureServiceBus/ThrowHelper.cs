@@ -7,6 +7,11 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             "Either ConnectionString or FullyQualifiedNamespace + Credential must be provided");
 
+    public static Exception ConnectionStringAndNamespaceCredentialMutuallyExclusive()
+        => new InvalidOperationException(
+            "ConnectionString is mutually exclusive with FullyQualifiedNamespace + Credential. "
+            + "Configure only one connection mode.");
+
     // Convention
     public static Exception ReceiveEndpointQueueNameRequired()
         => new InvalidOperationException("Queue name is required");
@@ -58,6 +63,14 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             "AzureServiceBusScheduledMessageStore requires the dispatch context and endpoint "
             + "to belong to its registered Azure Service Bus transport.");
+
+    // Routing
+    public static Exception ExplicitDestinationTargetsAnotherNamespace(Uri destination, Uri topologyAddress)
+        => new InvalidOperationException(
+            $"Explicit destination '{destination}' targets Azure Service Bus namespace "
+            + $"'{destination.Authority}', but this transport is connected to namespace "
+            + $"'{topologyAddress.Authority}'. Route the message through a transport connected to "
+            + "that namespace, or omit the host to target the current namespace implicitly.");
 
     // Topology
     public static Exception TopicAlreadyExists(string topicName)

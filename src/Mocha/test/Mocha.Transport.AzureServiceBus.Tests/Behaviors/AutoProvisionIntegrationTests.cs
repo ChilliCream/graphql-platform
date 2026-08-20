@@ -196,6 +196,47 @@ public class AutoProvisionIntegrationTests
     }
 
     [Fact]
+    public async Task DeclareSubscription_Should_Succeed_When_ExistingBrokerSubscriptionForwardsToExpectedDestination()
+    {
+        // arrange - a subscription with the derived name already exists on the broker, forwarding
+        // to the same destination queue the topology declares, simulating a second instance racing
+        // to provision the identical resource
+        await using var ctx = _fixture.CreateTestContext();
+        var topicName = ctx.TopicName("topic");
+        var queueName = ctx.QueueName("q");
+        var subscriptionName = AzureServiceBusSubscription.GetForwardingSubscriptionName(queueName);
+        var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+        await adminClient.CreateTopicAsync(topicName, cancellationToken);
+        await adminClient.CreateQueueAsync(queueName, cancellationToken);
+        await adminClient.CreateSubscriptionAsync(
+            new CreateSubscriptionOptions(topicName, subscriptionName) { ForwardTo = queueName },
+            cancellationToken);
+
+        // act - provisioning must observe the existing subscription and treat it as already satisfied
+        await using var bus = await new ServiceCollection()
+            .AddMessageBus()
+            .AddAzureServiceBus(t =>
+            {
+                t.ConnectionString(ctx.ConnectionString);
+                t.AdministrationConnectionString(ctx.AdminConnectionString);
+                t.AutoProvision(true);
+                t.DeclareTopic(topicName);
+                t.DeclareQueue(queueName);
+                t.DeclareSubscription(topicName, queueName);
+            })
+            .BuildTestBusAsync();
+
+        // assert - no exception was thrown and the subscription still forwards to the intended queue.
+        // The broker returns ForwardTo as an absolute URI, so compare on the entity path it addresses.
+        var properties = await adminClient.GetSubscriptionAsync(topicName, subscriptionName, cancellationToken);
+        var forwardToEntityPath = Uri.TryCreate(properties.Value.ForwardTo, UriKind.Absolute, out var forwardToUri)
+            ? forwardToUri.AbsolutePath.Trim('/')
+            : properties.Value.ForwardTo?.Trim('/');
+        Assert.Equal(queueName, forwardToEntityPath);
+    }
+
+    [Fact]
     public async Task ExplicitTopology_Should_Deliver_When_AutoProvisionEnabledOnResources()
     {
         // arrange - transport auto-provision disabled, but individual resources enabled

@@ -1,6 +1,8 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
+using Mocha.Transport.AzureServiceBus.Tests.Topology;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Descriptors;
 
@@ -136,17 +138,32 @@ public class AzureServiceBusUnifiedQueueTests
     {
         // arrange
         Action action = () =>
-            CreateTransport(t =>
-            {
-                t.BindExplicitly();
-                t.Queue("forwarding-consumer-source").ForwardTo("forwarding-consumer-target").Consumer<OrderConsumer>();
-            });
+        {
+            var services = new ServiceCollection();
+            services
+                .AddMessageBus()
+                .AddConsumer<OrderConsumer>()
+                .AddAzureServiceBus(t =>
+                {
+                    t.ConnectionString(DummyConnectionString);
+                    t.BindExplicitly();
+                    t.Queue("forwarding-consumer-source")
+                        .ForwardTo("forwarding-consumer-target")
+                        .Consumer<OrderConsumer>();
+                })
+                .BuildRuntime();
+        };
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(action);
 
         // assert
-        Assert.Contains("DeclareQueue", exception.Message);
+        Assert.Equal(
+            "Receive endpoint 'forwarding-consumer-source' cannot target queue 'forwarding-consumer-source' "
+                + "configured with auto-forwarding (ForwardTo). The broker rejects receivers on an "
+                + "auto-forwarding source. Declare forwarding-only queues with DeclareQueue instead of "
+                + "Queue or Endpoint.",
+            exception.Message);
     }
 
     [Fact]
@@ -172,6 +189,128 @@ public class AzureServiceBusUnifiedQueueTests
 
         var endpoint = Assert.Single(endpoints);
         Assert.Equal("orders", endpoint.Name);
+    }
+
+    [Fact]
+    public void QueueEndpointMerge_Should_PreferExplicitEndpointMaxConcurrency_When_QueueAlsoSetsIt()
+    {
+        // arrange
+        var (_, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").MaxConcurrency(2);
+            t.Endpoint("orders").MaxConcurrency(9);
+        });
+
+        // act
+        var endpoint = configuration.ReceiveEndpoints.Single();
+
+        // assert
+        Assert.Equal(9, endpoint.MaxConcurrency);
+    }
+
+    [Fact]
+    public void QueueEndpointMerge_Should_PreferExplicitEndpointPrefetchCount_When_QueueAlsoSetsIt()
+    {
+        // arrange
+        var (_, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").PrefetchCount(2);
+            t.Endpoint("orders").PrefetchCount(9);
+        });
+
+        // act
+        var endpoint = Assert.IsType<AzureServiceBusReceiveEndpointConfiguration>(configuration.ReceiveEndpoints.Single());
+
+        // assert
+        Assert.Equal(9, endpoint.PrefetchCount);
+    }
+
+    [Fact]
+    public void QueueEndpointMerge_Should_PreferExplicitEndpointFaultEndpoint_When_QueueAlsoSetsIt()
+    {
+        // arrange
+        var (_, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").FaultEndpoint(new Uri("queue:from-queue-error"));
+            t.Endpoint("orders").FaultEndpoint(new Uri("queue:from-endpoint-error"));
+        });
+
+        // act
+        var endpoint = configuration.ReceiveEndpoints.Single();
+        var fault = endpoint.Features.Get<ReceiveFaultEndpointFeature>();
+
+        // assert
+        Assert.Equal("queue:from-endpoint-error", fault?.Address?.OriginalString);
+    }
+
+    [Fact]
+    public void QueueEndpointMerge_Should_PreferExplicitEndpointSkippedEndpoint_When_QueueAlsoSetsIt()
+    {
+        // arrange
+        var (_, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").SkippedEndpoint(new Uri("queue:from-queue-skipped"));
+            t.Endpoint("orders").SkippedEndpoint(new Uri("queue:from-endpoint-skipped"));
+        });
+
+        // act
+        var endpoint = configuration.ReceiveEndpoints.Single();
+        var skipped = endpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+
+        // assert
+        Assert.Equal("queue:from-endpoint-skipped", skipped?.Address?.OriginalString);
+    }
+
+    [Fact]
+    public void QueueEndpointMerge_Should_PreferExplicitEndpointDisabledFault_When_QueueSetsAddress()
+    {
+        // arrange
+        // The endpoint explicitly disables the fault endpoint; the queue's address must not resurrect it.
+        var (_, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").FaultEndpoint(new Uri("queue:from-queue-error"));
+            t.Endpoint("orders").DisableFaultEndpoint();
+        });
+
+        // act
+        var endpoint = configuration.ReceiveEndpoints.Single();
+        var fault = endpoint.Features.Get<ReceiveFaultEndpointFeature>();
+
+        // assert
+        Assert.True(fault?.IsDisabled);
+        Assert.Null(fault?.Address);
+    }
+
+    [Fact]
+    public void Describe_Should_ShowSameTopology_When_ConfigurationUsesNoUnifiedQueueApi()
+    {
+        // arrange
+        // A configuration declared entirely through DeclareQueue()/Endpoint() (no Queue() API)
+        // must flow through the unified queue lowering pass unchanged.
+        var services = new ServiceCollection();
+        var runtime = services
+            .AddMessageBus()
+            .AddConsumer<OrderConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.ConnectionString(DummyConnectionString);
+                t.BindExplicitly();
+                t.DeclareQueue("orders").AutoProvision(true);
+                t.Endpoint("orders").Consumer<OrderConsumer>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        AzureServiceBusDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
     private static (

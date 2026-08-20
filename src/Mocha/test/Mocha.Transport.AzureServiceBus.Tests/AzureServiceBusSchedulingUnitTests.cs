@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
@@ -247,6 +249,138 @@ public sealed class AzureServiceBusSchedulingUnitTests
             AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow));
     }
 
+    [Theory]
+    [InlineData(ServiceBusFailureReason.MessageNotFound)]
+    [InlineData(ServiceBusFailureReason.MessagingEntityNotFound)]
+    public async Task CancelAsync_Should_ReturnFalse_When_ScheduledMessageOrEntityNoLongerExists(
+        ServiceBusFailureReason reason)
+    {
+        // arrange
+        var (client, bus) = CreateBus();
+        await using var busScope = bus;
+        using var scope = busScope.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var result = await messageBus.ScheduleSendAsync(
+            new ProcessPayment { OrderId = "ORD-1", Amount = 10m },
+            DateTimeOffset.UtcNow.AddMinutes(5),
+            CancellationToken.None);
+        client.CreatedSender!.CancelFailure = new ServiceBusException("gone", reason);
+
+        // act
+        var cancelled = await messageBus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None);
+
+        // assert
+        Assert.False(cancelled);
+        Assert.Equal(1, client.CreatedSender.CancelScheduledMessageCallCount);
+    }
+
+    [Fact]
+    public async Task CancelAsync_Should_PropagateException_When_ServiceBusFailureReasonIsUnrelated()
+    {
+        // arrange
+        var (client, bus) = CreateBus();
+        await using var busScope = bus;
+        using var scope = busScope.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var result = await messageBus.ScheduleSendAsync(
+            new ProcessPayment { OrderId = "ORD-1", Amount = 10m },
+            DateTimeOffset.UtcNow.AddMinutes(5),
+            CancellationToken.None);
+        client.CreatedSender!.CancelFailure =
+            new ServiceBusException("timeout", ServiceBusFailureReason.ServiceTimeout);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ServiceBusException>(
+            () => messageBus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None).AsTask());
+
+        // assert
+        Assert.Equal(ServiceBusFailureReason.ServiceTimeout, exception.Reason);
+        Assert.Equal(1, client.CreatedSender.CancelScheduledMessageCallCount);
+    }
+
+    private static (CancelOutcomeServiceBusClient Client, TestBus Bus) CreateBus()
+    {
+        var client = new CancelOutcomeServiceBusClient();
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
+        var provider = builder.Services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        return (client, new TestBus(provider, runtime));
+    }
+
     private const string DummyConnectionString =
         "Endpoint=sb://localhost/;SharedAccessKeyName=test;SharedAccessKey=test";
+
+    /// <summary>
+    /// A <see cref="ServiceBusClient"/> test double that hands out a single
+    /// <see cref="CancelOutcomeServiceBusSender"/> so tests can control the outcome of
+    /// <see cref="ServiceBusSender.CancelScheduledMessageAsync(long, CancellationToken)"/> without a
+    /// live namespace. The Azure Service Bus emulator cannot produce the MessageNotFound or
+    /// MessagingEntityNotFound cancellation reasons, so this facade is the only way to exercise them.
+    /// </summary>
+    private sealed class CancelOutcomeServiceBusClient : ServiceBusClient
+    {
+        public CancelOutcomeServiceBusSender? CreatedSender { get; private set; }
+
+        public override string FullyQualifiedNamespace => "fake.servicebus.windows.net";
+
+        public override ServiceBusSender CreateSender(string queueOrTopicName)
+            => CreatedSender = new CancelOutcomeServiceBusSender(queueOrTopicName);
+
+        public override ServiceBusSender CreateSender(string queueOrTopicName, ServiceBusSenderOptions options)
+            => CreateSender(queueOrTopicName);
+
+        public override ValueTask DisposeAsync() => default;
+    }
+
+    /// <summary>
+    /// A <see cref="ServiceBusSender"/> test double whose
+    /// <see cref="CancelScheduledMessageAsync(long, CancellationToken)"/> throws a caller-supplied
+    /// <see cref="ServiceBusException"/> instead of contacting a live namespace.
+    /// </summary>
+    private sealed class CancelOutcomeServiceBusSender(string entityPath) : ServiceBusSender
+    {
+        private bool _closed;
+
+        public override string EntityPath { get; } = entityPath;
+
+        public override bool IsClosed => _closed;
+
+        public int CancelScheduledMessageCallCount { get; private set; }
+
+        public ServiceBusException? CancelFailure { get; set; }
+
+        public override Task<long> ScheduleMessageAsync(
+            ServiceBusMessage message,
+            DateTimeOffset scheduledEnqueueTime,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(1L);
+
+        public override Task CancelScheduledMessageAsync(
+            long sequenceNumber,
+            CancellationToken cancellationToken = default)
+        {
+            CancelScheduledMessageCallCount++;
+
+            if (CancelFailure is { } exception)
+            {
+                throw exception;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public override ValueTask DisposeAsync()
+        {
+            _closed = true;
+            return default;
+        }
+    }
 }

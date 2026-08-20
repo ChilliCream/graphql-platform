@@ -19,6 +19,7 @@ internal sealed class QueueHeartbeat : IAsyncDisposable
     private readonly string _entityPath;
     private readonly CancellationTokenSource _cts = new();
     private readonly Task _runningTask;
+    private bool _disposed;
 
     private QueueHeartbeat(
         ServiceBusReceiver? receiver,
@@ -64,6 +65,13 @@ internal sealed class QueueHeartbeat : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         await _cts.CancelAsync();
 
         try
