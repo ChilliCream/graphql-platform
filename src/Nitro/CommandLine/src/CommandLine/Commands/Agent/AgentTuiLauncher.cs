@@ -36,7 +36,6 @@ internal static class AgentTuiLauncher
         CancellationToken cancellationToken)
     {
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
-        var mailActor = MailActor.Resolve(null, environmentVariableProvider);
 
         var loader = new BoardDataLoader(taskStore, timeProvider);
         var boardMode = new BoardMode(loader);
@@ -44,11 +43,7 @@ internal static class AgentTuiLauncher
         var treeView = new DependencyTreeView(taskStore, rootId: "");
         var tasksTab = new TuiTab("Tasks", boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-        var mailMode = new MailMode(mailStore, mailActor, timeProvider);
-        var mailTab = new TuiTab(
-            () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
-            mailMode,
-            new KeyDispatcher(MailKeyMap.CreateDefault()));
+        var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
 
         var shell = new TuiShell(
             [tasksTab, mailTab],
@@ -68,5 +63,37 @@ internal static class AgentTuiLauncher
         await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
 
         return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Builds the Mail tab from the mail actor resolved against
+    /// <paramref name="environmentVariableProvider"/>. When the actor fails
+    /// validation (an <see cref="ExitException"/> from
+    /// <see cref="MailActor.Resolve"/>), the tab hosts a static
+    /// <see cref="MailUnavailableMode"/> instead, so the shell still opens
+    /// on the Tasks tab with a working Mail tab title and no unread
+    /// polling.
+    /// </summary>
+    internal static TuiTab BuildMailTab(
+        IMailStore mailStore,
+        TimeProvider timeProvider,
+        IEnvironmentVariableProvider environmentVariableProvider)
+    {
+        try
+        {
+            var mailActor = MailActor.Resolve(null, environmentVariableProvider);
+            var mailMode = new MailMode(mailStore, mailActor, timeProvider);
+
+            return new TuiTab(
+                () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
+                mailMode,
+                new KeyDispatcher(MailKeyMap.CreateDefault()));
+        }
+        catch (ExitException exception)
+        {
+            var mode = new MailUnavailableMode(exception.Message);
+
+            return new TuiTab("Mail", mode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+        }
     }
 }
