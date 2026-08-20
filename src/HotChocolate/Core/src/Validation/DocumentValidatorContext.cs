@@ -206,7 +206,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     /// </param>
     public bool IsFragmentVariable(string variableName)
     {
-        for (var i = 0; i < _shadowedVariables.Count; i++)
+        // The innermost scope is at the end of the list.
+        for (var i = _shadowedVariables.Count - 1; i >= 0; i--)
         {
             if (_shadowedVariables[i].Name.Equals(variableName, StringComparison.Ordinal))
             {
