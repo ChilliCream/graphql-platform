@@ -43,7 +43,7 @@ internal sealed class BoardMailCommand : Command
         var dispatcher = new KeyDispatcher(MailKeyMap.CreateDefault());
         var shell = new TuiShell(dispatcher, mode, console.Profile.Width, console.Profile.Height);
         var application = new TuiApplication(console);
-        var dbWatcher = new TaskDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
+        var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();

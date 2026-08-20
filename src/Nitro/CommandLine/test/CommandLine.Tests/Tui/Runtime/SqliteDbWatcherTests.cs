@@ -3,13 +3,13 @@ using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Runtime;
 
-public sealed class TaskDbWatcherTests : IDisposable
+public sealed class SqliteDbWatcherTests : IDisposable
 {
     private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(50);
     private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
 
     private readonly string _directory =
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "task-db-watcher-tests-" + Guid.NewGuid())).FullName;
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "sqlite-db-watcher-tests-" + Guid.NewGuid())).FullName;
 
     public void Dispose()
     {
@@ -26,7 +26,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -49,7 +49,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -72,7 +72,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -108,7 +108,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -130,7 +130,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "does-not-exist", "tasks.db");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
 
         // act
@@ -151,7 +151,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 

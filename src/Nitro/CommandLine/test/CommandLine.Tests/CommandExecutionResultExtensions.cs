@@ -28,4 +28,19 @@ internal static class CommandExecutionResultExtensions
         output.MatchInlineSnapshot(stdout);
         Assert.Equal(0, result.ExitCode);
     }
+
+    /// <summary>
+    /// Asserts the guidance a bare group command with subcommands but no
+    /// action prints: the "Required command was not provided." parse error
+    /// on stderr, and the group's own help (with the executable name
+    /// normalized the same way <see cref="AssertHelpOutput"/> does) on
+    /// stdout, exiting 1.
+    /// </summary>
+    public static void AssertBareGroupGuidance(this CommandResult result, string stdout)
+    {
+        result.StdErr.MatchInlineSnapshot("Required command was not provided.");
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(stdout);
+        Assert.Equal(1, result.ExitCode);
+    }
 }

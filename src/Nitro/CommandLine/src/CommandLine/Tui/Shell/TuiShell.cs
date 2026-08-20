@@ -86,6 +86,9 @@ internal sealed class TuiShell
     /// only activates while the tab at that index is active. A one-row tab strip
     /// renders above the content region whenever more than one tab is hosted.
     /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
+    /// </exception>
     public TuiShell(
         IReadOnlyList<TuiTab> tabs,
         int initialWidth,
@@ -103,9 +106,15 @@ internal sealed class TuiShell
             throw new ArgumentException("A shell needs at least one tab.", nameof(tabs));
         }
 
+        if (tasksTabIndex < 0 || tasksTabIndex >= tabs.Count)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(tasksTabIndex), tasksTabIndex, "Must be a valid index into tabs.");
+        }
+
         _tabs = tabs;
         _activeTabIndex = 0;
-        _tasksTab = tabs[Math.Clamp(tasksTabIndex, 0, tabs.Count - 1)];
+        _tasksTab = tabs[tasksTabIndex];
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
@@ -244,7 +253,20 @@ internal sealed class TuiShell
     {
         foreach (var tab in _tabs)
         {
-            foreach (var followUp in tab.ActiveMode.Handle(new TuiMessage.RefreshRequested()))
+            var followUps = tab.ActiveMode.Handle(new TuiMessage.RefreshRequested());
+
+            if (!ReferenceEquals(tab, ActiveTab))
+            {
+                // An inactive tab's own refresh follow-ups stay scoped to
+                // that tab's mode: HandleMessage acts on shell-level state
+                // (dialogs, overlays) and the currently ACTIVE tab, so
+                // routing an inactive tab's follow-up through it would leak
+                // that tab's refresh outcome onto whichever tab the user is
+                // actually looking at.
+                continue;
+            }
+
+            foreach (var followUp in followUps)
             {
                 HandleMessage(followUp);
             }

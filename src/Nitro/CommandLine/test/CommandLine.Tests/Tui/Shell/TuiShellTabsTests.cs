@@ -139,6 +139,62 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public void Handle_Should_SwitchTab_When_TheKeyCarriesNoConsoleKey()
+    {
+        // arrange: Linux's Console.ReadKey never sets ConsoleKey.Oem4/Oem6
+        // for '['/']', only KeyChar (see TabSwitchKeysTests), so a
+        // shell-level case with ConsoleKey.None closes the gap the
+        // Oem4/Oem6-only tests above leave for that platform shape.
+        var tab1Mode = new FakeTuiMode();
+        var tab2Mode = new FakeTuiMode();
+        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.None)));
+
+        // assert
+        Assert.Single(tab2Mode.ResizeCalls);
+    }
+
+    [Fact]
+    public void Constructor_Should_Throw_When_TasksTabIndexIsOutOfRange()
+    {
+        // arrange
+        var tabs = new[] { CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode()) };
+
+        // act & assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TuiShell(tabs, 80, 24, tasksTabIndex: 2));
+    }
+
+    [Fact]
+    public void HandleDataChanged_Should_NotRouteAnInactiveTabsFollowUp_ToTheActiveTab()
+    {
+        // arrange: the mail tab (inactive) is scripted to return a
+        // follow-up from its own RefreshRequested handling; that follow-up
+        // must reach only the mail tab's own mode, never the active tasks
+        // tab's mode via the shell's shared HandleMessage.
+        var mailFollowUp = new TuiMessage.ShowToast("mail refreshed", ToastStyle.Info);
+        var tasksMode = new FakeTuiMode();
+        var mailMode = new FakeTuiMode
+        {
+            HandleResult = message => message is TuiMessage.RefreshRequested ? [mailFollowUp] : []
+        };
+        var shell = new TuiShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)], 80, 24);
+        tasksMode.HandledMessages.Clear();
+        mailMode.HandledMessages.Clear();
+
+        // act
+        shell.Handle(new TuiEvent.DataChangedEvent());
+
+        // assert: the mail tab saw only its own RefreshRequested (its
+        // follow-up was not fed back into it), and the active tasks tab saw
+        // only its own RefreshRequested too, the mail tab's follow-up never
+        // reaching it.
+        Assert.Equal([new TuiMessage.RefreshRequested()], mailMode.HandledMessages);
+        Assert.Equal([new TuiMessage.RefreshRequested()], tasksMode.HandledMessages);
+    }
+
+    [Fact]
     public void Handle_Should_NotSwitchTab_When_ATaskOverlayIsCapturingInput()
     {
         // arrange

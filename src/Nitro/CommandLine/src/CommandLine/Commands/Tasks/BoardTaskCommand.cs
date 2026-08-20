@@ -56,7 +56,7 @@ internal sealed class BoardTaskCommand : Command
             store,
             actor);
         var application = new TuiApplication(console);
-        var dbWatcher = new TaskDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
+        var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();

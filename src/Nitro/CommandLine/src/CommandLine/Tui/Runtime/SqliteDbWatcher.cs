@@ -3,13 +3,13 @@ using System.Threading.Channels;
 namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
 /// <summary>
-/// A <see cref="TuiEventSource"/> that watches a task workspace's SQLite database
+/// A <see cref="TuiEventSource"/> that watches an agent workspace's SQLite database
 /// file, including its <c>-wal</c> and <c>-shm</c> siblings, and publishes a
 /// debounced <see cref="TuiEvent.DataChangedEvent"/> whenever the on-disk data may
 /// have changed. The parent directory is watched rather than the file itself so
 /// that a full file replacement (not just an in-place write) is also caught.
 /// </summary>
-internal sealed class TaskDbWatcher(string databasePath, TimeSpan? debounce = null)
+internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = null)
 {
     private static readonly TimeSpan DefaultDebounce = TimeSpan.FromMilliseconds(200);
 
