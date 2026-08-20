@@ -43,9 +43,17 @@ public sealed class SqliteDbWatcherTests : IDisposable
     }
 
     [Fact]
-    public async Task RunAsync_Should_PublishDataChangedEvent_When_WalSiblingWritten()
+    public async Task RunAsync_Should_NotPublishDataChangedEvent_When_OnlyWalSiblingWritten()
     {
-        // arrange
+        // arrange: every store connection in this codebase opens without
+        // pooling and is disposed after a single query (bd-agent-unify-814.7),
+        // so SQLite creates, checkpoints, and deletes the -wal sibling as
+        // that connection closes even for a plain read, the same file churn
+        // a real write produces on -wal alone. A consumer of
+        // DataChangedEvent that itself reads the database (for example a
+        // hosted tab's own refresh) must not see its own read echoed back
+        // as a fresh change: that would form a self-sustaining refresh loop
+        // with no natural quiescence.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -57,6 +65,70 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
         await Task.Delay(Debounce, testToken);
         File.WriteAllText(databasePath + "-wal", "wal-bytes");
+        File.Delete(databasePath + "-wal");
+        await Task.Delay(Debounce * 4, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.False(channel.Reader.TryRead(out _));
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_NotPublishDataChangedEvent_When_OnlyShmSiblingWritten()
+    {
+        // arrange: same self-triggering shape as the -wal sibling above, for
+        // the -shm sibling a plain read also churns through.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(Debounce, testToken);
+
+        // Simulate a burst of read-triggered -wal/-shm churn (create, modify,
+        // delete), the same shape a self-sustaining loop would produce.
+        for (var i = 0; i < 5; i++)
+        {
+            File.WriteAllText(databasePath + "-shm", "shm-" + i);
+            await Task.Delay(Debounce / 5, testToken);
+        }
+
+        File.Delete(databasePath + "-shm");
+        await Task.Delay(Debounce * 4, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.False(channel.Reader.TryRead(out _));
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_ForARealWrite_AmidWalAndShmChurn()
+    {
+        // arrange: a real write still lands on the main database file itself
+        // (checkpointed back into it as the writing connection closes, same
+        // as the read-triggered churn above), so it must still be detected
+        // even surrounded by the -wal/-shm noise every connection produces.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(Debounce, testToken);
+        File.WriteAllText(databasePath + "-wal", "wal-bytes");
+        File.WriteAllText(databasePath + "-shm", "shm-bytes");
+        File.WriteAllText(databasePath, "changed");
+        File.Delete(databasePath + "-wal");
+        File.Delete(databasePath + "-shm");
         var received = await ReadOneAsync(channel.Reader, testToken);
         cts.Cancel();
         await runTask;
@@ -80,12 +152,11 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
         await Task.Delay(Debounce, testToken);
 
-        // A burst of writes to the db and its WAL/SHM siblings within one debounce
-        // window resets the same timer rather than each scheduling its own event.
+        // A burst of writes to the db file within one debounce window resets
+        // the same timer rather than each scheduling its own event.
         for (var i = 0; i < 5; i++)
         {
             File.WriteAllText(databasePath, "changed-" + i);
-            File.WriteAllText(databasePath + "-wal", "wal-" + i);
             await Task.Delay(Debounce / 5, testToken);
         }
 

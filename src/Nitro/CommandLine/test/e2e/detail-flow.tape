@@ -5,7 +5,7 @@
 #
 # There is no dedicated interactive "detail" entry command (BoardTaskCommand
 # and AgentTuiLauncher are the only TuiShell construction sites, see
-# search-flow.tape's header); the detail view and the tree explorer are both
+# agent-root-flow.tape's header); the detail view and the tree explorer are both
 # reached through search mode, same as search-flow.tape: '/' into search,
 # Tab Tab from the query input to the detail pane. From there this flow
 # exercises what search-flow.tape does not: the detail body's dependency

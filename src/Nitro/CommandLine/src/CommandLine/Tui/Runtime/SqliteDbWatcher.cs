@@ -4,10 +4,17 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
 /// <summary>
 /// A <see cref="TuiEventSource"/> that watches an agent workspace's SQLite database
-/// file, including its <c>-wal</c> and <c>-shm</c> siblings, and publishes a
-/// debounced <see cref="TuiEvent.DataChangedEvent"/> whenever the on-disk data may
-/// have changed. The parent directory is watched rather than the file itself so
-/// that a full file replacement (not just an in-place write) is also caught.
+/// file and publishes a debounced <see cref="TuiEvent.DataChangedEvent"/> whenever
+/// the on-disk data may have changed. The parent directory is watched rather than
+/// the file itself so that a full file replacement (not just an in-place write) is
+/// also caught. The <c>-wal</c> and <c>-shm</c> siblings are deliberately excluded:
+/// every store connection in this codebase opens without pooling and is disposed
+/// again after a single query, so even a plain read makes SQLite create, checkpoint,
+/// and delete both siblings as that connection closes, the same file churn a real
+/// write produces. The main database file's own mtime does not move for that
+/// checkpoint-of-nothing, only when a write actually lands, so it alone is what
+/// distinguishes a real data change from a store read triggering this watcher on
+/// itself.
 /// </summary>
 internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = null)
 {
@@ -90,12 +97,10 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     }
 
     /// <summary>
-    /// Matches the database file itself or its WAL/SHM siblings, ignoring every
-    /// other file in the watched directory (for example the JSONL export).
+    /// Matches only the database file itself, ignoring every other file in the
+    /// watched directory: the JSONL export, and the <c>-wal</c>/<c>-shm</c>
+    /// siblings a plain read also churns through; see the type-level remarks.
     /// </summary>
     private static bool IsRelevant(string? changedName, string databaseFileName)
-        => changedName is not null
-            && (changedName == databaseFileName
-                || changedName == databaseFileName + "-wal"
-                || changedName == databaseFileName + "-shm");
+        => changedName == databaseFileName;
 }

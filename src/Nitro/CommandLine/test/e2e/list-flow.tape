@@ -1,7 +1,7 @@
 # End-to-end recording of `nitro agent tasks list` against the fixture workspace.
 #
 # Exercises the default (open, non-tombstone) listing over a real
-# `.nitro/tasks/tasks.db`, ordered by priority/created_at/id, against the
+# `.nitro/agents/agents.db`, ordered by priority/created_at/id, against the
 # deterministic dataset in fixtures/seed.sql. Needs no auth: task commands do
 # not call the Nitro backend.
 # Produces list-flow.gif + list-flow.txt.
