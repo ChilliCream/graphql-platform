@@ -2,6 +2,7 @@ using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
@@ -25,6 +26,7 @@ internal sealed class SourceSchemaParser(
 {
     private static readonly SchemaValidator s_schemaValidator = new();
     private readonly SourceSchemaParserOptions _options = options ?? new SourceSchemaParserOptions();
+    private readonly ScopedCompositionLog _log = new(log);
 
     public CompositionResult<MutableSchemaDefinition> Parse()
     {
@@ -72,7 +74,7 @@ internal sealed class SourceSchemaParser(
         }
         catch (Exception ex)
         {
-            log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema));
+            _log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema));
         }
 
         // Parse optional source schema extensions.
@@ -91,14 +93,14 @@ internal sealed class SourceSchemaParser(
             }
             catch (Exception ex)
             {
-                log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema, inExtensions: true));
+                _log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema, inExtensions: true));
             }
         }
 
         if (isApolloFederationV1
             && FederationSchemaTransformer.IsFederationSchema(schema))
         {
-            log.Write(
+            _log.Write(
                 FusionLogEntryBuilder.New()
                     .SetMessage(
                         SourceSchemaParser_ConflictingApolloFederationVersion,
@@ -111,23 +113,23 @@ internal sealed class SourceSchemaParser(
 
         if (isApolloFederationV1)
         {
-            FederationV1SchemaAnalyzer.Validate(schema, log);
+            FederationV1SchemaAnalyzer.Validate(schema, _log);
         }
 
         // Schema validation.
-        if (_options.EnableSchemaValidation && !log.HasErrors)
+        if (_options.EnableSchemaValidation && !_log.HasErrors)
         {
             var validationLog = new ValidationLog();
             s_schemaValidator.Validate(schema, validationLog);
 
             if (validationLog.HasErrors)
             {
-                log.WriteValidationLog(
+                _log.WriteValidationLog(
                     validationLog, schema, invalidFieldDeprecationSeverity);
             }
         }
 
-        return log.HasErrors
+        return _log.HasErrors
             ? ErrorHelper.SourceSchemaParsingFailed()
             : schema;
     }
