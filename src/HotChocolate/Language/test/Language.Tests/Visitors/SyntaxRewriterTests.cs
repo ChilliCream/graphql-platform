@@ -128,7 +128,7 @@ public class SyntaxRewriterTests
         // arrange
         var document = Parse(
             "{ ...Foo(bar: 1) }",
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // act
         var rewriter = SyntaxRewriter.Create(static node => node);
@@ -144,7 +144,7 @@ public class SyntaxRewriterTests
         // arrange
         var document = Parse(
             "{ ...Foo(bar: 1) }",
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // act
         var rewriter = SyntaxRewriter.Create(

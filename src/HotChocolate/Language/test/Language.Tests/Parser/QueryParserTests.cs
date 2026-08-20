@@ -790,7 +790,7 @@ public class QueryParserTests
         // act
         var document = Utf8GraphQLParser.Parse(
             query,
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // assert
         var operation = (OperationDefinitionNode)document.Definitions[0];
@@ -808,7 +808,7 @@ public class QueryParserTests
         // act
         var document = Utf8GraphQLParser.Parse(
             query,
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // assert
         var fragment = (FragmentDefinitionNode)document.Definitions[0];
@@ -825,7 +825,7 @@ public class QueryParserTests
         // act
         var document = Utf8GraphQLParser.Parse(
             query,
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // assert
         var operation = (OperationDefinitionNode)document.Definitions[0];

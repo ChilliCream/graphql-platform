@@ -137,7 +137,7 @@ public class SyntaxPrinterTests
         const string query = "{ ...Foo(bar: 1, baz: [\"abc\"]) }";
 
         var queryDocument = Utf8GraphQLParser.Parse(query,
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // act
         var printed = queryDocument.Print(false);
@@ -153,7 +153,7 @@ public class SyntaxPrinterTests
         const string query = "{ ...Foo(bar: $bar) @include(if: true) }";
 
         var queryDocument = Utf8GraphQLParser.Parse(query,
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // act
         var printed = queryDocument.Print(false);

@@ -5,9 +5,19 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class ParserOptionsExperimental
 {
-    internal ParserOptionsExperimental(
-        bool allowFragmentVariables,
-        bool allowFragmentArguments)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ParserOptionsExperimental"/>.
+    /// </summary>
+    /// <param name="allowFragmentVariables">
+    /// Defines that the parser shall parse fragment variable definitions.
+    /// </param>
+    /// <param name="allowFragmentArguments">
+    /// Defines that the parser shall parse fragment variable definitions and fragment spread
+    /// arguments.
+    /// </param>
+    public ParserOptionsExperimental(
+        bool allowFragmentVariables = false,
+        bool allowFragmentArguments = false)
     {
         AllowFragmentVariables = allowFragmentVariables;
         AllowFragmentArguments = allowFragmentArguments;

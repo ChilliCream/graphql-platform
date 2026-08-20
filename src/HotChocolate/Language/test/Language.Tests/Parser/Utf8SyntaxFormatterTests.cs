@@ -441,7 +441,7 @@ public class Utf8SyntaxFormatterTests
         // arrange
         var document = Utf8GraphQLOperationParser.Parse(
             Encoding.UTF8.GetBytes("fragment F($a: Int = 1) on Thing { id(x: $a) }"),
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         // act
         var writer = new ArrayBufferWriter<byte>();

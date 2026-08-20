@@ -97,7 +97,7 @@ public class SyntaxVisitorTests
 
         var document = Parse(
             "{ ...Foo(bar: 1, baz: 2) }",
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         var visitor = Create<object?>(
             enter: (n, _) =>
@@ -127,7 +127,7 @@ public class SyntaxVisitorTests
 
         var document = Parse(
             "{ ...Foo(bar: 1) }",
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         var visitor = Create<object?>(
             enter: (n, _) =>
@@ -157,7 +157,7 @@ public class SyntaxVisitorTests
 
         var document = Parse(
             "fragment Foo($bar: Int!, $baz: String) on Thing { id }",
-            new ParserOptions(allowFragmentArguments: true));
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
 
         var visitor = Create<object?>(
             enter: (n, _) =>
