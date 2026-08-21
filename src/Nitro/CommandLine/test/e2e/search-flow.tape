@@ -1,5 +1,13 @@
-# End-to-end recording of the tasks TUI's search mode against the fixture
-# workspace.
+# End-to-end recording of the Tasks tab's search mode against the fixture
+# workspace, launched via bare `nitro agent` (not `agent tasks board`) so
+# the tab strip is on screen throughout, same as
+# board-flow.tape/detail-flow.tape. Proves the bd-agent-unify-814.7 fix:
+# typing a query into the search box while the Mail tab is also hosted now
+# applies (previously a Mail-tab refresh loop raced out and always won
+# against SearchMode's own debounced query reset, because a plain WAL read
+# touches the database's -shm sibling's mtime the same way a write does;
+# SqliteDbWatcher now ignores -shm-only touches, so the Mail tab's own
+# RefreshRequested read no longer retriggers itself).
 #
 # Search mode is reached from the board TUI via the '/'
 # gesture (TuiMessage.FocusSearchRequested, KeyMap.CreateDefaultGlobal): it
@@ -23,8 +31,8 @@
 # is "Checkout crashes on Safari").
 #
 # Fixed geometry (Width/Height below) is the stability lever for this
-# full-screen layout, same as board-flow.tape: changing it requires
-# `--update` of every board-flow*/search-flow*/detail-flow* golden.
+# full-screen layout, same as board-flow.tape/detail-flow.tape: changing it
+# requires `--update` of every board-flow*/search-flow*/detail-flow* golden.
 # Produces search-flow.gif + search-flow.txt.
 
 Output search-flow.gif
@@ -50,7 +58,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks board` Enter
+Type `nitro agent` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape): focus starts on
 # "Blocked", selection on its first row, acme-a1b.

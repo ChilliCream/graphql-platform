@@ -18,7 +18,6 @@ internal sealed class TasksCommand : Command
         Subcommands.Add(new TaskDependencyCommand());
         Subcommands.Add(new DoctorTaskCommand());
         Subcommands.Add(new TaskEpicCommand());
-        Subcommands.Add(new InitTaskCommand());
         Subcommands.Add(new TaskLabelCommand());
         Subcommands.Add(new LintTaskCommand());
         Subcommands.Add(new ListTaskCommand());

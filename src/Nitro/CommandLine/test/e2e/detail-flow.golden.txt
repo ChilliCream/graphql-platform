@@ -1,3 +1,4 @@
+ Tasks   Mail (2)
 ╭─acme-epic1 · blocking · depended on by────────────────────╮
 │   ○ [E] P1 acme-epic1 Launch v2 pricing page              │
 │ ├─ > ● [T] P2 acme-epic1.1 Draft new pricing copy         │
@@ -5,7 +6,6 @@
 │ └─   ○ [T] P2 acme-epic1.2 Wire up billing API            │
 │    └─   ○ [B] P0 acme-a1b Checkout crashes on Safari      │
 ╰───────────────────────────────────────────────────────────╯
-
 
 
 

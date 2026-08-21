@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
@@ -6,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
@@ -67,7 +69,17 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(RemoveTaskLabelCommand.TaskLabelRemovedResult))]
 [JsonSerializable(typeof(TaskComment))]
 [JsonSerializable(typeof(TaskConfigEntry))]
-[JsonSerializable(typeof(InitTaskCommand.TaskWorkspaceInitResult))]
+[JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceInitResult))]
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
+[JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
+[JsonSerializable(typeof(WhoamiAgentCommand.AgentWhoamiResult))]
+[JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
+[JsonSerializable(typeof(MailMessageResult))]
+[JsonSerializable(typeof(MailSendResult))]
+[JsonSerializable(typeof(ListResult<MailInboxRowResult>))]
+[JsonSerializable(typeof(MailMessageDetailResult))]
+[JsonSerializable(typeof(ListResult<MailMessageDetailResult>))]
+[JsonSerializable(typeof(MailIdsResult))]
+[JsonSerializable(typeof(ListResult<MailThreadRowResult>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

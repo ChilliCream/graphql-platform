@@ -50,7 +50,7 @@ public sealed class WhereTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "where");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 
     [Fact]

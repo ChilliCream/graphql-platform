@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
@@ -9,7 +10,10 @@ using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
-internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvider) : ITaskStore
+internal sealed class TaskStore(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    AgentDatabase database) : ITaskStore
 {
     private const string PrefixConfigKey = "prefix";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -26,48 +30,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         TaskStates.Tombstone
     ];
 
-    static TaskStore() => SQLitePCL.Batteries_V2.Init();
-
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)
-    {
-        var connection = await OpenAsync(
-            TaskWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        await connection.ExecuteAsync(TaskStoreSchema.Create);
-        await connection.ExecuteAsync(
-            $"""PRAGMA user_version = {TaskStoreSchema.CurrentVersion};""");
-
-        return connection;
-    }
+        => await database.InitializeAsync(workspaceDirectory, cancellationToken);
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
-        var connection = await OpenAsync(
-            TaskWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
-
-        if (version > TaskStoreSchema.CurrentVersion)
-        {
-            throw new ExitException(
-                "The task workspace was created by a newer version of the Nitro CLI "
-                + $"(schema v{version}, supported up to v{TaskStoreSchema.CurrentVersion}). "
-                + "Update the CLI to use it.");
-        }
-
-        return connection;
+        return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
     public string? FindWorkspaceDirectory()
-        => TaskWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
+        => AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
     private async Task<string?> GetConfigAsync(
         SqliteConnection connection,
@@ -99,7 +77,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
         => await GetConfigAsync(connection, PrefixConfigKey, cancellationToken, transaction)
-            ?? TaskWorkspace.FallbackPrefix;
+            ?? AgentWorkspace.FallbackPrefix;
 
     private async Task<string> CreateTaskIdAsync(
         SqliteConnection connection,
@@ -2190,7 +2168,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         string workspaceDirectory,
         CancellationToken cancellationToken)
     {
-        if (fileSystem.FileExists(TaskWorkspace.GetDatabasePath(workspaceDirectory)))
+        if (fileSystem.FileExists(AgentWorkspace.GetDatabasePath(workspaceDirectory)))
         {
             return;
         }
@@ -2857,22 +2835,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         return new string(suffix);
-    }
-
-    private static async Task<SqliteConnection> OpenAsync(
-        string databasePath,
-        CancellationToken cancellationToken)
-    {
-        // Pooling would keep the database file open after the connection is
-        // disposed; a CLI process runs one command and exits, so it gains
-        // nothing from the pool.
-        var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
-
-        await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
-        return connection;
     }
 
     // These nested row types are internal, not private: Dapper.AOT's

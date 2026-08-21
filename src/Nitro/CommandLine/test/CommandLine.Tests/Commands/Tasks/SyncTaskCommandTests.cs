@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 
@@ -72,7 +72,7 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--flush-only");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 
     [Fact]
@@ -82,21 +82,23 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--import-only");
 
         // assert
-        result.AssertError("No task workspace found. Run `nitro agent tasks init` first.");
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
     }
 
     [Fact]
     public async Task ImportOnly_NoJsonl_ReturnsError()
     {
-        // arrange
+        // arrange: init now writes an empty tasks.jsonl itself, so the "no
+        // jsonl" case is produced by removing it afterward.
         await InitWorkspaceAsync();
+        File.Delete(Path.Combine(WorkspaceDirectory, "tasks.jsonl"));
 
         // act
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--import-only");
 
         // assert
         result.AssertError(
-            "No 'tasks.jsonl' found at '.nitro/tasks/tasks.jsonl'.");
+            "No 'tasks.jsonl' found at '.nitro/agents/tasks.jsonl'.");
     }
 
     [Fact]
@@ -110,9 +112,9 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "sync", "--flush-only");
 
         // assert
-        result.AssertSuccess("✓ Flushed 1 task to '.nitro/tasks/tasks.jsonl'.");
+        result.AssertSuccess("✓ Flushed 1 task to '.nitro/agents/tasks.jsonl'.");
 
-        var jsonlPath = TaskWorkspace.GetJsonlPath(WorkspaceDirectory);
+        var jsonlPath = AgentWorkspace.GetJsonlPath(WorkspaceDirectory);
         Assert.True(File.Exists(jsonlPath));
 
         var content = await File.ReadAllTextAsync(jsonlPath, TestContext.Current.CancellationToken);
@@ -165,7 +167,7 @@ public sealed class SyncTaskCommandTests(NitroCommandFixture fixture)
     public async Task RoundTrip_FlushDeleteDatabaseImport_PrefixSurvives()
     {
         // arrange
-        var initResult = await ExecuteCommandAsync("agent", "tasks", "init", "--prefix", "widget");
+        var initResult = await ExecuteCommandAsync("agent", "init", "--prefix", "widget");
         Assert.Equal(0, initResult.ExitCode);
         var firstId = await CreateTaskAsync("First task");
         Assert.StartsWith("widget-", firstId);

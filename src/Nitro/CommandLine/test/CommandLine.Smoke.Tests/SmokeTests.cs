@@ -41,11 +41,11 @@ public class SmokeTests
         try
         {
             // act
-            var result = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
+            var result = await RunNitroAsync("agent init", workingDirectory: tempDir);
 
             // assert
             Assert.Equal(0, result.ExitCode);
-            Assert.Contains("Initialized task workspace", result.StandardOutput);
+            Assert.Contains("Initialized agent workspace", result.StandardOutput);
         }
         finally
         {
@@ -60,7 +60,7 @@ public class SmokeTests
         var tempDir = CreateTempDirectory();
         try
         {
-            var initResult = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
+            var initResult = await RunNitroAsync("agent init", workingDirectory: tempDir);
             Assert.Equal(0, initResult.ExitCode);
 
             // act
@@ -68,6 +68,44 @@ public class SmokeTests
 
             // assert
             Assert.Equal(0, result.ExitCode);
+        }
+        finally
+        {
+            DeleteDirectory(tempDir);
+        }
+    }
+
+    [Fact]
+    public async Task Mail_Init_Register_Send_Inbox_Round_Trips()
+    {
+        // arrange: a fresh mail workspace, one actor (self-addressed, so the
+        // round trip needs no second registered agent), all against the
+        // real published-DI binary in a fresh temp directory (CliWrap
+        // pattern of Task_Init_Creates_Workspace_In_Fresh_Directory).
+        var tempDir = CreateTempDirectory();
+        try
+        {
+            var initResult = await RunNitroAsync("agent init", workingDirectory: tempDir);
+            Assert.Equal(0, initResult.ExitCode);
+            Assert.Contains("Initialized agent workspace", initResult.StandardOutput);
+
+            var registerResult = await RunNitroAsync("agent register", workingDirectory: tempDir);
+            Assert.Equal(0, registerResult.ExitCode);
+            Assert.Contains("Registered 'smoke-test'", registerResult.StandardOutput);
+
+            var sendResult = await RunNitroAsync(
+                "agent mail send smoke-test --subject Smoke-round-trip --body Round-trip-ok",
+                workingDirectory: tempDir);
+            Assert.Equal(0, sendResult.ExitCode);
+            Assert.Contains("Sent '", sendResult.StandardOutput);
+
+            // act
+            var inboxResult = await RunNitroAsync("agent mail inbox", workingDirectory: tempDir);
+
+            // assert
+            Assert.Equal(0, inboxResult.ExitCode);
+            Assert.Contains("Smoke-round-trip", inboxResult.StandardOutput);
+            Assert.Contains("1 message(s)", inboxResult.StandardOutput);
         }
         finally
         {

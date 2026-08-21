@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
@@ -25,14 +26,14 @@ public abstract class TasksCommandTestBase : CommandTestBase
     protected string WorkingDirectory { get; }
 
     protected string WorkspaceDirectory
-        => TaskWorkspace.GetDirectory(WorkingDirectory);
+        => AgentWorkspace.GetDirectory(WorkingDirectory);
 
     protected string DatabasePath
-        => TaskWorkspace.GetDatabasePath(WorkspaceDirectory);
+        => AgentWorkspace.GetDatabasePath(WorkspaceDirectory);
 
     protected async Task InitWorkspaceAsync()
     {
-        var result = await ExecuteCommandAsync("agent", "tasks", "init");
+        var result = await ExecuteCommandAsync("agent", "init");
         Assert.Equal(0, result.ExitCode);
     }
 

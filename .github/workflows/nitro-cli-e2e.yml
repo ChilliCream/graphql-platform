@@ -60,7 +60,7 @@ jobs:
           cd "$work_dir"
           export NITRO_TASK_ACTOR=ci
 
-          "$nitro_bin" agent tasks init
+          "$nitro_bin" agent init
           "$nitro_bin" agent tasks list
 
           create_output="$("$nitro_bin" agent tasks create "AOT smoke test task")"

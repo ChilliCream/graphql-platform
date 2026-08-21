@@ -1,0 +1,6 @@
+$ nitro agent mail send "not.a.valid.agent" --subject "Status update" --body "All good."; echo
+"[nitro exit: $?]"
+Invalid agent name 'not.a.valid.agent'. Agent names may only contain lowercase letters, digits,
+hyphens, and underscores.
+[nitro exit: 1]
+$

@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -27,7 +28,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
         _timeProvider = new FakeTimeProvider(
             new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
 
-        _store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider);
+        _store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
     }
 
     public async ValueTask DisposeAsync()
@@ -833,8 +834,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         var freshRoot = Path.Combine(_tempRoot.FullName, "fresh");
         Directory.CreateDirectory(freshRoot);
-        var store = new TaskStore(new TestFileSystem(freshRoot), _timeProvider);
-        var workspaceDirectory = TaskWorkspace.GetDirectory(freshRoot);
+        var store = new TaskStore(new TestFileSystem(freshRoot), _timeProvider, new AgentDatabase());
+        var workspaceDirectory = AgentWorkspace.GetDirectory(freshRoot);
         Directory.CreateDirectory(workspaceDirectory);
 
         // act
@@ -868,7 +869,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
 
     private async Task<SqliteConnection> SeedAsync(CancellationToken cancellationToken)
     {
-        var workspaceDirectory = TaskWorkspace.GetDirectory(_workingDirectory);
+        var workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
         Directory.CreateDirectory(workspaceDirectory);
 
         return await _store.InitializeAsync(workspaceDirectory, cancellationToken);

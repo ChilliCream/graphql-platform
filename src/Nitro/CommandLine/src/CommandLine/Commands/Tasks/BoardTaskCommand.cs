@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
@@ -37,7 +38,7 @@ internal sealed class BoardTaskCommand : Command
         }
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
-            ?? throw new ExitException("No task workspace found. Run `nitro agent tasks init` first.");
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
         var loader = new BoardDataLoader(store, timeProvider);
@@ -55,7 +56,7 @@ internal sealed class BoardTaskCommand : Command
             store,
             actor);
         var application = new TuiApplication(console);
-        var dbWatcher = new TaskDbWatcher(TaskWorkspace.GetDatabasePath(workspaceDirectory));
+        var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();

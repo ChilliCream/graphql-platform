@@ -23,18 +23,20 @@ internal sealed class TuiShell
 {
     private const string QuitConfirmMessage = "Quit? (y/n)";
     private const int StatusRowHeight = 1;
+    private const int TabStripRowHeight = 1;
     private const string FooterSeparator = "  ";
     private const string FooterEllipsis = "…";
+    private const string TabStripSeparator = " ";
 
-    private readonly KeyDispatcher _dispatcher;
-    private readonly Stack<ITuiMode> _modeStack = new();
+    private readonly IReadOnlyList<TuiTab> _tabs;
+    private readonly TuiTab _tasksTab;
     private readonly Toaster _toaster = new();
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
     private readonly string? _actor;
 
-    private ITuiMode _activeMode;
+    private int _activeTabIndex;
     private BoardDetailMode? _detailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
@@ -59,16 +61,75 @@ internal sealed class TuiShell
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
         string? actor = null)
+        : this(
+            [new TuiTab(
+                string.Empty,
+                activeMode ?? throw new ArgumentNullException(nameof(activeMode)),
+                dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
+            initialWidth,
+            initialHeight,
+            tasksTabIndex: 0,
+            searchMode,
+            treeView,
+            store,
+            actor)
     {
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-        _activeMode = activeMode ?? throw new ArgumentNullException(nameof(activeMode));
+    }
+
+    /// <summary>
+    /// Builds a tabbed shell hosting <paramref name="tabs"/> in order, starting on
+    /// the first. Each tab keeps its own mode stack and key dispatcher, so switching
+    /// tabs preserves nested mode state and routes keys only to the active tab.
+    /// <paramref name="tasksTabIndex"/> identifies which tab owns the shell-level task
+    /// overlay machinery (the task editor, the close/reopen/delete confirmation, the
+    /// status and priority quick pickers, and the task create form): that machinery
+    /// only activates while the tab at that index is active. A one-row tab strip
+    /// renders above the content region whenever more than one tab is hosted.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
+    /// </exception>
+    public TuiShell(
+        IReadOnlyList<TuiTab> tabs,
+        int initialWidth,
+        int initialHeight,
+        int tasksTabIndex = 0,
+        SearchMode? searchMode = null,
+        DependencyTreeView? treeView = null,
+        ITaskStore? store = null,
+        string? actor = null)
+    {
+        ArgumentNullException.ThrowIfNull(tabs);
+
+        if (tabs.Count == 0)
+        {
+            throw new ArgumentException("A shell needs at least one tab.", nameof(tabs));
+        }
+
+        if (tasksTabIndex < 0 || tasksTabIndex >= tabs.Count)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(tasksTabIndex), tasksTabIndex, "Must be a valid index into tabs.");
+        }
+
+        _tabs = tabs;
+        _activeTabIndex = 0;
+        _tasksTab = tabs[tasksTabIndex];
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
         _actor = actor;
         _width = initialWidth;
         _height = initialHeight;
-        _activeMode.OnEnter();
+
+        // Every tab's root mode initializes its own data on shell startup
+        // (not only the active tab's), so an inactive tab's tab-strip title
+        // (for example the mail tab's unread badge) is accurate before it is
+        // ever switched to.
+        foreach (var tab in _tabs)
+        {
+            tab.ActiveMode.OnEnter();
+        }
     }
 
     /// <summary>
@@ -77,7 +138,19 @@ internal sealed class TuiShell
     /// </summary>
     public event Action? QuitConfirmed;
 
-    private int ContentHeight => Math.Max(0, _height - StatusRowHeight);
+    private TuiTab ActiveTab => _tabs[_activeTabIndex];
+
+    private ITuiMode ActiveMode => ActiveTab.ActiveMode;
+
+    /// <summary>
+    /// Whether the tab owning the shell-level task overlay machinery is
+    /// currently active.
+    /// </summary>
+    private bool IsTasksTabActive => ReferenceEquals(ActiveTab, _tasksTab);
+
+    private int TabStripHeight => _tabs.Count > 1 ? TabStripRowHeight : 0;
+
+    private int ContentHeight => Math.Max(0, _height - StatusRowHeight - TabStripHeight);
 
     /// <summary>
     /// Handles one <see cref="TuiEvent"/>, returning whether the frame needs to be
@@ -89,7 +162,7 @@ internal sealed class TuiShell
         TuiEvent.KeyEvent keyEvent => HandleKey(keyEvent.Info),
         TuiEvent.ResizeEvent resize => HandleResize(resize.Width, resize.Height),
         TuiEvent.TickEvent tick => HandleTick(tick.Now),
-        TuiEvent.DataChangedEvent => HandleMessage(new TuiMessage.RefreshRequested()),
+        TuiEvent.DataChangedEvent => HandleDataChanged(),
         _ => false
     };
 
@@ -115,20 +188,48 @@ internal sealed class TuiShell
                             ? picker.Render(_width, contentHeight)
                             : _createForm is { } createForm
                                 ? createForm.Render(_width, contentHeight)
-                                : _activeMode.Render(_width, contentHeight);
+                                : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width));
 
+        if (_tabs.Count <= 1)
+        {
+            return new Layout("root").SplitRows(
+                new Layout("content", content),
+                new Layout("status", toastRow).Size(StatusRowHeight));
+        }
+
         return new Layout("root").SplitRows(
+            new Layout("tabs", RenderTabStrip()).Size(TabStripRowHeight),
             new Layout("content", content),
             new Layout("status", toastRow).Size(StatusRowHeight));
+    }
+
+    /// <summary>
+    /// Renders the one-row tab strip: every hosted tab's title, the active
+    /// tab highlighted the same way a selected board row is, reusing the
+    /// footer's own tokens rather than introducing new ones.
+    /// </summary>
+    private IRenderable RenderTabStrip()
+    {
+        var activeStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
+        var inactiveStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
+        var parts = new string[_tabs.Count];
+
+        for (var i = 0; i < _tabs.Count; i++)
+        {
+            var style = i == _activeTabIndex ? activeStyle : inactiveStyle;
+            parts[i] = $"[{style}] {Markup.Escape(_tabs[i].Title)} [/]";
+        }
+
+        return new Markup(string.Join(TabStripSeparator, parts));
     }
 
     private bool HandleResize(int width, int height)
     {
         _width = width;
         _height = height;
-        _activeMode.OnResize(width, ContentHeight);
+        ActiveMode.OnResize(width, ContentHeight);
         return true;
     }
 
@@ -136,10 +237,42 @@ internal sealed class TuiShell
     {
         var toastDirty = _toaster.Tick(now);
         var searchDirty = _searchMode is { } search
-            && ReferenceEquals(_activeMode, search)
+            && ReferenceEquals(ActiveMode, search)
             && search.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
 
         return toastDirty || searchDirty;
+    }
+
+    /// <summary>
+    /// Refreshes every hosted tab's currently active mode, not only the
+    /// active tab's, so a tab's data stays current while another tab is
+    /// focused (for example the mail tab's unread badge while the tasks tab
+    /// is active).
+    /// </summary>
+    private bool HandleDataChanged()
+    {
+        foreach (var tab in _tabs)
+        {
+            var followUps = tab.ActiveMode.Handle(new TuiMessage.RefreshRequested());
+
+            if (!ReferenceEquals(tab, ActiveTab))
+            {
+                // An inactive tab's own refresh follow-ups stay scoped to
+                // that tab's mode: HandleMessage acts on shell-level state
+                // (dialogs, overlays) and the currently ACTIVE tab, so
+                // routing an inactive tab's follow-up through it would leak
+                // that tab's refresh outcome onto whichever tab the user is
+                // actually looking at.
+                continue;
+            }
+
+            foreach (var followUp in followUps)
+            {
+                HandleMessage(followUp);
+            }
+        }
+
+        return true;
     }
 
     private bool HandleKey(ConsoleKeyInfo info)
@@ -181,7 +314,7 @@ internal sealed class TuiShell
         }
 
         if (_searchMode is { } searchMode
-            && ReferenceEquals(_activeMode, searchMode)
+            && ReferenceEquals(ActiveMode, searchMode)
             && searchMode.Focus == SearchFocus.Input
             && info.Key is not (ConsoleKey.Escape or ConsoleKey.Tab or ConsoleKey.Enter))
         {
@@ -189,8 +322,60 @@ internal sealed class TuiShell
             return true;
         }
 
-        var message = _dispatcher.Dispatch(info, _activeMode.KeyMap);
+        // A mode that owns its own overlays (for example the mail mode's
+        // archive confirmation, compose and reply forms, and their shared
+        // discard confirmation) needs raw key input for its text fields
+        // while one is active, the same way the search mode's query input
+        // does above, rather than the semantic TuiMessage dispatch below.
+        if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
+        {
+            foreach (var followUp in capturingMode.HandleRawKey(info))
+            {
+                HandleMessage(followUp);
+            }
+
+            return true;
+        }
+
+        // Tab switching is checked ahead of the active tab's own dispatch,
+        // so it stays inert whenever any of the overlays above are
+        // capturing input, and never collides with either tab's key table.
+        if (_tabs.Count > 1)
+        {
+            var tabChord = KeyChord.From(info);
+
+            if (TabSwitchKeys.Resolve(tabChord) is { } delta)
+            {
+                return SwitchTab(delta);
+            }
+        }
+
+        var message = ActiveTab.Dispatcher.Dispatch(info, ActiveMode.KeyMap);
         return message is not null && HandleMessage(message);
+    }
+
+    /// <summary>
+    /// Switches the active tab by <paramref name="delta"/> positions,
+    /// wrapping around at either end. Returns <see langword="false"/>
+    /// without effect when only one tab is hosted.
+    /// </summary>
+    private bool SwitchTab(int delta)
+    {
+        if (_tabs.Count <= 1)
+        {
+            return false;
+        }
+
+        var next = ((_activeTabIndex + delta) % _tabs.Count + _tabs.Count) % _tabs.Count;
+
+        if (next == _activeTabIndex)
+        {
+            return false;
+        }
+
+        _activeTabIndex = next;
+        ActiveTab.Activate(_width, ContentHeight);
+        return true;
     }
 
     private bool HandleEditorFormKey(ConsoleKeyInfo info)
@@ -428,7 +613,7 @@ internal sealed class TuiShell
         if (outcome is TaskCreateOutcome.Succeeded succeeded)
         {
             _createForm = null;
-            _activeMode.SelectTask(succeeded.TaskId);
+            ActiveMode.SelectTask(succeeded.TaskId);
         }
 
         return true;
@@ -459,11 +644,11 @@ internal sealed class TuiShell
                 PopMode();
                 return true;
 
-            case TuiMessage.OpenSelected when _activeMode is BoardMode:
+            case TuiMessage.OpenSelected when ActiveMode is BoardMode:
                 return TryOpenDetail();
 
             case TuiMessage.FocusSearchRequested:
-                if (_searchMode is not { } search)
+                if (!IsTasksTabActive || _searchMode is not { } search)
                 {
                     return false;
                 }
@@ -497,7 +682,7 @@ internal sealed class TuiShell
                 return TryOpenCreateForm(TaskTypes.Epic);
 
             default:
-                foreach (var followUp in _activeMode.Handle(message))
+                foreach (var followUp in ActiveMode.Handle(message))
                 {
                     HandleMessage(followUp);
                 }
@@ -519,7 +704,7 @@ internal sealed class TuiShell
             return false;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
@@ -537,7 +722,7 @@ internal sealed class TuiShell
             return false;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
@@ -549,12 +734,12 @@ internal sealed class TuiShell
 
     private bool TryOpenEditor()
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
@@ -573,7 +758,7 @@ internal sealed class TuiShell
 
     private bool TryOpenCloseOrReopenDialog()
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
@@ -601,7 +786,7 @@ internal sealed class TuiShell
 
     private bool TryOpenDeleteDialog()
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
@@ -619,7 +804,7 @@ internal sealed class TuiShell
 
     private bool TryOpenPicker(PickerKind kind)
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
@@ -637,7 +822,7 @@ internal sealed class TuiShell
 
     private bool TryOpenCreateForm(string typePreset)
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
@@ -645,7 +830,7 @@ internal sealed class TuiShell
         // A selected task becomes the new task's parent: creating unconditionally
         // requires no selection (unlike edit, lifecycle, and the pickers), so no
         // "no task selected" toast gates this on the active mode's selection.
-        _createForm = new TaskCreateForm(typePreset, _activeMode.SelectedTaskId);
+        _createForm = new TaskCreateForm(typePreset, ActiveMode.SelectedTaskId);
         return true;
     }
 
@@ -656,7 +841,7 @@ internal sealed class TuiShell
             return null;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             ShowToastNow("No task selected.", ToastStyle.Warn);
             return null;
@@ -678,30 +863,13 @@ internal sealed class TuiShell
         return true;
     }
 
-    private void SwitchTo(ITuiMode mode)
-    {
-        if (ReferenceEquals(_activeMode, mode))
-        {
-            return;
-        }
+    private void SwitchTo(ITuiMode mode) => ActiveTab.SwitchTo(mode, _width, ContentHeight);
 
-        _modeStack.Push(_activeMode);
-        _activeMode = mode;
-        _activeMode.OnResize(_width, ContentHeight);
-        _activeMode.OnEnter();
-    }
-
-    private void PopMode()
-    {
-        if (_modeStack.Count == 0)
-        {
-            return;
-        }
-
-        _activeMode = _modeStack.Pop();
-        _activeMode.OnResize(_width, ContentHeight);
-        _activeMode.OnEnter();
-    }
+    /// <summary>
+    /// Pops the active tab's own navigation stack back to its previous mode,
+    /// so <see cref="TuiMessage.Back"/> never crosses tabs.
+    /// </summary>
+    private void PopMode() => ActiveTab.PopMode(_width, ContentHeight);
 
     /// <summary>
     /// Builds the footer's hint list for whichever context currently owns
@@ -749,16 +917,25 @@ internal sealed class TuiShell
             return TaskCreateForm.Hints;
         }
 
-        var contextHints = _activeMode.KeyMap?.Hints ?? [];
+        var contextHints = ActiveMode.KeyMap?.Hints ?? [];
 
         if (_searchMode is { } search
-            && ReferenceEquals(_activeMode, search)
+            && ReferenceEquals(ActiveMode, search)
             && search.Focus == SearchFocus.Input)
         {
             return [SearchMode.TypingHint, .. contextHints, SearchMode.EnterHint];
         }
 
-        return Combine(contextHints);
+        // A mode capturing raw key input (see HandleKey) swallows every key
+        // into its own overlay the same way the search query input does
+        // above, so the footer must show only that overlay's own hints too.
+        if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
+        {
+            return capturingMode.CapturingHints;
+        }
+
+        var hints = Combine(contextHints);
+        return _tabs.Count > 1 ? [.. hints, TabSwitchKeys.Hint] : hints;
     }
 
     /// <summary>
@@ -771,7 +948,7 @@ internal sealed class TuiShell
     /// </summary>
     private IReadOnlyList<KeyHint> Combine(IReadOnlyList<KeyHint> contextHints)
     {
-        var globalHints = _dispatcher.GlobalKeyMap.Hints;
+        var globalHints = ActiveTab.Dispatcher.GlobalKeyMap.Hints;
 
         if (contextHints.Count == 0)
         {
