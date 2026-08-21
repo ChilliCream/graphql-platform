@@ -14,7 +14,7 @@ public sealed class TuiTabTests
         var root = new FakeTuiMode();
 
         // act
-        var tab = new TuiTab("Tasks", root, CreateDispatcher());
+        var tab = new TuiTab("Tasks", mnemonic: 'T', root, CreateDispatcher());
 
         // assert
         Assert.Same(root, tab.RootMode);
@@ -26,7 +26,7 @@ public sealed class TuiTabTests
     {
         // arrange
         var count = 0;
-        var tab = new TuiTab(() => $"Mail ({++count})", new FakeTuiMode(), CreateDispatcher());
+        var tab = new TuiTab(() => $"Mail ({++count})", mnemonic: 'M', new FakeTuiMode(), CreateDispatcher());
 
         // act
         var first = tab.Title;
@@ -43,7 +43,7 @@ public sealed class TuiTabTests
         // arrange
         var root = new FakeTuiMode();
         var detail = new FakeTuiMode();
-        var tab = new TuiTab("Tasks", root, CreateDispatcher());
+        var tab = new TuiTab("Tasks", mnemonic: 'T', root, CreateDispatcher());
 
         // act
         tab.SwitchTo(detail, 80, 24);
@@ -59,7 +59,7 @@ public sealed class TuiTabTests
     {
         // arrange
         var root = new FakeTuiMode();
-        var tab = new TuiTab("Tasks", root, CreateDispatcher());
+        var tab = new TuiTab("Tasks", mnemonic: 'T', root, CreateDispatcher());
 
         // act
         tab.SwitchTo(root, 80, 24);
@@ -74,7 +74,7 @@ public sealed class TuiTabTests
         // arrange
         var root = new FakeTuiMode();
         var detail = new FakeTuiMode();
-        var tab = new TuiTab("Tasks", root, CreateDispatcher());
+        var tab = new TuiTab("Tasks", mnemonic: 'T', root, CreateDispatcher());
         tab.SwitchTo(detail, 80, 24);
 
         // act
@@ -89,7 +89,7 @@ public sealed class TuiTabTests
     public void PopMode_Should_ReturnFalse_When_StackIsEmpty()
     {
         // arrange
-        var tab = new TuiTab("Tasks", new FakeTuiMode(), CreateDispatcher());
+        var tab = new TuiTab("Tasks", mnemonic: 'T', new FakeTuiMode(), CreateDispatcher());
 
         // act
         var popped = tab.PopMode(80, 24);
@@ -103,7 +103,7 @@ public sealed class TuiTabTests
     {
         // arrange
         var root = new FakeTuiMode();
-        var tab = new TuiTab("Tasks", root, CreateDispatcher());
+        var tab = new TuiTab("Tasks", mnemonic: 'T', root, CreateDispatcher());
 
         // act
         tab.Activate(100, 30);

@@ -67,6 +67,7 @@ internal sealed class TuiShell
         : this(
             [new TuiTab(
                 string.Empty,
+                mnemonic: '\0',
                 activeMode ?? throw new ArgumentNullException(nameof(activeMode)),
                 dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
             initialWidth,
@@ -196,7 +197,7 @@ internal sealed class TuiShell
                                 ? createForm.Render(_width, contentHeight)
                                 : ActiveMode.Render(_width, contentHeight);
 
-        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width));
+        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor));
 
         if (_tabs.Count <= 1)
         {
@@ -212,23 +213,52 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Renders the one-row tab strip: every hosted tab's title, the active
-    /// tab highlighted the same way a selected board row is, reusing the
-    /// footer's own tokens rather than introducing new ones.
+    /// Renders the one-row tab strip: every hosted tab's title with its
+    /// <see cref="TuiTab.Mnemonic"/> bracketed (for example <c>[A]gents</c>)
+    /// and styled in the footer's own key token, the active tab highlighted
+    /// the same way a selected board row is, reusing the footer's own
+    /// tokens rather than introducing new ones.
     /// </summary>
     private IRenderable RenderTabStrip()
     {
         var activeStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
         var inactiveStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
+        var keyStyle = ThemeTokens.GetStyle("footer.key").ToMarkup();
         var parts = new string[_tabs.Count];
 
         for (var i = 0; i < _tabs.Count; i++)
         {
             var style = i == _activeTabIndex ? activeStyle : inactiveStyle;
-            parts[i] = $"[{style}] {Markup.Escape(_tabs[i].Title)} [/]";
+            var titleMarkup = FormatMnemonicTitle(_tabs[i].Title, _tabs[i].Mnemonic, keyStyle);
+            parts[i] = $"[{style}] {titleMarkup} [/]";
         }
 
         return new Markup(string.Join(TabStripSeparator, parts));
+    }
+
+    /// <summary>
+    /// Formats <paramref name="title"/> with its <paramref name="mnemonic"/>
+    /// letter bracketed and styled in <paramref name="keyStyle"/> (for
+    /// example <c>[A]gents</c>), matched case-insensitively against
+    /// <paramref name="title"/> so a title's natural capitalization (for
+    /// example <c>Agents</c>) survives untouched. Falls back to the plain
+    /// escaped title when <paramref name="mnemonic"/> does not occur in
+    /// <paramref name="title"/> at all.
+    /// </summary>
+    private static string FormatMnemonicTitle(string title, char mnemonic, string keyStyle)
+    {
+        var index = title.IndexOf(mnemonic.ToString(), StringComparison.OrdinalIgnoreCase);
+
+        if (index < 0)
+        {
+            return Markup.Escape(title);
+        }
+
+        var prefix = Markup.Escape(title[..index]);
+        var letter = Markup.Escape(title[index].ToString());
+        var suffix = Markup.Escape(title[(index + 1)..]);
+
+        return $"{prefix}[{keyStyle}][[{letter}]][/]{suffix}";
     }
 
     private bool HandleResize(int width, int height)
@@ -354,6 +384,11 @@ internal sealed class TuiShell
             {
                 return SwitchTab(delta);
             }
+
+            if (TabSwitchKeys.ResolveMnemonic(tabChord, _tabs) is { } mnemonicIndex)
+            {
+                return SwitchToTab(mnemonicIndex);
+            }
         }
 
         var message = ActiveTab.Dispatcher.Dispatch(info, ActiveMode.KeyMap);
@@ -373,13 +408,23 @@ internal sealed class TuiShell
         }
 
         var next = ((_activeTabIndex + delta) % _tabs.Count + _tabs.Count) % _tabs.Count;
+        return SwitchToTab(next);
+    }
 
-        if (next == _activeTabIndex)
+    /// <summary>
+    /// Switches directly to the tab at <paramref name="index"/>, used by
+    /// the mnemonic jump (Shift+&lt;letter&gt;) as well as <see cref="SwitchTab"/>'s
+    /// delta-relative cycling. Returns <see langword="false"/> without
+    /// effect when <paramref name="index"/> is already the active tab.
+    /// </summary>
+    private bool SwitchToTab(int index)
+    {
+        if (index == _activeTabIndex)
         {
             return false;
         }
 
-        _activeTabIndex = next;
+        _activeTabIndex = index;
         ActiveTab.Activate(_width, ContentHeight);
         return true;
     }
@@ -982,15 +1027,68 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Formats <paramref name="hints"/> as the footer's single status-row
-    /// line: dimmed key labels, normal-weight action labels, separated hint
-    /// entries, truncated with a trailing ellipsis once <paramref name="width"/>
-    /// cannot fit every hint.
+    /// Formats <paramref name="hints"/> and, when <paramref name="actor"/> is
+    /// given, the current agent identity as the footer's single status-row
+    /// line: the hints on the left as <see cref="FormatFooterHints"/> lays
+    /// them out, the identity right-aligned to the row's right edge in the
+    /// <c>footer.identity</c> style so it stands out from the key and action
+    /// styles. The identity never steals width the hints would otherwise
+    /// use: it is fit into whatever room is left over after the hints are
+    /// laid out, truncated with a trailing ellipsis (or omitted entirely on
+    /// widths too narrow for even that) rather than shrinking the hints
+    /// further.
     /// </summary>
-    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width)
+    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width, string? actor)
+    {
+        var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
+
+        if (string.IsNullOrEmpty(actor))
+        {
+            return hintMarkup;
+        }
+
+        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+
+        if (available <= 0)
+        {
+            return hintMarkup;
+        }
+
+        string identityText;
+
+        if (actor.Length <= available)
+        {
+            identityText = actor;
+        }
+        else if (available > FooterEllipsis.Length)
+        {
+            identityText = actor[..(available - FooterEllipsis.Length)] + FooterEllipsis;
+        }
+        else
+        {
+            return hintMarkup;
+        }
+
+        var identityStyle = ThemeTokens.GetStyle("footer.identity").ToMarkup();
+        var identityMarkup = $"[{identityStyle}]{Markup.Escape(identityText)}[/]";
+        var padding = Math.Max(0, width - hintPlainWidth - identityText.Length);
+
+        return hintMarkup + new string(' ', padding) + identityMarkup;
+    }
+
+    /// <summary>
+    /// Formats <paramref name="hints"/> as dimmed key labels and
+    /// normal-weight action labels, separated hint entries, truncated with a
+    /// trailing ellipsis once <paramref name="width"/> cannot fit every
+    /// hint. <paramref name="plainWidth"/> reports the unmarked-up column
+    /// width of the returned markup, so callers can lay out further content
+    /// (for example the footer identity) in whatever room is left.
+    /// </summary>
+    private static string FormatFooterHints(IReadOnlyList<KeyHint> hints, int width, out int plainWidth)
     {
         if (width <= 0 || hints.Count == 0)
         {
+            plainWidth = 0;
             return string.Empty;
         }
 
@@ -1011,6 +1109,7 @@ internal sealed class TuiShell
 
         if (fullPlainWidth <= width)
         {
+            plainWidth = fullPlainWidth;
             return string.Join(FooterSeparator, markupItems);
         }
 
@@ -1033,9 +1132,11 @@ internal sealed class TuiShell
 
         if (included == 0)
         {
+            plainWidth = width >= FooterEllipsis.Length ? FooterEllipsis.Length : 0;
             return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
         }
 
+        plainWidth = usedWidth + trailerWidth;
         return string.Join(FooterSeparator, markupItems.Take(included)) + FooterSeparator + FooterEllipsis;
     }
 }

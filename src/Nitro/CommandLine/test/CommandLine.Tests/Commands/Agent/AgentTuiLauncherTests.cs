@@ -45,7 +45,7 @@ public sealed class AgentTuiLauncherTests
         var taskStore = new FakeTaskStore();
         var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
         var boardMode = new BoardMode(loader);
-        var tasksTab = new TuiTab("Tasks", boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         return new TuiShell(
             [tasksTab, mailTab],
@@ -138,7 +138,7 @@ public sealed class AgentTuiLauncherTests
         // assert: the shell opened and both tabs render (the mail tab's
         // exact title, "Mail" with no unread badge, is covered at the
         // BuildMailTab level above).
-        Assert.Contains("Tasks", text);
-        Assert.Contains("Mail", text);
+        Assert.Contains("[T]asks", text);
+        Assert.Contains("[M]ail", text);
     }
 }

@@ -91,6 +91,7 @@ internal static class DefaultTheme
         ["form.button.danger.focused"] = new Style(Color.White, Color.Red, Decoration.Bold),
 
         ["footer.key"] = new Style(Color.Grey58, decoration: Decoration.Dim),
-        ["footer.action"] = new Style(Color.Grey70)
+        ["footer.action"] = new Style(Color.Grey70),
+        ["footer.identity"] = new Style(Color.Aqua, decoration: Decoration.Bold)
     };
 }

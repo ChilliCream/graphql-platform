@@ -14,15 +14,16 @@ internal sealed class TuiTab
     private readonly Stack<ITuiMode> _modeStack = new();
     private readonly Func<string> _titleFactory;
 
-    public TuiTab(string title, ITuiMode rootMode, KeyDispatcher dispatcher)
-        : this(() => title, rootMode, dispatcher)
+    public TuiTab(string title, char mnemonic, ITuiMode rootMode, KeyDispatcher dispatcher)
+        : this(() => title, mnemonic, rootMode, dispatcher)
     {
         ArgumentNullException.ThrowIfNull(title);
     }
 
-    public TuiTab(Func<string> titleFactory, ITuiMode rootMode, KeyDispatcher dispatcher)
+    public TuiTab(Func<string> titleFactory, char mnemonic, ITuiMode rootMode, KeyDispatcher dispatcher)
     {
         _titleFactory = titleFactory ?? throw new ArgumentNullException(nameof(titleFactory));
+        Mnemonic = mnemonic;
         RootMode = rootMode ?? throw new ArgumentNullException(nameof(rootMode));
         Dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         ActiveMode = rootMode;
@@ -33,6 +34,16 @@ internal sealed class TuiTab
     /// live badge (for example an unread count) stays current.
     /// </summary>
     public string Title => _titleFactory();
+
+    /// <summary>
+    /// The letter this tab jumps to on <c>Shift+&lt;letter&gt;</c> (see
+    /// <see cref="TuiShell"/>'s mnemonic resolution), and the letter
+    /// bracketed in the tab strip's rendering of <see cref="Title"/>. Given
+    /// explicitly rather than derived from <see cref="Title"/> so a live
+    /// title (for example the Mail tab's unread badge suffix) never shifts
+    /// which letter is the mnemonic.
+    /// </summary>
+    public char Mnemonic { get; }
 
     /// <summary>
     /// The mode this tab was constructed with. <see cref="ActiveMode"/> may

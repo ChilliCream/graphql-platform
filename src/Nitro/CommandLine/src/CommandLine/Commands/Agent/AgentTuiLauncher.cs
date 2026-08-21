@@ -43,12 +43,12 @@ internal static class AgentTuiLauncher
         var boardMode = new BoardMode(loader);
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
-        var tasksTab = new TuiTab("Tasks", boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
 
         var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
-        var agentsTab = new TuiTab("Agents", agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+        var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var shell = new TuiShell(
             [tasksTab, mailTab, agentsTab],
@@ -92,6 +92,7 @@ internal static class AgentTuiLauncher
 
             return new TuiTab(
                 () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
+                mnemonic: 'M',
                 mailMode,
                 new KeyDispatcher(MailKeyMap.CreateDefault()));
         }
@@ -99,7 +100,7 @@ internal static class AgentTuiLauncher
         {
             var mode = new MailUnavailableMode(exception.Message);
 
-            return new TuiTab("Mail", mode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+            return new TuiTab("Mail", mnemonic: 'M', mode, new KeyDispatcher(MailKeyMap.CreateDefault()));
         }
     }
 }

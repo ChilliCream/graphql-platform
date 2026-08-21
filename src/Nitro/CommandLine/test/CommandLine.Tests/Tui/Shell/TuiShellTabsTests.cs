@@ -37,14 +37,14 @@ public sealed class TuiShellTabsTests
         return console.Output;
     }
 
-    private static TuiTab CreateTasksTab(string title, ITuiMode mode) =>
-        new(title, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+    private static TuiTab CreateTasksTab(string title, ITuiMode mode, char mnemonic = 'T') =>
+        new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-    private static TuiTab CreateMailTab(string title, ITuiMode mode) =>
-        new(title, mode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+    private static TuiTab CreateMailTab(string title, ITuiMode mode, char mnemonic = 'M') =>
+        new(title, mnemonic, mode, new KeyDispatcher(MailKeyMap.CreateDefault()));
 
-    private static TuiTab CreateAgentsTab(string title, ITuiMode mode) =>
-        new(title, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+    private static TuiTab CreateAgentsTab(string title, ITuiMode mode, char mnemonic = 'A') =>
+        new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
     private static AgentRecord Agent(string name, string role = "") => new()
     {
@@ -83,8 +83,110 @@ public sealed class TuiShellTabsTests
         var text = RenderToText(shell);
 
         // assert
-        Assert.Contains("Tasks", text);
-        Assert.Contains("Mail", text);
+        Assert.Contains("[T]asks", text);
+        Assert.Contains("[M]ail", text);
+    }
+
+    [Fact]
+    public void Render_Should_BracketEachTabsMnemonic_InBothActiveAndInactiveState()
+    {
+        // arrange: the tasks tab (index 0) is active by default, the agents
+        // tab (index 2) is inactive, covering both the active and inactive
+        // tab-strip styles the mnemonic bracket is rendered under.
+        var shell = new TuiShell(
+            [
+                CreateTasksTab("Tasks", new FakeTuiMode()),
+                CreateMailTab("Mail", new FakeTuiMode()),
+                CreateAgentsTab("Agents", new FakeTuiMode())
+            ],
+            80,
+            24);
+
+        // act
+        var text = RenderToText(shell);
+
+        // assert
+        Assert.Contains("[T]asks", text);
+        Assert.Contains("[M]ail", text);
+        Assert.Contains("[A]gents", text);
+    }
+
+    [Fact]
+    public void Handle_Should_JumpToTheMnemonicsTab_When_ShiftPlusItsLetterIsPressed_FromAnyTab()
+    {
+        // arrange
+        var tasksMode = new FakeTuiMode();
+        var mailMode = new FakeTuiMode();
+        var agentsMode = new FakeTuiMode();
+        var shell = new TuiShell(
+            [
+                CreateTasksTab("Tasks", tasksMode),
+                CreateMailTab("Mail", mailMode),
+                CreateAgentsTab("Agents", agentsMode)
+            ],
+            80,
+            24);
+
+        // act: Shift+A jumps straight from the (active) tasks tab to agents.
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('A', ConsoleKey.A, ConsoleModifiers.Shift)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Single(agentsMode.ResizeCalls);
+
+        // act: Shift+M jumps from agents straight to mail, skipping tasks.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('M', ConsoleKey.M, ConsoleModifiers.Shift)));
+
+        // assert: tasks was never switched back to, so it still has no
+        // resize call at all (only its constructor-time OnEnter).
+        Assert.Single(mailMode.ResizeCalls);
+        Assert.Empty(tasksMode.ResizeCalls);
+
+        // act: Shift+T jumps back to tasks.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
+
+        // assert
+        Assert.Single(tasksMode.ResizeCalls);
+    }
+
+    [Fact]
+    public void Handle_Should_DoNothing_When_ShiftPlusLetterMatchesTheAlreadyActiveTab()
+    {
+        // arrange
+        var tasksMode = new FakeTuiMode();
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
+
+        // assert: the mnemonic resolves to the tasks tab, but it is already
+        // active, so the switch (and the resulting repaint) is a no-op.
+        Assert.False(dirty);
+        Assert.Empty(tasksMode.ResizeCalls);
+    }
+
+    [Fact]
+    public void Handle_Should_StillReachTheModeKey_When_ItsLowercaseCounterpartIsNotAMnemonic()
+    {
+        // arrange: proves the mnemonic resolution does not shadow an
+        // unrelated, already-bound key. 'r' (refresh) stays reachable on the
+        // tasks tab's global table even with tab mnemonics installed.
+        var tasksMode = new FakeTuiMode();
+        var shell = new TuiShell(
+            [
+                CreateTasksTab("Tasks", tasksMode),
+                CreateMailTab("Mail", new FakeTuiMode()),
+                CreateAgentsTab("Agents", new FakeTuiMode())
+            ],
+            80,
+            24);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+
+        // assert
+        Assert.Contains(tasksMode.HandledMessages, m => m is TuiMessage.RefreshRequested);
     }
 
     [Fact]
@@ -222,7 +324,7 @@ public sealed class TuiShellTabsTests
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var otherMode = new FakeTuiMode();
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode)],
+            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
             80,
             24,
             tasksTabIndex: 0,
@@ -256,7 +358,7 @@ public sealed class TuiShellTabsTests
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var otherMode = new FakeTuiMode();
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode)],
+            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
             80,
             24,
             tasksTabIndex: 0,
@@ -300,19 +402,21 @@ public sealed class TuiShellTabsTests
         var mailMode = new MailMode(mailStore, "actor");
         var mailTab = new TuiTab(
             () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
+            mnemonic: 'M',
             mailMode,
             new KeyDispatcher(MailKeyMap.CreateDefault()));
         var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), mailTab], 80, 24);
 
-        // assert: computed at construction, before the mail tab is ever active.
-        Assert.Contains("Mail (1)", RenderToText(shell));
+        // assert: computed at construction, before the mail tab is ever
+        // active; the badge suffix is untouched by the bracketed mnemonic.
+        Assert.Contains("[M]ail (1)", RenderToText(shell));
 
         // act
         mailStore.Messages.Add(MailMessageBuilder.Create("m2"));
         shell.Handle(new TuiEvent.DataChangedEvent());
 
         // assert
-        Assert.Contains("Mail (2)", RenderToText(shell));
+        Assert.Contains("[M]ail (2)", RenderToText(shell));
     }
 
     [Fact]
@@ -329,7 +433,7 @@ public sealed class TuiShellTabsTests
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode())],
+            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode(), mnemonic: 'O')],
             80,
             24,
             tasksTabIndex: 0,
@@ -412,7 +516,7 @@ public sealed class TuiShellTabsTests
         store.Tasks["a"] = TaskItemBuilder.Create("a");
         var otherMode = new FakeTuiMode { SelectedTaskId = "a" };
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Other", otherMode)],
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
             80,
             24,
             tasksTabIndex: 0,
@@ -435,7 +539,7 @@ public sealed class TuiShellTabsTests
         var searchMode = new SearchMode(store);
         var board = new FakeTuiMode { RenderText = "board" };
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode { RenderText = "other" })],
+            [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode { RenderText = "other" }, mnemonic: 'O')],
             80,
             24,
             tasksTabIndex: 0,
