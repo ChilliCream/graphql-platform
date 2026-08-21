@@ -9,6 +9,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 /// file. Changing, adding, or removing a curated file changes its name,
 /// last-write time, or length, any of which changes the fingerprint.
 /// </summary>
+/// <remarks>
+/// Takes <see cref="IFileSystem"/> for enumeration, but the per-file
+/// metadata read (<see cref="FileInfo"/>) deliberately uses the real
+/// filesystem: <see cref="IFileSystem"/> covers only content and
+/// enumeration operations.
+/// </remarks>
 internal static class MemoryIndexFingerprint
 {
     /// <summary>

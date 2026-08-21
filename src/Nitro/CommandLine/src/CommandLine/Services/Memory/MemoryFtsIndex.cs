@@ -13,6 +13,13 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 /// place only after every curated file parses, so a failed rebuild (a
 /// malformed file) never replaces the last valid index.
 /// </summary>
+/// <remarks>
+/// Takes <see cref="IFileSystem"/> for content and enumeration operations,
+/// but the atomic index replacement (<see cref="File.Move(string, string, bool)"/>,
+/// <see cref="File.Delete(string)"/>) deliberately reads and writes the real
+/// filesystem: <see cref="IFileSystem"/> covers only content and
+/// enumeration operations.
+/// </remarks>
 internal static class MemoryFtsIndex
 {
     static MemoryFtsIndex() => SQLitePCL.Batteries_V2.Init();
