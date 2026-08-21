@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Memory;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
@@ -86,4 +87,7 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MemoryRecordResult))]
 [JsonSerializable(typeof(ListResult<MemoryRecordResult>))]
 [JsonSerializable(typeof(MemoryRecordDetailResult))]
+[JsonSerializable(typeof(MemoryScopeConflictResult))]
+[JsonSerializable(typeof(WhereMemoryCommand.MemoryLocationResult))]
+[JsonSerializable(typeof(ListResult<WhereMemoryCommand.MemoryLocationResult>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

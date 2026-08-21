@@ -35,7 +35,11 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
-        services.TryAddSingleton<IMemoryStore, MemoryStore>();
+        services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();
+        services.TryAddSingleton<IMemoryStore>(sp => new MemoryStore(
+            sp.GetRequiredService<IFileSystem>(),
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<IGlobalMemoryDirectoryProvider>().GetDirectory()));
 
         return services;
     }

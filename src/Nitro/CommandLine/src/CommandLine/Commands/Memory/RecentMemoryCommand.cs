@@ -14,6 +14,7 @@ internal sealed class RecentMemoryCommand : Command
 
         Options.Add(Opt<MemoryCollectionOption>.Instance);
         Options.Add(Opt<MemoryLimitOption>.Instance);
+        Options.Add(Opt<MemoryReadScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
@@ -35,12 +36,22 @@ internal sealed class RecentMemoryCommand : Command
 
         var collection = parseResult.GetValue(Opt<MemoryCollectionOption>.Instance) ?? MemoryCollections.Curated;
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
+        var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
 
         // The journal collection is always empty until the journal capture
         // slice lands; `curated` and `all` both read the curated store.
-        IReadOnlyList<MemoryRecord> records = collection == MemoryCollections.Journal
-            ? []
-            : await store.GetRecentCuratedAsync(limit, cancellationToken);
+        IReadOnlyList<MemoryRecord> records;
+
+        try
+        {
+            records = collection == MemoryCollections.Journal
+                ? []
+                : await store.GetRecentCuratedAsync(scope, limit, cancellationToken);
+        }
+        catch (MemoryScopeConflictException exception)
+        {
+            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
+        }
 
         if (!console.IsHumanReadable)
         {

@@ -3,17 +3,23 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The project memory store: directory provisioning and discovery, and the
-/// curated vertical (save, update, forget, show, recent) reading and
-/// writing markdown files directly. The disposable FTS index and the
+/// The project and global memory stores: directory provisioning and
+/// discovery, and the curated vertical (save, update, forget, show,
+/// recent) reading and writing markdown files directly, with union-merged,
+/// no-shadowing reads across scopes. The disposable FTS index and the
 /// journal land in later slices.
 /// </summary>
-internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvider) : IMemoryStore
+internal sealed class MemoryStore(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    string globalMemoryDirectory) : IMemoryStore
 {
     // Matches the threshold AtomicFileSystemTests exercises: a temp file
     // this old was abandoned by a crashed or cancelled write, not one still
     // in flight.
     private static readonly TimeSpan AbandonedTempFileAge = TimeSpan.FromHours(1);
+
+    public string GlobalMemoryDirectory => globalMemoryDirectory;
 
     public string? FindProjectWorkspaceDirectory()
         => AgentWorkspace.FindMemory(fileSystem, fileSystem.GetCurrentDirectory());
@@ -32,18 +38,15 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
     public async Task<MemoryRecord> SaveAsync(
         MemoryRecordCreation creation, CancellationToken cancellationToken)
     {
+        var scope = ValidateWriteScope(creation.Scope);
         var type = ValidateType(creation.Type);
         var tags = NormalizeTags(creation.Tags);
         var actor = ValidateActor(creation.Actor);
 
-        var workspaceDirectory = RequireProjectWorkspaceDirectory();
+        var curatedDirectory = scope == MemoryScopes.Global
+            ? EnsureGlobalStore()
+            : await EnsureProjectStoreAsync(cancellationToken);
 
-        // Provisioning happens on `agent init`; this is the lazy-creation
-        // fallback for a workspace that has an agent database but has never
-        // written a curated memory before.
-        await EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
-
-        var curatedDirectory = GetCuratedDirectory(workspaceDirectory);
         fileSystem.CleanupAbandonedTempFiles(curatedDirectory, AbandonedTempFileAge);
 
         var now = timeProvider.GetUtcNow();
@@ -64,19 +67,20 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
         await fileSystem.CreateFileAtomicAsync(
             path, MemoryFrontmatterWriter.Write(frontmatter), cancellationToken);
 
-        return ToRecord(frontmatter, path);
+        return ToRecord(frontmatter, path, scope);
     }
 
     public async Task<MemoryRecord> UpdateAsync(
-        string id, MemoryRecordUpdate update, CancellationToken cancellationToken)
+        string id, string scope, MemoryRecordUpdate update, CancellationToken cancellationToken)
     {
-        var record = await GetRequiredAsync(id, cancellationToken);
+        var normalizedScope = ValidateWriteScope(scope);
+        var record = await GetRequiredAsync(id, normalizedScope, cancellationToken);
 
         var text = update.TextGiven ? update.Text ?? "" : record.Body;
         var type = update.TypeGiven ? ValidateType(update.Type ?? "") : record.Type;
         var tags = ApplyTagChanges(record.Tags, update.AddTags, update.RemoveTags);
 
-        var curatedDirectory = GetCuratedDirectory(RequireProjectWorkspaceDirectory());
+        var curatedDirectory = GetCuratedDirectoryForScope(normalizedScope);
         fileSystem.CleanupAbandonedTempFiles(curatedDirectory, AbandonedTempFileAge);
 
         var frontmatter = new MemoryFrontmatter(
@@ -93,28 +97,99 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
         await fileSystem.ReplaceFileAtomicAsync(
             record.Path, MemoryFrontmatterWriter.Write(frontmatter), cancellationToken);
 
-        return ToRecord(frontmatter, record.Path);
+        return ToRecord(frontmatter, record.Path, normalizedScope);
     }
 
-    public async Task<MemoryRecord> ForgetAsync(string id, CancellationToken cancellationToken)
+    public async Task<MemoryRecord> ForgetAsync(string id, string scope, CancellationToken cancellationToken)
     {
-        var record = await GetRequiredAsync(id, cancellationToken);
+        var normalizedScope = ValidateWriteScope(scope);
+        var record = await GetRequiredAsync(id, normalizedScope, cancellationToken);
 
         fileSystem.DeleteFile(record.Path);
 
         return record;
     }
 
-    public async Task<MemoryRecord?> FindAsync(string id, CancellationToken cancellationToken)
+    public async Task<MemoryRecord?> FindAsync(string id, string scope, CancellationToken cancellationToken)
     {
-        var workspaceDirectory = FindProjectWorkspaceDirectory();
+        var normalizedScope = ValidateReadScope(scope);
 
-        if (workspaceDirectory is null)
+        switch (normalizedScope)
         {
-            return null;
+            case MemoryScopes.Project:
+                return await FindInDirectoryAsync(
+                    GetCuratedDirectory(RequireProjectWorkspaceDirectory()),
+                    id,
+                    MemoryScopes.Project,
+                    cancellationToken);
+
+            case MemoryScopes.Global:
+                return await FindInDirectoryAsync(GetGlobalCuratedDirectory(), id, MemoryScopes.Global, cancellationToken);
+
+            default:
+                var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+                var projectRecord = projectWorkspaceDirectory is null
+                    ? null
+                    : await FindInDirectoryAsync(
+                        GetCuratedDirectory(projectWorkspaceDirectory), id, MemoryScopes.Project, cancellationToken);
+
+                var globalRecord = await FindInDirectoryAsync(
+                    GetGlobalCuratedDirectory(), id, MemoryScopes.Global, cancellationToken);
+
+                if (projectRecord is not null && globalRecord is not null)
+                {
+                    throw new MemoryScopeConflictException([
+                        new MemoryScopeConflict(
+                            id,
+                            [MemoryScopes.Project, MemoryScopes.Global],
+                            [projectRecord.Path, globalRecord.Path])
+                    ]);
+                }
+
+                return projectRecord ?? globalRecord;
+        }
+    }
+
+    public async Task<MemoryRecord> GetRequiredAsync(string id, string scope, CancellationToken cancellationToken)
+        => await FindAsync(id, scope, cancellationToken)
+            ?? throw new ExitException($"Memory '{id}' does not exist.");
+
+    public async Task<IReadOnlyList<MemoryRecord>> GetRecentCuratedAsync(
+        string scope, int? limit, CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateReadScope(scope);
+        var records = new List<MemoryRecord>();
+
+        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
+        {
+            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+            if (projectWorkspaceDirectory is not null)
+            {
+                records.AddRange(await ListCuratedAsync(
+                    GetCuratedDirectory(projectWorkspaceDirectory), MemoryScopes.Project, cancellationToken));
+            }
         }
 
-        var path = GetCuratedPath(GetCuratedDirectory(workspaceDirectory), id);
+        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
+        {
+            records.AddRange(
+                await ListCuratedAsync(GetGlobalCuratedDirectory(), MemoryScopes.Global, cancellationToken));
+        }
+
+        if (normalizedScope == MemoryScopes.All)
+        {
+            ThrowIfCrossScopeDuplicates(records);
+        }
+
+        return limit is { } value ? records.Take(value).ToList() : records;
+    }
+
+    private async Task<MemoryRecord?> FindInDirectoryAsync(
+        string curatedDirectory, string id, string scope, CancellationToken cancellationToken)
+    {
+        var path = GetCuratedPath(curatedDirectory, id);
 
         if (!fileSystem.FileExists(path))
         {
@@ -128,25 +203,12 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
             throw new ExitException($"Memory '{id}' has malformed frontmatter: {failure.Message}");
         }
 
-        return ToRecord(frontmatter, path);
+        return ToRecord(frontmatter, path, scope);
     }
 
-    public async Task<MemoryRecord> GetRequiredAsync(string id, CancellationToken cancellationToken)
-        => await FindAsync(id, cancellationToken)
-            ?? throw new ExitException($"Memory '{id}' does not exist.");
-
-    public async Task<IReadOnlyList<MemoryRecord>> GetRecentCuratedAsync(
-        int? limit, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<MemoryRecord>> ListCuratedAsync(
+        string curatedDirectory, string scope, CancellationToken cancellationToken)
     {
-        var workspaceDirectory = FindProjectWorkspaceDirectory();
-
-        if (workspaceDirectory is null)
-        {
-            return [];
-        }
-
-        var curatedDirectory = GetCuratedDirectory(workspaceDirectory);
-
         if (!fileSystem.DirectoryExists(curatedDirectory))
         {
             return [];
@@ -164,21 +226,60 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
                 throw new ExitException($"Memory '{id}' has malformed frontmatter: {failure.Message}");
             }
 
-            records.Add(ToRecord(frontmatter, path));
+            records.Add(ToRecord(frontmatter, path, scope));
         }
 
-        var ordered = records
+        return records
             .OrderByDescending(record => record.UpdatedAt)
             .ThenBy(record => record.Id, StringComparer.Ordinal)
-            .AsEnumerable();
-
-        if (limit is { } value)
-        {
-            ordered = ordered.Take(value);
-        }
-
-        return ordered.ToList();
+            .ToList();
     }
+
+    private static void ThrowIfCrossScopeDuplicates(IReadOnlyList<MemoryRecord> records)
+    {
+        var conflicts = records
+            .GroupBy(record => record.Id, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => new MemoryScopeConflict(
+                group.Key,
+                group.Select(record => record.Scope).ToArray(),
+                group.Select(record => record.Path).ToArray()))
+            .ToList();
+
+        if (conflicts.Count > 0)
+        {
+            throw new MemoryScopeConflictException(conflicts);
+        }
+    }
+
+    private async Task<string> EnsureProjectStoreAsync(CancellationToken cancellationToken)
+    {
+        var workspaceDirectory = RequireProjectWorkspaceDirectory();
+
+        // Provisioning happens on `agent init`; this is the lazy-creation
+        // fallback for a workspace that has an agent database but has never
+        // written a curated memory before.
+        await EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
+
+        return GetCuratedDirectory(workspaceDirectory);
+    }
+
+    private string EnsureGlobalStore()
+    {
+        CreateIfMissing(AgentWorkspace.GetMemoryCuratedDirectory(globalMemoryDirectory));
+        CreateIfMissing(AgentWorkspace.GetMemoryJournalDirectory(globalMemoryDirectory));
+        CreateIfMissing(AgentWorkspace.GetMemoryLocalDirectory(globalMemoryDirectory));
+
+        return GetGlobalCuratedDirectory();
+    }
+
+    private string GetCuratedDirectoryForScope(string scope)
+        => scope == MemoryScopes.Global
+            ? GetGlobalCuratedDirectory()
+            : GetCuratedDirectory(RequireProjectWorkspaceDirectory());
+
+    private string GetGlobalCuratedDirectory()
+        => AgentWorkspace.GetMemoryCuratedDirectory(globalMemoryDirectory);
 
     private string RequireProjectWorkspaceDirectory()
         => FindProjectWorkspaceDirectory()
@@ -190,10 +291,10 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
     private static string GetCuratedPath(string curatedDirectory, string id)
         => Path.Combine(curatedDirectory, id + ".md");
 
-    private static MemoryRecord ToRecord(MemoryFrontmatter frontmatter, string path) => new()
+    private static MemoryRecord ToRecord(MemoryFrontmatter frontmatter, string path, string scope) => new()
     {
         Id = frontmatter.Id,
-        Scope = MemoryScopes.Project,
+        Scope = scope,
         Type = frontmatter.Type,
         Tags = frontmatter.Tags,
         Path = path,
@@ -203,6 +304,30 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
         CreatedBy = frontmatter.CreatedBy,
         PromotedFrom = frontmatter.PromotedFrom
     };
+
+    private static string ValidateWriteScope(string scope)
+    {
+        var normalized = MemoryScopes.Normalize(scope);
+
+        if (!MemoryScopes.IsValid(normalized))
+        {
+            throw new ExitException($"The scope '{scope}' is invalid. Use 'project' or 'global'.");
+        }
+
+        return normalized;
+    }
+
+    private static string ValidateReadScope(string scope)
+    {
+        var normalized = MemoryScopes.Normalize(scope);
+
+        if (!MemoryScopes.IsValidReadScope(normalized))
+        {
+            throw new ExitException($"The scope '{scope}' is invalid. Use 'project', 'global', or 'all'.");
+        }
+
+        return normalized;
+    }
 
     private static string ValidateType(string type)
     {
@@ -279,12 +404,14 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
 
     private static string ValidateActor(string actor)
     {
-        if (actor.Length == 0 || actor.Contains('\n') || actor.Contains('\r'))
+        var trimmed = actor.Trim();
+
+        if (trimmed.Length == 0 || trimmed.Contains('\n') || trimmed.Contains('\r'))
         {
             throw new ExitException("The actor must not be empty or contain line breaks.");
         }
 
-        return actor;
+        return trimmed;
     }
 
     private void CreateIfMissing(string directory)

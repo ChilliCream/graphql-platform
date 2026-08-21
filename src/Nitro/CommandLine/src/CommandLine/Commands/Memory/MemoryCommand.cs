@@ -11,5 +11,6 @@ internal sealed class MemoryCommand : Command
         Subcommands.Add(new ForgetMemoryCommand());
         Subcommands.Add(new ShowMemoryCommand());
         Subcommands.Add(new RecentMemoryCommand());
+        Subcommands.Add(new WhereMemoryCommand());
     }
 }

@@ -13,6 +13,7 @@ internal sealed class ShowMemoryCommand : Command
         Description = "Show a curated memory's details.";
 
         Arguments.Add(Opt<MemoryIdArgument>.Instance);
+        Options.Add(Opt<MemoryReadScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("agent memory show \"01hqzxk8xdtd3fk3f0z7c5g8vm\"");
@@ -30,8 +31,18 @@ internal sealed class ShowMemoryCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<MemoryIdArgument>.Instance);
+        var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
 
-        var record = await store.GetRequiredAsync(id, cancellationToken);
+        MemoryRecord record;
+
+        try
+        {
+            record = await store.GetRequiredAsync(id, scope, cancellationToken);
+        }
+        catch (MemoryScopeConflictException exception)
+        {
+            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
+        }
 
         if (!console.IsHumanReadable)
         {

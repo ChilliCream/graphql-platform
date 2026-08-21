@@ -17,6 +17,7 @@ internal sealed class ForgetMemoryCommand : Command
 
         Arguments.Add(Opt<MemoryIdArgument>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
+        Options.Add(Opt<MemoryWriteScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
@@ -37,11 +38,12 @@ internal sealed class ForgetMemoryCommand : Command
 
         var id = parseResult.GetRequiredValue(Opt<MemoryIdArgument>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
+        var scope = parseResult.GetRequiredValue(Opt<MemoryWriteScopeOption>.Instance);
 
         // Existence is checked up front, before the confirmation prompt, so
         // a nonexistent memory fails immediately instead of asking to
         // confirm it.
-        await store.GetRequiredAsync(id, cancellationToken);
+        await store.GetRequiredAsync(id, scope, cancellationToken);
 
         if (!force)
         {
@@ -64,7 +66,7 @@ internal sealed class ForgetMemoryCommand : Command
             }
         }
 
-        var record = await store.ForgetAsync(id, cancellationToken);
+        var record = await store.ForgetAsync(id, scope, cancellationToken);
 
         if (!console.IsHumanReadable)
         {

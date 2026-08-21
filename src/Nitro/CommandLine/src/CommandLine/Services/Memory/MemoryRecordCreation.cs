@@ -9,4 +9,5 @@ internal sealed record MemoryRecordCreation
     public required string Type { get; init; }
     public IReadOnlyList<string> Tags { get; init; } = [];
     public required string Actor { get; init; }
+    public string Scope { get; init; } = MemoryScopes.Project;
 }
