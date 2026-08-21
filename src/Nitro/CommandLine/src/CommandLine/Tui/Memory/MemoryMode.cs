@@ -46,6 +46,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private ConfirmDialog? _forgetDialog;
     private MemoryRecord? _forgetTarget;
     private ConfirmDialog? _discardDialog;
+    private bool _pendingRefresh;
 
     public MemoryMode(IMemoryStore store, TimeProvider? timeProvider = null)
     {
@@ -81,7 +82,13 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     public KeyMap? KeyMap => null;
 
     /// <inheritdoc />
-    public void OnEnter() => RefreshBlocking();
+    /// <remarks>
+    /// Defers the blocking store read: it only marks a refresh pending,
+    /// performed lazily on the first <see cref="Render"/> or
+    /// <see cref="Handle"/> call. Memory's tab title is static, so nothing
+    /// in the tab strip needs the data eagerly at tab-construction time.
+    /// </remarks>
+    public void OnEnter() => _pendingRefresh = true;
 
     /// <inheritdoc />
     public void OnResize(int width, int height)
@@ -92,23 +99,28 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<TuiMessage> Handle(TuiMessage message) => message switch
+    public IReadOnlyList<TuiMessage> Handle(TuiMessage message)
     {
-        TuiMessage.MoveCursor(CursorDirection.Up) => MoveOrScroll(-1),
-        TuiMessage.MoveCursor(CursorDirection.Down) => MoveOrScroll(1),
-        TuiMessage.MoveCursor(CursorDirection.Left) => TogglePane(),
-        TuiMessage.MoveCursor(CursorDirection.Right) => TogglePane(),
-        TuiMessage.MoveToEdge(var edge) => MoveOrScrollToEdge(edge),
-        TuiMessage.OpenSelected => FocusDetail(),
-        TuiMessage.RefreshRequested => Refresh(),
-        TuiMessage.CycleView(var delta) => CycleCollection(delta),
-        TuiMessage.CycleScopeRequested => CycleScope(),
-        TuiMessage.SearchRequested => OpenSearchForm(),
-        TuiMessage.PromoteRequested => OpenPromoteForm(),
-        TuiMessage.ForgetRequested => OpenForgetDialog(),
-        TuiMessage.CopySelectedId => CopySelectedId(),
-        _ => []
-    };
+        EnsureLoaded();
+
+        return message switch
+        {
+            TuiMessage.MoveCursor(CursorDirection.Up) => MoveOrScroll(-1),
+            TuiMessage.MoveCursor(CursorDirection.Down) => MoveOrScroll(1),
+            TuiMessage.MoveCursor(CursorDirection.Left) => TogglePane(),
+            TuiMessage.MoveCursor(CursorDirection.Right) => TogglePane(),
+            TuiMessage.MoveToEdge(var edge) => MoveOrScrollToEdge(edge),
+            TuiMessage.OpenSelected => FocusDetail(),
+            TuiMessage.RefreshRequested => Refresh(),
+            TuiMessage.CycleView(var delta) => CycleCollection(delta),
+            TuiMessage.CycleScopeRequested => CycleScope(),
+            TuiMessage.SearchRequested => OpenSearchForm(),
+            TuiMessage.PromoteRequested => OpenPromoteForm(),
+            TuiMessage.ForgetRequested => OpenForgetDialog(),
+            TuiMessage.CopySelectedId => CopySelectedId(),
+            _ => []
+        };
+    }
 
     /// <summary>
     /// Handles one raw key while <see cref="IsInputCapturing"/> is true:
@@ -144,6 +156,8 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     /// <inheritdoc />
     public IRenderable Render(int width, int height)
     {
+        EnsureLoaded();
+
         if (width <= 0 || height <= 0)
         {
             return new Markup(string.Empty);
@@ -587,4 +601,20 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private static string FormatIndicator(int hiddenCount, string direction) => $"  {hiddenCount} more {direction}";
 
     private void RefreshBlocking() => _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+    /// <summary>
+    /// Performs the refresh <see cref="OnEnter"/> deferred, exactly once,
+    /// the first time <see cref="Render"/> or <see cref="Handle"/> runs
+    /// after entering the tab.
+    /// </summary>
+    private void EnsureLoaded()
+    {
+        if (!_pendingRefresh)
+        {
+            return;
+        }
+
+        _pendingRefresh = false;
+        RefreshBlocking();
+    }
 }

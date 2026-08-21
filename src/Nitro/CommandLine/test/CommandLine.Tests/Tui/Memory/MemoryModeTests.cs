@@ -53,13 +53,16 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task OnEnter_Should_LoadCuratedMemories()
     {
-        // arrange
+        // arrange: OnEnter only marks a refresh pending; the actual store
+        // read happens lazily on the first Render or Handle call, so a
+        // manual refresh stands in for the shell rendering the tab.
         var cancellationToken = TestContext.Current.CancellationToken;
         await SaveAsync("First.");
         var mode = CreateMode();
 
         // act
         mode.OnEnter();
+        mode.Handle(new TuiMessage.RefreshRequested());
 
         // assert
         Assert.Single(mode.State.CuratedRecords);
@@ -390,8 +393,8 @@ public sealed class MemoryModeTests : MemoryTestBase
             TestContext.Current.CancellationToken);
         var mode = CreateMode();
         mode.OnEnter();
-        Assert.Equal(2, mode.State.CuratedRecords.Count);
         mode.Handle(new TuiMessage.SearchRequested());
+        Assert.Equal(2, mode.State.CuratedRecords.Count);
         Type(mode, "tag:ops");
 
         // act
@@ -432,13 +435,17 @@ public sealed class MemoryModeTests : MemoryTestBase
     {
         // arrange: a curated markdown file written directly into the store,
         // bypassing SaveAsync, the only way malformed frontmatter reaches
-        // disk (the store itself never writes an unparsable file).
+        // disk (the store itself never writes an unparsable file). OnEnter
+        // only marks a refresh pending; the deferred read happens lazily on
+        // the first Render or Handle call, exercised here via a manual
+        // refresh in place of the shell rendering the tab.
         Directory.CreateDirectory(CuratedDirectory);
         File.WriteAllText(Path.Combine(CuratedDirectory, "mem-broken.md"), "not frontmatter at all");
         var mode = CreateMode();
+        mode.OnEnter();
 
         // act
-        var exception = Record.Exception(mode.OnEnter);
+        var exception = Record.Exception(() => mode.Handle(new TuiMessage.RefreshRequested()));
 
         // assert
         Assert.Null(exception);
