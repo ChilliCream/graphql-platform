@@ -22,7 +22,7 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
               <text>  The memory text. Exactly one of the text argument or --file is required
 
             Options:
-              --file <file>    A file to read the memory text from. Exactly one of the text argument or --file is required
+              --file <file>    A file to read the memory text from
               --type <type>    The memory type (fact, decision, preference, reference, or custom)
               --tag <tag>      A tag; can be used multiple times
               --actor <actor>  The acting identity recorded on memory writes (defaults to NITRO_MEMORY_ACTOR, NITRO_TASK_ACTOR, or the OS user name)

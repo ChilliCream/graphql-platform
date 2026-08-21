@@ -23,7 +23,7 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
 
             Options:
               --text <text>              The new memory text. At most one of --text or --file may be given
-              --file <file>              A file to read the memory text from. Exactly one of the text argument or --file is required
+              --file <file>              A file to read the memory text from
               --type <type>              The memory type (fact, decision, preference, reference, or custom)
               --add-tag <add-tag>        A tag to add; can be used multiple times
               --remove-tag <remove-tag>  A tag to remove; can be used multiple times

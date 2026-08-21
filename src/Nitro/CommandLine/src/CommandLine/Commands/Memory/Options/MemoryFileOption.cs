@@ -4,8 +4,7 @@ internal sealed class MemoryFileOption : Option<string>
 {
     public MemoryFileOption() : base("--file")
     {
-        Description = "A file to read the memory text from. Exactly one of the text argument or "
-            + "--file is required";
+        Description = "A file to read the memory text from";
         Required = false;
     }
 }
