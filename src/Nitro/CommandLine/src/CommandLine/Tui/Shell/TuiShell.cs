@@ -72,6 +72,7 @@ internal sealed class TuiShell
         : this(
             [new TuiTab(
                 string.Empty,
+                mnemonic: '\0',
                 activeMode ?? throw new ArgumentNullException(nameof(activeMode)),
                 dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
             initialWidth,
@@ -220,23 +221,52 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Renders the one-row tab strip: every hosted tab's title, the active
-    /// tab highlighted the same way a selected board row is, reusing the
-    /// footer's own tokens rather than introducing new ones.
+    /// Renders the one-row tab strip: every hosted tab's title with its
+    /// <see cref="TuiTab.Mnemonic"/> bracketed (for example <c>[A]gents</c>)
+    /// and styled in the footer's own key token, the active tab highlighted
+    /// the same way a selected board row is, reusing the footer's own
+    /// tokens rather than introducing new ones.
     /// </summary>
     private IRenderable RenderTabStrip()
     {
         var activeStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
         var inactiveStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
+        var keyStyle = ThemeTokens.GetStyle("footer.key").ToMarkup();
         var parts = new string[_tabs.Count];
 
         for (var i = 0; i < _tabs.Count; i++)
         {
             var style = i == _activeTabIndex ? activeStyle : inactiveStyle;
-            parts[i] = $"[{style}] {Markup.Escape(_tabs[i].Title)} [/]";
+            var titleMarkup = FormatMnemonicTitle(_tabs[i].Title, _tabs[i].Mnemonic, keyStyle);
+            parts[i] = $"[{style}] {titleMarkup} [/]";
         }
 
         return new Markup(string.Join(TabStripSeparator, parts));
+    }
+
+    /// <summary>
+    /// Formats <paramref name="title"/> with its <paramref name="mnemonic"/>
+    /// letter bracketed and styled in <paramref name="keyStyle"/> (for
+    /// example <c>[A]gents</c>), matched case-insensitively against
+    /// <paramref name="title"/> so a title's natural capitalization (for
+    /// example <c>Agents</c>) survives untouched. Falls back to the plain
+    /// escaped title when <paramref name="mnemonic"/> does not occur in
+    /// <paramref name="title"/> at all.
+    /// </summary>
+    private static string FormatMnemonicTitle(string title, char mnemonic, string keyStyle)
+    {
+        var index = title.IndexOf(mnemonic.ToString(), StringComparison.OrdinalIgnoreCase);
+
+        if (index < 0)
+        {
+            return Markup.Escape(title);
+        }
+
+        var prefix = Markup.Escape(title[..index]);
+        var letter = Markup.Escape(title[index].ToString());
+        var suffix = Markup.Escape(title[(index + 1)..]);
+
+        return $"{prefix}[{keyStyle}][[{letter}]][/]{suffix}";
     }
 
     private bool HandleResize(int width, int height)
@@ -362,6 +392,11 @@ internal sealed class TuiShell
             {
                 return SwitchTab(delta);
             }
+
+            if (TabSwitchKeys.ResolveMnemonic(tabChord, _tabs) is { } mnemonicIndex)
+            {
+                return SwitchToTab(mnemonicIndex);
+            }
         }
 
         var message = ActiveTab.Dispatcher.Dispatch(info, ActiveMode.KeyMap);
@@ -381,13 +416,23 @@ internal sealed class TuiShell
         }
 
         var next = ((_activeTabIndex + delta) % _tabs.Count + _tabs.Count) % _tabs.Count;
+        return SwitchToTab(next);
+    }
 
-        if (next == _activeTabIndex)
+    /// <summary>
+    /// Switches directly to the tab at <paramref name="index"/>, used by
+    /// the mnemonic jump (Shift+&lt;letter&gt;) as well as <see cref="SwitchTab"/>'s
+    /// delta-relative cycling. Returns <see langword="false"/> without
+    /// effect when <paramref name="index"/> is already the active tab.
+    /// </summary>
+    private bool SwitchToTab(int index)
+    {
+        if (index == _activeTabIndex)
         {
             return false;
         }
 
-        _activeTabIndex = next;
+        _activeTabIndex = index;
         ActiveTab.Activate(_width, ContentHeight);
         return true;
     }

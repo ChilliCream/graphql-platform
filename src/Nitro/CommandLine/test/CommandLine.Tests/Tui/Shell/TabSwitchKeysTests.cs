@@ -117,4 +117,101 @@ public sealed class TabSwitchKeysTests
         Assert.False(previousBound);
         Assert.False(nextBound);
     }
+
+    private static TuiTab Tab(string title, char mnemonic) =>
+        new(title, mnemonic, new FakeTuiMode(), new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+    [Fact]
+    public void ResolveMnemonic_Should_ReturnTheMatchingTabsIndex_ForShiftPlusItsMnemonic()
+    {
+        // arrange
+        var tabs = new[] { Tab("Tasks", 'T'), Tab("Mail", 'M'), Tab("Agents", 'A') };
+        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, 'A');
+
+        // act
+        var index = TabSwitchKeys.ResolveMnemonic(chord, tabs);
+
+        // assert
+        Assert.Equal(2, index);
+    }
+
+    [Fact]
+    public void ResolveMnemonic_Should_MatchCaseInsensitively()
+    {
+        // arrange: a terminal is expected to report the shifted letter
+        // already uppercase, but the match itself does not depend on that.
+        var tabs = new[] { Tab("Tasks", 'T') };
+        var chord = new KeyChord(ConsoleKey.T, ConsoleModifiers.Shift, 't');
+
+        // act
+        var index = TabSwitchKeys.ResolveMnemonic(chord, tabs);
+
+        // assert
+        Assert.Equal(0, index);
+    }
+
+    [Fact]
+    public void ResolveMnemonic_Should_ReturnNull_When_ModifiersAreNotExactlyShift()
+    {
+        // arrange
+        var tabs = new[] { Tab("Tasks", 'T') };
+        var chord = new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't');
+
+        // act
+        var index = TabSwitchKeys.ResolveMnemonic(chord, tabs);
+
+        // assert
+        Assert.Null(index);
+    }
+
+    [Fact]
+    public void ResolveMnemonic_Should_ReturnNull_When_NoHostedTabClaimsTheLetter()
+    {
+        // arrange
+        var tabs = new[] { Tab("Tasks", 'T'), Tab("Mail", 'M') };
+        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, 'A');
+
+        // act
+        var index = TabSwitchKeys.ResolveMnemonic(chord, tabs);
+
+        // assert
+        Assert.Null(index);
+    }
+
+    [Theory]
+    [InlineData('T')]
+    [InlineData('M')]
+    [InlineData('A')]
+    public void ResolveMnemonic_Should_NotCollide_WithTheGlobalTaskKeyMap(char mnemonic)
+    {
+        // arrange: T/M/A are the mnemonics AgentTuiLauncher hosts today, so
+        // the global table must not already bind Shift+<letter> for any of
+        // them (a real collision would have to be reported instead of
+        // silently shadowed).
+        var keyMap = KeyMap.CreateDefaultGlobal();
+        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
+
+        // act
+        var bound = keyMap.TryResolve(chord, out _);
+
+        // assert
+        Assert.False(bound);
+    }
+
+    [Theory]
+    [InlineData('T')]
+    [InlineData('M')]
+    [InlineData('A')]
+    public void ResolveMnemonic_Should_NotCollide_WithTheMailKeyMap(char mnemonic)
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
+
+        // act
+        var bound = keyMap.TryResolve(chord, out _);
+
+        // assert
+        Assert.False(bound);
+    }
 }
