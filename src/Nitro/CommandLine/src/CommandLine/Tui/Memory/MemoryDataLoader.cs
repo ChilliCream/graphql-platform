@@ -10,8 +10,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <see cref="IMemoryStore.GetRecentCuratedAsync"/>/<see cref="IMemoryStore.GetRecentJournalAsync"/>
 /// otherwise, narrowed client side by a <see cref="MemoryQuery"/>'s type and
 /// tags when it has no free text (an empty FTS5 literal match is not a
-/// query the store's search API is asked to answer). Issues no SQL of its
-/// own.
+/// query the store's search API is asked to answer): the recent read pulls
+/// every candidate row unbounded, filters, then applies the limit, so a
+/// type or tag filter narrows the returned page instead of narrowing an
+/// already-limited page. Issues no SQL of its own.
 /// </summary>
 internal sealed class MemoryDataLoader(IMemoryStore store)
 {
@@ -27,9 +29,14 @@ internal sealed class MemoryDataLoader(IMemoryStore store)
                 .ConfigureAwait(false);
         }
 
-        var recent = await store.GetRecentCuratedAsync(scope, Limit, cancellationToken).ConfigureAwait(false);
+        if (query.Type is null && query.Tags.Count == 0)
+        {
+            return await store.GetRecentCuratedAsync(scope, Limit, cancellationToken).ConfigureAwait(false);
+        }
 
-        return query.Type is null && query.Tags.Count == 0 ? recent : FilterCurated(recent, query);
+        var recent = await store.GetRecentCuratedAsync(scope, int.MaxValue, cancellationToken).ConfigureAwait(false);
+
+        return FilterCurated(recent, query).Take(Limit).ToList();
     }
 
     public async Task<IReadOnlyList<MemoryJournalEntry>> LoadJournalAsync(

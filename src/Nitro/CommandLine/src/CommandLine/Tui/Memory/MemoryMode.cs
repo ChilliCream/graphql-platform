@@ -450,7 +450,10 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private string ListTitle()
     {
         var collectionName = _state.Collection == MemoryCollectionFilter.Curated ? "Curated" : "Journal";
-        var suffix = _state.SearchText.Length == 0 ? "" : " (filtered)";
+        var filtered = _state.Collection == MemoryCollectionFilter.Curated
+            ? _state.SearchText.Length > 0
+            : MemoryQueryParser.Parse(_state.SearchText).Text.Length > 0;
+        var suffix = filtered ? " (filtered)" : "";
         return $"{collectionName} · {_state.Scope}{suffix}";
     }
 
