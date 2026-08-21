@@ -197,7 +197,13 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         {
             if (_state.ItemCount > 0)
             {
-                _state.SelectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.ItemCount - 1);
+                var selectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.ItemCount - 1);
+
+                if (selectedRow != _state.SelectedRow)
+                {
+                    _state.SelectedRow = selectedRow;
+                    _detailView.ResetScroll();
+                }
             }
         }
         else if (delta > 0)
@@ -218,7 +224,13 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         {
             if (_state.ItemCount > 0)
             {
-                _state.SelectedRow = edge == EdgeTarget.Top ? 0 : _state.ItemCount - 1;
+                var selectedRow = edge == EdgeTarget.Top ? 0 : _state.ItemCount - 1;
+
+                if (selectedRow != _state.SelectedRow)
+                {
+                    _state.SelectedRow = selectedRow;
+                    _detailView.ResetScroll();
+                }
             }
         }
         else if (edge == EdgeTarget.Top)
