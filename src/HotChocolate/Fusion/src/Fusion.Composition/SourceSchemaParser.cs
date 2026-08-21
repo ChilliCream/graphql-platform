@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Logging;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using FusionLogEntryBuilder = HotChocolate.Fusion.Logging.LogEntryBuilder;
@@ -39,20 +40,31 @@ internal sealed class SourceSchemaParser(
             FederationV1DirectiveDefinitions.Apply(schema);
         }
 
-        // Apollo Federation's @requires directive has no Fusion-native definition (the Fusion
-        // equivalent @require differs in name and argument shape). Register it before parsing
-        // federation source schemas so an applied @requires binds to a real definition instead
-        // of a missing one; preprocessing then rewrites it to @require and removes the
-        // definition. A non-federation schema does not get the definition, so an applied
-        // @requires is reported as an unknown directive, steering authors to @require.
         if (!isApolloFederationV1 && IsFederationSourceText(sourceSchemaText))
         {
+            // Apollo Federation's @requires directive has no Fusion-native definition (the Fusion
+            // equivalent @require differs in name and argument shape). Register it before parsing
+            // federation source schemas so an applied @requires binds to a real definition instead
+            // of a missing one; preprocessing then rewrites it to @require and removes the
+            // definition. A non-federation schema does not get the definition, so an applied
+            // @requires is reported as an unknown directive, steering authors to @require.
             if (schema.Types.TryGetType<MutableScalarTypeDefinition>(
                 WellKnownTypeNames.FieldSelectionSet, out var fieldSelectionSetType))
             {
                 schema.DirectiveDefinitions.Add(
                     new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
             }
+
+            // Apollo Federation's @external may also be applied to object types, which the
+            // Fusion @external definition does not allow. Replace it so federation applications
+            // bind to the federation shape; RemoveFederationInfrastructure drops the definition
+            // during preprocessing.
+            schema.DirectiveDefinitions.Remove(WellKnownDirectiveNames.External);
+            schema.DirectiveDefinitions.Add(
+                new MutableDirectiveDefinition(FederationDirectiveNames.External)
+                {
+                    Locations = DirectiveLocation.FieldDefinition | DirectiveLocation.Object
+                });
 
             // @link carries the federation vocabulary a subgraph imports and is applied to the
             // schema itself. RemoveFederationInfrastructure drops the definition and every
