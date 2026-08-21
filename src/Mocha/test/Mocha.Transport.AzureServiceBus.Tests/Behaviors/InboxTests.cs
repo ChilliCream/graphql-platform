@@ -208,15 +208,18 @@ public class InboxTests
         await messageBus.PublishAsync(new InboxEvent { Payload = "null-id-1" }, CancellationToken.None);
         await messageBus.PublishAsync(new InboxEvent { Payload = "null-id-2" }, CancellationToken.None);
 
-        // assert - both should be processed since null MessageId cannot be deduplicated
+        // assert - both are processed, a cleared MessageId leaves nothing to deduplicate on
         Assert.True(
             await recorder.WaitAsync(s_timeout, expectedCount: 2),
             "Handler should receive both messages when MessageId is null");
 
         Assert.Equal(2, recorder.Messages.Count);
 
-        // Inbox should NOT have recorded anything since MessageId was null
-        Assert.Empty(inbox.RecordedEnvelopes);
+        // the broker stamps its own MessageId when the envelope carries none, so the inbox claims
+        // each message under a distinct id rather than collapsing them into one
+        Assert.Equal(
+            2,
+            inbox.RecordedEnvelopes.Select(e => e.MessageId).Distinct(StringComparer.Ordinal).Count());
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
