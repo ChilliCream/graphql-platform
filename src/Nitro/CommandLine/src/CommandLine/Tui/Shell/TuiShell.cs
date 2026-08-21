@@ -204,7 +204,7 @@ internal sealed class TuiShell
                                 ? createForm.Render(_width, contentHeight)
                                 : ActiveMode.Render(_width, contentHeight);
 
-        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width));
+        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor));
 
         if (_tabs.Count <= 1)
         {
@@ -1017,15 +1017,68 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Formats <paramref name="hints"/> as the footer's single status-row
-    /// line: dimmed key labels, normal-weight action labels, separated hint
-    /// entries, truncated with a trailing ellipsis once <paramref name="width"/>
-    /// cannot fit every hint.
+    /// Formats <paramref name="hints"/> and, when <paramref name="actor"/> is
+    /// given, the current agent identity as the footer's single status-row
+    /// line: the hints on the left as <see cref="FormatFooterHints"/> lays
+    /// them out, the identity right-aligned to the row's right edge in the
+    /// <c>footer.identity</c> style so it stands out from the key and action
+    /// styles. The identity never steals width the hints would otherwise
+    /// use: it is fit into whatever room is left over after the hints are
+    /// laid out, truncated with a trailing ellipsis (or omitted entirely on
+    /// widths too narrow for even that) rather than shrinking the hints
+    /// further.
     /// </summary>
-    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width)
+    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width, string? actor)
+    {
+        var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
+
+        if (string.IsNullOrEmpty(actor))
+        {
+            return hintMarkup;
+        }
+
+        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+
+        if (available <= 0)
+        {
+            return hintMarkup;
+        }
+
+        string identityText;
+
+        if (actor.Length <= available)
+        {
+            identityText = actor;
+        }
+        else if (available > FooterEllipsis.Length)
+        {
+            identityText = actor[..(available - FooterEllipsis.Length)] + FooterEllipsis;
+        }
+        else
+        {
+            return hintMarkup;
+        }
+
+        var identityStyle = ThemeTokens.GetStyle("footer.identity").ToMarkup();
+        var identityMarkup = $"[{identityStyle}]{Markup.Escape(identityText)}[/]";
+        var padding = Math.Max(0, width - hintPlainWidth - identityText.Length);
+
+        return hintMarkup + new string(' ', padding) + identityMarkup;
+    }
+
+    /// <summary>
+    /// Formats <paramref name="hints"/> as dimmed key labels and
+    /// normal-weight action labels, separated hint entries, truncated with a
+    /// trailing ellipsis once <paramref name="width"/> cannot fit every
+    /// hint. <paramref name="plainWidth"/> reports the unmarked-up column
+    /// width of the returned markup, so callers can lay out further content
+    /// (for example the footer identity) in whatever room is left.
+    /// </summary>
+    private static string FormatFooterHints(IReadOnlyList<KeyHint> hints, int width, out int plainWidth)
     {
         if (width <= 0 || hints.Count == 0)
         {
+            plainWidth = 0;
             return string.Empty;
         }
 
@@ -1046,6 +1099,7 @@ internal sealed class TuiShell
 
         if (fullPlainWidth <= width)
         {
+            plainWidth = fullPlainWidth;
             return string.Join(FooterSeparator, markupItems);
         }
 
@@ -1068,9 +1122,11 @@ internal sealed class TuiShell
 
         if (included == 0)
         {
+            plainWidth = width >= FooterEllipsis.Length ? FooterEllipsis.Length : 0;
             return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
         }
 
+        plainWidth = usedWidth + trailerWidth;
         return string.Join(FooterSeparator, markupItems.Take(included)) + FooterSeparator + FooterEllipsis;
     }
 }
