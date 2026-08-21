@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Transport.Nats</AssemblyName>
+    <RootNamespace>Mocha.Transport.Nats</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NATS.Client.JetStream" VersionOverride="3.1.0" />
+  </ItemGroup>
+</Project>
