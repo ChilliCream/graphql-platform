@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
+using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Memory;
@@ -400,6 +401,30 @@ public sealed class MemoryModeTests : MemoryTestBase
         Assert.False(mode.IsInputCapturing);
         var record = Assert.Single(mode.State.CuratedRecords);
         Assert.Contains("ops", record.Tags);
+    }
+
+    [Fact]
+    public async Task SearchForm_Apply_Should_ShowTypeTagIgnoredMarker_When_JournalCollectionSearchedWithType()
+    {
+        // arrange: type: and tag: prefixes narrow the curated list, but the
+        // journal collection has no type or tags to filter by; the list
+        // title must surface that the qualifier was ignored rather than
+        // silently dropping it.
+        await LogAsync("Note one.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.SearchRequested());
+        Type(mode, "type:decision");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var console = new TestConsole().Width(100);
+        console.Write(mode.Render(100, 24));
+        var text = console.Output;
+
+        // assert
+        Assert.Contains("(type/tag ignored)", text);
     }
 
     [Fact]

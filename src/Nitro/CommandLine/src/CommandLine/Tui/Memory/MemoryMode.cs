@@ -445,11 +445,17 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private string ListTitle()
     {
         var collectionName = _state.Collection == MemoryCollectionFilter.Curated ? "Curated" : "Journal";
-        var filtered = _state.Collection == MemoryCollectionFilter.Curated
-            ? _state.SearchText.Length > 0
-            : MemoryQueryParser.Parse(_state.SearchText).Text.Length > 0;
-        var suffix = filtered ? " (filtered)" : "";
-        return $"{collectionName} · {_state.Scope}{suffix}";
+
+        if (_state.Collection == MemoryCollectionFilter.Curated)
+        {
+            var suffix = _state.SearchText.Length > 0 ? " (filtered)" : "";
+            return $"{collectionName} · {_state.Scope}{suffix}";
+        }
+
+        var parsed = MemoryQueryParser.Parse(_state.SearchText);
+        var filteredSuffix = parsed.Text.Length > 0 ? " (filtered)" : "";
+        var ignoredSuffix = parsed.Type is not null || parsed.Tags.Count > 0 ? " (type/tag ignored)" : "";
+        return $"{collectionName} · {_state.Scope}{filteredSuffix}{ignoredSuffix}";
     }
 
     private IRenderable RenderDetailPane(int width, int height)
