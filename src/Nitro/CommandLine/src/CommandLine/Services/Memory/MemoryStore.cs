@@ -270,7 +270,7 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
         if (removeTags.Count > 0)
         {
             var remove = new HashSet<string>(
-                removeTags.Select(MemoryTags.Normalize), StringComparer.Ordinal);
+                removeTags.Select(ValidateTag), StringComparer.Ordinal);
             tags.RemoveAll(remove.Contains);
         }
 

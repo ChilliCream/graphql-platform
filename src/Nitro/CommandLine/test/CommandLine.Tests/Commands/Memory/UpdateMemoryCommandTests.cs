@@ -105,6 +105,26 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task InvalidRemoveTag_ReturnsError_AndDoesNotRewriteFile()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var record = await SeedMemoryAsync("Original text.", tags: ["draft"]);
+        var contentBefore = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "update", record.Id, "--remove-tag", "Not Valid!");
+
+        // assert
+        result.AssertError(
+            "The tag 'Not Valid!' is invalid. A tag may contain only lowercase letters, digits, "
+            + "and hyphens, up to 40 characters.");
+        var contentAfter = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
+        Assert.Equal(contentBefore, contentAfter);
+    }
+
+    [Fact]
     public async Task TextAndFileBothGiven_ReturnsParseError()
     {
         // arrange
