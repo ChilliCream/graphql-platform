@@ -56,7 +56,7 @@ internal sealed class LintTaskCommand : Command
         var findings = new List<TaskLintFinding>();
 
         var tasks = await store.QueryTasksAsync(
-            new TaskFilter { IncludeAll = true, ExcludeTombstones = true },
+            new TaskFilter { IncludeAll = true, IncludeArchived = true, ExcludeTombstones = true },
             cancellationToken);
 
         foreach (var task in tasks)

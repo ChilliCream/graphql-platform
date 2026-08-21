@@ -24,6 +24,14 @@ internal sealed record TaskFilter
     public bool IncludeAll { get; init; }
 
     /// <summary>
+    /// When <see cref="Statuses"/> is null, true stops archived tasks from
+    /// being excluded by the null-<see cref="Statuses"/> default (regardless
+    /// of <see cref="IncludeAll"/>). Ignored when <see cref="Statuses"/> is
+    /// set; list "archived" there instead.
+    /// </summary>
+    public bool IncludeArchived { get; init; }
+
+    /// <summary>
     /// Excludes tombstone tasks regardless of <see cref="Statuses"/> or
     /// <see cref="IncludeAll"/>.
     /// </summary>
