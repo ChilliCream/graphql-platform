@@ -43,7 +43,7 @@ public sealed class MemoryFtsIndexTests : MemoryTestBase
     {
         // arrange: a fresh clone, curated markdown present, no index.db.
         var cancellationToken = TestContext.Current.CancellationToken;
-        await SeedCuratedFileAsync("mem-01234567890123456789012", "the quick brown fox");
+        await SeedCuratedFileAsync("01hqzxk8xdtd3fk3f0z7c5g9aa", "the quick brown fox");
         Assert.False(File.Exists(IndexPath));
 
         // act
@@ -52,7 +52,7 @@ public sealed class MemoryFtsIndexTests : MemoryTestBase
 
         // assert
         Assert.True(File.Exists(IndexPath));
-        Assert.Equal(["mem-01234567890123456789012"], ids);
+        Assert.Equal(["01hqzxk8xdtd3fk3f0z7c5g9aa"], ids);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class MemoryFtsIndexTests : MemoryTestBase
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        const string id = "mem-01234567890123456789012";
+        const string id = "01hqzxk8xdtd3fk3f0z7c5g9aa";
         await SeedCuratedFileAsync(id, "the quick brown fox");
         await MemoryFtsIndex.SearchAsync(
             FileSystem, CuratedDirectory, LocalDirectory, "\"quick\"", null, [], null, cancellationToken);
@@ -85,7 +85,7 @@ public sealed class MemoryFtsIndexTests : MemoryTestBase
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        const string id = "mem-01234567890123456789012";
+        const string id = "01hqzxk8xdtd3fk3f0z7c5g9aa";
         await SeedCuratedFileAsync(id, "the quick brown fox");
         await MemoryFtsIndex.SearchAsync(
             FileSystem, CuratedDirectory, LocalDirectory, "\"quick\"", null, [], null, cancellationToken);
@@ -107,7 +107,7 @@ public sealed class MemoryFtsIndexTests : MemoryTestBase
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        const string id = "mem-01234567890123456789012";
+        const string id = "01hqzxk8xdtd3fk3f0z7c5g9aa";
         await SeedCuratedFileAsync(id, "the quick brown fox");
         await MemoryFtsIndex.SearchAsync(
             FileSystem, CuratedDirectory, LocalDirectory, "\"quick\"", null, [], null, cancellationToken);

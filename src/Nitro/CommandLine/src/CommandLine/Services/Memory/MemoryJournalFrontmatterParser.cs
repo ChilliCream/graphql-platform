@@ -116,9 +116,10 @@ internal static class MemoryJournalFrontmatterParser
 
         var id = fields["id"];
 
-        if (id.Length == 0)
+        if (!MemoryId.IsValid(id))
         {
-            failure = Fail(MemoryFrontmatterFailureReason.InvalidValue, "The 'id' value is empty.");
+            failure = Fail(MemoryFrontmatterFailureReason.InvalidValue,
+                "The 'id' value is not a well-formed memory id.");
             return false;
         }
 

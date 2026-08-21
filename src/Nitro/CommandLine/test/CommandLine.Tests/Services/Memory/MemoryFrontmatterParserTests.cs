@@ -231,6 +231,31 @@ public sealed class MemoryFrontmatterParserTests
     }
 
     [Fact]
+    public void TryParse_Should_Fail_When_IdIsNotAWellFormedMemoryId()
+    {
+        // arrange
+        const string malformedId = "not-a-ulid-shaped-id";
+        var content = Build(
+            $"""
+            schema: 1
+            id: {malformedId}
+            type: fact
+            tags: []
+            created_at: 2026-01-10T12:00:00Z
+            updated_at: 2026-01-10T12:00:00Z
+            created_by: pascal
+            """,
+            "Body.");
+
+        // act
+        var parsed = MemoryFrontmatterParser.TryParse(content, malformedId, out _, out var failure);
+
+        // assert
+        Assert.False(parsed);
+        Assert.Equal(MemoryFrontmatterFailureReason.InvalidValue, failure!.Reason);
+    }
+
+    [Fact]
     public void TryParse_Should_Fail_When_IdDoesNotMatchTheFilename()
     {
         // arrange
