@@ -134,6 +134,132 @@ public sealed class DoctorMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task CrossScopeDuplicateId_AlsoDuplicatedWithinProjectCollections_ScopesAreDistinct()
+    {
+        // An id present in project curated, project journal, AND global
+        // (three entries, two of them both scope "project") must still
+        // report Scopes as the distinct set ["project", "global"], not a
+        // duplicated ["project", "project", "global"].
+
+        // arrange
+        await InitWorkspaceAsync();
+        var entry = await SeedJournalEntryAsync("Project journal entry.");
+        Directory.CreateDirectory(CuratedDirectory);
+        var curatedFrontmatter =
+            $"""
+            ---
+            schema: 1
+            id: {entry.Id}
+            type: fact
+            tags: []
+            created_at: 2026-01-01T00:00:00Z
+            updated_at: 2026-01-01T00:00:00Z
+            created_by: test-agent
+            ---
+            Duplicated as curated too.
+            """;
+        var curatedPath = Path.Combine(CuratedDirectory, entry.Id + ".md");
+        await File.WriteAllTextAsync(
+            curatedPath, curatedFrontmatter, TestContext.Current.CancellationToken);
+        Directory.CreateDirectory(GlobalCuratedDirectory);
+        File.Copy(curatedPath, Path.Combine(GlobalCuratedDirectory, entry.Id + ".md"));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        var conflicts = root.GetProperty("crossScopeDuplicates").EnumerateArray().ToArray();
+        var conflict = Assert.Single(conflicts);
+        Assert.Equal(entry.Id, conflict.GetProperty("id").GetString());
+        var scopes = conflict.GetProperty("scopes").EnumerateArray()
+            .Select(s => s.GetString())
+            .ToArray();
+        Assert.Equal(new[] { "project", "global" }, scopes);
+        Assert.Equal(3, conflict.GetProperty("paths").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task SameScopeCollectionDuplicateId_ReportedAndReturnsError()
+    {
+        // An id duplicated between curated/ and journal/ of the SAME scope
+        // is invalid data too, distinct from a cross-scope duplicate, and
+        // must be reported even when only one scope is inspected.
+
+        // arrange
+        await InitWorkspaceAsync();
+        var entry = await SeedJournalEntryAsync("Project journal entry.");
+        Directory.CreateDirectory(CuratedDirectory);
+        await File.WriteAllTextAsync(
+            Path.Combine(CuratedDirectory, entry.Id + ".md"),
+            $"""
+            ---
+            schema: 1
+            id: {entry.Id}
+            type: fact
+            tags: []
+            created_at: 2026-01-01T00:00:00Z
+            updated_at: 2026-01-01T00:00:00Z
+            created_by: test-agent
+            ---
+            Duplicated as curated too.
+            """,
+            TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "doctor", "--scope", "project");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL Same-scope collection duplicate ids:", result.StdOut);
+        Assert.Contains($"'{entry.Id}' exists as both curated and journal in project", result.StdOut);
+    }
+
+    [Fact]
+    public async Task JsonOutput_SameScopeCollectionDuplicateId_ReportedInStructuredOutput()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var entry = await SeedJournalEntryAsync("Project journal entry.");
+        Directory.CreateDirectory(CuratedDirectory);
+        await File.WriteAllTextAsync(
+            Path.Combine(CuratedDirectory, entry.Id + ".md"),
+            $"""
+            ---
+            schema: 1
+            id: {entry.Id}
+            type: fact
+            tags: []
+            created_at: 2026-01-01T00:00:00Z
+            updated_at: 2026-01-01T00:00:00Z
+            created_by: test-agent
+            ---
+            Duplicated as curated too.
+            """,
+            TestContext.Current.CancellationToken);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "doctor", "--scope", "project");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.False(root.GetProperty("healthy").GetBoolean());
+        var duplicates = root.GetProperty("sameScopeCollectionDuplicates").EnumerateArray().ToArray();
+        var conflict = Assert.Single(duplicates);
+        Assert.Equal(entry.Id, conflict.GetProperty("id").GetString());
+        Assert.Equal("project", conflict.GetProperty("scope").GetString());
+        Assert.Equal(2, conflict.GetProperty("paths").GetArrayLength());
+    }
+
+    [Fact]
     public async Task IndexDrift_FreshIndexDisagreesWithFiles_ReportedAndReturnsError()
     {
         // A "fresh" index (its stored fingerprint matches the curated
