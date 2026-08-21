@@ -8,7 +8,7 @@ public sealed class MemoryStoreTests : MemoryTestBase
 
     public MemoryStoreTests() : base("nitro-memory-store-tests")
     {
-        _store = new MemoryStore(FileSystem);
+        _store = new MemoryStore(FileSystem, TimeProvider);
     }
 
     [Fact]
