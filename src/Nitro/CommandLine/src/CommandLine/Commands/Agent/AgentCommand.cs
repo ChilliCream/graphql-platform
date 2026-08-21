@@ -1,5 +1,6 @@
 using System.CommandLine.Help;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Memory;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -17,6 +18,7 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new InitAgentCommand());
         Subcommands.Add(new TasksCommand());
         Subcommands.Add(new MailCommand());
+        Subcommands.Add(new MemoryCommand());
         Subcommands.Add(new RegisterAgentCommand());
         Subcommands.Add(new WhoamiAgentCommand());
         Subcommands.Add(new ListAgentCommand());
