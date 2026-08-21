@@ -705,9 +705,10 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var settingsFile = Path.Combine(workDir, "source-schema-1-settings.json");
         var extensionsFile = Path.Combine(workDir, "source-schema-1-extensions.graphqls");
 
-        SetupFile(schemaFile, (await File.ReadAllTextAsync(
+        var schemaText = await File.ReadAllTextAsync(
             schemaFile,
-            TestContext.Current.CancellationToken)).TrimEnd());
+            TestContext.Current.CancellationToken);
+        SetupFile(schemaFile, schemaText.TrimEnd());
         SetupFile(settingsFile, new MemoryStream(await File.ReadAllBytesAsync(
             settingsFile,
             TestContext.Current.CancellationToken)));

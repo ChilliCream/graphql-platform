@@ -1160,4 +1160,44 @@ public sealed class SchemaComposerTests
             ],
             rules);
     }
+
+    [Fact]
+    public void Compose_Should_ReportOnlyInvalidSchema_When_ValidSchemaFollowsIt()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    // lang=graphql
+                    """
+                    schema {
+                        query: Query
+                    }
+
+                    type Receipt {
+                        id: ID!
+                        total: Int
+                    }
+                    """),
+                new SourceSchemaText("B", "type Query { ping: String }")
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Source schema parsing failed.", error.Message);
+        var entry = Assert.Single(log);
+        Assert.Equal("A", entry.Schema?.Name);
+        Assert.Equal(
+            "Invalid GraphQL in source schema. Exception message: "
+            + "The query root type 'Query' is not defined..",
+            entry.Message);
+    }
 }

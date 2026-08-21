@@ -145,6 +145,23 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         DocumentValidatorContext context)
     {
+        // An argument of a fragment spread is declared by a variable definition of the
+        // fragment it targets, not by a field or a directive.
+        if (context.Path.Peek() is FragmentSpreadNode spread)
+        {
+            if (FragmentArguments.TryGetArgumentType(
+                context,
+                spread,
+                node.Name.Value,
+                out var argumentType))
+            {
+                context.Types.Push(argumentType);
+                return Continue;
+            }
+
+            return Skip;
+        }
+
         if (context.Directives.TryPeek(out var directive))
         {
             if (directive.Arguments.TryGetField(node.Name.Value, out var argument))
@@ -177,6 +194,12 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         DocumentValidatorContext context)
     {
+        if (context.Path.Peek() is FragmentSpreadNode)
+        {
+            context.Types.Pop();
+            return Continue;
+        }
+
         context.InputFields.Pop();
         context.Types.Pop();
         return Continue;

@@ -1,0 +1,25 @@
+{
+  "Schema": "azuresb",
+  "TransportType": "AzureServiceBusMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "orders",
+      "AutoProvision": false,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_error",
+      "AutoProvision": false,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_skipped",
+      "AutoProvision": false,
+      "Origin": "endpoint"
+    }
+  ],
+  "Links": []
+}

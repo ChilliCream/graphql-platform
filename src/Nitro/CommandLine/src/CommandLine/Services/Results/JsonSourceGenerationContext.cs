@@ -12,7 +12,9 @@ using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
+using ChilliCream.Nitro.CommandLine.Commands.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
 
@@ -42,4 +44,30 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>))]
 [JsonSerializable(typeof(McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult))]
 [JsonSerializable(typeof(PaginatedListResult<McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult>))]
+[JsonSerializable(typeof(ListResult<TaskSummaryResult>))]
+[JsonSerializable(typeof(ListResult<TaskBlockedResult>))]
+[JsonSerializable(typeof(TaskDetailResult))]
+[JsonSerializable(typeof(CountTaskCommand.TaskTotalCountResult))]
+[JsonSerializable(typeof(ListResult<TaskCount>))]
+[JsonSerializable(typeof(TaskStats))]
+[JsonSerializable(typeof(TaskDependenciesResult))]
+[JsonSerializable(typeof(TaskDependencyTreeNode))]
+[JsonSerializable(typeof(ListResult<TaskCycleResult>))]
+[JsonSerializable(typeof(ListResult<TaskLabelCount>))]
+[JsonSerializable(typeof(ListResult<TaskComment>))]
+[JsonSerializable(typeof(GetTaskConfigCommand.TaskConfigValueResult))]
+[JsonSerializable(typeof(ListResult<TaskConfigEntry>))]
+[JsonSerializable(typeof(WhereTaskCommand.TaskWorkspaceLocationResult))]
+[JsonSerializable(typeof(ListResult<TaskEpicStatus>))]
+[JsonSerializable(typeof(TaskSnapshotResult))]
+[JsonSerializable(typeof(ListResult<TaskSnapshotResult>))]
+[JsonSerializable(typeof(AddTaskDependencyCommand.TaskDependencyAddedResult))]
+[JsonSerializable(typeof(RemoveTaskDependencyCommand.TaskDependencyRemovedResult))]
+[JsonSerializable(typeof(AddTaskLabelCommand.TaskLabelAddResult))]
+[JsonSerializable(typeof(RemoveTaskLabelCommand.TaskLabelRemovedResult))]
+[JsonSerializable(typeof(TaskComment))]
+[JsonSerializable(typeof(TaskConfigEntry))]
+[JsonSerializable(typeof(InitTaskCommand.TaskWorkspaceInitResult))]
+[JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
+[JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

@@ -18,6 +18,7 @@ using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -35,6 +36,9 @@ public abstract class CommandTestBase
     private readonly NitroCommandFixture _fixture;
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
+    private IFileSystem? _fileSystemOverride;
+    protected readonly FakeTimeProvider FakeTime =
+        new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
     private readonly Mock<IHttpClientFactory> _httpClientFactoryMock = new();
     protected readonly Mock<ISchemasClient> SchemasClientMock = new(MockBehavior.Strict);
@@ -67,6 +71,15 @@ public abstract class CommandTestBase
     protected void SetupInteractionMode(InteractionMode mode)
     {
         _interactionMode = mode;
+    }
+
+    /// <summary>
+    /// Replaces the mocked file system with the given implementation, for
+    /// tests that run commands against real files in a temp directory.
+    /// </summary>
+    private protected void SetupFileSystem(IFileSystem fileSystem)
+    {
+        _fileSystemOverride = fileSystem;
     }
 
     protected void SetupNoAuthentication()
@@ -234,7 +247,8 @@ public abstract class CommandTestBase
                         "Workspace from session")));
         }
 
-        services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
+        services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
@@ -412,7 +426,7 @@ public abstract class CommandTestBase
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         foreach (var file in _files)
         {
