@@ -100,4 +100,5 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MemoryPromotionResult))]
 [JsonSerializable(typeof(MemoryEntryResult))]
 [JsonSerializable(typeof(ListResult<MemoryEntryResult>))]
+[JsonSerializable(typeof(DoctorMemoryCommand.MemoryDoctorResult))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

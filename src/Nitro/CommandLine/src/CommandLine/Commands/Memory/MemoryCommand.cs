@@ -17,6 +17,7 @@ internal sealed class MemoryCommand : Command
         Subcommands.Add(new PromoteMemoryCommand());
         Subcommands.Add(new TagsMemoryCommand());
         Subcommands.Add(new ReindexMemoryCommand());
+        Subcommands.Add(new DoctorMemoryCommand());
         Subcommands.Add(new WhereMemoryCommand());
     }
 }
