@@ -123,7 +123,7 @@ public sealed class ReopenTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "reopen", id);
 
         // assert
-        result.AssertError($"Task '{id}' is not closed.");
+        result.AssertError($"Task '{id}' is not closed or archived.");
     }
 
     [Fact]

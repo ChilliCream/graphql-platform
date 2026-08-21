@@ -99,6 +99,27 @@ public abstract class TasksCommandTestBase : CommandTestBase
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Sets a task's status directly in the workspace database, bypassing
+    /// ITaskStore's transition rules. Used to seed a task in a status the
+    /// normal command surface cannot reach directly, such as archived.
+    /// </summary>
+    protected async Task SetTaskStatusAsync(string taskId, string status)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection =
+            new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE tasks SET status = @status WHERE id = @id";
+        command.Parameters.AddWithValue("@status", status);
+        command.Parameters.AddWithValue("@id", taskId);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();

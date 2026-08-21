@@ -126,7 +126,7 @@ internal sealed class ShowTaskCommand : Command
         lines.Add($"Created: {TaskDates.Format(task.CreatedAt)} by {task.CreatedBy}");
         lines.Add($"Updated: {TaskDates.Format(task.UpdatedAt)}");
 
-        if (task.Status == TaskStates.Closed && task.ClosedAt is { } closedAt)
+        if (task.Status is TaskStates.Closed or TaskStates.Archived && task.ClosedAt is { } closedAt)
         {
             var closedLine = $"Closed: {TaskDates.Format(closedAt)}";
 

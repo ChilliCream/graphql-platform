@@ -56,7 +56,7 @@ internal sealed class LintTaskCommand : Command
         var findings = new List<TaskLintFinding>();
 
         var tasks = await store.QueryTasksAsync(
-            new TaskFilter { IncludeAll = true, ExcludeTombstones = true },
+            new TaskFilter { IncludeAll = true, IncludeArchived = true, ExcludeTombstones = true },
             cancellationToken);
 
         foreach (var task in tasks)
@@ -89,7 +89,7 @@ internal sealed class LintTaskCommand : Command
                 findings.Add(new TaskLintFinding(
                     epic.Id, "epic-no-children", "Epic has zero children."));
             }
-            else if (epic.Status == TaskStates.Closed && epic.Closed < epic.Total)
+            else if (epic.Status is (TaskStates.Closed or TaskStates.Archived) && epic.Closed < epic.Total)
             {
                 findings.Add(new TaskLintFinding(
                     epic.Id, "closed-epic-open-children", "Closed epic has open children."));
