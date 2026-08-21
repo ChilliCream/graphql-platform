@@ -48,12 +48,15 @@ public class RequestReplyTests
             .AddAzureServiceBus(ctx)
             .BuildTestBusAsync();
 
+        // a single scope that outlives every in-flight request, the requests only complete once
+        // their responses have been correlated back
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
         // act
         var tasks = new Task<OrderStatusResponse>[10];
         for (var i = 0; i < 10; i++)
         {
-            using var scope = bus.Provider.CreateScope();
-            var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             tasks[i] = messageBus
                 .RequestAsync(new GetOrderStatus { OrderId = $"ORD-{i}" }, CancellationToken.None)
                 .AsTask();

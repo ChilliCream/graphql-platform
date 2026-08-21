@@ -76,6 +76,11 @@ public class ErrorQueueTests
                 t.Endpoint("payment-ep")
                     .Handler<ThrowingPaymentHandler>()
                     .FaultEndpoint(new Uri("azuresb:q/payment-q_error"));
+                // the handler sits on an explicitly named queue, so sends have to be directed
+                // there instead of to the message-type derived queue the convention would pick
+                t.DispatchEndpoint("payment-send-ep")
+                    .ToQueue("payment-ep")
+                    .Send<ProcessPayment>();
                 t.Endpoint("payment-error-ep")
                     .Queue("payment-q_error")
                     // we mark it as an error because only then no route will be provisioned for the
