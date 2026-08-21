@@ -75,6 +75,11 @@ internal static class DefaultTheme
 
         ["mail.message.unread"] = new Style(decoration: Decoration.Bold),
 
+        ["memory.list.type"] = new Style(Color.SkyBlue1),
+        ["memory.list.tags"] = new Style(Color.Grey70),
+        ["memory.list.scope"] = new Style(Color.Grey50),
+        ["memory.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+
         ["detail.section.header"] = new Style(decoration: Decoration.Bold),
         ["detail.section.border"] = new Style(Color.Grey),
 

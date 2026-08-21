@@ -166,6 +166,29 @@ internal abstract record TuiMessage
     /// item.
     /// </summary>
     public sealed record ReplyRequested : TuiMessage;
+
+    /// <summary>
+    /// The active mode's own inline search input should gain focus.
+    /// </summary>
+    public sealed record SearchRequested : TuiMessage;
+
+    /// <summary>
+    /// The active mode's secondary scope filter should cycle to its next
+    /// value.
+    /// </summary>
+    public sealed record CycleScopeRequested : TuiMessage;
+
+    /// <summary>
+    /// The promote form should open for the active mode's currently selected
+    /// journal entry.
+    /// </summary>
+    public sealed record PromoteRequested : TuiMessage;
+
+    /// <summary>
+    /// The forget confirmation should open for the active mode's currently
+    /// selected curated memory.
+    /// </summary>
+    public sealed record ForgetRequested : TuiMessage;
 }
 
 /// <summary>

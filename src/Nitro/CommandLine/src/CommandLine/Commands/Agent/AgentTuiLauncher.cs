@@ -1,12 +1,14 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
@@ -16,9 +18,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
 /// <summary>
 /// Builds and runs the unified agent TUI: a tabbed <see cref="TuiShell"/>
-/// hosting the tasks board, mail board, and agent registry list over the
-/// unified workspace database, starting on the tasks tab, and sharing one
-/// <see cref="SqliteDbWatcher"/> instance between all three tabs.
+/// hosting the tasks board, mail board, agent registry list, and memory
+/// board over the unified workspace database, starting on the tasks tab,
+/// and sharing one <see cref="SqliteDbWatcher"/> instance between all four
+/// tabs.
 /// </summary>
 internal static class AgentTuiLauncher
 {
@@ -31,6 +34,7 @@ internal static class AgentTuiLauncher
         INitroConsole console,
         ITaskStore taskStore,
         IMailStore mailStore,
+        IMemoryStore memoryStore,
         IAgentRegistry agentRegistry,
         TimeProvider timeProvider,
         IEnvironmentVariableProvider environmentVariableProvider,
@@ -50,8 +54,11 @@ internal static class AgentTuiLauncher
         var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
+        var memoryMode = new MemoryMode(memoryStore, timeProvider);
+        var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
         var shell = new TuiShell(
-            [tasksTab, mailTab, agentsTab],
+            [tasksTab, mailTab, agentsTab, memoryTab],
             console.Profile.Width,
             console.Profile.Height,
             tasksTabIndex: 0,

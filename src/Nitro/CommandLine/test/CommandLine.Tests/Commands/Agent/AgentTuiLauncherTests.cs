@@ -1,12 +1,16 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
@@ -118,6 +122,75 @@ public sealed class AgentTuiLauncherTests
         // title until a refresh reports unread messages.
         Assert.IsType<MailMode>(mailTab.RootMode);
         Assert.Equal("Mail", mailTab.Title);
+    }
+
+    [Fact]
+    public void RunAsync_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
+    {
+        // arrange: replicates the tab list AgentTuiLauncher.RunAsync builds
+        // (RunAsync itself blocks on a live console loop and cannot be
+        // exercised directly), so the mnemonic and order the shell actually
+        // renders is pinned even though the tab-building code lives inline
+        // in RunAsync rather than in a separately testable factory. Guards
+        // against the tab order regressing now that a fourth tab exists
+        // (perles-net-w27 flagged the absence of this assertion as a
+        // finding for slice g to close).
+        var taskStore = new FakeTaskStore();
+        var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
+        var boardMode = new BoardMode(loader);
+        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            new FakeMailStore(), new FakeTimeProvider(Now), CreateEnvironment(mailActor: "alice").Object);
+
+        var agentsMode = new AgentsMode(
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new FakeTaskStore(),
+            new FakeMailStore(),
+            new FakeTimeProvider(Now));
+        var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
+
+        try
+        {
+            var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
+            Directory.CreateDirectory(workingDirectory);
+            var globalMemoryDirectory = Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory");
+
+            var memoryStore = new MemoryStore(
+                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
+                new FakeTimeProvider(Now),
+                globalMemoryDirectory);
+            var memoryMode = new MemoryMode(memoryStore, new FakeTimeProvider(Now));
+            var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
+            var shell = new TuiShell(
+                [tasksTab, mailTab, agentsTab, memoryTab],
+                80,
+                24,
+                tasksTabIndex: 0,
+                new SearchMode(taskStore),
+                new DependencyTreeView(taskStore, rootId: ""),
+                taskStore,
+                actor: "tasks-actor");
+
+            // act
+            var text = RenderToText(shell);
+
+            // assert: order matters here, not just presence, since
+            // Assert.Contains alone would not catch the tabs being reordered.
+            var tasksIndex = text.IndexOf("[T]asks", StringComparison.Ordinal);
+            var mailIndex = text.IndexOf("[M]ail", StringComparison.Ordinal);
+            var agentsIndex = text.IndexOf("[A]gents", StringComparison.Ordinal);
+            var memoryIndex = text.IndexOf("M[e]mory", StringComparison.Ordinal);
+
+            Assert.True(tasksIndex >= 0 && mailIndex > tasksIndex && agentsIndex > mailIndex && memoryIndex > agentsIndex);
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
     }
 
     [Fact]
