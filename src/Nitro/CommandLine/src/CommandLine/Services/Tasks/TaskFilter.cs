@@ -10,13 +10,16 @@ internal sealed record TaskFilter
 {
     /// <summary>
     /// Statuses a task must have one of. Null defers to
-    /// <see cref="IncludeAll"/>.
+    /// <see cref="IncludeAll"/>. Archived tasks are returned only when this
+    /// explicitly lists "archived"; see <see cref="IncludeAll"/>.
     /// </summary>
     public string[]? Statuses { get; init; }
 
     /// <summary>
     /// When <see cref="Statuses"/> is null, true includes closed and
-    /// tombstone tasks and false excludes them.
+    /// tombstone tasks and false excludes them. Either way, archived tasks
+    /// are excluded: they come back only when <see cref="Statuses"/>
+    /// explicitly contains "archived".
     /// </summary>
     public bool IncludeAll { get; init; }
 

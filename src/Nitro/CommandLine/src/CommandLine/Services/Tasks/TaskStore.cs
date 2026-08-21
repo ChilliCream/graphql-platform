@@ -1382,6 +1382,8 @@ internal sealed class TaskStore(
 
         await transaction.CommitAsync(cancellationToken);
 
+        await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
+
         return tasks;
     }
 
@@ -1397,7 +1399,7 @@ internal sealed class TaskStore(
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
-        if (task.Status != TaskStates.Closed)
+        if (task.Status is not (TaskStates.Closed or TaskStates.Archived))
         {
             throw new ExitException($"Task '{id}' is not closed.");
         }
@@ -1687,7 +1689,68 @@ internal sealed class TaskStore(
 
         await transaction.CommitAsync(cancellationToken);
 
+        await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
+
         return eligible.Select(epic => epic with { Status = TaskStates.Closed }).ToList();
+    }
+
+    // Enforces TaskStates.ClosedTaskCap: when the closed count exceeds the
+    // cap, moves the oldest closed tasks (by closed_at, tie-break id) to
+    // Archived until exactly the cap remains. Runs in its own transaction,
+    // after the caller's close transaction has already committed, so a
+    // failure here never rolls back the close itself.
+    private async Task ArchiveExcessClosedTasksAsync(
+        SqliteConnection connection,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var closedCount = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM tasks WHERE status = @status",
+            new { status = TaskStates.Closed, cancellationToken });
+
+        var excess = closedCount - TaskStates.ClosedTaskCap;
+
+        if (excess <= 0)
+        {
+            return;
+        }
+
+        var idsToArchive = (await connection.QueryAsync<string>(
+            """
+            SELECT id FROM tasks
+            WHERE status = @status
+            ORDER BY closed_at ASC, id ASC
+            LIMIT @limit
+            """,
+            new { status = TaskStates.Closed, limit = excess, cancellationToken })).ToList();
+
+        var now = timeProvider.GetUtcNow();
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        foreach (var id in idsToArchive)
+        {
+            await connection.ExecuteAsync(
+                "UPDATE tasks SET status = @status, updated_at = @updatedAt WHERE id = @id",
+                new { status = TaskStates.Archived, updatedAt = now, id, cancellationToken },
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.Archived,
+                    Actor = actor,
+                    OldValue = TaskStates.Closed,
+                    NewValue = TaskStates.Archived,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task<TaskComment> AddCommentAsync(
@@ -2704,7 +2767,16 @@ internal sealed class TaskStore(
         {
             parameters["closedStatus"] = TaskStates.Closed;
             parameters["tombstoneStatus"] = TaskStates.Tombstone;
-            conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
+            parameters["archivedStatus"] = TaskStates.Archived;
+            conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus, @archivedStatus)");
+        }
+        else
+        {
+            // Archived tasks never come back through the null-Statuses
+            // default, even with IncludeAll: the CLI never returns them
+            // unless a filter explicitly asks via Statuses.
+            parameters["archivedStatus"] = TaskStates.Archived;
+            conditions.Add("status != @archivedStatus");
         }
 
         if (filter.ExcludeTombstones)
