@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 
 public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
@@ -115,6 +117,26 @@ public sealed class LintTaskCommandTests(NitroCommandFixture fixture)
         await CreateTaskAsync("Child task", "--parent", epicId, "--description", "Some detail.");
         var closeResult = await ExecuteCommandAsync("agent", "tasks", "close", epicId);
         Assert.Equal(0, closeResult.ExitCode);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "tasks", "lint");
+
+        // assert
+        result.AssertSuccess(
+            $"{epicId}  closed-epic-open-children: Closed epic has open children.");
+    }
+
+    [Fact]
+    public async Task ArchivedEpicWithOpenChildren_IsReported()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var epicId = await CreateTaskAsync(
+            "Parent epic", "--type", "epic", "--description", "Some detail.");
+        await CreateTaskAsync("Child task", "--parent", epicId, "--description", "Some detail.");
+        var closeResult = await ExecuteCommandAsync("agent", "tasks", "close", epicId);
+        Assert.Equal(0, closeResult.ExitCode);
+        await SetTaskStatusAsync(epicId, TaskStates.Archived);
 
         // act
         var result = await ExecuteCommandAsync("agent", "tasks", "lint");

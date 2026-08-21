@@ -90,9 +90,9 @@ internal static class TaskLifecycleActions
 
     /// <summary>
     /// Whether reopening should be offered for <paramref name="task"/>: only a
-    /// closed task can be reopened.
+    /// closed or archived task can be reopened.
     /// </summary>
-    public static bool CanReopen(TaskItem task) => task.Status == TaskStates.Closed;
+    public static bool CanReopen(TaskItem task) => task.Status is TaskStates.Closed or TaskStates.Archived;
 
     /// <summary>
     /// Closes <paramref name="task"/> with <paramref name="reason"/>.

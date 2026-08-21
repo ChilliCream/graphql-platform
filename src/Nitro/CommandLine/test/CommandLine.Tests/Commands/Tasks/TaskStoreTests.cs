@@ -112,6 +112,25 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task QueryTasksAsync_IncludeAllAndIncludeArchived_ReturnsArchivedTasks()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 1);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Archived, priority: 0);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { IncludeAll = true, IncludeArchived = true }, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-3", "acme-2", "acme-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
     public async Task QueryTasksAsync_StatusClosed_ExcludesArchived()
     {
         // arrange
