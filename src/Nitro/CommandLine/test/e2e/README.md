@@ -30,8 +30,8 @@ layer: a handful of representative flows, not exhaustive.
 | `board-maximize` | the Tasks tab's maximize toggle (`z`) | the single-column maximized layout |
 | `search` | search mode (`/`) via `agent tasks board`, no tab strip (see below) | live query filtering and opening a result's detail pane |
 | `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
-| `mail-send` | `nitro agent init` then `mail register/send/inbox/reply/read --thread` | the mail send/inbox/reply/read round trip in a live workspace |
-| `mail-error` | `nitro agent mail send` to an unregistered recipient | the "Unknown recipient(s)" error and non-zero exit rendering |
+| `mail-send` | `nitro agent init` then `agent register/mail send/inbox/reply/read --thread` | the mail send/inbox/reply/read round trip in a live workspace, one actor registered with a role |
+| `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
 | `mail-board` | the Mail tab (bare `nitro agent`, `]` to switch) | unread styling, the detail pane, and the thread toggle |
 
 `help` is a trivial smoke flow that proves the pipeline itself,
@@ -62,8 +62,9 @@ that lands.
 The `mail-*` flows are a handful of representative mail flows, not
 exhaustive per-command coverage (that is the unit tier's job): `mail-send`
 runs live against a fresh workspace (init via the unified `nitro agent
-init`, register two actors, send with `--cc`, inbox as the recipient, read
-with `--thread` after a reply), so its ids and dates need the `mail-send`
+init`, register two actors via the root `nitro agent register` command
+(one with `--role`), send with `--cc`, inbox as the recipient, read with
+`--thread` after a reply), so its ids and dates need the `mail-send`
 SCRUBS entry in [`run.sh`](run.sh); `mail-board` runs against the shared
 seeded fixture ([`fixtures/mail-seed.sql`](fixtures/mail-seed.sql)) with
 timestamps fixed far enough in the past that the board's age column always

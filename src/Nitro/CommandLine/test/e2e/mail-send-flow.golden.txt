@@ -1,9 +1,9 @@
 $ nitro agent init
 ✓ Initialized agent workspace at '.nitro/agents'.
 ✓ Task ID prefix set to 'work'.
-$ nitro agent mail register --actor agent-a
-✓ Registered 'agent-a'.
-$ nitro agent mail register --actor agent-b
+$ nitro agent register --actor agent-a --role reviewer
+✓ Registered 'agent-a' as 'reviewer'.
+$ nitro agent register --actor agent-b
 ✓ Registered 'agent-b'.
 $ nitro agent mail send agent-b --actor agent-a --cc agent-a --subject Status --body All-good
 ✓ Sent 'm-XXX' to agent-b, agent-a.
@@ -17,7 +17,7 @@ captured m-XXX
 $ nitro agent mail reply "$MSG_ID" --actor agent-b --body Thanks-noted
 ✓ Sent 'm-XXX' to agent-a.
 $ nitro agent mail read "$MSG_ID" --thread --actor agent-a
-From: agent-a
+From: agent-a (reviewer)
 To: agent-b
 Cc: agent-a
 Date: DATE

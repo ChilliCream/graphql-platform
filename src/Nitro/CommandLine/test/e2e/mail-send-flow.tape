@@ -4,13 +4,15 @@
 # message ids).
 #
 # init (unified `nitro agent init`, the same command tasks use) -> register
-# two actors (--actor, one invocation each; the persistent NITRO_MAIL_ACTOR
-# env var form is exercised by mail-board-flow instead) ->
-# agent-a sends to agent-b, cc'ing itself (--cc) -> agent-b's inbox shows it
-# unread -> agent-b replies (ReplyMessageAsync flattens the original's
-# sender/to/cc into the reply's own "to", deduped, minus the replying actor)
-# -> the message is read back with --thread as agent-a, printing both
-# messages.
+# two actors at the `nitro agent` root (--actor, one invocation each; the
+# persistent NITRO_MAIL_ACTOR env var form is exercised by mail-board-flow
+# instead), agent-a with a --role so the flow demonstrates RegisterAgentCommand's
+# role and ReadMailCommand's "From: name (role)" header -> agent-a sends to
+# agent-b, cc'ing itself (--cc) -> agent-b's inbox shows it unread -> agent-b
+# replies (ReplyMessageAsync flattens the original's sender/to/cc into the
+# reply's own "to", deduped, minus the replying actor) -> the message is read
+# back with --thread as agent-a, printing both messages, the first one's
+# header showing agent-a's role.
 #
 # Every typed command is kept short and a `Sleep 500ms` follows each
 # Wait+Screen (mirroring close-reopen-flow.tape's chained-command pattern):
@@ -51,11 +53,11 @@ Type `nitro agent init` Enter
 Wait+Screen@30s /Initialized agent workspace/
 Sleep 500ms
 
-Type `nitro agent mail register --actor agent-a` Enter
+Type `nitro agent register --actor agent-a --role reviewer` Enter
 Wait+Screen@30s /Registered 'agent-a'/
 Sleep 500ms
 
-Type `nitro agent mail register --actor agent-b` Enter
+Type `nitro agent register --actor agent-b` Enter
 Wait+Screen@30s /Registered 'agent-b'/
 Sleep 500ms
 
@@ -83,7 +85,8 @@ Sleep 500ms
 
 # Read as agent-a (the original sender, and a recipient of agent-b's reply
 # once ReplyMessageAsync flattens participants): prints both messages,
-# oldest first, and marks agent-a's copy of the reply read.
+# oldest first, marks agent-a's copy of the reply read, and shows agent-a's
+# "reviewer" role in the first message's From header.
 Type `nitro agent mail read "$MSG_ID" --thread --actor agent-a` Enter
 Wait+Screen@30s /Thanks-noted/
 

@@ -146,7 +146,7 @@ FIXTURE_DIR="$OUT_DIR/fixture/acme"
 FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
 # Matches AgentDatabase.CurrentVersion. The binary is the schema owner: this
 # is a version-number guard, never a schema-shape comparison.
-FIXTURE_SCHEMA_VERSION=2
+FIXTURE_SCHEMA_VERSION=3
 FIXTURE_TASK_MARKER="acme-epic1"
 FIXTURE_MAIL_MARKER="Retro notes"
 
