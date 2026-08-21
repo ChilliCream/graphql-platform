@@ -66,10 +66,10 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     /// partial result is served), or the store rejected a file it read with
     /// an <see cref="ExitException"/> such as malformed frontmatter; null
     /// otherwise. Mirrors how <c>MailUnavailableMode</c> keeps a hard read
-    /// failure from crashing the tab, shown inline in the list pane instead
-    /// of replacing the whole mode, since unlike a failed mail actor
-    /// resolution this can recur on every refresh rather than only at tab
-    /// construction.
+    /// failure from crashing the tab, shown in the detail pane when nothing
+    /// is selected instead of replacing the whole mode, since unlike a
+    /// failed mail actor resolution this can recur on every refresh rather
+    /// than only at tab construction.
     /// </summary>
     public string? LoadError { get; private set; }
 
