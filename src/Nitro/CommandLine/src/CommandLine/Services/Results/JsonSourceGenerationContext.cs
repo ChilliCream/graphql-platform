@@ -16,6 +16,7 @@ using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
@@ -82,4 +83,5 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(ListResult<MailMessageDetailResult>))]
 [JsonSerializable(typeof(MailIdsResult))]
 [JsonSerializable(typeof(ListResult<MailThreadRowResult>))]
+[JsonSerializable(typeof(MemoryRecordResult))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

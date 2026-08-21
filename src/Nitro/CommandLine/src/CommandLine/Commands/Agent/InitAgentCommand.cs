@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Tasks;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
@@ -44,6 +45,7 @@ internal sealed class InitAgentCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var store = services.GetRequiredService<ITaskStore>();
+        var memoryStore = services.GetRequiredService<IMemoryStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var currentDirectory = fileSystem.GetCurrentDirectory();
@@ -74,6 +76,7 @@ internal sealed class InitAgentCommand : Command
             var reinitPrefix = AgentWorkspace.NormalizePrefix(explicitPrefix ?? directoryDefaultPrefix);
 
             await store.InitializeWorkspaceAsync(workspaceDirectory, reinitPrefix, cancellationToken);
+            await memoryStore.EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
             await WriteGitIgnoreAsync(fileSystem, gitIgnorePath, force: true, cancellationToken);
 
             return WriteResult(
@@ -121,6 +124,8 @@ internal sealed class InitAgentCommand : Command
 
             await store.EnsureWorkspaceAsync(workspaceDirectory, cancellationToken);
             createdDatabase = true;
+
+            await memoryStore.EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
 
             var migratedTasks = 0;
 
