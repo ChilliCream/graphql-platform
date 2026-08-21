@@ -63,8 +63,10 @@ internal sealed class DoctorMemoryCommand : Command
         }
 
         var crossScopeDuplicates = FindCrossScopeDuplicates(inspections);
+        var sameScopeCollectionDuplicates = FindSameScopeCollectionDuplicates(inspections);
 
         var healthy = crossScopeDuplicates.Count == 0
+            && sameScopeCollectionDuplicates.Count == 0
             && inspections.All(inspection =>
                 inspection.MalformedFrontmatter.Count == 0
                 && inspection.IndexOnlyIds.Count == 0
@@ -75,7 +77,8 @@ internal sealed class DoctorMemoryCommand : Command
         if (!console.IsHumanReadable)
         {
             resultHolder.SetResult(new ObjectResult(
-                new MemoryDoctorResult(scopeResults, crossScopeDuplicates, healthy)));
+                new MemoryDoctorResult(
+                    scopeResults, crossScopeDuplicates, sameScopeCollectionDuplicates, healthy)));
 
             return healthy ? ExitCodes.Success : ExitCodes.Error;
         }
@@ -110,6 +113,14 @@ internal sealed class DoctorMemoryCommand : Command
             crossScopeDuplicates.Count == 0,
             crossScopeDuplicates.Select(conflict =>
                 $"'{conflict.Id}' exists in {string.Join(" and ", conflict.Scopes)}: "
+                + string.Join(", ", conflict.Paths)));
+
+        WriteCheck(
+            console,
+            "Same-scope collection duplicate ids",
+            sameScopeCollectionDuplicates.Count == 0,
+            sameScopeCollectionDuplicates.Select(conflict =>
+                $"'{conflict.Id}' exists as both curated and journal in {conflict.Scope}: "
                 + string.Join(", ", conflict.Paths)));
 
         return healthy ? ExitCodes.Success : ExitCodes.Error;
@@ -304,6 +315,36 @@ internal sealed class DoctorMemoryCommand : Command
             .ToArray();
     }
 
+    /// <summary>
+    /// Finds ids present in both the curated and journal collections of the
+    /// SAME scope. Ids are collision-resistant by construction, so an id
+    /// duplicated between a scope's curated/ and journal/ directories is
+    /// invalid data too, distinct from the cross-scope check above, which
+    /// only fires when both a project and a global inspection exist.
+    /// </summary>
+    private static IReadOnlyList<MemoryCollectionConflict> FindSameScopeCollectionDuplicates(
+        IReadOnlyList<ScopeInspection> inspections)
+    {
+        var conflicts = new List<MemoryCollectionConflict>();
+
+        foreach (var inspection in inspections)
+        {
+            var duplicateIds = inspection.CuratedPathsById.Keys
+                .Intersect(inspection.JournalPathsById.Keys, StringComparer.Ordinal)
+                .OrderBy(id => id, StringComparer.Ordinal);
+
+            foreach (var id in duplicateIds)
+            {
+                conflicts.Add(new MemoryCollectionConflict(
+                    id,
+                    inspection.Scope,
+                    [inspection.CuratedPathsById[id], inspection.JournalPathsById[id]]));
+            }
+        }
+
+        return conflicts;
+    }
+
     private static void WriteCheck(
         INitroConsole console,
         string name,
@@ -339,6 +380,7 @@ internal sealed class DoctorMemoryCommand : Command
     public sealed record MemoryDoctorResult(
         IReadOnlyList<MemoryDoctorScopeResult> Scopes,
         IReadOnlyList<MemoryScopeConflict> CrossScopeDuplicates,
+        IReadOnlyList<MemoryCollectionConflict> SameScopeCollectionDuplicates,
         bool Healthy);
 
     public sealed record MemoryDoctorScopeResult(
@@ -354,4 +396,12 @@ internal sealed class DoctorMemoryCommand : Command
         IReadOnlyList<MemoryDoctorFrontmatterFailure> MalformedFrontmatter);
 
     public sealed record MemoryDoctorFrontmatterFailure(string Kind, string Path, string Reason);
+
+    /// <summary>
+    /// One id that exists in both the curated and journal collections of the
+    /// same scope. Distinct from <see cref="MemoryScopeConflict"/>, which
+    /// covers an id duplicated across scopes rather than across collections
+    /// within one scope.
+    /// </summary>
+    public sealed record MemoryCollectionConflict(string Id, string Scope, IReadOnlyList<string> Paths);
 }
