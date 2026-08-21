@@ -1,5 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
@@ -40,6 +42,18 @@ public sealed class TuiShellTabsTests
 
     private static TuiTab CreateMailTab(string title, ITuiMode mode) =>
         new(title, mode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+
+    private static TuiTab CreateAgentsTab(string title, ITuiMode mode) =>
+        new(title, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+    private static AgentRecord Agent(string name, string role = "") => new()
+    {
+        Name = name,
+        Role = role,
+        Implicit = false,
+        RegisteredAt = DateTimeOffset.UnixEpoch,
+        LastSeenAt = DateTimeOffset.UnixEpoch
+    };
 
     [Fact]
     public void Constructor_Should_CallOnEnter_OnEveryHostedTab_NotOnlyTheActiveOne()
@@ -329,6 +343,63 @@ public sealed class TuiShellTabsTests
         var rendered = RenderToText(shell);
         Assert.True(dirty);
         Assert.Contains("Board task", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_OpenAgentDetail_When_EnterPressedOnAgentsSelection_ThroughATabbedShell()
+    {
+        // arrange
+        var registry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var agentsMode = new AgentsMode(registry);
+        var store = new FakeTaskStore();
+        var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
+        var shell = new TuiShell(
+            [CreateAgentsTab("Agents", agentsMode)],
+            80,
+            24,
+            tasksTabIndex: 0,
+            store: store,
+            mailStore: mailStore,
+            agentRegistry: registry);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.True(dirty);
+        Assert.Contains("agent-a", rendered);
+        Assert.Contains("backend", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReturnToAgentsListWithSelectionPreserved_When_EscapePressedAfterOpeningAgentDetail()
+    {
+        // arrange
+        var registry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var agentsMode = new AgentsMode(registry);
+        var store = new FakeTaskStore();
+        var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
+        var shell = new TuiShell(
+            [CreateAgentsTab("Agents", agentsMode)],
+            80,
+            24,
+            tasksTabIndex: 0,
+            store: store,
+            mailStore: mailStore,
+            agentRegistry: registry);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        Assert.Contains("agent-a", RenderToText(shell));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Equal("agent-a", agentsMode.State.SelectedAgent?.Name);
+        Assert.Contains("Agents (1)", RenderToText(shell));
     }
 
     [Fact]

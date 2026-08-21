@@ -3,9 +3,11 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// An in-memory <see cref="IAgentRegistry"/> exercising exactly the surface
-/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentsMode"/>
-/// consumes (<see cref="ListAsync"/>). Every other member throws
+/// An in-memory <see cref="IAgentRegistry"/> exercising the surface
+/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentsMode"/> consumes
+/// (<see cref="ListAsync"/>) and the surface
+/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentDetailModel"/>
+/// consumes (<see cref="GetAsync"/>). Every other member throws
 /// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentRegistry : IAgentRegistry
@@ -41,7 +43,7 @@ internal sealed class FakeAgentRegistry : IAgentRegistry
         => throw new NotSupportedException();
 
     public Task<AgentRecord?> GetAsync(string name, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult(Agents.FirstOrDefault(a => a.Name == name));
 
     public Task<AgentRecord> EnsureImplicitAsync(string name, CancellationToken cancellationToken)
         => throw new NotSupportedException();

@@ -58,7 +58,9 @@ internal static class AgentTuiLauncher
             searchMode,
             treeView,
             taskStore,
-            actor);
+            actor,
+            mailStore,
+            agentRegistry);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 

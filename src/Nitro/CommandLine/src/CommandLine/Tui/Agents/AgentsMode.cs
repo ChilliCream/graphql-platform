@@ -14,8 +14,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 /// <c>Tui/Mail</c>): one bordered panel of rendered rows, a
 /// <see cref="Viewport"/> tracking the visible window, and j/k/arrow
 /// selection through the shared global key map (<see cref="KeyMap"/> is
-/// null, same as <c>BoardMode</c>). Enter on a row is wired in a follow-up
-/// detail bead; here <see cref="TuiMessage.OpenSelected"/> is a no-op.
+/// null, same as <c>BoardMode</c>). Enter on a row (<see cref="TuiMessage.OpenSelected"/>)
+/// is handled by <c>TuiShell</c> before it ever reaches here: the shell
+/// switches to an <c>AgentDetailMode</c> showing the selection, mirroring how
+/// the board opens its own detail mode.
 /// </summary>
 internal sealed class AgentsMode : ITuiMode
 {
@@ -78,8 +80,8 @@ internal sealed class AgentsMode : ITuiMode
         TuiMessage.MoveToEdge(EdgeTarget.Bottom) => MoveSelectionToEdge(top: false),
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CopySelectedId => CopySelectedId(),
-        // Row detail is a follow-up bead; selecting a row here does nothing.
-        TuiMessage.OpenSelected => [],
+        // OpenSelected on the agents list is handled by TuiShell before it
+        // ever reaches here; see the class remarks above.
         _ => []
     };
 
