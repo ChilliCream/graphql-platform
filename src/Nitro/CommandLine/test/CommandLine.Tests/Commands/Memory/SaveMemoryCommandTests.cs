@@ -51,12 +51,31 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task WithFile_ReadsTextVerbatim()
+    public async Task WithFile_ReadsText()
     {
         // arrange
         await InitWorkspaceAsync();
         var filePath = Path.Combine(WorkingDirectory, "note.md");
         await File.WriteAllTextAsync(filePath, "Line one\nLine two\n", TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "save", "--file", "note.md", "--type", "fact");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        var savedFile = Directory.GetFiles(CuratedDirectory, "*.md").Single();
+        Assert.EndsWith("Line one\nLine two\n", await File.ReadAllTextAsync(
+            savedFile, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task WithFile_NormalizesCrlfToLf()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var filePath = Path.Combine(WorkingDirectory, "note.md");
+        await File.WriteAllTextAsync(filePath, "\r\nLine one\r\nLine two\r\n", TestContext.Current.CancellationToken);
 
         // act
         var result = await ExecuteCommandAsync(

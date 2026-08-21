@@ -58,8 +58,9 @@ internal static class MemoryBody
     }
 
     /// <summary>
-    /// Reads a file's content verbatim, resolving a relative path against
-    /// the current directory. Throws <see cref="ExitException"/> when the
+    /// Reads a file's content, resolving a relative path against the
+    /// current directory. Line endings are normalized to LF and leading
+    /// blank lines are dropped. Throws <see cref="ExitException"/> when the
     /// file does not exist or is empty.
     /// </summary>
     public static async Task<string> ReadFileAsync(
@@ -77,6 +78,7 @@ internal static class MemoryBody
         }
 
         var content = await fileSystem.ReadAllTextAsync(filePath, cancellationToken);
+        content = content.Replace("\r\n", "\n").TrimStart('\n');
 
         if (content.Length is 0)
         {
