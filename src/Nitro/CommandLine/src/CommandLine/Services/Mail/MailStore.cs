@@ -75,10 +75,16 @@ internal sealed class MailStore(
         // connection, so this upsert is not part of that transaction.
         await agentRegistry.TouchAsync(sender, cancellationToken);
 
+        // Ensures every recipient has an agent row, implicit-created when
+        // they have never registered or acted, before the write transaction
+        // opens: the registry manages its own connection, and an open
+        // transaction on the write connection would block it from starting
+        // one of its own against the same file, mirroring the sender touch
+        // above.
+        var unregistered = await EnsureRecipientsAsync(recipients, cancellationToken);
+
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        await ValidateRecipientsExistAsync(recipients, cancellationToken);
 
         var id = await CreateMessageIdAsync(connection, seed, cancellationToken, transaction);
 
@@ -129,7 +135,8 @@ internal sealed class MailStore(
             Subject = subject,
             Body = creation.Body,
             CreatedAt = now,
-            Recipients = recipients
+            Recipients = recipients,
+            Unregistered = unregistered
         };
     }
 
@@ -765,26 +772,29 @@ internal sealed class MailStore(
         return recipients;
     }
 
-    private async Task ValidateRecipientsExistAsync(
+    /// <summary>
+    /// Ensures every recipient has an agent row, implicit-creating one for
+    /// any name that has never registered or acted, and returns the names,
+    /// in recipient order, whose row is implicit, whether it already was or
+    /// was just created here.
+    /// </summary>
+    private async Task<List<string>> EnsureRecipientsAsync(
         IReadOnlyList<MailRecipient> recipients,
         CancellationToken cancellationToken)
     {
-        var unknown = new List<string>();
+        var unregistered = new List<string>();
 
         foreach (var recipient in recipients)
         {
-            var agent = await agentRegistry.GetAsync(recipient.Name, cancellationToken);
+            var agent = await agentRegistry.EnsureImplicitAsync(recipient.Name, cancellationToken);
 
-            if (agent is null)
+            if (agent.Implicit)
             {
-                unknown.Add(recipient.Name);
+                unregistered.Add(recipient.Name);
             }
         }
 
-        if (unknown.Count > 0)
-        {
-            throw new ExitException($"Unknown recipient(s): {string.Join(", ", unknown)}.");
-        }
+        return unregistered;
     }
 
     private static async Task InsertRecipientsAsync(

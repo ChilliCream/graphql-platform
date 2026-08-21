@@ -79,7 +79,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task UnknownRecipients_ReturnsErrorInFirstOccurrenceOrder()
+    public async Task UnknownRecipients_SendsAndWarnsInFirstOccurrenceOrder()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -89,14 +89,88 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "send", "dave", "eve", "--subject", "hi", "--body", "yo");
 
         // assert
-        result.AssertError(
-            """
-            Unknown recipient(s): dave, eve.
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{id}' to dave, eve.
+            note: 'dave' has never registered.
+            note: 'eve' has never registered.
+            """);
+        Assert.Equal(
+            "1",
+            await QueryScalarAsync("SELECT implicit FROM agents WHERE name = 'dave'"));
+        Assert.Equal(
+            "1",
+            await QueryScalarAsync("SELECT implicit FROM agents WHERE name = 'eve'"));
+    }
+
+    [Fact]
+    public async Task MixOfKnownAndUnknownRecipients_WarnsOnlyOnUnknown()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "dave", "--subject", "hi", "--body", "yo");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{id}' to bob, dave.
+            note: 'dave' has never registered.
             """);
     }
 
     [Fact]
-    public async Task JsonOutput_ReturnsMessageResult()
+    public async Task InvalidRecipientName_StillHardFails()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "Dave!", "--subject", "hi", "--body", "yo");
+
+        // assert
+        result.AssertError(
+            """
+            Invalid agent name 'Dave!'. Agent names may only contain lowercase letters, digits, hyphens, and underscores.
+            """);
+    }
+
+    [Fact]
+    public async Task ImplicitRecipient_CanReadInboxBeforeAndAfterRegistering()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "dave", "--subject", "hi", "--body", "yo");
+
+        // act
+        var beforeRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
+
+        // assert
+        Assert.Equal(0, beforeRegister.ExitCode);
+        Assert.Contains("hi", beforeRegister.StdOut);
+
+        // act
+        var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "dave");
+        var afterRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
+
+        // assert
+        Assert.Equal(0, registerResult.ExitCode);
+        Assert.Equal(0, afterRegister.ExitCode);
+        Assert.Contains("hi", afterRegister.StdOut);
+        Assert.Equal(
+            "0",
+            await QueryScalarAsync("SELECT implicit FROM agents WHERE name = 'dave'"));
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsSendResult()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -120,6 +194,28 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
         Assert.Equal("Status", root.GetProperty("subject").GetString());
         Assert.True(root.TryGetProperty("createdAt", out _));
+        Assert.Empty(root.GetProperty("unregistered").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsUnregisteredRecipients()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "dave", "--subject", "Status", "--body", "All good.");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(
+            ["dave"], root.GetProperty("unregistered").EnumerateArray().Select(e => e.GetString()!).ToArray());
     }
 
     [Fact]

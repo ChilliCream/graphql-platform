@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -16,13 +17,15 @@ internal sealed class BroadcastMailCommand : Command
         Options.Add(Opt<MailSubjectOption>.Instance);
         Options.Add(Opt<MailBodyOption>.Instance);
         Options.Add(Opt<MailBodyFileOption>.Instance);
+        Options.Add(Opt<RoleAgentOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         MailBody.AddValidator(this);
 
         this.AddExamples(
-            "agent mail broadcast --subject \"Heads up\" --body \"Deploying at 5pm.\"");
+            "agent mail broadcast --subject \"Heads up\" --body \"Deploying at 5pm.\"",
+            "agent mail broadcast --role \"backend\" --subject \"Heads up\" --body \"Deploying at 5pm.\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -40,18 +43,23 @@ internal sealed class BroadcastMailCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var subject = parseResult.GetRequiredValue(Opt<MailSubjectOption>.Instance);
+        var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance);
         var actor = MailActor.Resolve(
             parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
 
-        var agents = await registry.ListAsync(role: null, staleBefore: null, cancellationToken);
+        var agents = await registry.ListAsync(role, staleBefore: null, cancellationToken);
         var to = agents
+            .Where(agent => !agent.Implicit)
             .Select(agent => agent.Name)
             .Where(name => name != actor)
             .ToArray();
 
         if (to.Length is 0)
         {
-            throw new ExitException("No other registered agent to broadcast to.");
+            throw new ExitException(
+                role is null
+                    ? "No other registered agent to broadcast to."
+                    : $"No registered agent with role '{role}' to broadcast to.");
         }
 
         var body = await MailBody.ResolveAsync(parseResult, fileSystem, cancellationToken);

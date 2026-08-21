@@ -23,13 +23,16 @@ internal interface IMailStore
 
     /// <summary>
     /// Sends a message: normalizes the sender and recipients, auto-registers
-    /// the sender (upsert, bumps last_seen_at), validates every recipient is
-    /// already registered, dedupes recipients (to wins over cc, first
-    /// occurrence order preserved), and writes the message and its recipient
-    /// rows in one transaction. Starts a new thread: <c>ThreadId</c> equals
-    /// the new message's id. Throws <see cref="ExitException"/> when the
-    /// subject is empty, any recipient is unknown, or no recipient remains
-    /// after dedupe.
+    /// the sender (upsert, bumps last_seen_at), dedupes recipients (to wins
+    /// over cc, first occurrence order preserved), and writes the message
+    /// and its recipient rows in one transaction. Starts a new thread:
+    /// <c>ThreadId</c> equals the new message's id. A recipient that has
+    /// never registered gets an implicit agent row rather than failing the
+    /// send; the returned message's <see cref="MailMessage.Unregistered"/>
+    /// lists every recipient, implicit before or because of this call, that
+    /// has still never registered. Throws <see cref="ExitException"/> when
+    /// the subject is empty, a recipient name is invalid, or no recipient
+    /// remains after dedupe.
     /// </summary>
     Task<MailMessage> SendMessageAsync(
         MailMessageCreation creation,

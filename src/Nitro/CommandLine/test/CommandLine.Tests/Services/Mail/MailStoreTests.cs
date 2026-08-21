@@ -74,19 +74,79 @@ public sealed class MailStoreTests : IAsyncDisposable
             cancellationToken);
 
     [Fact]
-    public async Task SendMessageAsync_Should_Throw_When_RecipientUnknown()
+    public async Task SendMessageAsync_Should_CreateImplicitRow_When_RecipientUnknown()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
 
         // act
-        var exception = await Assert.ThrowsAsync<ExitException>(
-            () => SendAsync("claude", "hello", ["bob", "alice"], null, cancellationToken));
+        var message = await SendAsync("claude", "hello", ["bob", "alice"], null, cancellationToken);
 
         // assert
-        Assert.Contains("bob", exception.Message);
-        Assert.Contains("alice", exception.Message);
+        Assert.Equal(["bob", "alice"], message.Unregistered);
+        var bob = await _registry.GetAsync("bob", cancellationToken);
+        var alice = await _registry.GetAsync("alice", cancellationToken);
+        Assert.True(bob?.Implicit);
+        Assert.True(alice?.Implicit);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_Should_ReportOnlyUnknownRecipients_When_Mixed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+
+        // act
+        var message = await SendAsync("claude", "hello", ["bob", "dave"], null, cancellationToken);
+
+        // assert
+        Assert.Equal(["dave"], message.Unregistered);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_Should_ReportStillImplicitRecipient_When_AlreadyImplicit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SendAsync("claude", "first", ["dave"], null, cancellationToken);
+
+        // act
+        var second = await SendAsync("claude", "second", ["dave"], null, cancellationToken);
+
+        // assert
+        Assert.Equal(["dave"], second.Unregistered);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_Should_NotReportRegisteredRecipient_When_ImplicitRegistersAfterwards()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SendAsync("claude", "first", ["dave"], null, cancellationToken);
+        await _registry.RegisterAsync("dave", role: "", cancellationToken);
+
+        // act
+        var second = await SendAsync("claude", "second", ["dave"], null, cancellationToken);
+
+        // assert
+        Assert.Empty(second.Unregistered);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_Should_Throw_When_RecipientNameInvalid()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => SendAsync("claude", "hello", ["Dave!"], null, cancellationToken));
     }
 
     [Fact]

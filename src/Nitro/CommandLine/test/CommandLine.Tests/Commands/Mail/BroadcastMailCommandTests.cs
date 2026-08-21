@@ -22,12 +22,14 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
               --subject <subject> (REQUIRED)  The message subject
               --body <body>                   The message body. Exactly one of --body or --body-file is required
               --body-file <body-file>         A file to read the message body from. Exactly one of --body or --body-file is required
+              --role <role>                   The agent's role, free text, normalized lowercase (defaults to empty)
               --actor <actor>                 The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
 
             Example:
               nitro agent mail broadcast --subject "Heads up" --body "Deploying at 5pm."
+              nitro agent mail broadcast --role "backend" --subject "Heads up" --body "Deploying at 5pm."
             """);
     }
 
@@ -64,6 +66,67 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertError(
             """
             No other registered agent to broadcast to.
+            """);
+    }
+
+    [Fact]
+    public async Task ExcludesImplicitRows_SendsOnlyToRegistered()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "implicit-agent", "--actor", "test-agent",
+            "--subject", "seed", "--body", "seed");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync(
+            "SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertSuccess($"✓ Sent '{id}' to zeta.");
+    }
+
+    [Fact]
+    public async Task RoleFilter_SendsOnlyToAgentsWithThatRole()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync(
+            "agent", "register", "--actor", "test-agent", "--role", "backend");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta", "--role", "backend");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--role", "frontend");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "backend",
+            "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertSuccess($"✓ Sent '{id}' to zeta.");
+    }
+
+    [Fact]
+    public async Task RoleFilter_NoMatchingAgent_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta", "--role", "frontend");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "backend",
+            "--subject", "hi", "--body", "hello");
+
+        // assert
+        result.AssertError(
+            """
+            No registered agent with role 'backend' to broadcast to.
             """);
     }
 

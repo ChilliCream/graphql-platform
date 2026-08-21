@@ -124,9 +124,13 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ComposeForm_Submit_Should_ShowErrorToast_And_WriteNothing_When_RecipientIsUnknown()
+    public async Task ComposeForm_Submit_Should_ShowSuccessToast_And_CreateImplicitRow_When_RecipientIsUnknown()
     {
-        // arrange
+        // arrange: bd-agent-unify-814.9 replaced the store's hard fail on an
+        // unknown recipient with mailbox-on-first-message: the send now
+        // succeeds and implicit-creates the recipient's agent row, so the
+        // compose form (which has no client-side recipient check of its own
+        // and only surfaces the store's ExitException) now sees a success.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
         await _registry.RegisterAsync("alice", role: "", cancellationToken);
@@ -143,16 +147,12 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // act
         var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
-        // assert: the store's unknown-recipient ExitException surfaces as an
-        // error toast, the compose form stays open with its values intact,
-        // and nothing was written.
+        // assert
         var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Error, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
-        Assert.True(mode.IsInputCapturing);
+        Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
 
-        var inbox = await _store.QueryInboxAsync(
-            new MailInboxFilter { Actor = "alice", IncludeArchived = true }, cancellationToken);
-        Assert.Empty(inbox);
+        var ghost = await _registry.GetAsync("ghost", cancellationToken);
+        Assert.True(ghost?.Implicit);
     }
 
     [Fact]

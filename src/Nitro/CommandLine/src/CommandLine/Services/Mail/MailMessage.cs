@@ -26,4 +26,13 @@ internal sealed record MailMessage
     /// Every recipient, to and cc combined, ordered by ordinal.
     /// </summary>
     public IReadOnlyList<MailRecipient> Recipients { get; init; } = [];
+
+    /// <summary>
+    /// The normalized names, in recipient order, of every recipient that has
+    /// never registered: their agent row is marked implicit, whether it was
+    /// already implicit or was created by this send. Populated only by
+    /// <see cref="IMailStore.SendMessageAsync"/>; every other path leaves
+    /// this empty.
+    /// </summary>
+    public IReadOnlyList<string> Unregistered { get; init; } = [];
 }

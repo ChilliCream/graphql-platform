@@ -62,13 +62,18 @@ internal sealed class SendMailCommand : Command
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(MailMessageResult.Create(message)));
+            resultHolder.SetResult(new ObjectResult(MailSendResult.Create(message)));
             return ExitCodes.Success;
         }
 
         console.OkLine(
             $"Sent '{message.Id.EscapeMarkup()}' to "
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
+
+        foreach (var name in message.Unregistered)
+        {
+            console.WriteLine($"note: '{name}' has never registered.");
+        }
 
         return ExitCodes.Success;
     }

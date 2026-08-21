@@ -36,6 +36,17 @@ internal interface IAgentRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Normalizes the given name and returns the existing agent with that
+    /// name unchanged, or inserts one with an empty role, last_seen_at and
+    /// registered_at set to now, and implicit set to true when none exists.
+    /// Used to satisfy the agents table's foreign key when a message is sent
+    /// to a recipient that has never registered or acted.
+    /// </summary>
+    Task<AgentRecord> EnsureImplicitAsync(
+        string name,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Returns every registered agent, ordered by name. When
     /// <paramref name="role"/> is given, only agents with that exact
     /// normalized role are returned. When <paramref name="staleBefore"/> is

@@ -92,6 +92,40 @@ internal sealed class AgentRegistry(
         return row?.ToAgentRecord();
     }
 
+    public async Task<AgentRecord> EnsureImplicitAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        // The no-op DO UPDATE (name = excluded.name, always the same value)
+        // exists only so RETURNING fires on a conflict too, giving a single
+        // round trip that both creates a missing row and fetches an
+        // existing one, without touching any column of an existing row.
+        var row = await connection.QueryFirstAsync<AgentRegistryRow>(
+            """
+            INSERT INTO agents (name, registered_at, last_seen_at, role, implicit)
+            VALUES (@name, @now, @now, '', 1)
+            ON CONFLICT (name) DO UPDATE SET name = excluded.name
+            RETURNING
+                name AS Name,
+                role AS Role,
+                implicit AS Implicit,
+                registered_at AS RegisteredAt,
+                last_seen_at AS LastSeenAt
+            """,
+            new { name = normalizedName, now, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return row.ToAgentRecord();
+    }
+
     public async Task<IReadOnlyList<AgentRecord>> ListAsync(
         string? role,
         DateTimeOffset? staleBefore,

@@ -152,6 +152,59 @@ public sealed class AgentRegistryTests : IDisposable
     }
 
     [Fact]
+    public async Task EnsureImplicitAsync_Should_InsertImplicitAgent_When_NotRegistered()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+
+        // act
+        var agent = await _registry.EnsureImplicitAsync("dave", cancellationToken);
+
+        // assert
+        Assert.Equal("dave", agent.Name);
+        Assert.Equal("", agent.Role);
+        Assert.True(agent.Implicit);
+        Assert.Equal(_timeProvider.GetUtcNow(), agent.RegisteredAt);
+        Assert.Equal(_timeProvider.GetUtcNow(), agent.LastSeenAt);
+    }
+
+    [Fact]
+    public async Task EnsureImplicitAsync_Should_ReturnExistingRowUnchanged_When_AlreadyRegistered()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var registered = await _registry.RegisterAsync("dave", role: "backend", cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var agent = await _registry.EnsureImplicitAsync("dave", cancellationToken);
+
+        // assert
+        Assert.Equal("backend", agent.Role);
+        Assert.False(agent.Implicit);
+        Assert.Equal(registered.LastSeenAt, agent.LastSeenAt);
+    }
+
+    [Fact]
+    public async Task EnsureImplicitAsync_Should_ReturnExistingImplicitRowUnchanged_When_AlreadyImplicit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var first = await _registry.EnsureImplicitAsync("dave", cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var second = await _registry.EnsureImplicitAsync("dave", cancellationToken);
+
+        // assert
+        Assert.True(second.Implicit);
+        Assert.Equal(first.LastSeenAt, second.LastSeenAt);
+    }
+
+    [Fact]
     public async Task GetAsync_Should_ReturnNull_When_NotRegistered()
     {
         // arrange
