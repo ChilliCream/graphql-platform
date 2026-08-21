@@ -1339,7 +1339,7 @@ internal sealed class TaskStore(
         {
             var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
-            if (task.Status == TaskStates.Closed)
+            if (task.Status is TaskStates.Closed or TaskStates.Archived)
             {
                 throw new ExitException($"Task '{id}' is already closed.");
             }
