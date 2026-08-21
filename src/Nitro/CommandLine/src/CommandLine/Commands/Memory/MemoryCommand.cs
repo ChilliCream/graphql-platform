@@ -11,6 +11,10 @@ internal sealed class MemoryCommand : Command
         Subcommands.Add(new ForgetMemoryCommand());
         Subcommands.Add(new ShowMemoryCommand());
         Subcommands.Add(new RecentMemoryCommand());
+        Subcommands.Add(new SearchMemoryCommand());
+        Subcommands.Add(new ContextMemoryCommand());
+        Subcommands.Add(new TagsMemoryCommand());
+        Subcommands.Add(new ReindexMemoryCommand());
         Subcommands.Add(new WhereMemoryCommand());
     }
 }

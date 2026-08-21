@@ -186,6 +186,119 @@ internal sealed class MemoryStore(
         return limit is { } value ? records.Take(value).ToList() : records;
     }
 
+    public async Task<IReadOnlyList<MemoryRecord>> SearchCuratedAsync(
+        string query,
+        string scope,
+        IReadOnlyList<string> tags,
+        string? type,
+        DateTimeOffset? since,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateReadScope(scope);
+        var matchQuery = MemoryFtsQuery.BuildLiteralMatch(query);
+        var normalizedTags = tags.Select(MemoryTags.Normalize).ToList();
+        var normalizedType = type is null ? null : MemoryTypes.Normalize(type);
+
+        var records = new List<MemoryRecord>();
+
+        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
+        {
+            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+            if (projectWorkspaceDirectory is not null)
+            {
+                records.AddRange(await SearchScopeAsync(
+                    GetCuratedDirectory(projectWorkspaceDirectory),
+                    GetLocalDirectory(projectWorkspaceDirectory),
+                    MemoryScopes.Project,
+                    matchQuery,
+                    normalizedType,
+                    normalizedTags,
+                    since,
+                    cancellationToken));
+            }
+        }
+
+        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
+        {
+            records.AddRange(await SearchScopeAsync(
+                GetGlobalCuratedDirectory(),
+                GetGlobalLocalDirectory(),
+                MemoryScopes.Global,
+                matchQuery,
+                normalizedType,
+                normalizedTags,
+                since,
+                cancellationToken));
+        }
+
+        if (normalizedScope == MemoryScopes.All)
+        {
+            ThrowIfCrossScopeDuplicates(records);
+        }
+
+        return limit is { } value ? records.Take(value).ToList() : records;
+    }
+
+    public async Task<MemoryIndexRebuildResult> RebuildIndexAsync(string scope, CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateWriteScope(scope);
+
+        string curatedDirectory;
+        string localDirectory;
+
+        if (normalizedScope == MemoryScopes.Global)
+        {
+            curatedDirectory = EnsureGlobalStore();
+            localDirectory = GetGlobalLocalDirectory();
+        }
+        else
+        {
+            curatedDirectory = await EnsureProjectStoreAsync(cancellationToken);
+            localDirectory = GetLocalDirectory(RequireProjectWorkspaceDirectory());
+        }
+
+        var indexedCount = await MemoryFtsIndex.RebuildAsync(
+            fileSystem, curatedDirectory, localDirectory, cancellationToken);
+        var indexPath = AgentWorkspace.GetMemoryIndexDatabasePath(localDirectory);
+
+        return new MemoryIndexRebuildResult(normalizedScope, indexedCount, indexPath);
+    }
+
+    private async Task<IReadOnlyList<MemoryRecord>> SearchScopeAsync(
+        string curatedDirectory,
+        string localDirectory,
+        string scope,
+        string matchQuery,
+        string? type,
+        IReadOnlyList<string> tags,
+        DateTimeOffset? since,
+        CancellationToken cancellationToken)
+    {
+        if (!fileSystem.DirectoryExists(curatedDirectory))
+        {
+            return [];
+        }
+
+        var ids = await MemoryFtsIndex.SearchAsync(
+            fileSystem, curatedDirectory, localDirectory, matchQuery, type, tags, since, cancellationToken);
+
+        var records = new List<MemoryRecord>();
+
+        foreach (var id in ids)
+        {
+            var record = await FindInDirectoryAsync(curatedDirectory, id, scope, cancellationToken);
+
+            if (record is not null)
+            {
+                records.Add(record);
+            }
+        }
+
+        return records;
+    }
+
     private async Task<MemoryRecord?> FindInDirectoryAsync(
         string curatedDirectory, string id, string scope, CancellationToken cancellationToken)
     {
@@ -280,6 +393,12 @@ internal sealed class MemoryStore(
 
     private string GetGlobalCuratedDirectory()
         => AgentWorkspace.GetMemoryCuratedDirectory(globalMemoryDirectory);
+
+    private static string GetLocalDirectory(string workspaceDirectory)
+        => AgentWorkspace.GetMemoryLocalDirectory(AgentWorkspace.GetMemoryDirectory(workspaceDirectory));
+
+    private string GetGlobalLocalDirectory()
+        => AgentWorkspace.GetMemoryLocalDirectory(globalMemoryDirectory);
 
     private string RequireProjectWorkspaceDirectory()
         => FindProjectWorkspaceDirectory()

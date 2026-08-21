@@ -90,4 +90,9 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MemoryScopeConflictResult))]
 [JsonSerializable(typeof(WhereMemoryCommand.MemoryLocationResult))]
 [JsonSerializable(typeof(ListResult<WhereMemoryCommand.MemoryLocationResult>))]
+[JsonSerializable(typeof(MemoryContextResult))]
+[JsonSerializable(typeof(MemoryTagCount))]
+[JsonSerializable(typeof(ListResult<MemoryTagCount>))]
+[JsonSerializable(typeof(MemoryIndexRebuildResult))]
+[JsonSerializable(typeof(ListResult<MemoryIndexRebuildResult>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

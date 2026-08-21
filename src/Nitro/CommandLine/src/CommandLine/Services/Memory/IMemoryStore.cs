@@ -96,4 +96,39 @@ internal interface IMemoryStore
     /// </summary>
     Task<IReadOnlyList<MemoryRecord>> GetRecentCuratedAsync(
         string scope, int? limit, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Searches curated memories in the given scope by literal lexical
+    /// match against <paramref name="query"/> (never interpreted as FTS5
+    /// query syntax), narrowed by tags (AND), type, and a minimum
+    /// updated-at timestamp. Ordering: project band first, then global;
+    /// within each band by FTS rank, then <c>updated_at</c> descending,
+    /// then id; FTS scores from the two scopes' separate indexes are never
+    /// compared. Up to the given limit across both bands combined
+    /// (unlimited when null). Each scope's index is validated and
+    /// rebuilt automatically when missing, corrupt, or stale before it is
+    /// queried. Throws <see cref="ExitException"/> when a curated file's
+    /// frontmatter fails to parse during a rebuild, and
+    /// <see cref="MemoryScopeConflictException"/> when scope is
+    /// <see cref="MemoryScopes.All"/> and the same id exists in both
+    /// stores.
+    /// </summary>
+    Task<IReadOnlyList<MemoryRecord>> SearchCuratedAsync(
+        string query,
+        string scope,
+        IReadOnlyList<string> tags,
+        string? type,
+        DateTimeOffset? since,
+        int? limit,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Unconditionally rebuilds the given scope's search index from its
+    /// curated markdown files. Scope must be <see cref="MemoryScopes.Project"/>
+    /// or <see cref="MemoryScopes.Global"/>, not <see cref="MemoryScopes.All"/>,
+    /// since each scope owns its own index. Throws <see cref="ExitException"/>
+    /// when scope is project and no project workspace is found, or when a
+    /// curated file's frontmatter fails to parse.
+    /// </summary>
+    Task<MemoryIndexRebuildResult> RebuildIndexAsync(string scope, CancellationToken cancellationToken);
 }
