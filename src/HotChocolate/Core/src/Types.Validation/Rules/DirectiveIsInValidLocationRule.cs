@@ -17,8 +17,10 @@ public sealed class DirectiveIsInValidLocationRule : IValidationEventHandler<Dir
     {
         var (directive, member, location) = @event;
 
-        // DirectiveIsDefinedRule reports directives without a definition.
-        if (directive.Definition is IMissingDirectiveDefinition)
+        // DirectiveIsDefinedRule reports directives without a definition, and
+        // DirectiveDefinitionIncludesLocationRule reports definitions without locations.
+        if (directive.Definition is IMissingDirectiveDefinition
+            || directive.Definition.Locations == 0)
         {
             return;
         }

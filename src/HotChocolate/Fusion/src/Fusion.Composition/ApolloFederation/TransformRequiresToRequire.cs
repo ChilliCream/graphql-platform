@@ -605,7 +605,7 @@ internal static class TransformRequiresToRequire
     }
 
     private static bool IsExternal(MutableOutputFieldDefinition field)
-        => field.Directives.ContainsName(FederationDirectiveNames.External);
+        => field.Directives.ContainsName(WellKnownDirectiveNames.External);
 
     private static void ApplyExternalDirective(MutableOutputFieldDefinition field)
     {

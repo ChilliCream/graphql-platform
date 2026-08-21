@@ -64,6 +64,21 @@ public sealed class DirectiveIsInValidLocationRuleTests : RuleTestBase<Directive
     }
 
     [Fact]
+    public void Validate_DirectiveDefinitionWithoutLocations_Succeeds()
+    {
+        // DirectiveDefinitionIncludesLocationRule reports the definition itself.
+        AssertValid(
+            """
+            type Object @example {
+                field: Int
+            }
+
+            directive @example on OBJECT
+            """,
+            schema => schema.DirectiveDefinitions["example"].Locations = 0);
+    }
+
+    [Fact]
     public void Validate_UndefinedDirective_Succeeds()
     {
         AssertValid(
