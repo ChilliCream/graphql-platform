@@ -10,6 +10,4 @@ internal static class MemoryCollections
     public const string Curated = "curated";
     public const string Journal = "journal";
     public const string All = "all";
-
-    public static bool IsValid(string value) => value is Curated or Journal or All;
 }
