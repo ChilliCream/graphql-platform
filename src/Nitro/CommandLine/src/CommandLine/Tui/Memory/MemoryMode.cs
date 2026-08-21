@@ -43,7 +43,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private MemorySearchForm? _searchForm;
     private MemoryPromoteForm? _promoteForm;
-    private MemoryJournalEntry? _promoteTarget;
     private ConfirmDialog? _forgetDialog;
     private MemoryRecord? _forgetTarget;
     private ConfirmDialog? _discardDialog;
@@ -296,7 +295,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast("No journal entry selected.", ToastStyle.Warn)];
         }
 
-        _promoteTarget = entry;
         _promoteForm = new MemoryPromoteForm(entry);
         return [];
     }
@@ -324,7 +322,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         }
 
         _promoteForm = null;
-        _promoteTarget = null;
         return [];
     }
 
@@ -339,7 +336,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         }
 
         _promoteForm = null;
-        _promoteTarget = null;
         RefreshBlocking();
 
         return [outcome.ToShowToast()];
@@ -408,7 +404,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     {
         _discardDialog = null;
         _promoteForm = null;
-        _promoteTarget = null;
         return [];
     }
 
