@@ -310,7 +310,7 @@ internal sealed class DoctorMemoryCommand : Command
             .Where(group => group.Select(entry => entry.Scope).Distinct().Count() > 1)
             .Select(group => new MemoryScopeConflict(
                 group.Key,
-                group.Select(entry => entry.Scope).ToArray(),
+                group.Select(entry => entry.Scope).Distinct().ToArray(),
                 group.Select(entry => entry.Path).ToArray()))
             .ToArray();
     }
