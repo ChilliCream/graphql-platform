@@ -47,7 +47,7 @@ internal static class AgentTuiLauncher
 
         var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
 
-        var agentsMode = new AgentsMode(agentRegistry, timeProvider);
+        var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
         var agentsTab = new TuiTab("Agents", agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var shell = new TuiShell(
@@ -59,8 +59,7 @@ internal static class AgentTuiLauncher
             treeView,
             taskStore,
             actor,
-            mailStore,
-            agentRegistry);
+            mailStore);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
