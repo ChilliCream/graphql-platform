@@ -297,7 +297,7 @@ internal sealed class AgentsMode : ITuiMode
     private void RefreshBlocking()
     {
         _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
-        ReloadDetailIfNeeded();
+        RefreshDetail();
     }
 
     /// <summary>
@@ -305,7 +305,9 @@ internal sealed class AgentsMode : ITuiMode
     /// the selected agent differs from whichever agent it last loaded. A
     /// no-op when the selection hasn't actually changed (for example a
     /// clamped move at the list's edge), so scrolling doesn't re-issue the
-    /// tasks/mail queries on every keypress.
+    /// tasks/mail queries on every keypress. Used only by the selection-move
+    /// handlers; a data refresh uses <see cref="RefreshDetail"/> instead,
+    /// which reloads unconditionally.
     /// </summary>
     private void ReloadDetailIfNeeded()
     {
@@ -313,6 +315,27 @@ internal sealed class AgentsMode : ITuiMode
 
         if (selectedName is null || selectedName == _detailModel.CurrentAgentName)
         {
+            return;
+        }
+
+        _detailModel.LoadAsync(selectedName, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Reloads the detail pane for whichever agent is currently selected,
+    /// unconditionally, or clears it when nothing is selected. Used by
+    /// <see cref="RefreshBlocking"/> so a data refresh always re-queries the
+    /// still-selected agent's tasks and mail, even when the selected name
+    /// hasn't changed since the last load, and falls back to the "no agent
+    /// selected" state when the selected agent has vanished from the list.
+    /// </summary>
+    private void RefreshDetail()
+    {
+        var selectedName = _state.SelectedAgent?.Name;
+
+        if (selectedName is null)
+        {
+            _detailModel.Clear();
             return;
         }
 

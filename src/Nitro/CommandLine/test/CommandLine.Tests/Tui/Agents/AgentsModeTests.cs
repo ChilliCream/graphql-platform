@@ -354,4 +354,74 @@ public sealed class AgentsModeTests
         // assert
         Assert.Equal(AgentsFocus.List, mode.State.Focus);
     }
+
+    [Fact]
+    public void Refresh_Should_ReloadDetailPane_For_SelectedAgent()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var taskStore = new FakeTaskStore();
+        var mode = CreateMode(registry, taskStore, new FakeMailStore());
+        mode.OnEnter();
+        Assert.DoesNotContain("a-1", RenderToText(mode));
+
+        // act: a task assigned to the still-selected agent shows up only
+        // once RefreshRequested re-loads the detail pane, not just the list.
+        taskStore.Tasks.Add(TaskItemBuilder.Create("a-1", assignee: "agent-a"));
+        mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        Assert.Contains("a-1", RenderToText(mode));
+    }
+
+    [Fact]
+    public void Refresh_Should_ClearDetailPane_When_ListEmpties()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        Assert.Contains("Role: backend", RenderToText(mode));
+
+        // act: the selected agent vanishes from the registry before the
+        // next refresh.
+        registry.Agents.Clear();
+        mode.Handle(new TuiMessage.RefreshRequested());
+        var text = RenderToText(mode);
+
+        // assert: the detail pane falls back to its empty state instead of
+        // continuing to show the vanished agent's stale identity.
+        Assert.Contains("Agents (0)", text);
+        Assert.DoesNotContain("Role: backend", text);
+    }
+
+    [Fact]
+    public void Render_Should_AlignColumns_Across_Rows()
+    {
+        // arrange: names of different lengths so the role and age columns
+        // only line up if they're padded to a shared width rather than
+        // following each name immediately.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("a", role: "backend"));
+        registry.Agents.Add(Agent("longer-name", role: "qa"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+        var rows = text.Split('\n').Where(l => l.Contains("reg ") && l.Contains("seen ")).ToList();
+        var shortNameRow = Assert.Single(rows, l => l.Contains("backend"));
+        var longNameRow = Assert.Single(rows, l => l.Contains("qa"));
+
+        // assert: the role column and the reg-age column start at the same
+        // character offset on both rows.
+        Assert.Equal(
+            shortNameRow.IndexOf("backend", StringComparison.Ordinal),
+            longNameRow.IndexOf("qa", StringComparison.Ordinal));
+        Assert.Equal(
+            shortNameRow.IndexOf("reg ", StringComparison.Ordinal),
+            longNameRow.IndexOf("reg ", StringComparison.Ordinal));
+    }
 }

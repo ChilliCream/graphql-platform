@@ -73,6 +73,21 @@ internal sealed class AgentDetailModel
     }
 
     /// <summary>
+    /// Resets the model to its unloaded state: no current agent name, agent,
+    /// tasks, or sent mail. Used when the previously selected agent vanishes
+    /// (for example a refresh that empties the registry), so the detail pane
+    /// falls back to its "no agent selected" state instead of continuing to
+    /// show the vanished agent's stale identity and lists.
+    /// </summary>
+    public void Clear()
+    {
+        CurrentAgentName = null;
+        Agent = null;
+        Tasks = [];
+        SentMail = [];
+    }
+
+    /// <summary>
     /// Stably reorders tasks so in-progress tasks come first, then open,
     /// then everything else, preserving the store's own order within each
     /// group.
