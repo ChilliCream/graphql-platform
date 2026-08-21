@@ -37,7 +37,7 @@ dotnet test src/HotChocolate/Fusion
 - No vacuous assertions (`Assert.NotNull` alone is not a test).
 - If a test requires excessive stubs and reflection, you're at the wrong test tier.
 - Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
-- XML docs should describe the contract and concepts, not internals like pooling, iteration mechanics or leak other implementation detail.
+- XML docs should describe the contract and concepts, not internals like pooling or iteration mechanics, and should not leak other implementation details.
 - XML docs and comments are 1-2 sentences stating the contract: what it is, what null or edge values mean. No rationale, no use-case examples, no design justification. If a sentence explains why the design is right instead of what the member promises, delete it. The same applies to docs pages: every sentence must inform the reader, none may justify the design.
 - Do not make new parameters optional just to avoid updating call sites. A parameter should only be optional when it has a sensible semantic default and the API is frequently used (where call-site brevity outweighs explicitness). If a parameter is logically required, make it required and update all call sites.
 
@@ -80,7 +80,7 @@ This is framework code, performance matters. Aim for zero allocations on hot pat
 
 ### C# / .NET
 
-If you need to search for packages on nuget.org use the `dotnet` CLI, e.g. `dotnet package search HotChocolate`.
+If you need to search for packages on nuget.org, use the `dotnet` CLI, e.g. `dotnet package search HotChocolate`.
 
 ### Nitro persisted operations (Fusion Aspire)
 
