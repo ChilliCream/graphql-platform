@@ -22,12 +22,13 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
               <text>  The memory text. Exactly one of the text argument or --file is required
 
             Options:
-              --file <file>    A file to read the memory text from
-              --type <type>    The memory type (fact, decision, preference, reference, or custom)
-              --tag <tag>      A tag; can be used multiple times
-              --actor <actor>  The acting identity recorded on memory writes (defaults to NITRO_MEMORY_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --file <file>             A file to read the memory text from
+              --type <type>             The memory type (fact, decision, preference, reference, or custom)
+              --tag <tag>               A tag; can be used multiple times
+              --actor <actor>           The acting identity recorded on memory writes (defaults to NITRO_MEMORY_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --scope <global|project>  The memory scope to write to (project or global) [default: project]
+              --output <json>           The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help            Show help and usage information
 
             Example:
               nitro agent memory save "Use pnpm, not npm, in this repo." --type preference
@@ -115,6 +116,34 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
         Assert.True(root.TryGetProperty("path", out _));
         Assert.True(root.TryGetProperty("createdAt", out _));
         Assert.True(root.TryGetProperty("updatedAt", out _));
+    }
+
+    [Fact]
+    public async Task WithGlobalScope_SavesToGlobalStore()
+    {
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "save", "Some global text.", "--type", "fact", "--scope", "global");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Single(Directory.GetFiles(GlobalCuratedDirectory, "*.md"));
+    }
+
+    [Fact]
+    public async Task WithGlobalScope_JsonOutput_ReportsGlobalScope()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "save", "Some global text.", "--type", "fact", "--scope", "global");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("global", document.RootElement.GetProperty("scope").GetString());
     }
 
     [Fact]

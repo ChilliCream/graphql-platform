@@ -22,8 +22,9 @@ public sealed class ShowMemoryCommandTests(NitroCommandFixture fixture)
               <id>  The memory ID
 
             Options:
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --scope <all|global|project>  The memory scope to read from (project, global, or all) [default: all]
+              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                Show help and usage information
 
             Example:
               nitro agent memory show "01hqzxk8xdtd3fk3f0z7c5g8vm"
@@ -86,13 +87,117 @@ public sealed class ShowMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task NoWorkspace_ReturnsError()
+    public async Task NoWorkspace_DefaultScope_ReturnsDoesNotExist()
     {
+        // The default scope is "all": with no project workspace and no
+        // matching global memory either, this is a genuine not-found, not a
+        // missing-workspace condition.
+
         // act
         var result = await ExecuteCommandAsync(
             "agent", "memory", "show", "01hqzxk8xdtd3fk3f0z7c5g8vm");
 
         // assert
         result.AssertError("Memory '01hqzxk8xdtd3fk3f0z7c5g8vm' does not exist.");
+    }
+
+    [Fact]
+    public async Task NoWorkspace_ExplicitProjectScope_ReturnsMissingWorkspaceError()
+    {
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "show", "01hqzxk8xdtd3fk3f0z7c5g8vm", "--scope", "project");
+
+        // assert
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
+    }
+
+    [Fact]
+    public async Task ExplicitGlobalScope_ShowsGlobalMemory()
+    {
+        // arrange
+        var record = await SeedMemoryAsync("Global text.", scope: "global");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "show", record.Id, "--scope", "global");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("Scope: global", result.StdOut);
+    }
+
+    [Fact]
+    public async Task DefaultScope_FindsGlobalMemory_When_NoProjectWorkspaceExists()
+    {
+        // arrange
+        var record = await SeedMemoryAsync("Global text.", scope: "global");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "show", record.Id);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("Scope: global", result.StdOut);
+    }
+
+    [Fact]
+    public async Task CrossScopeDuplicateId_HumanMode_ReturnsErrorWithNoPartialOutput()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var projectRecord = await SeedMemoryAsync("Project text.", scope: "project");
+        Directory.CreateDirectory(GlobalCuratedDirectory);
+        File.Copy(projectRecord.Path, Path.Combine(GlobalCuratedDirectory, projectRecord.Id + ".md"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "show", projectRecord.Id);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Empty(result.StdOut);
+        Assert.Contains("Cross-scope duplicate memory ids found", result.StdErr);
+        Assert.Contains(projectRecord.Id, result.StdErr);
+    }
+
+    [Fact]
+    public async Task CrossScopeDuplicateId_JsonMode_ReturnsStructuredDiagnostic()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var projectRecord = await SeedMemoryAsync("Project text.", scope: "project");
+        Directory.CreateDirectory(GlobalCuratedDirectory);
+        File.Copy(projectRecord.Path, Path.Combine(GlobalCuratedDirectory, projectRecord.Id + ".md"));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "show", projectRecord.Id);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var conflicts = document.RootElement.GetProperty("conflicts").EnumerateArray().ToArray();
+        var conflict = Assert.Single(conflicts);
+        Assert.Equal(projectRecord.Id, conflict.GetProperty("id").GetString());
+        Assert.Equal(
+            ["project", "global"],
+            conflict.GetProperty("scopes").EnumerateArray().Select(e => e.GetString()!).ToArray());
+    }
+
+    [Fact]
+    public async Task CrossScopeDuplicateId_ExplicitScope_StillWorks()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var projectRecord = await SeedMemoryAsync("Project text.", scope: "project");
+        Directory.CreateDirectory(GlobalCuratedDirectory);
+        File.Copy(projectRecord.Path, Path.Combine(GlobalCuratedDirectory, projectRecord.Id + ".md"));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "show", projectRecord.Id, "--scope", "project");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("Scope: project", result.StdOut);
     }
 }

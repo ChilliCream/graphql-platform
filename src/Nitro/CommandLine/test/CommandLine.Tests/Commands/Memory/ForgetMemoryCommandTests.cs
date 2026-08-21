@@ -22,9 +22,10 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
               <id>  The memory ID
 
             Options:
-              --force          Skip confirmation prompts for deletes and overwrites
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --force                   Skip confirmation prompts for deletes and overwrites
+              --scope <global|project>  The memory scope to write to (project or global) [default: project]
+              --output <json>           The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help            Show help and usage information
 
             Example:
               nitro agent memory forget "01hqzxk8xdtd3fk3f0z7c5g8vm"
@@ -95,5 +96,56 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Memory '01hqzxk8xdtd3fk3f0z7c5g8vm' does not exist.");
+    }
+
+    [Fact]
+    public async Task NoWorkspace_ReturnsError()
+    {
+        // The default scope is "project"; with no project workspace this
+        // must give the same missing-workspace error `save` gives, not
+        // "does not exist".
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "forget", "01hqzxk8xdtd3fk3f0z7c5g8vm", "--force");
+
+        // assert
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsForgetResult()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var record = await SeedMemoryAsync("Original text.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "forget", record.Id, "--force");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(record.Id, root.GetProperty("id").GetString());
+        Assert.Equal("project", root.GetProperty("scope").GetString());
+    }
+
+    [Fact]
+    public async Task WithGlobalScope_DeletesGlobalMemory()
+    {
+        // arrange
+        var record = await SeedMemoryAsync("Original text.", scope: "global");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "forget", record.Id, "--force", "--scope", "global");
+
+        // assert
+        result.AssertSuccess($"✓ Deleted memory '{record.Id}'.");
+        Assert.False(File.Exists(record.Path));
     }
 }

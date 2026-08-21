@@ -15,6 +15,7 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,6 +38,7 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private IFileSystem? _fileSystemOverride;
+    private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -80,6 +82,16 @@ public abstract class CommandTestBase
     private protected void SetupFileSystem(IFileSystem fileSystem)
     {
         _fileSystemOverride = fileSystem;
+    }
+
+    /// <summary>
+    /// Points the global memory store at a fixed directory instead of the
+    /// real machine's application data directory, so tests that exercise
+    /// <c>--scope global</c> stay isolated to their own temp directory.
+    /// </summary>
+    private protected void SetupGlobalMemoryDirectory(string directory)
+    {
+        _globalMemoryDirectoryProviderOverride = new FixedGlobalMemoryDirectoryProvider(directory);
     }
 
     protected void SetupNoAuthentication()
@@ -248,6 +260,12 @@ public abstract class CommandTestBase
         }
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
+
+        if (_globalMemoryDirectoryProviderOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_globalMemoryDirectoryProviderOverride));
+        }
+
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
@@ -453,6 +471,11 @@ public sealed record CommandResult(
     string StdOut,
     string StdErr,
     string ExecutableName);
+
+internal sealed class FixedGlobalMemoryDirectoryProvider(string directory) : IGlobalMemoryDirectoryProvider
+{
+    public string GetDirectory() => directory;
+}
 
 internal sealed class InteractiveCommand(
     Func<CancellationToken, Task<CommandResult>> executeAsync,

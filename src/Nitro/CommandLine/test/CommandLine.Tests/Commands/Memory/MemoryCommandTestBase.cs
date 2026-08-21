@@ -21,6 +21,7 @@ public abstract class MemoryCommandTestBase : CommandTestBase
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
         Directory.CreateDirectory(WorkingDirectory);
         SetupFileSystem(new TestFileSystem(WorkingDirectory));
+        SetupGlobalMemoryDirectory(GlobalMemoryDirectory);
     }
 
     protected string WorkingDirectory { get; }
@@ -34,6 +35,15 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     protected string CuratedDirectory
         => AgentWorkspace.GetMemoryCuratedDirectory(MemoryDirectory);
 
+    protected string ApplicationDataDirectory
+        => Path.Combine(_tempRoot.FullName, "app-data");
+
+    protected string GlobalMemoryDirectory
+        => AgentWorkspace.GetGlobalMemoryDirectory(ApplicationDataDirectory);
+
+    protected string GlobalCuratedDirectory
+        => AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory);
+
     protected async Task InitWorkspaceAsync()
     {
         var result = await ExecuteCommandAsync("agent", "init");
@@ -41,11 +51,12 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Creates an <see cref="IMemoryStore"/> bound to this test's workspace
-    /// and clock, for seeding data without going through the CLI.
+    /// Creates an <see cref="IMemoryStore"/> bound to this test's workspace,
+    /// global directory, and clock, for seeding data without going through
+    /// the CLI.
     /// </summary>
     internal MemoryStore CreateStore()
-        => new(new TestFileSystem(WorkingDirectory), FakeTime);
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, GlobalMemoryDirectory);
 
     /// <summary>
     /// Saves a curated memory directly against the store.
@@ -54,14 +65,16 @@ public abstract class MemoryCommandTestBase : CommandTestBase
         string text,
         string type = "fact",
         IReadOnlyList<string>? tags = null,
-        string actor = "test-agent")
+        string actor = "test-agent",
+        string scope = "project")
         => CreateStore().SaveAsync(
             new MemoryRecordCreation
             {
                 Text = text,
                 Type = type,
                 Tags = tags ?? [],
-                Actor = actor
+                Actor = actor,
+                Scope = scope
             },
             TestContext.Current.CancellationToken);
 

@@ -41,5 +41,9 @@ public abstract class MemoryTestBase : IDisposable
 
     protected string LocalDirectory => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
+    protected string ApplicationDataDirectory => Path.Combine(_tempRoot.FullName, "app-data");
+
+    protected string GlobalMemoryDirectory => AgentWorkspace.GetGlobalMemoryDirectory(ApplicationDataDirectory);
+
     public void Dispose() => _tempRoot.Delete(recursive: true);
 }

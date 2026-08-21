@@ -27,6 +27,7 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
               --type <type>              The memory type (fact, decision, preference, reference, or custom)
               --add-tag <add-tag>        A tag to add; can be used multiple times
               --remove-tag <remove-tag>  A tag to remove; can be used multiple times
+              --scope <global|project>   The memory scope to write to (project or global) [default: project]
               --output <json>            The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help             Show help and usage information
 
@@ -152,5 +153,61 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Memory '01hqzxk8xdtd3fk3f0z7c5g8vm' does not exist.");
+    }
+
+    [Fact]
+    public async Task NoWorkspace_ReturnsError()
+    {
+        // The default scope is "project"; with no project workspace this
+        // must give the same missing-workspace error `save` gives, not
+        // "does not exist".
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "update", "01hqzxk8xdtd3fk3f0z7c5g8vm", "--type", "decision");
+
+        // assert
+        result.AssertError("No agent workspace found. Run `nitro agent init` first.");
+    }
+
+    [Fact]
+    public async Task JsonOutput_ReturnsUpdateResult()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var record = await SeedMemoryAsync("Original text.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "update", record.Id, "--type", "decision", "--add-tag", "api");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(record.Id, root.GetProperty("id").GetString());
+        Assert.Equal("project", root.GetProperty("scope").GetString());
+        Assert.Equal("decision", root.GetProperty("type").GetString());
+        Assert.Equal(
+            ["api"], root.GetProperty("tags").EnumerateArray().Select(e => e.GetString()!).ToArray());
+    }
+
+    [Fact]
+    public async Task WithGlobalScope_UpdatesGlobalMemory()
+    {
+        // arrange
+        var record = await SeedMemoryAsync("Original text.", scope: "global");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "update", record.Id, "--type", "decision", "--scope", "global");
+
+        // assert
+        result.AssertSuccess($"✓ Updated memory '{record.Id}'.");
+        var content = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
+        Assert.Contains("type: decision", content);
     }
 }
