@@ -159,12 +159,9 @@ internal sealed class MemoryStore(IFileSystem fileSystem, TimeProvider timeProvi
             var id = Path.GetFileNameWithoutExtension(path);
             var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
 
-            // A file that fails to parse is skipped here rather than
-            // failing the whole listing; the self-healing index and
-            // `doctor`'s per-path diagnostics land in later slices.
-            if (!MemoryFrontmatterParser.TryParse(content, id, out var frontmatter, out _))
+            if (!MemoryFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
             {
-                continue;
+                throw new ExitException($"Memory '{id}' has malformed frontmatter: {failure.Message}");
             }
 
             records.Add(ToRecord(frontmatter, path));

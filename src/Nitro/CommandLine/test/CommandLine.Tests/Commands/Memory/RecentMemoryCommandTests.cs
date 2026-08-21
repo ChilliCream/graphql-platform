@@ -136,4 +136,24 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess("No memories found.");
     }
+
+    [Fact]
+    public async Task MalformedFrontmatter_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedMemoryAsync("First.");
+        await File.WriteAllTextAsync(
+            Path.Combine(CuratedDirectory, "broken-id.md"),
+            "not frontmatter at all",
+            TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "recent");
+
+        // assert
+        result.AssertError(
+            "Memory 'broken-id' has malformed frontmatter: "
+            + "Frontmatter must start with a '---' delimiter line.");
+    }
 }
