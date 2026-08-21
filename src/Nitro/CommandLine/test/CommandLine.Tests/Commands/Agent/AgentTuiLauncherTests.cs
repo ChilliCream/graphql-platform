@@ -125,30 +125,16 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void RunAsync_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
+    public void BuildTabs_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
     {
-        // arrange: replicates the tab list AgentTuiLauncher.RunAsync builds
-        // (RunAsync itself blocks on a live console loop and cannot be
-        // exercised directly), so the mnemonic and order the shell actually
-        // renders is pinned even though the tab-building code lives inline
-        // in RunAsync rather than in a separately testable factory. Guards
-        // against the tab order regressing now that a fourth tab exists
-        // (perles-net-w27 flagged the absence of this assertion as a
-        // finding for slice g to close).
+        // arrange: guards against the tab order regressing now that a
+        // fourth tab exists (perles-net-w27 flagged the absence of this
+        // assertion as a finding for slice g to close).
         var taskStore = new FakeTaskStore();
-        var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
-        var boardMode = new BoardMode(loader);
-        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
-
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            new FakeMailStore(), new FakeTimeProvider(Now), CreateEnvironment(mailActor: "alice").Object);
-
-        var agentsMode = new AgentsMode(
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-            new FakeTaskStore(),
-            new FakeMailStore(),
-            new FakeTimeProvider(Now));
-        var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+        var mailStore = new FakeMailStore();
+        var agentRegistry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
+        var timeProvider = new FakeTimeProvider(Now);
+        var environment = CreateEnvironment(mailActor: "alice").Object;
 
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
 
@@ -160,13 +146,14 @@ public sealed class AgentTuiLauncherTests
 
             var memoryStore = new MemoryStore(
                 new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
+                timeProvider,
                 globalMemoryDirectory);
-            var memoryMode = new MemoryMode(memoryStore, new FakeTimeProvider(Now));
-            var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
+            var tabs = AgentTuiLauncher.BuildTabs(
+                taskStore, mailStore, memoryStore, agentRegistry, timeProvider, environment);
 
             var shell = new TuiShell(
-                [tasksTab, mailTab, agentsTab, memoryTab],
+                tabs,
                 80,
                 24,
                 tasksTabIndex: 0,
@@ -235,17 +222,23 @@ public sealed class AgentTuiLauncherTests
             Directory.CreateDirectory(globalCuratedDirectory);
             File.WriteAllText(Path.Combine(globalCuratedDirectory, "mem-broken.md"), "not frontmatter at all");
 
+            var taskStore = new FakeTaskStore();
+            var timeProvider = new FakeTimeProvider(Now);
+
             var memoryStore = new MemoryStore(
                 new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
+                timeProvider,
                 globalMemoryDirectory);
-            var memoryMode = new MemoryMode(memoryStore, new FakeTimeProvider(Now));
-            var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
 
-            var taskStore = new FakeTaskStore();
-            var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
-            var boardMode = new BoardMode(loader);
-            var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+            var tabs = AgentTuiLauncher.BuildTabs(
+                taskStore,
+                new FakeMailStore(),
+                memoryStore,
+                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+                timeProvider,
+                CreateEnvironment(mailActor: "alice").Object);
+            var tasksTab = tabs[0];
+            var memoryTab = tabs[3];
 
             // act: construction alone must not throw despite the memory
             // tab's store read failure.

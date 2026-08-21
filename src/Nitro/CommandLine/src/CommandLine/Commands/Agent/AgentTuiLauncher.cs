@@ -43,22 +43,13 @@ internal static class AgentTuiLauncher
     {
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
 
-        var loader = new BoardDataLoader(taskStore, timeProvider);
-        var boardMode = new BoardMode(loader);
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
-        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-        var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
-
-        var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
-        var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
-
-        var memoryMode = new MemoryMode(memoryStore, timeProvider);
-        var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+        var tabs = BuildTabs(taskStore, mailStore, memoryStore, agentRegistry, timeProvider, environmentVariableProvider);
 
         var shell = new TuiShell(
-            [tasksTab, mailTab, agentsTab, memoryTab],
+            tabs,
             console.Profile.Width,
             console.Profile.Height,
             tasksTabIndex: 0,
@@ -76,6 +67,33 @@ internal static class AgentTuiLauncher
         await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
 
         return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Builds the Tasks, Mail, Agents, and Memory tabs in the order the
+    /// shell's tab strip renders them.
+    /// </summary>
+    internal static TuiTab[] BuildTabs(
+        ITaskStore taskStore,
+        IMailStore mailStore,
+        IMemoryStore memoryStore,
+        IAgentRegistry agentRegistry,
+        TimeProvider timeProvider,
+        IEnvironmentVariableProvider environmentVariableProvider)
+    {
+        var loader = new BoardDataLoader(taskStore, timeProvider);
+        var boardMode = new BoardMode(loader);
+        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+        var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
+
+        var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
+        var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+        var memoryMode = new MemoryMode(memoryStore, timeProvider);
+        var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
+        return [tasksTab, mailTab, agentsTab, memoryTab];
     }
 
     /// <summary>
