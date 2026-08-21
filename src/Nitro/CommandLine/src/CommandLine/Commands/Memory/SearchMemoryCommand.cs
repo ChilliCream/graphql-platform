@@ -46,9 +46,11 @@ internal sealed class SearchMemoryCommand : Command
         var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
 
-        // Collection band, curated first: `--tag`/`--type` narrow the
-        // curated collection only, a journal entry has neither until it is
-        // promoted.
+        // Collection band, curated first: `--tag`/`--type` can never match a
+        // journal entry, a journal entry has neither until it is promoted,
+        // so a tag/type filter excludes the journal band entirely.
+        var hasCuratedFilter = tags.Length > 0 || type is not null;
+
         List<MemoryEntryResult> entries;
 
         try
@@ -62,7 +64,8 @@ internal sealed class SearchMemoryCommand : Command
                 entries.AddRange(curated.Select(MemoryEntryResult.FromCurated));
             }
 
-            if (collection is MemoryCollections.Journal or MemoryCollections.All)
+            if (collection is MemoryCollections.Journal or MemoryCollections.All
+                && !hasCuratedFilter)
             {
                 var journal = await store.SearchJournalAsync(query, scope, since, limit, cancellationToken);
                 entries.AddRange(journal.Select(MemoryEntryResult.FromJournal));

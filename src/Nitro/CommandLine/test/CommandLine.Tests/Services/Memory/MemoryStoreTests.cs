@@ -301,4 +301,49 @@ public sealed class MemoryStoreTests : MemoryTestBase
         // assert
         Assert.False(File.Exists(record.Path));
     }
+
+    [Fact]
+    public async Task PromoteAsync_Should_ReturnWinnersRecord_When_LosingCreateRace()
+    {
+        // arrange: a rival promote of the same journal entry creates the
+        // curated file first, so this store's own create attempt lands in
+        // the catch (IOException) branch between the pre-check and the
+        // create call.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
+        var entry = await _store.LogAsync(
+            new MemoryJournalEntryCreation
+            {
+                Text = "Investigated the flaky test.",
+                Actor = "test-agent",
+                Scope = MemoryScopes.Project
+            },
+            cancellationToken);
+
+        var curatedId = MemoryPromotedId.Derive(MemoryScopes.Project, entry.Id);
+        var curatedPath = Path.Combine(CuratedDirectory, curatedId + ".md");
+        var rivalContent = MemoryFrontmatterWriter.Write(new MemoryFrontmatter(
+            MemoryFrontmatterParser.SupportedSchemaVersion,
+            curatedId,
+            "decision",
+            ["flaky"],
+            TimeProvider.GetUtcNow(),
+            TimeProvider.GetUtcNow(),
+            entry.CreatedBy,
+            entry.Id,
+            entry.Body));
+
+        var racingStore = new MemoryStore(
+            new RacingFileSystem(FileSystem, curatedPath, rivalContent), TimeProvider, GlobalMemoryDirectory);
+
+        // act
+        var outcome = await racingStore.PromoteAsync(
+            entry.Id, MemoryScopes.Project, "fact", [], cancellationToken);
+
+        // assert: the winner's content, not this store's own "fact"/[] attempt.
+        Assert.True(outcome.AlreadyPromoted);
+        Assert.Equal("decision", outcome.Record.Type);
+        Assert.Equal(["flaky"], outcome.Record.Tags);
+        Assert.Single(Directory.GetFiles(CuratedDirectory, "*.md"));
+    }
 }

@@ -205,6 +205,64 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task JournalCollection_WithTagFilter_ReturnsEmpty()
+    {
+        // arrange: a journal entry has no tags until it is promoted, so a
+        // `--tag` filter can never match it and must exclude the journal
+        // band entirely rather than fall back to unfiltered entries.
+        await InitWorkspaceAsync();
+        await SeedJournalEntryAsync("Deploy checklist covers staging first.");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "journal", "--tag", "ops");
+
+        // assert
+        result.AssertSuccess("No memories found.");
+    }
+
+    [Fact]
+    public async Task JournalCollection_WithTypeFilter_ReturnsEmpty()
+    {
+        // arrange: a journal entry has no type until it is promoted, so a
+        // `--type` filter can never match it and must exclude the journal
+        // band entirely rather than fall back to unfiltered entries.
+        await InitWorkspaceAsync();
+        await SeedJournalEntryAsync("Deploy checklist covers staging first.");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "journal", "--type", "decision");
+
+        // assert
+        result.AssertSuccess("No memories found.");
+    }
+
+    [Fact]
+    public async Task AllCollection_WithTagFilter_ExcludesJournalBand()
+    {
+        // arrange: `--collection all --tag` validly narrows the curated
+        // band while the journal band, which can never satisfy a tag
+        // filter, is excluded entirely rather than returned unfiltered.
+        await InitWorkspaceAsync();
+        var curated = await SeedMemoryAsync("Deploy notes from curated.", tags: ["ops"]);
+        await SeedJournalEntryAsync("Deploy notes from journal.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "all", "--tag", "ops");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var item = Assert.Single(items);
+
+        Assert.Equal(curated.Id, item.GetProperty("id").GetString());
+        Assert.Equal("curated", item.GetProperty("collection").GetString());
+    }
+
+    [Fact]
     public async Task AllCollection_IncludesBothCuratedAndJournalMatches()
     {
         // arrange
