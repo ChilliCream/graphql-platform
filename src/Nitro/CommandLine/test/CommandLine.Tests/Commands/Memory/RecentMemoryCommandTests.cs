@@ -115,7 +115,7 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JournalCollection_ReturnsEmpty_UntilJournalSliceLands()
+    public async Task JournalCollection_ExcludesCuratedMemories()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -126,6 +126,51 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess("No memories found.");
+    }
+
+    [Fact]
+    public async Task JournalCollection_OrdersByCreatedAtDescending()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var first = await SeedJournalEntryAsync("First entry.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        var second = await SeedJournalEntryAsync("Second entry.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "recent", "--collection", "journal");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var ids = document.RootElement.GetProperty("items")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("id").GetString()!)
+            .ToArray();
+
+        Assert.Equal([second.Id, first.Id], ids);
+    }
+
+    [Fact]
+    public async Task AllCollection_OrdersCuratedBandFirst_ThenJournalBand()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var curated = await SeedMemoryAsync("Curated.");
+        var journal = await SeedJournalEntryAsync("Journal.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "recent", "--collection", "all");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+        var ids = items.Select(item => item.GetProperty("id").GetString()!).ToArray();
+
+        Assert.Equal(["curated", "journal"], collections);
+        Assert.Equal([curated.Id, journal.Id], ids);
     }
 
     [Fact]

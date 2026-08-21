@@ -46,40 +46,50 @@ internal sealed class SearchMemoryCommand : Command
         var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
 
-        // The journal collection is always empty until the journal capture
-        // slice lands; `curated` and `all` both search the curated store.
-        IReadOnlyList<MemoryRecord> records;
+        // Collection band, curated first: `--tag`/`--type` narrow the
+        // curated collection only, a journal entry has neither until it is
+        // promoted.
+        List<MemoryEntryResult> entries;
 
         try
         {
-            records = collection == MemoryCollections.Journal
-                ? []
-                : await store.SearchCuratedAsync(query, scope, tags, type, since, limit, cancellationToken);
+            entries = [];
+
+            if (collection is MemoryCollections.Curated or MemoryCollections.All)
+            {
+                var curated = await store.SearchCuratedAsync(
+                    query, scope, tags, type, since, limit, cancellationToken);
+                entries.AddRange(curated.Select(MemoryEntryResult.FromCurated));
+            }
+
+            if (collection is MemoryCollections.Journal or MemoryCollections.All)
+            {
+                var journal = await store.SearchJournalAsync(query, scope, since, limit, cancellationToken);
+                entries.AddRange(journal.Select(MemoryEntryResult.FromJournal));
+            }
         }
         catch (MemoryScopeConflictException exception)
         {
             return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
         }
 
+        var results = limit is { } value ? entries.Take(value).ToList() : entries;
+
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(
-                new ListResult<MemoryRecordResult>(records.Select(MemoryRecordResult.Create).ToArray()));
-
+            resultHolder.SetResult(new ListResult<MemoryEntryResult>(results));
             return ExitCodes.Success;
         }
 
-        if (records.Count == 0)
+        if (results.Count == 0)
         {
             console.WriteLine("No memories found.");
             return ExitCodes.Success;
         }
 
-        foreach (var record in records)
+        foreach (var entry in results)
         {
-            var tagsSuffix = record.Tags.Count > 0 ? $"  [{string.Join(", ", record.Tags)}]" : "";
-            console.WriteLine(
-                $"{record.Id}  {record.Type}  {MemoryDates.Format(record.UpdatedAt)}{tagsSuffix}");
+            MemoryEntryDisplay.WriteLine(console, entry);
         }
 
         return ExitCodes.Success;

@@ -7,12 +7,14 @@ internal sealed class MemoryCommand : Command
         Description = "Save and recall durable agent memory.";
 
         Subcommands.Add(new SaveMemoryCommand());
+        Subcommands.Add(new LogMemoryCommand());
         Subcommands.Add(new UpdateMemoryCommand());
         Subcommands.Add(new ForgetMemoryCommand());
         Subcommands.Add(new ShowMemoryCommand());
         Subcommands.Add(new RecentMemoryCommand());
         Subcommands.Add(new SearchMemoryCommand());
         Subcommands.Add(new ContextMemoryCommand());
+        Subcommands.Add(new PromoteMemoryCommand());
         Subcommands.Add(new TagsMemoryCommand());
         Subcommands.Add(new ReindexMemoryCommand());
         Subcommands.Add(new WhereMemoryCommand());

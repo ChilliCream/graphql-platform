@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
@@ -69,6 +71,12 @@ internal static class AgentWorkspace
 
     public static string GetMemoryJournalDirectory(string memoryDirectory)
         => Path.Combine(memoryDirectory, MemoryJournalDirectoryName);
+
+    /// <summary>
+    /// A journal entry's date directory, named by its UTC capture date.
+    /// </summary>
+    public static string GetMemoryJournalDateDirectory(string memoryJournalDirectory, DateOnly utcDate)
+        => Path.Combine(memoryJournalDirectory, utcDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 
     public static string GetMemoryLocalDirectory(string memoryDirectory)
         => Path.Combine(memoryDirectory, MemoryLocalDirectoryName);

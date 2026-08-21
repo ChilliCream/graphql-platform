@@ -39,6 +39,14 @@ internal static class MemoryId
     }
 
     /// <summary>
+    /// Derives an id from the first 16 bytes of the given hash, using the
+    /// same Crockford base32 encoding <see cref="New(TimeProvider)"/> uses, but without a
+    /// timestamp/entropy split: identical input bytes always yield an
+    /// identical id.
+    /// </summary>
+    public static string FromHash(ReadOnlySpan<byte> hash) => Encode(hash[..16]);
+
+    /// <summary>
     /// True when the value is a well-formed id: exactly <see cref="Length"/>
     /// lowercase Crockford base32 characters. Does not check that the id is
     /// actually in use anywhere.

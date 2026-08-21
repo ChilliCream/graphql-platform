@@ -4,10 +4,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
 /// The project and global memory stores: directory provisioning and
-/// discovery, and the curated vertical (save, update, forget, show,
-/// recent) reading and writing markdown files directly, with union-merged,
-/// no-shadowing reads across scopes. The disposable FTS index and the
-/// journal land in later slices.
+/// discovery, the curated vertical (save, update, forget, show, recent),
+/// and the journal vertical (log, promote), reading and writing markdown
+/// files directly, with union-merged, no-shadowing reads across scopes.
 /// </summary>
 internal sealed class MemoryStore(
     IFileSystem fileSystem,
@@ -180,7 +179,7 @@ internal sealed class MemoryStore(
 
         if (normalizedScope == MemoryScopes.All)
         {
-            ThrowIfCrossScopeDuplicates(records);
+            ThrowIfCrossScopeDuplicates(records, r => r.Id, r => r.Scope, r => r.Path);
         }
 
         return limit is { } value ? records.Take(value).ToList() : records;
@@ -235,11 +234,388 @@ internal sealed class MemoryStore(
 
         if (normalizedScope == MemoryScopes.All)
         {
-            ThrowIfCrossScopeDuplicates(records);
+            ThrowIfCrossScopeDuplicates(records, r => r.Id, r => r.Scope, r => r.Path);
         }
 
         return limit is { } value ? records.Take(value).ToList() : records;
     }
+
+    public async Task<MemoryJournalEntry> LogAsync(
+        MemoryJournalEntryCreation creation, CancellationToken cancellationToken)
+    {
+        var scope = ValidateWriteScope(creation.Scope);
+        var actor = ValidateActor(creation.Actor);
+
+        string journalDirectory;
+
+        if (scope == MemoryScopes.Global)
+        {
+            EnsureGlobalStore();
+            journalDirectory = GetGlobalJournalDirectory();
+        }
+        else
+        {
+            var workspaceDirectory = RequireProjectWorkspaceDirectory();
+            await EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
+            journalDirectory = GetJournalDirectory(workspaceDirectory);
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var dateDirectory = AgentWorkspace.GetMemoryJournalDateDirectory(
+            journalDirectory, DateOnly.FromDateTime(now.UtcDateTime));
+
+        CreateIfMissing(dateDirectory);
+        fileSystem.CleanupAbandonedTempFiles(dateDirectory, AbandonedTempFileAge);
+
+        var id = MemoryId.New(timeProvider);
+        var path = Path.Combine(dateDirectory, id + ".md");
+
+        var frontmatter = new MemoryJournalFrontmatter(
+            MemoryJournalFrontmatterParser.SupportedSchemaVersion, id, now, actor, creation.Text);
+
+        await fileSystem.CreateFileAtomicAsync(
+            path, MemoryJournalFrontmatterWriter.Write(frontmatter), cancellationToken);
+
+        return ToJournalRecord(frontmatter, path, scope);
+    }
+
+    public async Task<MemoryJournalEntry?> FindJournalEntryAsync(
+        string id, string scope, CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateReadScope(scope);
+
+        switch (normalizedScope)
+        {
+            case MemoryScopes.Project:
+                return await FindJournalEntryInDirectoryAsync(
+                    GetJournalDirectory(RequireProjectWorkspaceDirectory()),
+                    id,
+                    MemoryScopes.Project,
+                    cancellationToken);
+
+            case MemoryScopes.Global:
+                return await FindJournalEntryInDirectoryAsync(
+                    GetGlobalJournalDirectory(), id, MemoryScopes.Global, cancellationToken);
+
+            default:
+                var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+                var projectEntry = projectWorkspaceDirectory is null
+                    ? null
+                    : await FindJournalEntryInDirectoryAsync(
+                        GetJournalDirectory(projectWorkspaceDirectory), id, MemoryScopes.Project, cancellationToken);
+
+                var globalEntry = await FindJournalEntryInDirectoryAsync(
+                    GetGlobalJournalDirectory(), id, MemoryScopes.Global, cancellationToken);
+
+                if (projectEntry is not null && globalEntry is not null)
+                {
+                    throw new MemoryScopeConflictException([
+                        new MemoryScopeConflict(
+                            id,
+                            [MemoryScopes.Project, MemoryScopes.Global],
+                            [projectEntry.Path, globalEntry.Path])
+                    ]);
+                }
+
+                return projectEntry ?? globalEntry;
+        }
+    }
+
+    public async Task<MemoryJournalEntry> GetRequiredJournalEntryAsync(
+        string id, string scope, CancellationToken cancellationToken)
+        => await FindJournalEntryAsync(id, scope, cancellationToken)
+            ?? throw new ExitException($"Journal entry '{id}' does not exist.");
+
+    public async Task<IReadOnlyList<MemoryJournalEntry>> GetRecentJournalAsync(
+        string scope, int? limit, CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateReadScope(scope);
+        var entries = new List<MemoryJournalEntry>();
+
+        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
+        {
+            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+            if (projectWorkspaceDirectory is not null)
+            {
+                entries.AddRange(await ListJournalAsync(
+                    GetJournalDirectory(projectWorkspaceDirectory), MemoryScopes.Project, cancellationToken));
+            }
+        }
+
+        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
+        {
+            entries.AddRange(
+                await ListJournalAsync(GetGlobalJournalDirectory(), MemoryScopes.Global, cancellationToken));
+        }
+
+        if (normalizedScope == MemoryScopes.All)
+        {
+            ThrowIfCrossScopeDuplicates(entries, e => e.Id, e => e.Scope, e => e.Path);
+        }
+
+        return limit is { } value ? entries.Take(value).ToList() : entries;
+    }
+
+    public async Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalAsync(
+        string query, string scope, DateTimeOffset? since, int? limit, CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateReadScope(scope);
+        var words = query.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        var entries = new List<MemoryJournalEntry>();
+
+        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
+        {
+            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+            if (projectWorkspaceDirectory is not null)
+            {
+                entries.AddRange(await SearchJournalScopeAsync(
+                    GetJournalDirectory(projectWorkspaceDirectory),
+                    MemoryScopes.Project,
+                    words,
+                    since,
+                    cancellationToken));
+            }
+        }
+
+        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
+        {
+            entries.AddRange(await SearchJournalScopeAsync(
+                GetGlobalJournalDirectory(), MemoryScopes.Global, words, since, cancellationToken));
+        }
+
+        if (normalizedScope == MemoryScopes.All)
+        {
+            ThrowIfCrossScopeDuplicates(entries, e => e.Id, e => e.Scope, e => e.Path);
+        }
+
+        return limit is { } value ? entries.Take(value).ToList() : entries;
+    }
+
+    public async Task<IReadOnlyList<MemoryJournalEntry>> GetUnpromotedJournalEntriesAsync(
+        string scope, CancellationToken cancellationToken)
+    {
+        var normalizedScope = ValidateReadScope(scope);
+        var entries = new List<MemoryJournalEntry>();
+
+        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
+        {
+            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+
+            if (projectWorkspaceDirectory is not null)
+            {
+                entries.AddRange(await GetUnpromotedInScopeAsync(
+                    GetJournalDirectory(projectWorkspaceDirectory),
+                    GetCuratedDirectory(projectWorkspaceDirectory),
+                    MemoryScopes.Project,
+                    cancellationToken));
+            }
+        }
+
+        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
+        {
+            entries.AddRange(await GetUnpromotedInScopeAsync(
+                GetGlobalJournalDirectory(), GetGlobalCuratedDirectory(), MemoryScopes.Global, cancellationToken));
+        }
+
+        if (normalizedScope == MemoryScopes.All)
+        {
+            ThrowIfCrossScopeDuplicates(entries, e => e.Id, e => e.Scope, e => e.Path);
+        }
+
+        return entries;
+    }
+
+    public async Task<MemoryPromotionOutcome> PromoteAsync(
+        string journalId,
+        string scope,
+        string type,
+        IReadOnlyList<string> tags,
+        CancellationToken cancellationToken)
+    {
+        var normalizedType = ValidateType(type);
+        var normalizedTags = NormalizeTags(tags);
+
+        var entry = await GetRequiredJournalEntryAsync(journalId, scope, cancellationToken);
+        var resolvedScope = entry.Scope;
+
+        var curatedDirectory = GetCuratedDirectoryForScope(resolvedScope);
+        var curatedId = MemoryPromotedId.Derive(resolvedScope, entry.Id);
+        var curatedPath = GetCuratedPath(curatedDirectory, curatedId);
+
+        if (fileSystem.FileExists(curatedPath))
+        {
+            return new MemoryPromotionOutcome(
+                await ReadExistingPromotionAsync(curatedPath, curatedId, resolvedScope, cancellationToken),
+                AlreadyPromoted: true);
+        }
+
+        CreateIfMissing(curatedDirectory);
+        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, AbandonedTempFileAge);
+
+        var now = timeProvider.GetUtcNow();
+
+        var frontmatter = new MemoryFrontmatter(
+            MemoryFrontmatterParser.SupportedSchemaVersion,
+            curatedId,
+            normalizedType,
+            normalizedTags,
+            now,
+            now,
+            entry.CreatedBy,
+            entry.Id,
+            entry.Body);
+
+        try
+        {
+            await fileSystem.CreateFileAtomicAsync(
+                curatedPath, MemoryFrontmatterWriter.Write(frontmatter), cancellationToken);
+        }
+        catch (IOException) when (fileSystem.FileExists(curatedPath))
+        {
+            // Lost a create race to a concurrent or retried promote of the
+            // same journal entry: the winner's file is authoritative.
+            return new MemoryPromotionOutcome(
+                await ReadExistingPromotionAsync(curatedPath, curatedId, resolvedScope, cancellationToken),
+                AlreadyPromoted: true);
+        }
+
+        return new MemoryPromotionOutcome(ToRecord(frontmatter, curatedPath, resolvedScope), AlreadyPromoted: false);
+    }
+
+    private async Task<MemoryRecord> ReadExistingPromotionAsync(
+        string curatedPath, string curatedId, string scope, CancellationToken cancellationToken)
+    {
+        var content = await fileSystem.ReadAllTextAsync(curatedPath, cancellationToken);
+
+        if (!MemoryFrontmatterParser.TryParse(content, curatedId, out var frontmatter, out var failure))
+        {
+            throw new ExitException($"Memory '{curatedId}' has malformed frontmatter: {failure.Message}");
+        }
+
+        return ToRecord(frontmatter, curatedPath, scope);
+    }
+
+    private async Task<IReadOnlyList<MemoryJournalEntry>> GetUnpromotedInScopeAsync(
+        string journalDirectory, string curatedDirectory, string scope, CancellationToken cancellationToken)
+    {
+        var entries = await ListJournalAsync(journalDirectory, scope, cancellationToken);
+        var unpromoted = new List<MemoryJournalEntry>();
+
+        foreach (var entry in entries)
+        {
+            var curatedId = MemoryPromotedId.Derive(scope, entry.Id);
+            var curatedPath = GetCuratedPath(curatedDirectory, curatedId);
+
+            if (!fileSystem.FileExists(curatedPath))
+            {
+                unpromoted.Add(entry);
+            }
+        }
+
+        return unpromoted;
+    }
+
+    private async Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalScopeAsync(
+        string journalDirectory,
+        string scope,
+        IReadOnlyList<string> words,
+        DateTimeOffset? since,
+        CancellationToken cancellationToken)
+    {
+        var entries = await ListJournalAsync(journalDirectory, scope, cancellationToken);
+
+        return entries
+            .Where(entry => since is null || entry.CreatedAt >= since)
+            .Where(entry => MatchesAllWords(entry.Body, words))
+            .ToList();
+    }
+
+    private static bool MatchesAllWords(string body, IReadOnlyList<string> words)
+    {
+        foreach (var word in words)
+        {
+            if (body.IndexOf(word, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private async Task<MemoryJournalEntry?> FindJournalEntryInDirectoryAsync(
+        string journalDirectory, string id, string scope, CancellationToken cancellationToken)
+    {
+        if (!fileSystem.DirectoryExists(journalDirectory))
+        {
+            return null;
+        }
+
+        var path = fileSystem.GetFiles(journalDirectory, id + ".md", SearchOption.AllDirectories).FirstOrDefault();
+
+        if (path is null)
+        {
+            return null;
+        }
+
+        var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
+
+        if (!MemoryJournalFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
+        {
+            throw new ExitException($"Journal entry '{id}' has malformed frontmatter: {failure.Message}");
+        }
+
+        return ToJournalRecord(frontmatter, path, scope);
+    }
+
+    private async Task<IReadOnlyList<MemoryJournalEntry>> ListJournalAsync(
+        string journalDirectory, string scope, CancellationToken cancellationToken)
+    {
+        if (!fileSystem.DirectoryExists(journalDirectory))
+        {
+            return [];
+        }
+
+        var entries = new List<MemoryJournalEntry>();
+
+        foreach (var path in fileSystem.GetFiles(journalDirectory, "*.md", SearchOption.AllDirectories))
+        {
+            var id = Path.GetFileNameWithoutExtension(path);
+            var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
+
+            if (!MemoryJournalFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
+            {
+                throw new ExitException($"Journal entry '{id}' has malformed frontmatter: {failure.Message}");
+            }
+
+            entries.Add(ToJournalRecord(frontmatter, path, scope));
+        }
+
+        return entries
+            .OrderByDescending(entry => entry.CreatedAt)
+            .ThenBy(entry => entry.Id, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static MemoryJournalEntry ToJournalRecord(
+        MemoryJournalFrontmatter frontmatter, string path, string scope) => new()
+    {
+        Id = frontmatter.Id,
+        Scope = scope,
+        Path = path,
+        Body = frontmatter.Body,
+        CreatedAt = frontmatter.CreatedAt,
+        CreatedBy = frontmatter.CreatedBy
+    };
+
+    private string GetGlobalJournalDirectory()
+        => AgentWorkspace.GetMemoryJournalDirectory(globalMemoryDirectory);
+
+    private static string GetJournalDirectory(string workspaceDirectory)
+        => AgentWorkspace.GetMemoryJournalDirectory(AgentWorkspace.GetMemoryDirectory(workspaceDirectory));
 
     public async Task<MemoryIndexRebuildResult> RebuildIndexAsync(string scope, CancellationToken cancellationToken)
     {
@@ -348,15 +724,19 @@ internal sealed class MemoryStore(
             .ToList();
     }
 
-    private static void ThrowIfCrossScopeDuplicates(IReadOnlyList<MemoryRecord> records)
+    private static void ThrowIfCrossScopeDuplicates<T>(
+        IReadOnlyList<T> records,
+        Func<T, string> idSelector,
+        Func<T, string> scopeSelector,
+        Func<T, string> pathSelector)
     {
         var conflicts = records
-            .GroupBy(record => record.Id, StringComparer.Ordinal)
+            .GroupBy(idSelector, StringComparer.Ordinal)
             .Where(group => group.Count() > 1)
             .Select(group => new MemoryScopeConflict(
                 group.Key,
-                group.Select(record => record.Scope).ToArray(),
-                group.Select(record => record.Path).ToArray()))
+                group.Select(scopeSelector).ToArray(),
+                group.Select(pathSelector).ToArray()))
             .ToList();
 
         if (conflicts.Count > 0)

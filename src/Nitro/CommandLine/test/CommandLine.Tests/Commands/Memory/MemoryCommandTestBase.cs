@@ -35,6 +35,9 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     protected string CuratedDirectory
         => AgentWorkspace.GetMemoryCuratedDirectory(MemoryDirectory);
 
+    protected string JournalDirectory
+        => AgentWorkspace.GetMemoryJournalDirectory(MemoryDirectory);
+
     protected string LocalDirectory
         => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
@@ -49,6 +52,9 @@ public abstract class MemoryCommandTestBase : CommandTestBase
 
     protected string GlobalCuratedDirectory
         => AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory);
+
+    protected string GlobalJournalDirectory
+        => AgentWorkspace.GetMemoryJournalDirectory(GlobalMemoryDirectory);
 
     protected async Task InitWorkspaceAsync()
     {
@@ -79,6 +85,22 @@ public abstract class MemoryCommandTestBase : CommandTestBase
                 Text = text,
                 Type = type,
                 Tags = tags ?? [],
+                Actor = actor,
+                Scope = scope
+            },
+            TestContext.Current.CancellationToken);
+
+    /// <summary>
+    /// Logs a journal entry directly against the store.
+    /// </summary>
+    internal Task<MemoryJournalEntry> SeedJournalEntryAsync(
+        string text,
+        string actor = "test-agent",
+        string scope = "project")
+        => CreateStore().LogAsync(
+            new MemoryJournalEntryCreation
+            {
+                Text = text,
                 Actor = actor,
                 Scope = scope
             },

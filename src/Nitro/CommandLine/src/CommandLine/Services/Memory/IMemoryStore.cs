@@ -131,4 +131,101 @@ internal interface IMemoryStore
     /// curated file's frontmatter fails to parse.
     /// </summary>
     Task<MemoryIndexRebuildResult> RebuildIndexAsync(string scope, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Captures a new journal entry in the scope named by
+    /// <see cref="MemoryJournalEntryCreation.Scope"/>: allocates an id and
+    /// writes the markdown file, under its UTC capture date, with atomic
+    /// create-without-overwrite. Throws <see cref="ExitException"/> when the
+    /// scope is project and no project workspace is found, or when the
+    /// scope or actor is invalid. The global scope never fails this way:
+    /// its directories are created lazily.
+    /// </summary>
+    Task<MemoryJournalEntry> LogAsync(MemoryJournalEntryCreation creation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the journal entry with the given id in the given scope, or
+    /// null when it does not exist there. When scope is
+    /// <see cref="MemoryScopes.All"/>, both stores are searched and the
+    /// result is the union with no shadowing; a project workspace that
+    /// cannot be found simply contributes nothing. When scope is
+    /// <see cref="MemoryScopes.Project"/> and no project workspace is
+    /// found, throws <see cref="ExitException"/> rather than reporting a
+    /// missing entry. Throws <see cref="ExitException"/> when a matching
+    /// file's frontmatter fails to parse, and
+    /// <see cref="MemoryScopeConflictException"/> when scope is
+    /// <see cref="MemoryScopes.All"/> and the id exists in both stores.
+    /// </summary>
+    Task<MemoryJournalEntry?> FindJournalEntryAsync(string id, string scope, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the journal entry with the given id in the given scope, or
+    /// throws <see cref="ExitException"/> when it does not exist there. See
+    /// <see cref="FindJournalEntryAsync"/> for the full scope-resolution and
+    /// failure contract.
+    /// </summary>
+    Task<MemoryJournalEntry> GetRequiredJournalEntryAsync(
+        string id, string scope, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns journal entries in the given scope ordered project band
+    /// first, then global; within each band by <c>created_at</c>
+    /// descending, then id; up to the given limit across both bands
+    /// combined (unlimited when null). Returns an empty list when a
+    /// requested store has no project workspace, or no journal entries yet.
+    /// A file whose frontmatter fails to parse throws
+    /// <see cref="ExitException"/> rather than being skipped, and scope
+    /// <see cref="MemoryScopes.All"/> throws
+    /// <see cref="MemoryScopeConflictException"/> when the same id exists
+    /// in both stores.
+    /// </summary>
+    Task<IReadOnlyList<MemoryJournalEntry>> GetRecentJournalAsync(
+        string scope, int? limit, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Searches journal entries in the given scope by literal, case
+    /// insensitive substring match of every whitespace-separated word in
+    /// <paramref name="query"/> against the entry body, narrowed by a
+    /// minimum created-at timestamp. A journal entry has no type or tags to
+    /// filter by. Ordering: project band first, then global; within each
+    /// band by <c>created_at</c> descending, then id. Up to the given limit
+    /// across both bands combined (unlimited when null). Throws
+    /// <see cref="ExitException"/> when a journal file's frontmatter fails
+    /// to parse, and <see cref="MemoryScopeConflictException"/> when scope
+    /// is <see cref="MemoryScopes.All"/> and the same id exists in both
+    /// stores.
+    /// </summary>
+    Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalAsync(
+        string query, string scope, DateTimeOffset? since, int? limit, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns journal entries in the given scope that have not yet been
+    /// promoted: the curated id <see cref="MemoryPromotedId"/> derives from
+    /// each entry does not exist as a curated file in that entry's scope.
+    /// Ordered and scope-conflict checked the same way as
+    /// <see cref="GetRecentJournalAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<MemoryJournalEntry>> GetUnpromotedJournalEntriesAsync(
+        string scope, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Mechanically copies the journal entry with the given id into a new
+    /// curated memory, in the same scope the journal entry was found in.
+    /// The curated id is derived deterministically from that scope and the
+    /// journal id, and the write uses atomic create-without-overwrite, so
+    /// promoting the same journal entry again, including concurrently, is
+    /// idempotent: the existing curated memory is returned with
+    /// <see cref="MemoryPromotionOutcome.AlreadyPromoted"/> true instead of
+    /// failing or duplicating. Throws <see cref="ExitException"/> when the
+    /// journal entry does not exist, or when the given type or a tag is
+    /// invalid, and <see cref="MemoryScopeConflictException"/> when scope
+    /// is <see cref="MemoryScopes.All"/> and the journal id exists in both
+    /// stores.
+    /// </summary>
+    Task<MemoryPromotionOutcome> PromoteAsync(
+        string journalId,
+        string scope,
+        string type,
+        IReadOnlyList<string> tags,
+        CancellationToken cancellationToken);
 }

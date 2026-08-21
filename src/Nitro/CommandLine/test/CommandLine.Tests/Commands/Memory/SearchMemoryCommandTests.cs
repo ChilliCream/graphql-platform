@@ -168,7 +168,7 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JournalCollection_ReturnsEmpty_UntilJournalSliceLands()
+    public async Task JournalCollection_ExcludesCuratedMemories()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -180,6 +180,52 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess("No memories found.");
+    }
+
+    [Fact]
+    public async Task JournalCollection_FindsMatchingJournalEntry()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var match = await SeedJournalEntryAsync("Deploy checklist covers staging first.");
+        await SeedJournalEntryAsync("An unrelated entry about oceans.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "journal");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var item = Assert.Single(items);
+
+        Assert.Equal(match.Id, item.GetProperty("id").GetString());
+        Assert.Equal("journal", item.GetProperty("collection").GetString());
+    }
+
+    [Fact]
+    public async Task AllCollection_IncludesBothCuratedAndJournalMatches()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var curated = await SeedMemoryAsync("Deploy notes from curated.");
+        var journal = await SeedJournalEntryAsync("Deploy notes from journal.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "all");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+        var ids = items.Select(item => item.GetProperty("id").GetString()!).ToArray();
+
+        // Collection band, curated first.
+        Assert.Equal(["curated", "journal"], collections);
+        Assert.Equal([curated.Id, journal.Id], ids);
     }
 
     [Fact]
