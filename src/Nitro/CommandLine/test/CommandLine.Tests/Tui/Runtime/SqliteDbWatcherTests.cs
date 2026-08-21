@@ -225,7 +225,13 @@ public sealed class SqliteDbWatcherTests : IDisposable
     {
         // arrange: repeated frame appends to -wal within one debounce window,
         // the shape of a busy uncheckpointed writer, must still coalesce into a
-        // single event rather than one per append.
+        // single event rather than one per append. The writes are issued
+        // back-to-back with no inter-write delay: pacing them via Task.Delay
+        // made this reproducibly flaky under load (bd-hai), since a starved
+        // thread pool can stretch a "Debounce / 5" delay past Debounce itself,
+        // letting the timer fire mid-burst and emit a second event. Synchronous
+        // writes have no such scheduling dependency and stay well inside the
+        // debounce window regardless of system load.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -240,7 +246,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
         for (var i = 1; i <= 5; i++)
         {
             File.WriteAllText(databasePath + "-wal", new string('w', i * 16));
-            await Task.Delay(Debounce / 5, testToken);
         }
 
         var first = await ReadOneAsync(channel.Reader, testToken);
@@ -271,11 +276,13 @@ public sealed class SqliteDbWatcherTests : IDisposable
         await Task.Delay(Debounce, testToken);
 
         // A burst of writes to the db file within one debounce window resets
-        // the same timer rather than each scheduling its own event.
+        // the same timer rather than each scheduling its own event. Issued
+        // back-to-back with no inter-write delay for the same reason as the
+        // -wal burst test above (bd-hai): a Task.Delay-paced burst is only as
+        // tight as the thread pool's scheduling under load allows.
         for (var i = 0; i < 5; i++)
         {
             File.WriteAllText(databasePath, "changed-" + i);
-            await Task.Delay(Debounce / 5, testToken);
         }
 
         var first = await ReadOneAsync(channel.Reader, testToken);
