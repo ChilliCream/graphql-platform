@@ -1,0 +1,282 @@
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
+using ChilliCream.Nitro.CommandLine.Tui.Input;
+using Microsoft.Extensions.Time.Testing;
+using Spectre.Console.Testing;
+using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
+
+public sealed class AgentsModeTests
+{
+    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    private static AgentRecord Agent(
+        string name, string role = "", bool isImplicit = false, DateTimeOffset? registeredAt = null, DateTimeOffset? lastSeenAt = null)
+        => new()
+        {
+            Name = name,
+            Role = role,
+            Implicit = isImplicit,
+            RegisteredAt = registeredAt ?? Now,
+            LastSeenAt = lastSeenAt ?? Now
+        };
+
+    private static AgentsMode CreateMode(FakeAgentRegistry registry)
+        => new(registry, new FakeTimeProvider(Now));
+
+    [Fact]
+    public void MoveSelection_Should_ClampAtLastRow_When_MovingDownPastEnd()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+
+        // assert
+        Assert.Equal(1, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void MoveSelection_Should_ClampAtFirstRow_When_MovingUpPastStart()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Up));
+
+        // assert
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void MoveSelectionToEdge_Should_SelectLastRow_When_Bottom()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b"));
+        registry.Agents.Add(Agent("agent-c"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
+
+        // assert
+        Assert.Equal(2, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void MoveSelectionToEdge_Should_SelectFirstRow_When_Top()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
+
+        // act
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Top));
+
+        // assert
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void Refresh_Should_PreserveSelectedAgent_When_ReloadedListReorders()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bravo"));
+        registry.Agents.Add(Agent("charlie"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
+        Assert.Equal("charlie", mode.State.SelectedAgent?.Name);
+
+        // act: a new, alphabetically-earlier agent pushes charlie to a
+        // different row on refresh
+        registry.Agents.Add(Agent("alpha"));
+        mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        Assert.Equal("charlie", mode.State.SelectedAgent?.Name);
+        Assert.Equal(2, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void OpenSelected_Should_ReturnEmpty()
+    {
+        // arrange: row detail is wired in a follow-up bead; here it is a
+        // no-op.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var messages = mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
+        Assert.Empty(messages);
+    }
+
+    [Fact]
+    public void CopySelectedId_Should_ShowNameInToast_When_AgentSelected()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var messages = mode.Handle(new TuiMessage.CopySelectedId());
+
+        // assert
+        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(messages));
+        Assert.Equal("agent-a", toast.Text);
+    }
+
+    [Fact]
+    public void CopySelectedId_Should_WarnNoAgentSelected_When_ListEmpty()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var messages = mode.Handle(new TuiMessage.CopySelectedId());
+
+        // assert
+        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(messages));
+        Assert.Equal(ToastStyle.Warn, toast.Style);
+    }
+
+    [Fact]
+    public void Render_Should_IncludeAgentNameRoleAndPanelTitle()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.Contains("Agents (1)", console.Output);
+        Assert.Contains("agent-a", console.Output);
+        Assert.Contains("backend", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDash_When_RoleEmpty()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.Contains("agent-a -", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_NotThrow_When_WidthOrHeightIsZero()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var exception = Record.Exception(() => mode.Render(0, 0));
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Render_Should_ShowMoreBelowIndicator_When_AgentsExceedPanelHeight()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        for (var i = 1; i <= 15; i++)
+        {
+            registry.Agents.Add(Agent($"agent-{i:D2}"));
+        }
+
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(12);
+
+        // act
+        console.Write(mode.Render(80, 12));
+
+        // assert
+        Assert.Contains("more below", console.Output);
+        Assert.DoesNotContain("agent-15", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowMoreAboveIndicator_And_SelectedAgent_When_MovedToBottom()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        for (var i = 1; i <= 15; i++)
+        {
+            registry.Agents.Add(Agent($"agent-{i:D2}"));
+        }
+
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(12);
+
+        // act
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
+        console.Write(mode.Render(80, 12));
+
+        // assert
+        Assert.Contains("more above", console.Output);
+        Assert.Contains("agent-15", console.Output);
+    }
+
+    [Fact]
+    public void OnEnter_Should_LoadEveryAgent_ThroughRegistry()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("zeta"));
+        registry.Agents.Add(Agent("alpha"));
+        var mode = CreateMode(registry);
+
+        // act
+        mode.OnEnter();
+
+        // assert: FakeAgentRegistry.ListAsync orders by name, mirroring the
+        // real registry's ORDER BY name.
+        Assert.Equal(["alpha", "zeta"], mode.State.Agents.Select(a => a.Name));
+    }
+}

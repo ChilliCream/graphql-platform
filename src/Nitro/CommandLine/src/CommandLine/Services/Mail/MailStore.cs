@@ -727,6 +727,50 @@ internal sealed class MailStore(
             new { actor = normalizedActor, cancellationToken });
     }
 
+    public async Task<IReadOnlyList<MailMessage>> QuerySentAsync(
+        string sender,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var normalizedSender = MailAgentName.Normalize(sender);
+
+        // The LIMIT clause is assembled at runtime from the optional limit,
+        // so the SQL text is never a call-site literal; executed through
+        // plain ADO.NET rather than Dapper's reflection fallback, mirroring
+        // BuildInboxQuery/ExecuteIdQueryAsync above.
+        var sql =
+            """
+            SELECT id FROM messages
+            WHERE sender = @sender
+            ORDER BY created_at DESC, id DESC
+            """;
+
+        var parameters = new Dictionary<string, object?> { ["sender"] = normalizedSender };
+
+        if (limit is { } value)
+        {
+            parameters["limit"] = value;
+            sql += " LIMIT @limit";
+        }
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var ids = await ExecuteIdQueryAsync(connection, sql, parameters, cancellationToken);
+        var messages = new List<MailMessage>(ids.Count);
+
+        foreach (var id in ids)
+        {
+            var message = await GetMessageAsync(connection, id, cancellationToken);
+
+            if (message is not null)
+            {
+                messages.Add(message);
+            }
+        }
+
+        return messages;
+    }
+
     /// <summary>
     /// Normalizes and dedupes recipient names: to and cc are disjoint with
     /// to winning, repeated names collapse to their first occurrence, and

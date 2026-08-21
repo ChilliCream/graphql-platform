@@ -149,4 +149,14 @@ internal interface IMailStore
     Task<int> CountUnreadAsync(
         string actor,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the messages the given agent sent, regardless of recipients,
+    /// with recipients embedded, ordered by created_at then id, newest
+    /// first, optionally capped at <paramref name="limit"/>.
+    /// </summary>
+    Task<IReadOnlyList<MailMessage>> QuerySentAsync(
+        string sender,
+        int? limit,
+        CancellationToken cancellationToken);
 }

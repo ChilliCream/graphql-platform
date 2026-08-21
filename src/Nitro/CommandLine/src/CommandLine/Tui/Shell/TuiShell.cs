@@ -1,5 +1,8 @@
 using System.Globalization;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -34,10 +37,13 @@ internal sealed class TuiShell
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
+    private readonly IMailStore? _mailStore;
+    private readonly IAgentRegistry? _agentRegistry;
     private readonly string? _actor;
 
     private int _activeTabIndex;
     private BoardDetailMode? _detailMode;
+    private AgentDetailMode? _agentDetailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
     private EditingConfirmDialog? _lifecycleDialog;
@@ -60,7 +66,9 @@ internal sealed class TuiShell
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
-        string? actor = null)
+        string? actor = null,
+        IMailStore? mailStore = null,
+        IAgentRegistry? agentRegistry = null)
         : this(
             [new TuiTab(
                 string.Empty,
@@ -72,7 +80,9 @@ internal sealed class TuiShell
             searchMode,
             treeView,
             store,
-            actor)
+            actor,
+            mailStore,
+            agentRegistry)
     {
     }
 
@@ -97,7 +107,9 @@ internal sealed class TuiShell
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
-        string? actor = null)
+        string? actor = null,
+        IMailStore? mailStore = null,
+        IAgentRegistry? agentRegistry = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
 
@@ -118,6 +130,8 @@ internal sealed class TuiShell
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
+        _mailStore = mailStore;
+        _agentRegistry = agentRegistry;
         _actor = actor;
         _width = initialWidth;
         _height = initialHeight;
@@ -647,6 +661,9 @@ internal sealed class TuiShell
             case TuiMessage.OpenSelected when ActiveMode is BoardMode:
                 return TryOpenDetail();
 
+            case TuiMessage.OpenSelected when ActiveMode is AgentsMode agentsMode:
+                return TryOpenAgentDetail(agentsMode);
+
             case TuiMessage.FocusSearchRequested:
                 if (!IsTasksTabActive || _searchMode is not { } search)
                 {
@@ -712,6 +729,30 @@ internal sealed class TuiShell
         _detailMode ??= new BoardDetailMode(_store);
         _detailMode.OpenOnTask(id);
         SwitchTo(_detailMode);
+        return true;
+    }
+
+    /// <summary>
+    /// Switches to the agent detail mode, rooted on the agents list's
+    /// currently selected agent. Reuses the same mode-stack semantics as
+    /// <see cref="TryOpenDetail"/>: Back returns to the agents list with its
+    /// selection untouched.
+    /// </summary>
+    private bool TryOpenAgentDetail(AgentsMode agentsMode)
+    {
+        if (_store is null || _mailStore is null || _agentRegistry is null)
+        {
+            return false;
+        }
+
+        if (agentsMode.State.SelectedAgent is not { } agent)
+        {
+            return ShowToastNow("No agent selected.", ToastStyle.Warn);
+        }
+
+        _agentDetailMode ??= new AgentDetailMode(_agentRegistry, _store, _mailStore);
+        _agentDetailMode.OpenOnAgent(agent.Name);
+        SwitchTo(_agentDetailMode);
         return true;
     }
 

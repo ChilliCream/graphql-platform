@@ -601,6 +601,76 @@ public sealed class MailStoreTests : IAsyncDisposable
             () => _store.CountUnreadAsync("claude", cancellationToken));
     }
 
+    [Fact]
+    public async Task QuerySentAsync_Should_ReturnMessagesSentByAgent_NewestFirst()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var first = await SendAsync("claude", "first", ["bob"], null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        var second = await SendAsync("claude", "second", ["carol"], null, cancellationToken);
+        await SendAsync("bob", "not from claude", ["carol"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("claude", limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([second.Id, first.Id], sent.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task QuerySentAsync_Should_ApplyLimit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "first", ["bob"], null, cancellationToken);
+        await SendAsync("claude", "second", ["bob"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("claude", limit: 1, cancellationToken);
+
+        // assert
+        Assert.Single(sent);
+    }
+
+    [Fact]
+    public async Task QuerySentAsync_Should_NormalizeSenderName()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var message = await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("CLAUDE", limit: null, cancellationToken);
+
+        // assert
+        var single = Assert.Single(sent);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QuerySentAsync_Should_ReturnEmpty_When_AgentHasNoSentMail()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("bob", limit: null, cancellationToken);
+
+        // assert
+        Assert.Empty(sent);
+    }
+
     private static async Task ExecuteAsync(
         SqliteConnection connection,
         string sql,
