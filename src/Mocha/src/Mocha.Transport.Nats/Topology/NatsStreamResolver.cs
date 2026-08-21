@@ -126,13 +126,30 @@ internal static class NatsStreamResolver
         INatsJSContext jetStream,
         string subject,
         CancellationToken cancellationToken)
+        => await FindCapturingStreamAsync(jetStream, subject, cancellationToken) is not null;
+
+    /// <summary>
+    /// Gets the name of the stream capturing a subject, or <see langword="null"/> when none does.
+    /// </summary>
+    /// <param name="jetStream">The JetStream context used to query the server.</param>
+    /// <param name="subject">The subject to look up.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The capturing stream's name, or <see langword="null"/>.</returns>
+    /// <remarks>
+    /// A concrete subject belongs to at most one stream, because the server keeps stream subjects
+    /// disjoint.
+    /// </remarks>
+    public static async ValueTask<string?> FindCapturingStreamAsync(
+        INatsJSContext jetStream,
+        string subject,
+        CancellationToken cancellationToken)
     {
-        await foreach (var _ in jetStream.ListStreamNamesAsync(subject, cancellationToken))
+        await foreach (var name in jetStream.ListStreamNamesAsync(subject, cancellationToken))
         {
-            return true;
+            return name;
         }
 
-        return false;
+        return null;
     }
 
     private static async ValueTask<List<string>> ListStreamsAsync(

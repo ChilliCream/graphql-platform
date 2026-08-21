@@ -214,6 +214,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
             return;
         }
 
+        var streamName = NatsNaming.ToStreamName(_streamName);
         var unclaimed = new List<string>();
 
         foreach (var subject in _topology.Subjects)
@@ -231,7 +232,16 @@ public sealed class NatsMessagingTransport : MessagingTransport
                 continue;
             }
 
-            if (await NatsStreamResolver.IsCapturedAsync(JetStream, subject.Subject, cancellationToken))
+            // Only a peer's claim counts. A subject this service's own stream already captures still
+            // has to be listed, because provisioning replaces that stream's whole subject list: leaving
+            // it out deletes it from the server, and the next start-up puts it back, so a stream shared
+            // with a declaration loses and regains subjects on alternate boots.
+            var owner = await NatsStreamResolver.FindCapturingStreamAsync(
+                JetStream,
+                subject.Subject,
+                cancellationToken);
+
+            if (owner is not null && !string.Equals(owner, streamName, StringComparison.Ordinal))
             {
                 continue;
             }
@@ -257,7 +267,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
 
         _topology.AddStream(new NatsStreamConfiguration
         {
-            Name = NatsNaming.ToStreamName(_streamName),
+            Name = streamName,
 
             // Collapsed because an endpoint may filter a wildcard that covers subjects derived from
             // message types, and the server rejects a stream holding both.
