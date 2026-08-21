@@ -14,12 +14,20 @@ internal static class AgentWorkspace
     public const string FallbackPrefix = "task";
     public const string DisplayPath = RootDirectoryName + "/" + AgentsDirectoryName;
 
+    public const string MemoryDirectoryName = "memory";
+    public const string MemoryCuratedDirectoryName = "curated";
+    public const string MemoryJournalDirectoryName = "journal";
+    public const string MemoryLocalDirectoryName = ".local";
+    public const string MemoryIndexDatabaseFileName = "index.db";
+    private const string GlobalConfigDirectoryName = "nitro";
+
     private const int MaxPrefixLength = 64;
 
     /// <summary>
-    /// Ignores only the SQLite database files, which are local state; the
-    /// JSONL export and this file itself are the tracker's committed,
-    /// durable state and must not be ignored.
+    /// Ignores the SQLite database files and the disposable memory index,
+    /// which are local state; the JSONL export, the memory markdown, and
+    /// this file itself are the committed, durable state and must not be
+    /// ignored.
     /// </summary>
     public const string GitIgnoreContent =
         """
@@ -27,6 +35,10 @@ internal static class AgentWorkspace
         agents.db
         agents.db-wal
         agents.db-shm
+
+        # The memory index is a disposable, rebuildable cache; the curated and
+        # journal markdown under memory/ is the source of truth in git.
+        memory/.local/
         """;
 
     public static string GetDirectory(string baseDirectory)
@@ -37,6 +49,32 @@ internal static class AgentWorkspace
 
     public static string GetJsonlPath(string workspaceDirectory)
         => Path.Combine(workspaceDirectory, JsonlFileName);
+
+    /// <summary>
+    /// The project memory root, nested under the shared agent workspace
+    /// directory returned by <see cref="GetDirectory"/>.
+    /// </summary>
+    public static string GetMemoryDirectory(string workspaceDirectory)
+        => Path.Combine(workspaceDirectory, MemoryDirectoryName);
+
+    /// <summary>
+    /// The machine-local global memory root, under the platform's
+    /// application data directory. Independent of any project workspace.
+    /// </summary>
+    public static string GetGlobalMemoryDirectory(string applicationDataDirectory)
+        => Path.Combine(applicationDataDirectory, GlobalConfigDirectoryName, MemoryDirectoryName);
+
+    public static string GetMemoryCuratedDirectory(string memoryDirectory)
+        => Path.Combine(memoryDirectory, MemoryCuratedDirectoryName);
+
+    public static string GetMemoryJournalDirectory(string memoryDirectory)
+        => Path.Combine(memoryDirectory, MemoryJournalDirectoryName);
+
+    public static string GetMemoryLocalDirectory(string memoryDirectory)
+        => Path.Combine(memoryDirectory, MemoryLocalDirectoryName);
+
+    public static string GetMemoryIndexDatabasePath(string memoryLocalDirectory)
+        => Path.Combine(memoryLocalDirectory, MemoryIndexDatabaseFileName);
 
     /// <summary>
     /// Finds the nearest workspace directory at or above the given directory.
@@ -74,6 +112,38 @@ internal static class AgentWorkspace
 
             if (fileSystem.FileExists(GetDatabasePath(workspaceDirectory))
                 || fileSystem.FileExists(GetJsonlPath(workspaceDirectory)))
+            {
+                return workspaceDirectory;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the nearest workspace directory at or above the given directory
+    /// that has either an agent database or project memory markdown.
+    /// Memory storage is markdown-first, so a freshly cloned repository with
+    /// committed curated or journal entries but no database yet still
+    /// counts. Returns null when neither exists.
+    /// </summary>
+    public static string? FindMemory(IFileSystem fileSystem, string startDirectory)
+    {
+        for (var directory = startDirectory;
+            !string.IsNullOrEmpty(directory);
+            directory = Path.GetDirectoryName(directory))
+        {
+            var workspaceDirectory = GetDirectory(directory);
+
+            if (fileSystem.FileExists(GetDatabasePath(workspaceDirectory)))
+            {
+                return workspaceDirectory;
+            }
+
+            var memoryDirectory = GetMemoryDirectory(workspaceDirectory);
+
+            if (fileSystem.DirectoryExists(GetMemoryCuratedDirectory(memoryDirectory))
+                || fileSystem.DirectoryExists(GetMemoryJournalDirectory(memoryDirectory)))
             {
                 return workspaceDirectory;
             }
