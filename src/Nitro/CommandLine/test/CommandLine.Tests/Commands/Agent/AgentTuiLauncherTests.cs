@@ -214,4 +214,59 @@ public sealed class AgentTuiLauncherTests
         Assert.Contains("[T]asks", text);
         Assert.Contains("[M]ail", text);
     }
+
+    [Fact]
+    public void Shell_Should_StillOpenOnTheTasksTab_When_TheMemoryStoreThrows()
+    {
+        // arrange: a curated markdown file with malformed frontmatter
+        // written directly into the global memory store, the only way such
+        // a file reaches disk (MemoryStore itself never writes an
+        // unparsable one). OnEnter's read of it must not let the resulting
+        // ExitException escape shell construction.
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-memory-tests");
+
+        try
+        {
+            var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
+            Directory.CreateDirectory(workingDirectory);
+            var applicationDataDirectory = Path.Combine(tempRoot.FullName, "app-data");
+            var globalMemoryDirectory = AgentWorkspace.GetGlobalMemoryDirectory(applicationDataDirectory);
+            var globalCuratedDirectory = AgentWorkspace.GetMemoryCuratedDirectory(globalMemoryDirectory);
+            Directory.CreateDirectory(globalCuratedDirectory);
+            File.WriteAllText(Path.Combine(globalCuratedDirectory, "mem-broken.md"), "not frontmatter at all");
+
+            var memoryStore = new MemoryStore(
+                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
+                new FakeTimeProvider(Now),
+                globalMemoryDirectory);
+            var memoryMode = new MemoryMode(memoryStore, new FakeTimeProvider(Now));
+            var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
+            var taskStore = new FakeTaskStore();
+            var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
+            var boardMode = new BoardMode(loader);
+            var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+            // act: construction alone must not throw despite the memory
+            // tab's store read failure.
+            var shell = new TuiShell(
+                [tasksTab, memoryTab],
+                80,
+                24,
+                tasksTabIndex: 0,
+                new SearchMode(taskStore),
+                new DependencyTreeView(taskStore, rootId: ""),
+                taskStore,
+                actor: "tasks-actor");
+            var text = RenderToText(shell);
+
+            // assert: the shell opened and both tabs render.
+            Assert.Contains("[T]asks", text);
+            Assert.Contains("M[e]mory", text);
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
+    }
 }

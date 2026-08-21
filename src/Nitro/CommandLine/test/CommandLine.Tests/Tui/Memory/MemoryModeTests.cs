@@ -403,6 +403,26 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
+    public void OnEnter_Should_SetLoadError_Instead_Of_Throwing_When_ACuratedFileHasMalformedFrontmatter()
+    {
+        // arrange: a curated markdown file written directly into the store,
+        // bypassing SaveAsync, the only way malformed frontmatter reaches
+        // disk (the store itself never writes an unparsable file).
+        Directory.CreateDirectory(CuratedDirectory);
+        File.WriteAllText(Path.Combine(CuratedDirectory, "mem-broken.md"), "not frontmatter at all");
+        var mode = CreateMode();
+
+        // act
+        var exception = Record.Exception(mode.OnEnter);
+
+        // assert
+        Assert.Null(exception);
+        Assert.NotNull(mode.State.LoadError);
+        Assert.Contains("malformed frontmatter", mode.State.LoadError, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(mode.State.CuratedRecords);
+    }
+
+    [Fact]
     public void Render_Should_NotThrow_When_WidthOrHeightIsZero()
     {
         // arrange

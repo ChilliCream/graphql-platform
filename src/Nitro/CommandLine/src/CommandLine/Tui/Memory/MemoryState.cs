@@ -60,13 +60,16 @@ internal sealed class MemoryState(MemoryDataLoader loader)
 
     /// <summary>
     /// A diagnostic message from the last <see cref="RefreshAsync"/>, set
-    /// when <see cref="Scope"/> is <see cref="MemoryScopes.All"/> and a
-    /// cross-scope duplicate id makes the merged read invalid data (per the
-    /// store's own contract, no partial result is served); null otherwise.
-    /// Mirrors how <c>MailUnavailableMode</c> keeps a hard read failure from
-    /// crashing the tab, shown inline in the list pane instead of replacing
-    /// the whole mode, since unlike a failed mail actor resolution this can
-    /// recur on every refresh rather than only at tab construction.
+    /// when the read hit invalid data: either <see cref="Scope"/> is
+    /// <see cref="MemoryScopes.All"/> and a cross-scope duplicate id makes
+    /// the merged read invalid data (per the store's own contract, no
+    /// partial result is served), or the store rejected a file it read with
+    /// an <see cref="ExitException"/> such as malformed frontmatter; null
+    /// otherwise. Mirrors how <c>MailUnavailableMode</c> keeps a hard read
+    /// failure from crashing the tab, shown inline in the list pane instead
+    /// of replacing the whole mode, since unlike a failed mail actor
+    /// resolution this can recur on every refresh rather than only at tab
+    /// construction.
     /// </summary>
     public string? LoadError { get; private set; }
 
@@ -119,15 +122,12 @@ internal sealed class MemoryState(MemoryDataLoader loader)
         catch (MemoryScopeConflictException exception)
         {
             LoadError = FormatConflictMessage(exception);
-
-            if (Collection == MemoryCollectionFilter.Curated)
-            {
-                CuratedRecords = [];
-            }
-            else
-            {
-                JournalEntries = [];
-            }
+            ClearActiveCollection();
+        }
+        catch (ExitException exception)
+        {
+            LoadError = exception.Message;
+            ClearActiveCollection();
         }
 
         var preservedIndex = selectedId is null ? -1 : IndexOf(selectedId);
@@ -170,6 +170,18 @@ internal sealed class MemoryState(MemoryDataLoader loader)
         SearchText = text;
         SelectedRow = 0;
         await RefreshAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private void ClearActiveCollection()
+    {
+        if (Collection == MemoryCollectionFilter.Curated)
+        {
+            CuratedRecords = [];
+        }
+        else
+        {
+            JournalEntries = [];
+        }
     }
 
     private static string FormatConflictMessage(MemoryScopeConflictException exception)
