@@ -28,6 +28,101 @@ internal sealed class FileSystem : IFileSystem
     public Task WriteAllTextAsync(string path, string content, CancellationToken ct)
         => File.WriteAllTextAsync(path, content, ct);
 
+    public async Task CreateFileAtomicAsync(string path, string content, CancellationToken ct)
+    {
+        var tempPath = CreateTempPath(path);
+        await File.WriteAllTextAsync(tempPath, content, ct);
+
+        try
+        {
+            File.Move(tempPath, path, overwrite: false);
+        }
+        catch
+        {
+            TryDeleteFile(tempPath);
+            throw;
+        }
+    }
+
+    public async Task ReplaceFileAtomicAsync(string path, string content, CancellationToken ct)
+    {
+        var tempPath = CreateTempPath(path);
+        await File.WriteAllTextAsync(tempPath, content, ct);
+
+        try
+        {
+            File.Move(tempPath, path, overwrite: true);
+        }
+        catch
+        {
+            TryDeleteFile(tempPath);
+            throw;
+        }
+    }
+
+    public void CleanupAbandonedTempFiles(string directory, TimeSpan olderThan)
+    {
+        if (!Directory.Exists(directory))
+        {
+            return;
+        }
+
+        var cutoff = DateTime.UtcNow - olderThan;
+
+        foreach (var tempFile in Directory.EnumerateFiles(directory, TempFileSearchPattern))
+        {
+            try
+            {
+                if (File.GetLastWriteTimeUtc(tempFile) <= cutoff)
+                {
+                    File.Delete(tempFile);
+                }
+            }
+            catch (IOException)
+            {
+                // Another process may be racing us to write or remove the
+                // same temp file; best-effort cleanup, leave it be.
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// The naming scheme atomic writes use for their temp file, always
+    /// created in the destination's own directory: a hidden, per-write
+    /// unique file that <see cref="TempFileSearchPattern"/> also matches, so
+    /// <see cref="CleanupAbandonedTempFiles"/> can find abandoned ones.
+    /// </summary>
+    private const string TempFileSearchPattern = ".*.nitro-tmp-*";
+
+    private static string CreateTempPath(string path)
+    {
+        var directory = Path.GetDirectoryName(path);
+
+        if (string.IsNullOrEmpty(directory))
+        {
+            throw new ArgumentException($"Path '{path}' has no directory.", nameof(path));
+        }
+
+        return Path.Combine(directory, $".{Path.GetFileName(path)}.nitro-tmp-{Guid.NewGuid():N}");
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
     public void DeleteFile(string path) => File.Delete(path);
 
     public bool DirectoryExists(string path) => Directory.Exists(path);

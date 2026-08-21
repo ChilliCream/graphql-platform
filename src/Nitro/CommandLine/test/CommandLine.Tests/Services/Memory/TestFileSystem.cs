@@ -1,10 +1,10 @@
 using ChilliCream.Nitro.CommandLine.Services;
 
-namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
 /// <summary>
 /// A real file system rooted at a fixed current directory, for tests that run
-/// commands against actual files in a temp directory.
+/// against actual files in a temp directory.
 /// </summary>
 internal sealed class TestFileSystem(string currentDirectory) : IFileSystem
 {

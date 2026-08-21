@@ -27,6 +27,15 @@ internal sealed class TestFileSystem(string currentDirectory) : IFileSystem
     public Task WriteAllTextAsync(string path, string content, CancellationToken ct)
         => _inner.WriteAllTextAsync(path, content, ct);
 
+    public Task CreateFileAtomicAsync(string path, string content, CancellationToken ct)
+        => _inner.CreateFileAtomicAsync(path, content, ct);
+
+    public Task ReplaceFileAtomicAsync(string path, string content, CancellationToken ct)
+        => _inner.ReplaceFileAtomicAsync(path, content, ct);
+
+    public void CleanupAbandonedTempFiles(string directory, TimeSpan olderThan)
+        => _inner.CleanupAbandonedTempFiles(directory, olderThan);
+
     public void DeleteFile(string path) => _inner.DeleteFile(path);
 
     public bool DirectoryExists(string path) => _inner.DirectoryExists(path);
