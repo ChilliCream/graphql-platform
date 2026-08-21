@@ -11,7 +11,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 internal sealed class MailStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
-    AgentDatabase database) : IMailStore
+    AgentDatabase database,
+    IAgentRegistry agentRegistry) : IMailStore
 {
     private const string IdPrefix = "m-";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -47,79 +48,6 @@ internal sealed class MailStore(
         await using var connection = await InitializeAsync(workspaceDirectory, cancellationToken);
     }
 
-    public async Task<MailAgent> RegisterAgentAsync(
-        string name,
-        CancellationToken cancellationToken)
-    {
-        var normalized = MailAgentName.Normalize(name);
-        var now = timeProvider.GetUtcNow();
-
-        await using var connection = await ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        var agent = await RegisterAgentAsync(connection, normalized, now, cancellationToken, transaction);
-
-        await transaction.CommitAsync(cancellationToken);
-
-        return agent;
-    }
-
-    private static async Task<MailAgent> RegisterAgentAsync(
-        SqliteConnection connection,
-        string name,
-        DateTimeOffset now,
-        CancellationToken cancellationToken,
-        DbTransaction? transaction = null)
-    {
-        var row = await connection.QueryFirstAsync<MailAgentRow>(
-            """
-            INSERT INTO agents (
-                name,
-                registered_at,
-                last_seen_at
-            )
-            VALUES (
-                @name,
-                @now,
-                @now
-            )
-            ON CONFLICT (name) DO UPDATE SET last_seen_at = @now
-            RETURNING name AS Name, registered_at AS RegisteredAt, last_seen_at AS LastSeenAt
-            """,
-            new { name, now, cancellationToken },
-            transaction);
-
-        return row.ToMailAgent();
-    }
-
-    public async Task<MailAgent?> GetAgentAsync(
-        string name,
-        CancellationToken cancellationToken)
-    {
-        var normalized = MailAgentName.Normalize(name);
-
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        var row = await connection.QueryFirstOrDefaultAsync<MailAgentRow>(
-            $"SELECT {MailAgent.Columns} FROM agents WHERE name = @name",
-            new { name = normalized, cancellationToken });
-
-        return row?.ToMailAgent();
-    }
-
-    public async Task<IReadOnlyList<MailAgent>> GetAgentsAsync(
-        CancellationToken cancellationToken)
-    {
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        // Takes no filter parameters, so there is nothing for @-placeholder
-        // analysis to key on; cancellation is best-effort here.
-        var rows = await connection.QueryAsync<MailAgentRow>(
-            $"SELECT {MailAgent.Columns} FROM agents ORDER BY name");
-
-        return rows.Select(r => r.ToMailAgent()).ToList();
-    }
-
     public async Task<MailMessage> SendMessageAsync(
         MailMessageCreation creation,
         CancellationToken cancellationToken)
@@ -142,11 +70,15 @@ internal sealed class MailStore(
         var now = timeProvider.GetUtcNow();
         var seed = $"{sender}|{subject}|{now:O}";
 
+        // Auto-registers the sender through the shared registry before the
+        // message write transaction opens; the registry manages its own
+        // connection, so this upsert is not part of that transaction.
+        await agentRegistry.TouchAsync(sender, cancellationToken);
+
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        await RegisterAgentAsync(connection, sender, now, cancellationToken, transaction);
-        await ValidateRecipientsExistAsync(connection, recipients, cancellationToken, transaction);
+        await ValidateRecipientsExistAsync(recipients, cancellationToken);
 
         var id = await CreateMessageIdAsync(connection, seed, cancellationToken, transaction);
 
@@ -210,56 +142,18 @@ internal sealed class MailStore(
         var actor = MailAgentName.Normalize(sender);
         var now = timeProvider.GetUtcNow();
 
+        var (original, root, recipients) =
+            await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
+
+        // Auto-registers the replying actor through the shared registry, now
+        // that eligibility is confirmed, before opening the write
+        // connection below; the registry manages its own connection, and an
+        // open transaction on another connection to the same file blocks it
+        // from starting one of its own.
+        await agentRegistry.TouchAsync(actor, cancellationToken);
+
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        var original = await GetMessageAsync(connection, inReplyToId, cancellationToken, transaction)
-            ?? throw new ExitException($"Message '{inReplyToId}' does not exist.");
-
-        var participants = new HashSet<string>(StringComparer.Ordinal) { original.Sender };
-
-        foreach (var recipient in original.Recipients)
-        {
-            participants.Add(recipient.Name);
-        }
-
-        if (!participants.Contains(actor))
-        {
-            throw new ExitException(
-                $"'{actor}' is not the sender or a recipient of '{inReplyToId}' and cannot reply to it.");
-        }
-
-        var candidates = new List<string> { original.Sender };
-        candidates.AddRange(original.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
-
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var recipients = new List<MailRecipient>();
-
-        foreach (var name in candidates)
-        {
-            if (name == actor || !seen.Add(name))
-            {
-                continue;
-            }
-
-            recipients.Add(new MailRecipient
-            {
-                Name = name,
-                Kind = MailRecipientKinds.To,
-                Ordinal = recipients.Count
-            });
-        }
-
-        if (recipients.Count == 0)
-        {
-            throw new ExitException(
-                $"Replying to '{inReplyToId}' as '{actor}' would leave no recipients.");
-        }
-
-        await RegisterAgentAsync(connection, actor, now, cancellationToken, transaction);
-
-        var root = await GetMessageAsync(connection, original.ThreadId, cancellationToken, transaction)
-            ?? original;
 
         var seed = $"{actor}|{root.Subject}|{now:O}";
         var id = await CreateMessageIdAsync(connection, seed, cancellationToken, transaction);
@@ -313,6 +207,70 @@ internal sealed class MailStore(
             CreatedAt = now,
             Recipients = recipients
         };
+    }
+
+    /// <summary>
+    /// Reads the original message and the thread root, validates the actor
+    /// is authorized to reply, and computes the reply's recipient set, all
+    /// against a short-lived read connection closed before this method
+    /// returns. Throws <see cref="ExitException"/> when the original
+    /// message does not exist, the actor is not a participant, or the
+    /// computed recipient set is empty.
+    /// </summary>
+    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients)> ResolveReplyAsync(
+        string inReplyToId,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var original = await GetMessageAsync(connection, inReplyToId, cancellationToken)
+            ?? throw new ExitException($"Message '{inReplyToId}' does not exist.");
+
+        var participants = new HashSet<string>(StringComparer.Ordinal) { original.Sender };
+
+        foreach (var recipient in original.Recipients)
+        {
+            participants.Add(recipient.Name);
+        }
+
+        if (!participants.Contains(actor))
+        {
+            throw new ExitException(
+                $"'{actor}' is not the sender or a recipient of '{inReplyToId}' and cannot reply to it.");
+        }
+
+        var candidates = new List<string> { original.Sender };
+        candidates.AddRange(original.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
+
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var recipients = new List<MailRecipient>();
+
+        foreach (var name in candidates)
+        {
+            if (name == actor || !seen.Add(name))
+            {
+                continue;
+            }
+
+            recipients.Add(new MailRecipient
+            {
+                Name = name,
+                Kind = MailRecipientKinds.To,
+                Ordinal = recipients.Count
+            });
+        }
+
+        if (recipients.Count == 0)
+        {
+            throw new ExitException(
+                $"Replying to '{inReplyToId}' as '{actor}' would leave no recipients.");
+        }
+
+        var root = await GetMessageAsync(connection, original.ThreadId, cancellationToken)
+            ?? original;
+
+        return (original, root, recipients);
     }
 
     public async Task<MailMessage?> GetMessageAsync(
@@ -807,22 +765,17 @@ internal sealed class MailStore(
         return recipients;
     }
 
-    private static async Task ValidateRecipientsExistAsync(
-        SqliteConnection connection,
+    private async Task ValidateRecipientsExistAsync(
         IReadOnlyList<MailRecipient> recipients,
-        CancellationToken cancellationToken,
-        DbTransaction transaction)
+        CancellationToken cancellationToken)
     {
         var unknown = new List<string>();
 
         foreach (var recipient in recipients)
         {
-            var exists = await connection.ExecuteScalarAsync<long>(
-                "SELECT COUNT(*) FROM agents WHERE name = @name",
-                new { name = recipient.Name, cancellationToken },
-                transaction);
+            var agent = await agentRegistry.GetAsync(recipient.Name, cancellationToken);
 
-            if (exists == 0)
+            if (agent is null)
             {
                 unknown.Add(recipient.Name);
             }
@@ -924,20 +877,6 @@ internal sealed class MailStore(
     // generated interceptors live outside MailStore and cannot reference a
     // private nested type, so a private row type would silently fall back to
     // Dapper's reflection-emit deserializer.
-    internal sealed class MailAgentRow
-    {
-        public required string Name { get; init; }
-        public required string RegisteredAt { get; init; }
-        public required string LastSeenAt { get; init; }
-
-        public MailAgent ToMailAgent() => new()
-        {
-            Name = Name,
-            RegisteredAt = DateTimeOffset.Parse(RegisteredAt, CultureInfo.InvariantCulture),
-            LastSeenAt = DateTimeOffset.Parse(LastSeenAt, CultureInfo.InvariantCulture)
-        };
-    }
-
     internal sealed class MailMessageRow
     {
         public required string Id { get; init; }

@@ -23,6 +23,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     private readonly string _workingDirectory;
     private readonly string _workspaceDirectory;
     private readonly FakeTimeProvider _timeProvider;
+    private readonly AgentRegistry _registry;
     private readonly MailStore _store;
 
     public MailModeRealStoreTests()
@@ -33,7 +34,9 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         _workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
 
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
-        _store = new MailStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
+        _registry = new AgentRegistry(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
+        _store = new MailStore(
+            new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase(), _registry);
     }
 
     public async ValueTask DisposeAsync()
@@ -70,8 +73,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _store.RegisterAgentAsync("alice", cancellationToken);
-        await _store.RegisterAgentAsync("bob", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", cancellationToken);
         var sent = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Hi", Body = "Body", To = ["alice"] },
             cancellationToken);
@@ -94,8 +97,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _store.RegisterAgentAsync("alice", cancellationToken);
-        await _store.RegisterAgentAsync("bob", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", cancellationToken);
         var sent = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Hi", Body = "Body", To = ["alice"] },
             cancellationToken);
@@ -126,7 +129,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _store.RegisterAgentAsync("alice", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", cancellationToken);
 
         var mode = CreateMode("alice");
         mode.OnEnter();
@@ -162,9 +165,9 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // separate TUI recipient computation exists to diverge from it.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _store.RegisterAgentAsync("alice", cancellationToken);
-        await _store.RegisterAgentAsync("bob", cancellationToken);
-        await _store.RegisterAgentAsync("carol", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", cancellationToken);
+        await _registry.RegisterAsync("carol", role: "", cancellationToken);
 
         var cliOriginal = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Plan", Body = "Body", To = ["alice"], Cc = ["carol"] },

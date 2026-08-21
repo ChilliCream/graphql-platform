@@ -31,6 +31,7 @@ internal static class ServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<AgentDatabase>();
+        services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
 

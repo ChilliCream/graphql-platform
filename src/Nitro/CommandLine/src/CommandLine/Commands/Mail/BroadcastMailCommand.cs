@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -33,6 +34,7 @@ internal sealed class BroadcastMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
+        var registry = services.GetRequiredService<IAgentRegistry>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
@@ -41,7 +43,7 @@ internal sealed class BroadcastMailCommand : Command
         var actor = MailActor.Resolve(
             parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
 
-        var agents = await store.GetAgentsAsync(cancellationToken);
+        var agents = await registry.ListAsync(role: null, staleBefore: null, cancellationToken);
         var to = agents
             .Select(agent => agent.Name)
             .Where(name => name != actor)

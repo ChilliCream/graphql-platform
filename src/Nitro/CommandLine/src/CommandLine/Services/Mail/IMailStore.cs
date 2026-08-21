@@ -22,28 +22,6 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Normalizes the given name and registers it, or updates its
-    /// last_seen_at when it already exists.
-    /// </summary>
-    Task<MailAgent> RegisterAgentAsync(
-        string name,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Normalizes the given name and returns the agent with that name, or
-    /// null.
-    /// </summary>
-    Task<MailAgent?> GetAgentAsync(
-        string name,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Returns every registered agent, ordered by name.
-    /// </summary>
-    Task<IReadOnlyList<MailAgent>> GetAgentsAsync(
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Sends a message: normalizes the sender and recipients, auto-registers
     /// the sender (upsert, bumps last_seen_at), validates every recipient is
     /// already registered, dedupes recipients (to wins over cc, first

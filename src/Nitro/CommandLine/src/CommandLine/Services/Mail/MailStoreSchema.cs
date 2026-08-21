@@ -8,12 +8,6 @@ internal static class MailStoreSchema
     /// </summary>
     public const string Create =
         """
-        CREATE TABLE IF NOT EXISTS agents (
-            name TEXT PRIMARY KEY,
-            registered_at TEXT NOT NULL,
-            last_seen_at TEXT NOT NULL
-        );
-
         CREATE TABLE IF NOT EXISTS messages (
             id TEXT PRIMARY KEY,
             thread_id TEXT NOT NULL,

@@ -89,7 +89,7 @@ public class SmokeTests
             Assert.Equal(0, initResult.ExitCode);
             Assert.Contains("Initialized agent workspace", initResult.StandardOutput);
 
-            var registerResult = await RunNitroAsync("agent mail register", workingDirectory: tempDir);
+            var registerResult = await RunNitroAsync("agent register", workingDirectory: tempDir);
             Assert.Equal(0, registerResult.ExitCode);
             Assert.Contains("Registered 'smoke-test'", registerResult.StandardOutput);
 

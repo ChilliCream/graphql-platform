@@ -1,13 +1,13 @@
-namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
+namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
-public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
-    : MailCommandTestBase(fixture)
+public sealed class WhoamiAgentCommandTests(NitroCommandFixture fixture)
+    : AgentCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("agent", "mail", "whoami", "--help");
+        var result = await ExecuteCommandAsync("agent", "whoami", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -16,7 +16,7 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
               Print the resolved actor identity and whether it is registered in this workspace.
 
             Usage:
-              nitro agent mail whoami [options]
+              nitro agent whoami [options]
 
             Options:
               --actor <actor>  The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
@@ -24,7 +24,7 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
               -?, -h, --help   Show help and usage information
 
             Example:
-              nitro agent mail whoami
+              nitro agent whoami
             """);
     }
 
@@ -35,13 +35,13 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "whoami");
+        var result = await ExecuteCommandAsync("agent", "whoami");
 
         // assert
         result.AssertSuccess(
             """
             test-agent
-            Not registered in this workspace. Run `nitro agent mail register` to register.
+            Not registered in this workspace. Run `nitro agent register` to register.
             """);
     }
 
@@ -50,10 +50,10 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register");
+        await ExecuteCommandAsync("agent", "register");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "whoami");
+        var result = await ExecuteCommandAsync("agent", "whoami");
 
         // assert
         result.AssertSuccess(
@@ -71,7 +71,7 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "whoami");
+        var result = await ExecuteCommandAsync("agent", "whoami");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -81,18 +81,19 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("test-agent", root.GetProperty("name").GetString());
         Assert.False(root.GetProperty("registered").GetBoolean());
+        Assert.Equal("", root.GetProperty("role").GetString());
     }
 
     [Fact]
-    public async Task JsonOutput_Registered_ReturnsNameAndTrue()
+    public async Task JsonOutput_Registered_ReturnsNameAndTrueAndRole()
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register");
+        await ExecuteCommandAsync("agent", "register", "--role", "backend");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "whoami");
+        var result = await ExecuteCommandAsync("agent", "whoami");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -100,13 +101,14 @@ public sealed class WhoamiMailCommandTests(NitroCommandFixture fixture)
 
         Assert.Equal("test-agent", root.GetProperty("name").GetString());
         Assert.True(root.GetProperty("registered").GetBoolean());
+        Assert.Equal("backend", root.GetProperty("role").GetString());
     }
 
     [Fact]
     public async Task NoWorkspace_ReturnsError()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "whoami");
+        var result = await ExecuteCommandAsync("agent", "whoami");
 
         // assert
         result.AssertError(

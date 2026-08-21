@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -33,6 +34,7 @@ internal sealed class ReadMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
+        var registry = services.GetRequiredService<IAgentRegistry>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
@@ -70,7 +72,8 @@ internal sealed class ReadMailCommand : Command
                 console.WriteLine();
             }
 
-            WriteMessage(console, messages[i]);
+            var sender = await registry.GetAsync(messages[i].Sender, cancellationToken);
+            WriteMessage(console, messages[i], sender?.Role ?? "");
         }
 
         return ExitCodes.Success;
@@ -130,7 +133,7 @@ internal sealed class ReadMailCommand : Command
         return await store.GetThreadMessagesAsync(threadId, cancellationToken);
     }
 
-    private static void WriteMessage(INitroConsole console, MailMessage message)
+    private static void WriteMessage(INitroConsole console, MailMessage message, string senderRole)
     {
         var to = message.Recipients
             .Where(r => r.Kind == MailRecipientKinds.To)
@@ -144,7 +147,10 @@ internal sealed class ReadMailCommand : Command
             .Select(r => r.Name)
             .ToArray();
 
-        console.WriteLine($"From: {message.Sender}");
+        console.WriteLine(
+            senderRole.Length > 0
+                ? $"From: {message.Sender} ({senderRole})"
+                : $"From: {message.Sender}");
         console.WriteLine($"To: {string.Join(", ", to)}");
 
         if (cc.Length > 0)

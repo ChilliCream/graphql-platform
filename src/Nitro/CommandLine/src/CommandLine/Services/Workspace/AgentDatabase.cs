@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
@@ -18,17 +19,26 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
+
+    /// <summary>
+    /// The unified schema version before the agents table gained its role
+    /// and implicit columns. A database at this version is upgraded in
+    /// place by <see cref="InitializeAsync"/> rather than rejected.
+    /// </summary>
+    private const int UpgradableVersion = 2;
 
     static AgentDatabase() => SQLitePCL.Batteries_V2.Init();
 
     /// <summary>
     /// Opens a connection to a new or existing workspace database, applies
-    /// the task and mail schemas, and stamps the current schema version, all
-    /// in one transaction. Returns the open connection so callers, including
-    /// test seeding helpers, can write against it directly. Throws
-    /// <see cref="ExitException"/> when the existing database's version is
-    /// anything other than 0 (a genuinely new file) or
+    /// the task, mail, and agent registry schemas, upgrades an existing
+    /// <see cref="UpgradableVersion"/> database's agents table in place, and
+    /// stamps the current schema version, all in one transaction. Returns
+    /// the open connection so callers, including test seeding helpers, can
+    /// write against it directly. Throws <see cref="ExitException"/> when
+    /// the existing database's version is anything other than 0 (a
+    /// genuinely new file), <see cref="UpgradableVersion"/>, or
     /// <see cref="CurrentVersion"/>.
     /// </summary>
     public async Task<SqliteConnection> InitializeAsync(
@@ -47,13 +57,49 @@ internal sealed class AgentDatabase
         ValidateVersionForInitialize(version);
 
         await connection.ExecuteAsync(TaskStoreSchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(AgentRegistrySchema.Create, transaction: transaction);
         await connection.ExecuteAsync(MailStoreSchema.Create, transaction: transaction);
+
+        if (version == UpgradableVersion)
+        {
+            await UpgradeAgentsTableAsync(connection, transaction);
+        }
+
         await connection.ExecuteAsync(
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
 
         await transaction.CommitAsync(cancellationToken);
 
         return connection;
+    }
+
+    /// <summary>
+    /// Adds the agents table's role and implicit columns when a
+    /// <see cref="UpgradableVersion"/> database's agents table predates
+    /// them, checked column by column so this is safe to run against a
+    /// table that already carries either one.
+    /// </summary>
+    private static async Task UpgradeAgentsTableAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+    {
+        var columns = (await connection.QueryAsync<string>(
+                "SELECT name FROM pragma_table_info('agents');", transaction: transaction))
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (!columns.Contains("role"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agents ADD COLUMN role TEXT NOT NULL DEFAULT '';",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("implicit"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agents ADD COLUMN implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1));",
+                transaction: transaction);
+        }
     }
 
     /// <summary>
@@ -86,7 +132,7 @@ internal sealed class AgentDatabase
                 + "Update the CLI to use it.");
         }
 
-        if (version != 0 && version != CurrentVersion)
+        if (version != 0 && version != UpgradableVersion && version != CurrentVersion)
         {
             throw new ExitException(
                 $"The database at this path has schema v{version}, which the unified agent "

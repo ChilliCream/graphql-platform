@@ -53,9 +53,9 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "carol");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
 
         // act
@@ -73,7 +73,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
         var originalId = await SendOriginalMessageAsync("alice", "Note to self", "alice");
 
         // act
@@ -90,9 +90,9 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "carol");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
 
         // act
@@ -126,8 +126,8 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var originalId = await SendOriginalMessageAsync("alice", "Root subject", "bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
@@ -152,7 +152,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "alice");
 
         // act

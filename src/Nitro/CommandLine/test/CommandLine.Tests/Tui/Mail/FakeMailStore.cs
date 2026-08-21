@@ -83,15 +83,6 @@ internal sealed class FakeMailStore : IMailStore
     public Task InitializeWorkspaceAsync(string workspaceDirectory, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
-    public Task<MailAgent> RegisterAgentAsync(string name, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<MailAgent?> GetAgentAsync(string name, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<MailAgent>> GetAgentsAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
     /// <summary>
     /// Sends a message: every given recipient becomes a "to" recipient.
     /// Unlike the real store, no unknown-recipient validation happens here;

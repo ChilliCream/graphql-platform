@@ -8,11 +8,11 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="AgentDatabase"/>'s version state machine and the
-/// unified schema it applies, against a real SQLite file. Covers only what
-/// bead .1 owns: empty/v0 initialization, v2 connection, unified-path v1
-/// rejection, v3 rejection (including re-initializing an already-v3 file,
-/// the shape --force reinit takes), and that task and mail data coexist in
-/// one file.
+/// unified schema it applies, against a real SQLite file: empty/v0
+/// initialization, v2-in-place upgrade preserving existing rows, v3
+/// connection, unified-path v1 rejection, v4 rejection (including
+/// re-initializing an already-current file, the shape --force reinit
+/// takes), and that task and mail data coexist in one file.
 /// </summary>
 public sealed class AgentDatabaseTests : IDisposable
 {
@@ -31,7 +31,7 @@ public sealed class AgentDatabaseTests : IDisposable
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
     [Fact]
-    public async Task InitializeAsync_Should_CreateBothSchemasAndStampVersion2_When_DatabaseIsNew()
+    public async Task InitializeAsync_Should_CreateAllSchemasAndStampCurrentVersion_When_DatabaseIsNew()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -51,12 +51,21 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'messages'",
             cancellationToken);
+        var agentTableCount = await QueryScalarLongAsync(
+            connection,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agents'",
+            cancellationToken);
         Assert.Equal(1, taskTableCount);
         Assert.Equal(1, mailTableCount);
+        Assert.Equal(1, agentTableCount);
+
+        var columns = (await QueryColumnNamesAsync(connection, cancellationToken)).ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("role", columns);
+        Assert.Contains("implicit", columns);
     }
 
     [Fact]
-    public async Task InitializeAsync_Should_BeIdempotent_When_CalledAgainOnVersion2()
+    public async Task InitializeAsync_Should_BeIdempotent_When_CalledAgainOnCurrentVersion()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -72,12 +81,60 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(AgentDatabase.CurrentVersion, version);
     }
 
+    /// <summary>
+    /// Seeds a raw v2-shaped agents table, predating the role and implicit
+    /// columns, with one row, mirroring a database left by a pre-.8 CLI.
+    /// InitializeAsync must add the columns in place, without losing the
+    /// row, and stamp the current version.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeAgentsTableInPlace_When_ExistingVersionIsUpgradable()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL
+                );
+                INSERT INTO agents (name, registered_at, last_seen_at)
+                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+                PRAGMA user_version = 2;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
+        Assert.Equal(AgentDatabase.CurrentVersion, version);
+
+        var name = await QueryScalarStringAsync(
+            connection2, "SELECT name FROM agents WHERE name = 'claude'", cancellationToken);
+        var role = await QueryScalarStringAsync(
+            connection2, "SELECT role FROM agents WHERE name = 'claude'", cancellationToken);
+        var isImplicit = await QueryScalarLongAsync(
+            connection2, "SELECT implicit FROM agents WHERE name = 'claude'", cancellationToken);
+        Assert.Equal("claude", name);
+        Assert.Equal("", role);
+        Assert.Equal(0, isImplicit);
+    }
+
     [Fact]
     public async Task InitializeAsync_Should_Throw_When_ExistingVersionIsGreaterThanCurrent()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await StampVersionOnNewFileAsync(3, cancellationToken);
+        await StampVersionOnNewFileAsync(4, cancellationToken);
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
@@ -90,14 +147,14 @@ public sealed class AgentDatabaseTests : IDisposable
     /// CLI understands must still be rejected, force or not.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion3()
+    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion4()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 3;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 4;", cancellationToken);
         }
 
         // act & assert
@@ -170,13 +227,30 @@ public sealed class AgentDatabaseTests : IDisposable
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 3;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 4;", cancellationToken);
         }
 
         // act & assert
         var exception = await Assert.ThrowsAsync<ExitException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
         Assert.Contains("newer version", exception.Message);
+    }
+
+    /// <summary>
+    /// A v2 database is only upgraded in place by
+    /// <see cref="AgentDatabase.InitializeAsync"/>; connecting directly
+    /// against it still requires exactly <see cref="AgentDatabase.CurrentVersion"/>.
+    /// </summary>
+    [Fact]
+    public async Task ConnectAsync_Should_Throw_When_VersionIsUpgradable()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await StampVersionOnNewFileAsync(2, cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
     }
 
     /// <summary>
@@ -194,7 +268,8 @@ public sealed class AgentDatabaseTests : IDisposable
             new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
         var taskStore = new TaskStore(fileSystem, timeProvider, _database);
-        var mailStore = new MailStore(fileSystem, timeProvider, _database);
+        var agentRegistry = new AgentRegistry(fileSystem, timeProvider, _database);
+        var mailStore = new MailStore(fileSystem, timeProvider, _database, agentRegistry);
 
         await taskStore.InitializeWorkspaceAsync(_workspaceDirectory, "acme", cancellationToken);
 
@@ -208,7 +283,7 @@ public sealed class AgentDatabaseTests : IDisposable
                 Actor = "claude"
             },
             cancellationToken);
-        await mailStore.RegisterAgentAsync("codex", cancellationToken);
+        await agentRegistry.RegisterAsync("codex", role: "", cancellationToken);
         var message = await mailStore.SendMessageAsync(
             new MailMessageCreation
             {
@@ -261,6 +336,38 @@ public sealed class AgentDatabaseTests : IDisposable
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
         return Convert.ToInt64(result);
+    }
+
+    private static async Task<string?> QueryScalarStringAsync(
+        SqliteConnection connection,
+        string sql,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        return result is null or DBNull ? null : result.ToString();
+    }
+
+    private static async Task<List<string>> QueryColumnNamesAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT name FROM pragma_table_info('agents');";
+
+        var names = new List<string>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            names.Add(reader.GetString(0));
+        }
+
+        return names;
     }
 
     private static async Task ExecuteAsync(

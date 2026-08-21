@@ -41,7 +41,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -57,8 +57,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "carol");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "carol");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -100,7 +100,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -127,7 +127,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -144,7 +144,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -162,7 +162,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -180,7 +180,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var bodyFilePath = Path.Combine(WorkingDirectory, "body.txt");
         await File.WriteAllTextAsync(
             bodyFilePath, "Line one\r\nLine two\r\n", TestContext.Current.CancellationToken);
@@ -200,7 +200,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var bodyFilePath = Path.Combine(WorkingDirectory, "empty.txt");
         await File.WriteAllTextAsync(bodyFilePath, "", TestContext.Current.CancellationToken);
 
@@ -220,7 +220,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -238,7 +238,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register");
+        await ExecuteCommandAsync("agent", "register");
 
         // act
         var result = await ExecuteCommandAsync(

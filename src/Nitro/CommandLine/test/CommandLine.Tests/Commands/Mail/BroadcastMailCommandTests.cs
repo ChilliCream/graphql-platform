@@ -36,9 +36,9 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "test-agent");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "zeta");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "alpha");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -54,7 +54,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "solo");
+        await ExecuteCommandAsync("agent", "register", "--actor", "solo");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -89,8 +89,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "test-agent");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -112,8 +112,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "test-agent");
-        await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
 
         // act
         var result = await ExecuteCommandAsync(

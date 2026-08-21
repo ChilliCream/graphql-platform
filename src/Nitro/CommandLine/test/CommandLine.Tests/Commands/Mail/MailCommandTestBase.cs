@@ -43,13 +43,20 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// clock, for seeding data without going through the CLI.
     /// </summary>
     internal MailStore CreateStore()
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry());
+
+    /// <summary>
+    /// Creates an <see cref="IAgentRegistry"/> bound to this test's workspace
+    /// and clock, for seeding agents without going through the CLI.
+    /// </summary>
+    internal AgentRegistry CreateRegistry()
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
 
     /// <summary>
-    /// Registers an agent directly against the store.
+    /// Registers an agent directly against the registry.
     /// </summary>
-    internal Task<MailAgent> SeedAgentAsync(string name)
-        => CreateStore().RegisterAgentAsync(name, TestContext.Current.CancellationToken);
+    internal Task<AgentRecord> SeedAgentAsync(string name)
+        => CreateRegistry().RegisterAsync(name, role: "", TestContext.Current.CancellationToken);
 
     /// <summary>
     /// Sends a message directly against the store, starting a new thread.

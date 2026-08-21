@@ -16,7 +16,6 @@ using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
-using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
@@ -73,9 +72,9 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceInitResult))]
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
-[JsonSerializable(typeof(MailAgent))]
-[JsonSerializable(typeof(ListResult<MailAgent>))]
-[JsonSerializable(typeof(WhoamiMailCommand.MailWhoamiResult))]
+[JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
+[JsonSerializable(typeof(WhoamiAgentCommand.AgentWhoamiResult))]
+[JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]
 [JsonSerializable(typeof(MailMessageDetailResult))]

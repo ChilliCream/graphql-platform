@@ -183,7 +183,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await CreateTaskAsync("Ship the unified workspace");
-        var registerResult = await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         Assert.Equal(0, registerResult.ExitCode);
 
         // act
@@ -342,14 +342,14 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         var taskId = await CreateTaskAsync("Ship the unified workspace");
 
         // act
-        var registerResult = await ExecuteCommandAsync("agent", "mail", "register", "--actor", "bob");
+        var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var sendResult = await ExecuteCommandAsync(
             "agent", "mail", "send", "bob", "--subject", "Status", "--body", "Merged.");
 
         // assert
         Assert.Equal(0, registerResult.ExitCode);
         Assert.Equal(0, sendResult.ExitCode);
-        Assert.Equal("2", await QueryScalarAsync("PRAGMA user_version;"));
+        Assert.Equal("3", await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM messages"));
 
         var listResult = await ExecuteCommandAsync("agent", "tasks", "list");

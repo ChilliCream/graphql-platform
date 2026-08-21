@@ -17,6 +17,9 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new InitAgentCommand());
         Subcommands.Add(new TasksCommand());
         Subcommands.Add(new MailCommand());
+        Subcommands.Add(new RegisterAgentCommand());
+        Subcommands.Add(new WhoamiAgentCommand());
+        Subcommands.Add(new ListAgentCommand());
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
