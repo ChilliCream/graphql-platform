@@ -23,7 +23,17 @@ public sealed class AgentsModeTests
         };
 
     private static AgentsMode CreateMode(FakeAgentRegistry registry)
-        => new(registry, new FakeTimeProvider(Now));
+        => new(registry, new FakeTaskStore(), new FakeMailStore(), new FakeTimeProvider(Now));
+
+    private static AgentsMode CreateMode(FakeAgentRegistry registry, FakeTaskStore taskStore, FakeMailStore mailStore)
+        => new(registry, taskStore, mailStore, new FakeTimeProvider(Now));
+
+    private static string RenderToText(AgentsMode mode, int width = 100, int height = 24)
+    {
+        var console = new TestConsole().Width(width);
+        console.Write(mode.Render(width, height));
+        return console.Output;
+    }
 
     [Fact]
     public void MoveSelection_Should_ClampAtLastRow_When_MovingDownPastEnd()
@@ -118,10 +128,9 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void OpenSelected_Should_ReturnEmpty()
+    public void OpenSelected_Should_FocusDetailPane_And_ReturnEmpty()
     {
-        // arrange: row detail is wired in a follow-up bead; here it is a
-        // no-op.
+        // arrange
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("agent-a"));
         var mode = CreateMode(registry);
@@ -130,8 +139,10 @@ public sealed class AgentsModeTests
         // act
         var messages = mode.Handle(new TuiMessage.OpenSelected());
 
-        // assert
+        // assert: focus moves to the detail pane (no separate pushed mode
+        // to open; the detail pane is always visible next to the list).
         Assert.Empty(messages);
+        Assert.Equal(AgentsFocus.Detail, mode.State.Focus);
     }
 
     [Fact]
@@ -278,5 +289,139 @@ public sealed class AgentsModeTests
         // assert: FakeAgentRegistry.ListAsync orders by name, mirroring the
         // real registry's ORDER BY name.
         Assert.Equal(["alpha", "zeta"], mode.State.Agents.Select(a => a.Name));
+    }
+
+    [Fact]
+    public void Render_Should_ShowListAndDetailPanesSideBySide_When_AgentSelected()
+    {
+        // arrange: the detail pane is always visible next to the list, with
+        // no Enter press needed to see the selected agent's identity.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert: the list pane's row and the detail pane's identity
+        // section both render in the same frame.
+        Assert.Contains("Agents (1)", text);
+        Assert.Contains("agent-a", text);
+        Assert.Contains("Identity", text);
+        Assert.Contains("Role: backend", text);
+    }
+
+    [Fact]
+    public void MoveSelection_Should_ReloadDetailPane_When_SelectionChanges()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b"));
+        var taskStore = new FakeTaskStore();
+        taskStore.Tasks.Add(TaskItemBuilder.Create("b-1", assignee: "agent-b"));
+        var mode = CreateMode(registry, taskStore, new FakeMailStore());
+        mode.OnEnter();
+        Assert.DoesNotContain("b-1", RenderToText(mode));
+
+        // act: moving onto agent-b reloads the detail pane with its tasks.
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+
+        // assert
+        Assert.Contains("b-1", RenderToText(mode));
+    }
+
+    [Fact]
+    public void TogglePane_Should_FlipFocusBetweenListAndDetail()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        Assert.Equal(AgentsFocus.List, mode.State.Focus);
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Equal(AgentsFocus.Detail, mode.State.Focus);
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
+        Assert.Equal(AgentsFocus.List, mode.State.Focus);
+    }
+
+    [Fact]
+    public void Refresh_Should_ReloadDetailPane_For_SelectedAgent()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var taskStore = new FakeTaskStore();
+        var mode = CreateMode(registry, taskStore, new FakeMailStore());
+        mode.OnEnter();
+        Assert.DoesNotContain("a-1", RenderToText(mode));
+
+        // act: a task assigned to the still-selected agent shows up only
+        // once RefreshRequested re-loads the detail pane, not just the list.
+        taskStore.Tasks.Add(TaskItemBuilder.Create("a-1", assignee: "agent-a"));
+        mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        Assert.Contains("a-1", RenderToText(mode));
+    }
+
+    [Fact]
+    public void Refresh_Should_ClearDetailPane_When_ListEmpties()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        Assert.Contains("Role: backend", RenderToText(mode));
+
+        // act: the selected agent vanishes from the registry before the
+        // next refresh.
+        registry.Agents.Clear();
+        mode.Handle(new TuiMessage.RefreshRequested());
+        var text = RenderToText(mode);
+
+        // assert: the detail pane falls back to its empty state instead of
+        // continuing to show the vanished agent's stale identity.
+        Assert.Contains("Agents (0)", text);
+        Assert.DoesNotContain("Role: backend", text);
+    }
+
+    [Fact]
+    public void Render_Should_AlignColumns_Across_Rows()
+    {
+        // arrange: names of different lengths so the role and age columns
+        // only line up if they're padded to a shared width rather than
+        // following each name immediately.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("a", role: "backend"));
+        registry.Agents.Add(Agent("longer-name", role: "qa"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+        var rows = text.Split('\n').Where(l => l.Contains("reg ") && l.Contains("seen ")).ToList();
+        var shortNameRow = Assert.Single(rows, l => l.Contains("backend"));
+        var longNameRow = Assert.Single(rows, l => l.Contains("qa"));
+
+        // assert: the role column and the reg-age column start at the same
+        // character offset on both rows.
+        Assert.Equal(
+            shortNameRow.IndexOf("backend", StringComparison.Ordinal),
+            longNameRow.IndexOf("qa", StringComparison.Ordinal));
+        Assert.Equal(
+            shortNameRow.IndexOf("reg ", StringComparison.Ordinal),
+            longNameRow.IndexOf("reg ", StringComparison.Ordinal));
     }
 }

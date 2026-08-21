@@ -346,55 +346,56 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_OpenAgentDetail_When_EnterPressedOnAgentsSelection_ThroughATabbedShell()
+    public void Handle_Should_AlwaysShowSelectedAgentDetail_WithoutOpeningAnything_ThroughATabbedShell()
     {
-        // arrange
+        // arrange: the detail pane sits next to the list, so the selected
+        // agent's identity is already on screen before any key is pressed.
         var registry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
         registry.Agents.Add(Agent("agent-a", role: "backend"));
-        var agentsMode = new AgentsMode(registry);
-        var store = new FakeTaskStore();
+        var taskStore = new FakeTaskStore();
         var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
+        var agentsMode = new AgentsMode(registry, taskStore, mailStore);
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
-            80,
+            100,
             24,
             tasksTabIndex: 0,
-            store: store,
-            mailStore: mailStore,
-            agentRegistry: registry);
+            store: taskStore,
+            mailStore: mailStore);
+        Assert.Contains("backend", RenderToText(shell, width: 100));
 
-        // act
+        // act: Enter no longer pushes a full-screen detail mode; it focuses
+        // the already-visible detail pane instead.
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // assert
-        var rendered = RenderToText(shell);
+        var rendered = RenderToText(shell, width: 100);
         Assert.True(dirty);
+        Assert.Equal(AgentsFocus.Detail, agentsMode.State.Focus);
         Assert.Contains("agent-a", rendered);
         Assert.Contains("backend", rendered);
     }
 
     [Fact]
-    public void Handle_Should_ReturnToAgentsListWithSelectionPreserved_When_EscapePressedAfterOpeningAgentDetail()
+    public void Handle_Should_LeaveAgentsListSelectionUntouched_When_EscapePressed()
     {
-        // arrange
+        // arrange: there is no pushed mode to pop anymore, so Escape on the
+        // Agents tab is inert rather than navigating anywhere.
         var registry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
         registry.Agents.Add(Agent("agent-a"));
-        var agentsMode = new AgentsMode(registry);
-        var store = new FakeTaskStore();
+        var taskStore = new FakeTaskStore();
         var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
+        var agentsMode = new AgentsMode(registry, taskStore, mailStore);
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             80,
             24,
             tasksTabIndex: 0,
-            store: store,
-            mailStore: mailStore,
-            agentRegistry: registry);
-        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
-        Assert.Contains("agent-a", RenderToText(shell));
+            store: taskStore,
+            mailStore: mailStore);
 
         // act
-        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
 
         // assert
         Assert.True(dirty);

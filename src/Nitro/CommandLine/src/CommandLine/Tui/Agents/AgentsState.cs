@@ -4,7 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
 /// The live state of the agents list: every registered agent, in the order
-/// the registry returns them, plus which row is selected.
+/// the registry returns them, plus which row is selected and which of the
+/// tab's two panes currently holds focus.
 /// </summary>
 internal sealed class AgentsState(IAgentRegistry registry)
 {
@@ -18,6 +19,11 @@ internal sealed class AgentsState(IAgentRegistry registry)
     /// The index of the selected row within <see cref="Agents"/>.
     /// </summary>
     public int SelectedRow { get; set; }
+
+    /// <summary>
+    /// Which pane currently holds focus.
+    /// </summary>
+    public AgentsFocus Focus { get; set; } = AgentsFocus.List;
 
     /// <summary>
     /// The agent at <see cref="SelectedRow"/>, or null when the list is
