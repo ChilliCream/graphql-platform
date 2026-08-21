@@ -35,6 +35,12 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     protected string CuratedDirectory
         => AgentWorkspace.GetMemoryCuratedDirectory(MemoryDirectory);
 
+    protected string LocalDirectory
+        => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
+
+    protected string IndexPath
+        => AgentWorkspace.GetMemoryIndexDatabasePath(LocalDirectory);
+
     protected string ApplicationDataDirectory
         => Path.Combine(_tempRoot.FullName, "app-data");
 
