@@ -178,6 +178,47 @@ public sealed class DoctorMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task MalformedCuratedFileInFreshIndex_NotReportedAsIndexOnly()
+    {
+        // A curated file whose frontmatter is corrupted after the index was
+        // built, without changing its filesystem fingerprint (same mtime and
+        // byte length), fools the index into staying "fresh" while still
+        // holding a row for that id. The Frontmatter check already reports
+        // the file; Index agreement must not report the same id a second
+        // time as "in the index but has no curated file on disk".
+
+        // arrange
+        await InitWorkspaceAsync();
+        var record = await SeedMemoryAsync("Deploy checklist.");
+        await ExecuteCommandAsync("agent", "memory", "search", "deploy");
+        Assert.True(File.Exists(IndexPath));
+
+        var originalBytes = await File.ReadAllBytesAsync(record.Path, TestContext.Current.CancellationToken);
+        var originalWriteTimeUtc = File.GetLastWriteTimeUtc(record.Path);
+        var malformedBytes = System.Text.Encoding.UTF8.GetBytes(
+            "not frontmatter at all".PadRight(originalBytes.Length));
+
+        await File.WriteAllBytesAsync(record.Path, malformedBytes, TestContext.Current.CancellationToken);
+        File.SetLastWriteTimeUtc(record.Path, originalWriteTimeUtc);
+
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "memory", "doctor", "--scope", "project");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var scope = document.RootElement.GetProperty("scopes").EnumerateArray().Single();
+
+        Assert.Equal("fresh", scope.GetProperty("indexStatus").GetString());
+        Assert.Empty(scope.GetProperty("indexOnlyIds").EnumerateArray());
+        Assert.Contains(
+            scope.GetProperty("malformedFrontmatter").EnumerateArray(),
+            failure => failure.GetProperty("path").GetString() == record.Path);
+    }
+
+    [Fact]
     public async Task StaleIndex_NotReportedAsUnhealthy()
     {
         // A stale index self-heals on the next real read (every search

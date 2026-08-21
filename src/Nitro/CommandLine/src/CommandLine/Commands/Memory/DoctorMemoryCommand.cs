@@ -144,6 +144,7 @@ internal sealed class DoctorMemoryCommand : Command
         var malformed = new List<MemoryDoctorFrontmatterFailure>();
         var curatedPathsById = new Dictionary<string, string>(StringComparer.Ordinal);
         var journalPathsById = new Dictionary<string, string>(StringComparer.Ordinal);
+        var malformedCuratedIds = new HashSet<string>(StringComparer.Ordinal);
 
         if (fileSystem.DirectoryExists(curatedDirectory))
         {
@@ -159,6 +160,7 @@ internal sealed class DoctorMemoryCommand : Command
                 else
                 {
                     malformed.Add(new MemoryDoctorFrontmatterFailure("curated", path, failure.Message));
+                    malformedCuratedIds.Add(id);
                 }
             }
         }
@@ -182,7 +184,7 @@ internal sealed class DoctorMemoryCommand : Command
         }
 
         var (indexStatus, indexOnlyIds, filesMissingFromIndexIds) = await InspectIndexAsync(
-            fileSystem, curatedDirectory, indexPath, curatedPathsById.Keys, cancellationToken);
+            fileSystem, curatedDirectory, indexPath, curatedPathsById.Keys, malformedCuratedIds, cancellationToken);
 
         return new ScopeInspection(
             scope,
@@ -204,7 +206,10 @@ internal sealed class DoctorMemoryCommand : Command
     /// an id-agreement problem: normal reads self-heal it automatically.
     /// Only when the index claims to be fresh, and reads would therefore
     /// trust it without rebuilding, is its row set compared against the
-    /// files actually on disk.
+    /// files actually on disk. Ids from curated files with malformed
+    /// frontmatter are excluded from <c>indexOnlyIds</c>: they are already
+    /// reported by the Frontmatter check, and a stale index row for a file
+    /// that fails to parse is not a separate index-agreement problem.
     /// </summary>
     private static async Task<(
         string Status, IReadOnlyList<string> IndexOnlyIds, IReadOnlyList<string> FilesMissingFromIndexIds)>
@@ -213,6 +218,7 @@ internal sealed class DoctorMemoryCommand : Command
             string curatedDirectory,
             string indexPath,
             IEnumerable<string> curatedIds,
+            IReadOnlySet<string> malformedCuratedIds,
             CancellationToken cancellationToken)
     {
         if (!fileSystem.FileExists(indexPath))
@@ -249,7 +255,8 @@ internal sealed class DoctorMemoryCommand : Command
                 await connection.QueryAsync<string>("SELECT id FROM curated;"), StringComparer.Ordinal);
             var diskIds = new HashSet<string>(curatedIds, StringComparer.Ordinal);
 
-            var indexOnly = indexedIds.Except(diskIds).OrderBy(id => id, StringComparer.Ordinal).ToArray();
+            var indexOnly = indexedIds.Except(diskIds).Except(malformedCuratedIds)
+                .OrderBy(id => id, StringComparer.Ordinal).ToArray();
             var filesMissing = diskIds.Except(indexedIds).OrderBy(id => id, StringComparer.Ordinal).ToArray();
 
             return ("fresh", indexOnly, filesMissing);
