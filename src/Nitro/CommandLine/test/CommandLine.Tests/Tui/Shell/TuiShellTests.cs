@@ -19,8 +19,8 @@ public sealed class TuiShellTests
             modifiers.HasFlag(ConsoleModifiers.Alt),
             modifiers.HasFlag(ConsoleModifiers.Control));
 
-    private static TuiShell CreateShell(FakeTuiMode mode, int width = 80, int height = 24) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height);
+    private static TuiShell CreateShell(FakeTuiMode mode, int width = 80, int height = 24, string? actor = null) =>
+        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height, actor: actor);
 
     private static TuiShell CreateShellWithModes(
         ITuiMode initialMode,
@@ -1240,5 +1240,75 @@ public sealed class TuiShellTests
         Assert.Contains("move", text);
         Assert.Contains("…", text);
         Assert.DoesNotContain("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowActorIdentity_When_ActorIsSet()
+    {
+        // arrange: the curated global hint set already fills nearly all of
+        // an 80-column footer (see
+        // Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive),
+        // so a wider row is needed to leave room for the identity too.
+        var shell = CreateShell(new FakeTuiMode(), width: 120, actor: "pascal");
+
+        // act
+        var text = RenderToText(shell, 120);
+
+        // assert: the actor identity is shown alongside the footer hints,
+        // right-aligned after them.
+        Assert.Contains("pascal", text);
+        Assert.Contains("quit", text);
+    }
+
+    [Fact]
+    public void Render_Should_OmitActorIdentity_When_ActorIsNull()
+    {
+        // arrange: the other TuiShell constructor (used by BoardMailCommand)
+        // can be built without an actor.
+        var shell = CreateShell(new FakeTuiMode(), actor: null);
+
+        // act
+        var text = RenderToText(shell);
+
+        // assert
+        Assert.Contains("quit", text);
+        Assert.DoesNotContain("pascal", text);
+    }
+
+    [Fact]
+    public void Render_Should_TruncateActorIdentity_When_NotEnoughRoomAfterHints()
+    {
+        // arrange: the global hints fit an 80-column footer untruncated (see
+        // Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive),
+        // so a wider row still leaves comfortable room for the hints while
+        // an overlong actor name cannot fit in what is left over.
+        var longActor = new string('a', 60);
+        var shell = CreateShell(new FakeTuiMode(), width: 120, actor: longActor);
+
+        // act
+        var text = RenderToText(shell, 120);
+
+        // assert: the identity truncates itself with an ellipsis rather than
+        // stealing width the hints would otherwise use, so the hints remain
+        // untouched and the full actor name does not appear.
+        Assert.Contains("quit", text);
+        Assert.Contains("…", text);
+        Assert.DoesNotContain(longActor, text);
+    }
+
+    [Fact]
+    public void Render_Should_OmitActorIdentity_When_HintsAlreadyFillTheRow()
+    {
+        // arrange: at this width the hints themselves are already truncated
+        // (see Render_Should_TruncateFooterWithEllipsis_When_WidthCannotFitEveryHint),
+        // leaving no room at all for the identity.
+        var shell = CreateShell(new FakeTuiMode(), width: 15, actor: "someone");
+
+        // act
+        var text = RenderToText(shell, width: 15);
+
+        // assert
+        Assert.Contains("move", text);
+        Assert.DoesNotContain("someone", text);
     }
 }
