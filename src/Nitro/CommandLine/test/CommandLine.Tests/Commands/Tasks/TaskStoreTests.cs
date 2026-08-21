@@ -476,6 +476,46 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task UpdateTaskAsync_SettingArchivedStatus_Throws()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        var update = new TaskUpdate
+        {
+            Actor = "tester",
+            Status = TaskStates.Archived,
+            StatusGiven = true
+        };
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UpdateTaskAsync("acme-1", update, cancellationToken));
+    }
+
+    [Fact]
+    public async Task UpdateTaskAsync_TaskIsArchived_ThrowsOnStatusChange()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2);
+
+        var update = new TaskUpdate
+        {
+            Actor = "tester",
+            Status = TaskStates.Open,
+            StatusGiven = true
+        };
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UpdateTaskAsync("acme-1", update, cancellationToken));
+    }
+
+    [Fact]
     public async Task CloseTaskAsync_AllOrNothing_ThrowsWhenAnyIsAlreadyClosed()
     {
         // arrange
@@ -639,6 +679,104 @@ public sealed class TaskStoreTests : IAsyncDisposable
         Assert.Equal(TaskStates.Closed, task.Status);
         var untouched = await _store.GetRequiredTaskAsync("acme-2", cancellationToken);
         Assert.Equal(TaskStates.Open, untouched.Status);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_AllChildrenClosedOrArchived_ClosesEpic()
+    {
+        // arrange: one child closed, one child archived; both count as
+        // closed for eligibility purposes.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-1.1", status: TaskStates.Closed, priority: 2);
+        await InsertTaskAsync(connection, "acme-1.2", status: TaskStates.Archived, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+        await InsertDependencyAsync(connection, "acme-1.2", "acme-1", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        var epic = Assert.Single(closed);
+        Assert.Equal("acme-1", epic.Id);
+        Assert.Equal(TaskStates.Closed, epic.Status);
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Closed, task.Status);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_ArchivedEpic_IsNotReClosed()
+    {
+        // arrange: an already-archived epic must not be picked up again,
+        // even though all of its children are closed.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-1.1", status: TaskStates.Closed, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        Assert.Empty(closed);
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Archived, task.Status);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_ClosingPastCap_ArchivesOverflow()
+    {
+        // arrange: the cap's worth of closed tasks already exist, plus an
+        // epic whose only child is closed; closing the epic itself is the
+        // close that pushes the total past the cap, so the epic-close path
+        // must also run ArchiveExcessClosedTasksAsync.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
+
+        for (var i = 1; i <= TaskStates.ClosedTaskCap; i++)
+        {
+            await InsertTaskAsync(
+                connection,
+                $"acme-{i}",
+                status: TaskStates.Closed,
+                priority: 2,
+                closedAt: baseTime.AddMinutes(i));
+        }
+
+        await InsertTaskAsync(connection, "acme-epic", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(
+            connection,
+            "acme-epic.1",
+            status: TaskStates.Closed,
+            priority: 2,
+            closedAt: baseTime.AddMinutes(TaskStates.ClosedTaskCap + 1));
+        await InsertDependencyAsync(connection, "acme-epic.1", "acme-epic", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        var epic = Assert.Single(closed);
+        Assert.Equal("acme-epic", epic.Id);
+
+        var oldest = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Archived, oldest.Status);
+        Assert.Equal([TaskEventTypes.Archived], await QueryEventTypesAsync(connection, "acme-1"));
+
+        var nextOldest = await _store.GetRequiredTaskAsync("acme-2", cancellationToken);
+        Assert.Equal(TaskStates.Archived, nextOldest.Status);
+
+        var epicTask = await _store.GetRequiredTaskAsync("acme-epic", cancellationToken);
+        Assert.Equal(TaskStates.Closed, epicTask.Status);
+
+        var stillClosed = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken);
+        Assert.Equal(TaskStates.ClosedTaskCap, stillClosed.Count);
     }
 
     [Fact]
