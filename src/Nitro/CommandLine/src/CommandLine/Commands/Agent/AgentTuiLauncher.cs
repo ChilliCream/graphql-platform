@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
@@ -15,9 +16,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
 /// <summary>
 /// Builds and runs the unified agent TUI: a tabbed <see cref="TuiShell"/>
-/// hosting the tasks board and mail board over the unified workspace
-/// database, starting on the tasks tab, and sharing one
-/// <see cref="SqliteDbWatcher"/> instance between both tabs.
+/// hosting the tasks board, mail board, and agent registry list over the
+/// unified workspace database, starting on the tasks tab, and sharing one
+/// <see cref="SqliteDbWatcher"/> instance between all three tabs.
 /// </summary>
 internal static class AgentTuiLauncher
 {
@@ -30,6 +31,7 @@ internal static class AgentTuiLauncher
         INitroConsole console,
         ITaskStore taskStore,
         IMailStore mailStore,
+        IAgentRegistry agentRegistry,
         TimeProvider timeProvider,
         IEnvironmentVariableProvider environmentVariableProvider,
         string workspaceDirectory,
@@ -45,8 +47,11 @@ internal static class AgentTuiLauncher
 
         var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
 
+        var agentsMode = new AgentsMode(agentRegistry, timeProvider);
+        var agentsTab = new TuiTab("Agents", agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
         var shell = new TuiShell(
-            [tasksTab, mailTab],
+            [tasksTab, mailTab, agentsTab],
             console.Profile.Width,
             console.Profile.Height,
             tasksTabIndex: 0,

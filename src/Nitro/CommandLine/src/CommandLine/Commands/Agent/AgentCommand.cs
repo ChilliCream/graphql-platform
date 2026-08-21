@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
@@ -46,6 +47,7 @@ internal sealed class AgentCommand : Command
             if (workspaceDirectory is not null)
             {
                 var mailStore = services.GetRequiredService<IMailStore>();
+                var agentRegistry = services.GetRequiredService<IAgentRegistry>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
 
@@ -53,6 +55,7 @@ internal sealed class AgentCommand : Command
                     console,
                     taskStore,
                     mailStore,
+                    agentRegistry,
                     timeProvider,
                     environmentVariableProvider,
                     workspaceDirectory,
