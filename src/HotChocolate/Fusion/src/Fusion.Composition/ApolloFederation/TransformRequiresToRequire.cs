@@ -35,7 +35,7 @@ internal static class TransformRequiresToRequire
     /// </param>
     public static void Apply(MutableSchemaDefinition schema)
     {
-        var requireDef = new MutableDirectiveDefinition("require");
+        var requireDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Require];
         var pendingInputTypes = new List<MutableInputObjectTypeDefinition>();
 
         // Snapshot the object types to avoid modifying the collection during iteration.
@@ -612,7 +612,7 @@ internal static class TransformRequiresToRequire
         if (!IsExternal(field))
         {
             var externalDirectiveDefinition =
-                new MutableDirectiveDefinition(FederationDirectiveNames.External);
+                FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.External];
 
             field.Directives.Add(new Directive(externalDirectiveDefinition));
         }

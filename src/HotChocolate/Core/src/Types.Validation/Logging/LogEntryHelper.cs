@@ -67,6 +67,23 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveInInvalidLocation(
+        IDirective directive,
+        ITypeSystemMember member,
+        DirectiveLocation location)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_DirectiveInInvalidLocation,
+                directive.Name,
+                GetDirectiveMemberName(member),
+                location.Format())
+            .SetCode(LogEntryCodes.DirectiveInInvalidLocation)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(member)
+            .Build();
+    }
+
     public static LogEntry DirectiveNotUnique(IDirective directive, ITypeSystemMember member)
     {
         return LogEntryBuilder.New()

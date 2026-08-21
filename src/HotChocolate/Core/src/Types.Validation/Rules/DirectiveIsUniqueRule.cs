@@ -15,7 +15,7 @@ public sealed class DirectiveIsUniqueRule : IValidationEventHandler<DirectiveEve
     /// </summary>
     public void Handle(DirectiveEvent @event, ValidationContext context)
     {
-        var (directive, member) = @event;
+        var (directive, member, _) = @event;
 
         if (directive.Definition.IsRepeatable || member is not IDirectivesProvider provider)
         {
