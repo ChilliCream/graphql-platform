@@ -37,13 +37,14 @@ internal sealed class StatusSessionCommand : Command
 
         var views = await sessions.ListAsync(cancellationToken);
         var mine = views.Where(v => v.Session.AgentName == actor).ToArray();
+        var online = mine.Any(v => v.State == AgentSessionState.Online);
 
         if (!console.IsHumanReadable)
         {
             resultHolder.SetResult(
                 new ObjectResult(
                     new SessionStatusResult(
-                        actor, mine.Length > 0, mine.Select(ListSessionCommand.ToRow).ToArray())));
+                        actor, online, mine.Select(ListSessionCommand.ToRow).ToArray())));
             return ExitCodes.Success;
         }
 

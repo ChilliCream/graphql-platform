@@ -1,13 +1,17 @@
 using System.Diagnostics;
-using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
-public sealed class StatusSessionCommandTests(NitroCommandFixture fixture)
-    : AgentCommandTestBase(fixture)
+public sealed class StatusSessionCommandTests : AgentCommandTestBase
 {
+    private const string FixedHost = "host-status-session-tests";
+
+    public StatusSessionCommandTests(NitroCommandFixture fixture) : base(fixture)
+    {
+        SetupInstanceId(FixedHost);
+    }
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
@@ -56,8 +60,7 @@ public sealed class StatusSessionCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register");
-        var host = await ResolveThisMachinesInstanceIdAsync();
-        await InsertAliveSessionRowAsync(host, "session-1", "test-agent");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", "test-agent");
 
         // act
         var result = await ExecuteCommandAsync("agent", "session", "status");
@@ -66,6 +69,27 @@ public sealed class StatusSessionCommandTests(NitroCommandFixture fixture)
         var line = Assert.Single(result.StdOut.Split('\n'));
         Assert.Contains("test-agent", line);
         Assert.Contains("session-1", line);
+    }
+
+    [Fact]
+    public async Task JsonOutput_UnreachableSession_ReturnsOnlineFalse()
+    {
+        // arrange: the actor's only row is alive on this host but carries no
+        // endpoint, so its state is Unreachable, not Online.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", "test-agent");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "session", "status");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.False(root.GetProperty("online").GetBoolean());
+        Assert.Equal(1, root.GetProperty("sessions").GetArrayLength());
     }
 
     [Fact]
@@ -98,14 +122,6 @@ public sealed class StatusSessionCommandTests(NitroCommandFixture fixture)
             """
             No agent workspace found. Run `nitro agent init` first.
             """);
-    }
-
-    private static async Task<string> ResolveThisMachinesInstanceIdAsync()
-    {
-        var provider = new NitroInstanceIdProvider(new FileSystem());
-        var directory = new GlobalConfigDirectoryProvider().GetDirectory();
-
-        return await provider.GetIdAsync(directory, TestContext.Current.CancellationToken);
     }
 
     private async Task InsertAliveSessionRowAsync(string host, string sessionId, string agentName)
