@@ -37,6 +37,18 @@ public sealed class MailTableTests
         Assert.Null(exception);
     }
 
+    /// <summary>
+    /// Renders <paramref name="markup"/> through a plain (no-ANSI) <see cref="TestConsole"/>
+    /// so style tags disappear and only the literal characters remain, for
+    /// tests that need to measure column positions rather than styling.
+    /// </summary>
+    private static string RenderPlain(string markup)
+    {
+        var console = new TestConsole().Width(300);
+        console.Write(new Markup(markup));
+        return console.Output.TrimEnd('\r', '\n');
+    }
+
     [Fact]
     public void ComputeColumns_Should_SplitElasticRemainder_BetweenSubjectAndPreview()
     {
@@ -294,5 +306,76 @@ public sealed class MailTableTests
 
         // assert
         Assert.Equal(first, second);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RenderHeading_And_RenderThreadRow_Should_AlignColumnStarts_AtTheSameIndex(bool showCount)
+    {
+        // arrange: a width wide enough that Subject/Preview stay above zero
+        // (elastic > 0), so every column has a well-defined start index.
+        const int contentWidth = 100;
+        var columns = MailTable.ComputeColumns(contentWidth, showCount);
+        var thread = Thread(
+            subject: new string('S', 40),
+            lastSender: new string('F', columns.FromWidth),
+            lastRecipients: [new string('T', columns.ToWidth)],
+            bodyPreview: new string('P', 40));
+
+        var offsetFrom = columns.PrefixWidth;
+        var offsetTo = offsetFrom + columns.FromWidth + 1;
+        var offsetSubject = offsetTo + columns.ToWidth + 1;
+        var offsetPreview = offsetSubject + columns.SubjectWidth + 1;
+        var offsetAge = offsetPreview + columns.PreviewWidth + 1;
+
+        // act
+        var heading = RenderPlain(MailTable.RenderHeading(columns));
+        var row = RenderPlain(MailTable.RenderThreadRow(
+            thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns));
+
+        // assert: the RenderHeading join fix restores exactly PrefixWidth
+        // columns before "From", so every later label starts at the same
+        // index as the row's corresponding data cell.
+        Assert.Equal(offsetFrom, heading.IndexOf("From", StringComparison.Ordinal));
+        Assert.Equal(offsetFrom, row.IndexOf(new string('F', columns.FromWidth), StringComparison.Ordinal));
+        Assert.Equal(offsetTo, heading.IndexOf("To", StringComparison.Ordinal));
+        Assert.Equal(offsetTo, row.IndexOf(new string('T', columns.ToWidth), StringComparison.Ordinal));
+        Assert.Equal(offsetSubject, heading.IndexOf("Subject", StringComparison.Ordinal));
+        Assert.Equal(offsetSubject, row.IndexOf(new string('S', 4), StringComparison.Ordinal));
+        Assert.Equal(offsetPreview, heading.IndexOf("Preview", StringComparison.Ordinal));
+        Assert.Equal(offsetPreview, row.IndexOf(new string('P', 4), StringComparison.Ordinal));
+        Assert.Equal(offsetAge, heading.IndexOf("Age", StringComparison.Ordinal));
+
+        // assert: the row line fills exactly contentWidth (it is never
+        // trimmed); the heading is trimmed only after its own last column,
+        // so it can be no longer than contentWidth.
+        Assert.Equal(contentWidth, row.Length);
+        Assert.True(heading.Length <= contentWidth);
+    }
+
+    [Theory]
+    [InlineData(50, false)] // elastic 0
+    [InlineData(51, false)] // elastic 1
+    [InlineData(52, false)] // elastic 2
+    [InlineData(56, true)] // elastic 0
+    [InlineData(57, true)] // elastic 1
+    [InlineData(58, true)] // elastic 2
+    public void RenderHeading_And_RenderThreadRow_Should_NeverExceedContentWidth_When_ElasticIsNearZero(
+        int contentWidth, bool showCount)
+    {
+        // arrange
+        var columns = MailTable.ComputeColumns(contentWidth, showCount);
+        var thread = Thread(subject: new string('S', 40), bodyPreview: new string('P', 40));
+
+        // act
+        var heading = RenderPlain(MailTable.RenderHeading(columns));
+        var row = RenderPlain(MailTable.RenderThreadRow(
+            thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns));
+
+        // assert: the clamped subject floor keeps Subject/Preview from
+        // pushing Age (and the count column, when shown) past contentWidth.
+        Assert.True(heading.Length <= contentWidth, $"heading length {heading.Length} exceeded {contentWidth}.");
+        Assert.True(row.Length <= contentWidth, $"row length {row.Length} exceeded {contentWidth}.");
     }
 }

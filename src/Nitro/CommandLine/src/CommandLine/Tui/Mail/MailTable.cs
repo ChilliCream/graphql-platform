@@ -64,10 +64,10 @@ internal static class MailTable
     /// Computes <see cref="Columns"/> for <paramref name="contentWidth"/>
     /// display columns, showing the count column only when
     /// <paramref name="showCount"/> (<see cref="MailListMode.Threads"/>).
-    /// Degrades gracefully at narrow widths: every fixed column keeps its
-    /// width, and Subject/Preview shrink toward (never below) zero, at which
-    /// point <see cref="Truncate"/> renders them empty rather than
-    /// overflowing.
+    /// Degrades gracefully at narrow widths: the fixed columns keep their
+    /// width (a pane narrower than the fixed budget still overflows by
+    /// design), while Subject and Preview shrink to zero without adding
+    /// overflow of their own.
     /// </summary>
     public static Columns ComputeColumns(int contentWidth, bool showCount)
     {
@@ -83,7 +83,7 @@ internal static class MailTable
         // Two more gaps: between Subject and Preview, and between Preview
         // and Age (Age's own leading gap is already in fixedWidth).
         var elastic = Math.Max(0, contentWidth - fixedWidth - ColumnGap);
-        var subjectWidth = elastic <= 0 ? 0 : Math.Max(MinElasticWidth, elastic * SubjectShareNumerator / SubjectShareDenominator);
+        var subjectWidth = elastic <= 0 ? 0 : Math.Min(elastic, Math.Max(MinElasticWidth, elastic * SubjectShareNumerator / SubjectShareDenominator));
         var previewWidth = Math.Max(0, elastic - subjectWidth);
 
         return new Columns(prefixWidth, FromWidth, ToWidth, subjectWidth, previewWidth, AgeWidth, CountWidth, showCount);
@@ -98,7 +98,7 @@ internal static class MailTable
     {
         var cells = new List<string>
         {
-            new string(' ', columns.PrefixWidth),
+            new string(' ', columns.PrefixWidth - 1),
             Pad("From", columns.FromWidth),
             Pad("To", columns.ToWidth),
             Pad("Subject", columns.SubjectWidth),

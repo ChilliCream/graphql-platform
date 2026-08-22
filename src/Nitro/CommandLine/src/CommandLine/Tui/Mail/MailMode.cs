@@ -1100,7 +1100,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private static string HeaderName(MailState state)
     {
-        if (state.Mailbox == MailMailbox.Inbox)
+        if (state.Mailbox == MailMailbox.Inbox && state.ListMode == MailListMode.Flat)
         {
             return FilterName(state.Filter);
         }

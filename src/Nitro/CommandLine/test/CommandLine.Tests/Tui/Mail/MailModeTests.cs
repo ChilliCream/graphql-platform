@@ -768,6 +768,51 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public void Render_Should_ShowInbox_NotTheFilterName_When_MailboxIsInboxAndListModeIsThreads()
+    {
+        // arrange: cycling the filter to Unread has no effect on the
+        // Threads-mode row set (it always shows the full Inbox), so the
+        // pane title must not claim a filter the thread list does not
+        // apply.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.CycleView(1)); // Inbox -> Unread
+        Assert.Equal(MailListMode.Threads, mode.State.ListMode);
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("Inbox", console.Output);
+        Assert.DoesNotContain("Unread", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTheFilterName_When_MailboxIsInboxAndListModeIsFlat()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ToggleListModeRequested()); // Threads -> Flat
+        mode.Handle(new TuiMessage.CycleView(1)); // Inbox -> Unread
+        Assert.Equal(MailListMode.Flat, mode.State.ListMode);
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("Unread", console.Output);
+    }
+
+    [Fact]
     public void ToggleReadRequested_Should_ShowWarnToast_NotAnError_When_ActorIsNotARecipient_InSentMailbox()
     {
         // arrange: alice sent m-1 to bob, so alice has no message_recipients
