@@ -287,6 +287,64 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task AllCollection_WithLimit_SplitsAcrossBands()
+    {
+        // arrange: three curated matches would fill an unsplit limit of 2
+        // entirely, starving the journal band even though it also matches.
+        await InitWorkspaceAsync();
+        await SeedMemoryAsync("Deploy notes one.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Deploy notes two.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Deploy notes three.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        var journal = await SeedJournalEntryAsync("Deploy notes from journal.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "all", "--limit", "2");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+        var ids = items.Select(item => item.GetProperty("id").GetString()!).ToArray();
+
+        Assert.Equal(["curated", "journal"], collections);
+        Assert.Contains(journal.Id, ids);
+    }
+
+    [Fact]
+    public async Task AllCollection_WithLimit_RemainderFlowsToShortBand()
+    {
+        // arrange: curated only has one match, so its unused half of the
+        // limit must flow to the journal band instead of going unused.
+        await InitWorkspaceAsync();
+        var curated = await SeedMemoryAsync("Deploy notes from curated.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedJournalEntryAsync("Deploy notes from journal one.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedJournalEntryAsync("Deploy notes from journal two.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedJournalEntryAsync("Deploy notes from journal three.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "search", "deploy", "--collection", "all", "--limit", "4");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+        var ids = items.Select(item => item.GetProperty("id").GetString()!).ToArray();
+
+        Assert.Equal(["curated", "journal", "journal", "journal"], collections);
+        Assert.Equal(curated.Id, ids[0]);
+    }
+
+    [Fact]
     public async Task DefaultScope_OrdersProjectBandFirst_ThenGlobalBand()
     {
         // arrange

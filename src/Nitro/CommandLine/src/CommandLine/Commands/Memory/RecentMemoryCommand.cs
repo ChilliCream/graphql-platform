@@ -41,6 +41,20 @@ internal sealed class RecentMemoryCommand : Command
         // Collection band, curated first: curated entries order by
         // `updated_at`, journal entries by `created_at`, since a journal
         // entry has no `updated_at`.
+
+        // Both bands are queried under --collection all: split an explicit
+        // limit across them (curated gets the ceiling half) instead of
+        // handing each band the full limit and truncating the concatenation
+        // afterward, which let curated results starve the journal band.
+        var splitBands = collection is MemoryCollections.All;
+        int? curatedLimit = limit;
+        int? journalLimit = limit;
+
+        if (splitBands && limit is { } explicitLimit)
+        {
+            (curatedLimit, journalLimit) = MemoryBandLimit.Split(explicitLimit);
+        }
+
         List<MemoryEntryResult> entries;
 
         try
@@ -49,13 +63,21 @@ internal sealed class RecentMemoryCommand : Command
 
             if (collection is MemoryCollections.Curated or MemoryCollections.All)
             {
-                var curated = await store.GetRecentCuratedAsync(scope, limit, cancellationToken);
+                var curated = await store.GetRecentCuratedAsync(scope, curatedLimit, cancellationToken);
                 entries.AddRange(curated.Select(MemoryEntryResult.FromCurated));
+
+                if (splitBands && limit is not null)
+                {
+                    // Unused remainder from a short curated band flows to
+                    // the journal band.
+                    journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
+                        curatedLimit!.Value, curated.Count, journalLimit!.Value);
+                }
             }
 
             if (collection is MemoryCollections.Journal or MemoryCollections.All)
             {
-                var journal = await store.GetRecentJournalAsync(scope, limit, cancellationToken);
+                var journal = await store.GetRecentJournalAsync(scope, journalLimit, cancellationToken);
                 entries.AddRange(journal.Select(MemoryEntryResult.FromJournal));
             }
         }
@@ -64,21 +86,19 @@ internal sealed class RecentMemoryCommand : Command
             return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
         }
 
-        var results = limit is { } value ? entries.Take(value).ToList() : entries;
-
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ListResult<MemoryEntryResult>(results));
+            resultHolder.SetResult(new ListResult<MemoryEntryResult>(entries));
             return ExitCodes.Success;
         }
 
-        if (results.Count == 0)
+        if (entries.Count == 0)
         {
             console.WriteLine("No memories found.");
             return ExitCodes.Success;
         }
 
-        foreach (var entry in results)
+        foreach (var entry in entries)
         {
             MemoryEntryDisplay.WriteLine(console, entry);
         }

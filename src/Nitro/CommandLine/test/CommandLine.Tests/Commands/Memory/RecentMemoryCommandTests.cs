@@ -174,6 +174,64 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task AllCollection_WithLimit_SplitsAcrossBands()
+    {
+        // arrange: three curated entries would fill an unsplit limit of 2
+        // entirely, starving the journal band.
+        await InitWorkspaceAsync();
+        await SeedMemoryAsync("Curated one.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated two.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated three.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        var journal = await SeedJournalEntryAsync("Journal.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "recent", "--collection", "all", "--limit", "2");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+        var ids = items.Select(item => item.GetProperty("id").GetString()!).ToArray();
+
+        Assert.Equal(["curated", "journal"], collections);
+        Assert.Contains(journal.Id, ids);
+    }
+
+    [Fact]
+    public async Task AllCollection_WithLimit_RemainderFlowsToShortBand()
+    {
+        // arrange: curated only has one entry, so its unused half of the
+        // limit must flow to the journal band instead of going unused.
+        await InitWorkspaceAsync();
+        var curated = await SeedMemoryAsync("Curated.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedJournalEntryAsync("Journal one.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedJournalEntryAsync("Journal two.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedJournalEntryAsync("Journal three.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "recent", "--collection", "all", "--limit", "4");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+        var ids = items.Select(item => item.GetProperty("id").GetString()!).ToArray();
+
+        Assert.Equal(["curated", "journal", "journal", "journal"], collections);
+        Assert.Equal(curated.Id, ids[0]);
+    }
+
+    [Fact]
     public async Task NoWorkspace_PrintsEmptyMessage()
     {
         // act

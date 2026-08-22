@@ -51,6 +51,19 @@ internal sealed class SearchMemoryCommand : Command
         // so a tag/type filter excludes the journal band entirely.
         var hasCuratedFilter = tags.Length > 0 || type is not null;
 
+        // Both bands are queried under --collection all: split an explicit
+        // limit across them (curated gets the ceiling half) instead of
+        // handing each band the full limit and truncating the concatenation
+        // afterward, which let curated results starve the journal band.
+        var splitBands = collection is MemoryCollections.All && !hasCuratedFilter;
+        int? curatedLimit = limit;
+        int? journalLimit = limit;
+
+        if (splitBands && limit is { } explicitLimit)
+        {
+            (curatedLimit, journalLimit) = MemoryBandLimit.Split(explicitLimit);
+        }
+
         List<MemoryEntryResult> entries;
 
         try
@@ -60,14 +73,22 @@ internal sealed class SearchMemoryCommand : Command
             if (collection is MemoryCollections.Curated or MemoryCollections.All)
             {
                 var curated = await store.SearchCuratedAsync(
-                    query, scope, tags, type, since, limit, cancellationToken);
+                    query, scope, tags, type, since, curatedLimit, cancellationToken);
                 entries.AddRange(curated.Select(MemoryEntryResult.FromCurated));
+
+                if (splitBands && limit is not null)
+                {
+                    // Unused remainder from a short curated band flows to
+                    // the journal band.
+                    journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
+                        curatedLimit!.Value, curated.Count, journalLimit!.Value);
+                }
             }
 
             if (collection is MemoryCollections.Journal or MemoryCollections.All
                 && !hasCuratedFilter)
             {
-                var journal = await store.SearchJournalAsync(query, scope, since, limit, cancellationToken);
+                var journal = await store.SearchJournalAsync(query, scope, since, journalLimit, cancellationToken);
                 entries.AddRange(journal.Select(MemoryEntryResult.FromJournal));
             }
         }
@@ -76,21 +97,19 @@ internal sealed class SearchMemoryCommand : Command
             return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
         }
 
-        var results = limit is { } value ? entries.Take(value).ToList() : entries;
-
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ListResult<MemoryEntryResult>(results));
+            resultHolder.SetResult(new ListResult<MemoryEntryResult>(entries));
             return ExitCodes.Success;
         }
 
-        if (results.Count == 0)
+        if (entries.Count == 0)
         {
             console.WriteLine("No memories found.");
             return ExitCodes.Success;
         }
 
-        foreach (var entry in results)
+        foreach (var entry in entries)
         {
             MemoryEntryDisplay.WriteLine(console, entry);
         }
