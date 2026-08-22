@@ -165,7 +165,10 @@ internal interface IMailStore
     /// with recipients embedded, ordered by created_at then id, newest
     /// first, optionally capped at <paramref name="limit"/>. A sender has no
     /// <c>message_recipients</c> row for its own sent messages, so read and
-    /// archived state does not exist for them.
+    /// archived state does not exist for them, except when the sender
+    /// addressed the message to itself: <see cref="SendMessageAsync"/>
+    /// inserts a recipient row for every To/Cc recipient, sender included,
+    /// so a self-addressed message has real read/archived state.
     /// </summary>
     Task<IReadOnlyList<MailMessage>> QuerySentAsync(
         string sender,
