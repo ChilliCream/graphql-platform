@@ -119,6 +119,22 @@ public class PostgresTemporaryEndpointTests
     }
 
     [Fact]
+    public void Temporary_Should_SetAutoDelete_When_QueueDeclaredSeparately()
+    {
+        // arrange & act
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Endpoint("x").Temporary();
+            t.DeclareQueue("x");
+        });
+
+        // assert
+        var queue = topology.Queues.Single(q => q.Name == "x");
+        Assert.True(queue.AutoDelete);
+    }
+
+    [Fact]
     public void Temporary_Should_BeImpliedByReplyKind_When_RequestReplyConfigured()
     {
         // arrange & act

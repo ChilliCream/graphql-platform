@@ -228,6 +228,11 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                     + $"'{postgresConfiguration.QueueName}' is explicitly configured with AutoDelete(false).");
         }
 
+        if (postgresConfiguration.IsTemporary && queue.AutoDelete is null)
+        {
+            queue.MarkTemporary();
+        }
+
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
             EnsureFaultOrSkippedQueue(postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
