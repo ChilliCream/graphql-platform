@@ -1293,8 +1293,15 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert
-        AssertAnsiStyleApplied(console.Output, "mail.row.peer.to-prefix");
+        // assert: mail.row.peer.to-prefix's escape sequence can already be
+        // present elsewhere in the frame regardless of whether the "To "
+        // label itself carries the style, so pin the assertion to the
+        // escape sequence appearing immediately before the "To " text.
+        var style = ThemeTokens.GetStyle("mail.row.peer.to-prefix");
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix + "To ", console.Output);
         AssertAnsiStyleApplied(console.Output, "mail.row.glyph.from-me");
     }
 
