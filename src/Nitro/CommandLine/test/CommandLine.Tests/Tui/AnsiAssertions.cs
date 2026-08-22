@@ -22,4 +22,23 @@ internal static class AnsiAssertions
         var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
         Assert.Contains(ansiPrefix, output);
     }
+
+    /// <summary>
+    /// Asserts <paramref name="token"/>'s style opens immediately before
+    /// <paramref name="text"/> in <paramref name="output"/>. Unlike
+    /// <see cref="AssertAnsiStyleApplied"/>, this pins the escape sequence
+    /// to the known rendered text instead of anywhere in the frame, so it
+    /// still fails when another element in the frame happens to share the
+    /// same style. <paramref name="output"/> must come from a console built
+    /// with <c>.Colors(ColorSystem.TrueColor)</c> and
+    /// <c>.EmitAnsiSequences()</c>.
+    /// </summary>
+    public static void AssertAnsiStylePrefixesText(string output, string token, string text)
+    {
+        var style = ThemeTokens.GetStyle(token);
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix + text, output);
+    }
 }

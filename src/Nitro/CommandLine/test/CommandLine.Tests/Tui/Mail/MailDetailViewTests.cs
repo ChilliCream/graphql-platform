@@ -340,11 +340,10 @@ public sealed class MailDetailViewTests
         // act
         console.Write(view.Render(state, 80, 20, focused: true));
 
-        // assert: a plain TestConsole strips markup entirely, so a wrong or
-        // missing detail.section.header token on the From/To/Date labels
-        // would still leave every plain-text Contains assertion elsewhere
-        // green.
-        AssertAnsiStyleApplied(console.Output, "detail.section.header");
+        // assert: detail.section.header's token can appear elsewhere in the
+        // frame regardless of whether the "From:" label itself carries the
+        // style, so pin the assertion to that label's known text.
+        AssertAnsiStylePrefixesText(console.Output, "detail.section.header", "From:");
     }
 
     [Fact]
@@ -369,8 +368,11 @@ public sealed class MailDetailViewTests
         // act
         console.Write(view.Render(state, 80, 20, focused: true));
 
-        // assert
-        AssertAnsiStyleApplied(console.Output, "mail.detail.recipient.read");
-        AssertAnsiStyleApplied(console.Output, "mail.detail.recipient.unread");
+        // assert: pin each token to its recipient's known rendered line
+        // rather than the whole frame, since either token's escape sequence
+        // could otherwise be satisfied by an unrelated part of the render.
+        AssertAnsiStylePrefixesText(
+            console.Output, "mail.detail.recipient.read", "orchestrator: read 2026-01-01 14:02");
+        AssertAnsiStylePrefixesText(console.Output, "mail.detail.recipient.unread", "planner-1: unread");
     }
 }

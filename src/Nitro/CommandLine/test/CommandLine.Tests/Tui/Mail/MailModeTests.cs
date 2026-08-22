@@ -1253,9 +1253,9 @@ public sealed class MailModeTests
         // assert: a plain TestConsole strips markup entirely, so a wrong or
         // missing token name on any of these columns would still leave
         // every plain-text Contains assertion elsewhere green.
-        AssertAnsiStyleApplied(console.Output, "mail.row.glyph.direct");
-        AssertAnsiStyleApplied(console.Output, "mail.row.peer");
-        AssertAnsiStyleApplied(console.Output, "mail.row.age");
+        AssertAnsiStylePrefixesText(console.Output, "mail.row.glyph.direct", "+");
+        AssertAnsiStylePrefixesText(console.Output, "mail.row.peer", "sender");
+        AssertAnsiStylePrefixesText(console.Output, "mail.row.age", "now");
     }
 
     [Fact]
@@ -1281,11 +1281,7 @@ public sealed class MailModeTests
         // present elsewhere in the frame regardless of whether the "To "
         // label itself carries the style, so pin the assertion to the
         // escape sequence appearing immediately before the "To " text.
-        var style = ThemeTokens.GetStyle("mail.row.peer.to-prefix");
-        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
-        styleConsole.Write(new Markup("x", style));
-        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
-        Assert.Contains(ansiPrefix + "To ", console.Output);
+        AssertAnsiStylePrefixesText(console.Output, "mail.row.peer.to-prefix", "To ");
         AssertAnsiStyleApplied(console.Output, "mail.row.glyph.from-me");
     }
 
