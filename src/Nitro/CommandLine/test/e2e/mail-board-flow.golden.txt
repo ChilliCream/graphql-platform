@@ -1,11 +1,11 @@
- Tasks   Mail (1)
-╭─Inbox (3)──────────────────────────╮╭─Thread: Retro notes───────────────────────────────────╮
-│     bob Billing review 2026-01-01  ││ alice - 2026-01-01 08:00                              │
-│   * alice Pricing page 2026-01-01  ││ Notes are attached, take a look.                      │
-│     alice Retro notes 2026-01-01   ││                                                       │
-│                                    ││ ----------------------------------------              │
-│                                    ││ e2e-agent - 2026-01-01 08:30                          │
-│                                    ││ Thanks, looks good to me.                             │
+ [T]asks   [M]ail (1)   [A]gents   M[e]mory
+╭─Inbox (3)──────────────────────────╮╭─Thread: Billing review────────────────────────────────╮
+│     T bob Billing revi… 2026-01-01 ││ bob - 2026-01-01 10:00                                │
+│   * + alice Pricing pa… 2026-01-01 ││ Needs review before merge.                            │
+│     + alice Retro notes 2026-01-01 ││                                                       │
+│                                    ││                                                       │
+│                                    ││                                                       │
+│                                    ││                                                       │
 │                                    ││                                                       │
 │                                    ││                                                       │
 │                                    ││                                                       │
