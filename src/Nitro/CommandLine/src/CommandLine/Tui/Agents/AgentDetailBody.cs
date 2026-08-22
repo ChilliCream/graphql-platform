@@ -61,6 +61,7 @@ internal static class AgentDetailBody
         {
             new($"Name: {agent.Name}", false),
             new($"Role: {(agent.Role.Length == 0 ? "-" : agent.Role)}", false),
+            new($"Client: {(agent.Client.Length == 0 ? "-" : agent.Client)}", false),
             new($"Implicit: {(agent.Implicit ? "yes" : "no")}", false),
             new($"Registered: {TaskDates.Format(agent.RegisteredAt)}", false),
             new($"Last seen: {TaskDates.Format(agent.LastSeenAt)}", false)

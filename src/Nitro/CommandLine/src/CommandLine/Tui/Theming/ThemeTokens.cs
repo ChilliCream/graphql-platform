@@ -69,6 +69,7 @@ internal static class DefaultTheme
         ["selection.highlight"] = new Style(Color.Default, Color.Grey35),
 
         ["agents.list.name"] = new Style(Color.White),
+        ["agents.list.client"] = new Style(Color.Grey50),
         ["agents.list.role"] = new Style(Color.Grey70),
         ["agents.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["agents.list.implicit"] = new Style(decoration: Decoration.Dim),

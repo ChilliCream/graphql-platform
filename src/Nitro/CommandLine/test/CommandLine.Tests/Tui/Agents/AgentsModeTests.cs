@@ -12,12 +12,12 @@ public sealed class AgentsModeTests
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static AgentRecord Agent(
-        string name, string role = "", bool isImplicit = false, DateTimeOffset? registeredAt = null, DateTimeOffset? lastSeenAt = null)
+        string name, string role = "", string client = "", bool isImplicit = false, DateTimeOffset? registeredAt = null, DateTimeOffset? lastSeenAt = null)
         => new()
         {
             Name = name,
             Role = role,
-            Client = "",
+            Client = client,
             Implicit = isImplicit,
             RegisteredAt = registeredAt ?? Now,
             LastSeenAt = lastSeenAt ?? Now
@@ -213,6 +213,73 @@ public sealed class AgentsModeTests
 
         // assert
         Assert.Contains("agent-a -", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowClient_In_ListRow()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend", client: "claude-code"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.Contains("claude-code", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDashForClient_When_ClientEmpty_In_ListRow()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode, 80, 20);
+        var row = Assert.Single(text.Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
+
+        // assert: the name column is immediately followed by a dash for the
+        // empty client column, then the (possibly truncated) role.
+        Assert.Contains("agent-a - backe", row);
+    }
+
+    [Fact]
+    public void Render_Should_ShowClient_In_IdentitySection()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", client: "claude-code"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        Assert.Contains("Client: claude-code", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDashForClient_When_ClientEmpty_In_IdentitySection()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        Assert.Contains("Client: -", text);
     }
 
     [Fact]
