@@ -1,0 +1,8 @@
+# The agent database is local state; tasks.jsonl is the source of truth in git.
+agents.db
+agents.db-wal
+agents.db-shm
+
+# The memory index is a disposable, rebuildable cache; the curated and
+# journal markdown under memory/ is the source of truth in git.
+memory/.local/
