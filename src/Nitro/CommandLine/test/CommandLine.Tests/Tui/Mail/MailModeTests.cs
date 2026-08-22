@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
@@ -12,8 +14,18 @@ public sealed class MailModeTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    private static MailMode CreateMode(FakeMailStore store, string actor = "alice")
-        => new(store, actor, new FakeTimeProvider(Now));
+    private static MailMode CreateMode(FakeMailStore store, string actor = "alice", FakeAgentRegistry? agentRegistry = null)
+        => new(store, actor, agentRegistry ?? new FakeAgentRegistry(), new FakeTimeProvider(Now));
+
+    private static AgentRecord Agent(string name) => new()
+    {
+        Name = name,
+        Role = "",
+        Client = "",
+        Implicit = false,
+        RegisteredAt = Now,
+        LastSeenAt = Now
+    };
 
     private static void AddMessage(FakeMailStore store, string id, DateTimeOffset createdAt, string actor = "alice")
         => store.Messages.Add(MailMessageBuilder.Create(
@@ -918,5 +930,179 @@ public sealed class MailModeTests
         // act & assert
         Assert.Equal("board.column.border", MailMode.ResolveListBorderToken(MailMailbox.Inbox, focused: false));
         Assert.Equal("board.column.border.focused", MailMode.ResolveListBorderToken(MailMailbox.Sent, focused: true));
+    }
+
+    [Fact]
+    public void AgentFilterPickerRequested_Should_ShowWarnToast_When_MailboxIsNotWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
+        Assert.Contains("Workspace", shown.Text);
+        Assert.False(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void AgentFilterPickerRequested_Should_OpenPicker_When_MailboxIsWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.True(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void AgentFilterPicker_Applied_Should_NarrowWorkspaceMessages_ToMessagesTheAgentSentOrReceived()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-3", sender: "carol", createdAt: Now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("dave")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+
+        // act: move down from "All agents" to "bob", then apply
+        mode.HandleRawKey(Key(ConsoleKey.DownArrow));
+        var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
+
+        // assert: m-1 (bob sent it) and m-2 (bob received it), not m-3
+        // (bob is neither sender nor recipient)
+        Assert.Empty(followUp);
+        Assert.False(mode.IsInputCapturing);
+        Assert.Equal("bob", mode.State.AgentFilter);
+        Assert.Equal(["m-2", "m-1"], mode.State.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public void AgentFilterPicker_Applied_AllAgents_Should_RestoreTheFullWorkspaceStream()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        mode.HandleRawKey(Key(ConsoleKey.DownArrow));
+        mode.HandleRawKey(Key(ConsoleKey.Enter));
+        Assert.Equal(["m-1"], mode.State.Messages.Select(m => m.Id));
+
+        // act: reopen the picker (pre-selected on "bob") and move back up to
+        // "All agents", the picker's first row, then apply
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        mode.HandleRawKey(Key(ConsoleKey.UpArrow));
+        var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.Null(mode.State.AgentFilter);
+        Assert.Equal(["m-2", "m-1"], mode.State.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public void AgentFilterPicker_Cancelled_Should_LeaveTheFilterUnchanged()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        var messagesBeforeCancel = mode.State.Messages.Select(m => m.Id).ToList();
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        mode.HandleRawKey(Key(ConsoleKey.DownArrow));
+
+        // act
+        var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.False(mode.IsInputCapturing);
+        Assert.Null(mode.State.AgentFilter);
+        Assert.Equal(messagesBeforeCancel, mode.State.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public void Render_Should_ShowTheSelectedAgentInTheHeader_When_AgentFilterIsSetInWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        mode.HandleRawKey(Key(ConsoleKey.DownArrow));
+        mode.HandleRawKey(Key(ConsoleKey.Enter));
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("Workspace: bob (1)", console.Output);
+    }
+
+    [Fact]
+    public void SelectInboxRequested_Should_ClearAgentFilter_When_LeavingWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        mode.HandleRawKey(Key(ConsoleKey.DownArrow));
+        mode.HandleRawKey(Key(ConsoleKey.Enter));
+        Assert.Equal("bob", mode.State.AgentFilter);
+
+        // act: leave Workspace for Inbox, then come back
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // assert
+        Assert.Null(mode.State.AgentFilter);
     }
 }

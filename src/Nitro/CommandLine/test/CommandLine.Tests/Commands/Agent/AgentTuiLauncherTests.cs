@@ -78,7 +78,8 @@ public sealed class AgentTuiLauncherTests
 
         // act
         var taskActor = TaskActor.Resolve(null, environment.Object);
-        var mailTab = AgentTuiLauncher.BuildMailTab(store, new FakeTimeProvider(Now), environment.Object);
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object);
 
         // assert: each actor came from its own variable, not the other's.
         Assert.Equal("task-actor", taskActor);
@@ -98,7 +99,8 @@ public sealed class AgentTuiLauncherTests
 
         // act
         var taskActor = TaskActor.Resolve(null, environment.Object);
-        var mailTab = AgentTuiLauncher.BuildMailTab(store, new FakeTimeProvider(Now), environment.Object);
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object);
 
         // assert: the tasks actor is unaffected by the mail actor's
         // validation failure, and the mail tab hosts the error state
@@ -116,7 +118,8 @@ public sealed class AgentTuiLauncherTests
         var store = new FakeMailStore();
 
         // act
-        var mailTab = AgentTuiLauncher.BuildMailTab(store, new FakeTimeProvider(Now), environment.Object);
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object);
 
         // assert: today's behavior, unchanged: a working MailMode, badge-free
         // title until a refresh reports unread messages.
@@ -188,7 +191,10 @@ public sealed class AgentTuiLauncherTests
         // builds it.
         var environment = CreateEnvironment(mailActor: null, taskActor: "pascal.senn");
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            new FakeMailStore(), new FakeTimeProvider(Now), environment.Object);
+            new FakeMailStore(),
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new FakeTimeProvider(Now),
+            environment.Object);
 
         // act: construction alone must not throw despite the Mail tab's
         // actor resolution failure.

@@ -264,6 +264,21 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
+    public void CreateDefault_Should_MapP_ToAgentFilterPickerRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var p = new KeyChord(ConsoleKey.P, ConsoleModifiers.None, 'p');
+
+        // act
+        var resolved = keyMap.TryResolve(p, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.AgentFilterPickerRequested>(message);
+    }
+
+    [Fact]
     public void CreateDefault_Should_CarryADedicatedInboxHint_Separate_FromTheOtherMailboxJumps()
     {
         // arrange: Shift+I is the footer's persistent, fixed-position exit

@@ -27,6 +27,7 @@ internal sealed class BoardMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
+        var agentRegistry = services.GetRequiredService<IAgentRegistry>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
 
@@ -39,7 +40,7 @@ internal sealed class BoardMailCommand : Command
             ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
         var actor = MailActor.Resolve(null, environmentVariableProvider);
-        var mode = new MailMode(store, actor, timeProvider);
+        var mode = new MailMode(store, actor, agentRegistry, timeProvider);
         var dispatcher = new KeyDispatcher(MailKeyMap.CreateDefault());
         var shell = new TuiShell(dispatcher, mode, console.Profile.Width, console.Profile.Height);
         var application = new TuiApplication(console);

@@ -65,7 +65,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         await _store.InitializeWorkspaceAsync(_workspaceDirectory, cancellationToken);
     }
 
-    private MailMode CreateMode(string actor) => new(_store, actor, _timeProvider);
+    private MailMode CreateMode(string actor) => new(_store, actor, _registry, _timeProvider);
 
     [Fact]
     public async Task OpenSelected_Should_MarkMessageRead_AgainstTheRealStore()

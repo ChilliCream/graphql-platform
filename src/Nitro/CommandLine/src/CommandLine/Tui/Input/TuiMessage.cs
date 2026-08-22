@@ -188,6 +188,12 @@ internal abstract record TuiMessage
     public sealed record SelectWorkspaceMailRequested : TuiMessage;
 
     /// <summary>
+    /// The mail board's agent filter quick picker should open, scoped to
+    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailMailbox.Workspace"/>.
+    /// </summary>
+    public sealed record AgentFilterPickerRequested : TuiMessage;
+
+    /// <summary>
     /// The active mode's own inline search input should gain focus.
     /// </summary>
     public sealed record SearchRequested : TuiMessage;

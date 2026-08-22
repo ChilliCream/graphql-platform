@@ -29,6 +29,16 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     public MailListFilter Filter { get; private set; } = MailListFilter.Inbox;
 
     /// <summary>
+    /// The agent <see cref="Messages"/> is narrowed to (sent or received)
+    /// within <see cref="MailMailbox.Workspace"/>, or null for every agent.
+    /// Set by <see cref="SelectAgentFilterAsync"/>, and cleared whenever
+    /// <see cref="SelectMailboxAsync"/> leaves <see cref="MailMailbox.Workspace"/>
+    /// for another mailbox; belongs to Workspace only, since no other
+    /// mailbox is already scoped to every agent.
+    /// </summary>
+    public string? AgentFilter { get; private set; }
+
+    /// <summary>
     /// The messages currently loaded for <see cref="Mailbox"/> (and, within
     /// <see cref="MailMailbox.Inbox"/>, <see cref="Filter"/>), newest first.
     /// </summary>
@@ -101,7 +111,34 @@ internal sealed class MailState(string actor, MailDataLoader loader)
             return;
         }
 
+        if (Mailbox == MailMailbox.Workspace)
+        {
+            AgentFilter = null;
+        }
+
         Mailbox = mailbox;
+        SelectedRow = 0;
+        Messages = await LoadMessagesAsync(cancellationToken).ConfigureAwait(false);
+
+        if (ViewMode == MailViewMode.Thread)
+        {
+            await ReloadThreadAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Sets <see cref="AgentFilter"/> and reloads <see cref="Messages"/>,
+    /// resetting <see cref="SelectedRow"/> to the top the same way
+    /// <see cref="SelectMailboxAsync"/> does. Meaningful only within
+    /// <see cref="MailMailbox.Workspace"/>: <see cref="LoadMessagesAsync"/>
+    /// is the only place <see cref="AgentFilter"/> is read, so calling this
+    /// while another mailbox is active reloads that mailbox's messages
+    /// unchanged. Also reloads <see cref="ThreadMessages"/> when
+    /// <see cref="ViewMode"/> is <see cref="MailViewMode.Thread"/>.
+    /// </summary>
+    public async Task SelectAgentFilterAsync(string? agent, CancellationToken cancellationToken)
+    {
+        AgentFilter = agent;
         SelectedRow = 0;
         Messages = await LoadMessagesAsync(cancellationToken).ConfigureAwait(false);
 
@@ -168,13 +205,14 @@ internal sealed class MailState(string actor, MailDataLoader loader)
 
     /// <summary>
     /// Routes to the load method for <see cref="Mailbox"/>: Inbox is the
-    /// only mailbox <see cref="Filter"/> affects.
+    /// only mailbox <see cref="Filter"/> affects, and Workspace is the only
+    /// mailbox <see cref="AgentFilter"/> affects.
     /// </summary>
     private Task<IReadOnlyList<MailMessage>> LoadMessagesAsync(CancellationToken cancellationToken) => Mailbox switch
     {
         MailMailbox.Sent => loader.LoadSentAsync(Actor, cancellationToken),
         MailMailbox.All => loader.LoadAllAsync(Actor, cancellationToken),
-        MailMailbox.Workspace => loader.LoadWorkspaceAsync(cancellationToken),
+        MailMailbox.Workspace => loader.LoadWorkspaceAsync(AgentFilter, cancellationToken),
         _ => loader.LoadInboxAsync(Actor, Filter, cancellationToken)
     };
 

@@ -150,13 +150,58 @@ public sealed class MailDataLoaderTests
         var inbox = await loader.LoadInboxAsync("alice", MailListFilter.Inbox, CancellationToken.None);
         var sent = await loader.LoadSentAsync("alice", CancellationToken.None);
         var all = await loader.LoadAllAsync("alice", CancellationToken.None);
-        var workspace = await loader.LoadWorkspaceAsync(CancellationToken.None);
+        var workspace = await loader.LoadWorkspaceAsync(agent: null, CancellationToken.None);
 
         // assert: only reachable from the Workspace mailbox for actor alice.
         Assert.Empty(inbox);
         Assert.Empty(sent);
         Assert.Empty(all);
         Assert.Equal(["m-1"], workspace.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task LoadWorkspaceAsync_Should_ReturnMessagesTheAgentSentOrReceived_When_AgentGiven()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-3", sender: "carol", createdAt: Now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var loader = new MailDataLoader(store);
+
+        // act
+        var messages = await loader.LoadWorkspaceAsync("alice", CancellationToken.None);
+
+        // assert: m-1 (alice sent it) and m-2 (alice received it), not m-3
+        // (alice is neither sender nor recipient).
+        Assert.Equal(["m-2", "m-1"], messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task LoadWorkspaceAsync_Should_ReturnMessageExactlyOnce_When_AgentIsOneOfSeveralCcRecipients()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "carol",
+            createdAt: Now,
+            recipients:
+            [
+                MailMessageBuilder.ToRecipient("bob"),
+                MailMessageBuilder.CcRecipient("alice", ordinal: 1),
+                MailMessageBuilder.CcRecipient("dave", ordinal: 2)
+            ]));
+        var loader = new MailDataLoader(store);
+
+        // act
+        var messages = await loader.LoadWorkspaceAsync("alice", CancellationToken.None);
+
+        // assert
+        Assert.Equal(["m-1"], messages.Select(m => m.Id));
     }
 
     [Fact]

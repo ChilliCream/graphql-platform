@@ -85,7 +85,7 @@ internal static class AgentTuiLauncher
         var boardMode = new BoardMode(loader);
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-        var mailTab = BuildMailTab(mailStore, timeProvider, environmentVariableProvider);
+        var mailTab = BuildMailTab(mailStore, agentRegistry, timeProvider, environmentVariableProvider);
 
         var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
@@ -107,13 +107,14 @@ internal static class AgentTuiLauncher
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,
+        IAgentRegistry agentRegistry,
         TimeProvider timeProvider,
         IEnvironmentVariableProvider environmentVariableProvider)
     {
         try
         {
             var mailActor = MailActor.Resolve(null, environmentVariableProvider);
-            var mailMode = new MailMode(mailStore, mailActor, timeProvider);
+            var mailMode = new MailMode(mailStore, mailActor, agentRegistry, timeProvider);
 
             return new TuiTab(
                 () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",

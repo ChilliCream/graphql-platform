@@ -53,12 +53,14 @@ internal sealed class MailDataLoader(IMailStore store)
             new MailWorkspaceFilter { Agent = actor }, cancellationToken);
 
     /// <summary>
-    /// Loads every message in the workspace, across every agent, newest
-    /// first.
+    /// Loads every message in the workspace, newest first, narrowed to
+    /// messages <paramref name="agent"/> sent or received when given, or
+    /// across every agent when null.
     /// </summary>
     public Task<IReadOnlyList<MailMessage>> LoadWorkspaceAsync(
+        string? agent,
         CancellationToken cancellationToken)
-        => store.QueryWorkspaceMessagesAsync(new MailWorkspaceFilter(), cancellationToken);
+        => store.QueryWorkspaceMessagesAsync(new MailWorkspaceFilter { Agent = agent }, cancellationToken);
 
     /// <summary>
     /// Loads every message in the given thread, oldest first.

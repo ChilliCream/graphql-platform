@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
@@ -41,9 +42,13 @@ internal enum MailDiscardTarget
 /// signal: the list pane's own header names the mailbox (<see cref="HeaderName"/>)
 /// and its border takes a distinct accent (<see cref="ResolveListBorderToken"/>).
 /// This mode owns its own modal overlays (the archive confirmation, the
-/// compose and reply forms, and their shared discard confirmation) rather
-/// than routing through <see cref="TuiShell"/>'s task-specific overlay
-/// fields.
+/// compose and reply forms, their shared discard confirmation, and the
+/// Workspace agent filter picker) rather than routing through
+/// <see cref="TuiShell"/>'s task-specific overlay fields. The agent filter
+/// picker (p) narrows <see cref="MailMailbox.Workspace"/> to messages one
+/// agent sent or received, in either direction; it is refused with a toast
+/// outside Workspace, the same way the mutating gestures are refused inside
+/// it, since the filter has no meaning for any other mailbox.
 /// </summary>
 internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -73,7 +78,22 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private const int ListWidthNumerator = 2;
     private const int ListWidthDenominator = 5;
 
+    /// <summary>
+    /// The <see cref="Editing.QuickPickerOption.Id"/> for the agent filter
+    /// picker's "all agents" entry, which clears <see cref="MailState.AgentFilter"/>
+    /// rather than naming an agent.
+    /// </summary>
+    private const string AllAgentsOptionId = "";
+
+    /// <summary>
+    /// The toast shown when the agent filter picker is requested outside
+    /// <see cref="MailMailbox.Workspace"/>, where the filter has no effect.
+    /// </summary>
+    private const string AgentFilterRequiresWorkspaceMessage =
+        "Agent filter only applies to Workspace. Press Shift+W for Workspace.";
+
     private readonly IMailStore _store;
+    private readonly IAgentRegistry _agentRegistry;
     private readonly MailState _state;
     private readonly MailDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
@@ -85,13 +105,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private MailReplyForm? _replyForm;
     private ConfirmDialog? _discardDialog;
     private MailDiscardTarget _discardTarget;
+    private QuickPicker? _agentPicker;
 
-    public MailMode(IMailStore store, string actor, TimeProvider? timeProvider = null)
+    public MailMode(IMailStore store, string actor, IAgentRegistry agentRegistry, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(actor);
+        ArgumentNullException.ThrowIfNull(agentRegistry);
 
         _store = store;
+        _agentRegistry = agentRegistry;
         _state = new MailState(actor, new MailDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -113,7 +136,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         => _archiveDialog is not null
         || _composeForm is not null
         || _replyForm is not null
-        || _discardDialog is not null;
+        || _discardDialog is not null
+        || _agentPicker is not null;
 
     /// <inheritdoc />
     public IReadOnlyList<KeyHint> CapturingHints
@@ -121,6 +145,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         : _archiveDialog is not null ? ConfirmDialog.Hints
         : _composeForm is not null ? MailComposeForm.Hints
         : _replyForm is not null ? MailReplyForm.Hints
+        : _agentPicker is not null ? QuickPicker.Hints
         : [];
 
     /// <summary>
@@ -165,6 +190,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.SelectSentRequested => SelectMailbox(MailMailbox.Sent),
         TuiMessage.SelectAllMailRequested => SelectMailbox(MailMailbox.All),
         TuiMessage.SelectWorkspaceMailRequested => SelectMailbox(MailMailbox.Workspace),
+        TuiMessage.AgentFilterPickerRequested => OpenAgentFilterPicker(),
         _ => []
     };
 
@@ -196,6 +222,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return HandleReplyFormKey(info);
         }
 
+        if (_agentPicker is not null)
+        {
+            return HandleAgentPickerKey(info);
+        }
+
         return [];
     }
 
@@ -225,6 +256,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         if (_replyForm is { } replyForm)
         {
             return replyForm.Render(width, height);
+        }
+
+        if (_agentPicker is { } agentPicker)
+        {
+            return agentPicker.Render(width, height);
         }
 
         var listWidth = Math.Max(1, width * ListWidthNumerator / ListWidthDenominator);
@@ -618,6 +654,66 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         return [];
     }
 
+    /// <summary>
+    /// Opens the agent filter picker, sourced from <see cref="IAgentRegistry.ListAsync"/>
+    /// with an "All agents" entry prepended to clear the filter, pre-selected
+    /// on <see cref="MailState.AgentFilter"/>. Refused with a toast, rather
+    /// than reaching the registry, when <see cref="MailState.Mailbox"/> is
+    /// not <see cref="MailMailbox.Workspace"/>: the filter has no effect
+    /// anywhere else.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenAgentFilterPicker()
+    {
+        if (_state.Mailbox != MailMailbox.Workspace)
+        {
+            return [new TuiMessage.ShowToast(AgentFilterRequiresWorkspaceMessage, ToastStyle.Warn)];
+        }
+
+        var agents = _agentRegistry.ListAsync(role: null, staleBefore: null, CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        _agentPicker = BuildAgentPicker(agents, _state.AgentFilter);
+        return [];
+    }
+
+    private static QuickPicker BuildAgentPicker(IReadOnlyList<AgentRecord> agents, string? selectedAgent)
+    {
+        var options = new List<QuickPickerOption> { new(AllAgentsOptionId, "All agents") };
+        options.AddRange(agents.Select(a => new QuickPickerOption(a.Name, Markup.Escape(a.Name))));
+
+        return new QuickPicker("Filter by agent", options, selectedAgent ?? AllAgentsOptionId);
+    }
+
+    private IReadOnlyList<TuiMessage> HandleAgentPickerKey(ConsoleKeyInfo info)
+    {
+        var result = _agentPicker!.HandleKey(info);
+
+        return result switch
+        {
+            null => [],
+            QuickPickerResult.Cancelled => CancelAgentPicker(),
+            QuickPickerResult.Applied applied => ApplyAgentFilter(applied.SelectedId),
+            _ => []
+        };
+    }
+
+    private IReadOnlyList<TuiMessage> CancelAgentPicker()
+    {
+        _agentPicker = null;
+        return [];
+    }
+
+    private IReadOnlyList<TuiMessage> ApplyAgentFilter(string selectedId)
+    {
+        _agentPicker = null;
+
+        var agent = selectedId == AllAgentsOptionId ? null : selectedId;
+        _state.SelectAgentFilterAsync(agent, CancellationToken.None).GetAwaiter().GetResult();
+        _detailView.ResetScroll();
+
+        return [];
+    }
+
     private IReadOnlyList<TuiMessage> ToggleThreadView()
     {
         if (_state.ViewMode == MailViewMode.Thread)
@@ -772,13 +868,25 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// The list pane's header name: the read-state filter's name within
-    /// <see cref="MailMailbox.Inbox"/>, where it applies, or the mailbox's
-    /// own display name otherwise, since <see cref="MailListFilter"/> is
-    /// inert outside the Inbox mailbox and showing it there would be
-    /// misleading.
+    /// <see cref="MailMailbox.Inbox"/>, where it applies; the mailbox's own
+    /// display name suffixed with the selected agent within
+    /// <see cref="MailMailbox.Workspace"/> when <see cref="MailState.AgentFilter"/>
+    /// is set, the third of Workspace's mode indicators alongside
+    /// <see cref="HeaderName"/>'s own text and <see cref="ResolveListBorderToken"/>'s
+    /// border accent (see the class doc); or the plain mailbox display name
+    /// otherwise.
     /// </summary>
     private static string HeaderName(MailState state)
-        => state.Mailbox == MailMailbox.Inbox ? FilterName(state.Filter) : state.Mailbox.DisplayName();
+    {
+        if (state.Mailbox == MailMailbox.Inbox)
+        {
+            return FilterName(state.Filter);
+        }
+
+        return state.Mailbox == MailMailbox.Workspace && state.AgentFilter is { } agent
+            ? $"{state.Mailbox.DisplayName()}: {agent}"
+            : state.Mailbox.DisplayName();
+    }
 
     private void RefreshBlocking()
     {

@@ -218,6 +218,90 @@ public sealed class MailStateTests
     }
 
     [Fact]
+    public async Task SelectAgentFilterAsync_Should_NarrowWorkspaceMessages_ToTheGivenAgent()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var state = CreateState(store);
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        Assert.Equal(["m-2", "m-1"], state.Messages.Select(m => m.Id));
+
+        // act
+        await state.SelectAgentFilterAsync("alice", CancellationToken.None);
+
+        // assert
+        Assert.Equal("alice", state.AgentFilter);
+        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SelectAgentFilterAsync_Should_ResetSelectedRowToTop()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "alice", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var state = CreateState(store);
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        state.SelectedRow = 1;
+
+        // act
+        await state.SelectAgentFilterAsync("alice", CancellationToken.None);
+
+        // assert
+        Assert.Equal(0, state.SelectedRow);
+    }
+
+    [Fact]
+    public async Task SelectAgentFilterAsync_Should_RestoreTheFullWorkspaceStream_When_AgentIsNull()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var state = CreateState(store);
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        await state.SelectAgentFilterAsync("alice", CancellationToken.None);
+        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
+
+        // act
+        await state.SelectAgentFilterAsync(null, CancellationToken.None);
+
+        // assert
+        Assert.Null(state.AgentFilter);
+        Assert.Equal(["m-2", "m-1"], state.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SelectMailboxAsync_Should_ClearAgentFilter_When_LeavingWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var state = CreateState(store);
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        await state.SelectAgentFilterAsync("alice", CancellationToken.None);
+        Assert.Equal("alice", state.AgentFilter);
+
+        // act: leave Workspace for Sent, then come back
+        await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+
+        // assert
+        Assert.Null(state.AgentFilter);
+        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id)); // unfiltered again
+    }
+
+    [Fact]
     public void SelectedMessage_Should_ReturnNull_When_MessagesIsEmpty()
     {
         // arrange
