@@ -46,8 +46,8 @@ internal sealed class AgentsMode : ITuiMode
     /// <summary>
     /// The fraction of the frame width the list pane occupies; the detail
     /// pane takes the remainder. Wider than the mail board's own split
-    /// since an agent row spends its width on four columns (name, role,
-    /// two ages) rather than one truncated subject line.
+    /// since an agent row spends its width on five columns (name, client,
+    /// role, two ages) rather than one truncated subject line.
     /// </summary>
     private const int ListWidthNumerator = 1;
     private const int ListWidthDenominator = 2;

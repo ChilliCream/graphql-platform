@@ -804,11 +804,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// Builds the list pane's panel directly, rather than through
     /// <see cref="ColumnPane"/>, so <see cref="ResolveListBorderToken"/> can
-    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent:
-    /// the second of the mode's two redundant Workspace indicators (see the
-    /// class doc), alongside the header text this still renders the same
-    /// way <see cref="ColumnPane"/> does. Every other mailbox resolves to
-    /// exactly the border tokens <see cref="ColumnPane"/> itself uses.
+    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent and
+    /// color its header text with that same token: the second of the mode's
+    /// two redundant Workspace indicators (see the class doc). Every other
+    /// mailbox resolves to exactly the border tokens <see cref="ColumnPane"/>
+    /// itself uses, with a plain, unstyled header text to match.
     /// </summary>
     private Panel BuildListPanel(string name, int count, IReadOnlyList<string> lines, bool focused)
     {

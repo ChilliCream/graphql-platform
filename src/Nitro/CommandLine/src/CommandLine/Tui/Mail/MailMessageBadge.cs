@@ -103,7 +103,7 @@ internal static class MailMessageBadge
 
         if (peers.Count == 0)
         {
-            return new PeerParts(string.Empty, ToPrefix.TrimEnd());
+            return new PeerParts(ToPrefix.TrimEnd(), string.Empty);
         }
 
         var overflow = peers.Count - 1;
