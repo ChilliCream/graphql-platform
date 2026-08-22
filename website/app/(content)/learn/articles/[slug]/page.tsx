@@ -127,7 +127,6 @@ export default async function ArticlePage({ params }: PageProps) {
         }}
         heroImageSrc={article.featuredImage}
         shareUrl={shareUrl}
-        tags={article.tags}
         toc={toc}
         related={
           related.length > 0 ? (

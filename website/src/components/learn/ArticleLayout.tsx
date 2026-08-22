@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
-import { BlogTags } from "@/src/components/BlogTags";
 import { TableOfContents, type HeadingItem } from "@/src/components/TableOfContents";
 import type { LearnContentType } from "@/src/data/learn/facets";
 import { Picture } from "@/src/design-system/Picture";
@@ -35,7 +34,6 @@ interface ArticleLayoutProps {
   readonly meta: ArticleMeta;
   readonly heroImageSrc?: string | null;
   readonly shareUrl: string;
-  readonly tags?: readonly string[];
   readonly toc: readonly HeadingItem[];
   readonly children: ReactNode;
   /** Related-items slot: `SimilarPosts` for blog, a `CardGrid` for comparisons/explainers (section 4.1 item 9). */
@@ -55,7 +53,6 @@ export function ArticleLayout({
   meta,
   heroImageSrc,
   shareUrl,
-  tags,
   toc,
   children,
   related,
@@ -91,12 +88,11 @@ export function ArticleLayout({
               author={meta.author}
               authorUrl={meta.authorUrl}
               authorImageUrl={meta.authorImageUrl}
-              date={meta.updatedDate ?? meta.publishedDate}
+              date={meta.publishedDate}
               readingTime={meta.readingTime}
             />
             <BlogShareBar url={shareUrl} title={title} />
           </div>
-          <BlogTags tags={tags ? [...tags] : undefined} />
           {children}
           {related}
         </article>
