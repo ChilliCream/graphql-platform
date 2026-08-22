@@ -302,6 +302,46 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public void Render_Should_AttributeSenderClient_InTheDetailPane_When_SenderHasOne()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob") with { Client = "codex" });
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert: RefreshBlocking loaded the registry once and MailMode
+        // threaded the lookup into the detail pane without a per-row query.
+        Assert.Contains("From: bob (codex)", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowNoAttribution_InTheDetailPane_When_SenderHasNoRegisteredClient()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store, agentRegistry: new FakeAgentRegistry());
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert: bob is not even in the registry, so no attribution shows.
+        Assert.Contains("From: bob", console.Output);
+        Assert.DoesNotContain("From: bob (", console.Output);
+    }
+
+    [Fact]
     public void Render_Should_NotThrow_When_WidthOrHeightIsZero()
     {
         // arrange
@@ -968,6 +1008,29 @@ public sealed class MailModeTests
         // assert
         Assert.Empty(followUp);
         Assert.True(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void AgentFilterPickerRequested_Should_ShowClientNextToName_When_AgentHasOne()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob") with { Client = "codex" });
+        registry.Agents.Add(Agent("carol"));
+        var mode = CreateMode(store, agentRegistry: registry);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert: bob's client is shown, carol's empty client shows nothing
+        Assert.Contains("bob (codex)", console.Output);
+        Assert.Contains("carol", console.Output);
+        Assert.DoesNotContain("carol (", console.Output);
     }
 
     [Fact]

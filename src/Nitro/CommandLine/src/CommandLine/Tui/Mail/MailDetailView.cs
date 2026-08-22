@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Details;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
@@ -33,6 +34,13 @@ internal sealed class MailDetailView
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
+    /// <summary>
+    /// The <see cref="Render"/> default when no client lookup is given,
+    /// resolving every name to no attribution.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, string> EmptyClients =
+        new Dictionary<string, string>();
+
     private readonly Viewport _bodyViewport = new(0, 0);
 
     /// <summary>
@@ -66,9 +74,19 @@ internal sealed class MailDetailView
     /// Renders <paramref name="state"/>'s detail pane: the selected
     /// message when its <see cref="MailState.ViewMode"/> is
     /// <see cref="MailViewMode.Message"/>, or the whole thread when it is
-    /// <see cref="MailViewMode.Thread"/>.
+    /// <see cref="MailViewMode.Thread"/>. <paramref name="clientsByName"/>
+    /// attributes each party's <see cref="AgentRecord.Client"/> next to its
+    /// name (sender, and each recipient's own state line); a name absent
+    /// from it, or mapped to an empty client, renders with no attribution
+    /// at all. Null is treated as empty, so every existing caller keeps
+    /// working unchanged.
     /// </summary>
-    public IRenderable Render(MailState state, int width, int height, bool focused)
+    public IRenderable Render(
+        MailState state,
+        int width,
+        int height,
+        bool focused,
+        IReadOnlyDictionary<string, string>? clientsByName = null)
     {
         if (width <= 0 || height <= 0)
         {
@@ -78,10 +96,11 @@ internal sealed class MailDetailView
         var safeWidth = Math.Max(1, width);
         var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
         var interiorHeight = Math.Max(1, height - PanelChromeHeight);
+        var clients = clientsByName ?? EmptyClients;
 
         var lines = state.ViewMode == MailViewMode.Thread
-            ? BuildThreadLines(state, interiorWidth)
-            : BuildMessageLines(state, interiorWidth);
+            ? BuildThreadLines(state, interiorWidth, clients)
+            : BuildMessageLines(state, interiorWidth, clients);
 
         IRenderable content = lines.Count == 0
             ? Align.Center(new Markup(Markup.Escape(NoMessageMessage(state))), VerticalAlignment.Middle)
@@ -116,7 +135,8 @@ internal sealed class MailDetailView
     private static string NoMessageMessage(MailState state)
         => state.Messages.Count == 0 ? "No messages." : "No message selected.";
 
-    private static IReadOnlyList<string> BuildMessageLines(MailState state, int width)
+    private static IReadOnlyList<string> BuildMessageLines(
+        MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
     {
         if (state.SelectedMessage is not { } message)
         {
@@ -125,7 +145,7 @@ internal sealed class MailDetailView
 
         var lines = new List<string>
         {
-            $"From: {message.Sender}",
+            $"From: {AttributeClient(message.Sender, clientsByName)}",
             $"To: {string.Join(", ", RecipientNames(message, MailRecipientKinds.To))}"
         };
 
@@ -137,12 +157,24 @@ internal sealed class MailDetailView
         }
 
         lines.Add($"Date: {FormatTimestamp(message.CreatedAt)}");
-        lines.AddRange(BuildRecipientStateLines(message));
+        lines.AddRange(BuildRecipientStateLines(message, clientsByName));
         lines.Add(string.Empty);
         lines.AddRange(TaskDetailSections.WrapText(message.Body, width));
 
         return lines;
     }
+
+    /// <summary>
+    /// <paramref name="name"/> suffixed with its <see cref="AgentRecord.Client"/>
+    /// in parentheses when <paramref name="clientsByName"/> has a non-empty
+    /// entry for it, or <paramref name="name"/> unchanged otherwise - an
+    /// unknown name and a known name with an empty client render identically,
+    /// per the epic's "empty means nothing shown, not a placeholder" rule.
+    /// </summary>
+    private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
+        => clientsByName.TryGetValue(name, out var client) && client.Length > 0
+            ? $"{name} ({client})"
+            : name;
 
     /// <summary>
     /// One line per recipient, stating that recipient's own read/archived
@@ -156,24 +188,29 @@ internal sealed class MailDetailView
     /// <see cref="MailMessage.Recipients"/> - there is no sender-side state
     /// to show and none is invented here.
     /// </summary>
-    private static IReadOnlyList<string> BuildRecipientStateLines(MailMessage message)
+    private static IReadOnlyList<string> BuildRecipientStateLines(
+        MailMessage message, IReadOnlyDictionary<string, string> clientsByName)
         => message.Recipients
             .OrderBy(r => r.Ordinal)
-            .Select(FormatRecipientState)
+            .Select(r => FormatRecipientState(r, clientsByName))
             .ToList();
 
-    private static string FormatRecipientState(MailRecipient recipient)
+    private static string FormatRecipientState(
+        MailRecipient recipient, IReadOnlyDictionary<string, string> clientsByName)
     {
         var state = recipient.ReadAt is { } readAt
             ? $"read {FormatTimestamp(readAt)}"
             : "unread";
 
+        var label = AttributeClient(recipient.Name, clientsByName);
+
         return recipient.ArchivedAt is not null
-            ? $"{recipient.Name}: {state}, archived"
-            : $"{recipient.Name}: {state}";
+            ? $"{label}: {state}, archived"
+            : $"{label}: {state}";
     }
 
-    private static IReadOnlyList<string> BuildThreadLines(MailState state, int width)
+    private static IReadOnlyList<string> BuildThreadLines(
+        MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
     {
         if (state.ThreadMessages.Count == 0)
         {
@@ -191,7 +228,7 @@ internal sealed class MailDetailView
             }
 
             var message = state.ThreadMessages[i];
-            lines.Add($"{message.Sender} - {FormatTimestamp(message.CreatedAt)}");
+            lines.Add($"{AttributeClient(message.Sender, clientsByName)} - {FormatTimestamp(message.CreatedAt)}");
             lines.AddRange(TaskDetailSections.WrapText(message.Body, width));
         }
 

@@ -194,6 +194,87 @@ public sealed class MailDetailViewTests
     }
 
     [Fact]
+    public async Task Render_Should_AttributeSenderAndRecipientClient_When_LookupHasNonEmptyEntries()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = new MailState("alice", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+        var clientsByName = new Dictionary<string, string>
+        {
+            ["bob"] = "codex",
+            ["alice"] = "claude-code"
+        };
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true, clientsByName));
+
+        // assert
+        Assert.Contains("From: bob (codex)", console.Output);
+        Assert.Contains("alice (claude-code): unread", console.Output);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowNoAttribution_When_ClientIsEmptyOrAgentIsUnknownToTheLookup()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = new MailState("alice", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+        // bob maps to an empty client; alice has no entry at all - both must
+        // render exactly as they would with no lookup given.
+        var clientsByName = new Dictionary<string, string> { ["bob"] = "" };
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true, clientsByName));
+
+        // assert
+        Assert.Contains("From: bob", console.Output);
+        Assert.DoesNotContain("From: bob (", console.Output);
+        Assert.Contains("alice: unread", console.Output);
+        Assert.DoesNotContain("alice (", console.Output);
+    }
+
+    [Fact]
+    public async Task Render_Should_AttributeEachSpeakerInTheThread_When_LookupHasEntries()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", body: "Hello.", createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", body: "Reply body.", threadId: "m-1", createdAt: Now.AddMinutes(1)));
+        var state = new MailState("alice", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        await state.ShowThreadAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+        var clientsByName = new Dictionary<string, string> { ["bob"] = "codex", ["carol"] = "claude-code" };
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true, clientsByName));
+
+        // assert
+        Assert.Contains("bob (codex)", console.Output);
+        Assert.Contains("carol (claude-code)", console.Output);
+    }
+
+    [Fact]
     public async Task Render_Should_StayWithinPaneHeight_When_BroadcastHasManyRecipients()
     {
         // arrange

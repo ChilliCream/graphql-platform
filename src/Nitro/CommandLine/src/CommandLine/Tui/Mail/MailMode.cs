@@ -99,6 +99,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private readonly TimeProvider _timeProvider;
     private readonly Viewport _listViewport = new(0, 0);
 
+    /// <summary>
+    /// Every registered agent's <see cref="AgentRecord.Client"/>, keyed by
+    /// name (case-insensitively, matching <see cref="MailRecipientView"/>'s
+    /// comparer), loaded once per <see cref="RefreshBlocking"/> rather than
+    /// once per rendered row so the detail pane's client attribution never
+    /// issues a registry query per line.
+    /// </summary>
+    private IReadOnlyDictionary<string, string> _clientsByName =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
     private ConfirmDialog? _archiveDialog;
     private MailMessage? _archiveTarget;
     private MailComposeForm? _composeForm;
@@ -679,9 +689,21 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private static QuickPicker BuildAgentPicker(IReadOnlyList<AgentRecord> agents, string? selectedAgent)
     {
         var options = new List<QuickPickerOption> { new(AllAgentsOptionId, "All agents") };
-        options.AddRange(agents.Select(a => new QuickPickerOption(a.Name, Markup.Escape(a.Name))));
+        options.AddRange(agents.Select(a => new QuickPickerOption(a.Name, FormatAgentOptionMarkup(a))));
 
         return new QuickPicker("Filter by agent", options, selectedAgent ?? AllAgentsOptionId);
+    }
+
+    /// <summary>
+    /// An agent picker row's markup: the name, plus its
+    /// <see cref="AgentRecord.Client"/> in dim parentheses when non-empty,
+    /// the same "nothing shown for empty" rule <see cref="MailDetailView"/>
+    /// applies to its own client attribution.
+    /// </summary>
+    private static string FormatAgentOptionMarkup(AgentRecord agent)
+    {
+        var name = Markup.Escape(agent.Name);
+        return agent.Client.Length == 0 ? name : $"{name} [dim]({Markup.Escape(agent.Client)})[/]";
     }
 
     private IReadOnlyList<TuiMessage> HandleAgentPickerKey(ConsoleKeyInfo info)
@@ -794,7 +816,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     };
 
     private IRenderable RenderDetailPane(int width, int height)
-        => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail);
+        => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _clientsByName);
 
     /// <summary>
     /// Renders the list's visible rows: the scrolled message badges,
@@ -892,5 +914,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     {
         _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
         UnreadCount = _store.CountUnreadAsync(_state.Actor, CancellationToken.None).GetAwaiter().GetResult();
+
+        var agents = _agentRegistry.ListAsync(role: null, staleBefore: null, CancellationToken.None)
+            .GetAwaiter().GetResult();
+        _clientsByName = agents.ToDictionary(a => a.Name, a => a.Client, StringComparer.OrdinalIgnoreCase);
     }
 }
