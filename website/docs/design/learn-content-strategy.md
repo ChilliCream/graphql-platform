@@ -158,9 +158,10 @@ Two deliberate non-topics:
   for precise filtering; topics are broader (e.g. the `federation` topic
   spans Fusion and Mocha content plus vendor-neutral federation articles).
 
-Every current tag maps into this scheme with no orphans (`products` and
-`workshops` are metadata tags, not subjects; they map to content types, not
-topics). The mapping table should live next to the facet definitions
+Every current tag maps into this scheme with no orphans (`products`,
+`workshops`, and `release` are metadata tags, not subjects; `products` and
+`workshops` map to content types, and `release` marks the Release stream
+handled as a category above). The mapping table should live next to the facet definitions
 (`src/data/learn/facets.ts` or a sibling module) when website-5yo.10
 implements it.
 
@@ -184,9 +185,10 @@ implemented by website-5yo.10).
 
 Redirect adjustments caused by the relocation:
 
-- `/templates` and `/templates/[slug]` currently redirect to
-  `/learn?type=template` and `/learn/templates/[slug]` (learn-hub.md section
-  2). The first target becomes `/learn/browse?type=template`.
+- `/templates` and `/templates/[slug]` are specified (learn-hub.md section 2,
+  implemented by website-5yo.5) to redirect to `/learn?type=template` and
+  `/learn/templates/[slug]`. The first target becomes
+  `/learn/browse?type=template`.
 - `/learn?type=...` (and any other catalog params on `/learn`) must redirect
   to `/learn/browse` with params preserved, so links shared during the
   catalog-at-`/learn` window keep working.
