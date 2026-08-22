@@ -29,6 +29,9 @@ export interface Topic {
 export const TOPICS: readonly Topic[] = [
   { key: "graphql", label: "GraphQL fundamentals", browseQuery: null },
   { key: "hot-chocolate", label: "Hot Chocolate", browseQuery: "product=hot-chocolate" },
+  // `browseQuery` filters on `product=fusion` only. `PRODUCT_TOPIC` below also
+  // maps `mocha` to "federation" for topic derivation, but mocha is
+  // deliberately excluded from this browse filter (review note from .10).
   { key: "federation", label: "Federation and Fusion", browseQuery: "product=fusion" },
   { key: "tooling", label: "Tooling and observability", browseQuery: "product=nitro" },
   { key: "ai", label: "AI and agents", browseQuery: null },
