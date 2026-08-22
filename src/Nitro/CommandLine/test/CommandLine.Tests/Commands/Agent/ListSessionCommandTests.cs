@@ -1,13 +1,17 @@
 using System.Diagnostics;
-using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
-public sealed class ListSessionCommandTests(NitroCommandFixture fixture)
-    : AgentCommandTestBase(fixture)
+public sealed class ListSessionCommandTests : AgentCommandTestBase
 {
+    private const string FixedHost = "host-list-session-tests";
+
+    public ListSessionCommandTests(NitroCommandFixture fixture) : base(fixture)
+    {
+        SetupInstanceId(FixedHost);
+    }
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
@@ -72,8 +76,7 @@ public sealed class ListSessionCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var host = await ResolveThisMachinesInstanceIdAsync();
-        await InsertAliveSessionRowAsync(host, "session-1", agentName: null, bindingKind: "none");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", agentName: null, bindingKind: "none");
 
         // act
         var result = await ExecuteCommandAsync("agent", "session", "list");
@@ -92,8 +95,7 @@ public sealed class ListSessionCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
-        var host = await ResolveThisMachinesInstanceIdAsync();
-        await InsertAliveSessionRowAsync(host, "session-1", agentName: "pascal", bindingKind: "explicit");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", agentName: "pascal", bindingKind: "explicit");
 
         // act
         var result = await ExecuteCommandAsync("agent", "session", "list");
@@ -108,8 +110,7 @@ public sealed class ListSessionCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var host = await ResolveThisMachinesInstanceIdAsync();
-        await InsertDeadSessionRowAsync(host, "session-dead");
+        await InsertDeadSessionRowAsync(FixedHost, "session-dead");
 
         // act
         var result = await ExecuteCommandAsync("agent", "session", "list");
@@ -148,20 +149,6 @@ public sealed class ListSessionCommandTests(NitroCommandFixture fixture)
             """
             No agent workspace found. Run `nitro agent init` first.
             """);
-    }
-
-    /// <summary>
-    /// Resolves the same instance id the command's real DI-wired
-    /// <see cref="NitroInstanceIdProvider"/> will compute at runtime, so
-    /// seeded rows can be addressed as "this host" without duplicating the
-    /// hashing logic.
-    /// </summary>
-    private static async Task<string> ResolveThisMachinesInstanceIdAsync()
-    {
-        var provider = new NitroInstanceIdProvider(new FileSystem());
-        var directory = new GlobalConfigDirectoryProvider().GetDirectory();
-
-        return await provider.GetIdAsync(directory, TestContext.Current.CancellationToken);
     }
 
     private async Task InsertAliveSessionRowAsync(
