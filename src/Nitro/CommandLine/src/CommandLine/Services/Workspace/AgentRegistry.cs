@@ -13,10 +13,12 @@ internal sealed class AgentRegistry(
     public async Task<AgentRecord> RegisterAsync(
         string name,
         string role,
+        string client,
         CancellationToken cancellationToken)
     {
         var normalizedName = MailAgentName.Normalize(name);
         var normalizedRole = AgentRole.Normalize(role);
+        var normalizedClient = NormalizeClient(client);
         var now = timeProvider.GetUtcNow();
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -24,20 +26,22 @@ internal sealed class AgentRegistry(
 
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, implicit)
-            VALUES (@name, @now, @now, @role, 0)
+            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
+            VALUES (@name, @now, @now, @role, @client, 0)
             ON CONFLICT (name) DO UPDATE SET
                 last_seen_at = @now,
                 role = @role,
+                client = @client,
                 implicit = 0
             RETURNING
                 name AS Name,
                 role AS Role,
+                client AS Client,
                 implicit AS Implicit,
                 registered_at AS RegisteredAt,
                 last_seen_at AS LastSeenAt
             """,
-            new { name = normalizedName, now, role = normalizedRole, cancellationToken },
+            new { name = normalizedName, now, role = normalizedRole, client = normalizedClient, cancellationToken },
             transaction);
 
         await transaction.CommitAsync(cancellationToken);
@@ -57,14 +61,15 @@ internal sealed class AgentRegistry(
 
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, implicit)
-            VALUES (@name, @now, @now, '', 0)
+            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
+            VALUES (@name, @now, @now, '', '', 0)
             ON CONFLICT (name) DO UPDATE SET
                 last_seen_at = @now,
                 implicit = 0
             RETURNING
                 name AS Name,
                 role AS Role,
+                client AS Client,
                 implicit AS Implicit,
                 registered_at AS RegisteredAt,
                 last_seen_at AS LastSeenAt
@@ -108,12 +113,13 @@ internal sealed class AgentRegistry(
         // existing one, without touching any column of an existing row.
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, implicit)
-            VALUES (@name, @now, @now, '', 1)
+            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
+            VALUES (@name, @now, @now, '', '', 1)
             ON CONFLICT (name) DO UPDATE SET name = excluded.name
             RETURNING
                 name AS Name,
                 role AS Role,
+                client AS Client,
                 implicit AS Implicit,
                 registered_at AS RegisteredAt,
                 last_seen_at AS LastSeenAt
@@ -176,6 +182,14 @@ internal sealed class AgentRegistry(
         return filteredRows.Select(r => r.ToAgentRecord()).ToList();
     }
 
+    /// <summary>
+    /// Trims and lowercases the given value the same way
+    /// <see cref="AgentRole.Normalize"/> does. A null or whitespace-only
+    /// value normalizes to the empty string; like a role, a client carries
+    /// no character restriction.
+    /// </summary>
+    private static string NormalizeClient(string? client) => (client ?? string.Empty).Trim().ToLowerInvariant();
+
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory())
@@ -193,6 +207,7 @@ internal sealed class AgentRegistry(
     {
         public required string Name { get; init; }
         public required string Role { get; init; }
+        public required string Client { get; init; }
         public required bool Implicit { get; init; }
         public required string RegisteredAt { get; init; }
         public required string LastSeenAt { get; init; }
@@ -201,6 +216,7 @@ internal sealed class AgentRegistry(
         {
             Name = Name,
             Role = Role,
+            Client = Client,
             Implicit = Implicit,
             RegisteredAt = DateTimeOffset.Parse(RegisteredAt, CultureInfo.InvariantCulture),
             LastSeenAt = DateTimeOffset.Parse(LastSeenAt, CultureInfo.InvariantCulture)

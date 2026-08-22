@@ -56,7 +56,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// Registers an agent directly against the registry.
     /// </summary>
     internal Task<AgentRecord> SeedAgentAsync(string name)
-        => CreateRegistry().RegisterAsync(name, role: "", TestContext.Current.CancellationToken);
+        => CreateRegistry().RegisterAsync(name, role: "", client: "", TestContext.Current.CancellationToken);
 
     /// <summary>
     /// Sends a message directly against the store, starting a new thread.

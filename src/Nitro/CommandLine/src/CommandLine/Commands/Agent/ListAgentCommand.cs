@@ -60,10 +60,11 @@ internal sealed class ListAgentCommand : Command
         foreach (var agent in agents)
         {
             var roleSuffix = agent.Role.Length > 0 ? $"  role {agent.Role}" : "";
+            var clientSuffix = agent.Client.Length > 0 ? $"  client {agent.Client}" : "";
             var implicitSuffix = agent.Implicit ? "  (implicit)" : "";
 
             console.WriteLine(
-                $"{agent.Name}{roleSuffix}{implicitSuffix}  registered {TaskDates.Format(agent.RegisteredAt)}"
+                $"{agent.Name}{roleSuffix}{clientSuffix}{implicitSuffix}  registered {TaskDates.Format(agent.RegisteredAt)}"
                 + $"  last seen {TaskDates.Format(agent.LastSeenAt)}");
         }
 
@@ -71,8 +72,8 @@ internal sealed class ListAgentCommand : Command
     }
 
     private static AgentListRowResult ToRow(AgentRecord agent)
-        => new(agent.Name, agent.Role, agent.Implicit, agent.RegisteredAt, agent.LastSeenAt);
+        => new(agent.Name, agent.Role, agent.Client, agent.Implicit, agent.RegisteredAt, agent.LastSeenAt);
 
     public sealed record AgentListRowResult(
-        string Name, string Role, bool Implicit, DateTimeOffset RegisteredAt, DateTimeOffset LastSeenAt);
+        string Name, string Role, string Client, bool Implicit, DateTimeOffset RegisteredAt, DateTimeOffset LastSeenAt);
 }

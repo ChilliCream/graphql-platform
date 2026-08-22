@@ -91,7 +91,8 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--role", "backend");
+        await ExecuteCommandAsync(
+            "agent", "register", "--actor", "alpha", "--role", "backend", "--client", "claude-code");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -107,7 +108,23 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal(1, items.GetArrayLength());
         Assert.Equal("alpha", items[0].GetProperty("name").GetString());
         Assert.Equal("backend", items[0].GetProperty("role").GetString());
+        Assert.Equal("claude-code", items[0].GetProperty("client").GetString());
         Assert.False(items[0].GetProperty("implicit").GetBoolean());
+    }
+
+    [Fact]
+    public async Task HumanReadableOutput_ShowsClientSuffix_When_ClientIsSet()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--client", "claude-code");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.Contains("client claude-code", line);
     }
 
     [Fact]

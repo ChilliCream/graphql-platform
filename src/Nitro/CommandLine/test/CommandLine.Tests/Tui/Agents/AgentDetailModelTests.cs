@@ -13,6 +13,7 @@ public sealed class AgentDetailModelTests
         {
             Name = name,
             Role = role,
+            Client = "",
             Implicit = false,
             RegisteredAt = Now,
             LastSeenAt = Now

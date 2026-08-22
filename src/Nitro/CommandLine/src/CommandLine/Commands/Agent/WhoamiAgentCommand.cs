@@ -37,10 +37,12 @@ internal sealed class WhoamiAgentCommand : Command
         var agent = await registry.GetAsync(actor, cancellationToken);
         var registered = agent?.Implicit == false;
         var role = registered ? agent?.Role ?? "" : "";
+        var client = registered ? agent?.Client ?? "" : "";
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(new AgentWhoamiResult(actor, registered, role)));
+            resultHolder.SetResult(
+                new ObjectResult(new AgentWhoamiResult(actor, registered, role, client)));
             return ExitCodes.Success;
         }
 
@@ -53,5 +55,5 @@ internal sealed class WhoamiAgentCommand : Command
         return ExitCodes.Success;
     }
 
-    public sealed record AgentWhoamiResult(string Name, bool Registered, string Role);
+    public sealed record AgentWhoamiResult(string Name, bool Registered, string Role, string Client);
 }

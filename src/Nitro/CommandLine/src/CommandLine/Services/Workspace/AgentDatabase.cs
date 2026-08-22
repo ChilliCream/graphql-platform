@@ -32,14 +32,14 @@ internal sealed class AgentDatabase
 
     /// <summary>
     /// Opens a connection to a new or existing workspace database, applies
-    /// the task, mail, and agent registry schemas, upgrades an existing
-    /// <see cref="UpgradableVersion"/> database's agents table in place, and
-    /// stamps the current schema version, all in one transaction. Returns
-    /// the open connection so callers, including test seeding helpers, can
-    /// write against it directly. Throws <see cref="ExitException"/> when
-    /// the existing database's version is anything other than 0 (a
-    /// genuinely new file), <see cref="UpgradableVersion"/>, or
-    /// <see cref="CurrentVersion"/>.
+    /// the task, mail, and agent registry schemas, upgrades the agents
+    /// table's role, implicit, and client columns in place when any of them
+    /// predate the database on hand, and stamps the current schema version,
+    /// all in one transaction. Returns the open connection so callers,
+    /// including test seeding helpers, can write against it directly.
+    /// Throws <see cref="ExitException"/> when the existing database's
+    /// version is anything other than 0 (a genuinely new file),
+    /// <see cref="UpgradableVersion"/>, or <see cref="CurrentVersion"/>.
     /// </summary>
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
@@ -60,10 +60,15 @@ internal sealed class AgentDatabase
         await connection.ExecuteAsync(AgentRegistrySchema.Create, transaction: transaction);
         await connection.ExecuteAsync(MailStoreSchema.Create, transaction: transaction);
 
-        if (version == UpgradableVersion)
-        {
-            await UpgradeAgentsTableAsync(connection, transaction);
-        }
+        // Column-by-column, not gated on version == UpgradableVersion: the
+        // client column shipped after CurrentVersion was last bumped to 3,
+        // so an existing v3 database (this repo's own workspace included)
+        // needs the same ALTER a v2 database does. Running it unconditionally,
+        // guarded per column, covers a brand new file (CREATE TABLE already
+        // has every column, so every check is a no-op), an upgradable v2
+        // file, and a v3 file that predates client alike, with one code
+        // path instead of a version-keyed branch per column ever added.
+        await UpgradeAgentsTableAsync(connection, transaction);
 
         await connection.ExecuteAsync(
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
@@ -74,10 +79,10 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
-    /// Adds the agents table's role and implicit columns when a
-    /// <see cref="UpgradableVersion"/> database's agents table predates
-    /// them, checked column by column so this is safe to run against a
-    /// table that already carries either one.
+    /// Adds the agents table's role, implicit, and client columns when the
+    /// database on hand's agents table predates any of them, checked column
+    /// by column so this is safe to run against a table that already
+    /// carries all three.
     /// </summary>
     private static async Task UpgradeAgentsTableAsync(
         SqliteConnection connection,
@@ -98,6 +103,13 @@ internal sealed class AgentDatabase
         {
             await connection.ExecuteAsync(
                 "ALTER TABLE agents ADD COLUMN implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1));",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("client"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agents ADD COLUMN client TEXT NOT NULL DEFAULT '';",
                 transaction: transaction);
         }
     }

@@ -7,14 +7,15 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal interface IAgentRegistry
 {
     /// <summary>
-    /// Normalizes the given name and role, then upserts the agent: sets
-    /// last_seen_at to now, sets implicit to false, and sets role to the
-    /// given value (the empty string clears it). Explicit user intent, used
-    /// by the <c>register</c> command.
+    /// Normalizes the given name, role, and client, then upserts the agent:
+    /// sets last_seen_at to now, sets implicit to false, and sets role and
+    /// client to the given values (the empty string clears either).
+    /// Explicit user intent, used by the <c>register</c> command.
     /// </summary>
     Task<AgentRecord> RegisterAsync(
         string name,
         string role,
+        string client,
         CancellationToken cancellationToken);
 
     /// <summary>

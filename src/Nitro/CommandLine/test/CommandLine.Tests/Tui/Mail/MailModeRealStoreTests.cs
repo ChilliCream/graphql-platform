@@ -73,8 +73,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
         var sent = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Hi", Body = "Body", To = ["alice"] },
             cancellationToken);
@@ -97,8 +97,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
         var sent = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Hi", Body = "Body", To = ["alice"] },
             cancellationToken);
@@ -133,7 +133,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // and only surfaces the store's ExitException) now sees a success.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
 
         var mode = CreateMode("alice");
         mode.OnEnter();
@@ -165,9 +165,9 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // separate TUI recipient computation exists to diverge from it.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", cancellationToken);
-        await _registry.RegisterAsync("carol", role: "", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
+        await _registry.RegisterAsync("carol", role: "", client: "", cancellationToken);
 
         var cliOriginal = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Plan", Body = "Body", To = ["alice"], Cc = ["carol"] },

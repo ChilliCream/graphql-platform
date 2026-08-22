@@ -17,6 +17,7 @@ public sealed class AgentsModeTests
         {
             Name = name,
             Role = role,
+            Client = "",
             Implicit = isImplicit,
             RegisteredAt = registeredAt ?? Now,
             LastSeenAt = lastSeenAt ?? Now

@@ -44,7 +44,7 @@ public sealed class AgentRegistryTests : IDisposable
         await InitWorkspaceAsync(cancellationToken);
 
         // act
-        var agent = await _registry.RegisterAsync("Claude", role: "", cancellationToken);
+        var agent = await _registry.RegisterAsync("Claude", role: "", client: "", cancellationToken);
 
         // assert
         Assert.Equal("claude", agent.Name);
@@ -62,7 +62,7 @@ public sealed class AgentRegistryTests : IDisposable
         await InitWorkspaceAsync(cancellationToken);
 
         // act
-        var agent = await _registry.RegisterAsync("claude", role: "Backend", cancellationToken);
+        var agent = await _registry.RegisterAsync("claude", role: "Backend", client: "", cancellationToken);
 
         // assert
         Assert.Equal("backend", agent.Role);
@@ -74,11 +74,11 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        var first = await _registry.RegisterAsync("claude", role: "", cancellationToken);
+        var first = await _registry.RegisterAsync("claude", role: "", client: "", cancellationToken);
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
-        var second = await _registry.RegisterAsync("claude", role: "", cancellationToken);
+        var second = await _registry.RegisterAsync("claude", role: "", client: "", cancellationToken);
 
         // assert
         Assert.Equal(first.RegisteredAt, second.RegisteredAt);
@@ -94,10 +94,10 @@ public sealed class AgentRegistryTests : IDisposable
         // bumped; TouchAsync is the path that preserves an existing role.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await _registry.RegisterAsync("claude", role: "backend", cancellationToken);
+        await _registry.RegisterAsync("claude", role: "backend", client: "", cancellationToken);
 
         // act
-        var agent = await _registry.RegisterAsync("claude", role: "", cancellationToken);
+        var agent = await _registry.RegisterAsync("claude", role: "", client: "", cancellationToken);
 
         // assert
         Assert.Equal("", agent.Role);
@@ -112,7 +112,7 @@ public sealed class AgentRegistryTests : IDisposable
         await _registry.TouchAsync("claude", cancellationToken);
 
         // act
-        var agent = await _registry.RegisterAsync("claude", role: "backend", cancellationToken);
+        var agent = await _registry.RegisterAsync("claude", role: "backend", client: "", cancellationToken);
 
         // assert
         Assert.False(agent.Implicit);
@@ -140,7 +140,7 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await _registry.RegisterAsync("claude", role: "backend", cancellationToken);
+        await _registry.RegisterAsync("claude", role: "backend", client: "", cancellationToken);
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
@@ -175,7 +175,7 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        var registered = await _registry.RegisterAsync("dave", role: "backend", cancellationToken);
+        var registered = await _registry.RegisterAsync("dave", role: "backend", client: "", cancellationToken);
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
@@ -224,8 +224,8 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
 
         // act
         var agents = await _registry.ListAsync(role: null, staleBefore: null, cancellationToken);
@@ -240,8 +240,8 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "backend", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "frontend", cancellationToken);
+        await _registry.RegisterAsync("alice", role: "backend", client: "", cancellationToken);
+        await _registry.RegisterAsync("bob", role: "frontend", client: "", cancellationToken);
 
         // act
         var agents = await _registry.ListAsync(role: "backend", staleBefore: null, cancellationToken);
@@ -257,9 +257,9 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await _registry.RegisterAsync("stale-agent", role: "", cancellationToken);
+        await _registry.RegisterAsync("stale-agent", role: "", client: "", cancellationToken);
         _timeProvider.Advance(TimeSpan.FromDays(31));
-        await _registry.RegisterAsync("fresh-agent", role: "", cancellationToken);
+        await _registry.RegisterAsync("fresh-agent", role: "", client: "", cancellationToken);
 
         // act
         var agents = await _registry.ListAsync(
@@ -276,10 +276,10 @@ public sealed class AgentRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await _registry.RegisterAsync("stale-backend", role: "backend", cancellationToken);
-        await _registry.RegisterAsync("stale-frontend", role: "frontend", cancellationToken);
+        await _registry.RegisterAsync("stale-backend", role: "backend", client: "", cancellationToken);
+        await _registry.RegisterAsync("stale-frontend", role: "frontend", client: "", cancellationToken);
         _timeProvider.Advance(TimeSpan.FromDays(31));
-        await _registry.RegisterAsync("fresh-backend", role: "backend", cancellationToken);
+        await _registry.RegisterAsync("fresh-backend", role: "backend", client: "", cancellationToken);
 
         // act
         var agents = await _registry.ListAsync(

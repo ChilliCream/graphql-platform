@@ -53,7 +53,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     private Task<AgentRecord> SeedAgentAsync(string name, CancellationToken cancellationToken)
-        => _registry.RegisterAsync(name, role: "", cancellationToken);
+        => _registry.RegisterAsync(name, role: "", client: "", cancellationToken);
 
     private Task<MailMessage> SendAsync(
         string sender,
@@ -128,7 +128,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SendAsync("claude", "first", ["dave"], null, cancellationToken);
-        await _registry.RegisterAsync("dave", role: "", cancellationToken);
+        await _registry.RegisterAsync("dave", role: "", client: "", cancellationToken);
 
         // act
         var second = await SendAsync("claude", "second", ["dave"], null, cancellationToken);

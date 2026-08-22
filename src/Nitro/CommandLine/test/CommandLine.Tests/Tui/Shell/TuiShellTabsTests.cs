@@ -50,6 +50,7 @@ public sealed class TuiShellTabsTests
     {
         Name = name,
         Role = role,
+        Client = "",
         Implicit = false,
         RegisteredAt = DateTimeOffset.UnixEpoch,
         LastSeenAt = DateTimeOffset.UnixEpoch

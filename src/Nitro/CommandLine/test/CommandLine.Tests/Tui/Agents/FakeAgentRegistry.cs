@@ -36,7 +36,7 @@ internal sealed class FakeAgentRegistry : IAgentRegistry
         return Task.FromResult<IReadOnlyList<AgentRecord>>(result);
     }
 
-    public Task<AgentRecord> RegisterAsync(string name, string role, CancellationToken cancellationToken)
+    public Task<AgentRecord> RegisterAsync(string name, string role, string client, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<AgentRecord> TouchAsync(string name, CancellationToken cancellationToken)
