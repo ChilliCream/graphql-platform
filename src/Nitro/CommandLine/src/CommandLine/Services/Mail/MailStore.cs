@@ -703,6 +703,119 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var normalizedActor = MailAgentName.Normalize(actor);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rollups = await connection.QueryAsync<ThreadRollupRow>(
+            """
+            SELECT
+                m.thread_id AS ThreadId,
+                COUNT(*) AS MessageCount,
+                MAX(m.created_at) AS LastMessageAt
+            FROM messages m
+            WHERE m.thread_id IN (
+                SELECT DISTINCT m2.thread_id
+                FROM messages m2
+                JOIN message_recipients mr ON mr.message_id = m2.id
+                WHERE mr.recipient = @actor
+            )
+            GROUP BY m.thread_id
+            """,
+            new { actor = normalizedActor, cancellationToken });
+
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var normalizedActor = MailAgentName.Normalize(actor);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rollups = await connection.QueryAsync<ThreadRollupRow>(
+            """
+            SELECT
+                m.thread_id AS ThreadId,
+                COUNT(*) AS MessageCount,
+                MAX(m.created_at) AS LastMessageAt
+            FROM messages m
+            WHERE m.thread_id IN (
+                SELECT thread_id FROM messages WHERE sender = @actor
+            )
+            GROUP BY m.thread_id
+            """,
+            new { actor = normalizedActor, cancellationToken });
+
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
+        string? agent,
+        CancellationToken cancellationToken)
+    {
+        var normalizedAgent = string.IsNullOrEmpty(agent) ? null : MailAgentName.Normalize(agent);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rollups = normalizedAgent is null
+            ? await connection.QueryAsync<ThreadRollupRow>(
+                """
+                SELECT
+                    thread_id AS ThreadId,
+                    COUNT(*) AS MessageCount,
+                    MAX(created_at) AS LastMessageAt
+                FROM messages
+                GROUP BY thread_id
+                """)
+            : await connection.QueryAsync<ThreadRollupRow>(
+                """
+                SELECT
+                    m.thread_id AS ThreadId,
+                    COUNT(*) AS MessageCount,
+                    MAX(m.created_at) AS LastMessageAt
+                FROM messages m
+                WHERE m.thread_id IN (
+                    SELECT thread_id FROM messages WHERE sender = @agent
+                    UNION
+                    SELECT m2.thread_id
+                    FROM messages m2
+                    JOIN message_recipients mr ON mr.message_id = m2.id
+                    WHERE mr.recipient = @agent
+                )
+                GROUP BY m.thread_id
+                """,
+                new { agent = normalizedAgent, cancellationToken });
+
+        // Never actor-scoped, even when narrowed to one agent: a workspace
+        // rollup must not expose that (or any) agent's read state (epic wi3
+        // convention 8).
+        return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, cancellationToken);
+    }
+
+    /// <summary>
+    /// Fills in each rollup's subject, last message details, body preview,
+    /// and (when <paramref name="unreadActor"/> is given) unread count,
+    /// against the same connection the rollups were read from. Shared by
+    /// every thread query so each keeps its own compile-time-literal SQL for
+    /// the thread id source while the per-thread follow-up reads and the
+    /// ordering stay in one place.
+    /// </summary>
+    private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
+        SqliteConnection connection,
+        IEnumerable<ThreadRollupRow> rollups,
+        string? unreadActor,
+        CancellationToken cancellationToken)
+    {
         var summaries = new List<MailThreadSummary>();
 
         foreach (var rollup in rollups)
@@ -711,25 +824,36 @@ internal sealed class MailStore(
                 $"SELECT {MailMessage.Columns} FROM messages WHERE id = @id",
                 new { id = rollup.ThreadId, cancellationToken });
 
-            var lastSender = await connection.ExecuteScalarAsync<string?>(
-                """
-                SELECT sender FROM messages
+            var lastMessage = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
+                $"""
+                SELECT {MailMessage.Columns} FROM messages
                 WHERE thread_id = @threadId
                 ORDER BY created_at DESC, id DESC
                 LIMIT 1
                 """,
                 new { threadId = rollup.ThreadId, cancellationToken });
 
-            var unreadCount = await connection.ExecuteScalarAsync<int>(
-                """
-                SELECT COUNT(*)
-                FROM message_recipients mr
-                JOIN messages m ON m.id = mr.message_id
-                WHERE m.thread_id = @threadId
-                    AND mr.recipient = @actor
-                    AND mr.read_at IS NULL
-                """,
-                new { threadId = rollup.ThreadId, actor = normalizedActor, cancellationToken });
+            IReadOnlyList<string> lastRecipients = lastMessage is null
+                ? []
+                : (await GetRecipientsAsync(connection, lastMessage.Id, cancellationToken))
+                    .Select(r => r.Name)
+                    .ToArray();
+
+            int? unreadCount = null;
+
+            if (unreadActor is not null)
+            {
+                unreadCount = await connection.ExecuteScalarAsync<int>(
+                    """
+                    SELECT COUNT(*)
+                    FROM message_recipients mr
+                    JOIN messages m ON m.id = mr.message_id
+                    WHERE m.thread_id = @threadId
+                        AND mr.recipient = @actor
+                        AND mr.read_at IS NULL
+                    """,
+                    new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+            }
 
             summaries.Add(new MailThreadSummary
             {
@@ -737,7 +861,9 @@ internal sealed class MailStore(
                 Subject = root?.Subject ?? "",
                 MessageCount = rollup.MessageCount,
                 LastMessageAt = DateTimeOffset.Parse(rollup.LastMessageAt, CultureInfo.InvariantCulture),
-                LastSender = lastSender ?? "",
+                LastSender = lastMessage?.Sender ?? "",
+                LastRecipients = lastRecipients,
+                BodyPreview = CreateBodyPreview(lastMessage?.Body ?? ""),
                 UnreadCount = unreadCount
             });
         }
@@ -746,6 +872,21 @@ internal sealed class MailStore(
             .OrderByDescending(s => s.LastMessageAt)
             .ThenByDescending(s => s.ThreadId, StringComparer.Ordinal)
             .ToList();
+    }
+
+    /// <summary>
+    /// Collapses every run of whitespace (spaces, tabs, newlines) in
+    /// <paramref name="body"/> to a single space, trims the ends, and
+    /// truncates to <see cref="MailThreadSummary.BodyPreviewMaxLength"/>
+    /// characters with a trailing "…" when truncated.
+    /// </summary>
+    private static string CreateBodyPreview(string body)
+    {
+        var collapsed = string.Join(' ', body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+        return collapsed.Length <= MailThreadSummary.BodyPreviewMaxLength
+            ? collapsed
+            : collapsed[..MailThreadSummary.BodyPreviewMaxLength].TrimEnd() + "…";
     }
 
     public async Task<IReadOnlyList<MailMessage>> SearchAsync(
