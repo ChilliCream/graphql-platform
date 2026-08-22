@@ -524,9 +524,12 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToNameAndClientTokens_InTheListRow()
     {
-        // arrange
+        // arrange: agent-a stays unstyled at the selected row (row 0); the
+        // attribute under test lives on agent-b's unselected row instead, so
+        // the assertion can be pinned to a single line.
         var registry = new FakeAgentRegistry();
-        registry.Agents.Add(Agent("agent-a", role: "backend", client: "claude-code"));
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b", role: "backend", client: "claude-code"));
         var mode = CreateMode(registry);
         mode.OnEnter();
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
@@ -534,11 +537,12 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(80, 20));
 
-        // assert: the plain TestConsole every other render test uses strips
-        // markup entirely, so a wrong or missing token name here would still
-        // leave every plain-text Contains assertion elsewhere green.
-        AssertAnsiStyleApplied(console.Output, "agents.list.name");
-        AssertAnsiStyleApplied(console.Output, "agents.list.client");
+        // assert: agents.list.name collides with board.column.border.focused
+        // and agents.list.client's token can appear elsewhere in the frame,
+        // so a whole-frame Contains would stay vacuous; pin to agent-b's row.
+        var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
+        AssertAnsiStyleApplied(row, "agents.list.name");
+        AssertAnsiStyleApplied(row, "agents.list.client");
     }
 
     [Fact]
@@ -547,9 +551,11 @@ public sealed class AgentsModeTests
         // arrange: "orchestrator" is one of the roles with its own token
         // (agents.list.role.orchestrator); no existing test exercises that
         // per-role branch of AgentRowBadge.RoleStyle end to end, only the
-        // plain fallback.
+        // plain fallback. agent-a stays plain at the selected row; the role
+        // under test lives on agent-b's unselected row.
         var registry = new FakeAgentRegistry();
-        registry.Agents.Add(Agent("agent-a", role: "orchestrator"));
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b", role: "orchestrator"));
         var mode = CreateMode(registry);
         mode.OnEnter();
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
@@ -557,11 +563,14 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(80, 20));
 
-        // assert
+        // assert: pin to agent-b's row rather than the whole frame, since
+        // agents.list.role.orchestrator's token could otherwise be satisfied
+        // by an unrelated part of the render.
         Assert.NotEqual(
             ThemeTokens.GetStyle("agents.list.role"),
             ThemeTokens.GetStyle("agents.list.role.orchestrator"));
-        AssertAnsiStyleApplied(console.Output, "agents.list.role.orchestrator");
+        var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
+        AssertAnsiStyleApplied(row, "agents.list.role.orchestrator");
     }
 
     [Fact]
@@ -569,9 +578,11 @@ public sealed class AgentsModeTests
     {
         // arrange: "backend" has no per-role token, so RoleStyle must fall
         // back to the plain agents.list.role token rather than rendering
-        // unstyled.
+        // unstyled. agent-a stays plain at the selected row; the role under
+        // test lives on agent-b's unselected row.
         var registry = new FakeAgentRegistry();
-        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-b", role: "backend"));
         var mode = CreateMode(registry);
         mode.OnEnter();
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
@@ -579,7 +590,8 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(80, 20));
 
-        // assert
-        AssertAnsiStyleApplied(console.Output, "agents.list.role");
+        // assert: pin to agent-b's row rather than the whole frame.
+        var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
+        AssertAnsiStyleApplied(row, "agents.list.role");
     }
 }
