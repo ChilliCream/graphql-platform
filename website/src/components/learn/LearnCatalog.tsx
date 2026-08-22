@@ -167,7 +167,8 @@ export function LearnCatalog({ items }: LearnCatalogProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- applyToUrl/selection are derived from the same params snapshot
   }, [query, queryParam]);
 
-  const setContentType = (next: ContentTypeSelection) => applyToUrl(next, productSelection, axisSelection, query);
+  const setContentType = (next: ContentTypeSelection) =>
+    applyToUrl(next, productSelection, next === "template" ? axisSelection : emptyAxisSelection(), query);
 
   const toggleProduct = (key: ProductKey) => {
     const next = productSelection.includes(key)
@@ -210,7 +211,13 @@ export function LearnCatalog({ items }: LearnCatalogProps) {
   const visibleItems = items.filter(matchesFilters);
 
   const typeCount = (type: ContentTypeSelection) =>
-    items.filter((item) => (type === "all" || item.type === type) && matchesQuery(item, query)).length;
+    items.filter(
+      (item) =>
+        (type === "all" || item.type === type) &&
+        matchesProducts(item, productSelection) &&
+        (type !== "template" || matchesAxes(item, axisSelection)) &&
+        matchesQuery(item, query),
+    ).length;
 
   const productCount = (key: ProductKey) =>
     items.filter(
