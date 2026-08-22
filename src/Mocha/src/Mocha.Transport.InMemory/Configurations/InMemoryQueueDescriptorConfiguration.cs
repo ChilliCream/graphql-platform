@@ -42,6 +42,11 @@ public sealed class InMemoryQueueDescriptorConfiguration : MessagingConfiguratio
     public ReceiveEndpointKind? Kind { get; set; }
 
     /// <summary>
+    /// Gets or sets whether the receive endpoint materialized for this queue is temporary.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
     /// Gets or sets the receive endpoint maximum concurrency.
     /// </summary>
     public int? MaxConcurrency { get; set; }
