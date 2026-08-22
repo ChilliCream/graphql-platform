@@ -91,13 +91,14 @@ internal sealed class ReadTimeoutStream : Stream
             timeoutSource.CancelAfter(_timeout);
             return await _inner.ReadAsync(buffer, timeoutSource.Token).ConfigureAwait(false);
         }
-        catch (Exception) when (timeoutSource.IsCancellationRequested
+        catch (Exception exception) when (timeoutSource.IsCancellationRequested
             && !cancellationToken.IsCancellationRequested
             && !_disposed)
         {
             throw new TimeoutException(
                 "No data (including keep-alive messages) was received on the response stream "
-                + $"within the configured read timeout of {FormatTimeout(_timeout)}.");
+                + $"within the configured read timeout of {FormatTimeout(_timeout)}.",
+                exception);
         }
         finally
         {
