@@ -17,8 +17,10 @@
 # Shift+letter chords (MailKeyMap): Shift+S to Sent, showing both of
 # e2e-agent's own sent messages with their "To " peer values; Shift+W to
 # Workspace, showing every agent's mail including one message between two
-# other agents that never involves e2e-agent at all, plus Workspace's
-# read-only mode indicator (its list header names the mailbox); Shift+I back
+# other agents that never involves e2e-agent at all, plus the first of
+# Workspace's two redundant read-only mode indicators (its list header
+# names the mailbox; the second, the list border's distinct accent, is
+# color-only and out of reach of this text tier); Shift+I back
 # to Inbox, the flow's final state. Together these cover the Sent mailbox,
 # the Peer column's "To " prefix, the relationship glyph, and the Workspace
 # observer mode -- the mail e2e tape bead's scope (not exhaustive
@@ -111,11 +113,20 @@ Wait+Screen@30s /F To bob/
 # m-fix006 (alice to bob), which never involves e2e-agent -- its Peer column
 # reads the bare sender name "alice" with a blank relationship glyph, since
 # e2e-agent is neither its sender nor a recipient. The list pane's header
-# naming the mailbox is Workspace's redundant read-only mode indicator (see
-# MailMode's class doc).
+# naming the mailbox is the FIRST of MailMode's two redundant read-only mode
+# indicators (see MailMode's class doc); the second, the list border's
+# distinct accent (ResolveListBorderToken), is color-only and cannot be
+# expressed in this text-golden tier.
 Type "W"
 Wait+Screen@30s /Workspace \(6\)/
 Wait+Screen@30s /alice Deploy win/
+
+# Workspace's read-only default suppresses the u/a/r/c footer hints
+# (MailLifecycleActions.IsReadOnly via MailMode.SuppressedGlobalHints),
+# pulling 'f filter' into the fixed-width footer in their place -- the
+# text-observable read-only signal this tape asserts in place of the
+# color-only border accent above.
+Wait+Screen@30s /f filter/
 
 # Shift+I: direct jump back to Inbox. Final state for the golden.
 Type "I"
