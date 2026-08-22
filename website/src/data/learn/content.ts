@@ -1,5 +1,5 @@
 // Seed content for /learn. Templates are the README-as-data model that used
-// to live in src/data/templates/templates.ts: index card front-matter,
+// to live in the now-removed src/data/templates/templates.ts: index card front-matter,
 // sticky deploy sidebar metadata, and a body[] of section
 // { heading, paragraphs[], code? }. This is a mechanical migration of the
 // existing 8 templates onto the LearnItem union (type: "template" added,

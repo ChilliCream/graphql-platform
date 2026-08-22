@@ -1,7 +1,5 @@
-// Stack brand marks for /learn template cards. Mirrors
-// src/components/templates/stackIcons.ts (kept as-is for the old /templates
-// route until it is retired), retargeted at the StackKey exported by
-// src/data/learn/types.
+// Stack brand marks for /learn template cards, keyed on the StackKey
+// exported by src/data/learn/types.
 
 import type { ComponentType } from "react";
 import type { StackKey } from "@/src/data/learn/types";

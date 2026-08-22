@@ -1,9 +1,7 @@
 // Product drink iconography for /learn cards, keyed on the shared ProductKey
-// axis every LearnItem carries. Mirrors src/components/templates/productArt.ts
-// (kept as-is for the old /templates route until it is retired) but sized to
-// what LearnCard needs: the brand mark and the name DrinkIcon uses to scale it.
-// The `glow` wash and `accentProduct` picker back TemplateStackArt's detail-page
-// panel, mirroring the old templates/productArt.ts helpers of the same name.
+// axis every LearnItem carries. Sized to what LearnCard needs: the brand mark
+// and the name DrinkIcon uses to scale it. The `glow` wash and `accentProduct`
+// picker back TemplateStackArt's detail-page panel.
 
 import type { ComponentType, CSSProperties } from "react";
 import type { ProductKey } from "@/src/data/learn/facets";
