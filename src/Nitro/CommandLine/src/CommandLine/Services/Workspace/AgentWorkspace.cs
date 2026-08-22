@@ -60,11 +60,19 @@ internal static class AgentWorkspace
         => Path.Combine(workspaceDirectory, MemoryDirectoryName);
 
     /// <summary>
+    /// The machine-local Nitro root under the platform's application data
+    /// directory, shared by every global (non-project) feature: the memory
+    /// store, the instance id fallback file, and future global config.
+    /// </summary>
+    public static string GetGlobalConfigDirectory(string applicationDataDirectory)
+        => Path.Combine(applicationDataDirectory, GlobalConfigDirectoryName);
+
+    /// <summary>
     /// The machine-local global memory root, under the platform's
     /// application data directory. Independent of any project workspace.
     /// </summary>
     public static string GetGlobalMemoryDirectory(string applicationDataDirectory)
-        => Path.Combine(applicationDataDirectory, GlobalConfigDirectoryName, MemoryDirectoryName);
+        => Path.Combine(GetGlobalConfigDirectory(applicationDataDirectory), MemoryDirectoryName);
 
     public static string GetMemoryCuratedDirectory(string memoryDirectory)
         => Path.Combine(memoryDirectory, MemoryCuratedDirectoryName);

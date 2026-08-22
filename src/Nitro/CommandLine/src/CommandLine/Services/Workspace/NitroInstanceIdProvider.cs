@@ -117,8 +117,12 @@ internal sealed partial class NitroInstanceIdProvider(
             return null;
         }
 
-        var output = process.StandardOutput.ReadToEnd();
-        process.WaitForExit(2000);
+        var output = ReadWithTimeout(process);
+
+        if (output is null)
+        {
+            return null;
+        }
 
         var match = WindowsMachineGuidPattern().Match(output);
 
@@ -142,8 +146,12 @@ internal sealed partial class NitroInstanceIdProvider(
             return null;
         }
 
-        var output = process.StandardOutput.ReadToEnd();
-        process.WaitForExit(2000);
+        var output = ReadWithTimeout(process);
+
+        if (output is null)
+        {
+            return null;
+        }
 
         var match = MacPlatformUuidPattern().Match(output);
 
@@ -152,6 +160,42 @@ internal sealed partial class NitroInstanceIdProvider(
 
     [GeneratedRegex(""""IOPlatformUUID"\s*=\s*"([^"]+)"""")]
     private static partial Regex MacPlatformUuidPattern();
+
+    /// <summary>
+    /// Reads a child process's standard output within a 2-second bound.
+    /// Reading to end of stream BEFORE waiting for exit would make that
+    /// bound unreachable if the child never closes its stdout: the read
+    /// itself carries no timeout, so this drains stdout asynchronously
+    /// (avoiding the classic redirect deadlock for a child that blocks
+    /// writing to a full pipe) while enforcing the bound on the read, then
+    /// confirms exit. A child still running past the bound is killed rather
+    /// than left behind.
+    /// </summary>
+    private static string? ReadWithTimeout(Process process)
+    {
+        var readTask = process.StandardOutput.ReadToEndAsync();
+
+        if (!readTask.Wait(2000) || !process.WaitForExit(2000))
+        {
+            TryKill(process);
+            return null;
+        }
+
+        return readTask.GetAwaiter().GetResult();
+    }
+
+    private static void TryKill(Process process)
+    {
+        try
+        {
+            process.Kill(entireProcessTree: true);
+        }
+        catch
+        {
+            // The process may have exited on its own between the timeout
+            // check and this call; either way, nothing more to do here.
+        }
+    }
 
     private static string HashMachineId(string machineId)
     {
