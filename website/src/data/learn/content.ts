@@ -6,8 +6,11 @@
 // content otherwise unchanged) — the body schema is still the seam to swap
 // for remote README fetches once template repos exist.
 //
-// Video/tutorial/example/workshop content is seeded separately
-// (website-5yo.6); the arrays below are intentionally empty until then.
+// Video/tutorial/example/workshop content (website-5yo.6) links out to real,
+// verified material: existing ChilliCream YouTube videos, docs tutorials
+// already published under /docs, and public github.com/ChilliCream example
+// and workshop repos. No detail pages exist for these types yet (see the
+// parent ticket); externalUrl is the only place a reader lands.
 //
 // Tagging discipline: every template carries a value for all 6 filter axes
 // (Topology, Use case, Language, Client, Product mix, Agent-ready). Missing
@@ -702,14 +705,150 @@ export const TEMPLATE_ITEMS: readonly TemplateItem[] = [
 ];
 
 // -----------------------------------------------------------------------------
-// Videos / tutorials / examples / workshops
+// Videos
 // -----------------------------------------------------------------------------
-// Not seeded yet — see website-5yo.6.
 
-export const VIDEO_ITEMS: readonly VideoItem[] = [];
-export const TUTORIAL_ITEMS: readonly TutorialItem[] = [];
-export const EXAMPLE_ITEMS: readonly ExampleItem[] = [];
-export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [];
+const graphqlObservabilityVideo: VideoItem = {
+  type: "video",
+  slug: "graphql-observability-elastic-opentelemetry",
+  title: "GraphQL Observability with Elastic and OpenTelemetry",
+  tagline: "Michael Staib instruments a Hot Chocolate server with OpenTelemetry and traces it through Elastic.",
+  products: ["hot-chocolate"],
+  level: "intermediate",
+  url: "https://www.youtube.com/watch?v=nCLSfJMihsg",
+  duration: "51:49",
+  updatedRelative: "4 years ago",
+};
+
+const getStartedGraphqlBlazorVideo: VideoItem = {
+  type: "video",
+  slug: "getting-started-graphql-blazor",
+  title: "Getting Started with GraphQL and Blazor",
+  tagline: "A walkthrough of wiring a Strawberry Shake GraphQL client into a Blazor WebAssembly app.",
+  products: ["strawberry-shake"],
+  level: "beginner",
+  url: "https://www.youtube.com/watch?v=-oq7YEciouM",
+  duration: "21:46",
+  updatedRelative: "4 years ago",
+};
+
+export const VIDEO_ITEMS: readonly VideoItem[] = [graphqlObservabilityVideo, getStartedGraphqlBlazorVideo];
+
+// -----------------------------------------------------------------------------
+// Tutorials
+// -----------------------------------------------------------------------------
+
+const getStartedNetCoreTutorial: TutorialItem = {
+  type: "tutorial",
+  slug: "get-started-with-graphql-in-net-core",
+  title: "Getting Started with GraphQL in .NET Core",
+  tagline: "Scaffold a Hot Chocolate server from the project template and run your first query in Nitro.",
+  products: ["hot-chocolate", "nitro"],
+  level: "beginner",
+  externalUrl: "/docs/hotchocolate/get-started-with-graphql-in-net-core",
+  updatedRelative: "2 months ago",
+};
+
+const getStartedFederationTutorial: TutorialItem = {
+  type: "tutorial",
+  slug: "getting-started-with-graphql-federation",
+  title: "Getting Started with GraphQL Federation",
+  tagline: "Build two subgraphs, compose them with Fusion, and query the unified API through the gateway.",
+  products: ["hot-chocolate", "fusion"],
+  level: "intermediate",
+  externalUrl: "/docs/fusion/getting-started",
+  updatedRelative: "2 weeks ago",
+};
+
+const strawberryShakeBlazorTutorial: TutorialItem = {
+  type: "tutorial",
+  slug: "strawberry-shake-blazor-get-started",
+  title: "Add a Strawberry Shake Client to Blazor",
+  tagline: "Generate a typed GraphQL client and fetch data from a Blazor WebAssembly component.",
+  products: ["strawberry-shake"],
+  level: "beginner",
+  externalUrl: "/docs/strawberryshake/get-started",
+  updatedRelative: "2 months ago",
+};
+
+export const TUTORIAL_ITEMS: readonly TutorialItem[] = [
+  getStartedNetCoreTutorial,
+  getStartedFederationTutorial,
+  strawberryShakeBlazorTutorial,
+];
+
+// -----------------------------------------------------------------------------
+// Examples
+// -----------------------------------------------------------------------------
+
+const fusionDemoExample: ExampleItem = {
+  type: "example",
+  slug: "fusion-demo",
+  title: "Fusion Demo",
+  tagline: "An end-to-end Fusion setup: subgraphs, Aspire composition, and the gateway in action.",
+  products: ["hot-chocolate", "fusion"],
+  level: "intermediate",
+  externalUrl: "https://github.com/ChilliCream/fusion-demo",
+  updatedRelative: "this week",
+};
+
+const mochaEcommerceDemoExample: ExampleItem = {
+  type: "example",
+  slug: "mocha-ecommerce-demo",
+  title: "Mocha E-Commerce Demo",
+  tagline:
+    "Three services (Catalog, Billing, Shipping) wired with Mocha messaging, sagas, and the transactional outbox, orchestrated with .NET Aspire.",
+  products: ["mocha"],
+  level: "advanced",
+  externalUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
+  updatedRelative: "this week",
+};
+
+const hotChocolateExamplesExample: ExampleItem = {
+  type: "example",
+  slug: "hotchocolate-examples",
+  title: "Hot Chocolate Examples",
+  tagline: "Runnable Hot Chocolate samples, including websocket authentication for subscriptions.",
+  products: ["hot-chocolate"],
+  level: "intermediate",
+  externalUrl: "https://github.com/ChilliCream/hotchocolate-examples",
+  updatedRelative: "over a year ago",
+};
+
+export const EXAMPLE_ITEMS: readonly ExampleItem[] = [
+  fusionDemoExample,
+  mochaEcommerceDemoExample,
+  hotChocolateExamplesExample,
+];
+
+// -----------------------------------------------------------------------------
+// Workshops
+// -----------------------------------------------------------------------------
+
+const fullstackWorkshop: WorkshopItem = {
+  type: "workshop",
+  slug: "fullstack-graphql-workshop",
+  title: "Full Stack GraphQL Workshop",
+  tagline:
+    "A two-day, hands-on workshop building a distributed web shop with Hot Chocolate, Relay, Fusion, and .NET Aspire.",
+  products: ["hot-chocolate", "fusion"],
+  level: "advanced",
+  externalUrl: "/blog/2024/04/01/fullstack-workshop",
+  updatedRelative: "over 2 years ago",
+};
+
+const graphqlWorkshopRepo: WorkshopItem = {
+  type: "workshop",
+  slug: "graphql-workshop-repo",
+  title: "GraphQL Workshop",
+  tagline: "A self-paced, hands-on workshop repo covering types, resolvers, DataLoaders, and filtering.",
+  products: ["hot-chocolate"],
+  level: "beginner",
+  externalUrl: "https://github.com/ChilliCream/graphql-workshop",
+  updatedRelative: "3 months ago",
+};
+
+export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [fullstackWorkshop, graphqlWorkshopRepo];
 
 export const LEARN_ITEMS: readonly LearnItem[] = [
   ...TEMPLATE_ITEMS,
