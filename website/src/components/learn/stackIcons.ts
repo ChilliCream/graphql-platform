@@ -34,3 +34,5 @@ export const STACK_ICONS: Record<StackKey, StackEntry> = {
   mcp: { label: "MCP", Icon: McpIcon },
   dotnet: { label: ".NET", Icon: DotNetIcon },
 };
+
+export const stackLabel = (key: StackKey): string => STACK_ICONS[key].label;
