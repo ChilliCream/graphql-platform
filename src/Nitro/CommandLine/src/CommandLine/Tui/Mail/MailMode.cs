@@ -27,7 +27,7 @@ internal enum MailDiscardTarget
 /// detail pane marks it read for the actor; the u, a, r, and c gestures
 /// toggle read/unread, archive (behind a confirmation), reply, and compose,
 /// every write going through the same store operations the CLI uses. The
-/// Shift+I/S/A/W gestures jump directly to the Inbox/Sent/All/Workspace
+/// Shift+I/S/L/W gestures jump directly to the Inbox/Sent/All/Workspace
 /// <see cref="MailMailbox"/>; u and a are refused with a toast, instead of
 /// reaching the store, on any message the actor is not a recipient of. This
 /// mode owns its own modal overlays (the archive confirmation, the compose

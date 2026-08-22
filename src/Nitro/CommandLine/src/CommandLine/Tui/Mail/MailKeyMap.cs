@@ -106,12 +106,12 @@ internal static class MailKeyMap
         new KeyBinding(
             new KeyChord(ConsoleKey.I, ConsoleModifiers.Shift, 'I'),
             () => new TuiMessage.SelectInboxRequested(),
-            new KeyHint("I/S/A/W", "mailbox")),
+            new KeyHint("I/S/L/W", "mailbox")),
         new KeyBinding(
             new KeyChord(ConsoleKey.S, ConsoleModifiers.Shift, 'S'),
             () => new TuiMessage.SelectSentRequested()),
         new KeyBinding(
-            new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, 'A'),
+            new KeyChord(ConsoleKey.L, ConsoleModifiers.Shift, 'L'),
             () => new TuiMessage.SelectAllMailRequested()),
         new KeyBinding(
             new KeyChord(ConsoleKey.W, ConsoleModifiers.Shift, 'W'),

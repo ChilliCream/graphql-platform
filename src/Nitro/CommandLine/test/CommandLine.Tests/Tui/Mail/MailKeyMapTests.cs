@@ -234,14 +234,14 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
-    public void CreateDefault_Should_MapShiftA_ToSelectAllMailRequested()
+    public void CreateDefault_Should_MapShiftL_ToSelectAllMailRequested()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
-        var shiftA = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, 'A');
+        var shiftL = new KeyChord(ConsoleKey.L, ConsoleModifiers.Shift, 'L');
 
         // act
-        var resolved = keyMap.TryResolve(shiftA, out var message);
+        var resolved = keyMap.TryResolve(shiftL, out var message);
 
         // assert
         Assert.True(resolved);
