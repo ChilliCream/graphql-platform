@@ -15,13 +15,15 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
         result.AssertHelpOutput(
             """
             Description:
-              Wait for new mail addressed to the acting agent and print it. Messages already unread at start do not trigger; see `inbox --unread` for those. Never marks anything read.
+              Wait for new mail addressed to the acting agent and print it. Messages already unread at start do not trigger; see `inbox --unread` for those, or use --after / --include-existing to deliver them here instead. Never marks anything read.
 
             Usage:
               nitro agent mail watch [options]
 
             Options:
               --timeout <timeout>  Exit with an error after this many seconds if no new mail arrives (waits until cancelled when omitted)
+              --after <after>      Deliver every message created after this cursor immediately, then keep watching. The cursor is either an RFC 3339 timestamp or a message ID.
+              --include-existing   Treat mail already unread at start as arrived and print it immediately, then keep watching
               --actor <actor>      The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
               --output <json>      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help       Show help and usage information
@@ -29,6 +31,8 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
             Example:
               nitro agent mail watch
               nitro agent mail watch --timeout 30
+              nitro agent mail watch --after 2026-01-01T00:00:00Z
+              nitro agent mail watch --include-existing
             """);
     }
 
@@ -137,6 +141,190 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
         result.AssertError(
             """
             Timed out waiting for new mail.
+            """);
+    }
+
+    [Fact]
+    public async Task IncludeExisting_TriggersImmediately_When_MailAlreadyUnreadAtStart()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("bob");
+        var message = await SeedMessageAsync("bob", "Already here", ["test-agent"], body: "Hello");
+
+        // act
+        var result = await AdvanceUntilCompleteAsync(
+            StartInteractiveCommand("agent", "mail", "watch", "--include-existing")
+                .RunToCompletionAsync(TestContext.Current.CancellationToken),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            From: bob
+            To: test-agent
+            Date: 2026-01-01 00:00
+            Subject: Already here
+            Thread: {message.Id}
+
+            Hello
+            """);
+    }
+
+    [Fact]
+    public async Task After_Timestamp_DeliversOnlyMessagesCreatedAfterCursor()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("bob");
+        await SeedMessageAsync("bob", "Before cursor", ["test-agent"]);
+        var cursor = FakeTime.GetUtcNow();
+        FakeTime.Advance(TimeSpan.FromSeconds(10));
+        var after = await SeedMessageAsync("bob", "After cursor", ["test-agent"], body: "fresh");
+
+        // act
+        var result = await AdvanceUntilCompleteAsync(
+            StartInteractiveCommand("agent", "mail", "watch", "--after", cursor.ToString("O"))
+                .RunToCompletionAsync(TestContext.Current.CancellationToken),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            From: bob
+            To: test-agent
+            Date: 2026-01-01 00:00
+            Subject: After cursor
+            Thread: {after.Id}
+
+            fresh
+            """);
+    }
+
+    [Fact]
+    public async Task After_MessageId_ExcludesCursorMessage_And_DeliversLaterOnes()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("bob");
+        var first = await SeedMessageAsync("bob", "First", ["test-agent"]);
+        FakeTime.Advance(TimeSpan.FromSeconds(10));
+        var second = await SeedMessageAsync("bob", "Second", ["test-agent"], body: "fresh");
+
+        // act
+        var result = await AdvanceUntilCompleteAsync(
+            StartInteractiveCommand("agent", "mail", "watch", "--after", first.Id)
+                .RunToCompletionAsync(TestContext.Current.CancellationToken),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            From: bob
+            To: test-agent
+            Date: 2026-01-01 00:00
+            Subject: Second
+            Thread: {second.Id}
+
+            fresh
+            """);
+    }
+
+    [Fact]
+    public async Task After_InvalidCursor_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+
+        // act
+        var result = await AdvanceUntilCompleteAsync(
+            StartInteractiveCommand("agent", "mail", "watch", "--after", "not-a-cursor")
+                .RunToCompletionAsync(TestContext.Current.CancellationToken),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.AssertError(
+            """
+            '--after' cursor 'not-a-cursor' is neither a known message ID nor a valid RFC 3339 timestamp.
+            """);
+    }
+
+    [Fact]
+    public async Task AfterAndIncludeExisting_Combined_ReturnsError()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+
+        // act
+        var result = await AdvanceUntilCompleteAsync(
+            StartInteractiveCommand(
+                    "agent", "mail", "watch", "--after", "2026-01-01T00:00:00Z", "--include-existing")
+                .RunToCompletionAsync(TestContext.Current.CancellationToken),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.AssertError(
+            """
+            Options '--after' and '--include-existing' cannot be combined.
+            """);
+    }
+
+    [Fact]
+    public async Task RestartLossWindow_MessageSentDuringGap_StillSurfaces_When_RespawnedWatcherPassesLastCursor()
+    {
+        // arrange: a first watcher run delivers one message and exits, as
+        // `watch` always does after its first arrival.
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("bob");
+
+        using var firstWatchTokenSource = CreateWatchCancellationTokenSource();
+        var firstRunTask = StartInteractiveCommand("agent", "mail", "watch")
+            .RunToCompletionAsync(firstWatchTokenSource.Token);
+
+        await Task.Delay(50, firstWatchTokenSource.Token);
+        var delivered = await SeedMessageAsync("bob", "First delivery", ["test-agent"]);
+        var firstResult = await AdvanceUntilCompleteAsync(firstRunTask, firstWatchTokenSource.Token);
+        firstResult.AssertSuccess(
+            $"""
+            From: bob
+            To: test-agent
+            Date: 2026-01-01 00:00
+            Subject: First delivery
+            Thread: {delivered.Id}
+
+            body
+            """);
+
+        // The watcher process has now exited ("restarted"). A message sent
+        // in this gap, before any new watcher starts, is the classic loss
+        // window (cross-review M10): a plain restart's baseline snapshot
+        // would treat it as pre-existing at start and never deliver it.
+        var duringGap = await SeedMessageAsync(
+            "bob", "Sent during the gap", ["test-agent"], body: "still here");
+
+        // act: the respawned watcher passes the last-delivered message as
+        // its cursor, so it never loses mail sent during the gap.
+        var secondResult = await AdvanceUntilCompleteAsync(
+            StartInteractiveCommand("agent", "mail", "watch", "--after", delivered.Id)
+                .RunToCompletionAsync(TestContext.Current.CancellationToken),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        secondResult.AssertSuccess(
+            $"""
+            From: bob
+            To: test-agent
+            Date: 2026-01-01 00:00
+            Subject: Sent during the gap
+            Thread: {duringGap.Id}
+
+            still here
             """);
     }
 
