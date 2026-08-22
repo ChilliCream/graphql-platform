@@ -310,8 +310,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("[dim grey58]To[/]", line);
-        Assert.DoesNotContain("[white]To[/]", line);
+        line.MatchInlineSnapshot("    [skyblue1]F[/] [dim grey58]To[/] Subject [dim grey58]now[/]");
     }
 
     [Fact]

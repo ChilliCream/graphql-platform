@@ -122,7 +122,9 @@ internal static class MailMessageBadge
         var toPrefixMarkup = parts.ToPrefix.Length == 0
             ? string.Empty
             : Stylize(ThemeTokens.GetStyle("mail.row.peer.to-prefix").ToMarkup(), Markup.Escape(parts.ToPrefix));
-        var peerMarkup = Stylize(ThemeTokens.GetStyle("mail.row.peer").ToMarkup(), Markup.Escape(parts.PeerText));
+        var peerMarkup = parts.PeerText.Length == 0
+            ? string.Empty
+            : Stylize(ThemeTokens.GetStyle("mail.row.peer").ToMarkup(), Markup.Escape(parts.PeerText));
 
         return toPrefixMarkup + peerMarkup;
     }
