@@ -29,7 +29,7 @@ export interface Topic {
 export const TOPICS: readonly Topic[] = [
   { key: "graphql", label: "GraphQL fundamentals", browseQuery: null },
   { key: "hot-chocolate", label: "Hot Chocolate", browseQuery: "product=hot-chocolate" },
-  { key: "federation", label: "Federation and Fusion", browseQuery: "product=fusion,mocha" },
+  { key: "federation", label: "Federation and Fusion", browseQuery: "product=fusion" },
   { key: "tooling", label: "Tooling and observability", browseQuery: "product=nitro" },
   { key: "ai", label: "AI and agents", browseQuery: null },
 ];
