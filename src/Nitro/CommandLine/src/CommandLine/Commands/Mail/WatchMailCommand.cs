@@ -1,3 +1,4 @@
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -14,16 +15,21 @@ internal sealed class WatchMailCommand : Command
     public WatchMailCommand() : base("watch")
     {
         Description = "Wait for new mail addressed to the acting agent and print it. "
-            + "Messages already unread at start do not trigger; see `inbox --unread` for those. "
+            + "Messages already unread at start do not trigger; see `inbox --unread` for those, "
+            + "or use --after / --include-existing to deliver them here instead. "
             + "Never marks anything read.";
 
         Options.Add(Opt<MailTimeoutOption>.Instance);
+        Options.Add(Opt<MailAfterOption>.Instance);
+        Options.Add(Opt<MailIncludeExistingOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "agent mail watch",
-            "agent mail watch --timeout 30");
+            "agent mail watch --timeout 30",
+            "agent mail watch --after 2026-01-01T00:00:00Z",
+            "agent mail watch --include-existing");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -42,11 +48,28 @@ internal sealed class WatchMailCommand : Command
         var actor = MailActor.Resolve(
             parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
         var timeoutSeconds = parseResult.GetValue(Opt<MailTimeoutOption>.Instance);
+        var afterCursor = parseResult.GetValue(Opt<MailAfterOption>.Instance);
+        var includeExisting = parseResult.GetValue(Opt<MailIncludeExistingOption>.Instance);
+
+        if (afterCursor is not null && includeExisting)
+        {
+            throw new ExitException(
+                $"Options '{MailAfterOption.OptionName}' and '--include-existing' cannot be combined.");
+        }
+
+        var after = afterCursor is null
+            ? default(MailCursor?)
+            : await ResolveCursorAsync(store, afterCursor, cancellationToken);
 
         var baseline = await store.QueryInboxAsync(
             new MailInboxFilter { Actor = actor },
             cancellationToken);
-        var baselineIds = baseline.Select(m => m.Id).ToHashSet();
+
+        HashSet<string> baselineIds = includeExisting
+            ? []
+            : after is { } cursor
+                ? baseline.Where(m => IsAtOrBeforeCursor(m, cursor)).Select(m => m.Id).ToHashSet()
+                : baseline.Select(m => m.Id).ToHashSet();
 
         var deadline = timeoutSeconds is { } seconds
             ? timeProvider.GetUtcNow() + TimeSpan.FromSeconds(seconds)
@@ -145,5 +168,55 @@ internal sealed class WatchMailCommand : Command
         console.WriteLine($"Thread: {message.ThreadId}");
         console.WriteLine();
         console.WriteLine(message.Body);
+    }
+
+    /// <summary>
+    /// A point in the message stream a <c>--after</c> cursor resolved to.
+    /// <see cref="Id"/> is null for a timestamp cursor, which has no
+    /// tiebreak for messages sharing the exact same instant.
+    /// </summary>
+    private readonly record struct MailCursor(DateTimeOffset CreatedAt, string? Id);
+
+    private static async Task<MailCursor> ResolveCursorAsync(
+        IMailStore store,
+        string cursor,
+        CancellationToken cancellationToken)
+    {
+        if (DateTimeOffset.TryParse(
+            cursor,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal,
+            out var timestamp))
+        {
+            return new MailCursor(timestamp.ToUniversalTime(), null);
+        }
+
+        var message = await store.GetMessageAsync(cursor, cancellationToken);
+
+        if (message is null)
+        {
+            throw new ExitException(
+                $"'{MailAfterOption.OptionName}' cursor '{cursor}' is neither a known message ID "
+                + "nor a valid RFC 3339 timestamp.");
+        }
+
+        return new MailCursor(message.CreatedAt, message.Id);
+    }
+
+    /// <summary>
+    /// True when <paramref name="message"/> is at or before the cursor, i.e.
+    /// it was already visible as of the cursor and must not be re-delivered.
+    /// A message cursor excludes exactly the cursor message itself and
+    /// everything earlier; a timestamp cursor excludes everything at or
+    /// before that instant, having no message to tiebreak against.
+    /// </summary>
+    private static bool IsAtOrBeforeCursor(MailMessage message, MailCursor cursor)
+    {
+        if (message.CreatedAt != cursor.CreatedAt)
+        {
+            return message.CreatedAt < cursor.CreatedAt;
+        }
+
+        return cursor.Id is null || string.CompareOrdinal(message.Id, cursor.Id) <= 0;
     }
 }
