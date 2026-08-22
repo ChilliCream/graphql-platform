@@ -35,9 +35,6 @@ internal static class DefaultTheme
         ["board.column.border"] = new Style(Color.Grey),
         ["board.column.border.focused"] = new Style(Color.Aqua),
 
-        ["mail.mailbox.workspace.border"] = new Style(Color.Purple),
-        ["mail.mailbox.workspace.border.focused"] = new Style(Color.Purple, decoration: Decoration.Bold),
-
         ["board.column.status.blocked"] = new Style(Color.Red),
         ["board.column.status.blocked.focused"] = new Style(Color.Red, decoration: Decoration.Bold),
         ["board.column.status.deferred"] = new Style(Color.Yellow),
@@ -77,6 +74,9 @@ internal static class DefaultTheme
         ["agents.list.implicit"] = new Style(decoration: Decoration.Dim),
 
         ["mail.message.unread"] = new Style(decoration: Decoration.Bold),
+
+        ["mail.mailbox.workspace.border"] = new Style(Color.Purple),
+        ["mail.mailbox.workspace.border.focused"] = new Style(Color.MediumOrchid1, decoration: Decoration.Bold),
 
         ["memory.list.type"] = new Style(Color.SkyBlue1),
         ["memory.list.tags"] = new Style(Color.Grey70),

@@ -30,17 +30,39 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// fixed-position exit affordance back to Inbox from
 /// <see cref="MailMailbox.Workspace"/>'s read-only mode (see
 /// <see cref="MailMode"/>'s class doc), rather than being buried in one
-/// combined "jump to a mailbox" hint. This table's hints are static and
+/// combined "jump to a mailbox" hint. This table's bindings are static and
 /// carried once into the tabbed shell's per-tab <see cref="KeyDispatcher"/>
-/// at startup (see <c>AgentTuiLauncher.BuildMailTab</c>), so they cannot
-/// currently vary with the active <see cref="MailMailbox"/>: the footer
-/// cannot yet hide u/a/c/r's hints while <see cref="MailMailbox.Workspace"/>
-/// makes those gestures inert, short of restructuring <see cref="KeyDispatcher"/>
-/// and the shell's footer-hint combining to let a mode override, rather
-/// than only append to, the global table's hints.
+/// at startup (see <c>AgentTuiLauncher.BuildMailTab</c>); the four hints
+/// <see cref="MailMailbox.Workspace"/> makes inert (u, a, r, c) are exposed
+/// here as named constants so <see cref="MailMode.SuppressedGlobalHints"/>
+/// can hide exactly them, by <see cref="KeyHint"/> value equality, from the
+/// footer while that mailbox is active, without this table itself needing
+/// to vary.
 /// </remarks>
 internal static class MailKeyMap
 {
+    /// <summary>
+    /// The footer hint for the u chord, exposed so
+    /// <see cref="MailMode.SuppressedGlobalHints"/> can hide it, by value,
+    /// while <see cref="MailMailbox.Workspace"/> makes the gesture inert.
+    /// </summary>
+    public static readonly KeyHint ToggleReadHint = new("u", "read/unread");
+
+    /// <summary>
+    /// The footer hint for the a chord; see <see cref="ToggleReadHint"/>.
+    /// </summary>
+    public static readonly KeyHint ArchiveHint = new("a", "archive");
+
+    /// <summary>
+    /// The footer hint for the r chord; see <see cref="ToggleReadHint"/>.
+    /// </summary>
+    public static readonly KeyHint ReplyHint = new("r", "reply");
+
+    /// <summary>
+    /// The footer hint for the c chord; see <see cref="ToggleReadHint"/>.
+    /// </summary>
+    public static readonly KeyHint ComposeHint = new("c", "compose");
+
     public static KeyMap CreateDefault() => new(
     [
         new KeyBinding(
@@ -85,19 +107,19 @@ internal static class MailKeyMap
         new KeyBinding(
             new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u'),
             () => new TuiMessage.ToggleReadRequested(),
-            new KeyHint("u", "read/unread")),
+            ToggleReadHint),
         new KeyBinding(
             new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a'),
             () => new TuiMessage.ArchiveRequested(),
-            new KeyHint("a", "archive")),
+            ArchiveHint),
         new KeyBinding(
             new KeyChord(ConsoleKey.R, ConsoleModifiers.None, 'r'),
             () => new TuiMessage.ReplyRequested(),
-            new KeyHint("r", "reply")),
+            ReplyHint),
         new KeyBinding(
             new KeyChord(ConsoleKey.C, ConsoleModifiers.None, 'c'),
             () => new TuiMessage.ComposeRequested(),
-            new KeyHint("c", "compose")),
+            ComposeHint),
         new KeyBinding(
             new KeyChord(ConsoleKey.R, ConsoleModifiers.Shift, 'R'),
             () => new TuiMessage.RefreshRequested()),

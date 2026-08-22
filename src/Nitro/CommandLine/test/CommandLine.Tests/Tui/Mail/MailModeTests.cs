@@ -933,6 +933,44 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public void SuppressedGlobalHints_Should_BeEmpty_When_MailboxIsNotWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act & assert: Inbox is the default mailbox on OnEnter, so u/a/r/c
+        // stay live and their footer hints stay visible.
+        Assert.Empty(mode.SuppressedGlobalHints);
+    }
+
+    [Fact]
+    public void SuppressedGlobalHints_Should_HideToggleReadArchiveReplyAndCompose_When_MailboxIsWorkspace()
+    {
+        // arrange: the same four gestures RefuseIfReadOnly refuses with a
+        // toast in Workspace (see ToggleReadRequested_Should_ShowReadOnlyToast_...
+        // and its siblings above), so their footer hints must go with them.
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var suppressed = mode.SuppressedGlobalHints;
+
+        // assert
+        Assert.Equal(
+        [
+            MailKeyMap.ToggleReadHint,
+            MailKeyMap.ArchiveHint,
+            MailKeyMap.ReplyHint,
+            MailKeyMap.ComposeHint
+        ],
+            suppressed);
+    }
+
+    [Fact]
     public void AgentFilterPickerRequested_Should_ShowWarnToast_When_MailboxIsNotWorkspace()
     {
         // arrange
