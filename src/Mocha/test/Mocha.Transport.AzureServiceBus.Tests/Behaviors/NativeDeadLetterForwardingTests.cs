@@ -45,10 +45,11 @@ public class NativeDeadLetterForwardingTests
         // assert
         Assert.Equal($"{queueName}_error", queue.ForwardDeadLetteredMessagesTo);
 
-        // and the broker reflects it
+        // and the broker reflects it, echoing the target back as an absolute entity URI
         var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         var properties = await adminClient.GetQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
-        Assert.Equal($"{queueName}_error", properties.Value.ForwardDeadLetteredMessagesTo);
+        var forwardedTo = new Uri(properties.Value.ForwardDeadLetteredMessagesTo);
+        Assert.Equal($"/{queueName}_error", forwardedTo.AbsolutePath);
     }
 
     [Fact]

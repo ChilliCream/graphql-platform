@@ -107,10 +107,15 @@ public sealed class AzureServiceBusFixture : IAsyncLifetime
         }
     }
 
+    /// <summary>
+    /// Builds a lower-kebab prefix. Names derived from an entity name, such as the fault queue,
+    /// are run through the naming conventions, which lowercase and replace underscores. Keeping the
+    /// prefix in that shape makes the derived names line up with the entity they were derived from.
+    /// </summary>
     private static string GeneratePrefix(string testName, string filePath)
     {
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(filePath)))[..8];
-        return $"{testName}_{hash}";
+        return $"{testName}-{hash}".ToLowerInvariant().Replace('_', '-');
     }
 }
 

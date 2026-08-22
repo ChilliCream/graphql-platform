@@ -1,6 +1,7 @@
 using HotChocolate.Events.Contracts;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Events;
 
@@ -45,9 +46,13 @@ public readonly record struct DirectiveDefinitionEvent(IDirectiveDefinition Dire
 /// <summary>
 /// Represents an event that is triggered when a directive is encountered during schema validation.
 /// </summary>
+/// <param name="Directive">The applied directive.</param>
+/// <param name="Member">The type system member the directive is applied to.</param>
+/// <param name="Location">The location at which the directive is applied.</param>
 public readonly record struct DirectiveEvent(
     IDirective Directive,
-    ITypeSystemMember Member) : IValidationEvent;
+    ITypeSystemMember Member,
+    DirectiveLocation Location) : IValidationEvent;
 
 /// <summary>
 /// Represents an event that is triggered when an Enum type is encountered during schema validation.

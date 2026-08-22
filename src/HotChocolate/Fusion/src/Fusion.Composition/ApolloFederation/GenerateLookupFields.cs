@@ -54,10 +54,10 @@ internal static class GenerateLookupFields
             synthesizedQuery = true;
         }
 
-        var internalDef = new MutableDirectiveDefinition("internal");
-        var lookupDef = new MutableDirectiveDefinition("lookup");
-        var isDef = new MutableDirectiveDefinition("is");
-        var shareableDef = new MutableDirectiveDefinition("shareable");
+        var internalDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Internal];
+        var lookupDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Lookup];
+        var isDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Is];
+        var shareableDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Shareable];
 
         // Generated input object types are cached by name so that repeated
         // references to the same nested shape share a single input type.

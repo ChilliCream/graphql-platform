@@ -6,6 +6,14 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Runtime;
 public sealed class TaskDbWatcherTests : IDisposable
 {
     private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(50);
+
+    /// <summary>
+    /// The debounce used by the coalescing test. It is far wider than the time the burst takes to
+    /// write so that neither file system event delivery nor a scheduler delay stretched by a loaded
+    /// machine can push two writes of the same burst into separate debounce windows.
+    /// </summary>
+    private static readonly TimeSpan BurstDebounce = TimeSpan.FromMilliseconds(500);
+
     private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
 
     private readonly string _directory =
@@ -72,7 +80,7 @@ public sealed class TaskDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new TaskDbWatcher(databasePath, Debounce);
+        var watcher = new TaskDbWatcher(databasePath, BurstDebounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -80,19 +88,20 @@ public sealed class TaskDbWatcherTests : IDisposable
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
         await Task.Delay(Debounce, testToken);
 
-        // A burst of writes to the db and its WAL/SHM siblings within one debounce
-        // window resets the same timer rather than each scheduling its own event.
+        // A burst of writes to the db and its WAL sibling within one debounce window resets the
+        // same timer rather than each write scheduling its own event. The writes are issued back
+        // to back so that the burst cannot be stretched across two windows by a delay that a
+        // loaded machine overruns.
         for (var i = 0; i < 5; i++)
         {
             File.WriteAllText(databasePath, "changed-" + i);
             File.WriteAllText(databasePath + "-wal", "wal-" + i);
-            await Task.Delay(Debounce / 5, testToken);
         }
 
         var first = await ReadOneAsync(channel.Reader, testToken);
 
         // No further event should follow once the burst settles.
-        await Task.Delay(Debounce * 4, testToken);
+        await Task.Delay(BurstDebounce * 2, testToken);
         cts.Cancel();
         await runTask;
 

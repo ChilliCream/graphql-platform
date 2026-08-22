@@ -12,6 +12,12 @@ internal static class Utf8Helper
 {
     public static void Validate(ReadOnlySpan<byte> escapedString, bool isBlockString)
     {
+        if (isBlockString)
+        {
+            // Within a block string `\"""` is the only escape sequence and it never fails.
+            return;
+        }
+
         var position = 0;
         var highSurrogate = -1;
 
@@ -31,19 +37,6 @@ internal static class Utf8Helper
             }
 
             var code = escapedString[position++];
-            if (isBlockString && code == GraphQLCharacters.Quote)
-            {
-                if (position + 1 >= escapedString.Length
-                    || escapedString[position] != GraphQLCharacters.Quote
-                    || escapedString[position + 1] != GraphQLCharacters.Quote)
-                {
-                    throw new Utf8EncodingException(Utf8Helper_InvalidQuoteEscapeCount);
-                }
-
-                position += 2;
-                continue;
-            }
-
             if (code == GraphQLCharacters.U)
             {
                 if (position + 3 >= escapedString.Length)
@@ -272,6 +265,12 @@ internal static class Utf8Helper
         ref int highSurrogate,
         bool isBlockString)
     {
+        if (isBlockString)
+        {
+            ProcessBlockStringEscapeSequence(escaped, unescaped, ref readPos, ref writePos);
+            return;
+        }
+
         if (readPos + 1 >= escaped.Length)
         {
             throw new Utf8EncodingException(
@@ -283,14 +282,39 @@ internal static class Utf8Helper
         var code = escaped[readPos++];
 
         // Hot path: simple escape characters (most common)
-        if (code != GraphQLCharacters.U && !isBlockString && code.IsValidEscapeCharacter())
+        if (code != GraphQLCharacters.U && code.IsValidEscapeCharacter())
         {
             unescaped[writePos++] = code.EscapeCharacter();
             return;
         }
 
-        // Cold path: unicode, block strings, and error handling
-        ProcessEscapeSequenceCold(escaped, unescaped, ref readPos, ref writePos, ref highSurrogate, isBlockString, code);
+        // Cold path: unicode and error handling
+        ProcessEscapeSequenceCold(escaped, unescaped, ref readPos, ref writePos, ref highSurrogate, code);
+    }
+
+    // Within a block string `\"""` is the only escape sequence, every other
+    // backslash is a literal character.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ProcessBlockStringEscapeSequence(
+        in ReadOnlySpan<byte> escaped,
+        Span<byte> unescaped,
+        ref int readPos,
+        ref int writePos)
+    {
+        if (readPos + 3 < escaped.Length
+            && escaped[readPos + 1] == GraphQLCharacters.Quote
+            && escaped[readPos + 2] == GraphQLCharacters.Quote
+            && escaped[readPos + 3] == GraphQLCharacters.Quote)
+        {
+            readPos += 4;
+            unescaped[writePos++] = GraphQLCharacters.Quote;
+            unescaped[writePos++] = GraphQLCharacters.Quote;
+            unescaped[writePos++] = GraphQLCharacters.Quote;
+            return;
+        }
+
+        readPos++;
+        unescaped[writePos++] = GraphQLCharacters.Backslash;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -300,26 +324,9 @@ internal static class Utf8Helper
         ref int readPos,
         ref int writePos,
         ref int highSurrogate,
-        bool isBlockString,
         byte code)
     {
-        if (isBlockString && code == GraphQLCharacters.Quote)
-        {
-            if (readPos + 1 < escaped.Length
-                && escaped[readPos] == GraphQLCharacters.Quote
-                && escaped[readPos + 1] == GraphQLCharacters.Quote)
-            {
-                readPos += 2;
-                unescaped[writePos++] = GraphQLCharacters.Quote;
-                unescaped[writePos++] = GraphQLCharacters.Quote;
-                unescaped[writePos++] = GraphQLCharacters.Quote;
-            }
-            else
-            {
-                throw new Utf8EncodingException(Utf8Helper_InvalidQuoteEscapeCount);
-            }
-        }
-        else if (code == GraphQLCharacters.U)
+        if (code == GraphQLCharacters.U)
         {
             if (readPos + 3 >= escaped.Length)
             {
@@ -364,11 +371,6 @@ internal static class Utf8Helper
                 }
                 UnescapeUtf8Hex(unicodeDecimal, ref writePos, unescaped);
             }
-        }
-        else if (code.IsValidEscapeCharacter())
-        {
-            // Block string with non-quote, non-unicode escape
-            unescaped[writePos++] = code.EscapeCharacter();
         }
         else
         {
