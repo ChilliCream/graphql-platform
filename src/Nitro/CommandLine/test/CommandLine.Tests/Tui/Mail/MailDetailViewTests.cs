@@ -21,6 +21,13 @@ public sealed class MailDetailViewTests
 
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
+
+        // MailState defaults to MailListMode.Threads, where selecting a
+        // single-message thread's row still defaults the detail pane to
+        // MailViewMode.Thread (see MailState's class remarks); most of this
+        // file exercises the single-message view specifically, so switch
+        // back the same manual way a "t" keypress would.
+        state.ShowMessage();
         return state;
     }
 
@@ -128,6 +135,7 @@ public sealed class MailDetailViewTests
             ]));
         var state = new MailState("orchestrator", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
 
@@ -157,6 +165,7 @@ public sealed class MailDetailViewTests
         // Archived messages drop out of the default Inbox mailbox; Workspace
         // shows every message regardless of archived state.
         await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
 
@@ -183,6 +192,7 @@ public sealed class MailDetailViewTests
         // Alice sent this message, so it never appears in her own Inbox
         // (she is not a recipient); Sent carries messages she sent.
         await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
 
@@ -207,6 +217,7 @@ public sealed class MailDetailViewTests
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
         var clientsByName = new Dictionary<string, string>
@@ -235,6 +246,7 @@ public sealed class MailDetailViewTests
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
         // bob maps to an empty client; alice has no entry at all - both must
@@ -267,6 +279,7 @@ public sealed class MailDetailViewTests
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
         var clientsByName = new Dictionary<string, string> { ["bob"] = "claude-opus-5[1m]" };
@@ -363,6 +376,7 @@ public sealed class MailDetailViewTests
             ]));
         var state = new MailState("orchestrator", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
+        state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
 

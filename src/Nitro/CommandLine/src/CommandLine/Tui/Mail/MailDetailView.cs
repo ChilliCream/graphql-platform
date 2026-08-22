@@ -151,8 +151,15 @@ internal sealed class MailDetailView
     {
         if (state.ViewMode == MailViewMode.Thread)
         {
-            return state.SelectedMessage is { } message
-                ? $"Thread: {Markup.Escape(message.Subject)}"
+            // ThreadMessages, not SelectedMessage: a collapsed thread row's
+            // ViewMode defaults to Thread the moment it is selected (see
+            // MailState's class remarks), and every message in a thread
+            // shares one subject (ReplyMessageAsync inherits it from the
+            // root), so this is equivalent to the old SelectedMessage-based
+            // header whenever a message row set it, and correct for a
+            // thread-row selection too.
+            return state.ThreadMessages.Count > 0
+                ? $"Thread: {Markup.Escape(state.ThreadMessages[0].Subject)}"
                 : "Thread";
         }
 

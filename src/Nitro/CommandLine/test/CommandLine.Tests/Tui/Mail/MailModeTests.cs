@@ -205,6 +205,10 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        // Threads mode (the default) already defaults a single-message
+        // thread's row to Thread view; flip to Flat mode so this exercises
+        // the message-selected-then-toggle-to-thread path.
+        mode.State.ToggleListMode();
 
         // act
         var followUp = mode.Handle(new TuiMessage.ToggleMaximize());
@@ -239,6 +243,10 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        // Threads mode (the default) already defaults a single-message
+        // thread's row to Thread view; flip to Flat mode first so the
+        // arrange toggle is the one that enters Thread view.
+        mode.State.ToggleListMode();
         mode.Handle(new TuiMessage.ToggleMaximize());
 
         // act
@@ -297,8 +305,11 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert
-        Assert.Contains("Inbox (1)", console.Output);
+        // assert: the default mailbox is Workspace, rendered as a threaded
+        // table with a heading row above the sender/subject/etc. columns.
+        Assert.Contains("Workspace (1)", console.Output);
+        Assert.Contains("From", console.Output);
+        Assert.Contains("Subject", console.Output);
         Assert.Contains("sender", console.Output);
     }
 
@@ -313,6 +324,7 @@ public sealed class MailModeTests
         registry.Agents.Add(Agent("bob") with { Client = "codex" });
         var mode = CreateMode(store, agentRegistry: registry);
         mode.OnEnter();
+        mode.State.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var console = new TestConsole().Width(100).Height(20);
 
         // act
@@ -354,6 +366,7 @@ public sealed class MailModeTests
             "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store, agentRegistry: new FakeAgentRegistry());
         mode.OnEnter();
+        mode.State.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var console = new TestConsole().Width(100).Height(20);
 
         // act
@@ -380,9 +393,11 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void OnEnter_Should_LoadTheActorsInbox()
+    public void OnEnter_Should_DefaultToWorkspaceMailbox()
     {
-        // arrange
+        // arrange: Workspace shows every agent's mail, unlike Inbox which
+        // would show only alice's; this is the epic's user ruling that
+        // Workspace, not Inbox, is the mail board's default mailbox.
         var store = new FakeMailStore();
         AddMessage(store, "m-1", Now);
         AddMessage(store, "m-2", Now, actor: "bob");
@@ -390,6 +405,24 @@ public sealed class MailModeTests
 
         // act
         mode.OnEnter();
+
+        // assert
+        Assert.Equal(MailMailbox.Workspace, mode.State.Mailbox);
+        Assert.Equal(["m-2", "m-1"], mode.State.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public void OnEnter_Should_LoadTheActorsInbox_When_InboxIsSelected()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-2", Now, actor: "bob");
+        var mode = CreateMode(store, actor: "alice");
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.SelectInboxRequested());
 
         // assert
         Assert.Equal(["m-1"], mode.State.Messages.Select(m => m.Id));
@@ -403,6 +436,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
         // act
         mode.Handle(new TuiMessage.OpenSelected());
@@ -420,6 +454,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
         // act
         var followUp = mode.Handle(new TuiMessage.ToggleReadRequested());
@@ -439,6 +474,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ToggleReadRequested());
 
         // act
@@ -473,6 +509,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
         // act
         var followUp = mode.Handle(new TuiMessage.ArchiveRequested());
@@ -507,6 +544,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ArchiveRequested());
 
         // act: Enter confirms from the dialog's initially focused (empty) reason field.
@@ -527,6 +565,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ArchiveRequested());
 
         // act
@@ -546,6 +585,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
         // act
         var followUp = mode.Handle(new TuiMessage.ComposeRequested());
@@ -562,6 +602,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, "bob");
         mode.HandleRawKey(Key(ConsoleKey.Tab));
@@ -590,6 +631,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, ",");
         mode.HandleRawKey(Key(ConsoleKey.Tab));
@@ -614,6 +656,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
 
         // act
@@ -631,6 +674,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, "bob");
 
@@ -649,6 +693,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, "bob");
         mode.HandleRawKey(Key(ConsoleKey.Escape));
@@ -668,6 +713,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, "bob");
         mode.HandleRawKey(Key(ConsoleKey.Escape));
@@ -690,6 +736,7 @@ public sealed class MailModeTests
             "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
         Assert.Empty(mode.State.Messages); // alice is not a recipient of m-1
 
         // act
@@ -823,6 +870,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ReplyRequested());
         Type(mode, "On it.");
 
@@ -1002,9 +1050,10 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
-        // act & assert: Inbox is the default mailbox on OnEnter, so u/a/r/c
-        // stay live and their footer hints stay visible.
+        // act & assert: outside Workspace, u/a/r/c stay live and their
+        // footer hints stay visible.
         Assert.Empty(mode.SuppressedGlobalHints);
     }
 
@@ -1040,6 +1089,7 @@ public sealed class MailModeTests
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace is the default mailbox
 
         // act
         var followUp = mode.Handle(new TuiMessage.AgentFilterPickerRequested());
@@ -1231,15 +1281,14 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void Render_Should_ApplyAnsiStyling_ToRowGlyphPeerAndAgeTokens_When_MessageReceived()
+    public void Render_Should_ApplyAnsiStyling_ToRowGlyphFromToAndAgeTokens_When_MessageReceived()
     {
         // arrange: alice receives two messages, each as its sole recipient,
-        // so both rows carry the direct glyph, the plain peer token (no
-        // "To " prefix), and the age token. A second message so at least
-        // one row is unselected: the default-selected row 0 merges its
-        // token color with selection.highlight's background into one ANSI
-        // sequence, which would not match a token's style checked in
-        // isolation.
+        // so both rows carry the direct glyph and the From/To/age tokens. A
+        // second message so at least one row is unselected: the
+        // default-selected row 0 merges its token color with
+        // selection.highlight's background into one ANSI sequence, which
+        // would not match a token's style checked in isolation.
         var store = new FakeMailStore();
         AddMessage(store, "m-1", Now);
         AddMessage(store, "m-2", Now.AddMinutes(1));
@@ -1254,16 +1303,20 @@ public sealed class MailModeTests
         // missing token name on any of these columns would still leave
         // every plain-text Contains assertion elsewhere green.
         AssertAnsiStyleApplied(console.Output, "mail.row.glyph.direct");
-        AssertAnsiStyleApplied(console.Output, "mail.row.peer");
+        AssertAnsiStyleApplied(console.Output, "mail.row.from");
+        AssertAnsiStyleApplied(console.Output, "mail.row.to");
         AssertAnsiStyleApplied(console.Output, "mail.row.age");
     }
 
     [Fact]
-    public void Render_Should_ApplyAnsiStyling_ToToPrefixToken_When_ActorSentTheMessage()
+    public void Render_Should_ApplyFromMeToken_NotThePlainFromToken_When_ActorSentTheMessage()
     {
         // arrange: two sent messages so at least one row is unselected; see
-        // Render_Should_ApplyAnsiStyling_ToRowGlyphPeerAndAgeTokens_When_MessageReceived
-        // for why the selected row's merged style would not match.
+        // Render_Should_ApplyAnsiStyling_ToRowGlyphFromToAndAgeTokens_When_MessageReceived
+        // for why the selected row's merged style would not match. The
+        // table shows literal From/To columns now (no swapped Peer column),
+        // so alice's own name in the From column gets the distinct
+        // mail.row.from.me token instead of the plain mail.row.from one.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
@@ -1277,15 +1330,8 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: mail.row.peer.to-prefix's escape sequence can already be
-        // present elsewhere in the frame regardless of whether the "To "
-        // label itself carries the style, so pin the assertion to the
-        // escape sequence appearing immediately before the "To " text.
-        var style = ThemeTokens.GetStyle("mail.row.peer.to-prefix");
-        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
-        styleConsole.Write(new Markup("x", style));
-        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
-        Assert.Contains(ansiPrefix + "To ", console.Output);
+        // assert
+        AssertAnsiStyleApplied(console.Output, "mail.row.from.me");
         AssertAnsiStyleApplied(console.Output, "mail.row.glyph.from-me");
     }
 
@@ -1323,5 +1369,210 @@ public sealed class MailModeTests
         Assert.True(textIndex > ansiIndex, "Expected the header text to follow the styled run.");
         var runStart = ansiIndex + ansiPrefix.Length;
         Assert.Equal(-1, console.Output.IndexOf('\u001b', runStart, textIndex - runStart));
+    }
+
+    [Fact]
+    public void ToggleListModeRequested_Should_SwitchBetweenThreadsAndFlatListMode()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        Assert.Equal(MailListMode.Threads, mode.State.ListMode);
+
+        // act
+        mode.Handle(new TuiMessage.ToggleListModeRequested());
+
+        // assert
+        Assert.Equal(MailListMode.Flat, mode.State.ListMode);
+
+        // act again
+        mode.Handle(new TuiMessage.ToggleListModeRequested());
+
+        // assert
+        Assert.Equal(MailListMode.Threads, mode.State.ListMode);
+    }
+
+    [Fact]
+    public void FoldPrefixRequested_Should_EnterCapturingState()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.FoldPrefixRequested());
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.True(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void FoldPrefixRequested_Should_ShowWarnToast_When_ListModeIsFlat()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleListModeRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.FoldPrefixRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
+        Assert.False(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void FoldPrefixThenO_Should_ExpandTheSelectedThread()
+    {
+        // arrange: a two-message thread so expanding is observable as an
+        // extra row.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        Assert.Single(mode.State.Rows); // one collapsed thread row
+
+        // act: z then o (open/expand)
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        mode.HandleRawKey(Key('o'));
+
+        // assert
+        Assert.False(mode.IsInputCapturing);
+        Assert.Equal(3, mode.State.Rows.Count); // thread row + its two messages
+    }
+
+    [Fact]
+    public void FoldPrefixThenC_Should_CollapseAnExpandedThread()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.State.ExpandThread("t-1");
+        Assert.Equal(3, mode.State.Rows.Count);
+
+        // act: z then c (close/collapse)
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        mode.HandleRawKey(Key('c'));
+
+        // assert
+        Assert.Single(mode.State.Rows);
+    }
+
+    [Fact]
+    public void FoldPrefixThenA_Should_ToggleTheSelectedThread()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act: z then a (toggle) twice
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        mode.HandleRawKey(Key('a'));
+        Assert.Equal(3, mode.State.Rows.Count);
+
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        mode.HandleRawKey(Key('a'));
+
+        // assert
+        Assert.Single(mode.State.Rows);
+    }
+
+    [Fact]
+    public void FoldPrefixThenShiftRAndShiftM_Should_ExpandAndCollapseEveryThread()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-2", Now.AddMinutes(1));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        Assert.Equal(2, mode.State.Rows.Count); // two collapsed singleton threads
+
+        // act: z then Shift+R (unfold all)
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        mode.HandleRawKey(new ConsoleKeyInfo('R', ConsoleKey.R, shift: true, alt: false, control: false));
+
+        // assert: each thread row now has its one message as an indented
+        // child row too, so the row count doubles.
+        Assert.Equal(4, mode.State.Rows.Count);
+        var threadRows = mode.State.Rows.OfType<MailListRow.Thread>().ToList();
+        Assert.Equal(2, threadRows.Count);
+        Assert.All(threadRows, row => Assert.True(row.Expanded));
+
+        // act: z then Shift+M (fold all)
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        mode.HandleRawKey(new ConsoleKeyInfo('M', ConsoleKey.M, shift: true, alt: false, control: false));
+
+        // assert
+        Assert.All(mode.State.Rows, row => Assert.False(((MailListRow.Thread)row).Expanded));
+    }
+
+    [Fact]
+    public void FoldPrefixThenUnrecognizedKey_Should_CancelWithNoAction()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act: z then Escape - vim's own za/zo/zc/zR/zM has no error toast
+        // for an unrecognized second key.
+        mode.Handle(new TuiMessage.FoldPrefixRequested());
+        var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.False(mode.IsInputCapturing);
+        Assert.Single(mode.State.Rows);
+    }
+
+    [Fact]
+    public void Render_Should_ShowUnreadToMeHighlight_InWorkspace_ForAMessageAddressedToTheActor_And_NotForAThirdPartyMessage()
+    {
+        // arrange: m-1 is unread and addressed to alice (the actor); m-2 is
+        // unread between two other agents and never addresses alice at all.
+        // Workspace shows both, but only m-1's row may carry the
+        // unread-to-me highlight (epic wi3 convention 8: never another
+        // agent's read state).
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        Assert.Equal(MailMailbox.Workspace, mode.State.Mailbox);
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert: exactly one unread-to-me marker, not two.
+        var markerCount = console.Output.Split('\u25cf').Length - 1;
+        Assert.Equal(1, markerCount);
     }
 }
