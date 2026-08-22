@@ -93,7 +93,7 @@ internal static class AgentRowBadge
 
         var nameStyle = ThemeTokens.GetStyle("agents.list.name").ToMarkup();
         var clientStyle = ThemeTokens.GetStyle("agents.list.client").ToMarkup();
-        var roleStyle = ThemeTokens.GetStyle("agents.list.role").ToMarkup();
+        var roleStyle = RoleStyle(agent.Role).ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
 
         var line =
@@ -117,6 +117,29 @@ internal static class AgentRowBadge
         }
 
         return line;
+    }
+
+    /// <summary>
+    /// Resolves the theme style for <paramref name="role"/>: a per-role
+    /// <c>agents.list.role.&lt;role&gt;</c> token keyed by the lowercased
+    /// role text, falling back to the base <c>agents.list.role</c> token
+    /// when no dedicated color is registered (including for the empty
+    /// role). Shared with <see cref="AgentDetailBody"/> so the list and the
+    /// Identity section agree on a role's color.
+    /// </summary>
+    public static Style RoleStyle(string role)
+    {
+        if (role.Length > 0)
+        {
+            var perRole = ThemeTokens.GetStyle($"agents.list.role.{role.ToLowerInvariant()}");
+
+            if (perRole != Style.Plain)
+            {
+                return perRole;
+            }
+        }
+
+        return ThemeTokens.GetStyle("agents.list.role");
     }
 
     private static string RoleText(AgentRecord agent) => agent.Role.Length == 0 ? EmptyRole : agent.Role;

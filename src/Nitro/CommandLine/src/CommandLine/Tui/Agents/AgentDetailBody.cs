@@ -57,17 +57,31 @@ internal static class AgentDetailBody
             return [];
         }
 
+        var roleStyle = AgentRowBadge.RoleStyle(agent.Role).ToMarkup();
+        var clientStyle = ThemeTokens.GetStyle("agents.list.client").ToMarkup();
+
         var body = new List<TaskDetailBodyLine>
         {
             new($"Name: {agent.Name}", false),
-            new($"Role: {(agent.Role.Length == 0 ? "-" : agent.Role)}", false),
-            new($"Client: {(agent.Client.Length == 0 ? "-" : agent.Client)}", false),
+            new($"Role: {StyledValue(roleStyle, agent.Role.Length == 0 ? "-" : agent.Role)}", true),
+            new($"Client: {StyledValue(clientStyle, agent.Client.Length == 0 ? "-" : agent.Client)}", true),
             new($"Implicit: {(agent.Implicit ? "yes" : "no")}", false),
             new($"Registered: {TaskDates.Format(agent.RegisteredAt)}", false),
             new($"Last seen: {TaskDates.Format(agent.LastSeenAt)}", false)
         };
 
         return WithStyledHeader("Identity", body);
+    }
+
+    /// <summary>
+    /// Wraps an escaped <paramref name="value"/> in <paramref name="styleMarkup"/>,
+    /// mirroring the field-value styling <see cref="AgentRowBadge"/> applies to
+    /// list rows so the Identity section agrees with it.
+    /// </summary>
+    private static string StyledValue(string styleMarkup, string value)
+    {
+        var text = Markup.Escape(value);
+        return styleMarkup.Length == 0 ? text : $"[{styleMarkup}]{text}[/]";
     }
 
     private static IReadOnlyList<TaskDetailBodyLine> TasksSection(IReadOnlyList<TaskItem> tasks, int width)
