@@ -212,14 +212,21 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        _topology.GetOrAddQueue(
+        var queue = _topology.GetOrAddQueue(
             postgresConfiguration.QueueName,
             _ => new PostgresQueueConfiguration
             {
-                AutoDelete = postgresEndpoint.Kind == ReceiveEndpointKind.Reply,
+                AutoDelete = postgresConfiguration.IsTemporary,
                 AutoProvision = postgresConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });
+
+        if (postgresConfiguration.IsTemporary && queue.AutoDelete == false)
+        {
+            throw new InvalidOperationException(
+                $"Receive endpoint '{postgresConfiguration.Name}' is marked Temporary(), but its queue "
+                    + $"'{postgresConfiguration.QueueName}' is explicitly configured with AutoDelete(false).");
+        }
 
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
