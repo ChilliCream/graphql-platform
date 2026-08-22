@@ -1,4 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
+using Spectre.Console;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
@@ -6,6 +8,24 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 public sealed class MailDetailViewTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    /// <summary>
+    /// Asserts the ANSI escape sequence for <paramref name="token"/>'s style
+    /// appears in <paramref name="output"/>. A plain <see cref="TestConsole"/>
+    /// (as used by every other test in this file) strips markup entirely, so
+    /// a wrong or missing token name would still leave every plain-text
+    /// <c>Contains</c> assertion elsewhere green; <paramref name="output"/>
+    /// must come from a console built with <c>.Colors(ColorSystem.TrueColor)</c>
+    /// and <c>.EmitAnsiSequences()</c>.
+    /// </summary>
+    private static void AssertAnsiStyleApplied(string output, string token)
+    {
+        var style = ThemeTokens.GetStyle(token);
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix, output);
+    }
 
     private static async Task<MailState> CreateStateWithMessageAsync(FakeMailStore store, string body = "Hello there.")
     {
@@ -253,9 +273,10 @@ public sealed class MailDetailViewTests
     public async Task Render_Should_ShowBracketsLiterally_When_ClientContainsMarkupSyntax()
     {
         // arrange - a client like "claude-opus-5[1m]" is agent-supplied and
-        // must never be parsed as Spectre markup; RenderVisibleLines escapes
-        // every line exactly once before it becomes a Row, so it must render
-        // literally, with neither a crash nor doubled brackets.
+        // must never be parsed as Spectre markup; FieldLine escapes it via
+        // Markup.Escape before embedding it in already-markup content (see
+        // AttributeClient's own doc), so it must render literally, with
+        // neither a crash nor doubled brackets.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
@@ -323,5 +344,51 @@ public sealed class MailDetailViewTests
         Assert.Null(exception);
         var lineCount = console.Output.Split('\n').Length;
         Assert.True(lineCount <= 21, $"Expected the panel to stay within its height budget, but got {lineCount} lines.");
+    }
+
+    [Fact]
+    public async Task Render_Should_ApplyAnsiStyling_ToFieldLabelToken()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var state = await CreateStateWithMessageAsync(store);
+        var view = new MailDetailView();
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true));
+
+        // assert: a plain TestConsole strips markup entirely, so a wrong or
+        // missing detail.section.header token on the From/To/Date labels
+        // would still leave every plain-text Contains assertion elsewhere
+        // green.
+        AssertAnsiStyleApplied(console.Output, "detail.section.header");
+    }
+
+    [Fact]
+    public async Task Render_Should_ApplyAnsiStyling_ToRecipientStateTokens_ForUnreadAndRead()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients:
+            [
+                MailMessageBuilder.ToRecipient("orchestrator", ordinal: 0, readAt: Now.AddHours(14).AddMinutes(2)),
+                MailMessageBuilder.ToRecipient("planner-1", ordinal: 1)
+            ]));
+        var state = new MailState("orchestrator", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true));
+
+        // assert
+        AssertAnsiStyleApplied(console.Output, "mail.detail.recipient.read");
+        AssertAnsiStyleApplied(console.Output, "mail.detail.recipient.unread");
     }
 }

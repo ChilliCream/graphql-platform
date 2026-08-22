@@ -1,7 +1,9 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Microsoft.Extensions.Time.Testing;
+using Spectre.Console;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -34,6 +36,24 @@ public sealed class AgentsModeTests
         var console = new TestConsole().Width(width);
         console.Write(mode.Render(width, height));
         return console.Output;
+    }
+
+    /// <summary>
+    /// Asserts the ANSI escape sequence for <paramref name="token"/>'s style
+    /// appears in <paramref name="output"/>. A plain <see cref="TestConsole"/>
+    /// (as used by <see cref="RenderToText"/>) strips markup entirely, so a
+    /// wrong or missing token name would still leave every plain-text
+    /// <c>Contains</c> assertion elsewhere green; <paramref name="output"/>
+    /// must come from a console built with <c>.Colors(ColorSystem.TrueColor)</c>
+    /// and <c>.EmitAnsiSequences()</c>.
+    /// </summary>
+    private static void AssertAnsiStyleApplied(string output, string token)
+    {
+        var style = ThemeTokens.GetStyle(token);
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix, output);
     }
 
     [Fact]
@@ -201,18 +221,24 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ShowDash_When_RoleEmpty()
     {
-        // arrange
+        // arrange: a non-empty client so the role's own dash is the second
+        // dash on the row, distinct from the client column's dash (which
+        // "agent-a" alone would also match here now that client sits
+        // between name and role). A wider console than the other row tests
+        // use, so the long client value doesn't eat the role column's
+        // truncation budget down to nothing.
         var registry = new FakeAgentRegistry();
-        registry.Agents.Add(Agent("agent-a"));
+        registry.Agents.Add(Agent("agent-a", client: "claude-code"));
         var mode = CreateMode(registry);
         mode.OnEnter();
-        var console = new TestConsole().Width(80).Height(20);
 
         // act
-        console.Write(mode.Render(80, 20));
+        var text = RenderToText(mode, 100, 20);
+        var row = Assert.Single(text.Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
 
-        // assert
-        Assert.Contains("agent-a -", console.Output);
+        // assert: the client column shows its own value, followed by a dash
+        // for the empty role column.
+        Assert.Contains("claude-code -", row);
     }
 
     [Fact]
@@ -223,13 +249,15 @@ public sealed class AgentsModeTests
         registry.Agents.Add(Agent("agent-a", role: "backend", client: "claude-code"));
         var mode = CreateMode(registry);
         mode.OnEnter();
-        var console = new TestConsole().Width(80).Height(20);
 
         // act
-        console.Write(mode.Render(80, 20));
+        var text = RenderToText(mode, 100, 20);
+        var row = Assert.Single(text.Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
 
-        // assert
-        Assert.Contains("claude-code", console.Output);
+        // assert: the client shows in the list row itself, not just the
+        // detail pane's Identity section (which would also satisfy a
+        // whole-frame Contains).
+        Assert.Contains("claude-code", row);
     }
 
     [Fact]
@@ -491,5 +519,67 @@ public sealed class AgentsModeTests
         Assert.Equal(
             shortNameRow.IndexOf("reg ", StringComparison.Ordinal),
             longNameRow.IndexOf("reg ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToNameAndClientTokens_InTheListRow()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend", client: "claude-code"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
+
+        // act
+        console.Write(mode.Render(80, 20));
+
+        // assert: the plain TestConsole every other render test uses strips
+        // markup entirely, so a wrong or missing token name here would still
+        // leave every plain-text Contains assertion elsewhere green.
+        AssertAnsiStyleApplied(console.Output, "agents.list.name");
+        AssertAnsiStyleApplied(console.Output, "agents.list.client");
+    }
+
+    [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToPerRoleToken_When_RoleHasADedicatedColor()
+    {
+        // arrange: "orchestrator" is one of the roles with its own token
+        // (agents.list.role.orchestrator); no existing test exercises that
+        // per-role branch of AgentRowBadge.RoleStyle end to end, only the
+        // plain fallback.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "orchestrator"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
+
+        // act
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        Assert.NotEqual(
+            ThemeTokens.GetStyle("agents.list.role"),
+            ThemeTokens.GetStyle("agents.list.role.orchestrator"));
+        AssertAnsiStyleApplied(console.Output, "agents.list.role.orchestrator");
+    }
+
+    [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToBaseRoleToken_When_RoleHasNoDedicatedColor()
+    {
+        // arrange: "backend" has no per-role token, so RoleStyle must fall
+        // back to the plain agents.list.role token rather than rendering
+        // unstyled.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        var mode = CreateMode(registry);
+        mode.OnEnter();
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(80).Height(20);
+
+        // act
+        console.Write(mode.Render(80, 20));
+
+        // assert
+        AssertAnsiStyleApplied(console.Output, "agents.list.role");
     }
 }

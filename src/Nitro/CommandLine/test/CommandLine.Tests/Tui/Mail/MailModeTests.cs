@@ -45,6 +45,23 @@ public sealed class MailModeTests
         }
     }
 
+    /// <summary>
+    /// Asserts the ANSI escape sequence for <paramref name="token"/>'s style
+    /// appears in <paramref name="output"/>. A plain <see cref="TestConsole"/>
+    /// strips markup entirely, so a wrong or missing token name would still
+    /// leave every plain-text <c>Contains</c> assertion elsewhere green;
+    /// <paramref name="output"/> must come from a console built with
+    /// <c>.Colors(ColorSystem.TrueColor)</c> and <c>.EmitAnsiSequences()</c>.
+    /// </summary>
+    private static void AssertAnsiStyleApplied(string output, string token)
+    {
+        var style = ThemeTokens.GetStyle(token);
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix, output);
+    }
+
     [Fact]
     public void MoveSelection_Should_ClampAtLastRow_When_MovingDownPastEnd()
     {
@@ -1227,5 +1244,93 @@ public sealed class MailModeTests
 
         // assert
         Assert.Null(mode.State.AgentFilter);
+    }
+
+    [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToRowGlyphPeerAndAgeTokens_When_MessageReceived()
+    {
+        // arrange: alice receives two messages, each as its sole recipient,
+        // so both rows carry the direct glyph, the plain peer token (no
+        // "To " prefix), and the age token. A second message so at least
+        // one row is unselected: the default-selected row 0 merges its
+        // token color with selection.highlight's background into one ANSI
+        // sequence, which would not match a token's style checked in
+        // isolation.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-2", Now.AddMinutes(1));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert: a plain TestConsole strips markup entirely, so a wrong or
+        // missing token name on any of these columns would still leave
+        // every plain-text Contains assertion elsewhere green.
+        AssertAnsiStyleApplied(console.Output, "mail.row.glyph.direct");
+        AssertAnsiStyleApplied(console.Output, "mail.row.peer");
+        AssertAnsiStyleApplied(console.Output, "mail.row.age");
+    }
+
+    [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToToPrefixToken_When_ActorSentTheMessage()
+    {
+        // arrange: two sent messages so at least one row is unselected; see
+        // Render_Should_ApplyAnsiStyling_ToRowGlyphPeerAndAgeTokens_When_MessageReceived
+        // for why the selected row's merged style would not match.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "alice", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectSentRequested());
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        AssertAnsiStyleApplied(console.Output, "mail.row.peer.to-prefix");
+        AssertAnsiStyleApplied(console.Output, "mail.row.glyph.from-me");
+    }
+
+    [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToWorkspaceHeaderText_When_MailboxIsWorkspace()
+    {
+        // arrange: MailMode.BuildListPanel colors the header text itself
+        // with the Workspace border token, not just the border characters
+        // (which Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace
+        // already covers); since both share the same token/color, Spectre
+        // coalesces them into one uninterrupted styled run rather than
+        // opening a fresh escape sequence right before the header text, so
+        // this asserts the styled run reaches the header text with no reset
+        // code in between, rather than requiring the escape sequence
+        // literally right in front of it.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        var borderToken = MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true);
+        var style = ThemeTokens.GetStyle(borderToken);
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+
+        var ansiIndex = console.Output.IndexOf(ansiPrefix, StringComparison.Ordinal);
+        var textIndex = console.Output.IndexOf("Workspace (1)", StringComparison.Ordinal);
+        Assert.True(ansiIndex >= 0, "Expected the Workspace border/header ANSI sequence to appear.");
+        Assert.True(textIndex > ansiIndex, "Expected the header text to follow the styled run.");
+        Assert.Equal(-1, console.Output.IndexOf("\u001b[0m", ansiIndex, textIndex - ansiIndex, StringComparison.Ordinal));
     }
 }

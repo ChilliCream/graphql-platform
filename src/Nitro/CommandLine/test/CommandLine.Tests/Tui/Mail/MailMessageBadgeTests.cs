@@ -295,6 +295,26 @@ public sealed class MailMessageBadgeTests
     }
 
     [Fact]
+    public void Render_Should_StyleToLabel_AsToPrefixNotPeer_When_ActorSentToNoRecipients()
+    {
+        // arrange: an edge case (a sent message with zero recipients), but
+        // the "To" label must still land in the dim peer.to-prefix token,
+        // not the peer token used for actual names.
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            createdAt: Now,
+            recipients: []);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("[dim grey58]To[/]", line);
+        Assert.DoesNotContain("[white]To[/]", line);
+    }
+
+    [Fact]
     public void Render_Should_BeIdenticalForTheSameMessage_When_RenderedTwice()
     {
         // arrange: the PEER column and glyph must not depend on which
