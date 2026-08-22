@@ -41,4 +41,61 @@ internal static class MailRecipientView
     /// </summary>
     public static bool IsArchived(MailMessage message, string actor)
         => FindRecipient(message, actor) is { ArchivedAt: not null };
+
+    /// <summary>
+    /// Whether the actor is this message's sender. Matches
+    /// case-insensitively for the same reason <see cref="FindRecipient"/>
+    /// does.
+    /// </summary>
+    public static bool IsFromActor(MailMessage message, string actor)
+        => string.Equals(message.Sender, actor, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The other party or parties in the message, from the actor's point of
+    /// view: the message's recipients when the actor sent it, or just its
+    /// sender otherwise. Computed per message rather than per mailbox, so
+    /// the mail board's PEER column renders identically wherever the
+    /// message appears.
+    /// </summary>
+    public static IReadOnlyList<string> GetPeers(MailMessage message, string actor)
+        => IsFromActor(message, actor)
+            ? message.Recipients.Select(r => r.Name).ToArray()
+            : [message.Sender];
+
+    /// <summary>
+    /// A one-character glyph summarizing the actor's relationship to the
+    /// message, in the spirit of mutt's <c>$to_chars</c> reduced to what
+    /// agents need: <see cref="FromActorGlyph"/> when the actor sent it,
+    /// <see cref="DirectGlyph"/> when the actor is its sole recipient,
+    /// <see cref="BroadcastGlyph"/> when the actor is one of several
+    /// recipients, and <see cref="BlankGlyph"/> when the actor is neither
+    /// party (foreign mail, for example between two other agents in the
+    /// Workspace mailbox).
+    /// </summary>
+    public static char GetRelationshipGlyph(MailMessage message, string actor)
+    {
+        if (IsFromActor(message, actor))
+        {
+            return FromActorGlyph;
+        }
+
+        if (FindRecipient(message, actor) is null)
+        {
+            return BlankGlyph;
+        }
+
+        return message.Recipients.Count == 1 ? DirectGlyph : BroadcastGlyph;
+    }
+
+    /// <summary>The actor sent the message.</summary>
+    public const char FromActorGlyph = 'F';
+
+    /// <summary>The actor is the message's sole recipient.</summary>
+    public const char DirectGlyph = '+';
+
+    /// <summary>The actor is one of several recipients.</summary>
+    public const char BroadcastGlyph = 'T';
+
+    /// <summary>The actor is neither the sender nor a recipient.</summary>
+    public const char BlankGlyph = ' ';
 }

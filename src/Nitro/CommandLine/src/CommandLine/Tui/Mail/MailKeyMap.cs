@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// focus the detail pane, Tab to switch panes, u to toggle read/unread, a
 /// to archive, r to reply, c to compose, Shift+R to refresh, y to copy the
 /// selected message id, f to cycle the list filter, t to toggle the detail
-/// pane's thread view, Shift+I/Shift+S/Shift+A/Shift+W to jump directly to
+/// pane's thread view, Shift+I/Shift+S/Shift+L/Shift+W to jump directly to
 /// the Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to request quit, and
 /// Escape to leave the mode.
 /// </summary>

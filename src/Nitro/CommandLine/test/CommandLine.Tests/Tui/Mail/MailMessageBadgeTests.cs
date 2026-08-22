@@ -23,7 +23,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        line.MatchInlineSnapshot("    bob Status update 5m");
+        line.MatchInlineSnapshot("    + bob Status update 5m");
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("  * bob", line);
+        Assert.Contains("  * + bob", line);
         Assert.Contains("[bold]Status update[/]", line);
     }
 
@@ -60,7 +60,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: true, maxWidth: 80);
 
         // assert
-        line.MatchInlineSnapshot("[default on grey35]>   bob Status update now[/]");
+        line.MatchInlineSnapshot("[default on grey35]>   + bob Status update now[/]");
     }
 
     [Fact]
@@ -75,10 +75,10 @@ public sealed class MailMessageBadgeTests
             recipients: [MailMessageBuilder.ToRecipient("alice", readAt: Now)]);
 
         // act
-        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 20);
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 22);
 
         // assert
-        line.MatchInlineSnapshot("    bob A very … now");
+        line.MatchInlineSnapshot("    + bob A very … now");
     }
 
     [Fact]
@@ -113,5 +113,202 @@ public sealed class MailMessageBadgeTests
         // assert
         Assert.Null(exception);
         Assert.Contains("[URGENT] fix this", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowSender_When_MessageIsReceived()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            subject: "Status update",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("bob Status update", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowToRecipient_When_ActorSentTheMessage()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            subject: "Status update",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("bob", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("To bob Status update", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFirstRecipientPlusOverflow_When_ActorBroadcastToMany()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            subject: "Status update",
+            createdAt: Now,
+            recipients:
+            [
+                MailMessageBuilder.ToRecipient("bob", ordinal: 0, readAt: Now),
+                MailMessageBuilder.ToRecipient("carol", ordinal: 1, readAt: Now),
+                MailMessageBuilder.ToRecipient("dave", ordinal: 2, readAt: Now)
+            ]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("To bob+2 Status update", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowSender_When_MessageIsBetweenTwoOtherAgents()
+    {
+        // arrange: the actor is neither the sender nor a recipient.
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            subject: "Status update",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("carol", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("bob Status update", line);
+        Assert.DoesNotContain("To ", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFromActorGlyph_When_ActorSentTheMessage()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("bob", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("  F To bob", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDirectGlyph_When_ActorIsSoleRecipient()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("  + bob", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowBroadcastGlyph_When_ActorIsOneOfSeveralRecipients()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients:
+            [
+                MailMessageBuilder.ToRecipient("alice", ordinal: 0, readAt: Now),
+                MailMessageBuilder.ToRecipient("carol", ordinal: 1, readAt: Now)
+            ]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("  T bob", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowBlankGlyph_When_ActorIsNeitherSenderNorRecipient()
+    {
+        // arrange
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("carol", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Contains("    bob", line);
+        Assert.DoesNotContain("  F ", line);
+        Assert.DoesNotContain("  + ", line);
+        Assert.DoesNotContain("  T ", line);
+    }
+
+    [Fact]
+    public void Render_Should_TruncateSubjectAccountingForPeerPrefixAndGlyph_When_LineExceedsMaxWidth()
+    {
+        // arrange: same subject and width as the pre-PEER-column truncation
+        // test, but now the actor is the sender so the "To " prefix and the
+        // 'F' glyph both eat into the same budget.
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            subject: "A very long subject line that will not fit",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("bob", readAt: Now)]);
+
+        // act
+        var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 24);
+
+        // assert: fixed parts are prefix(2) + marker(1) + space(1) +
+        // glyph(1) + space(1) + "To bob"(6) + space(1) + age "now"(3) +
+        // space(1) = 17, leaving a 7-column budget for the subject
+        // including its trailing ellipsis.
+        line.MatchInlineSnapshot("    F To bob A very… now");
+    }
+
+    [Fact]
+    public void Render_Should_BeIdenticalForTheSameMessage_When_RenderedTwice()
+    {
+        // arrange: the PEER column and glyph must not depend on which
+        // mailbox is open, so rendering the same message twice (standing in
+        // for two different mailbox contexts) must produce identical output.
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            subject: "Status update",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("bob", readAt: Now)]);
+
+        // act
+        var firstRender = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+        var secondRender = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
+
+        // assert
+        Assert.Equal(firstRender, secondRender);
     }
 }
