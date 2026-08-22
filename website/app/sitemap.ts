@@ -4,7 +4,7 @@ import { BLOG_ROOT, blogUrlForStem, listBlogPosts } from "@/src/helpers/blogPath
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
-import { TEMPLATES } from "@/src/data/templates/templates";
+import { TEMPLATE_ITEMS } from "@/src/data/learn/content";
 
 export const dynamic = "force-static";
 
@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...(await rootPages()),
     ...(await staticPages()),
-    ...templatePages(),
+    ...learnTemplatePages(),
     ...(await docsPages()),
     ...(await blogPosts()),
   ];
@@ -49,7 +49,7 @@ async function rootPages(): Promise<MetadataRoute.Sitemap> {
       lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
       changeFrequency: "weekly" as const,
       priority: urlPath === "/" ? 1 : 0.8,
-    }))
+    })),
   );
 }
 
@@ -69,13 +69,13 @@ async function staticPages(): Promise<MetadataRoute.Sitemap> {
         lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "monthly" as const,
         priority: urlPath === "/" ? 1 : 0.7,
-      }))
+      })),
   );
 }
 
-function templatePages(): MetadataRoute.Sitemap {
-  return TEMPLATES.map((template) => ({
-    url: `${SITE_URL}/templates/${template.slug}`,
+function learnTemplatePages(): MetadataRoute.Sitemap {
+  return TEMPLATE_ITEMS.map((template) => ({
+    url: `${SITE_URL}/learn/templates/${template.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
@@ -99,7 +99,7 @@ async function docsPages(): Promise<MetadataRoute.Sitemap> {
         lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "weekly" as const,
         priority: 0.5,
-      }))
+      })),
   );
 }
 
@@ -117,7 +117,7 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "yearly" as const,
         priority: 0.5,
       };
-    })
+    }),
   );
 }
 
