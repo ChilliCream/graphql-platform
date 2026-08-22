@@ -520,11 +520,18 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(80, 20));
 
-        // assert: agents.list.name collides with board.column.border.focused
-        // and agents.list.client's token can appear elsewhere in the frame,
-        // so a whole-frame Contains would stay vacuous; pin to agent-b's row.
+        // assert: agents.list.name's token is board.column.border.focused's
+        // exact Aqua sequence, and that border sits on every row line (not
+        // just agent-b's), so a row-pinned Contains would stay vacuous; the
+        // assertion must be positional: the name text immediately follows
+        // the style open in AgentRowBadge's markup, so match the escape
+        // sequence right in front of "agent-b" instead.
         var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
-        AssertAnsiStyleApplied(row, "agents.list.name");
+        var style = ThemeTokens.GetStyle("agents.list.name");
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix + "agent-b", row);
         AssertAnsiStyleApplied(row, "agents.list.client");
     }
 
