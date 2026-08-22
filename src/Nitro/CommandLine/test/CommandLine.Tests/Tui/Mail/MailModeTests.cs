@@ -605,6 +605,124 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public void SelectSentRequested_Should_SwitchToSentMailboxAndLoadTheActorsSentMessages()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        Assert.Empty(mode.State.Messages); // alice is not a recipient of m-1
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.SelectSentRequested());
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.Equal(MailMailbox.Sent, mode.State.Mailbox);
+        Assert.Equal(["m-1"], mode.State.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public void Render_Should_ShowTheMailboxName_NotTheFilterName_When_MailboxIsNotInbox()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectSentRequested());
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("Sent (1)", console.Output);
+    }
+
+    [Fact]
+    public void ToggleReadRequested_Should_ShowWarnToast_NotAnError_When_ActorIsNotARecipient_InSentMailbox()
+    {
+        // arrange: alice sent m-1 to bob, so alice has no message_recipients
+        // row on it and the store would reject a read/unread write.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectSentRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ToggleReadRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
+    }
+
+    [Fact]
+    public void ArchiveRequested_Should_ShowWarnToast_NotAnError_When_ActorIsNotARecipient_InSentMailbox()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectSentRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ArchiveRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
+        Assert.False(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void ToggleReadRequested_Should_Succeed_When_TheSentMessageIsSelfAddressed()
+    {
+        // arrange: alice addressed the message to herself, so a real
+        // message_recipients row exists and the write should go through.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectSentRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ToggleReadRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
+    }
+
+    [Fact]
+    public void ReplyRequested_Should_StillOpenTheReplyForm_ForTheActorsOwnSentMessage()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectSentRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ReplyRequested());
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.True(mode.IsInputCapturing);
+    }
+
+    [Fact]
     public void ReplyRequested_Should_ShowWarnToast_When_NoMessageSelected()
     {
         // arrange

@@ -168,6 +168,26 @@ internal abstract record TuiMessage
     public sealed record ReplyRequested : TuiMessage;
 
     /// <summary>
+    /// The mail board's Inbox mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectInboxRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's Sent mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectSentRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's All mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectAllMailRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's Workspace mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectWorkspaceMailRequested : TuiMessage;
+
+    /// <summary>
     /// The active mode's own inline search input should gain focus.
     /// </summary>
     public sealed record SearchRequested : TuiMessage;

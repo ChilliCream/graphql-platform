@@ -10,8 +10,9 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// focus the detail pane, Tab to switch panes, u to toggle read/unread, a
 /// to archive, r to reply, c to compose, Shift+R to refresh, y to copy the
 /// selected message id, f to cycle the list filter, t to toggle the detail
-/// pane's thread view, q and Ctrl+C to request quit, and Escape to leave
-/// the mode.
+/// pane's thread view, Shift+I/Shift+S/Shift+A/Shift+W to jump directly to
+/// the Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to request quit, and
+/// Escape to leave the mode.
 /// </summary>
 /// <remarks>
 /// This is a standalone table rather than an extension of the task
@@ -19,6 +20,11 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// delete, the status and priority pickers, search, the dependency tree,
 /// task creation) have no meaning for a mail board, and refresh moves off
 /// the bare r chord (the global table's binding) to make room for reply.
+/// The mailbox jump keys are a direct selection, not a cycle, matching the
+/// convention of Gmail's g i/g t/g a and mu4e's j+letter; <see cref="KeyDispatcher"/>
+/// resolves only single key chords with no concept of a chord prefix, so
+/// each mailbox gets its own Shift+letter chord instead of a two-key "g"
+/// prefix table.
 /// </remarks>
 internal static class MailKeyMap
 {
@@ -97,6 +103,19 @@ internal static class MailKeyMap
             new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't'),
             () => new TuiMessage.ToggleMaximize(),
             new KeyHint("t", "thread")),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.I, ConsoleModifiers.Shift, 'I'),
+            () => new TuiMessage.SelectInboxRequested(),
+            new KeyHint("I/S/A/W", "mailbox")),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.S, ConsoleModifiers.Shift, 'S'),
+            () => new TuiMessage.SelectSentRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, 'A'),
+            () => new TuiMessage.SelectAllMailRequested()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.W, ConsoleModifiers.Shift, 'W'),
+            () => new TuiMessage.SelectWorkspaceMailRequested()),
         new KeyBinding(
             new KeyChord(ConsoleKey.C, ConsoleModifiers.Control, ''),
             () => new TuiMessage.QuitRequested()),

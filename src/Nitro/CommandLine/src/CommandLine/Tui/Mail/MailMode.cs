@@ -26,7 +26,10 @@ internal enum MailDiscardTarget
 /// pane between one message and its whole thread. Opening a message in the
 /// detail pane marks it read for the actor; the u, a, r, and c gestures
 /// toggle read/unread, archive (behind a confirmation), reply, and compose,
-/// every write going through the same store operations the CLI uses. This
+/// every write going through the same store operations the CLI uses. The
+/// Shift+I/S/A/W gestures jump directly to the Inbox/Sent/All/Workspace
+/// <see cref="MailMailbox"/>; u and a are refused with a toast, instead of
+/// reaching the store, on any message the actor is not a recipient of. This
 /// mode owns its own modal overlays (the archive confirmation, the compose
 /// and reply forms, and their shared discard confirmation) rather than
 /// routing through <see cref="TuiShell"/>'s task-specific overlay fields.
@@ -147,6 +150,10 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.ArchiveRequested => OpenArchiveDialog(),
         TuiMessage.ComposeRequested => OpenComposeForm(),
         TuiMessage.ReplyRequested => OpenReplyForm(),
+        TuiMessage.SelectInboxRequested => SelectMailbox(MailMailbox.Inbox),
+        TuiMessage.SelectSentRequested => SelectMailbox(MailMailbox.Sent),
+        TuiMessage.SelectAllMailRequested => SelectMailbox(MailMailbox.All),
+        TuiMessage.SelectWorkspaceMailRequested => SelectMailbox(MailMailbox.Workspace),
         _ => []
     };
 
@@ -302,12 +309,21 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// Toggles the selected message between read and unread for the actor.
+    /// Refused with a toast, rather than reaching the store, when the actor
+    /// has no recipient row on the message (for example most messages in
+    /// the Sent or Workspace mailbox): the store would otherwise reject the
+    /// write with an <see cref="ExitException"/>.
     /// </summary>
     private IReadOnlyList<TuiMessage> ToggleRead()
     {
         if (_state.SelectedMessage is not { } message)
         {
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
+        }
+
+        if (MailRecipientView.FindRecipient(message, _state.Actor) is null)
+        {
+            return [new TuiMessage.ShowToast(NotARecipientMessage(message), ToastStyle.Warn)];
         }
 
         var outcome = MailLifecycleActions.ToggleReadAsync(_store, message, _state.Actor, CancellationToken.None)
@@ -319,7 +335,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Opens the archive confirmation for the selected message.
+    /// Opens the archive confirmation for the selected message. Refused
+    /// with a toast, rather than reaching the store, when the actor has no
+    /// recipient row on the message; see <see cref="ToggleRead"/>.
     /// </summary>
     private IReadOnlyList<TuiMessage> OpenArchiveDialog()
     {
@@ -328,10 +346,18 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
         }
 
+        if (MailRecipientView.FindRecipient(message, _state.Actor) is null)
+        {
+            return [new TuiMessage.ShowToast(NotARecipientMessage(message), ToastStyle.Warn)];
+        }
+
         _archiveTarget = message;
         _archiveDialog = MailLifecycleActions.CreateArchiveDialog(message);
         return [];
     }
+
+    private static string NotARecipientMessage(MailMessage message)
+        => $"'{message.Id}' has no read/unread or archive state here.";
 
     /// <summary>
     /// Opens the compose form. Unlike reply and archive, composing needs no
@@ -528,6 +554,13 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         return [];
     }
 
+    private IReadOnlyList<TuiMessage> SelectMailbox(MailMailbox mailbox)
+    {
+        _state.SelectMailboxAsync(mailbox, CancellationToken.None).GetAwaiter().GetResult();
+        _detailView.ResetScroll();
+        return [];
+    }
+
     private IReadOnlyList<TuiMessage> ToggleThreadView()
     {
         if (_state.ViewMode == MailViewMode.Thread)
@@ -561,7 +594,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         var now = _timeProvider.GetUtcNow();
 
         var lines = RenderListLines(contentWidth, interiorHeight, focused, now);
-        var panel = ColumnPane.Render(FilterName(_state.Filter), _state.Messages.Count, lines, focused);
+        var panel = ColumnPane.Render(HeaderName(_state), _state.Messages.Count, lines, focused);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
@@ -640,6 +673,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         MailListFilter.Archived => "Archived",
         _ => "Inbox"
     };
+
+    /// <summary>
+    /// The list pane's header name: the read-state filter's name within
+    /// <see cref="MailMailbox.Inbox"/>, where it applies, or the mailbox's
+    /// own display name otherwise, since <see cref="MailListFilter"/> is
+    /// inert outside the Inbox mailbox and showing it there would be
+    /// misleading.
+    /// </summary>
+    private static string HeaderName(MailState state)
+        => state.Mailbox == MailMailbox.Inbox ? FilterName(state.Filter) : state.Mailbox.DisplayName();
 
     private void RefreshBlocking()
     {

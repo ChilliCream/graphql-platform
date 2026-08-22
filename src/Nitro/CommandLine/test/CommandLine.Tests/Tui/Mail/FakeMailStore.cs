@@ -6,6 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 /// <summary>
 /// An in-memory <see cref="IMailStore"/> exercising the query and write
 /// surface the mail board model consumes: <see cref="QueryInboxAsync"/>,
+/// <see cref="QuerySentAsync"/>, <see cref="QueryWorkspaceMessagesAsync"/>,
 /// <see cref="GetThreadMessagesAsync"/>, <see cref="MarkReadAsync"/>,
 /// <see cref="MarkUnreadAsync"/>, <see cref="ArchiveAsync"/>,
 /// <see cref="SendMessageAsync"/>, and <see cref="ReplyMessageAsync"/>.
@@ -200,11 +201,50 @@ internal sealed class FakeMailStore : IMailStore
     public Task<IReadOnlyList<MailMessage>> SearchAsync(string actor, string text, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
-    public Task<IReadOnlyList<MailMessage>> QuerySentAsync(string sender, int? limit, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    public Task<IReadOnlyList<MailMessage>> QuerySentAsync(
+        string sender, int? limit, CancellationToken cancellationToken)
+    {
+        var ordered = Messages
+            .Where(m => m.Sender == sender)
+            .OrderByDescending(m => m.CreatedAt)
+            .ThenByDescending(m => m.Id, StringComparer.Ordinal)
+            .AsEnumerable();
 
-    public Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(MailWorkspaceFilter filter, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        if (limit is { } value)
+        {
+            ordered = ordered.Take(value);
+        }
+
+        return Task.FromResult<IReadOnlyList<MailMessage>>(ordered.ToList());
+    }
+
+    public Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(
+        MailWorkspaceFilter filter, CancellationToken cancellationToken)
+    {
+        IEnumerable<MailMessage> query = Messages;
+
+        if (filter.Agent is { } agent)
+        {
+            query = query.Where(m => m.Sender == agent || MailRecipientView.FindRecipient(m, agent) is not null);
+        }
+
+        if (filter.Since is { } since)
+        {
+            query = query.Where(m => m.CreatedAt >= since);
+        }
+
+        var ordered = query
+            .OrderByDescending(m => m.CreatedAt)
+            .ThenByDescending(m => m.Id, StringComparer.Ordinal)
+            .AsEnumerable();
+
+        if (filter.Limit is { } limit)
+        {
+            ordered = ordered.Take(limit);
+        }
+
+        return Task.FromResult<IReadOnlyList<MailMessage>>(ordered.ToList());
+    }
 
     public Task<int> CountUnreadAsync(string actor, CancellationToken cancellationToken)
     {

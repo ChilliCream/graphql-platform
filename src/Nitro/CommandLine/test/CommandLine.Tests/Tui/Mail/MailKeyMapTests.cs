@@ -204,6 +204,66 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
+    public void CreateDefault_Should_MapShiftI_ToSelectInboxRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var shiftI = new KeyChord(ConsoleKey.I, ConsoleModifiers.Shift, 'I');
+
+        // act
+        var resolved = keyMap.TryResolve(shiftI, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.SelectInboxRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapShiftS_ToSelectSentRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var shiftS = new KeyChord(ConsoleKey.S, ConsoleModifiers.Shift, 'S');
+
+        // act
+        var resolved = keyMap.TryResolve(shiftS, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.SelectSentRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapShiftA_ToSelectAllMailRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var shiftA = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, 'A');
+
+        // act
+        var resolved = keyMap.TryResolve(shiftA, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.SelectAllMailRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapShiftW_ToSelectWorkspaceMailRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var shiftW = new KeyChord(ConsoleKey.W, ConsoleModifiers.Shift, 'W');
+
+        // act
+        var resolved = keyMap.TryResolve(shiftW, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.SelectWorkspaceMailRequested>(message);
+    }
+
+    [Fact]
     public void CreateDefault_Should_NotBind_TaskOnlyGestures()
     {
         // arrange: the mail board has no edit, delete, or dependency-tree

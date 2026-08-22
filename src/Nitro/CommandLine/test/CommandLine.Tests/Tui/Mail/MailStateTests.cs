@@ -105,6 +105,64 @@ public sealed class MailStateTests
     }
 
     [Fact]
+    public async Task SelectMailboxAsync_Should_SwitchMailboxAndLoadFromItsOwnStoreMethod()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var state = CreateState(store);
+        await state.RefreshAsync(CancellationToken.None);
+        Assert.Empty(state.Messages); // alice is not a recipient of m-1, so the Inbox is empty
+
+        // act
+        await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
+
+        // assert
+        Assert.Equal(MailMailbox.Sent, state.Mailbox);
+        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SelectMailboxAsync_Should_ResetSelectedRowToTop()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+        await state.RefreshAsync(CancellationToken.None);
+        state.SelectedRow = 1;
+
+        // act
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+
+        // assert
+        Assert.Equal(0, state.SelectedRow);
+    }
+
+    [Fact]
+    public async Task SelectMailboxAsync_Should_BeNoOp_When_MailboxIsAlreadyActive()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+        await state.RefreshAsync(CancellationToken.None);
+        state.SelectedRow = 0;
+
+        // act: already in the default Inbox mailbox
+        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
+
+        // assert
+        Assert.Equal(MailMailbox.Inbox, state.Mailbox);
+        Assert.Equal(0, state.SelectedRow);
+    }
+
+    [Fact]
     public async Task ShowThreadAsync_Should_LoadSelectedMessagesThread()
     {
         // arrange
