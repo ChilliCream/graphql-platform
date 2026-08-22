@@ -1035,9 +1035,16 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
 
     private static CancellationTokenSource CreateWatchCancellationTokenSource()
     {
+        // These tests race the production debounce (500ms) plus its fixed
+        // 200ms settle delay plus FileSystemWatcher dispatch latency against
+        // this overall budget. 15s leaves little headroom once a loaded
+        // thread pool stretches any one of those waits, the same pacing-race
+        // family as the SqliteDbWatcher coalesce flake (bd-hai, 353c3ab24e).
+        // A larger fixed budget removes the race without depending on
+        // scheduler responsiveness.
         var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             TestContext.Current.CancellationToken);
-        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(15));
+        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(30));
         return cancellationTokenSource;
     }
 
