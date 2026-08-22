@@ -109,4 +109,111 @@ public sealed class MailDetailViewTests
         Assert.Null(exception);
         Assert.Contains("word", console.Output);
     }
+
+    [Fact]
+    public async Task Render_Should_ShowEachRecipientsOwnState_When_ReadStatesAreMixed()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients:
+            [
+                MailMessageBuilder.ToRecipient("orchestrator", ordinal: 0, readAt: Now.AddHours(14).AddMinutes(2)),
+                MailMessageBuilder.ToRecipient("planner-1", ordinal: 1)
+            ]));
+        var state = new MailState("orchestrator", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true));
+
+        // assert
+        Assert.Contains("orchestrator: read", console.Output);
+        Assert.Contains("planner-1: unread", console.Output);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowArchivedMarker_When_RecipientHasArchived()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients:
+            [
+                MailMessageBuilder.ToRecipient("alice", readAt: Now, archivedAt: Now.AddMinutes(5))
+            ]));
+        var state = new MailState("alice", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        // Archived messages drop out of the default Inbox mailbox; Workspace
+        // shows every message regardless of archived state.
+        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true));
+
+        // assert
+        Assert.Contains("alice: read", console.Output);
+        Assert.Contains("archived", console.Output);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowRecipientStatesAndNoSenderState_When_ActorSentTheMessage()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "alice",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var state = new MailState("alice", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        // Alice sent this message, so it never appears in her own Inbox
+        // (she is not a recipient); Sent carries messages she sent.
+        await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused: true));
+
+        // assert
+        Assert.Contains("bob: unread", console.Output);
+        Assert.DoesNotContain("alice: unread", console.Output);
+        Assert.DoesNotContain("alice: read", console.Output);
+    }
+
+    [Fact]
+    public async Task Render_Should_StayWithinPaneHeight_When_BroadcastHasManyRecipients()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var recipients = Enumerable.Range(0, 20)
+            .Select(i => MailMessageBuilder.ToRecipient($"agent-{i}", ordinal: i))
+            .ToArray();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: recipients));
+        var state = new MailState("agent-0", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        var exception = Record.Exception(() => console.Write(view.Render(state, 80, 20, focused: true)));
+
+        // assert
+        Assert.Null(exception);
+        var lineCount = console.Output.Split('\n').Length;
+        Assert.True(lineCount <= 21, $"Expected the panel to stay within its height budget, but got {lineCount} lines.");
+    }
 }

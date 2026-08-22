@@ -137,10 +137,40 @@ internal sealed class MailDetailView
         }
 
         lines.Add($"Date: {FormatTimestamp(message.CreatedAt)}");
+        lines.AddRange(BuildRecipientStateLines(message));
         lines.Add(string.Empty);
         lines.AddRange(TaskDetailSections.WrapText(message.Body, width));
 
         return lines;
+    }
+
+    /// <summary>
+    /// One line per recipient, stating that recipient's own read/archived
+    /// state and attributed by name: <c>"alice: read 2026-01-01 00:00"</c>
+    /// or <c>"bob: unread"</c>, with <c>", archived"</c> appended where set.
+    /// The attribution is the point - a reader must never mistake another
+    /// agent's state for their own, so every row, including the actor's own
+    /// when the actor is a recipient, renders through this same line with
+    /// no second affordance. Empty for a message the actor sent, since
+    /// <c>MailStore.BuildRecipients</c> never adds the sender to
+    /// <see cref="MailMessage.Recipients"/> - there is no sender-side state
+    /// to show and none is invented here.
+    /// </summary>
+    private static IReadOnlyList<string> BuildRecipientStateLines(MailMessage message)
+        => message.Recipients
+            .OrderBy(r => r.Ordinal)
+            .Select(FormatRecipientState)
+            .ToList();
+
+    private static string FormatRecipientState(MailRecipient recipient)
+    {
+        var state = recipient.ReadAt is { } readAt
+            ? $"read {FormatTimestamp(readAt)}"
+            : "unread";
+
+        return recipient.ArchivedAt is not null
+            ? $"{recipient.Name}: {state}, archived"
+            : $"{recipient.Name}: {state}";
     }
 
     private static IReadOnlyList<string> BuildThreadLines(MailState state, int width)
