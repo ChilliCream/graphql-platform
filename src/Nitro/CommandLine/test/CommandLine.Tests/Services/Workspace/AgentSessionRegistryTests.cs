@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -514,6 +515,40 @@ public sealed class AgentSessionRegistryTests : IDisposable
             () => _sessions.SelfClaimAsync("pascal", forceRebind: false, cancellationToken));
     }
 
+    [Fact]
+    public async Task SelfClaimAsync_Should_Throw_When_CwdWorkspaceDiffersFromAncestorWorkspace()
+    {
+        // arrange: this process's own cwd (_tempRoot.FullName, via
+        // _fileSystem) resolves to the CURRENT workspace, but the ancestor
+        // Claude Code session's cwd resolves to a DIFFERENT, separately
+        // initialized workspace.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        var otherRoot = Path.Combine(_tempRoot.FullName, "other-workspace");
+        var otherWorkspaceDirectory = AgentWorkspace.GetDirectory(otherRoot);
+        Directory.CreateDirectory(otherWorkspaceDirectory);
+        await using (await _database.InitializeAsync(otherWorkspaceDirectory, cancellationToken))
+        {
+        }
+
+        var ancestor = new ClaudeAncestorSession(CurrentAlivePid(), "claude-session-1", otherRoot, "peer-a");
+        var sessions = new AgentSessionRegistry(
+            _fileSystem,
+            _timeProvider,
+            _database,
+            _agentRegistry,
+            new FixedInstanceIdProvider(CurrentHost),
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(ancestor));
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => sessions.SelfClaimAsync("pascal", forceRebind: false, cancellationToken));
+        Assert.Equal(0, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
+    }
+
     // ---------- helpers ----------
 
     /// <summary>
@@ -587,17 +622,16 @@ public sealed class AgentSessionRegistryTests : IDisposable
 
         return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
     }
-}
 
-internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvider
-{
-    public Task<string> GetIdAsync(string globalConfigDirectory, CancellationToken cancellationToken)
-        => Task.FromResult(id);
-}
+    private async Task<long> CountAllSessionRowsAsync(
+        string workspaceDirectory, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM agent_sessions;";
 
-internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
-{
-    public string GetDirectory() => directory;
+        return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
+    }
 }
 
 internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? session) : IClaudeAncestorSessionResolver

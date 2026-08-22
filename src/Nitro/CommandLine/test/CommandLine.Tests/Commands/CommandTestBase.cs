@@ -16,6 +16,7 @@ using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -39,6 +40,8 @@ public abstract class CommandTestBase
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private IFileSystem? _fileSystemOverride;
     private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
+    private INitroInstanceIdProvider? _instanceIdProviderOverride;
+    private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -92,6 +95,26 @@ public abstract class CommandTestBase
     private protected void SetupGlobalMemoryDirectory(string directory)
     {
         _globalMemoryDirectoryProviderOverride = new FixedGlobalMemoryDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Points the Nitro instance id resolution at a fixed value instead of
+    /// hashing the real machine's id, so tests that seed rows by host stay
+    /// isolated from the machine running them.
+    /// </summary>
+    private protected void SetupInstanceId(string id)
+    {
+        _instanceIdProviderOverride = new FixedInstanceIdProvider(id);
+    }
+
+    /// <summary>
+    /// Points the global config directory at a fixed directory instead of the
+    /// real machine's application data directory, so tests stay isolated to
+    /// their own temp directory.
+    /// </summary>
+    private protected void SetupGlobalConfigDirectory(string directory)
+    {
+        _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
     }
 
     protected void SetupNoAuthentication()
@@ -266,6 +289,16 @@ public abstract class CommandTestBase
             services.Replace(ServiceDescriptor.Singleton(_globalMemoryDirectoryProviderOverride));
         }
 
+        if (_instanceIdProviderOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_instanceIdProviderOverride));
+        }
+
+        if (_globalConfigDirectoryProviderOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
@@ -394,7 +427,7 @@ public abstract class CommandTestBase
             .ReturnsAsync(content);
     }
 
-    protected void SetupEnvironmentVariable(string variableName, string value)
+    protected void SetupEnvironmentVariable(string variableName, string? value)
     {
         _environmentVariableProviderMock
             .Setup(x => x.GetEnvironmentVariable("NITRO_" + variableName))
@@ -473,6 +506,17 @@ public sealed record CommandResult(
     string ExecutableName);
 
 internal sealed class FixedGlobalMemoryDirectoryProvider(string directory) : IGlobalMemoryDirectoryProvider
+{
+    public string GetDirectory() => directory;
+}
+
+internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvider
+{
+    public Task<string> GetIdAsync(string globalConfigDirectory, CancellationToken cancellationToken)
+        => Task.FromResult(id);
+}
+
+internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
 {
     public string GetDirectory() => directory;
 }

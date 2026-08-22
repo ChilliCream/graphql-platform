@@ -302,6 +302,22 @@ internal sealed class AgentSessionRegistry(
         var workspacePath = AgentWorkspace.Find(fileSystem, ancestorSession.Cwd)
             ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
+        // This process's own cwd-resolved workspace must agree with the
+        // ancestor session's workspace before any write happens: every write
+        // below (including AgentRegistry.EnsureImplicitAsync) targets the
+        // database ConnectAsync resolves from THIS process's cwd, so a
+        // mismatch here would silently claim a session into the wrong
+        // workspace's database.
+        var cwdWorkspacePath = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
+
+        if (cwdWorkspacePath is null || cwdWorkspacePath != workspacePath)
+        {
+            throw new ExitException(
+                $"This process's workspace ('{cwdWorkspacePath ?? "none"}') does not match the "
+                + $"Claude Code session's workspace ('{workspacePath}'). Run `nitro agent session "
+                + "claim` from the session's workspace.");
+        }
+
         var (endpointKind, endpointAddr) = EndpointAddress.IsValid(ancestorSession.Name)
             ? (AgentSessionEndpointKind.ClaudePeer, ancestorSession.Name)
             : (AgentSessionEndpointKind.None, string.Empty);
