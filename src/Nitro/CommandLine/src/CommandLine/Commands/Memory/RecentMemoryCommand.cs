@@ -55,36 +55,50 @@ internal sealed class RecentMemoryCommand : Command
             (curatedLimit, journalLimit) = MemoryBandLimit.Split(explicitLimit);
         }
 
-        List<MemoryEntryResult> entries;
+        List<MemoryEntryResult> curated = [];
+        List<MemoryEntryResult> journal = [];
 
         try
         {
-            entries = [];
-
             if (collection is MemoryCollections.Curated or MemoryCollections.All)
             {
-                var curated = await store.GetRecentCuratedAsync(scope, curatedLimit, cancellationToken);
-                entries.AddRange(curated.Select(MemoryEntryResult.FromCurated));
+                var curatedRecords = await store.GetRecentCuratedAsync(scope, curatedLimit, cancellationToken);
+                curated = curatedRecords.Select(MemoryEntryResult.FromCurated).ToList();
 
                 if (splitBands && limit is not null)
                 {
                     // Unused remainder from a short curated band flows to
                     // the journal band.
                     journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
-                        curatedLimit!.Value, curated.Count, journalLimit!.Value);
+                        curatedLimit!.Value, curatedRecords.Count, journalLimit!.Value);
                 }
             }
 
             if (collection is MemoryCollections.Journal or MemoryCollections.All)
             {
-                var journal = await store.GetRecentJournalAsync(scope, journalLimit, cancellationToken);
-                entries.AddRange(journal.Select(MemoryEntryResult.FromJournal));
+                var journalEntries = await store.GetRecentJournalAsync(scope, journalLimit, cancellationToken);
+                journal = journalEntries.Select(MemoryEntryResult.FromJournal).ToList();
+
+                if (splitBands
+                    && limit is { } journalExplicitLimit
+                    && journalEntries.Count < journalLimit
+                    && curated.Count == curatedLimit)
+                {
+                    // Unused remainder from a short journal band flows back
+                    // to the curated band.
+                    var curatedShare = MemoryBandLimit.GrowCuratedWithJournalShortfall(
+                        journalExplicitLimit, journalEntries.Count);
+                    var curatedRecords = await store.GetRecentCuratedAsync(scope, curatedShare, cancellationToken);
+                    curated = curatedRecords.Select(MemoryEntryResult.FromCurated).ToList();
+                }
             }
         }
         catch (MemoryScopeConflictException exception)
         {
             return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
         }
+
+        var entries = curated.Concat(journal).ToList();
 
         if (!console.IsHumanReadable)
         {

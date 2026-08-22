@@ -232,6 +232,39 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task AllCollection_WithLimit_EmptyJournalBand_FillsFromCurated()
+    {
+        // arrange: no journal entries at all, so the curated band's own
+        // shortfall-remainder logic is not enough; the journal band coming
+        // up empty must flow its whole share back to curated.
+        await InitWorkspaceAsync();
+        await SeedMemoryAsync("Curated one.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated two.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated three.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated four.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated five.");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync("Curated six.");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "memory", "recent", "--collection", "all", "--limit", "4");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        var collections = items.Select(item => item.GetProperty("collection").GetString()!).ToArray();
+
+        Assert.Equal(4, items.Length);
+        Assert.All(collections, collection => Assert.Equal("curated", collection));
+    }
+
+    [Fact]
     public async Task NoWorkspace_PrintsEmptyMessage()
     {
         // act

@@ -23,4 +23,14 @@ internal static class MemoryBandLimit
     /// </summary>
     public static int GrowJournalWithCuratedShortfall(int curatedShare, int curatedActualCount, int journalShare)
         => journalShare + (curatedShare - curatedActualCount);
+
+    /// <summary>
+    /// Returns the curated band's new share after the journal band came up
+    /// short of its own (possibly already grown) share, mirroring
+    /// <see cref="GrowJournalWithCuratedShortfall"/> for the reverse
+    /// direction: the curated band is re-queried for however much of the
+    /// overall limit the journal band left unused.
+    /// </summary>
+    public static int GrowCuratedWithJournalShortfall(int explicitLimit, int journalActualCount)
+        => explicitLimit - journalActualCount;
 }
