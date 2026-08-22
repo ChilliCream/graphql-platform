@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
@@ -145,6 +146,43 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             """
             Already initialized at '.nitro/agents'. Use --force to reinitialize.
             """);
+    }
+
+    /// <summary>
+    /// The migration path this bead adds: plain <c>init</c> (no --force)
+    /// against an existing database at an upgradable schema version (v3,
+    /// this bead's starting point) applies the non-destructive schema
+    /// upgrade in place instead of throwing "Already initialized", and
+    /// touches neither the prefix nor the gitignore.
+    /// </summary>
+    [Fact]
+    public async Task PlainInit_UpgradesSchemaOnly_When_ExistingVersionIsUpgradable()
+    {
+        // arrange
+        await SeedV3WorkspaceAsync("legacy3");
+        var gitIgnorePath = Path.Combine(WorkspaceDirectory, AgentWorkspace.GitIgnoreFileName);
+        await File.WriteAllTextAsync(gitIgnorePath, "sentinel\n", TestContext.Current.CancellationToken);
+        var jsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.JsonlFileName);
+        await File.WriteAllTextAsync(jsonlPath, "sentinel\n", TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Upgraded agent workspace schema at '.nitro/agents' to v4.
+            """);
+        Assert.Equal("4", await QueryScalarAsync("PRAGMA user_version;"));
+        Assert.Equal("1", await QueryScalarAsync(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'"));
+        Assert.Equal("legacy3", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
+        Assert.Equal(
+            "sentinel\n",
+            await File.ReadAllTextAsync(gitIgnorePath, TestContext.Current.CancellationToken));
+        Assert.Equal(
+            "sentinel\n",
+            await File.ReadAllTextAsync(jsonlPath, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -385,11 +423,58 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, registerResult.ExitCode);
         Assert.Equal(0, sendResult.ExitCode);
-        Assert.Equal("3", await QueryScalarAsync("PRAGMA user_version;"));
+        Assert.Equal("4", await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM messages"));
 
         var listResult = await ExecuteCommandAsync("agent", "tasks", "list");
         Assert.Contains(taskId, listResult.StdOut);
+    }
+
+    /// <summary>
+    /// Seeds a full v3-shaped unified database (this bead's starting schema:
+    /// tasks, agents with role/implicit/client, and mail, but none of the
+    /// v4 session tables) directly at the unified path, with the given
+    /// prefix in config, mirroring an existing workspace from before this
+    /// bead.
+    /// </summary>
+    private async Task SeedV3WorkspaceAsync(string prefix)
+    {
+        Directory.CreateDirectory(WorkspaceDirectory);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = TaskStoreSchema.Create;
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = AgentRegistrySchema.Create;
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = MailStoreSchema.Create;
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "INSERT INTO config (key, value) VALUES ('prefix', @prefix);";
+            command.Parameters.AddWithValue("@prefix", prefix);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "PRAGMA user_version = 3;";
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
     }
 
     private async Task SeedLegacyTasksDatabaseAsync()
