@@ -70,15 +70,6 @@ export const CONTENT_TYPE_META: Record<LearnContentType, ContentTypeMeta> = {
   // CONTENT_TYPE_OPTIONS, so hoverBorder/activePill are unused by any catalog
   // surface today; they're filled in for interface completeness and so a
   // future LearnCard for these types needs no further decisions.
-  article: {
-    label: "Article",
-    ctaLabel: "Read article",
-    text: "text-cc-note",
-    bg: "bg-cc-note/10",
-    ring: "ring-cc-note/30",
-    hoverBorder: "hover:border-cc-note/60",
-    activePill: "bg-cc-note/15 text-cc-note border-cc-note/40",
-  },
   comparison: {
     label: "Comparison",
     ctaLabel: "Read comparison",
@@ -89,7 +80,6 @@ export const CONTENT_TYPE_META: Record<LearnContentType, ContentTypeMeta> = {
     activePill: "bg-cc-tip/15 text-cc-tip border-cc-tip/40",
   },
   explainer: {
-    // Shares the article recipe: both are reading types (section 6.1).
     label: "Explainer",
     ctaLabel: "Read explainer",
     text: "text-cc-note",

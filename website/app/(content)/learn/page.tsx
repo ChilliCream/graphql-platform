@@ -1,5 +1,7 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { CardGrid } from "@/src/components/CardGrid";
+import { ContentTypeBadge } from "@/src/components/learn/ContentTypeBadge";
 import { LearnCardSkeleton } from "@/src/components/learn/LearnCardSkeleton";
 import { LearnCatalog } from "@/src/components/learn/LearnCatalog";
 import { LearnClosing } from "@/src/components/learn/LearnClosing";
@@ -8,6 +10,7 @@ import { PageHero } from "@/src/components/PageHero";
 import { CONTENT_TYPE_OPTIONS } from "@/src/data/learn/facets";
 import { LEARN_ITEMS, LEARN_SUMMARIES } from "@/src/data/learn/content";
 import type { LearnItemSummary } from "@/src/data/learn/types";
+import { listArticleSummaries, type ArticleSummary } from "@/src/helpers/articles";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
@@ -45,6 +48,8 @@ function defaultOrder(a: LearnItemSummary, b: LearnItemSummary): number {
 
 const ORDERED_SUMMARIES: readonly LearnItemSummary[] = [...LEARN_SUMMARIES].sort(defaultOrder);
 
+const ARTICLE_SUMMARIES = listArticleSummaries();
+
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
   "@graph": [
@@ -81,8 +86,37 @@ export default function LearnPage() {
       <Suspense fallback={<CatalogFallback />}>
         <LearnCatalog items={ORDERED_SUMMARIES} />
       </Suspense>
+      <ArticlesRail articles={ARTICLE_SUMMARIES} />
       <LearnClosing />
     </>
+  );
+}
+
+/** Explainers/comparisons rail: articles live in content/learn/articles/, outside the LearnItem catalog, so they get their own section rather than a catalog facet (see facets.ts doc comment). */
+function ArticlesRail({ articles }: { readonly articles: readonly ArticleSummary[] }) {
+  if (articles.length === 0) {
+    return null;
+  }
+  return (
+    <section className="border-cc-card-border border-t py-14 sm:py-20">
+      <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Explainers & comparisons</h2>
+      <p className="text-cc-ink-dim mt-2 mb-8 max-w-2xl">
+        Answer-first reading on how ChilliCream&rsquo;s platform works and how it compares.
+      </p>
+      <CardGrid cols={3} step="progressive" itemsStretch>
+        {articles.map((article) => (
+          <Link
+            key={article.slug}
+            href={article.href}
+            className="border-cc-card-border bg-cc-card hover:border-cc-accent/60 flex flex-col gap-3 rounded-lg border p-5 transition-colors"
+          >
+            <ContentTypeBadge type={article.kind} />
+            <span className="font-heading text-cc-heading text-lg font-semibold">{article.title}</span>
+            {article.description ? <span className="text-cc-ink-dim text-sm">{article.description}</span> : null}
+          </Link>
+        ))}
+      </CardGrid>
+    </section>
   );
 }
 

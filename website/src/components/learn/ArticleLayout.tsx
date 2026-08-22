@@ -19,7 +19,7 @@ interface ArticleMeta {
   readonly authorImageUrl?: string;
   /** Formatted for display; the shell renders it as-is (no date parsing). */
   readonly publishedDate?: string;
-  /** Present only for evergreen kinds (comparison/explainer); rendered in place of `publishedDate` per section 4.1. */
+  /** Optional evergreen update date; rendered as an "Updated {date}" line in the kind-chip row. */
   readonly updatedDate?: string;
   readonly readingTime?: string;
 }
@@ -27,7 +27,7 @@ interface ArticleMeta {
 interface ArticleLayoutProps {
   readonly breadcrumb: readonly ArticleBreadcrumbItem[];
   /** Kind chip shown for comparisons/explainers; omitted for blog posts (section 4.1 item 2). */
-  readonly kind?: Extract<LearnContentType, "article" | "comparison" | "explainer">;
+  readonly kind?: Extract<LearnContentType, "comparison" | "explainer">;
   readonly title: string;
   /** One-paragraph answer-first summary. Sourced from frontmatter `description`; blog posts omit it. */
   readonly standfirst?: string;
@@ -65,7 +65,7 @@ export function ArticleLayout({
           {kind ? (
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <ContentTypeBadge type={kind} />
-              {meta.updatedDate ? (
+              {meta.updatedDate && meta.updatedDate !== meta.publishedDate ? (
                 <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
                   Updated {meta.updatedDate}
                 </span>
