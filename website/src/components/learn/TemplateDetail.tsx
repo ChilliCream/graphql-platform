@@ -26,7 +26,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
             Learn
           </Link>
           <span aria-hidden="true">/</span>
-          <Link href="/learn?type=template" className="hover:text-cc-heading no-underline transition-colors">
+          <Link href="/learn/browse?type=template" className="hover:text-cc-heading no-underline transition-colors">
             Templates
           </Link>
           <span aria-hidden="true">/</span>

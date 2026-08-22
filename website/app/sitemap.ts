@@ -5,6 +5,7 @@ import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 import { TEMPLATE_ITEMS } from "@/src/data/learn/content";
+import { ARTICLES_ROOT, listArticleSlugs } from "@/src/helpers/articlePaths";
 
 export const dynamic = "force-static";
 
@@ -25,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...learnTemplatePages(),
     ...(await docsPages()),
     ...(await blogPosts()),
+    ...(await articlePages()),
   ];
 }
 
@@ -116,6 +118,25 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
         lastModified: updated ?? (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "yearly" as const,
         priority: 0.5,
+      };
+    }),
+  );
+}
+
+// /learn/articles/[slug] pages: not caught by staticPages() (it excludes
+// dynamic routes), so they get their own entry mirroring blogPosts(),
+// sourced from the article filesystem helpers rather than duplicated here.
+async function articlePages(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    listArticleSlugs().map(async ({ slug, rel }) => {
+      const file = path.join(ARTICLES_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      const updated = typeof fm.updated === "string" && fm.updated.length > 0 ? new Date(fm.updated) : null;
+      return {
+        url: `${SITE_URL}/learn/articles/${slug}`,
+        lastModified: updated ?? (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
       };
     }),
   );
