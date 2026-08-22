@@ -163,7 +163,9 @@ internal interface IMailStore
     /// <summary>
     /// Returns the messages the given agent sent, regardless of recipients,
     /// with recipients embedded, ordered by created_at then id, newest
-    /// first, optionally capped at <paramref name="limit"/>.
+    /// first, optionally capped at <paramref name="limit"/>. A sender has no
+    /// <c>message_recipients</c> row for its own sent messages, so read and
+    /// archived state does not exist for them.
     /// </summary>
     Task<IReadOnlyList<MailMessage>> QuerySentAsync(
         string sender,

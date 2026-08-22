@@ -810,6 +810,75 @@ public sealed class MailStoreTests : IAsyncDisposable
         Assert.Empty(sent);
     }
 
+    [Fact]
+    public async Task QuerySentAsync_Should_ReturnMessage_When_ActorHasNoOtherCorrespondenceWithRecipient()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("stranger", cancellationToken);
+        var message = await SendAsync("claude", "hello", ["stranger"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("claude", limit: null, cancellationToken);
+
+        // assert
+        var single = Assert.Single(sent);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QuerySentAsync_Should_ExcludeMessages_When_ActorOnlyReceivedThem()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var ownMessage = await SendAsync("claude", "mine", ["bob"], null, cancellationToken);
+        await SendAsync("bob", "not mine", ["claude"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("claude", limit: null, cancellationToken);
+
+        // assert
+        var single = Assert.Single(sent);
+        Assert.Equal(ownMessage.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QuerySentAsync_Should_ReturnSelfAddressedMessage_ExactlyOnce()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var message = await SendAsync("claude", "note to self", ["claude"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("claude", limit: null, cancellationToken);
+
+        // assert
+        var single = Assert.Single(sent);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QuerySentAsync_Should_ReturnUnrepliedThreadRoot()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var root = await SendAsync("claude", "unanswered", ["bob"], null, cancellationToken);
+
+        // act
+        var sent = await _store.QuerySentAsync("claude", limit: null, cancellationToken);
+
+        // assert
+        var single = Assert.Single(sent);
+        Assert.Equal(root.Id, single.Id);
+        Assert.Equal(root.Id, single.ThreadId);
+    }
+
     private static async Task ExecuteAsync(
         SqliteConnection connection,
         string sql,

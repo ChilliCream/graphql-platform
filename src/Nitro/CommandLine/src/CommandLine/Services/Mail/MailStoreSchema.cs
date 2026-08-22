@@ -20,6 +20,7 @@ internal static class MailStoreSchema
 
         CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON messages (thread_id);
         CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages (created_at);
+        CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages (sender);
 
         CREATE TABLE IF NOT EXISTS message_recipients (
             message_id TEXT NOT NULL REFERENCES messages (id) ON DELETE CASCADE,
