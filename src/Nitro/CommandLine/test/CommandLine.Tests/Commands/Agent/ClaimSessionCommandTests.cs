@@ -38,4 +38,21 @@ public sealed class ClaimSessionCommandTests(NitroCommandFixture fixture)
               nitro agent session claim --actor codex --force-rebind
             """);
     }
+
+    [Fact]
+    public async Task NoActor_ReturnsError_When_NoOptionAndNoEnvVarsAreSet()
+    {
+        // arrange: overrides the NITRO_MAIL_ACTOR fixture set up by
+        // AgentCommandTestBase's constructor so no actor resolves at all.
+        SetupEnvironmentVariable("MAIL_ACTOR", null);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "session", "claim");
+
+        // assert
+        result.AssertError(
+            """
+            No actor. Pass --actor or set NITRO_MAIL_ACTOR / NITRO_TASK_ACTOR.
+            """);
+    }
 }

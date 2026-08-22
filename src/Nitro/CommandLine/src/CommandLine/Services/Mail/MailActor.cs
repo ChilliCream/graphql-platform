@@ -26,4 +26,23 @@ internal static class MailActor
 
         return MailAgentName.Normalize(resolved);
     }
+
+    /// <summary>
+    /// Resolves the actor from the given option value, the
+    /// NITRO_MAIL_ACTOR environment variable, or the NITRO_TASK_ACTOR
+    /// environment variable, in that order, then normalizes it with
+    /// <see cref="MailAgentName.Normalize"/>. Returns null when none of them
+    /// are set: unlike <see cref="Resolve"/>, this does not fall back to the
+    /// OS user name.
+    /// </summary>
+    public static string? TryResolve(
+        string? optionValue,
+        IEnvironmentVariableProvider environmentVariables)
+    {
+        var resolved = optionValue
+            ?? environmentVariables.GetEnvironmentVariable(EnvironmentVariableName)
+            ?? environmentVariables.GetEnvironmentVariable(FallbackEnvironmentVariableName);
+
+        return resolved is null ? null : MailAgentName.Normalize(resolved);
+    }
 }

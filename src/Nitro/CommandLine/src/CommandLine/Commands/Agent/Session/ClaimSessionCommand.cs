@@ -39,8 +39,10 @@ internal sealed class ClaimSessionCommand : Command
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var actor = MailActor.Resolve(
-            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
+        var actor = MailActor.TryResolve(
+            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider)
+            ?? throw new ExitException(
+                "No actor. Pass --actor or set NITRO_MAIL_ACTOR / NITRO_TASK_ACTOR.");
         var forceRebind = parseResult.GetValue(Opt<ForceRebindSessionOption>.Instance);
 
         var result = await sessions.SelfClaimAsync(actor, forceRebind, cancellationToken);
