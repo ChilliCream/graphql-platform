@@ -1,31 +1,13 @@
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
-using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Spectre.Console;
 using Spectre.Console.Testing;
+using static ChilliCream.Nitro.CommandLine.Tests.Tui.AnsiAssertions;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailDetailViewTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-
-    /// <summary>
-    /// Asserts the ANSI escape sequence for <paramref name="token"/>'s style
-    /// appears in <paramref name="output"/>. A plain <see cref="TestConsole"/>
-    /// (as used by every other test in this file) strips markup entirely, so
-    /// a wrong or missing token name would still leave every plain-text
-    /// <c>Contains</c> assertion elsewhere green; <paramref name="output"/>
-    /// must come from a console built with <c>.Colors(ColorSystem.TrueColor)</c>
-    /// and <c>.EmitAnsiSequences()</c>.
-    /// </summary>
-    private static void AssertAnsiStyleApplied(string output, string token)
-    {
-        var style = ThemeTokens.GetStyle(token);
-        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
-        styleConsole.Write(new Markup("x", style));
-        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
-        Assert.Contains(ansiPrefix, output);
-    }
 
     private static async Task<MailState> CreateStateWithMessageAsync(FakeMailStore store, string body = "Hello there.")
     {
