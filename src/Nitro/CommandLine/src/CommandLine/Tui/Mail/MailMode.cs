@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Rendering;
@@ -29,10 +30,20 @@ internal enum MailDiscardTarget
 /// every write going through the same store operations the CLI uses. The
 /// Shift+I/S/L/W gestures jump directly to the Inbox/Sent/All/Workspace
 /// <see cref="MailMailbox"/>; u and a are refused with a toast, instead of
-/// reaching the store, on any message the actor is not a recipient of. This
-/// mode owns its own modal overlays (the archive confirmation, the compose
-/// and reply forms, and their shared discard confirmation) rather than
-/// routing through <see cref="TuiShell"/>'s task-specific overlay fields.
+/// reaching the store, on any message the actor is not a recipient of.
+/// <see cref="MailMailbox.Workspace"/> shows every agent's mail, so it is
+/// read-only by default: u, a, c, and r are all refused with
+/// <see cref="MailLifecycleActions.WorkspaceReadOnlyMessage"/> there
+/// (see <see cref="MailLifecycleActions.IsReadOnly"/>), regardless of
+/// whether the actor happens to be a recipient of the selected message,
+/// rather than narrowing case by case. Workspace carries two redundant
+/// mode indicators so the read-only default is never the list's only
+/// signal: the list pane's own header names the mailbox (<see cref="HeaderName"/>)
+/// and its border takes a distinct accent (<see cref="ResolveListBorderToken"/>).
+/// This mode owns its own modal overlays (the archive confirmation, the
+/// compose and reply forms, and their shared discard confirmation) rather
+/// than routing through <see cref="TuiShell"/>'s task-specific overlay
+/// fields.
 /// </summary>
 internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -290,10 +301,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// Marks the selected message read for the actor when it is currently
     /// unread, aligning the detail pane's "open" gesture with the CLI's
     /// read semantics. Silent on success; a failed write still surfaces as
-    /// a toast.
+    /// a toast. Inert when <see cref="MailLifecycleActions.IsReadOnly"/>, so
+    /// opening a message in Workspace never writes.
     /// </summary>
     private IReadOnlyList<TuiMessage> MaybeMarkSelectedRead()
     {
+        if (MailLifecycleActions.IsReadOnly(_state.Mailbox))
+        {
+            return [];
+        }
+
         if (_state.SelectedMessage is not { } message || !MailRecipientView.IsUnread(message, _state.Actor))
         {
             return [];
@@ -309,13 +326,19 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// Toggles the selected message between read and unread for the actor.
-    /// Refused with a toast, rather than reaching the store, when the actor
-    /// has no recipient row on the message (for example most messages in
-    /// the Sent or Workspace mailbox): the store would otherwise reject the
-    /// write with an <see cref="ExitException"/>.
+    /// Refused with a toast, rather than reaching the store, when
+    /// <see cref="MailLifecycleActions.IsReadOnly"/> or when the actor has
+    /// no recipient row on the message (for example most messages in the
+    /// Sent mailbox): the store would otherwise reject the write with an
+    /// <see cref="ExitException"/>.
     /// </summary>
     private IReadOnlyList<TuiMessage> ToggleRead()
     {
+        if (RefuseIfReadOnly() is { } refused)
+        {
+            return refused;
+        }
+
         if (_state.SelectedMessage is not { } message)
         {
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
@@ -336,11 +359,17 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// Opens the archive confirmation for the selected message. Refused
-    /// with a toast, rather than reaching the store, when the actor has no
-    /// recipient row on the message; see <see cref="ToggleRead"/>.
+    /// with a toast, rather than reaching the store, when
+    /// <see cref="MailLifecycleActions.IsReadOnly"/> or when the actor has
+    /// no recipient row on the message; see <see cref="ToggleRead"/>.
     /// </summary>
     private IReadOnlyList<TuiMessage> OpenArchiveDialog()
     {
+        if (RefuseIfReadOnly() is { } refused)
+        {
+            return refused;
+        }
+
         if (_state.SelectedMessage is not { } message)
         {
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
@@ -361,19 +390,35 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// Opens the compose form. Unlike reply and archive, composing needs no
-    /// selected message.
+    /// selected message, but is refused the same as every other mutating
+    /// gesture when <see cref="MailLifecycleActions.IsReadOnly"/>.
     /// </summary>
     private IReadOnlyList<TuiMessage> OpenComposeForm()
     {
+        if (RefuseIfReadOnly() is { } refused)
+        {
+            return refused;
+        }
+
         _composeForm = new MailComposeForm();
         return [];
     }
 
     /// <summary>
-    /// Opens the reply form for the selected message.
+    /// Opens the reply form for the selected message. Refused the same as
+    /// every other mutating gesture when
+    /// <see cref="MailLifecycleActions.IsReadOnly"/>, even for a thread the
+    /// actor participates in and the store would otherwise accept a reply
+    /// on; see <see cref="MailLifecycleActions.WorkspaceReadOnlyMessage"/>
+    /// for why this mode does not special-case that.
     /// </summary>
     private IReadOnlyList<TuiMessage> OpenReplyForm()
     {
+        if (RefuseIfReadOnly() is { } refused)
+        {
+            return refused;
+        }
+
         if (_state.SelectedMessage is not { } message)
         {
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
@@ -382,6 +427,18 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         _replyForm = new MailReplyForm(message);
         return [];
     }
+
+    /// <summary>
+    /// The shared guard behind <see cref="ToggleRead"/>, <see cref="OpenArchiveDialog"/>,
+    /// <see cref="OpenComposeForm"/>, and <see cref="OpenReplyForm"/>: a
+    /// refusal toast when <see cref="MailLifecycleActions.IsReadOnly"/> is
+    /// true for <see cref="MailState.Mailbox"/>, or null when the gesture
+    /// may proceed.
+    /// </summary>
+    private IReadOnlyList<TuiMessage>? RefuseIfReadOnly()
+        => MailLifecycleActions.IsReadOnly(_state.Mailbox)
+            ? [new TuiMessage.ShowToast(MailLifecycleActions.WorkspaceReadOnlyMessage, ToastStyle.Warn)]
+            : null;
 
     private IReadOnlyList<TuiMessage> HandleArchiveDialogKey(ConsoleKeyInfo info)
     {
@@ -594,12 +651,51 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         var now = _timeProvider.GetUtcNow();
 
         var lines = RenderListLines(contentWidth, interiorHeight, focused, now);
-        var panel = ColumnPane.Render(HeaderName(_state), _state.Messages.Count, lines, focused);
+        var panel = BuildListPanel(HeaderName(_state), _state.Messages.Count, lines, focused);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
         return panel;
     }
+
+    /// <summary>
+    /// Builds the list pane's panel directly, rather than through
+    /// <see cref="ColumnPane"/>, so <see cref="ResolveListBorderToken"/> can
+    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent:
+    /// the second of the mode's two redundant Workspace indicators (see the
+    /// class doc), alongside the header text this still renders the same
+    /// way <see cref="ColumnPane"/> does. Every other mailbox resolves to
+    /// exactly the border tokens <see cref="ColumnPane"/> itself uses.
+    /// </summary>
+    private Panel BuildListPanel(string name, int count, IReadOnlyList<string> lines, bool focused)
+    {
+        IRenderable content = lines.Count == 0
+            ? new Markup(string.Empty)
+            : new Rows(lines.Select(line => (IRenderable)new Markup(line)));
+
+        var borderToken = ResolveListBorderToken(_state.Mailbox, focused);
+
+        return new Panel(content)
+        {
+            Header = new PanelHeader($"{name} ({count})"),
+            Border = BoxBorder.Rounded,
+            BorderStyle = ThemeTokens.GetStyle(borderToken)
+        };
+    }
+
+    /// <summary>
+    /// The list pane's border token for <paramref name="mailbox"/>:
+    /// <see cref="MailMailbox.Workspace"/>'s own distinct accent, or the
+    /// plain <c>board.column.border</c> family every other mailbox and
+    /// every other board in the shell uses.
+    /// </summary>
+    internal static string ResolveListBorderToken(MailMailbox mailbox, bool focused) => mailbox switch
+    {
+        MailMailbox.Workspace when focused => "mail.mailbox.workspace.border.focused",
+        MailMailbox.Workspace => "mail.mailbox.workspace.border",
+        _ when focused => "board.column.border.focused",
+        _ => "board.column.border"
+    };
 
     private IRenderable RenderDetailPane(int width, int height)
         => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail);

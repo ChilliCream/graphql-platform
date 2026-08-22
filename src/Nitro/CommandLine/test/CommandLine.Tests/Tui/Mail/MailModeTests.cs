@@ -1,6 +1,8 @@
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Microsoft.Extensions.Time.Testing;
+using Spectre.Console;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -757,5 +759,164 @@ public sealed class MailModeTests
         Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
         Assert.False(mode.IsInputCapturing);
         Assert.Contains(store.Messages, m => m.InReplyTo == "m-1" && m.Body == "On it.");
+    }
+
+    [Fact]
+    public void ToggleReadRequested_Should_ShowReadOnlyToast_And_NotMutate_When_MailboxIsWorkspace()
+    {
+        // arrange: alice is a genuine recipient of m-1, so the write would
+        // otherwise succeed; Workspace refuses it anyway, regardless of
+        // recipient status, since it shows every agent's mail.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ToggleReadRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
+        Assert.Contains("read-only", shown.Text, StringComparison.OrdinalIgnoreCase);
+        Assert.Null(MailRecipientView.FindRecipient(store.Messages[0], "alice")!.ReadAt);
+    }
+
+    [Fact]
+    public void OpenSelected_Should_NotMarkRead_When_MailboxIsWorkspace()
+    {
+        // arrange: alice is an unread recipient of m-1, so the write would
+        // otherwise succeed; Workspace must stay inert regardless, since
+        // opening a message there is an implicit side effect, not a gesture.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.Null(MailRecipientView.FindRecipient(store.Messages[0], "alice")!.ReadAt);
+
+        // act: flip back to List, then Right again so the MoveCursor(Right)
+        // TogglePane path (List -> Detail) reaches the same
+        // MaybeMarkSelectedRead gate and must stay inert too.
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+        var moveFollowUp = mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Empty(moveFollowUp);
+        Assert.Null(MailRecipientView.FindRecipient(store.Messages[0], "alice")!.ReadAt);
+    }
+
+    [Fact]
+    public void ArchiveRequested_Should_ShowReadOnlyToast_And_NotOpenDialog_When_MailboxIsWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ArchiveRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
+        Assert.False(mode.IsInputCapturing);
+        Assert.Null(MailRecipientView.FindRecipient(store.Messages[0], "alice")!.ArchivedAt);
+    }
+
+    [Fact]
+    public void ComposeRequested_Should_ShowReadOnlyToast_And_NotOpenForm_When_MailboxIsWorkspace()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ComposeRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
+        Assert.False(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void ReplyRequested_Should_ShowReadOnlyToast_And_NotOpenForm_When_MailboxIsWorkspace_EvenForTheActorsOwnThread()
+    {
+        // arrange: alice sent m-1, so she participates in the thread and the
+        // store's ResolveReplyAsync check would otherwise allow the reply;
+        // Workspace refuses it anyway rather than special-casing threads
+        // the actor participates in.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ReplyRequested());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
+        Assert.False(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace()
+    {
+        // arrange: the header names the mailbox, and the list pane's border
+        // token is distinct from the plain board tokens every other
+        // mailbox uses, so neither is the only signal the mode has
+        // changed meaning.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("Workspace (1)", console.Output);
+        Assert.NotEqual(
+            ThemeTokens.GetStyle("board.column.border"),
+            ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true)));
+        Assert.NotEqual(
+            ThemeTokens.GetStyle("board.column.border.focused"),
+            ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true)));
+
+        // assert: the border pane's output actually carries the ANSI
+        // sequence for the Workspace-focused border style, not just an
+        // unequal token in the abstract.
+        var borderStyle = ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true));
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", borderStyle));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix, console.Output);
+    }
+
+    [Fact]
+    public void ResolveListBorderToken_Should_UseThePlainBoardTokens_When_MailboxIsNotWorkspace()
+    {
+        // act & assert
+        Assert.Equal("board.column.border", MailMode.ResolveListBorderToken(MailMailbox.Inbox, focused: false));
+        Assert.Equal("board.column.border.focused", MailMode.ResolveListBorderToken(MailMailbox.Sent, focused: true));
     }
 }

@@ -264,6 +264,23 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
+    public void CreateDefault_Should_CarryADedicatedInboxHint_Separate_FromTheOtherMailboxJumps()
+    {
+        // arrange: Shift+I is the footer's persistent, fixed-position exit
+        // affordance back to Inbox from Workspace's read-only mode, so it
+        // must carry its own hint rather than being folded into one
+        // combined "jump to a mailbox" hint with S/L/W.
+        var keyMap = MailKeyMap.CreateDefault();
+
+        // act
+        var inboxHint = keyMap.Hints.Single(h => h.Key == "I");
+
+        // assert
+        Assert.Contains("inbox", inboxHint.Action, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(keyMap.Hints, h => h.Key.Contains('I') && h.Key != "I");
+    }
+
+    [Fact]
     public void CreateDefault_Should_NotBind_TaskOnlyGestures()
     {
         // arrange: the mail board has no edit, delete, or dependency-tree

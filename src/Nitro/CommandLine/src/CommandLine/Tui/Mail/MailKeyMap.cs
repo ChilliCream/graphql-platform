@@ -24,7 +24,19 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// convention of Gmail's g i/g t/g a and mu4e's j+letter; <see cref="KeyDispatcher"/>
 /// resolves only single key chords with no concept of a chord prefix, so
 /// each mailbox gets its own Shift+letter chord instead of a two-key "g"
-/// prefix table.
+/// prefix table. Shift+I carries its own dedicated <see cref="KeyHint"/>,
+/// separate from Shift+S/L/W's, so it reads as the footer's persistent,
+/// fixed-position exit affordance back to Inbox from
+/// <see cref="MailMailbox.Workspace"/>'s read-only mode (see
+/// <see cref="MailMode"/>'s class doc), rather than being buried in one
+/// combined "jump to a mailbox" hint. This table's hints are static and
+/// carried once into the tabbed shell's per-tab <see cref="KeyDispatcher"/>
+/// at startup (see <c>AgentTuiLauncher.BuildMailTab</c>), so they cannot
+/// currently vary with the active <see cref="MailMailbox"/>: the footer
+/// cannot yet hide u/a/c/r's hints while <see cref="MailMailbox.Workspace"/>
+/// makes those gestures inert, short of restructuring <see cref="KeyDispatcher"/>
+/// and the shell's footer-hint combining to let a mode override, rather
+/// than only append to, the global table's hints.
 /// </remarks>
 internal static class MailKeyMap
 {
@@ -106,10 +118,11 @@ internal static class MailKeyMap
         new KeyBinding(
             new KeyChord(ConsoleKey.I, ConsoleModifiers.Shift, 'I'),
             () => new TuiMessage.SelectInboxRequested(),
-            new KeyHint("I/S/L/W", "mailbox")),
+            new KeyHint("I", "inbox")),
         new KeyBinding(
             new KeyChord(ConsoleKey.S, ConsoleModifiers.Shift, 'S'),
-            () => new TuiMessage.SelectSentRequested()),
+            () => new TuiMessage.SelectSentRequested(),
+            new KeyHint("S/L/W", "sent/all/workspace")),
         new KeyBinding(
             new KeyChord(ConsoleKey.L, ConsoleModifiers.Shift, 'L'),
             () => new TuiMessage.SelectAllMailRequested()),
