@@ -20,12 +20,13 @@ public sealed class EventStreamBrokerReadFailureTests
     private const string BrokerName = "failing";
 
     [Fact]
-    public async Task Subscribe_Should_EndStreamAndRaiseSubscriptionEventError_When_BrokerReadFails()
+    public async Task Subscribe_Should_EmitErrorResultAndEndStream_When_BrokerReadFails()
     {
         // arrange
         // The broker delivers one event and then fails the next read with a connection
-        // loss. The failed read must be reported through SubscriptionEventError and end
-        // the subscription stream gracefully instead of surfacing a raw exception.
+        // loss. The failed read must be reported through SubscriptionEventError, surface
+        // as one terminal error result and then end the subscription stream gracefully
+        // instead of surfacing a raw exception.
         var topic = CreateTopic();
         var broker = new FailingEventStreamBroker();
         var listener = new CapturingDiagnosticListener();
@@ -52,7 +53,7 @@ public sealed class EventStreamBrokerReadFailureTests
             "The connection to the event stream broker was lost."));
 
         // assert
-        // the delivered event arrives, then the stream completes without throwing
+        // the delivered event arrives, then the error result, then the stream completes without throwing
         var results = await events;
         results.MatchInlineSnapshots(
         [
@@ -64,11 +65,100 @@ public sealed class EventStreamBrokerReadFailureTests
                 }
               }
             }
+            """,
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "onBookChanged"
+                  ]
+                }
+              ],
+              "data": {
+                "onBookChanged": null
+              }
+            }
             """
         ]);
 
         var exception = Assert.IsType<InvalidOperationException>(listener.Exception);
         Assert.Equal("The connection to the event stream broker was lost.", exception.Message);
+        Assert.Equal("EVENTS", listener.SchemaName);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_EmitErrorResultAndStayAlive_When_MessageCannotBeDecoded()
+    {
+        // arrange
+        // one well-formed message, then one that is not valid JSON, then another well-formed message
+        var topic = CreateTopic();
+        var broker = new FailingEventStreamBroker();
+        var listener = new CapturingDiagnosticListener();
+        var services = CreateServices(topic, broker, listener);
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        var events = CollectAllEventsAsync(
+            executor,
+            """
+            subscription {
+              onBookChanged {
+                id
+              }
+            }
+            """,
+            cts.Token);
+
+        await WaitForSubscriberAsync(broker, cts.Token);
+
+        // act
+        await broker.PublishAsync("""{"id":1}"""u8.ToArray(), cts.Token);
+        await broker.PublishAsync("{not json"u8.ToArray(), cts.Token);
+        await broker.PublishAsync("""{"id":2}"""u8.ToArray(), cts.Token);
+        broker.Complete();
+
+        // assert
+        // the undecodable message yields one error result and the following message still arrives
+        var results = await events;
+        results.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onBookChanged": {
+                  "id": 1
+                }
+              }
+            }
+            """,
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "onBookChanged"
+                  ]
+                }
+              ],
+              "data": {
+                "onBookChanged": null
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "onBookChanged": {
+                  "id": 2
+                }
+              }
+            }
+            """
+        ]);
+
         Assert.Equal("EVENTS", listener.SchemaName);
     }
 
@@ -117,7 +207,10 @@ public sealed class EventStreamBrokerReadFailureTests
             .ReadResultsAsync()
             .WithCancellation(cancellationToken))
         {
+            // serialize and release each result like a transport does, so that a later event
+            // cannot silently write into an already delivered result
             events.Add(operationResult.ToJson());
+            await operationResult.DisposeAsync();
         }
 
         await result.DisposeAsync();
@@ -218,6 +311,9 @@ public sealed class EventStreamBrokerReadFailureTests
 
         public void Fail(Exception exception)
             => _channel.Writer.TryComplete(exception);
+
+        public void Complete()
+            => _channel.Writer.TryComplete();
 
         public IAsyncEnumerable<EventMessage> SubscribeAsync(
             ISubscriptionFieldContext context,
