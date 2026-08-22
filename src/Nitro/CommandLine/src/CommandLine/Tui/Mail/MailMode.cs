@@ -301,10 +301,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// Marks the selected message read for the actor when it is currently
     /// unread, aligning the detail pane's "open" gesture with the CLI's
     /// read semantics. Silent on success; a failed write still surfaces as
-    /// a toast.
+    /// a toast. Inert when <see cref="MailLifecycleActions.IsReadOnly"/>, so
+    /// opening a message in Workspace never writes.
     /// </summary>
     private IReadOnlyList<TuiMessage> MaybeMarkSelectedRead()
     {
+        if (MailLifecycleActions.IsReadOnly(_state.Mailbox))
+        {
+            return [];
+        }
+
         if (_state.SelectedMessage is not { } message || !MailRecipientView.IsUnread(message, _state.Actor))
         {
             return [];
