@@ -86,6 +86,19 @@ internal static class MailLifecycleActions
     /// the store or opening a form or confirmation. See
     /// <see cref="WorkspaceReadOnlyMessage"/> for why.
     /// </summary>
+    /// <remarks>
+    /// Because this is currently the only gate on a Workspace-wide action,
+    /// no bulk action exists yet that needs to state its target explicitly.
+    /// Workspace also carries a per-agent filter (<see cref="MailState.AgentFilter"/>,
+    /// applied through <see cref="MailMailbox.Workspace"/> only), so once a
+    /// bulk action is added here it must name the active filter and the
+    /// affected count in its confirmation text (for example "Archive 4
+    /// messages for 'bob'?" vs. "Archive 12 messages?"), since a filtered
+    /// list makes "all" ambiguous between "everything shown" and "every
+    /// message in Workspace". Mailpit special-cased this with a distinct
+    /// "Delete all messages matching search" action rather than overloading
+    /// its plain "Delete all".
+    /// </remarks>
     public static bool IsReadOnly(MailMailbox mailbox) => mailbox == MailMailbox.Workspace;
 
     /// <summary>
