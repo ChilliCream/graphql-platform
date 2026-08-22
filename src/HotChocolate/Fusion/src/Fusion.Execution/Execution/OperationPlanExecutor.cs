@@ -1314,6 +1314,17 @@ internal static partial class OperationPlanExecutor
 
                 var gateAcquired = false;
 
+                // An error reported between events (a failed source read) can null-propagate
+                // to the root and cancel the shared event source before this event is armed.
+                // A cancelled source cannot be reset, so swap in a fresh one (and re-link
+                // client-abort / shutdown) so that the event starts with a live timeout budget.
+                if (eventCts.IsCancellationRequested && !executionCancellationToken.IsCancellationRequested)
+                {
+                    await eventCtsRegistration.DisposeAsync();
+                    eventCts.Dispose();
+                    (eventCts, eventCtsRegistration) = CreateEventCancellation();
+                }
+
                 // Arm the shared CTS for this event and derive the per-event token so
                 // that each event is bounded by the configured execution timeout.
                 eventCts.CancelAfter(eventTimeout);
