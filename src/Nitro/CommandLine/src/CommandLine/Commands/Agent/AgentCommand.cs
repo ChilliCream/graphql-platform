@@ -1,4 +1,5 @@
 using System.CommandLine.Help;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Session;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Memory;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks;
@@ -24,6 +25,7 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new RegisterAgentCommand());
         Subcommands.Add(new WhoamiAgentCommand());
         Subcommands.Add(new ListAgentCommand());
+        Subcommands.Add(new SessionCommand());
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
