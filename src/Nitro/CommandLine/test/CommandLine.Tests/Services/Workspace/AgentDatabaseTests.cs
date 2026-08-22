@@ -434,6 +434,165 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
+    /// The cross-column CHECK <c>(endpoint_kind = 'none') = (endpoint_addr = '')</c>
+    /// rejects a row that names a real endpoint kind while carrying no
+    /// address.
+    /// </summary>
+    [Fact]
+    public async Task AgentSessionsTable_Should_RejectActiveEndpointKindWithEmptyAddress_When_CheckConstraintFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                'claude-code', 'session-3', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                '/tmp/work', '/tmp/work/.nitro/agents', 'claude-peer', '', '2026-01-10T12:00:00+00:00',
+                '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// The same cross-column CHECK also rejects the opposite mismatch: a
+    /// non-empty address while <c>endpoint_kind</c> claims there is none.
+    /// </summary>
+    [Fact]
+    public async Task AgentSessionsTable_Should_RejectNoneEndpointKindWithNonEmptyAddress_When_CheckConstraintFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                'claude-code', 'session-4', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                '/tmp/work', '/tmp/work/.nitro/agents', 'none', 'peer-a', '2026-01-10T12:00:00+00:00',
+                '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// <c>session_deliveries.channel</c> is CHECK-constrained to
+    /// <c>digest</c>, <c>gate</c>, or <c>ping</c>.
+    /// </summary>
+    [Fact]
+    public async Task SessionDeliveriesTable_Should_RejectUnknownChannel_When_CheckConstraintFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await InsertAgentSessionAsync(connection, "session-5", cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
+            VALUES ('claude-code', 'session-5', 'msg-1', 'unknown-channel', '2026-01-10T12:00:00+00:00');
+            """,
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// <c>session_deliveries</c> rows cascade-delete with their owning
+    /// <c>agent_sessions</c> row, so reaping or ending a session clears its
+    /// ledger in the same statement instead of leaking orphaned rows.
+    /// </summary>
+    [Fact]
+    public async Task SessionDeliveriesTable_Should_CascadeDelete_When_OwningAgentSessionRowIsDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await InsertAgentSessionAsync(connection, "session-6", cancellationToken);
+        await ExecuteAsync(
+            connection,
+            """
+            INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
+            VALUES ('claude-code', 'session-6', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
+            """,
+            cancellationToken);
+
+        // act
+        await ExecuteAsync(
+            connection, "DELETE FROM agent_sessions WHERE session_id = 'session-6';", cancellationToken);
+
+        // assert
+        var remaining = await QueryScalarLongAsync(
+            connection,
+            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-6'",
+            cancellationToken);
+        Assert.Equal(0, remaining);
+    }
+
+    /// <summary>
+    /// <c>ping_leases.slot</c> is CHECK-constrained to the fixed four-slot
+    /// concurrency cap; 0 and 5 both fall outside it.
+    /// </summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    public async Task PingLeasesTable_Should_RejectSlotOutsideRange_When_CheckConstraintFires(int slot)
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            $"""
+            INSERT INTO ping_leases (slot, attempt_id, acquired_at, expires_at)
+            VALUES ({slot}, 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:05+00:00');
+            """,
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// The inclusive ends of the range, 1 and 4, are accepted.
+    /// </summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(4)]
+    public async Task PingLeasesTable_Should_AcceptSlotWithinRange_When_AtTheInclusiveBounds(int slot)
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act
+        await ExecuteAsync(
+            connection,
+            $"""
+            INSERT INTO ping_leases (slot, attempt_id, acquired_at, expires_at)
+            VALUES ({slot}, 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:05+00:00');
+            """,
+            cancellationToken);
+
+        // assert
+        var count = await QueryScalarLongAsync(
+            connection, $"SELECT COUNT(*) FROM ping_leases WHERE slot = {slot}", cancellationToken);
+        Assert.Equal(1, count);
+    }
+
+    /// <summary>
     /// Proves the unified workspace: a task created through
     /// <see cref="ITaskStore"/> and a message sent through
     /// <see cref="IMailStore"/> land in the same database file, both visible
@@ -560,4 +719,24 @@ public sealed class AgentDatabaseTests : IDisposable
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Inserts a minimal, otherwise-valid <c>agent_sessions</c> row with the
+    /// given session id, for tests that only care about a dependent table.
+    /// </summary>
+    private static Task InsertAgentSessionAsync(
+        SqliteConnection connection, string sessionId, CancellationToken cancellationToken)
+        => ExecuteAsync(
+            connection,
+            $"""
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                'claude-code', '{sessionId}', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
+                '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken);
 }

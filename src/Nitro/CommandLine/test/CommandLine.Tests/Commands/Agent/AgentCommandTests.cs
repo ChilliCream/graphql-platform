@@ -40,6 +40,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
+              session   Manage this workspace's live harness session presence.
             """);
     }
 
@@ -70,6 +71,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
+              session   Manage this workspace's live harness session presence.
             """);
     }
 
@@ -103,6 +105,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
+              session   Manage this workspace's live harness session presence.
             """);
     }
 
@@ -136,6 +139,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
+              session   Manage this workspace's live harness session presence.
             """);
     }
 
