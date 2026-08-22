@@ -9,7 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// <summary>
 /// Exercises <see cref="AgentDatabase"/>'s version state machine and the
 /// unified schema it applies, against a real SQLite file: empty/v0
-/// initialization, v2-in-place upgrade preserving existing rows, v3
+/// initialization, v2-in-place upgrade preserving existing rows, a v3
+/// database that predates the client column gaining it in place, v3
 /// connection, unified-path v1 rejection, v4 rejection (including
 /// re-initializing an already-current file, the shape --force reinit
 /// takes), and that task and mail data coexist in one file.
@@ -62,6 +63,7 @@ public sealed class AgentDatabaseTests : IDisposable
         var columns = (await QueryColumnNamesAsync(connection, cancellationToken)).ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", columns);
         Assert.Contains("implicit", columns);
+        Assert.Contains("client", columns);
     }
 
     [Fact]
@@ -124,9 +126,66 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2, "SELECT role FROM agents WHERE name = 'claude'", cancellationToken);
         var isImplicit = await QueryScalarLongAsync(
             connection2, "SELECT implicit FROM agents WHERE name = 'claude'", cancellationToken);
+        var client = await QueryScalarStringAsync(
+            connection2, "SELECT client FROM agents WHERE name = 'claude'", cancellationToken);
         Assert.Equal("claude", name);
         Assert.Equal("", role);
         Assert.Equal(0, isImplicit);
+        Assert.Equal("", client);
+    }
+
+    /// <summary>
+    /// Seeds a v3-shaped agents table (role and implicit present, client
+    /// absent), mirroring an existing workspace at this bead's start, such
+    /// as this repo's own `.nitro/agents/` before `init --force`. This is
+    /// the regression test for the bricking hazard the fix direction calls
+    /// out: since InitializeAsync no longer gates the column upgrade on
+    /// version == UpgradableVersion, a v3 database gains the client column
+    /// too, and reads through <see cref="AgentRecord.Columns"/> succeed
+    /// afterward instead of failing with "no such column: client".
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AddClientColumn_When_ExistingVersionIsCurrentButPredatesClient()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1))
+                );
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit)
+                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0);
+                PRAGMA user_version = 3;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
+        Assert.Equal(AgentDatabase.CurrentVersion, version);
+
+        var columns = (await QueryColumnNamesAsync(connection2, cancellationToken)).ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("client", columns);
+
+        var role = await QueryScalarStringAsync(
+            connection2, "SELECT role FROM agents WHERE name = 'claude'", cancellationToken);
+        var client = await QueryScalarStringAsync(
+            connection2, "SELECT client FROM agents WHERE name = 'claude'", cancellationToken);
+        Assert.Equal("backend", role);
+        Assert.Equal("", client);
     }
 
     [Fact]
@@ -283,7 +342,7 @@ public sealed class AgentDatabaseTests : IDisposable
                 Actor = "claude"
             },
             cancellationToken);
-        await agentRegistry.RegisterAsync("codex", role: "", cancellationToken);
+        await agentRegistry.RegisterAsync("codex", role: "", client: "", cancellationToken);
         var message = await mailStore.SendMessageAsync(
             new MailMessageCreation
             {

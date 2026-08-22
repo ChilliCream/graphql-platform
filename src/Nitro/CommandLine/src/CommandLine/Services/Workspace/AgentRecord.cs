@@ -11,11 +11,18 @@ internal sealed record AgentRecord
     /// statements against the agents table.
     /// </summary>
     public const string Columns =
-        "name AS Name, role AS Role, implicit AS Implicit, "
+        "name AS Name, role AS Role, client AS Client, implicit AS Implicit, "
         + "registered_at AS RegisteredAt, last_seen_at AS LastSeenAt";
 
     public required string Name { get; init; }
     public required string Role { get; init; }
+
+    /// <summary>
+    /// The client program the agent runs as, e.g. "claude-code" or "codex",
+    /// free text, normalized lowercase. Empty means unknown. Provenance
+    /// only: nothing filters or branches on it.
+    /// </summary>
+    public required string Client { get; init; }
 
     /// <summary>
     /// True when this row was created for an unknown recipient that has

@@ -17,6 +17,7 @@ internal sealed class RegisterAgentCommand : Command
 
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<RoleAgentOption>.Instance);
+        Options.Add(Opt<ClientAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("agent register", "agent register --role \"backend\"");
@@ -37,14 +38,18 @@ internal sealed class RegisterAgentCommand : Command
         var actor = MailActor.Resolve(
             parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
         var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance) ?? "";
+        var client = parseResult.GetValue(Opt<ClientAgentOption>.Instance)
+            ?? DetectClient(environmentVariableProvider)
+            ?? "";
 
-        var agent = await registry.RegisterAsync(actor, role, cancellationToken);
+        var agent = await registry.RegisterAsync(actor, role, client, cancellationToken);
 
         if (!console.IsHumanReadable)
         {
             resultHolder.SetResult(
                 new ObjectResult(
-                    new AgentRegisterResult(agent.Name, agent.Role, agent.RegisteredAt, agent.LastSeenAt)));
+                    new AgentRegisterResult(
+                        agent.Name, agent.Role, agent.Client, agent.RegisteredAt, agent.LastSeenAt)));
             return ExitCodes.Success;
         }
 
@@ -56,6 +61,22 @@ internal sealed class RegisterAgentCommand : Command
         return ExitCodes.Success;
     }
 
+    /// <summary>
+    /// Detects the CLI's client program from environment markers, used as
+    /// the fallback when <c>--client</c> is not given. Only markers
+    /// confirmed present in a real session of the corresponding tool are
+    /// checked; an unconfirmed tool is left undetected rather than guessed,
+    /// so its identity can only be recorded via <c>--client</c>.
+    ///
+    /// | Marker present | Detected as   |
+    /// |-----------------|---------------|
+    /// | <c>CLAUDECODE</c> | <c>claude-code</c> |
+    /// </summary>
+    internal static string? DetectClient(IEnvironmentVariableProvider environmentVariables)
+        => environmentVariables.GetEnvironmentVariable("CLAUDECODE") is not null
+            ? "claude-code"
+            : null;
+
     public sealed record AgentRegisterResult(
-        string Name, string Role, DateTimeOffset RegisteredAt, DateTimeOffset LastSeenAt);
+        string Name, string Role, string Client, DateTimeOffset RegisteredAt, DateTimeOffset LastSeenAt);
 }

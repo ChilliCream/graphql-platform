@@ -16,7 +16,8 @@ internal static class AgentRegistrySchema
             registered_at TEXT NOT NULL,
             last_seen_at TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT '',
-            implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1))
+            implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+            client TEXT NOT NULL DEFAULT ''
         );
         """;
 }

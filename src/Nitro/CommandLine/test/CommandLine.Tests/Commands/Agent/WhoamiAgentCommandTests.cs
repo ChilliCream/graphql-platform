@@ -82,6 +82,7 @@ public sealed class WhoamiAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal("test-agent", root.GetProperty("name").GetString());
         Assert.False(root.GetProperty("registered").GetBoolean());
         Assert.Equal("", root.GetProperty("role").GetString());
+        Assert.Equal("", root.GetProperty("client").GetString());
     }
 
     [Fact]
@@ -89,7 +90,7 @@ public sealed class WhoamiAgentCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--role", "backend");
+        await ExecuteCommandAsync("agent", "register", "--role", "backend", "--client", "claude-code");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -102,6 +103,7 @@ public sealed class WhoamiAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal("test-agent", root.GetProperty("name").GetString());
         Assert.True(root.GetProperty("registered").GetBoolean());
         Assert.Equal("backend", root.GetProperty("role").GetString());
+        Assert.Equal("claude-code", root.GetProperty("client").GetString());
     }
 
     [Fact]
