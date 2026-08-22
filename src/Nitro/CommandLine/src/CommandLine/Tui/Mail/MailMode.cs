@@ -92,6 +92,18 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private const string AgentFilterRequiresWorkspaceMessage =
         "Agent filter only applies to Workspace. Press Shift+W for Workspace.";
 
+    /// <summary>
+    /// The footer hints <see cref="SuppressedGlobalHints"/> hides while
+    /// <see cref="MailMailbox.Workspace"/> is active.
+    /// </summary>
+    private static readonly KeyHint[] WorkspaceReadOnlyHints =
+    [
+        MailKeyMap.ToggleReadHint,
+        MailKeyMap.ArchiveHint,
+        MailKeyMap.ReplyHint,
+        MailKeyMap.ComposeHint
+    ];
+
     private readonly IMailStore _store;
     private readonly IAgentRegistry _agentRegistry;
     private readonly MailState _state;
@@ -167,6 +179,19 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <inheritdoc />
     public KeyMap? KeyMap => null;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Hides the u, a, r, and c hints (see <see cref="MailKeyMap.ToggleReadHint"/>,
+    /// <see cref="MailKeyMap.ArchiveHint"/>, <see cref="MailKeyMap.ReplyHint"/>,
+    /// and <see cref="MailKeyMap.ComposeHint"/>) from the footer while
+    /// <see cref="MailLifecycleActions.IsReadOnly"/> is true for
+    /// <see cref="MailState.Mailbox"/>: the same four gestures
+    /// <see cref="RefuseIfReadOnly"/> refuses with a toast, rather than
+    /// reaching the store, in <see cref="MailMailbox.Workspace"/>.
+    /// </remarks>
+    public IReadOnlyCollection<KeyHint> SuppressedGlobalHints
+        => MailLifecycleActions.IsReadOnly(_state.Mailbox) ? WorkspaceReadOnlyHints : [];
 
     /// <inheritdoc />
     public void OnEnter() => RefreshBlocking();

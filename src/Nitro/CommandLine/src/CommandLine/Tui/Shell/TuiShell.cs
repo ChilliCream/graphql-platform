@@ -985,45 +985,8 @@ internal sealed class TuiShell
             return capturingMode.CapturingHints;
         }
 
-        var hints = Combine(contextHints);
+        var hints = ActiveTab.Dispatcher.CombineHints(contextHints, ActiveMode.SuppressedGlobalHints);
         return _tabs.Count > 1 ? [.. hints, TabSwitchKeys.Hint] : hints;
-    }
-
-    /// <summary>
-    /// Appends the global key table's hints after <paramref name="contextHints"/>,
-    /// matching how <see cref="KeyDispatcher.Dispatch"/> falls back to the
-    /// global table for anything a context-specific key table does not bind.
-    /// A global hint already present among <paramref name="contextHints"/>
-    /// (for example a mode's own back-to-global Escape binding) is not
-    /// repeated.
-    /// </summary>
-    private IReadOnlyList<KeyHint> Combine(IReadOnlyList<KeyHint> contextHints)
-    {
-        var globalHints = ActiveTab.Dispatcher.GlobalKeyMap.Hints;
-
-        if (contextHints.Count == 0)
-        {
-            return globalHints;
-        }
-
-        if (globalHints.Count == 0)
-        {
-            return contextHints;
-        }
-
-        var seen = new HashSet<KeyHint>(contextHints);
-        var combined = new List<KeyHint>(contextHints.Count + globalHints.Count);
-        combined.AddRange(contextHints);
-
-        foreach (var hint in globalHints)
-        {
-            if (seen.Add(hint))
-            {
-                combined.Add(hint);
-            }
-        }
-
-        return combined;
     }
 
     /// <summary>
