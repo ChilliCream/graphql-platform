@@ -2,13 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TemplateDetail } from "@/src/components/learn/TemplateDetail";
 import { languageLabel, productLabel } from "@/src/data/learn/facets";
-import {
-  findRelatedTemplates,
-  findTemplate,
-  LEARN_SUMMARIES,
-  TEMPLATE_ITEMS,
-  TEMPLATE_SUMMARIES,
-} from "@/src/data/learn/content";
+import { findTemplate, LEARN_SUMMARIES, TEMPLATE_ITEMS, TEMPLATE_SUMMARIES } from "@/src/data/learn/content";
 import type { LearnItemSummary, TemplateItem } from "@/src/data/learn/types";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_URL } from "@/src/helpers/siteUrl";
@@ -70,9 +64,12 @@ const structuredData = (template: TemplateItem) => ({
  * {@link MAX_RELATED}.
  */
 function findRelated(template: TemplateItem): readonly LearnItemSummary[] {
-  const sameType = findRelatedTemplates(template, MAX_RELATED)
-    .map((related) => TEMPLATE_SUMMARIES.find((summary) => summary.slug === related.slug))
-    .filter((summary) => summary !== undefined);
+  const others = TEMPLATE_SUMMARIES.filter((t) => t.slug !== template.slug);
+  const sameTopology = others.filter((t) => t.topology === template.topology);
+  const productOverlap = others.filter(
+    (t) => !sameTopology.includes(t) && t.products.some((p) => template.products.includes(p)),
+  );
+  const sameType = [...sameTopology, ...productOverlap].slice(0, MAX_RELATED);
   if (sameType.length >= MAX_RELATED) {
     return sameType;
   }
