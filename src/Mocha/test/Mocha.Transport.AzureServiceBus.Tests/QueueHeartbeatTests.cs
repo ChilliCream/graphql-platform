@@ -17,7 +17,7 @@ public class QueueHeartbeatTests
         // arrange
         await using var client = new ServiceBusClient(FakeConnectionString);
         var receiver = client.CreateReceiver("test-queue");
-        var heartbeat = new QueueHeartbeat(receiver, NullLogger.Instance, "test-queue");
+        var heartbeat = new QueueHeartbeat(receiver, TimeSpan.FromHours(24), NullLogger.Instance, "test-queue");
 
         // act
         await heartbeat.DisposeAsync();
@@ -32,7 +32,7 @@ public class QueueHeartbeatTests
         // arrange
         await using var client = new ServiceBusClient(FakeConnectionString);
         var receiver = client.CreateReceiver("test-queue");
-        var heartbeat = new QueueHeartbeat(receiver, NullLogger.Instance, "test-queue");
+        var heartbeat = new QueueHeartbeat(receiver, TimeSpan.FromHours(24), NullLogger.Instance, "test-queue");
 
         // act
         await heartbeat.DisposeAsync();

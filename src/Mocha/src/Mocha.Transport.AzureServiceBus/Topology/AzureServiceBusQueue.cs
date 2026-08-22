@@ -120,6 +120,11 @@ public sealed class AzureServiceBusQueue
         ForwardDeadLetteredMessagesTo = entityName;
     }
 
+    internal void SetAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    {
+        AutoDeleteOnIdle = autoDeleteOnIdle;
+    }
+
     /// <inheritdoc />
     public async Task ProvisionAsync(
         AzureServiceBusClientManager clientManager,

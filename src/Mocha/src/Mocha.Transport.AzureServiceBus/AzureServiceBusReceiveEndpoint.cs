@@ -97,8 +97,9 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
     /// <summary>
     /// Starts when the messaging runtime activates this endpoint. The endpoint selects and starts
-    /// the appropriate session or non-session processor, and starts a heartbeat for reply queues.
-    /// If startup fails, it disposes any resources created during the attempt before propagating the failure.
+    /// the appropriate session or non-session processor, and starts a heartbeat for queues that
+    /// have an idle deletion window configured. If startup fails, it disposes any resources created
+    /// during the attempt before propagating the failure.
     /// </summary>
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
@@ -119,10 +120,10 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
             await _processor.StartProcessingAsync(cancellationToken);
 
-            if (Configuration.Kind == ReceiveEndpointKind.Reply)
+            if (Queue.AutoDeleteOnIdle is { } autoDeleteOnIdle)
             {
                 var receiver = transport.ClientManager.CreateReceiver(Queue.Name);
-                _heartbeat = new QueueHeartbeat(receiver, _logger, Queue.Name);
+                _heartbeat = new QueueHeartbeat(receiver, autoDeleteOnIdle, _logger, Queue.Name);
             }
         }
         catch

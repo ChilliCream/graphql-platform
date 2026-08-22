@@ -4,12 +4,11 @@ using Microsoft.Extensions.Logging;
 namespace Mocha.Transport.AzureServiceBus;
 
 /// <summary>
-/// Periodically peeks at a queue to reset its <c>AutoDeleteOnIdle</c> timer, keeping
-/// framework-managed reply queues alive even when no replies have flowed for the idle window.
+/// Periodically peeks at a queue to reset its <c>AutoDeleteOnIdle</c> timer, keeping a queue
+/// with an idle deletion window alive while its receive endpoint is active.
 /// </summary>
 internal sealed class QueueHeartbeat : IAsyncDisposable
 {
-    private static readonly TimeSpan s_defaultInterval = TimeSpan.FromHours(12);
     private static readonly TimeSpan s_stopTimeout = TimeSpan.FromSeconds(5);
 
     private readonly ServiceBusReceiver? _receiver;
@@ -36,12 +35,19 @@ internal sealed class QueueHeartbeat : IAsyncDisposable
         _runningTask = RunAsync(_cts.Token);
     }
 
-    public QueueHeartbeat(ServiceBusReceiver receiver, ILogger logger, string entityPath)
-        : this(receiver, ct => receiver.PeekMessageAsync(cancellationToken: ct), s_defaultInterval, logger, entityPath)
+    public QueueHeartbeat(ServiceBusReceiver receiver, TimeSpan autoDeleteOnIdle, ILogger logger, string entityPath)
+        : this(
+            receiver,
+            ct => receiver.PeekMessageAsync(cancellationToken: ct),
+            ResolveInterval(autoDeleteOnIdle),
+            logger,
+            entityPath)
     { }
 
     internal QueueHeartbeat(Func<CancellationToken, Task> peek, TimeSpan interval, ILogger logger, string entityPath)
         : this(null, peek, interval, logger, entityPath) { }
+
+    private static TimeSpan ResolveInterval(TimeSpan autoDeleteOnIdle) => autoDeleteOnIdle / 2;
 
     private async Task RunAsync(CancellationToken ct)
     {
