@@ -1308,15 +1308,14 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToWorkspaceHeaderText_When_MailboxIsWorkspace()
     {
-        // arrange: MailMode.BuildListPanel colors the header text itself
-        // with the Workspace border token, not just the border characters
-        // (which Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace
-        // already covers); since both share the same token/color, Spectre
-        // coalesces them into one uninterrupted styled run rather than
-        // opening a fresh escape sequence right before the header text, so
-        // this asserts the styled run reaches the header text with no reset
-        // code in between, rather than requiring the escape sequence
-        // literally right in front of it.
+        // arrange: Spectre paints a panel's header text with its
+        // BorderStyle, so the Workspace header text sits inside the same
+        // styled run as the border characters (which
+        // Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace
+        // already covers) rather than a fresh escape sequence opened right
+        // before the header text; this asserts the styled run reaches the
+        // header text uninterrupted by any escape sequence, rather than
+        // requiring the escape sequence literally right in front of it.
         var store = new FakeMailStore();
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
@@ -1338,6 +1337,7 @@ public sealed class MailModeTests
         var textIndex = console.Output.IndexOf("Workspace (1)", StringComparison.Ordinal);
         Assert.True(ansiIndex >= 0, "Expected the Workspace border/header ANSI sequence to appear.");
         Assert.True(textIndex > ansiIndex, "Expected the header text to follow the styled run.");
-        Assert.Equal(-1, console.Output.IndexOf("\u001b[0m", ansiIndex, textIndex - ansiIndex, StringComparison.Ordinal));
+        var runStart = ansiIndex + ansiPrefix.Length;
+        Assert.Equal(-1, console.Output.IndexOf('\u001b', runStart, textIndex - runStart));
     }
 }

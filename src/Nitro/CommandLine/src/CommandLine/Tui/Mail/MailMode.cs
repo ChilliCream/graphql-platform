@@ -804,11 +804,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// Builds the list pane's panel directly, rather than through
     /// <see cref="ColumnPane"/>, so <see cref="ResolveListBorderToken"/> can
-    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent and
-    /// color its header text with that same token: the second of the mode's
-    /// two redundant Workspace indicators (see the class doc). Every other
-    /// mailbox resolves to exactly the border tokens <see cref="ColumnPane"/>
-    /// itself uses, with a plain, unstyled header text to match.
+    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent.
+    /// Spectre paints the panel header text with <c>BorderStyle</c>, so the
+    /// header picks up that accent too without any separate styling. Every
+    /// other mailbox resolves to exactly the border tokens
+    /// <see cref="ColumnPane"/> itself uses.
     /// </summary>
     private Panel BuildListPanel(string name, int count, IReadOnlyList<string> lines, bool focused)
     {
@@ -818,12 +818,6 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
         var borderToken = ResolveListBorderToken(_state.Mailbox, focused);
         var headerText = Markup.Escape($"{name} ({count})");
-
-        if (_state.Mailbox == MailMailbox.Workspace)
-        {
-            var headerStyle = ThemeTokens.GetStyle(borderToken).ToMarkup();
-            headerText = headerStyle.Length == 0 ? headerText : $"[{headerStyle}]{headerText}[/]";
-        }
 
         return new Panel(content)
         {
