@@ -170,6 +170,13 @@ internal sealed class MailDetailView
     /// entry for it, or <paramref name="name"/> unchanged otherwise - an
     /// unknown name and a known name with an empty client render identically,
     /// per the epic's "empty means nothing shown, not a placeholder" rule.
+    /// Deliberately returns raw text, not markup: both values are
+    /// agent-supplied and may contain <c>[...]</c>, and every line this
+    /// feeds into - <see cref="BuildMessageLines"/> and
+    /// <see cref="BuildThreadLines"/> - is escaped exactly once, centrally,
+    /// by <see cref="RenderVisibleLines"/> before becoming a
+    /// <see cref="Row"/>. Escaping here too would double-escape and show
+    /// literal doubled brackets instead of the intended single pair.
     /// </summary>
     private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
         => clientsByName.TryGetValue(name, out var client) && client.Length > 0

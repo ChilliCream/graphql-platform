@@ -942,6 +942,13 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
         var agents = _agentRegistry.ListAsync(role: null, staleBefore: null, CancellationToken.None)
             .GetAwaiter().GetResult();
-        _clientsByName = agents.ToDictionary(a => a.Name, a => a.Client, StringComparer.OrdinalIgnoreCase);
+
+        // ToLookup + first-wins rather than ToDictionary: an externally
+        // written registry could hold case-variant duplicate names (the
+        // OrdinalIgnoreCase comparer only affects lookup, not uniqueness),
+        // and ToDictionary throws on a duplicate key where ToLookup does not.
+        _clientsByName = agents
+            .ToLookup(a => a.Name, a => a.Client, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 }

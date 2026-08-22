@@ -250,6 +250,33 @@ public sealed class MailDetailViewTests
     }
 
     [Fact]
+    public async Task Render_Should_ShowBracketsLiterally_When_ClientContainsMarkupSyntax()
+    {
+        // arrange - a client like "claude-opus-5[1m]" is agent-supplied and
+        // must never be parsed as Spectre markup; RenderVisibleLines escapes
+        // every line exactly once before it becomes a Row, so it must render
+        // literally, with neither a crash nor doubled brackets.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1",
+            sender: "bob",
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = new MailState("alice", new MailDataLoader(store));
+        await state.RefreshAsync(CancellationToken.None);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+        var clientsByName = new Dictionary<string, string> { ["bob"] = "claude-opus-5[1m]" };
+
+        // act
+        var exception = Record.Exception(() => console.Write(view.Render(state, 80, 20, focused: true, clientsByName)));
+
+        // assert
+        Assert.Null(exception);
+        Assert.Contains("From: bob (claude-opus-5[1m])", console.Output);
+    }
+
+    [Fact]
     public async Task Render_Should_AttributeEachSpeakerInTheThread_When_LookupHasEntries()
     {
         // arrange

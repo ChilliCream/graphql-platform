@@ -323,6 +323,28 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public void OnEnter_Should_NotThrow_When_RegistryHasCaseVariantDuplicateNames()
+    {
+        // arrange - an externally written registry could hold "bob" and
+        // "Bob" side by side; the case-insensitive lookup used elsewhere
+        // means these collide as one key, so building it must not throw on
+        // the duplicate the way ToDictionary would.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("bob") with { Client = "codex" });
+        registry.Agents.Add(Agent("Bob") with { Client = "claude-code" });
+        var mode = CreateMode(store, agentRegistry: registry);
+
+        // act
+        var exception = Record.Exception(mode.OnEnter);
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
     public void Render_Should_ShowNoAttribution_InTheDetailPane_When_SenderHasNoRegisteredClient()
     {
         // arrange
