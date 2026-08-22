@@ -395,6 +395,145 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_ReturnCrossAgentTraffic_When_NoAgentFilter()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var message = await SendAsync("bob", "bob to carol", ["carol"], null, cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter(), cancellationToken);
+
+        // assert
+        var single = Assert.Single(workspace);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_OrderNewestFirst()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var first = await SendAsync("claude", "first", ["bob"], null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        var second = await SendAsync("claude", "second", ["bob"], null, cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter(), cancellationToken);
+
+        // assert
+        Assert.Equal([second.Id, first.Id], workspace.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_MatchAgent_When_SenderSide()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        await SeedAgentAsync("dave", cancellationToken);
+        var message = await SendAsync("bob", "from bob", ["carol"], null, cancellationToken);
+        await SendAsync("carol", "unrelated", ["dave"], null, cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter { Agent = "bob" }, cancellationToken);
+
+        // assert
+        var single = Assert.Single(workspace);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_MatchAgent_When_RecipientSide()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        await SeedAgentAsync("dave", cancellationToken);
+        var message = await SendAsync("carol", "to bob", ["bob"], null, cancellationToken);
+        await SendAsync("carol", "unrelated", ["dave"], null, cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter { Agent = "bob" }, cancellationToken);
+
+        // assert
+        var single = Assert.Single(workspace);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_ReturnSingleRow_When_AgentIsBothToAndCc()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var message = await SendAsync("carol", "hello", ["bob"], ["bob"], cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter { Agent = "bob" }, cancellationToken);
+
+        // assert
+        var single = Assert.Single(workspace);
+        Assert.Equal(message.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_FilterBySince()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "first", ["bob"], null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromSeconds(30));
+        var since = _timeProvider.GetUtcNow();
+        _timeProvider.Advance(TimeSpan.FromSeconds(30));
+        var second = await SendAsync("claude", "second", ["bob"], null, cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter { Since = since }, cancellationToken);
+
+        // assert
+        var single = Assert.Single(workspace);
+        Assert.Equal(second.Id, single.Id);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceMessagesAsync_Should_ApplyLimit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "first", ["bob"], null, cancellationToken);
+        await SendAsync("claude", "second", ["bob"], null, cancellationToken);
+
+        // act
+        var workspace = await _store.QueryWorkspaceMessagesAsync(
+            new MailWorkspaceFilter { Limit = 1 }, cancellationToken);
+
+        // assert
+        Assert.Single(workspace);
+    }
+
+    [Fact]
     public async Task MarkReadAsync_Should_SetReadAt_OnlyForActorRecipientRow()
     {
         // arrange

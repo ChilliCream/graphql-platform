@@ -88,6 +88,16 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns every message in the workspace matching the given filter,
+    /// with recipients embedded, ordered by created_at then id, newest
+    /// first. Unlike every other read on this interface, this is not
+    /// scoped to an actor.
+    /// </summary>
+    Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(
+        MailWorkspaceFilter filter,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Marks every given message read for the acting agent. All ids are
     /// validated as addressed to the actor before any write happens: either
     /// every message is marked or none is. Throws

@@ -203,6 +203,9 @@ internal sealed class FakeMailStore : IMailStore
     public Task<IReadOnlyList<MailMessage>> QuerySentAsync(string sender, int? limit, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(MailWorkspaceFilter filter, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<int> CountUnreadAsync(string actor, CancellationToken cancellationToken)
     {
         var count = Messages.Count(m =>

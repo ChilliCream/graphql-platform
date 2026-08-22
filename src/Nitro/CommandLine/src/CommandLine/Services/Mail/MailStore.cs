@@ -440,6 +440,83 @@ internal sealed class MailStore(
         return (sql, parameters);
     }
 
+    public async Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(
+        MailWorkspaceFilter filter,
+        CancellationToken cancellationToken)
+    {
+        var normalizedFilter = filter with
+        {
+            Agent = string.IsNullOrEmpty(filter.Agent) ? null : MailAgentName.Normalize(filter.Agent)
+        };
+
+        var (sql, parameters) = BuildWorkspaceQuery(normalizedFilter);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var ids = await ExecuteIdQueryAsync(connection, sql, parameters, cancellationToken);
+        var messages = new List<MailMessage>(ids.Count);
+
+        foreach (var id in ids)
+        {
+            var message = await GetMessageAsync(connection, id, cancellationToken);
+
+            if (message is not null)
+            {
+                messages.Add(message);
+            }
+        }
+
+        return messages;
+    }
+
+    // Only joins message_recipients when Agent is set, since matching an
+    // agent requires checking both the sender and recipient columns; the
+    // join can then surface a message more than once (for example the
+    // agent sent it to several recipients), so DISTINCT dedupes ids back to
+    // one row per message. The WHERE/LIMIT clauses are assembled at runtime
+    // for the same reason as BuildInboxQuery.
+    private static (string Sql, Dictionary<string, object?> Parameters) BuildWorkspaceQuery(
+        MailWorkspaceFilter filter)
+    {
+        var conditions = new List<string>();
+        var parameters = new Dictionary<string, object?>();
+        var joinRecipients = filter.Agent is not null;
+
+        if (filter.Agent is { } agent)
+        {
+            parameters["agent"] = agent;
+            conditions.Add("(m.sender = @agent OR mr.recipient = @agent)");
+        }
+
+        if (filter.Since is { } since)
+        {
+            parameters["since"] = since;
+            conditions.Add("m.created_at >= @since");
+        }
+
+        var select = joinRecipients ? "SELECT DISTINCT m.id" : "SELECT m.id";
+        var from = joinRecipients
+            ? "FROM messages m JOIN message_recipients mr ON mr.message_id = m.id"
+            : "FROM messages m";
+        var where = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
+
+        var sql =
+            $"""
+            {select}
+            {from}
+            {where}
+            ORDER BY m.created_at DESC, m.id DESC
+            """;
+
+        if (filter.Limit is { } limit)
+        {
+            parameters["limit"] = limit;
+            sql += " LIMIT @limit";
+        }
+
+        return (sql, parameters);
+    }
+
     private static async Task<List<string>> ExecuteIdQueryAsync(
         SqliteConnection connection,
         string sql,
