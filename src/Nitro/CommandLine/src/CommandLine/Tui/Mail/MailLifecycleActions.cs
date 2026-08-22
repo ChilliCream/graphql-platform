@@ -50,10 +50,44 @@ internal abstract record MailActionOutcome
 /// Mark-read, mark-unread, and archive actions for the selected message:
 /// builds the archive confirmation dialog and applies each action to the
 /// mail store, the same store members the CLI's read, ack, and archive
-/// commands call.
+/// commands call. Also owns the shared "refuse-with-reason" text
+/// <see cref="MailMode"/> shows for every mutating gesture, u, a, c, and
+/// r, while <see cref="MailMailbox.Workspace"/> is the active mailbox,
+/// rather than each gesture reaching this class's own attempt-and-catch
+/// store calls (below) or the store's <c>ResolveReplyAsync</c> check only
+/// to fail.
 /// </summary>
 internal static class MailLifecycleActions
 {
+    /// <summary>
+    /// The toast shown when <see cref="IsReadOnly"/> refuses a mutating
+    /// gesture, u, a, c, or r, before it ever reaches the store.
+    /// <see cref="MailMailbox.Workspace"/> shows every agent's mail, so it
+    /// is read-only by default rather than by warning: this narrows the
+    /// mode's capability outright, so muscle memory from the personal
+    /// mailboxes cannot do damage, instead of letting a mutation fail
+    /// against the store's <c>ValidateRecipientOwnershipAsync</c> or
+    /// <c>ResolveReplyAsync</c> authorization checks and surface as a raw
+    /// <see cref="ExitException"/> message the user did not ask for. This
+    /// applies uniformly, including to reply on a thread the actor
+    /// participates in and would otherwise be allowed to answer: Workspace
+    /// stays a single predictable read-only mode rather than one whose
+    /// gestures work or fail per message. If a mutating action is ever
+    /// allowed here later, its confirmation must name the message's
+    /// owner (for example "Archive message in 'planner's mailbox?"), not
+    /// the actor, since most messages Workspace shows are not the actor's.
+    /// </summary>
+    public const string WorkspaceReadOnlyMessage =
+        "Workspace is read-only. Press Shift+I for Inbox to make changes.";
+
+    /// <summary>
+    /// Whether <paramref name="mailbox"/> refuses every mutating gesture,
+    /// showing <see cref="WorkspaceReadOnlyMessage"/> instead of reaching
+    /// the store or opening a form or confirmation. See
+    /// <see cref="WorkspaceReadOnlyMessage"/> for why.
+    /// </summary>
+    public static bool IsReadOnly(MailMailbox mailbox) => mailbox == MailMailbox.Workspace;
+
     /// <summary>
     /// Builds the confirmation dialog for archiving <paramref name="message"/>.
     /// </summary>
