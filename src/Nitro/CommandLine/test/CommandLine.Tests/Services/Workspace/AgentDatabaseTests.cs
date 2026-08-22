@@ -10,10 +10,12 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Exercises <see cref="AgentDatabase"/>'s version state machine and the
 /// unified schema it applies, against a real SQLite file: empty/v0
 /// initialization, v2-in-place upgrade preserving existing rows, a v3
-/// database that predates the client column gaining it in place, v3
-/// connection, unified-path v1 rejection, v4 rejection (including
-/// re-initializing an already-current file, the shape --force reinit
-/// takes), and that task and mail data coexist in one file.
+/// database that predates the client column and the v4 session tables
+/// gaining both in place, v4 connection, unified-path v1 rejection, v5
+/// (newer-than-current) rejection (including re-initializing an
+/// already-current file, the shape --force reinit takes), the agent_sessions
+/// table's foreign-key and cross-column CHECK constraints under
+/// foreign_keys=ON, and that task and mail data coexist in one file.
 /// </summary>
 public sealed class AgentDatabaseTests : IDisposable
 {
@@ -59,6 +61,15 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(1, taskTableCount);
         Assert.Equal(1, mailTableCount);
         Assert.Equal(1, agentTableCount);
+
+        foreach (var sessionTable in new[] { "agent_sessions", "session_deliveries", "ping_leases" })
+        {
+            var sessionTableCount = await QueryScalarLongAsync(
+                connection,
+                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{sessionTable}'",
+                cancellationToken);
+            Assert.Equal(1, sessionTableCount);
+        }
 
         var columns = (await QueryColumnNamesAsync(connection, cancellationToken)).ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", columns);
@@ -132,16 +143,22 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal("", role);
         Assert.Equal(0, isImplicit);
         Assert.Equal("", client);
+
+        var agentSessionsTableCount = await QueryScalarLongAsync(
+            connection2,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'",
+            cancellationToken);
+        Assert.Equal(1, agentSessionsTableCount);
     }
 
     /// <summary>
     /// Seeds a v3-shaped agents table (role and implicit present, client
-    /// absent), mirroring an existing workspace at this bead's start, such
-    /// as this repo's own `.nitro/agents/` before `init --force`. This is
-    /// the regression test for the bricking hazard the fix direction calls
-    /// out: since InitializeAsync no longer gates the column upgrade on
-    /// version == UpgradableVersion, a v3 database gains the client column
-    /// too, and reads through <see cref="AgentRecord.Columns"/> succeed
+    /// absent) with no session tables, mirroring an existing workspace at
+    /// this bead's start, such as this repo's own `.nitro/agents/` before
+    /// `init --force`. Column upgrades are never gated on
+    /// version == a single UpgradableVersion, so a v3 database gains both
+    /// the client column and the new v4 session tables in the same pass,
+    /// and reads through <see cref="AgentRecord.Columns"/> succeed
     /// afterward instead of failing with "no such column: client".
     /// </summary>
     [Fact]
@@ -186,6 +203,12 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2, "SELECT client FROM agents WHERE name = 'claude'", cancellationToken);
         Assert.Equal("backend", role);
         Assert.Equal("", client);
+
+        var agentSessionsTableCount = await QueryScalarLongAsync(
+            connection2,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'",
+            cancellationToken);
+        Assert.Equal(1, agentSessionsTableCount);
     }
 
     [Fact]
@@ -193,7 +216,7 @@ public sealed class AgentDatabaseTests : IDisposable
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await StampVersionOnNewFileAsync(4, cancellationToken);
+        await StampVersionOnNewFileAsync(5, cancellationToken);
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
@@ -206,14 +229,14 @@ public sealed class AgentDatabaseTests : IDisposable
     /// CLI understands must still be rejected, force or not.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion4()
+    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion5()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 4;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 5;", cancellationToken);
         }
 
         // act & assert
@@ -286,7 +309,7 @@ public sealed class AgentDatabaseTests : IDisposable
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 4;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 5;", cancellationToken);
         }
 
         // act & assert
@@ -296,20 +319,118 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// A v2 database is only upgraded in place by
+    /// A v2 or v3 database is only upgraded in place by
     /// <see cref="AgentDatabase.InitializeAsync"/>; connecting directly
     /// against it still requires exactly <see cref="AgentDatabase.CurrentVersion"/>.
     /// </summary>
-    [Fact]
-    public async Task ConnectAsync_Should_Throw_When_VersionIsUpgradable()
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task ConnectAsync_Should_Throw_When_VersionIsUpgradable(int upgradableVersion)
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await StampVersionOnNewFileAsync(2, cancellationToken);
+        await StampVersionOnNewFileAsync(upgradableVersion, cancellationToken);
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
+    }
+
+    /// <summary>
+    /// Round trip against the real schema with foreign_keys=ON (verified
+    /// explicitly): insert an unclaimed <c>agent_sessions</c> row (no agent,
+    /// <c>binding_kind = 'none'</c>), then claim it by pointing
+    /// <c>agent_name</c> at a real row in <c>agents</c> and flipping
+    /// <c>binding_kind</c> to <c>'explicit'</c>. Also proves the FK actually
+    /// enforces: claiming with a name that is not in <c>agents</c> fails.
+    /// </summary>
+    [Fact]
+    public async Task AgentSessionsTable_Should_InsertUnclaimedRowThenClaimIt_When_ForeignKeysAreOn()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        var foreignKeysEnabled = await QueryScalarLongAsync(connection, "PRAGMA foreign_keys;", cancellationToken);
+        Assert.Equal(1, foreignKeysEnabled);
+
+        await ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                'claude-code', 'session-1', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
+                '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken);
+
+        // act: the row starts unclaimed.
+        var unclaimedAgentName = await QueryScalarStringAsync(
+            connection, "SELECT agent_name FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
+        var unclaimedBindingKind = await QueryScalarStringAsync(
+            connection, "SELECT binding_kind FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
+        Assert.Null(unclaimedAgentName);
+        Assert.Equal("none", unclaimedBindingKind);
+
+        // Claiming with an unregistered agent must fail the FK check.
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            "UPDATE agent_sessions SET agent_name = 'ghost', binding_kind = 'explicit' "
+            + "WHERE session_id = 'session-1';",
+            cancellationToken));
+
+        await ExecuteAsync(
+            connection,
+            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES "
+            + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            cancellationToken);
+
+        await ExecuteAsync(
+            connection,
+            "UPDATE agent_sessions SET agent_name = 'claude', binding_kind = 'explicit' "
+            + "WHERE session_id = 'session-1';",
+            cancellationToken);
+
+        // assert: claiming against a real agent succeeds.
+        var claimedAgentName = await QueryScalarStringAsync(
+            connection, "SELECT agent_name FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
+        var claimedBindingKind = await QueryScalarStringAsync(
+            connection, "SELECT binding_kind FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
+        Assert.Equal("claude", claimedAgentName);
+        Assert.Equal("explicit", claimedBindingKind);
+    }
+
+    /// <summary>
+    /// The cross-column CHECK <c>(binding_kind = 'none') = (agent_name IS NULL)</c>
+    /// rejects a row that claims to be bound (<c>binding_kind = 'explicit'</c>)
+    /// while carrying no agent name.
+    /// </summary>
+    [Fact]
+    public async Task AgentSessionsTable_Should_RejectMismatchedBindingKindAndAgentName_When_CheckConstraintFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                'claude-code', 'session-2', NULL, 'explicit', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
+                '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken));
     }
 
     /// <summary>

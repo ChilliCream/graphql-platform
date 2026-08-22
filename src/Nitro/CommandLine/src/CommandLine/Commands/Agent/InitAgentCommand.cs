@@ -47,6 +47,7 @@ internal sealed class InitAgentCommand : Command
         var store = services.GetRequiredService<ITaskStore>();
         var memoryStore = services.GetRequiredService<IMemoryStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
+        var database = services.GetRequiredService<AgentDatabase>();
 
         var currentDirectory = fileSystem.GetCurrentDirectory();
         var workspaceDirectory = AgentWorkspace.GetDirectory(currentDirectory);
@@ -61,11 +62,31 @@ internal sealed class InitAgentCommand : Command
 
         var databaseAlreadyExists = fileSystem.FileExists(databasePath);
 
-        if (!force && databaseAlreadyExists)
+        if (databaseAlreadyExists && !force)
         {
-            throw new ExitException(
-                $"Already initialized at '{AgentWorkspace.DisplayPath}'. "
-                + "Use --force to reinitialize.");
+            var existingVersion = await database.ReadVersionAsync(workspaceDirectory, cancellationToken);
+
+            if (!AgentDatabase.IsUpgradableVersion(existingVersion))
+            {
+                throw new ExitException(
+                    $"Already initialized at '{AgentWorkspace.DisplayPath}'. "
+                    + "Use --force to reinitialize.");
+            }
+
+            // An existing database at an upgradable schema version: plain
+            // init applies the non-destructive schema upgrade only, no
+            // prefix or gitignore refresh, instead of throwing. This is what
+            // makes the already-shipped connect error text ("Run
+            // `nitro agent init` to migrate it") literally true. A database
+            // newer than this CLI understands still throws here, inside
+            // InitializeAsync, regardless of --force.
+            await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
+            {
+            }
+
+            var upgradedPrefix = await store.GetPrefixAsync(cancellationToken);
+
+            return WriteUpgradeResult(console, resultHolder, workspaceDirectory, upgradedPrefix);
         }
 
         if (databaseAlreadyExists)
@@ -255,6 +276,31 @@ internal sealed class InitAgentCommand : Command
 
         console.OkLine($"Initialized agent workspace at '{AgentWorkspace.DisplayPath}'.");
         console.OkLine($"Task ID prefix set to '{prefix}'.");
+
+        return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Prints the "Upgraded..." line for a human-readable console, or sets
+    /// the JSON result otherwise, for a plain `init` against an existing
+    /// database at an upgradable schema version. Distinct from
+    /// <see cref="WriteResult"/>: nothing was freshly initialized, and the
+    /// prefix was read back unchanged, not set.
+    /// </summary>
+    private static int WriteUpgradeResult(
+        INitroConsole console,
+        IResultHolder resultHolder,
+        string workspaceDirectory,
+        string prefix)
+    {
+        if (!console.IsHumanReadable)
+        {
+            return WriteJsonResult(
+                console, resultHolder, workspaceDirectory, prefix, migratedTasks: 0, importedCount: null);
+        }
+
+        console.OkLine(
+            $"Upgraded agent workspace schema at '{AgentWorkspace.DisplayPath}' to v{AgentDatabase.CurrentVersion}.");
 
         return ExitCodes.Success;
     }

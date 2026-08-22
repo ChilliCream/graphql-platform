@@ -19,14 +19,26 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     /// <summary>
-    /// The unified schema version before the agents table gained its role
-    /// and implicit columns. A database at this version is upgraded in
-    /// place by <see cref="InitializeAsync"/> rather than rejected.
+    /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
+    /// rather than rejected: v2 (before the agents table gained its role and
+    /// implicit columns) and v3 (after those columns and the client column,
+    /// before the v4 <see cref="AgentSessionSchema"/> tables). A v3
+    /// database's agents table already carries every column
+    /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only means
+    /// applying the new v4 tables and bumping the stamped version.
     /// </summary>
-    private const int UpgradableVersion = 2;
+    private static readonly int[] UpgradableVersions = [2, 3];
+
+    /// <summary>
+    /// True for a schema version <see cref="InitializeAsync"/> upgrades in
+    /// place instead of rejecting. Exposed so callers such as `agent init`
+    /// can decide, before calling in, whether an existing database on disk
+    /// is a plain-init upgrade candidate or requires <c>--force</c>.
+    /// </summary>
+    public static bool IsUpgradableVersion(long version) => Array.IndexOf(UpgradableVersions, (int)version) >= 0;
 
     static AgentDatabase() => SQLitePCL.Batteries_V2.Init();
 
@@ -38,8 +50,8 @@ internal sealed class AgentDatabase
     /// all in one transaction. Returns the open connection so callers,
     /// including test seeding helpers, can write against it directly.
     /// Throws <see cref="ExitException"/> when the existing database's
-    /// version is anything other than 0 (a genuinely new file),
-    /// <see cref="UpgradableVersion"/>, or <see cref="CurrentVersion"/>.
+    /// version is anything other than 0 (a genuinely new file), one of
+    /// <see cref="UpgradableVersions"/>, or <see cref="CurrentVersion"/>.
     /// </summary>
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
@@ -59,6 +71,7 @@ internal sealed class AgentDatabase
         await connection.ExecuteAsync(TaskStoreSchema.Create, transaction: transaction);
         await connection.ExecuteAsync(AgentRegistrySchema.Create, transaction: transaction);
         await connection.ExecuteAsync(MailStoreSchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(AgentSessionSchema.Create, transaction: transaction);
 
         // Column-by-column, not gated on version == UpgradableVersion: the
         // client column shipped after CurrentVersion was last bumped to 3,
@@ -134,6 +147,25 @@ internal sealed class AgentDatabase
         return connection;
     }
 
+    /// <summary>
+    /// Reads the schema version stamped on the workspace database at the
+    /// given directory, without applying or validating anything against it.
+    /// For callers that need to branch on whether an existing database is a
+    /// plain-init upgrade candidate (see <see cref="IsUpgradableVersion"/>)
+    /// before deciding what plain `agent init` should do, ahead of calling
+    /// <see cref="InitializeAsync"/> itself.
+    /// </summary>
+    public async Task<long> ReadVersionAsync(
+        string workspaceDirectory,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(
+            AgentWorkspace.GetDatabasePath(workspaceDirectory),
+            cancellationToken);
+
+        return await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+    }
+
     private static void ValidateVersionForInitialize(long version)
     {
         if (version > CurrentVersion)
@@ -144,7 +176,7 @@ internal sealed class AgentDatabase
                 + "Update the CLI to use it.");
         }
 
-        if (version != 0 && version != UpgradableVersion && version != CurrentVersion)
+        if (version != 0 && !IsUpgradableVersion(version) && version != CurrentVersion)
         {
             throw new ExitException(
                 $"The database at this path has schema v{version}, which the unified agent "
