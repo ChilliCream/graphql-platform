@@ -20,21 +20,21 @@
       "type": "skill-md",
       "description": "Official skill for `nitro agent mail`, the local-first, SQLite-backed mailbox built into the Nitro CLI for agent-to-agent coordination. Use when registering a mail identity, sending or replying to messages, checking an inbox, reading/acking/archiving mail, searching or browsing threads, or waiting for new mail with `watch`.",
       "url": "/.well-known/agent-skills/nitro-mail/SKILL.md",
-      "digest": "sha256:5ebd9abde9a732550ec76de80b34e7c3ef5294e330ca40ad01bcd032d4a450e0"
+      "digest": "sha256:bfb00d0a94aca509b525164aa316c8ae994842a38c43fc576a9e8b6fbaf685b5"
     },
     {
       "name": "nitro-task",
       "type": "skill-md",
       "description": "Official skill for `nitro agent tasks`, the local-first, dependency-aware issue tracker built into the Nitro CLI for coding agents. Use when creating tasks, triaging backlogs, managing dependencies, finding ready work, updating status, or syncing the task database to git via JSONL.",
       "url": "/.well-known/agent-skills/nitro-task/SKILL.md",
-      "digest": "sha256:330cbc736d72857a33ba9a799f53484b0b8d0aa11454e528fd08cb6257dac4e9"
+      "digest": "sha256:5bb74fa5f8575d7311c9a2122d51a3ee271638862f1f683e0b4d12eeff23a351"
     },
     {
       "name": "nitro-task-orchestrator",
       "type": "skill-md",
       "description": "Run a large nitro agent tasks backlog as an orchestrator with subagent waves. Use when the user says 'orchestrate the backlog', 'work through nitro agent tasks like last time', 'run the wave pipeline', or wants many tasks implemented autonomously with model-tiered review. Not for single small changes.",
       "url": "/.well-known/agent-skills/nitro-task-orchestrator/SKILL.md",
-      "digest": "sha256:266775b4d536b8d46dca98212cb79ab023630b4bcd0022f0b7ed547c06ffcdc6"
+      "digest": "sha256:9bd834b147c0cc0c0cfe345b32197bf2327229920da0e3569c9d7a0a142b6370"
     },
     {
       "name": "nitro-task-planner",
