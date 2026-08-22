@@ -173,9 +173,18 @@ internal sealed partial class NitroInstanceIdProvider(
     /// </summary>
     private static string? ReadWithTimeout(Process process)
     {
+        var stopwatch = Stopwatch.StartNew();
         var readTask = process.StandardOutput.ReadToEndAsync();
 
-        if (!readTask.Wait(2000) || !process.WaitForExit(2000))
+        if (!readTask.Wait(2000))
+        {
+            TryKill(process);
+            return null;
+        }
+
+        var remaining = Math.Max(0, 2000 - (int)stopwatch.ElapsedMilliseconds);
+
+        if (!process.WaitForExit(remaining))
         {
             TryKill(process);
             return null;
