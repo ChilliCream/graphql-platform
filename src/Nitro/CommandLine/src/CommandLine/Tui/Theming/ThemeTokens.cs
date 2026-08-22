@@ -73,7 +73,17 @@ internal static class DefaultTheme
         ["agents.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["agents.list.implicit"] = new Style(decoration: Decoration.Dim),
 
-        ["mail.message.unread"] = new Style(decoration: Decoration.Bold),
+        ["mail.message.unread"] = new Style(Color.White, decoration: Decoration.Bold),
+
+        ["mail.row.glyph.from-me"] = new Style(Color.SkyBlue1),
+        ["mail.row.glyph.direct"] = new Style(Color.Green),
+        ["mail.row.glyph.broadcast"] = new Style(Color.Orange1),
+        ["mail.row.peer"] = new Style(Color.White),
+        ["mail.row.peer.to-prefix"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["mail.row.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+
+        ["mail.detail.recipient.unread"] = new Style(Color.Yellow, decoration: Decoration.Bold),
+        ["mail.detail.recipient.read"] = new Style(Color.Grey70),
 
         ["mail.mailbox.workspace.border"] = new Style(Color.Purple),
         ["mail.mailbox.workspace.border.focused"] = new Style(Color.MediumOrchid1, decoration: Decoration.Bold),

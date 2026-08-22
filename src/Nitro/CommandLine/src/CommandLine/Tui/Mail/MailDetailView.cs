@@ -118,6 +118,35 @@ internal sealed class MailDetailView
         };
     }
 
+    private static TaskDetailBodyLine PlainLine(string text) => new(text, IsMarkup: false);
+
+    /// <summary>
+    /// A styled header line via the <c>detail.section.header</c> token, the
+    /// same token <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentDetailBody"/>
+    /// and <see cref="Details.TaskDetailBody"/> use for their section
+    /// headers: the per-thread-message <c>"sender - date"</c> line here.
+    /// </summary>
+    private static TaskDetailBodyLine SectionHeaderLine(string text)
+    {
+        var style = ThemeTokens.GetStyle("detail.section.header").ToMarkup();
+        var escaped = Markup.Escape(text);
+        var content = style.Length == 0 ? escaped : $"[{style}]{escaped}[/]";
+        return new TaskDetailBodyLine(content, IsMarkup: true);
+    }
+
+    /// <summary>
+    /// A <c>"Label: value"</c> line with just the label styled via the
+    /// <c>detail.section.header</c> token, for the message view's From/To/Cc/Date
+    /// fields.
+    /// </summary>
+    private static TaskDetailBodyLine FieldLine(string label, string value)
+    {
+        var style = ThemeTokens.GetStyle("detail.section.header").ToMarkup();
+        var labelText = $"{label}:";
+        var labelMarkup = style.Length == 0 ? labelText : $"[{style}]{labelText}[/]";
+        return new TaskDetailBodyLine($"{labelMarkup} {Markup.Escape(value)}", IsMarkup: true);
+    }
+
     private static string BuildHeader(MailState state)
     {
         if (state.ViewMode == MailViewMode.Thread)
@@ -135,7 +164,7 @@ internal sealed class MailDetailView
     private static string NoMessageMessage(MailState state)
         => state.Messages.Count == 0 ? "No messages." : "No message selected.";
 
-    private static IReadOnlyList<string> BuildMessageLines(
+    private static IReadOnlyList<TaskDetailBodyLine> BuildMessageLines(
         MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
     {
         if (state.SelectedMessage is not { } message)
@@ -143,23 +172,23 @@ internal sealed class MailDetailView
             return [];
         }
 
-        var lines = new List<string>
+        var lines = new List<TaskDetailBodyLine>
         {
-            $"From: {AttributeClient(message.Sender, clientsByName)}",
-            $"To: {string.Join(", ", RecipientNames(message, MailRecipientKinds.To))}"
+            FieldLine("From", AttributeClient(message.Sender, clientsByName)),
+            FieldLine("To", string.Join(", ", RecipientNames(message, MailRecipientKinds.To)))
         };
 
         var cc = RecipientNames(message, MailRecipientKinds.Cc);
 
         if (cc.Count > 0)
         {
-            lines.Add($"Cc: {string.Join(", ", cc)}");
+            lines.Add(FieldLine("Cc", string.Join(", ", cc)));
         }
 
-        lines.Add($"Date: {FormatTimestamp(message.CreatedAt)}");
+        lines.Add(FieldLine("Date", FormatTimestamp(message.CreatedAt)));
         lines.AddRange(BuildRecipientStateLines(message, clientsByName));
-        lines.Add(string.Empty);
-        lines.AddRange(TaskDetailSections.WrapText(message.Body, width));
+        lines.Add(PlainLine(string.Empty));
+        lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));
 
         return lines;
     }
@@ -171,12 +200,12 @@ internal sealed class MailDetailView
     /// unknown name and a known name with an empty client render identically,
     /// per the epic's "empty means nothing shown, not a placeholder" rule.
     /// Deliberately returns raw text, not markup: both values are
-    /// agent-supplied and may contain <c>[...]</c>, and every line this
-    /// feeds into - <see cref="BuildMessageLines"/> and
-    /// <see cref="BuildThreadLines"/> - is escaped exactly once, centrally,
-    /// by <see cref="RenderVisibleLines"/> before becoming a
-    /// <see cref="Row"/>. Escaping here too would double-escape and show
-    /// literal doubled brackets instead of the intended single pair.
+    /// agent-supplied and may contain <c>[...]</c>. Every caller building a
+    /// <see cref="TaskDetailBodyLine"/> from this text escapes it with
+    /// <see cref="Markup.Escape(string)"/> itself before wrapping it in
+    /// style markup, since it lands inside a line already carrying markup
+    /// and can no longer rely on <see cref="RenderVisibleLines"/>'s
+    /// plain-line escaping.
     /// </summary>
     private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
         => clientsByName.TryGetValue(name, out var client) && client.Length > 0
@@ -187,36 +216,45 @@ internal sealed class MailDetailView
     /// One line per recipient, stating that recipient's own read/archived
     /// state and attributed by name: <c>"alice: read 2026-01-01 00:00"</c>
     /// or <c>"bob: unread"</c>, with <c>", archived"</c> appended where set.
-    /// The attribution is the point - a reader must never mistake another
-    /// agent's state for their own, so every row, including the actor's own
-    /// when the actor is a recipient, renders through this same line with
-    /// no second affordance. Empty for a message the actor sent, since
-    /// <c>MailStore.BuildRecipients</c> never adds the sender to
-    /// <see cref="MailMessage.Recipients"/> - there is no sender-side state
-    /// to show and none is invented here.
+    /// Styled via <c>mail.detail.recipient.unread</c> or
+    /// <c>mail.detail.recipient.read</c> so a still-unread recipient stands
+    /// out from one who has read it. The attribution is the point - a
+    /// reader must never mistake another agent's state for their own, so
+    /// every row, including the actor's own when the actor is a recipient,
+    /// renders through this same line with no second affordance. Empty for
+    /// a message the actor sent, since <c>MailStore.BuildRecipients</c>
+    /// never adds the sender to <see cref="MailMessage.Recipients"/> -
+    /// there is no sender-side state to show and none is invented here.
     /// </summary>
-    private static IReadOnlyList<string> BuildRecipientStateLines(
+    private static IReadOnlyList<TaskDetailBodyLine> BuildRecipientStateLines(
         MailMessage message, IReadOnlyDictionary<string, string> clientsByName)
         => message.Recipients
             .OrderBy(r => r.Ordinal)
             .Select(r => FormatRecipientState(r, clientsByName))
             .ToList();
 
-    private static string FormatRecipientState(
+    private static TaskDetailBodyLine FormatRecipientState(
         MailRecipient recipient, IReadOnlyDictionary<string, string> clientsByName)
     {
+        var unread = recipient.ReadAt is null;
         var state = recipient.ReadAt is { } readAt
             ? $"read {FormatTimestamp(readAt)}"
             : "unread";
 
         var label = AttributeClient(recipient.Name, clientsByName);
-
-        return recipient.ArchivedAt is not null
+        var text = recipient.ArchivedAt is not null
             ? $"{label}: {state}, archived"
             : $"{label}: {state}";
+
+        var token = unread ? "mail.detail.recipient.unread" : "mail.detail.recipient.read";
+        var style = ThemeTokens.GetStyle(token).ToMarkup();
+        var escaped = Markup.Escape(text);
+        var content = style.Length == 0 ? escaped : $"[{style}]{escaped}[/]";
+
+        return new TaskDetailBodyLine(content, IsMarkup: true);
     }
 
-    private static IReadOnlyList<string> BuildThreadLines(
+    private static IReadOnlyList<TaskDetailBodyLine> BuildThreadLines(
         MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
     {
         if (state.ThreadMessages.Count == 0)
@@ -224,19 +262,20 @@ internal sealed class MailDetailView
             return [];
         }
 
-        var lines = new List<string>();
+        var lines = new List<TaskDetailBodyLine>();
 
         for (var i = 0; i < state.ThreadMessages.Count; i++)
         {
             if (i > 0)
             {
-                lines.Add(string.Empty);
-                lines.Add(new string('-', Math.Clamp(width, 1, 40)));
+                lines.Add(PlainLine(string.Empty));
+                lines.Add(PlainLine(new string('-', Math.Clamp(width, 1, 40))));
             }
 
             var message = state.ThreadMessages[i];
-            lines.Add($"{AttributeClient(message.Sender, clientsByName)} - {FormatTimestamp(message.CreatedAt)}");
-            lines.AddRange(TaskDetailSections.WrapText(message.Body, width));
+            lines.Add(SectionHeaderLine(
+                $"{AttributeClient(message.Sender, clientsByName)} - {FormatTimestamp(message.CreatedAt)}"));
+            lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));
         }
 
         return lines;
@@ -258,7 +297,7 @@ internal sealed class MailDetailView
     /// <paramref name="interiorHeight"/>, and padding the result with
     /// blank lines so the panel's border reaches the bottom.
     /// </summary>
-    private IReadOnlyList<string> RenderVisibleLines(IReadOnlyList<string> lines, int interiorHeight)
+    private IReadOnlyList<string> RenderVisibleLines(IReadOnlyList<TaskDetailBodyLine> lines, int interiorHeight)
     {
         var reservedRows = 0;
 
@@ -287,7 +326,8 @@ internal sealed class MailDetailView
 
         for (var i = start; i < start + count; i++)
         {
-            visible.Add(Markup.Escape(lines[i]));
+            var line = lines[i];
+            visible.Add(line.IsMarkup ? line.Content : Markup.Escape(line.Content));
         }
 
         if (_bodyViewport.HiddenBelow > 0)

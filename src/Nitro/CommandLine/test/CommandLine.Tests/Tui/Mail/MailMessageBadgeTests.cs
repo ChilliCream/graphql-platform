@@ -23,7 +23,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        line.MatchInlineSnapshot("    + bob Status update 5m");
+        line.MatchInlineSnapshot("    [green]+[/] [white]bob[/] Status update [dim grey58]5m[/]");
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("  * + bob", line);
-        Assert.Contains("[bold]Status update[/]", line);
+        Assert.Contains("  * [green]+[/] [white]bob[/]", line);
+        Assert.Contains("[bold white]Status update[/]", line);
     }
 
     [Fact]
@@ -60,7 +60,8 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: true, maxWidth: 80);
 
         // assert
-        line.MatchInlineSnapshot("[default on grey35]>   + bob Status update now[/]");
+        line.MatchInlineSnapshot(
+            "[default on grey35]>   [green]+[/] [white]bob[/] Status update [dim grey58]now[/][/]");
     }
 
     [Fact]
@@ -78,7 +79,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 22);
 
         // assert
-        line.MatchInlineSnapshot("    + bob A very … now");
+        line.MatchInlineSnapshot("    [green]+[/] [white]bob[/] A very … [dim grey58]now[/]");
     }
 
     [Fact]
@@ -130,7 +131,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("bob Status update", line);
+        Assert.Contains("[white]bob[/] Status update", line);
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("To bob Status update", line);
+        Assert.Contains("[dim grey58]To [/][white]bob[/] Status update", line);
     }
 
     [Fact]
@@ -171,7 +172,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("To bob+2 Status update", line);
+        Assert.Contains("[dim grey58]To [/][white]bob+2[/] Status update", line);
     }
 
     [Fact]
@@ -189,7 +190,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("bob Status update", line);
+        Assert.Contains("[white]bob[/] Status update", line);
         Assert.DoesNotContain("To ", line);
     }
 
@@ -207,7 +208,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("  F To bob", line);
+        Assert.Contains("    [skyblue1]F[/] [dim grey58]To [/][white]bob[/]", line);
     }
 
     [Fact]
@@ -224,7 +225,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("  + bob", line);
+        Assert.Contains("    [green]+[/] [white]bob[/]", line);
     }
 
     [Fact]
@@ -245,7 +246,7 @@ public sealed class MailMessageBadgeTests
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
         // assert
-        Assert.Contains("  T bob", line);
+        Assert.Contains("    [orange1]T[/] [white]bob[/]", line);
     }
 
     [Fact]
@@ -261,11 +262,12 @@ public sealed class MailMessageBadgeTests
         // act
         var line = MailMessageBadge.Render(message, "alice", Now, selected: false, maxWidth: 80);
 
-        // assert
-        Assert.Contains("    bob", line);
-        Assert.DoesNotContain("  F ", line);
-        Assert.DoesNotContain("  + ", line);
-        Assert.DoesNotContain("  T ", line);
+        // assert: the blank glyph is a bare space with no color token, so
+        // none of the relationship-glyph colors appear on this row.
+        Assert.Contains("[white]bob[/]", line);
+        Assert.DoesNotContain("[skyblue1]F[/]", line);
+        Assert.DoesNotContain("[green]+[/]", line);
+        Assert.DoesNotContain("[orange1]T[/]", line);
     }
 
     [Fact]
@@ -288,7 +290,8 @@ public sealed class MailMessageBadgeTests
         // glyph(1) + space(1) + "To bob"(6) + space(1) + age "now"(3) +
         // space(1) = 17, leaving a 7-column budget for the subject
         // including its trailing ellipsis.
-        line.MatchInlineSnapshot("    F To bob A very… now");
+        line.MatchInlineSnapshot(
+            "    [skyblue1]F[/] [dim grey58]To [/][white]bob[/] A very… [dim grey58]now[/]");
     }
 
     [Fact]

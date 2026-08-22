@@ -817,10 +817,17 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             : new Rows(lines.Select(line => (IRenderable)new Markup(line)));
 
         var borderToken = ResolveListBorderToken(_state.Mailbox, focused);
+        var headerText = Markup.Escape($"{name} ({count})");
+
+        if (_state.Mailbox == MailMailbox.Workspace)
+        {
+            var headerStyle = ThemeTokens.GetStyle(borderToken).ToMarkup();
+            headerText = headerStyle.Length == 0 ? headerText : $"[{headerStyle}]{headerText}[/]";
+        }
 
         return new Panel(content)
         {
-            Header = new PanelHeader($"{name} ({count})"),
+            Header = new PanelHeader(headerText),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle(borderToken)
         };
