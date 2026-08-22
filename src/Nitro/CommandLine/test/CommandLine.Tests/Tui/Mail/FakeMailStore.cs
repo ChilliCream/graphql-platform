@@ -198,6 +198,15 @@ internal sealed class FakeMailStore : IMailStore
     public Task<IReadOnlyList<MailThreadSummary>> QueryThreadsAsync(string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(string actor, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(string actor, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(string? agent, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<IReadOnlyList<MailMessage>> SearchAsync(string actor, string text, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 

@@ -23,7 +23,7 @@ internal sealed record MailThreadRowResult
             Subject = summary.Subject,
             Participants = participants,
             MessageCount = summary.MessageCount,
-            UnreadCount = summary.UnreadCount,
+            UnreadCount = summary.UnreadCount ?? 0,
             LastActivityAt = summary.LastMessageAt
         };
 }
