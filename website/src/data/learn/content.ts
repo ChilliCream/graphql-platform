@@ -756,6 +756,7 @@ const dataLoaderStateContextVideo: VideoItem = {
   youtubeId: "4Mw2A548OGM",
   publishedAt: "2025-05-01T09:51:56.995282Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/dataloader-state-context-aware-fetching.txt",
 };
 
 const efCoreProjectionsVideo: VideoItem = {
@@ -770,6 +771,7 @@ const efCoreProjectionsVideo: VideoItem = {
   youtubeId: "dYSqssul4jY",
   publishedAt: "2025-04-01T09:17:50.285112Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/ef-core-projections-graphql-performance.txt",
 };
 
 const openTelemetryForServicesVideo: VideoItem = {
@@ -784,6 +786,7 @@ const openTelemetryForServicesVideo: VideoItem = {
   youtubeId: "DtISlxOBmPQ",
   publishedAt: "2025-03-24T23:38:17.186856Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/opentelemetry-for-services.txt",
 };
 
 const relativeCursorsVsOffsetPaginationVideo: VideoItem = {
@@ -798,6 +801,7 @@ const relativeCursorsVsOffsetPaginationVideo: VideoItem = {
   youtubeId: "8TQ2oDUQ1ng",
   publishedAt: "2025-03-17T22:53:33.686727Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/relative-cursors-vs-offset-pagination.txt",
 };
 
 const dataLoaderInLayeredArchitectureVideo: VideoItem = {
@@ -812,6 +816,7 @@ const dataLoaderInLayeredArchitectureVideo: VideoItem = {
   youtubeId: "ZHq1pBjo0Qk",
   publishedAt: "2025-03-05T11:41:17.926764Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/dataloader-in-layered-architecture.txt",
 };
 
 const greenDonutInActionVideo: VideoItem = {
@@ -827,6 +832,7 @@ const greenDonutInActionVideo: VideoItem = {
   youtubeId: "FhNK7KMAnXc",
   publishedAt: "2025-02-27T08:38:58.355214Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/greendonut-in-action.txt",
 };
 
 const dataLoaderExplainedVideo: VideoItem = {
@@ -841,6 +847,7 @@ const dataLoaderExplainedVideo: VideoItem = {
   youtubeId: "gVIxde5nlWE",
   publishedAt: "2025-02-19T10:23:44.273404Z",
   updatedRelative: "over a year ago",
+  exampleUrl: "/files/learn-examples/dataloader-explained.txt",
 };
 
 export const VIDEO_ITEMS: readonly VideoItem[] = [
