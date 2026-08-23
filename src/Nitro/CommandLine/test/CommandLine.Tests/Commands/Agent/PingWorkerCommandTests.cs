@@ -35,6 +35,7 @@ public sealed class PingWorkerCommandTests : AgentCommandTestBase
               --endpoint-addr <endpoint-addr> (REQUIRED)  Internal: the target endpoint address (a Codex thread id). Set by the notifier, not for direct use.
               --attempt <attempt> (REQUIRED)              Internal: the attempt id this worker's result write is conditioned on. Set by the notifier, not for direct use.
               --slot <slot> (REQUIRED)                    Internal: the ping_leases slot already acquired for this attempt. Set by the notifier, not for direct use.
+              --deadline <deadline> (REQUIRED)            Internal: the absolute UTC deadline this attempt's digest and transport work must finish before, fixed when the notifier acquired the lease. Set by the notifier, not for direct use.
               -?, -h, --help                              Show help and usage information
             """);
     }

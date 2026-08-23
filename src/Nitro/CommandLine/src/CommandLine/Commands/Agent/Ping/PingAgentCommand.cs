@@ -141,7 +141,8 @@ internal sealed class PingAgentCommand : Command
         }
 
         return await executor.ExecuteCodexThreadAsync(
-            session.Harness, session.SessionId, actor, session.EndpointAddr, attemptId, slot.Value, cancellationToken);
+            session.Harness, session.SessionId, actor, session.EndpointAddr, attemptId, slot.Value,
+            now + PingPolicy.HardTimeout, cancellationToken);
     }
 
     public sealed record PingSessionResult(string Harness, string SessionId, string EndpointKind, string Outcome);

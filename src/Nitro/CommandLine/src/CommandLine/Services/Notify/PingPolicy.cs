@@ -3,9 +3,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// <summary>
 /// The timing constants Layer C's notifier contract fixes: the per-session
 /// cooldown, the lease duration a slot is held for, and the hard timeout a
-/// ping attempt's own transport call is bounded by. The hard timeout is
-/// strictly shorter than the lease duration, so an expired lease can never
-/// be stolen while its child still runs.
+/// ping attempt's own digest and transport work is bounded by. The hard
+/// timeout is strictly shorter than the lease duration, so an expired lease
+/// can never be stolen while its child still runs. An attempt's actual
+/// deadline is an absolute UTC instant, <c>now + HardTimeout</c> fixed once
+/// at lease acquisition, so a detached worker's own startup latency counts
+/// against that budget instead of resetting it.
 /// </summary>
 internal static class PingPolicy
 {

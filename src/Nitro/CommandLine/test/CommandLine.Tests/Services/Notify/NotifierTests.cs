@@ -108,6 +108,7 @@ public sealed class NotifierTests : IDisposable
         Assert.Contains(generation.SessionId, call.WorkerArgs);
         Assert.Contains("thread-1", call.WorkerArgs);
         Assert.Contains(Actor, call.WorkerArgs);
+        Assert.Contains("--deadline", call.WorkerArgs);
 
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
         Assert.NotNull(row!.LastPingAttempt);

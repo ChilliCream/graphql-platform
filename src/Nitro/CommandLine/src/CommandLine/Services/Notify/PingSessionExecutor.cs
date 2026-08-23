@@ -8,16 +8,8 @@ internal sealed class PingSessionExecutor(
     IMailStore mailStore,
     ICodexQueueClient queueClient,
     IAgentSessionRegistry sessionRegistry,
-    IPingLeaseStore leaseStore,
-    TimeSpan? hardTimeout = null) : IPingSessionExecutor
+    IPingLeaseStore leaseStore) : IPingSessionExecutor
 {
-    /// <summary>
-    /// <see cref="PingPolicy.HardTimeout"/> unless a test overrides it: kept
-    /// injectable so a timeout path can be exercised without an actual
-    /// 20-second wait.
-    /// </summary>
-    private readonly TimeSpan _hardTimeout = hardTimeout ?? PingPolicy.HardTimeout;
-
     public async Task<string> ExecuteCodexThreadAsync(
         string harness,
         string sessionId,
@@ -25,9 +17,28 @@ internal sealed class PingSessionExecutor(
         string endpointAddr,
         string attemptId,
         int slot,
+        DateTimeOffset deadline,
         CancellationToken cancellationToken)
     {
-        using var timeoutSource = new CancellationTokenSource(_hardTimeout);
+        var remaining = ClampRemaining(deadline);
+
+        if (remaining <= TimeSpan.Zero)
+        {
+            // The deadline was already behind us by the time this attempt
+            // started running (startup latency across the process
+            // boundary counted against it): no digest or transport work
+            // may start.
+            try
+            {
+                return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
+            }
+            finally
+            {
+                await ReleaseLeaseAsync(slot, attemptId);
+            }
+        }
+
+        using var timeoutSource = new CancellationTokenSource(remaining);
         using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken, timeoutSource.Token);
 
@@ -138,4 +149,22 @@ internal sealed class PingSessionExecutor(
 
     private static string? Truncate(string? value)
         => value is { Length: > 200 } ? value[..200] : value;
+
+    /// <summary>
+    /// The time left until <paramref name="deadline"/>, clamped to
+    /// <c>[TimeSpan.Zero, PingPolicy.HardTimeout]</c> so a caller's own
+    /// clock skew or an unexpectedly distant deadline can never grant an
+    /// attempt more than its policy budget.
+    /// </summary>
+    private static TimeSpan ClampRemaining(DateTimeOffset deadline)
+    {
+        var remaining = deadline - DateTimeOffset.UtcNow;
+
+        if (remaining < TimeSpan.Zero)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return remaining > PingPolicy.HardTimeout ? PingPolicy.HardTimeout : remaining;
+    }
 }

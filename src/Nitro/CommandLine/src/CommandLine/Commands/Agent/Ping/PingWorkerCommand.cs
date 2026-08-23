@@ -25,6 +25,7 @@ internal sealed class PingWorkerCommand : Command
         Options.Add(Opt<PingWorkerEndpointAddrOption>.Instance);
         Options.Add(Opt<PingWorkerAttemptOption>.Instance);
         Options.Add(Opt<PingWorkerSlotOption>.Instance);
+        Options.Add(Opt<PingWorkerDeadlineOption>.Instance);
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -42,9 +43,10 @@ internal sealed class PingWorkerCommand : Command
         var endpointAddr = parseResult.GetRequiredValue(Opt<PingWorkerEndpointAddrOption>.Instance);
         var attempt = parseResult.GetRequiredValue(Opt<PingWorkerAttemptOption>.Instance);
         var slot = parseResult.GetRequiredValue(Opt<PingWorkerSlotOption>.Instance);
+        var deadline = parseResult.GetRequiredValue(Opt<PingWorkerDeadlineOption>.Instance);
 
         await executor.ExecuteCodexThreadAsync(
-            harness, sessionId, actor, endpointAddr, attempt, slot, cancellationToken);
+            harness, sessionId, actor, endpointAddr, attempt, slot, deadline, cancellationToken);
 
         // Always success: nobody reads this detached child's exit code, and
         // its own outcome is already durably recorded in agent_sessions.

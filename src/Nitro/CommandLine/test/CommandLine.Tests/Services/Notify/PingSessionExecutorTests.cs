@@ -76,7 +76,7 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
-            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Ok, outcome);
@@ -102,7 +102,8 @@ public sealed class PingSessionExecutorTests : IDisposable
         var executor = CreateExecutor();
 
         // act
-        await executor.ExecuteCodexThreadAsync(Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+        await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert: the slot is free again, so a fresh attempt reclaims the
         // exact same slot number.
@@ -127,7 +128,7 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
-            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Error, outcome);
@@ -147,7 +148,7 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
-            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Ok, outcome);
@@ -166,12 +167,12 @@ public sealed class PingSessionExecutorTests : IDisposable
         var attemptId = await ClaimAttemptAsync(cancellationToken);
         var slot = await _leases.TryAcquireAsync(
             attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
-        var executor = new PingSessionExecutor(
-            _mail, new NeverCompletingCodexQueueClient(), _sessions, _leases, hardTimeout: TimeSpan.FromMilliseconds(50));
+        var executor = new PingSessionExecutor(_mail, new NeverCompletingCodexQueueClient(), _sessions, _leases);
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
-            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value,
+            DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(50), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Timeout, outcome);
@@ -179,8 +180,42 @@ public sealed class PingSessionExecutorTests : IDisposable
         Assert.Equal(AgentPingResult.Timeout, row!.LastPingResult);
     }
 
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_RecordTimeoutWithoutInvokingTheTransport_When_TheDeadlineIsAlreadyExpired()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act: startup latency across the process boundary already ate the
+        // whole budget by the time this attempt runs.
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value,
+            DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Timeout, outcome);
+        Assert.Empty(_queueClient.Calls);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(AgentPingResult.Timeout, row!.LastPingResult);
+    }
+
     private PingSessionExecutor CreateExecutor()
-        => new(_mail, _queueClient, _sessions, _leases, hardTimeout: TimeSpan.FromSeconds(5));
+        => new(_mail, _queueClient, _sessions, _leases);
+
+    /// <summary>
+    /// A deadline generous enough that a test's own real-time transport work
+    /// never approaches it, so the digest/transport path runs to completion
+    /// instead of racing the timeout.
+    /// </summary>
+    private static DateTimeOffset FarFutureDeadline() => DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5);
 
     private async Task InitializeSessionAsync(CancellationToken cancellationToken)
     {

@@ -103,6 +103,12 @@ internal sealed class Notifier(
 
             var descriptor = launchDescriptorResolver.Resolve();
 
+            // Fixed once, here, at lease acquisition: the detached worker's
+            // own startup latency counts against this budget rather than
+            // resetting it, so its digest and transport work always ends
+            // strictly before the lease's expires_at.
+            var deadline = now + PingPolicy.HardTimeout;
+
             var workerArgs = new[]
             {
                 "agent", "ping-worker",
@@ -111,7 +117,8 @@ internal sealed class Notifier(
                 "--actor", actor,
                 "--endpoint-addr", session.EndpointAddr,
                 "--attempt", attemptId,
-                "--slot", slot.Value.ToString(CultureInfo.InvariantCulture)
+                "--slot", slot.Value.ToString(CultureInfo.InvariantCulture),
+                "--deadline", deadline.ToString("o", CultureInfo.InvariantCulture)
             };
 
             if (!launcher.TryLaunch(descriptor, workerArgs))

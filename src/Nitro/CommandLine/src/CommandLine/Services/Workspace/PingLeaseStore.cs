@@ -12,9 +12,10 @@ internal sealed class PingLeaseStore(IFileSystem fileSystem, AgentDatabase datab
 
         // Stealing an expired lease's slot happens by simply deleting it
         // before looking for a free slot: every caller's hard timeout
-        // bounds only its own attempt's digest and transport work, keeping
-        // a margin under the lease duration it acquired, so a lease past
-        // its own `expires_at` is expected to already be released.
+        // bounds its own attempt's digest and transport work against an
+        // absolute deadline fixed once at lease acquisition, keeping a
+        // margin under the lease duration it acquired, so a lease past its
+        // own `expires_at` is expected to already be released.
         await using (var expireCommand = connection.CreateCommand())
         {
             expireCommand.Transaction = (SqliteTransaction)transaction;
