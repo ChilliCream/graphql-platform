@@ -1,28 +1,23 @@
-// nitro-mail-extension-version: 3
+// nitro-mail-extension-version: 1
 //
 // Installed by `nitro agent hooks copilot extension install --scope project`
 // into <repo>/.github/extensions/nitro-mail/extension.mjs. Loaded by the
-// Copilot CLI's extension host as a project-scope extension: the host forks
-// `extension_bootstrap.mjs` with `EXTENSION_PATH` set to this file's path and
-// bare-imports it, so this file invokes `main()` itself at the bottom,
-// guarded to stay inert when merely imported (see the M10 fixture, which
-// imports this module directly under `node --test`). `nitro-mail.config.json`,
-// installed alongside this file, carries this machine's launch descriptor
-// (how to invoke `nitro`) so this file's own bytes stay identical across
-// installs, which is what makes the installer's version-hash check
-// meaningful.
+// Copilot CLI's extension host as a project-scope extension (per
+// `copilot-sdk/docs/extensions.md`'s `joinSession()` skeleton), not run
+// directly. `nitro-mail.config.json`, installed alongside this file, carries
+// this machine's launch descriptor (how to invoke `nitro`) so this file's own
+// bytes stay identical across installs, which is what makes the installer's
+// version-hash check meaningful.
 //
-// Statically verified against the bundled Copilot CLI 1.0.80 SDK: the
-// `@github/copilot-sdk/extension` import specifier (the CLI's ESM resolver
-// maps that specifier to `extension.js`, which exports `joinSession`; the
-// bare `@github/copilot-sdk` specifier maps to `index.js`, which does not),
-// and the hook/type shapes below (`types.d.ts` `SessionHooks`:1202,
-// `onAgentStop`:1250, `MessageOptions`:2405). UNVERIFIED, honestly: live
-// behavior. Spike S5 (perles-net-k3j.4 redo, comment #94) found the Copilot
-// CLI's `EXTENSIONS` feature flag reports false on the machine that spike
-// ran on, so this file has never actually been loaded by a real Copilot
-// session; `joinSession()`'s runtime behavior, `session.send`'s resolution
-// timing, and hook firing order are not live-verified. What IS tested (see
+// UNVERIFIED, honestly: spike S5 (perles-net-k3j.4 redo, comment #94) found
+// the Copilot CLI's `EXTENSIONS` feature flag reports false on the machine
+// that spike ran on, and a minimal probe extension produced zero captures
+// under `-p` mode there. Neither this file's `joinSession()` call shape nor
+// its hook-callback field names (`onSessionStart` etc., `session.send`,
+// `session.on`) have been live-verified; they are transcribed from
+// `copilot-sdk/docs/extensions.md`, a doc source S5 separately flagged as
+// coming from a stale npm package tree. This file has never been loaded by a
+// real Copilot session. What IS tested (see
 // `test/fixtures/copilot-extension/state-machine.m10.test.mjs`) is the pure
 // state machine below, independent of the SDK: idle/busy/draining/restart
 // transitions, the durable cursor, and the injection-loop guard.
@@ -40,14 +35,6 @@ import { fileURLToPath } from 'node:url';
 const EXTENSION_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = path.join(EXTENSION_DIRECTORY, 'nitro-mail.config.json');
 const CURSOR_PATH = path.join(EXTENSION_DIRECTORY, '.nitro-mail-watch-cursor.json');
-
-// `mail watch` is given this explicit timeout so its exit code 1 has one,
-// unambiguous meaning (an empty poll), never an unbounded hang.
-const WATCH_TIMEOUT_SECONDS = 300;
-// Fixed delay before retrying after a real watch-poll failure, so a
-// persistent error (e.g. `nitro` misconfigured) cannot turn into a tight
-// process-spawn loop.
-const WATCH_RETRY_DELAY_MS = 5000;
 
 // ---------------------------------------------------------------------------
 // Pure state machine. No SDK dependency, no file/process I/O: every function
@@ -133,12 +120,9 @@ export function onUserPromptSubmitted(state) {
 /**
  * @param {WatcherState} state
  * @param {boolean} blocked true when the agentStop hook payload carried
- * `stopHookActive: true`: this stop hook re-firing after a previous stop on
- * the same turn was blocked (`AgentStopHookInput`'s own field; `decision`
- * belongs to a hook's return value, `AgentStopHookOutput`, not its input,
- * and is never present here). A file-based-hooks concern this extension
- * does not itself produce, but must tolerate observing if a Nitro-installed
- * hook, or any other extension, blocks the same session.
+ * `decision: "block"` (a file-based-hooks concern this extension does not
+ * itself produce, but must tolerate observing if a Nitro-installed hook, or
+ * any other extension, blocks the same session).
  */
 export function onAgentStop(state, blocked) {
   if (state.phase === Phase.DRAINING || blocked) {
@@ -187,7 +171,6 @@ export function afterFlushSucceeded(state, flushed) {
 
   return {
     ...state,
-    phase: Phase.IDLE,
     cursor: { id: newestFlushed.id, createdAt: newestFlushed.createdAt },
     pending: state.pending.filter((m) => !flushedIds.has(m.id)),
   };
@@ -287,20 +270,7 @@ async function saveCursor(cursor) {
   await rename(tempPath, CURSOR_PATH);
 }
 
-/**
- * Strict by default: only exit code 0 resolves, and the resolved value is
- * the raw stdout string; anything else rejects. Pass `allowExitOne: true`
- * for the one caller (the `mail watch` poll below) whose command is invoked
- * with an explicit `--timeout`, where exit code 1 CAN mean "timed out with
- * nothing new" - but exit 1 is also `ExitCodes.Error`, what every handled
- * `ExitException` produces (e.g. an unknown `--after` cursor), so the code
- * alone does not disambiguate the two. When `allowExitOne` is set, the
- * resolved value is `{ stdout, code }` instead of a bare string so the
- * caller can inspect which happened. Every other caller (e.g. `mail inbox
- * --unread`) must reject on a non-zero exit so a failure surfaces as a
- * rejected `tryFlush` instead of silently reporting zero results.
- */
-function runNitro(config, args, { allowExitOne = false } = {}) {
+function runNitro(config, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(config.executable, [...config.argumentPrefix, ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -318,43 +288,16 @@ function runNitro(config, args, { allowExitOne = false } = {}) {
 
     child.on('error', reject);
     child.on('close', (code) => {
-      if (code !== 0 && !(code === 1 && allowExitOne)) {
+      if (code !== 0 && code !== 1) {
+        // Exit code 1 from `mail watch` also covers its own "timed out"
+        // path, which is an expected, non-error outcome for this loop (an
+        // empty poll, not a failure); anything else is a real error.
         reject(new Error(`nitro ${args.join(' ')} exited ${code}: ${stderr}`));
         return;
       }
-      resolve(allowExitOne ? { stdout, code } : stdout);
+      resolve(stdout);
     });
   });
-}
-
-/**
- * The `--after` cursor to poll `mail watch` with: the newer of the durable
- * cursor and the newest entry already sitting in `state.pending`.
- * `state.pending` is already sorted (`onMailObserved`), so its last entry is
- * the newest. Without this, a busy session - whose durable cursor cannot
- * advance until it flushes - would re-fetch the same already-observed mail
- * on every ~1s poll for as long as the turn lasts. Restart safety is
- * unaffected: `state.pending` is memory-only, so a restart still resumes
- * from the durable cursor alone.
- *
- * @param {WatcherState} state
- * @returns {Cursor}
- */
-function effectiveAfterCursor(state) {
-  const newestPending = state.pending.length > 0 ? state.pending.at(-1) : null;
-
-  if (!state.cursor) {
-    return newestPending;
-  }
-  if (!newestPending) {
-    return state.cursor;
-  }
-
-  return compareEntries(state.cursor, newestPending) >= 0 ? state.cursor : newestPending;
-}
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function toMailEntries(watchResultJson) {
@@ -377,21 +320,15 @@ export async function main() {
   let state = createInitialState();
   state = { ...state, cursor: await loadCursor() };
 
-  // Set when a `mail watch` poll exits 1 too fast to be a real timeout (see
-  // `watchLoop`): most likely a purged/unknown `--after` id cursor
-  // (`WatchMailCommand.ResolveCursorAsync` throws before polling even
-  // starts). Falls back to the cursor's RFC 3339 `createdAt`, which that
-  // same resolver always accepts, until the next successful flush rewrites
-  // the durable cursor (see `tryFlush`, where it is cleared again).
-  let useTimestampCursorFallback = false;
-
   let session;
 
   try {
-    // `@github/copilot-sdk/extension` (not the bare `@github/copilot-sdk`
-    // specifier) resolves to the SDK module that actually exports
-    // `joinSession`; see the file-header note.
-    const sdk = await import('@github/copilot-sdk/extension');
+    // Best-effort: see the file-header note. `@github/copilot-sdk` (or
+    // whatever the real installed specifier turns out to be, unverified) is
+    // resolved from the Copilot CLI's own module graph when this file is
+    // actually loaded as an extension, not from this file's own
+    // node_modules.
+    const sdk = await import('@github/copilot-sdk');
     session = await sdk.joinSession({
       hooks: {
         onSessionStart: () => {
@@ -402,7 +339,7 @@ export async function main() {
           state = onUserPromptSubmitted(state);
         },
         onAgentStop: (payload) => {
-          state = onAgentStop(state, payload?.stopHookActive === true);
+          state = onAgentStop(state, payload?.decision === 'block');
           void tryFlush();
         },
         onSessionEnd: () => {
@@ -425,73 +362,39 @@ export async function main() {
 
     state = plan.state;
 
+    const totalUnreadJson = await runNitro(config, [
+      'agent', 'mail', 'inbox', '--unread', '--output', 'json',
+    ]);
+    const totalUnread = toMailEntries(totalUnreadJson).length;
+
+    const digest = formatDigest(
+      totalUnread,
+      plan.messages.map((m) => ({ id: m.id, from: m.from })),
+    );
+
     try {
-      const totalUnreadJson = await runNitro(config, [
-        'agent', 'mail', 'inbox', '--unread', '--output', 'json',
-      ]);
-      const totalUnread = toMailEntries(totalUnreadJson).length;
-
-      const digest = formatDigest(
-        totalUnread,
-        [...plan.messages].reverse().map((m) => ({ id: m.id, from: m.from })),
-      );
-
       await session.send({ prompt: digest });
       state = afterFlushSucceeded(state, plan.messages);
       await saveCursor(state.cursor);
-      useTimestampCursorFallback = false;
     } catch (err) {
-      console.error('nitro-mail extension: flush failed, will retry next poll.', err);
+      console.error('nitro-mail extension: session.send failed, will retry next poll.', err);
       state = afterFlushFailed(state);
     }
   }
 
   async function watchLoop() {
     for (;;) {
-      const afterCursor = effectiveAfterCursor(state);
-      const afterValue = afterCursor
-        ? (useTimestampCursorFallback ? afterCursor.createdAt : afterCursor.id)
-        : null;
-      const args = afterValue
-        ? ['agent', 'mail', 'watch', '--after', afterValue, '--timeout', String(WATCH_TIMEOUT_SECONDS), '--output', 'json']
-        : ['agent', 'mail', 'watch', '--include-existing', '--timeout', String(WATCH_TIMEOUT_SECONDS), '--output', 'json'];
+      const args = state.cursor
+        ? ['agent', 'mail', 'watch', '--after', state.cursor.id, '--output', 'json']
+        : ['agent', 'mail', 'watch', '--include-existing', '--output', 'json'];
 
-      const startedAt = Date.now();
       let stdout;
-      let exitCode;
 
       try {
-        // exit 1 here CAN mean "timed out, nothing new" (the explicit
-        // --timeout above), but it is also ExitCodes.Error, what every
-        // handled ExitException produces (e.g. an unknown --after cursor
-        // fails before polling even starts) - the code alone does not
-        // disambiguate the two; elapsed time and stdout below do.
-        ({ stdout, code: exitCode } = await runNitro(config, args, { allowExitOne: true }));
+        stdout = await runNitro(config, args);
       } catch (err) {
-        console.error('nitro-mail extension: watch poll failed, retrying after a delay.', err);
-        await delay(WATCH_RETRY_DELAY_MS);
+        console.error('nitro-mail extension: watch poll failed, retrying.', err);
         continue;
-      }
-
-      if (exitCode === 1) {
-        const elapsedMs = Date.now() - startedAt;
-        const isLegitimateTimeout =
-          !stdout.trim() && elapsedMs >= (WATCH_TIMEOUT_SECONDS * 1000) / 2;
-
-        if (!isLegitimateTimeout) {
-          // A fast exit 1 is not a timeout: it is almost certainly an
-          // ExitException that returned before the --timeout could ever
-          // elapse (e.g. a purged/unknown --after id). Never spin on this
-          // with zero delay, and stop trusting the id cursor until the next
-          // successful flush proves a durable one is good again.
-          console.error(
-            'nitro-mail extension: watch poll exited 1 after '
-              + `${elapsedMs}ms, too fast to be a real timeout; retrying after a delay.`,
-          );
-          useTimestampCursorFallback = Boolean(afterCursor);
-          await delay(WATCH_RETRY_DELAY_MS);
-          continue;
-        }
       }
 
       const messages = toMailEntries(stdout);
@@ -507,18 +410,4 @@ export async function main() {
     console.error('nitro-mail extension: watch loop crashed.', err);
     process.exitCode = 1;
   });
-}
-
-// The Copilot CLI's extension host (extension_bootstrap.mjs) forks this file
-// with EXTENSION_PATH set to its own path and bare-imports it - there is no
-// named export the host calls, so this file must invoke main() itself at
-// the top level. Guarded on EXTENSION_PATH (never on argv[1], which is the
-// bootstrap script's own path, not this file's) so that merely importing
-// this module - as the M10 fixture does, and as `node --test` does for it -
-// stays inert with no side effects.
-if (
-  process.env.EXTENSION_PATH
-  && path.resolve(process.env.EXTENSION_PATH) === fileURLToPath(import.meta.url)
-) {
-  void main();
 }

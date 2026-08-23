@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using Microsoft.Extensions.Time.Testing;
@@ -97,6 +98,38 @@ public sealed class CopilotExtensionInstallerServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task InstallAsync_V1OnDisk_OverwritesReportingUpdated()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        Directory.CreateDirectory(Path.GetDirectoryName(_extensionPath)!);
+        await File.WriteAllTextAsync(_extensionPath, await ReadV1FixtureAsync(ct), ct);
+        var service = CreateService();
+
+        var report = await service.InstallAsync(force: false, ct);
+
+        Assert.Equal(CopilotExtensionInstallOutcome.Updated, report.Outcome);
+        Assert.Equal(CopilotExtensionAsset.Content, await File.ReadAllTextAsync(_extensionPath, ct));
+    }
+
+    [Fact]
+    public async Task StatusAsync_V1OnDisk_ReportsOutdated()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        Directory.CreateDirectory(Path.GetDirectoryName(_extensionPath)!);
+        var v1Content = await ReadV1FixtureAsync(ct);
+        await File.WriteAllTextAsync(_extensionPath, v1Content, ct);
+        var service = CreateService();
+
+        var report = await service.StatusAsync(ct);
+
+        Assert.Equal(CopilotExtensionStatusOutcome.Outdated, report.Outcome);
+        // Pins CopilotExtensionAsset.KnownPriorHashes[0] to the fixture it is
+        // supposed to describe, so a wrong constant would fail here, not
+        // just silently report the fixture as Unrecognized above.
+        Assert.Equal(CopilotExtensionAsset.KnownPriorHashes[0], CopilotExtensionAsset.Hash(v1Content));
+    }
+
+    [Fact]
     public async Task StatusAsync_MissingFile_ReportsMissing()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -162,6 +195,29 @@ public sealed class CopilotExtensionInstallerServiceTests : IDisposable
         new FixedCopilotExtensionPathResolver(_extensionPath, _configPath),
         new FixedLaunchDescriptorResolver(Descriptor),
         _timeProvider);
+
+    /// <summary>
+    /// The exact byte-for-byte version-1 <c>extension.mjs</c> (extracted from
+    /// commit 7e199f8e90, before the DRAINING-wedge/version-2 fixes),
+    /// checked in so <see cref="CopilotExtensionAsset.KnownPriorHashes"/>'s
+    /// first entry is tested against real prior bytes, not a hand-typed hash.
+    /// </summary>
+    private static Task<string> ReadV1FixtureAsync(CancellationToken ct, [CallerFilePath] string thisFilePath = "")
+    {
+        // thisFilePath: .../test/CommandLine.Tests/Services/Hook/CopilotExtensionInstallerServiceTests.cs
+        var directory = Path.GetDirectoryName(thisFilePath)!; // .../Services/Hook
+
+        for (var i = 0; i < 3; i++)
+        {
+            directory = Path.GetDirectoryName(directory)
+                ?? throw new InvalidOperationException($"Could not walk up from '{thisFilePath}'.");
+        }
+
+        // directory is now .../test
+        var fixturePath = Path.Combine(directory, "fixtures", "copilot-extension", "extension.v1.mjs");
+
+        return File.ReadAllTextAsync(fixturePath, ct);
+    }
 
     private sealed class FixedCopilotExtensionPathResolver(string extensionPath, string configPath)
         : ICopilotExtensionPathResolver

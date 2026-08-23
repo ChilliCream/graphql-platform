@@ -179,6 +179,14 @@ test('injection-loop guard: draining blocks a second overlapping flush attempt',
   // second flush once agentStop fires for the SAME turn, and a second
   // planFlush call right now must refuse (there is nothing new pending
   // beyond what is already draining, and the phase is not IDLE).
+  //
+  // This DRAINING guard only covers callbacks arriving BEFORE session.send
+  // resolves (send() resolves at injection time, not when the turn actually
+  // completes; a separate sendAndWait() exists for the latter). Once send
+  // resolves, afterFlushSucceeded returns to IDLE even if the digest's own
+  // turn is still running on the model side - mail arriving after that point
+  // may be injected while that turn is still in progress. Accepted: bounded
+  // (never a second overlapping send for the SAME pending mail), no loop.
   state = onUserPromptSubmitted(state);
   assert.equal(state.phase, Phase.DRAINING, 'a prompt landing mid-drain must not leave DRAINING');
 
@@ -186,7 +194,11 @@ test('injection-loop guard: draining blocks a second overlapping flush attempt',
   assert.equal(secondPlanWhileDraining, null, 'must not plan a second overlapping flush');
 
   state = onAgentStop(state, false);
-  assert.equal(state.phase, Phase.DRAINING, 'agentStop for the digest\'s own turn must not exit DRAINING early');
+  assert.equal(
+    state.phase,
+    Phase.DRAINING,
+    'agentStop arriving before session.send resolves must not exit DRAINING early',
+  );
 
   state = afterFlushSucceeded(state, firstPlan.messages);
   assert.equal(state.pending.length, 0);

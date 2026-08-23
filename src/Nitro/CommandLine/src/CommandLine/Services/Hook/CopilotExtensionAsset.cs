@@ -20,19 +20,22 @@ internal static class CopilotExtensionAsset
     /// The current asset version, ships as-is until a future change bumps
     /// it and adds this version's hash to <see cref="KnownPriorHashes"/>.
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     /// <summary>
     /// Content hashes of every asset version this CLI has ever shipped,
     /// EXCLUDING the current one (which is always known, computed live from
-    /// <see cref="Content"/>). Version 1's frozen hash is recorded here (the
-    /// DRAINING-wedge, error-handling, and ordering fixes in version 2 changed
-    /// its bytes) so an install over a version-1 file upgrades silently
-    /// instead of requiring <c>--force</c>.
+    /// <see cref="Content"/>), so an install over any of these upgrades
+    /// silently instead of requiring <c>--force</c>. Version 1's frozen hash
+    /// is recorded (the DRAINING-wedge, error-handling, and ordering fixes in
+    /// version 2 changed its bytes); version 2's is recorded next (the
+    /// entrypoint invocation, import specifier, onAgentStop mapping, and
+    /// watch-poll fixes in version 3 changed its bytes in turn).
     /// </summary>
     public static readonly IReadOnlyList<string> KnownPriorHashes =
     [
-        "3572427819847172ECDBB3826CEA1B73053A61F82737AC7C4CFC9900E9C5F875"
+        "3572427819847172ECDBB3826CEA1B73053A61F82737AC7C4CFC9900E9C5F875",
+        "08A9286AA9EC1EC48B51ECEB977439E5E05499A87C5F006AAFC9A3628BF36764"
     ];
 
     public static string Content { get; } = ReadEmbeddedContent();
