@@ -6,12 +6,18 @@ import { Typography } from "@/src/design-system/Typography";
 import { paginate } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { breadcrumbList } from "@/src/helpers/structuredData";
 
 export const metadata = pageMetadata({
   title: "Articles",
   description: "All ChilliCream articles: announcements, deep dives, and how-tos, from the /learn hub.",
   path: "/learn/articles",
 });
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  ...breadcrumbList([{ name: "Learn", path: "/learn" }, { name: "Articles" }]),
+};
 
 export default function ArticlesIndex() {
   const posts = listBlogPostSummaries();
@@ -21,6 +27,7 @@ export default function ArticlesIndex() {
 
   return (
     <div className="cc-content-dark">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
       <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]} />
       <Typography variant="h1">Articles</Typography>
       {featured ? <LearnFeaturedStory post={featured} priority sizes="(max-width: 1663px) 100vw, 1600px" /> : null}

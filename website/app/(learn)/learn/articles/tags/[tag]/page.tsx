@@ -5,6 +5,7 @@ import { Pagination } from "@/src/design-system/Pagination";
 import { Typography } from "@/src/design-system/Typography";
 import { listTags, paginate, postsForTag } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import { breadcrumbList } from "@/src/helpers/structuredData";
 
 type Params = { tag: string };
 type PageProps = { params: Promise<Params> };
@@ -36,8 +37,18 @@ export default async function ArticleTagIndex({ params }: PageProps) {
     notFound();
   }
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    ...breadcrumbList([
+      { name: "Learn", path: "/learn" },
+      { name: "Articles", path: "/learn/articles" },
+      { name: `#${tag}` },
+    ]),
+  };
+
   return (
     <div className="cc-content-dark">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <ArticleBreadcrumb
         items={[
           { label: "Learn", href: "/learn" },

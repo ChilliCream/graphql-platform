@@ -5,9 +5,15 @@ import { Pagination } from "@/src/design-system/Pagination";
 import { Typography } from "@/src/design-system/Typography";
 import { paginate } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import { breadcrumbList } from "@/src/helpers/structuredData";
 
 type Params = { page: string };
 type PageProps = { params: Promise<Params> };
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  ...breadcrumbList([{ name: "Learn", path: "/learn" }, { name: "Articles" }]),
+};
 
 export const dynamicParams = false;
 
@@ -38,6 +44,7 @@ export default async function ArticlesPageN({ params }: PageProps) {
 
   return (
     <div className="cc-content-dark">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
       <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]} />
       <Typography variant="h1">Articles</Typography>
       <div className="mt-8 sm:mt-10">

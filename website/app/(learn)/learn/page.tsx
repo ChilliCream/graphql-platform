@@ -5,29 +5,57 @@ import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
 import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost } from "@/src/components/learn/editorial";
+import { learnItemHref } from "@/src/components/learn/learnItemHref";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary } from "@/src/data/learn/types";
 import { listArticlesByKind } from "@/src/helpers/articles";
 import { getLatestBlogPost, listBlogPostSummaries, type BlogPostSummary } from "@/src/helpers/blogPosts";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-import { SITE_URL } from "@/src/helpers/siteUrl";
+import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { breadcrumbList, WEBSITE_ID } from "@/src/helpers/structuredData";
+
+const LEARN_DESCRIPTION =
+  "The GraphQL for .NET hub: the latest from the team, topic guides, starter templates, videos, and answer-first explainers on Hot Chocolate, Fusion, and the rest of the platform.";
 
 export const metadata = pageMetadata({
   title: "Learn",
-  description:
-    "The GraphQL for .NET hub: the latest from the team, topic guides, starter templates, videos, and answer-first explainers on Hot Chocolate, Fusion, and the rest of the platform.",
+  description: LEARN_DESCRIPTION,
   path: "/learn",
   keywords: ["GraphQL", "Hot Chocolate", "Fusion", ".NET", "GraphQL tutorials", "GraphQL federation"],
 });
 
-const STRUCTURED_DATA = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-    { "@type": "ListItem", position: 2, name: "Learn" },
-  ],
-};
+/**
+ * Builds the landing page's JSON-LD `@graph`: the page's own `WebPage` node,
+ * its breadcrumb trail, and an `ItemList` of the featured catalog items shown
+ * in the collection section below the fold.
+ */
+function buildStructuredData(collectionItems: readonly LearnItemSummary[]) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/learn#webpage`,
+        url: `${SITE_URL}/learn`,
+        name: "Learn",
+        description: LEARN_DESCRIPTION,
+        isPartOf: { "@id": WEBSITE_ID },
+      },
+      breadcrumbList([{ name: "Home", path: "/" }, { name: "Learn" }]),
+      {
+        "@type": "ItemList",
+        name: "Featured on the Learn hub",
+        numberOfItems: collectionItems.length,
+        itemListElement: collectionItems.map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: item.title,
+          url: toAbsoluteUrl(learnItemHref(item)),
+        })),
+      },
+    ],
+  };
+}
 
 /**
  * Selects up to 4 posts for a topic rail (learn-editorial.md section 15.2),
@@ -75,10 +103,11 @@ export default function LearnPage() {
   ].slice(0, 6);
 
   const consumedStems = new Set<string>();
+  const structuredData = buildStructuredData(collectionItems);
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       {/* The subnav wordmark carries the visible section identity (learn-editorial.md section 15); this page leads with content. */}
       <h1 className="sr-only">Learn ChilliCream</h1>
       {featured ? (
