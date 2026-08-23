@@ -39,7 +39,9 @@ internal sealed class PingWorkerLauncher : IPingWorkerLauncher
     /// controlling terminal; <c>nohup</c> additionally ignores SIGHUP, in
     /// case something downstream still tries to signal the session leader.
     /// </summary>
-    private static ProcessStartInfo BuildLinuxDetachedStartInfo(
+    // Internal, not private: PingWorkerLauncherTests asserts the built
+    // ProcessStartInfo's environment countermeasures directly.
+    internal static ProcessStartInfo BuildLinuxDetachedStartInfo(
         LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs)
     {
         var startInfo = new ProcessStartInfo("setsid")
@@ -64,6 +66,10 @@ internal sealed class PingWorkerLauncher : IPingWorkerLauncher
             startInfo.ArgumentList.Add(arg);
         }
 
+        startInfo.Environment.Remove("NITRO_MAIL_ACTOR");
+        startInfo.Environment.Remove("NITRO_TASK_ACTOR");
+        startInfo.Environment["NITRO_HOOK_SUPPRESS"] = "1";
+
         return startInfo;
     }
 
@@ -73,7 +79,7 @@ internal sealed class PingWorkerLauncher : IPingWorkerLauncher
     /// (a documented, accepted limitation, matching the ancestor-walk's
     /// Linux-first stance elsewhere in this codebase).
     /// </summary>
-    private static ProcessStartInfo BuildFallbackStartInfo(
+    internal static ProcessStartInfo BuildFallbackStartInfo(
         LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs)
     {
         var startInfo = new ProcessStartInfo(descriptor.Executable)
@@ -94,6 +100,10 @@ internal sealed class PingWorkerLauncher : IPingWorkerLauncher
         {
             startInfo.ArgumentList.Add(arg);
         }
+
+        startInfo.Environment.Remove("NITRO_MAIL_ACTOR");
+        startInfo.Environment.Remove("NITRO_TASK_ACTOR");
+        startInfo.Environment["NITRO_HOOK_SUPPRESS"] = "1";
 
         return startInfo;
     }

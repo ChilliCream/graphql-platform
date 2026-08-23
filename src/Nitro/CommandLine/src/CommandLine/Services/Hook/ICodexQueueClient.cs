@@ -37,18 +37,7 @@ internal sealed class CodexQueueClient : ICodexQueueClient
     {
         try
         {
-            var startInfo = new ProcessStartInfo("codex")
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            };
-
-            startInfo.ArgumentList.Add("queue");
-            startInfo.ArgumentList.Add("--thread");
-            startInfo.ArgumentList.Add(threadId);
-            startInfo.ArgumentList.Add("--message");
-            startInfo.ArgumentList.Add(message);
+            var startInfo = BuildStartInfo(threadId, message);
 
             using var process = Process.Start(startInfo);
 
@@ -91,5 +80,29 @@ internal sealed class CodexQueueClient : ICodexQueueClient
         {
             // Already exited between the timeout and this call.
         }
+    }
+
+    // Internal, not private: CodexQueueClientTests asserts the built
+    // ProcessStartInfo's environment countermeasures directly.
+    internal static ProcessStartInfo BuildStartInfo(string threadId, string message)
+    {
+        var startInfo = new ProcessStartInfo("codex")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        startInfo.ArgumentList.Add("queue");
+        startInfo.ArgumentList.Add("--thread");
+        startInfo.ArgumentList.Add(threadId);
+        startInfo.ArgumentList.Add("--message");
+        startInfo.ArgumentList.Add(message);
+
+        startInfo.Environment.Remove("NITRO_MAIL_ACTOR");
+        startInfo.Environment.Remove("NITRO_TASK_ACTOR");
+        startInfo.Environment["NITRO_HOOK_SUPPRESS"] = "1";
+
+        return startInfo;
     }
 }
