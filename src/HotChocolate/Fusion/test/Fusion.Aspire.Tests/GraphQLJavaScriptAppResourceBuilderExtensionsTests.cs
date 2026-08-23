@@ -126,7 +126,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         // assert
         var annotation = Assert.Single(anchor.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
         Assert.Equal(
-            IOPath.Combine(_appDirectory.FullName, "shop-schema.csproj"),
+            IOPath.Combine(_appDirectory.FullName, "package.json"),
             anchor.Annotations.OfType<IProjectMetadata>().Single().ProjectPath);
         $"""
          GraphQLPath: {annotation.GraphQLPath}

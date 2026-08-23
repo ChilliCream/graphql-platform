@@ -73,13 +73,14 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
         // The composition resolves the schema settings directory from IProjectMetadata, which
         // only a project resource carries, so the settings of a JavaScript app are invisible
         // to it. The schema anchor bridges that gap: a project resource that exists only in
-        // the application model, whose project path points into the app directory and which
-        // shares the endpoint annotations of the app. Through the anchor the composition
-        // reads schema-settings.json, downloads the schema from the running app, and routes
-        // the gateway to the allocated URL of the app, exactly like a .NET source schema.
+        // the application model, whose project metadata points at the package.json of the app
+        // and which shares the endpoint annotations of the app. Through the anchor the
+        // composition reads schema-settings.json, downloads the schema from the running app,
+        // and routes the gateway to the allocated URL of the app, exactly like a .NET source
+        // schema. Only the directory of the project metadata path is ever consumed.
         var anchor = new ProjectResource($"{app.Name}-schema");
         anchor.Annotations.Add(
-            new SchemaAnchorProjectMetadata(IOPath.Combine(appDirectory, $"{anchor.Name}.csproj")));
+            new SchemaAnchorProjectMetadata(IOPath.Combine(appDirectory, "package.json")));
         var anchorBuilder = builder.ApplicationBuilder.CreateResourceBuilder(anchor);
 
         var eventing = builder.ApplicationBuilder.Eventing;
