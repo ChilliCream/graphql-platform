@@ -1,6 +1,5 @@
 import path from "node:path";
 import type { MetadataRoute } from "next";
-import { BLOG_ROOT, blogUrlForStem, listBlogPosts } from "@/src/helpers/blogPaths";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
@@ -25,24 +24,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await staticPages()),
     ...learnTemplatePages(),
     ...(await docsPages()),
-    ...(await blogPosts()),
     ...(await articlePages()),
   ];
 }
 
 // Pages that live outside the `(content)` route group: the homepage and the
-// docs/blog hub pages. These are the highest-value URLs on the site and must
-// be listed explicitly since `staticPages()` only walks `(content)`.
+// docs hub page. These are the highest-value URLs on the site and must be
+// listed explicitly since `staticPages()` only walks `(content)`.
 async function rootPages(): Promise<MetadataRoute.Sitemap> {
   const pages = [
     { file: path.join(process.cwd(), "app", "page.tsx"), urlPath: "/" },
     {
       file: path.join(process.cwd(), "app", "docs", "page.tsx"),
       urlPath: "/docs",
-    },
-    {
-      file: path.join(process.cwd(), "app", "blog", "page.tsx"),
-      urlPath: "/blog",
     },
   ];
   return Promise.all(
@@ -105,32 +99,16 @@ async function docsPages(): Promise<MetadataRoute.Sitemap> {
   );
 }
 
-async function blogPosts(): Promise<MetadataRoute.Sitemap> {
-  return Promise.all(
-    listBlogPosts().map(async ({ parsed, rel }) => {
-      const file = path.join(BLOG_ROOT, rel);
-      const fm = readFrontmatter(file) as Record<string, unknown>;
-      // An explicit `updated` frontmatter field wins; otherwise the last git
-      // commit touching the post, with file mtime as the no-git fallback.
-      const updated = typeof fm.updated === "string" && fm.updated.length > 0 ? new Date(fm.updated) : null;
-      return {
-        url: `${SITE_URL}${blogUrlForStem(parsed)}`,
-        lastModified: updated ?? (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
-        changeFrequency: "yearly" as const,
-        priority: 0.5,
-      };
-    }),
-  );
-}
-
-// /learn/articles/[slug] pages: not caught by staticPages() (it excludes
-// dynamic routes), so they get their own entry mirroring blogPosts(),
-// sourced from the article filesystem helpers rather than duplicated here.
+// /learn/articles/[slug] pages (blog posts, comparisons, explainers): not
+// caught by staticPages() (it excludes dynamic routes), so they get their
+// own entry sourced from the article filesystem helpers.
 async function articlePages(): Promise<MetadataRoute.Sitemap> {
   return Promise.all(
     listArticleSlugs().map(async ({ slug, rel }) => {
       const file = path.join(ARTICLES_ROOT, rel);
       const fm = readFrontmatter(file) as Record<string, unknown>;
+      // An explicit `updated` frontmatter field wins; otherwise the last git
+      // commit touching the article, with file mtime as the no-git fallback.
       const updated = typeof fm.updated === "string" && fm.updated.length > 0 ? new Date(fm.updated) : null;
       return {
         url: `${SITE_URL}/learn/articles/${slug}`,
