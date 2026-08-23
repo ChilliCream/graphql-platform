@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnVideoDetail } from "@/src/components/learn/LearnVideoDetail";
-import { getOptimizedImage } from "@/src/image-optimization/manifest";
+import { getOptimizedImage, getShareImageSrc } from "@/src/image-optimization/manifest";
 import { productLabel } from "@/src/data/learn/facets";
 import { LEARN_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
@@ -22,8 +22,10 @@ export const dynamicParams = false;
  * entries seeded before the TV migration carry no id (or long description)
  * and keep linking straight to YouTube via `learnItemHref`.
  */
-function findVideo(slug: string): VideoItem | undefined {
-  return VIDEO_ITEMS.find((video) => video.slug === slug && video.youtubeId);
+function findVideo(slug: string): (VideoItem & { readonly youtubeId: string }) | undefined {
+  return VIDEO_ITEMS.find((video) => video.slug === slug && video.youtubeId) as
+    | (VideoItem & { readonly youtubeId: string })
+    | undefined;
 }
 
 export function generateStaticParams(): { slug: string }[] {
@@ -34,14 +36,15 @@ export function generateStaticParams(): { slug: string }[] {
 function posterUrl(youtubeId: string): string {
   const remote = `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`;
   const opt = getOptimizedImage(remote);
-  return toAbsoluteUrl(opt?.fallbackSrc ?? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`);
+  return toAbsoluteUrl(opt ? getShareImageSrc(remote) : `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`);
 }
 
 /** `"51:49"` / `"1:02:15"` mm:ss or h:mm:ss duration to ISO 8601 (`PT51M49S`). */
 function toIsoDuration(duration: string): string {
   const parts = duration.split(":").map(Number);
   const [hours, minutes, seconds] = parts.length === 3 ? parts : parts.length === 2 ? [0, ...parts] : [0, 0, ...parts];
-  return `PT${hours ? `${hours}H` : ""}${minutes ? `${minutes}M` : ""}${seconds ? `${seconds}S` : ""}`;
+  const body = `${hours ? `${hours}H` : ""}${minutes ? `${minutes}M` : ""}${seconds ? `${seconds}S` : ""}`;
+  return `PT${body || "0S"}`;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -56,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/learn/videos/${video.slug}`,
     keywords: ["GraphQL video", ...video.products.map(productLabel)],
   });
-  const image = posterUrl(video.youtubeId!);
+  const image = posterUrl(video.youtubeId);
   return {
     ...base,
     openGraph: { ...base.openGraph, images: [image] },
@@ -64,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function structuredData(video: VideoItem) {
+function structuredData(video: VideoItem & { readonly youtubeId: string }) {
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -80,7 +83,7 @@ function structuredData(video: VideoItem) {
         "@type": "VideoObject",
         name: video.title,
         description: video.tagline,
-        thumbnailUrl: posterUrl(video.youtubeId!),
+        thumbnailUrl: posterUrl(video.youtubeId),
         ...(video.publishedAt ? { uploadDate: video.publishedAt } : {}),
         ...(video.duration ? { duration: toIsoDuration(video.duration) } : {}),
         embedUrl: `https://www.youtube-nocookie.com/embed/${video.youtubeId}`,

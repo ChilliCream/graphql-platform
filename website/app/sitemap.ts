@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
-import { TEMPLATE_ITEMS } from "@/src/data/learn/content";
+import { TEMPLATE_ITEMS, VIDEO_ITEMS } from "@/src/data/learn/content";
 import { ARTICLES_ROOT, listArticleSlugs } from "@/src/helpers/articlePaths";
 
 export const dynamic = "force-static";
@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await rootPages()),
     ...(await staticPages()),
     ...learnTemplatePages(),
+    ...learnVideoPages(),
     ...(await docsPages()),
     ...(await articlePages()),
   ];
@@ -72,6 +73,14 @@ async function staticPages(): Promise<MetadataRoute.Sitemap> {
 function learnTemplatePages(): MetadataRoute.Sitemap {
   return TEMPLATE_ITEMS.map((template) => ({
     url: `${SITE_URL}/learn/templates/${template.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+}
+
+function learnVideoPages(): MetadataRoute.Sitemap {
+  return VIDEO_ITEMS.filter((video) => video.youtubeId).map((video) => ({
+    url: `${SITE_URL}/learn/videos/${video.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));

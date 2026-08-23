@@ -98,7 +98,8 @@ export function topicsForBlogPost(post: Pick<BlogPostSummary, "tags" | "category
 /** Topic kicker for a catalog item by product (learn-editorial.md section 20.2): the label of the first `TOPICS` entry whose `browseQuery` targets one of `products`, falling back to the `productLabel` of the first product. */
 export function topicLabelForProduct(products: readonly ProductKey[]): string {
   const topic = TOPICS.find((t) => t.browseQuery && products.some((product) => t.browseQuery === `product=${product}`));
-  return topic?.label ?? productLabel(products[0]);
+  const first = products[0];
+  return topic?.label ?? (first ? productLabel(first) : "");
 }
 
 /** Most frequent tags across `posts`, ranked by frequency desc then alphabetically, capped at `limit` (section 14.4's "Most popular" rail unit). */

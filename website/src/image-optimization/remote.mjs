@@ -4,6 +4,8 @@ import matter from "gray-matter";
 import { profiles } from "./config.mjs";
 
 const MD_RE = /\.(md|mdx)$/i;
+const LEARN_CONTENT_FILE = "src/data/learn/content.ts";
+const LEARN_VIDEO_ID_RE = /youtubeId:\s*"([A-Za-z0-9_-]{11})"/g;
 
 // Matches an 11-char YouTube id in any of the supported URL forms or in a
 // <Video src="..."> attribute (bare id or URL).
@@ -67,6 +69,27 @@ export async function collectRemoteImages(cwd) {
         });
       }
     }
+  }
+
+  // YouTube posters for the catalog's video items (src/data/learn/content.ts),
+  // in addition to the ones referenced from markdown bodies above.
+  try {
+    const learnContent = fs.readFileSync(path.resolve(cwd, LEARN_CONTENT_FILE), "utf8");
+    LEARN_VIDEO_ID_RE.lastIndex = 0;
+    let match;
+    while ((match = LEARN_VIDEO_ID_RE.exec(learnContent)) !== null) {
+      const id = match[1];
+      const key = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+      if (!byKey.has(key)) {
+        byKey.set(key, {
+          key,
+          url: key,
+          fallbackUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+        });
+      }
+    }
+  } catch {
+    // no learn content file / unreadable: skip
   }
 
   return [...byKey.values()];

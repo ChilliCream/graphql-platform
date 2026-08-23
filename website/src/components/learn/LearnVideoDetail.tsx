@@ -14,7 +14,7 @@ import { LearnCard } from "./LearnCard";
 import { LearnVideoPlayer } from "./LearnVideoPlayer";
 
 interface LearnVideoDetailProps {
-  readonly video: VideoItem;
+  readonly video: VideoItem & { readonly youtubeId: string };
   readonly related: readonly LearnItemSummary[];
 }
 
@@ -139,7 +139,7 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
       <div className="border-cc-card-border grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
         {/* Mobile/tablet (below lg): player, example card, description, facts. */}
         <div className="lg:hidden">
-          <LearnVideoPlayer videoId={video.youtubeId ?? ""} title={video.title} />
+          <LearnVideoPlayer videoId={video.youtubeId} title={video.title} />
           {video.exampleUrl && (
             <div className="mt-10">
               <ExampleCard exampleUrl={video.exampleUrl} />
@@ -153,7 +153,7 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
 
         {/* Desktop (lg+): fluid left column (player, description), sticky 19rem aside (example card, facts). */}
         <div className="hidden min-w-0 lg:block">
-          <LearnVideoPlayer videoId={video.youtubeId ?? ""} title={video.title} />
+          <LearnVideoPlayer videoId={video.youtubeId} title={video.title} />
           {description && <div className="mt-10">{description}</div>}
         </div>
         <aside className="hidden lg:sticky lg:top-28 lg:block">

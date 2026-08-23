@@ -9,8 +9,10 @@ interface LearnVideoSectionProps {
 
 /**
  * Video rail (learn-editorial.md section 3.7): the seeded `VIDEO_ITEMS` as
- * `LearnCard`s, opening YouTube in a new tab. No inline player on the
- * landing: every tile stays a uniform card.
+ * `LearnCard`s. Cards link to the native `/learn/videos/[slug]` detail page
+ * when the video has a `youtubeId`, and open YouTube in a new tab for the
+ * two legacy entries without one. No inline player on the landing: every
+ * tile stays a uniform card.
  */
 export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
   if (videos.length === 0) {
