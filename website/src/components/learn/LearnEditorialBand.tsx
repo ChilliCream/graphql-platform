@@ -2,24 +2,17 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { kickerForBlogPost } from "./editorial";
 import { LearnFeaturedStory } from "./LearnFeaturedStory";
+import { LearnLatestVideos, type LatestVideoRailItem } from "./LearnLatestVideos";
 import { LearnListRow } from "./LearnListRow";
 import { LearnPromoTile } from "./LearnPromoTile";
 import { LearnTagCloud } from "./LearnTagCloud";
-
-interface RailPromo {
-  readonly href: string;
-  readonly image: string;
-  readonly kicker: string;
-  readonly title: string;
-  readonly author?: string;
-}
 
 interface LearnEditorialBandProps {
   /** Up to 5 posts for the Latest column, newest first, excluding `featuredPost`. */
   readonly latestPosts: readonly BlogPostSummary[];
   readonly featuredPost: BlogPostSummary;
-  /** Curated image promo tile; omitted when no eligible post remains after dedupe. */
-  readonly railPromo: RailPromo | null;
+  /** Rail's "Latest videos" rows, newest first, up to 4. */
+  readonly latestVideos: readonly LatestVideoRailItem[];
   readonly tags: readonly string[];
 }
 
@@ -33,7 +26,7 @@ interface LearnEditorialBandProps {
  * `lg` drops to a two-column Featured/rail row with Latest as a full-width
  * two-column list below; below `lg` everything stacks, Featured first.
  */
-export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags }: LearnEditorialBandProps) {
+export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, tags }: LearnEditorialBandProps) {
   return (
     <div className="pt-8 sm:pt-10">
       <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)] xl:gap-x-0 xl:gap-y-0 2xl:grid-cols-[minmax(16rem,24rem)_minmax(37.5rem,1fr)_minmax(16rem,24rem)]">
@@ -64,16 +57,9 @@ export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags 
         </div>
 
         <div className="xl:border-cc-card-border order-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:order-2 lg:grid-cols-1 xl:order-3 xl:border-l xl:px-8">
-          {railPromo ? (
-            <LearnPromoTile
-              variant="image"
-              href={railPromo.href}
-              image={railPromo.image}
-              kicker={railPromo.kicker}
-              title={railPromo.title}
-              author={railPromo.author}
-            />
-          ) : null}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <LearnLatestVideos videos={latestVideos} />
+          </div>
           <LearnPromoTile
             variant="cta"
             href="/learn#subscribe"

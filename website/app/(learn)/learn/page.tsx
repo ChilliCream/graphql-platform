@@ -1,6 +1,7 @@
 import { LearnCollectionSection } from "@/src/components/learn/LearnCollectionSection";
 import { LearnEditorialBand } from "@/src/components/learn/LearnEditorialBand";
 import { EXPLAINER_LIST_MIN_ITEMS, LearnExplainerList } from "@/src/components/learn/LearnExplainerList";
+import type { LatestVideoRailItem } from "@/src/components/learn/LearnLatestVideos";
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
 import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
@@ -90,6 +91,20 @@ function selectLatestVideos(videos: readonly VideoItem[]): readonly VideoItem[] 
     .slice(0, 4);
 }
 
+/**
+ * Rail's "Latest videos" block (website-kbx.2): only videos with a
+ * `youtubeId` qualify, since the rail links to the internal
+ * `/learn/videos/<slug>` page, not out to YouTube; newest `publishedAt`
+ * first, capped at 4.
+ */
+function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRailItem[] {
+  return videos
+    .filter((video): video is VideoItem & { youtubeId: string } => Boolean(video.youtubeId))
+    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
+    .slice(0, 4)
+    .map(({ slug, title, youtubeId, duration, products }) => ({ slug, title, youtubeId, duration, products }));
+}
+
 export default function LearnPage() {
   const allPosts = listBlogPostSummaries();
   const featured = getLatestBlogPost();
@@ -100,13 +115,6 @@ export default function LearnPage() {
   const postsExcludingFeatured = allPosts.filter((post) => post.stem !== featured?.stem);
   const latestPosts = postsExcludingFeatured.slice(0, 5);
   const bandStems = new Set<string>([...(featured ? [featured.stem] : []), ...latestPosts.map((post) => post.stem)]);
-
-  const railPromoPost = allPosts.find(
-    (post) => post.category === "Release" && post.featuredImage && !bandStems.has(post.stem),
-  );
-  if (railPromoPost) {
-    bandStems.add(railPromoPost.stem);
-  }
 
   const topicPostPool = allPosts.filter((post) => !bandStems.has(post.stem));
   const tags = popularTags(allPosts);
@@ -155,17 +163,7 @@ export default function LearnPage() {
         <LearnEditorialBand
           latestPosts={latestPosts}
           featuredPost={featured}
-          railPromo={
-            railPromoPost?.featuredImage
-              ? {
-                  href: railPromoPost.href,
-                  image: railPromoPost.featuredImage,
-                  kicker: railPromoPost.category ?? "Release",
-                  title: railPromoPost.title,
-                  author: railPromoPost.author ?? undefined,
-                }
-              : null
-          }
+          latestVideos={selectRailVideos(VIDEO_ITEMS)}
           tags={tags}
         />
       ) : null}
