@@ -36,6 +36,8 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentRegistry agentRegistry,
+        IAgentSessionRegistry agentSessionRegistry,
+        IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
         IEnvironmentVariableProvider environmentVariableProvider,
         string workspaceDirectory,
@@ -46,7 +48,15 @@ internal static class AgentTuiLauncher
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
 
-        var tabs = BuildTabs(taskStore, mailStore, memoryStore, agentRegistry, timeProvider, environmentVariableProvider);
+        var tabs = BuildTabs(
+            taskStore,
+            mailStore,
+            memoryStore,
+            agentRegistry,
+            agentSessionRegistry,
+            activityReader,
+            timeProvider,
+            environmentVariableProvider);
 
         var shell = new TuiShell(
             tabs,
@@ -78,6 +88,8 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentRegistry agentRegistry,
+        IAgentSessionRegistry agentSessionRegistry,
+        IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
         IEnvironmentVariableProvider environmentVariableProvider)
     {
@@ -87,7 +99,8 @@ internal static class AgentTuiLauncher
 
         var mailTab = BuildMailTab(mailStore, agentRegistry, timeProvider, environmentVariableProvider);
 
-        var agentsMode = new AgentsMode(agentRegistry, taskStore, mailStore, timeProvider);
+        var agentsMode = new AgentsMode(
+            agentRegistry, taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var memoryMode = new MemoryMode(memoryStore, timeProvider);

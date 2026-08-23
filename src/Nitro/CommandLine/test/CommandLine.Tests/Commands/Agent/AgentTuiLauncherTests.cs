@@ -153,7 +153,14 @@ public sealed class AgentTuiLauncherTests
                 globalMemoryDirectory);
 
             var tabs = AgentTuiLauncher.BuildTabs(
-                taskStore, mailStore, memoryStore, agentRegistry, timeProvider, environment);
+                taskStore,
+                mailStore,
+                memoryStore,
+                agentRegistry,
+                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
+                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
+                timeProvider,
+                environment);
 
             var shell = new TuiShell(
                 tabs,

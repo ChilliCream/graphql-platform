@@ -77,6 +77,12 @@ internal static class DefaultTheme
         ["agents.list.role.reviewer"] = new Style(Color.Orange1),
         ["agents.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["agents.list.implicit"] = new Style(decoration: Decoration.Dim),
+        ["agents.list.presence"] = new Style(Color.Grey70),
+        ["agents.list.presence.online"] = new Style(Color.Green),
+        ["agents.list.presence.unreachable"] = new Style(Color.Yellow),
+        ["agents.list.presence.remote"] = new Style(Color.SkyBlue1),
+        ["agents.list.presence.offline"] = new Style(Color.Grey50, decoration: Decoration.Dim),
+        ["agents.list.presence.conflict"] = new Style(Color.Red, decoration: Decoration.Bold),
 
         ["mail.message.unread"] = new Style(Color.White, decoration: Decoration.Bold),
 

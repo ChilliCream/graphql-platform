@@ -27,10 +27,64 @@ public sealed class AgentsModeTests
         };
 
     private static AgentsMode CreateMode(FakeAgentRegistry registry)
-        => new(registry, new FakeTaskStore(), new FakeMailStore(), new FakeTimeProvider(Now));
+        => new(
+            registry,
+            new FakeTaskStore(),
+            new FakeMailStore(),
+            new FakeAgentSessionRegistry(),
+            new FakeClaudeSessionActivityReader(),
+            new FakeTimeProvider(Now));
 
     private static AgentsMode CreateMode(FakeAgentRegistry registry, FakeTaskStore taskStore, FakeMailStore mailStore)
-        => new(registry, taskStore, mailStore, new FakeTimeProvider(Now));
+        => new(
+            registry,
+            taskStore,
+            mailStore,
+            new FakeAgentSessionRegistry(),
+            new FakeClaudeSessionActivityReader(),
+            new FakeTimeProvider(Now));
+
+    private static AgentsMode CreateMode(
+        FakeAgentRegistry registry,
+        FakeAgentSessionRegistry sessionRegistry,
+        FakeClaudeSessionActivityReader? activityReader = null)
+        => new(
+            registry,
+            new FakeTaskStore(),
+            new FakeMailStore(),
+            sessionRegistry,
+            activityReader ?? new FakeClaudeSessionActivityReader(),
+            new FakeTimeProvider(Now));
+
+    /// <summary>
+    /// A minimal live <see cref="AgentSessionView"/> for an agent, with
+    /// <paramref name="state"/> supplied directly (as
+    /// <see cref="FakeAgentSessionRegistry"/> hands it straight back, rather
+    /// than recomputing it from host/pid the way the real registry does -
+    /// that computation is covered separately by
+    /// <c>ListSessionCommandTests</c>).
+    /// </summary>
+    private static AgentSessionView Session(
+        string agentName, string state, string harness = "claude-code", int pid = 4242, string sessionId = "s-1")
+        => new(
+            new AgentSessionRecord
+            {
+                Harness = harness,
+                SessionId = sessionId,
+                AgentName = agentName,
+                BindingKind = "explicit",
+                Host = "host-a",
+                Pid = pid,
+                ProcStart = Now,
+                Cwd = "/work",
+                WorkspacePath = "/work/.nitro/agents",
+                EndpointKind = state == "unreachable" ? "none" : "claude-peer",
+                EndpointAddr = state == "unreachable" ? "" : "peer",
+                StartedAt = Now,
+                LastBeatAt = Now,
+                BlockBudgetUsed = 0
+            },
+            state);
 
     private static string RenderToText(AgentsMode mode, int width = 100, int height = 24)
     {
@@ -256,9 +310,107 @@ public sealed class AgentsModeTests
         var text = RenderToText(mode, 80, 20);
         var row = Assert.Single(text.Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
 
-        // assert: the name column is immediately followed by a dash for the
-        // empty client column, then the (possibly truncated) role.
-        Assert.Contains("agent-a - backe", row);
+        // assert: the name column is followed by the presence badge (offline
+        // for an agent with no live session), then a dash for the empty
+        // client column, then the (possibly truncated) role.
+        Assert.Contains("agent-a ○ - bac", row);
+    }
+
+    [Fact]
+    public void Render_Should_ShowOnlineGlyph_When_AgentHasALiveSessionWithAnEndpoint()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Sessions.Add(Session("agent-a", AgentSessionState.Online));
+        var mode = CreateMode(registry, sessions);
+        mode.OnEnter();
+
+        // act
+        var row = Assert.Single(RenderToText(mode, 100, 20).Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
+
+        // assert
+        Assert.Contains("agent-a ● ", row);
+    }
+
+    [Fact]
+    public void Render_Should_ShowUnreachableGlyph_When_AgentHasALiveSessionWithNoEndpoint()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Sessions.Add(Session("agent-a", AgentSessionState.Unreachable));
+        var mode = CreateMode(registry, sessions);
+        mode.OnEnter();
+
+        // act
+        var row = Assert.Single(RenderToText(mode, 100, 20).Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
+
+        // assert
+        Assert.Contains("agent-a ◐ ", row);
+    }
+
+    [Fact]
+    public void Render_Should_ShowRemoteGlyph_When_AgentsLiveSessionIsOnAnotherInstance()
+    {
+        // arrange
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Sessions.Add(Session("agent-a", AgentSessionState.Remote));
+        var mode = CreateMode(registry, sessions);
+        mode.OnEnter();
+
+        // act
+        var row = Assert.Single(RenderToText(mode, 100, 20).Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
+
+        // assert
+        Assert.Contains("agent-a ◇ ", row);
+    }
+
+    [Fact]
+    public void Render_Should_ShowConflictGlyphAndSessionCount_When_SameActorSessionsDisagreeOnState()
+    {
+        // arrange: a same-actor restart leaves two live sessions in
+        // different states; the plan requires that conflict is surfaced,
+        // not hidden by silently picking one of the two states.
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Sessions.Add(Session("agent-a", AgentSessionState.Online, sessionId: "s-1"));
+        sessions.Sessions.Add(Session("agent-a", AgentSessionState.Unreachable, sessionId: "s-2"));
+        var mode = CreateMode(registry, sessions);
+        mode.OnEnter();
+
+        // act
+        var row = Assert.Single(RenderToText(mode, 100, 20).Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
+
+        // assert: the conflict marker plus the live session count, distinct
+        // from either single-state glyph.
+        Assert.Contains("agent-a ⚠2 ", row);
+    }
+
+    [Fact]
+    public void Render_Should_ShowActivityLetter_When_TheSoleClaudeSessionHasKnownActivity()
+    {
+        // arrange: activity is read through by pid for a single online
+        // claude-code session only (see AgentPresence.Compute).
+        var registry = new FakeAgentRegistry();
+        registry.Agents.Add(Agent("agent-a"));
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Sessions.Add(Session("agent-a", AgentSessionState.Online, pid: 777));
+        var activityReader = new FakeClaudeSessionActivityReader();
+        activityReader.StatusByPid[777] = "busy";
+        var mode = CreateMode(registry, sessions, activityReader);
+        mode.OnEnter();
+
+        // act
+        var row = Assert.Single(RenderToText(mode, 100, 20).Split('\n'), l => l.Contains("agent-a") && l.Contains("reg "));
+
+        // assert
+        Assert.Contains("agent-a ●(b) ", row);
     }
 
     [Fact]
