@@ -60,8 +60,9 @@ declare -A MARKERS=(
   [mail-send]="Thanks-noted"
   [mail-error]="[nitro exit: 1]"
   [mail-board]="Inbox (3)"
+  [agents]="Billing review"
 )
-ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board)
+ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.
@@ -149,6 +150,7 @@ FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
 FIXTURE_SCHEMA_VERSION=4
 FIXTURE_TASK_MARKER="acme-epic1"
 FIXTURE_MAIL_MARKER="Retro notes"
+FIXTURE_AGENTS_MARKER="bob  remote"
 
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
@@ -175,6 +177,11 @@ if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
   echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/agents-seed.sql"; then
+  echo "==> fixture prepare FAILED: agents-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the agent_sessions schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
 
 if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_TASK_MARKER"; then
   echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_TASK_MARKER'" >&2
@@ -185,6 +192,11 @@ if ! ( cd "$FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent ma
     | grep -q "$FIXTURE_MAIL_MARKER"; then
   echo "==> fixture guard FAILED: 'nitro agent mail inbox' did not show '$FIXTURE_MAIL_MARKER'" >&2
   echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent list ) | grep -q "$FIXTURE_AGENTS_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent list' did not show '$FIXTURE_AGENTS_MARKER'" >&2
+  echo "    the agent_sessions schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
 echo "    fixture ready, guard passed"

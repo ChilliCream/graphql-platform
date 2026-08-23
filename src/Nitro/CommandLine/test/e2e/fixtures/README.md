@@ -1,10 +1,10 @@
 # Fixture agent workspace
 
-`seed.sql` and `mail-seed.sql` are a deterministic dataset for the `nitro
-agent` e2e tapes: task data and mail data, applied to the same unified
-workspace database. IDs, timestamps, and actors are all hardcoded so a
-recording that reads this data is byte-stable across runs, wall-clock time,
-and machines.
+`seed.sql`, `mail-seed.sql`, and `agents-seed.sql` are a deterministic
+dataset for the `nitro agent` e2e tapes: task data, mail data, and agent
+presence data, applied to the same unified workspace database. IDs,
+timestamps, and actors are all hardcoded so a recording that reads this data
+is byte-stable across runs, wall-clock time, and machines.
 
 ## How run.sh uses it
 
@@ -22,17 +22,20 @@ Before recording any flow, `run.sh` prepares `out/fixture/acme/` on the host
    `AgentDatabase.CurrentVersion` (2). A mismatch means the binary's schema
    moved and this fixture prep needs to be re-pointed, not silently seeded
    against the wrong shape.
-4. Apply `seed.sql`, then `mail-seed.sql`, with the `sqlite3` CLI against
-   `out/fixture/acme/.nitro/agents/agents.db`. Both files insert into
-   disjoint tables (`seed.sql`: `tasks`/`dependencies`/`labels`/`comments`/
-   `events`/`child_counters`; `mail-seed.sql`: `agents`/`messages`/
-   `message_recipients`) of the one database, so order between the two does
-   not matter.
+4. Apply `seed.sql`, then `mail-seed.sql`, then `agents-seed.sql`, with the
+   `sqlite3` CLI against `out/fixture/acme/.nitro/agents/agents.db`.
+   `seed.sql` (`tasks`/`dependencies`/`labels`/`comments`/`events`/
+   `child_counters`) and `mail-seed.sql` (`agents`/`messages`/
+   `message_recipients`) insert into disjoint tables, so their own order
+   does not matter; `agents-seed.sql` (`agent_sessions`) must run after
+   `mail-seed.sql` since its one row's `agent_name` references a name
+   `mail-seed.sql` inserts.
 5. Guard: run `bin/nitro agent tasks list` inside `out/fixture/acme` and grep
    for `acme-epic1`, then run `bin/nitro agent mail inbox` (as `e2e-agent`)
-   and grep for `Retro notes`. If either marker is missing, schema drift is
-   failing fast here, with a pointer back to this file, instead of surfacing
-   later as a confusing golden diff inside a tape's `Hide` block.
+   and grep for `Retro notes`, then run `bin/nitro agent list` and grep for
+   `bob  remote`. If any marker is missing, schema drift is failing fast
+   here, with a pointer back to this file, instead of surfacing later as a
+   confusing golden diff inside a tape's `Hide` block.
 
 A tape only ever `cp -r`s the prepared `out/fixture/acme` directory into its
 own throwaway `/tmp/work`; no task- or mail-mutating command inside a tape's
@@ -82,12 +85,26 @@ surfaces via the thread toggle). `m-fix002` is already read; `m-fix001` and
 mail board's age column always renders a fixed `yyyy-MM-dd` string,
 independent of the wall-clock date a recording actually runs on.
 
+## The agents dataset
+
+One `agent_sessions` row: `bob` bound to a `claude-code` session whose `host`
+is the fixed string `e2e-remote-host-fixture`, deliberately foreign to
+whatever the recording machine's own instance id resolves to
+(`NitroInstanceIdProvider`). `AgentSessionRegistry.ListAsync` renders any
+session row on a foreign host as `Remote` unconditionally, with no PID
+liveness check at all, unlike `Online`/`Unreachable`, both of which require a
+real, live process on the CURRENT host and so cannot be pinned from a static
+SQL fixture. `alice` and `e2e-agent` have no session row and so render
+`Offline`, the default for zero live sessions. See `agents-seed.sql`'s own
+header for the full reasoning.
+
 ## Regenerating after a schema change
 
-`seed.sql`/`mail-seed.sql` are plain lists of `INSERT` statements against
-`TaskStoreSchema.Create`/`MailStoreSchema.Create`; there is no code
-generator. After changing either schema (a new column, a new `NOT NULL`
-constraint, a renamed table):
+`seed.sql`/`mail-seed.sql`/`agents-seed.sql` are plain lists of `INSERT`
+statements against `TaskStoreSchema.Create`/`MailStoreSchema.Create`/
+`AgentSessionSchema.Create`; there is no code generator. After changing any
+of the three schemas (a new column, a new `NOT NULL` constraint, a renamed
+table):
 
 1. Bump `AgentDatabase.CurrentVersion` as usual for the production change.
 2. Update every affected `INSERT` to match the new column list. For a new

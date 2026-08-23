@@ -1,0 +1,35 @@
+ [T]asks   [M]ail (2)   [A]gents   M[e]mory
+╭─Agents (3)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
+│     alice     ○ -  reg 2026-01-01 seen      ││ Identity                                     │
+│ 2026-01-01                                  ││                                              │
+│ >   bob       ◇ -  reg 2026-01-01 seen      ││ Name: bob                                    │
+│ 2026-01-01                                  ││ Role: -                                      │
+│     e2e-agent ○ -  reg 2026-01-01 seen      ││ Client: -                                    │
+│ 2026-01-01                                  ││ Implicit: no                                 │
+│                                             ││ Registered: 2026-01-01 07:00                 │
+│                                             ││ Last seen: 2026-01-01 07:00                  │
+│                                             ││                                              │
+│                                             ││ Sent mail                                    │
+│                                             ││                                              │
+│                                             ││ 2026-01-01 Billing review -> e2e-agent, ali… │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+╰─────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+hjkl move  enter open  r refresh  y copy id  z zoom  e edit  esc back  q quit  …      e2e-agent
