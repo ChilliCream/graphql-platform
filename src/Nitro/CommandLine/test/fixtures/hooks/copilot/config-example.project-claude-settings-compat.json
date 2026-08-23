@@ -1,0 +1,8 @@
+{
+  "_comment": "Placed at <gitRoot>/.claude/settings.json. Copilot CLI 1.0.75 reads Claude Code's own project settings file directly and merges its hooks key in as project-scope config (same trustedFolders gate, same PascalCase-alias remap as the user-scope compat keys). Verified live: fired alongside .github/hooks/ and .github/copilot/settings.json for the same session, all three additively.",
+  "hooks": {
+    "SessionStart": [
+      {"type": "command", "command": "...", "timeoutSec": 5}
+    ]
+  }
+}

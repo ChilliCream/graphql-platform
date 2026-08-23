@@ -1,0 +1,17 @@
+{
+  "_comment": "Placed at ~/.copilot/hooks/<any-name>.json (recursive glob **/*.json under the user hooks dir; filename is not significant). Mixes canonical camelCase keys and the SessionStart/UserPromptSubmit-style compat alias keys in the same file to demonstrate both fire additively.",
+  "hooks": {
+    "sessionStart": [
+      {"type": "command", "command": "...", "timeoutSec": 5}
+    ],
+    "userPromptSubmitted": [
+      {"type": "command", "command": "...", "timeoutSec": 5}
+    ],
+    "UserPromptSubmit": [
+      {"type": "command", "command": "...", "timeoutSec": 5}
+    ],
+    "sessionEnd": [
+      {"type": "command", "command": "...", "timeoutSec": 5}
+    ]
+  }
+}
