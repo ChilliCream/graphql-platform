@@ -40,6 +40,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IProcessInfoProvider, ProcessInfoProvider>();
         services.TryAddSingleton<IClaudeAncestorSessionResolver, ClaudeAncestorSessionResolver>();
         services.TryAddSingleton<ICodexAncestorSessionResolver, CodexAncestorSessionResolver>();
+        services.TryAddSingleton<ICopilotAncestorSessionResolver, CopilotAncestorSessionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
@@ -50,6 +51,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
         services.TryAddSingleton<ICodexHookHandler, CodexHookHandler>();
+        services.TryAddSingleton<ICopilotHookHandler, CopilotHookHandler>();
         services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
         services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
         services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
@@ -58,6 +60,9 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexPathResolver, CodexPathResolver>();
         services.TryAddSingleton<ICodexHooksSidecarStore, CodexHooksSidecarStore>();
         services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
+        services.TryAddSingleton<ICopilotPathResolver, CopilotPathResolver>();
+        services.TryAddSingleton<ICopilotHooksSidecarStore, CopilotHooksSidecarStore>();
+        services.TryAddSingleton<ICopilotHooksInstallerService, CopilotHooksInstallerService>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();

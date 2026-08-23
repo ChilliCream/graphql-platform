@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "/home/agent/.dotnet/tools/nitro agent hook copilot session-start",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

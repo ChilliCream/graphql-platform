@@ -21,5 +21,6 @@ internal sealed class HooksCommand : Command
         Subcommands.Add(new StatusHooksCommand());
         Subcommands.Add(new UninstallHooksCommand());
         Subcommands.Add(new Codex.CodexHooksCommand());
+        Subcommands.Add(new Copilot.CopilotHooksCommand());
     }
 }

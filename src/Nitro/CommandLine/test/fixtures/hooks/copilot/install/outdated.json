@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "/opt/old/nitro agent hook copilot session-start",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

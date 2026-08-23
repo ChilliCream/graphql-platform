@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "/usr/local/bin/herdr-agent-state.sh",
+        "timeoutSec": 5
+      }
+    ]
+  },
+  "someOtherTopLevelKey": {
+    "keep": "me"
+  }
+}
