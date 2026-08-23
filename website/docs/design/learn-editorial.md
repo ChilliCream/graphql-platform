@@ -856,7 +856,10 @@ component owning the three-column grid; content arrives as props from
 **Grid definition:**
 
 - `xl` and up (1280px, where the container is at least 1184px):
-  `xl:grid-cols-[minmax(16rem,19rem)_minmax(0,1fr)_minmax(16rem,19rem)]`.
+  `xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)]`.
+  The 37.5rem (600px) center minimum is the featured story's floor: at a
+  1280px viewport the side columns compress below their 19rem maximum to
+  honor it, reaching full width from roughly a 1300px viewport.
   Column order: Latest, Featured, rail. Hairline rules between columns: the
   center and right columns take `xl:border-l xl:border-cc-card-border` with
   `xl:px-8`; the first column `xl:pr-8` (no gap property; the rules own the
@@ -864,8 +867,9 @@ component owning the three-column grid; content arrives as props from
 - `lg` to below `xl`: `lg:grid-cols-[minmax(0,1fr)_19rem]` with `gap-x-8`:
   Featured left, rail right; Latest drops below the pair as a full-width
   two-column list (`lg:columns` none, plain `sm:grid-cols-2 gap-x-10` of
-  rows). Three columns below 1280px would squeeze the featured story under
-  600px, thinner than a plain article card, so the band refuses it.
+  rows). Below `xl` even minimum-width side columns would squeeze the
+  featured story under its 600px floor, thinner than a plain article card,
+  so the band refuses three columns.
 - Below `lg`: one column, order Featured, Latest, rail. The two promo tiles
   sit side by side at `sm` (`sm:grid-cols-2`) with the tag cloud full-width
   under them; below `sm` everything stacks.
@@ -1099,7 +1103,8 @@ current pathname and is the one new client component (`usePathname`, like
   band) and the landing cleanups 17.1, 17.2, 17.4.
 - **website-c6w.4** implements sections 15.2, 16.1, 16.2 (treatment rollout
   to topic sections, browse masthead/grid, articles index) and cleanups
-  17.5 to 17.9.
+  17.5 to 17.8. Cleanups 17.9 and 17.10 are not standalone items: 17.9 is
+  absorbed by section 15.2 and 17.10 by sections 14 and 15.1.
 
 Non-goals of v2: any change to the global header, footer, or non-learn
 routes; a light theme (the site is single-theme dark); newsletter backend
