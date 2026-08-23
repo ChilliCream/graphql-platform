@@ -1,0 +1,39 @@
+Source: process-1787504353401-3277733.log (/home/pascal/.copilot/logs, Copilot CLI 1.0.80, this machine, captured 2026-08-23)
+Three occurrences (one per copilot -p invocation in this log). Excerpt of one
+occurrence with surrounding keys:
+
+    "AUTOPILOT_COMPLETION_REVIEWER_STEERING": false,
+    "AUTO_APPROVAL": false,
+    "DISABLE_WEB_TOOLS": false,
+    "CONTENT_EXCLUSION": false,
+    "BLAME_COMMAND": false,
+    "BLAME_REPO_QUERY": false,
+    "TUIKIT_COMMAND": false,
+    "PLUGINS_DASHBOARD": false,
+    "CHILD_CUSTOM_INSTRUCTIONS": false,
+    "FORGE_AGENT_ENABLED": false,
+    "CLOUD_SESSION_STORE": true,
+    "CHRONICLE_ORG_QUERY": false,
+    "CHRONICLE_REPO_QUERY": false,
+    "COPILOT_GITHUB_TABS": true,
+    "COPILOT_GITHUB_THEME": true,
+    "DOWNGRADE": false,
+    "COLLECT_DEBUG_LOGS": false,
+    "ASK_USER_ELICITATION": false,
+    "MULTI_TURN_ROUTING": false,
+    "MULTI_TURN_CONTEXT_ROUTING": false,
+    "AUTO_V2_ENDPOINT": false,
+    "EXTENSIONS": false,
+    "agent_factories": false,
+    "TOOL_SEARCH": false,
+    "TOOL_SEARCH_ANTHROPIC": false,
+    "TOOL_SEARCH_OPENAI": false,
+
+This is the "featureFlags" block the runtime resolves/sends for the session.
+EXTENSIONS is false for this account/build. Extension discovery
+(.github/extensions/, ~/.copilot/extensions/) never fired an onSessionStart
+hook and produced no extension-process log lines or new process-*.log files
+in any of this spike's -p runs (both directories tried, project + user scope,
+trusted repo) -- consistent with the feature being flagged off entirely for
+this account, rather than (or in addition to) being interactive-TUI-only as
+speculated in the previous (rejected) spike attempt.
