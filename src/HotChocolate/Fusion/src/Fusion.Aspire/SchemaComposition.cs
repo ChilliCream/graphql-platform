@@ -615,6 +615,8 @@ internal class SchemaComposition(
 
     /// <summary>
     /// Maps every source schema resource to the gateways whose composed schema depends on it.
+    /// A resource that hosts a source schema on behalf of a schema anchor counts as a source
+    /// schema resource.
     /// </summary>
     internal static Dictionary<IResourceWithEndpoints, List<IResourceWithEndpoints>> BuildSourceToGatewayMap(
         IReadOnlyList<IResourceWithEndpoints> compositionResources,
@@ -626,7 +628,8 @@ internal class SchemaComposition(
         {
             foreach (var referencedResource in GetReferencedResources(gateway, appModel))
             {
-                if (!referencedResource.HasGraphQLSchema())
+                if (!referencedResource.HasGraphQLSchema()
+                    && !referencedResource.Annotations.OfType<GraphQLSourceSchemaHostAnnotation>().Any())
                 {
                     continue;
                 }
@@ -1051,7 +1054,7 @@ internal class SchemaComposition(
         "IL2075:\'this\' argument does not satisfy \'DynamicallyAccessedMembersAttribute\' "
         + "in call to target method. The return value of the source method does not have matching annotations.")]
     [SuppressMessage("ReSharper", "UnusedVariable")]
-    private static List<IResourceWithEndpoints> GetReferencedResources(
+    internal static List<IResourceWithEndpoints> GetReferencedResources(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel)
     {
