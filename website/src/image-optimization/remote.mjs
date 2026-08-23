@@ -5,7 +5,7 @@ import { profiles } from "./config.mjs";
 
 const MD_RE = /\.(md|mdx)$/i;
 const LEARN_CONTENT_FILE = "src/data/learn/content.ts";
-const LEARN_VIDEO_ID_RE = /youtubeId:\s*"([A-Za-z0-9_-]{11})"/g;
+const LEARN_VIDEO_ID_RE = /youtubeId:\s*["']([A-Za-z0-9_-]{11})["']/g;
 
 // Matches an 11-char YouTube id in any of the supported URL forms or in a
 // <Video src="..."> attribute (bare id or URL).
@@ -88,8 +88,8 @@ export async function collectRemoteImages(cwd) {
         });
       }
     }
-  } catch {
-    // no learn content file / unreadable: skip
+  } catch (err) {
+    console.warn(`[image-opt] WARN learn content ${LEARN_CONTENT_FILE}: ${err.message}`);
   }
 
   return [...byKey.values()];

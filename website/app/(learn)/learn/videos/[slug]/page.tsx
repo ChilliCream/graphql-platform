@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnVideoDetail } from "@/src/components/learn/LearnVideoDetail";
-import { getOptimizedImage, getShareImageSrc } from "@/src/image-optimization/manifest";
+import { getOptimizedImage } from "@/src/image-optimization/manifest";
 import { productLabel } from "@/src/data/learn/facets";
 import { LEARN_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
@@ -36,7 +36,7 @@ export function generateStaticParams(): { slug: string }[] {
 function posterUrl(youtubeId: string): string {
   const remote = `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`;
   const opt = getOptimizedImage(remote);
-  return toAbsoluteUrl(opt ? getShareImageSrc(remote) : `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`);
+  return toAbsoluteUrl(opt?.fallbackSrc ?? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`);
 }
 
 /** `"51:49"` / `"1:02:15"` mm:ss or h:mm:ss duration to ISO 8601 (`PT51M49S`). */
