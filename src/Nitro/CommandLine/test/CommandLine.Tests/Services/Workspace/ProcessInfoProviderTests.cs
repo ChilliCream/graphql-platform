@@ -5,14 +5,18 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="ProcessInfoProvider"/>, in particular
-/// <see cref="ProcessInfoProvider.IsAlive"/>'s exact-equality generation
-/// match: the SQLite TEXT round trip that reads a stored <c>proc_start</c>
-/// back as a <see cref="DateTimeOffset"/> is lossless with the pinned
-/// Microsoft.Data.Sqlite version (it formats with an explicit offset, unlike
-/// older versions that dropped it and forced a local-timezone reparse), so
-/// no fuzzy tolerance is needed, and a near-miss start time - the exact
-/// hazard <c>proc_start</c> exists to catch - must NOT be treated as the
-/// same generation.
+/// <see cref="ProcessInfoProvider.IsAlive"/>'s tolerance-based generation
+/// match: on Linux, .NET derives <see cref="Process.StartTime"/> from an
+/// estimated boot time, so two processes reading the StartTime of the same
+/// live pid can observe sub-millisecond jitter, which means exact equality
+/// is too strict. The SQLite TEXT round trip that reads a stored
+/// <c>proc_start</c> back as a <see cref="DateTimeOffset"/> is lossless with
+/// the pinned Microsoft.Data.Sqlite version (it formats with an explicit
+/// offset, unlike older versions that dropped it and forced a
+/// local-timezone reparse), but that does not remove the OS-side jitter, so
+/// a small tolerance is still required. A start time beyond that tolerance -
+/// the pid-reuse hazard <c>proc_start</c> exists to catch - must still NOT
+/// be treated as the same generation.
 /// </summary>
 public sealed class ProcessInfoProviderTests
 {
@@ -56,14 +60,32 @@ public sealed class ProcessInfoProviderTests
     [Theory]
     [InlineData(1)]
     [InlineData(-1)]
-    [InlineData(2000)]
-    [InlineData(-2000)]
-    public void IsAlive_Should_ReturnFalse_When_StartTimeIsOffByAnyAmount_IncludingWithinTheOldTolerance(
+    [InlineData(1999)]
+    [InlineData(-1999)]
+    public void IsAlive_Should_ReturnTrue_When_StartTimeIsOffBy_LessThanTolerance(
         int millisecondsOffset)
     {
-        // arrange: a near-miss start time is exactly the pid-reuse ambiguity
-        // proc_start exists to close - a fuzzy tolerance here would silently
-        // treat a different process generation as the one this row expects.
+        // arrange: cross-process reads of the same live pid's StartTime can
+        // jitter by sub-millisecond amounts on Linux, so offsets within the
+        // tolerance must still be treated as the same generation.
+        using var self = Process.GetCurrentProcess();
+        var jitteredStart = self.StartTime.ToUniversalTime().AddMilliseconds(millisecondsOffset);
+
+        // act & assert
+        Assert.True(_provider.IsAlive(self.Id, jitteredStart));
+    }
+
+    [Theory]
+    [InlineData(2001)]
+    [InlineData(-2001)]
+    [InlineData(5000)]
+    [InlineData(-5000)]
+    public void IsAlive_Should_ReturnFalse_When_StartTimeIsOffBy_MoreThanTolerance(
+        int millisecondsOffset)
+    {
+        // arrange: a start time beyond the tolerance is exactly the
+        // pid-reuse ambiguity proc_start exists to close - it must NOT be
+        // treated as the same generation.
         using var self = Process.GetCurrentProcess();
         var nearMissStart = self.StartTime.ToUniversalTime().AddMilliseconds(millisecondsOffset);
 
