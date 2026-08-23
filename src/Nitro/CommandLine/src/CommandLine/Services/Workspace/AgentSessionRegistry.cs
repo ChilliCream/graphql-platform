@@ -104,7 +104,18 @@ internal sealed class AgentSessionRegistry(
             // process replaced the one the row remembered. Treat it as a
             // fresh SessionStart, rebinding exactly as the missing-row case
             // above does, and reset the delivery ledger and counters.
-            await connection.ExecuteAsync(
+            //
+            // Both statements below predicate on the OLD generation
+            // (`existing`), not just (harness, session_id): a reader that
+            // observed this same old generation is the only writer allowed
+            // to act on it. Without the full predicate, two processes
+            // racing to rebind the same stale row could both read the same
+            // `existing` snapshot, and the second writer would blindly
+            // overwrite whatever the first writer already committed instead
+            // of affecting zero rows (the plan's "full-generation predicates
+            // on all lifecycle mutations" rule, carried forward from the
+            // .6 review as a hardening item for this bead).
+            var rowsAffected = await connection.ExecuteAsync(
                 """
                 UPDATE agent_sessions SET
                     agent_name = @agentName,
@@ -123,7 +134,8 @@ internal sealed class AgentSessionRegistry(
                     last_ping_attempt = NULL,
                     last_ping_result = NULL,
                     last_ping_detail = NULL
-                WHERE harness = @harness AND session_id = @sessionId;
+                WHERE harness = @harness AND session_id = @sessionId
+                    AND pid = @oldPid AND proc_start = @oldProcStart AND host = @oldHost;
                 """,
                 new
                 {
@@ -139,14 +151,20 @@ internal sealed class AgentSessionRegistry(
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
+                    oldPid = existing.Pid,
+                    oldProcStart = existing.ProcStart,
+                    oldHost = existing.Host,
                     cancellationToken
                 },
                 transaction);
 
-            await connection.ExecuteAsync(
-                "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId",
-                new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
-                transaction);
+            if (rowsAffected > 0)
+            {
+                await connection.ExecuteAsync(
+                    "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId",
+                    new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+                    transaction);
+            }
         }
 
         var row = await connection.QueryFirstAsync<AgentSessionRow>(
@@ -511,6 +529,80 @@ internal sealed class AgentSessionRegistry(
 
             return new AgentSessionView(record, state);
         }).ToList();
+    }
+
+    public async Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
+        string agentName, CancellationToken cancellationToken)
+    {
+        await ReapAsync(cancellationToken);
+
+        var host = await ResolveHostAsync(cancellationToken);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE agent_name = @agentName AND host = @host "
+            + "ORDER BY harness, session_id",
+            new { agentName, host, cancellationToken });
+
+        return rows.Select(row => row.ToRecord()).ToList();
+    }
+
+    public async Task<bool> TryClaimPingCooldownAsync(
+        AgentSessionRecord session,
+        string attemptId,
+        DateTimeOffset now,
+        TimeSpan cooldown,
+        CancellationToken cancellationToken)
+    {
+        var cutoff = now - cooldown;
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            UPDATE agent_sessions SET
+                last_ping_at = @now,
+                last_ping_attempt = @attemptId,
+                last_ping_result = NULL,
+                last_ping_detail = NULL
+            WHERE harness = @harness AND session_id = @sessionId
+                AND pid = @pid AND proc_start = @procStart AND host = @host
+                AND (last_ping_at IS NULL OR last_ping_at <= @cutoff);
+            """,
+            new
+            {
+                now,
+                attemptId,
+                harness = session.Harness,
+                sessionId = session.SessionId,
+                pid = session.Pid,
+                procStart = session.ProcStart,
+                host = session.Host,
+                cutoff,
+                cancellationToken
+            });
+
+        return rowsAffected > 0;
+    }
+
+    public async Task WritePingResultAsync(
+        string harness,
+        string sessionId,
+        string attemptId,
+        string result,
+        string? detail,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await connection.ExecuteAsync(
+            """
+            UPDATE agent_sessions SET last_ping_result = @result, last_ping_detail = @detail
+            WHERE harness = @harness AND session_id = @sessionId AND last_ping_attempt = @attemptId;
+            """,
+            new { result, detail, harness, sessionId, attemptId, cancellationToken });
     }
 
     private async Task<string> ResolveHostAsync(CancellationToken cancellationToken)
