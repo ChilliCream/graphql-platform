@@ -39,7 +39,13 @@ internal sealed class QueueHeartbeat : IAsyncDisposable
         : this(
             receiver,
             ct => receiver.PeekMessageAsync(cancellationToken: ct),
-            autoDeleteOnIdle / 2,
+            autoDeleteOnIdle >= AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle
+                ? autoDeleteOnIdle / 2
+                : throw new ArgumentOutOfRangeException(
+                    nameof(autoDeleteOnIdle),
+                    autoDeleteOnIdle,
+                    "AutoDeleteOnIdle must be at least "
+                        + $"{AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle}."),
             logger,
             entityPath)
     { }

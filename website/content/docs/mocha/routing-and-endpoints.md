@@ -430,6 +430,8 @@ Each transport maps `Temporary()` to a different native mechanism:
 
 See the transport pages under [Transports](./transports/index.md) for the full mapping, defaults, and conflict-detection behavior for each transport.
 
+## Dispatch endpoints
+
 For outbound endpoints, use `DispatchEndpoint("name")`:
 
 ```csharp

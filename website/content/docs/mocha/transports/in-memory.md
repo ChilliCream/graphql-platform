@@ -94,7 +94,7 @@ transport.Queue("audit")
     .Receives<OrderPlacedEvent>();
 ```
 
-`Queue(...)` and `Endpoint(...)` descriptors also accept `Temporary()`, for API parity with the other transports so code targeting multiple transports compiles unmodified. InMemory has no broker-side entity to auto-delete: a temporary queue lives exactly as long as any other InMemory queue, for the lifetime of the hosting process. Its lifecycle boundary is the runtime's own disposal, not a broker-managed idle timeout or lease.
+`Queue(...)` and `Endpoint(...)` descriptors accept `Temporary()`. InMemory has no broker-side entity to auto-delete: a temporary queue lives exactly as long as any other InMemory queue, for the lifetime of the hosting process. Its lifecycle boundary is the runtime's own disposal, not a broker-managed idle timeout or lease.
 
 # Declare topology resources
 

@@ -213,7 +213,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             EnsureNoDurableQueueConflict(rabbitConfiguration);
         }
 
-        _topology.GetOrAddQueue(
+        var queue = _topology.GetOrAddQueue(
             rabbitConfiguration.QueueName,
             _ => new RabbitMQQueueConfiguration
             {
@@ -222,6 +222,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });
+
+        if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
+        {
+            queue.MarkTemporary();
+        }
 
         if (rabbitEndpoint.Kind == ReceiveEndpointKind.Default)
         {

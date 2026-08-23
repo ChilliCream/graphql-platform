@@ -143,6 +143,45 @@ public class RabbitMQEndpointQueueOwnershipTests
         Assert.True(queue.AutoDelete);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EndpointQueue_Should_MaterializeTemporaryQueue_When_SharedQueueDiscoveredInEitherOrder(
+        bool temporaryFirst)
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            _ => { },
+            t =>
+            {
+                t.BindExplicitly();
+
+                var first = t.Endpoint("first");
+                first.Extend().Configuration.QueueName = "shared";
+                if (temporaryFirst)
+                {
+                    first.Temporary();
+                }
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var secondConfiguration = new RabbitMQReceiveEndpointConfiguration
+        {
+            Name = "second",
+            QueueName = "shared",
+            IsTemporary = !temporaryFirst
+        };
+
+        // act
+        var second = transport.AddEndpoint(runtime, secondConfiguration);
+        second.DiscoverTopology(runtime);
+        var queue = topology.Queues.Single(q => q.Name == "shared");
+
+        // assert
+        Assert.False(queue.Durable);
+        Assert.True(queue.AutoDelete);
+    }
+
     [Fact]
     public void EndpointQueue_Should_ThrowOnBuild_When_TemporaryEndpointConflictsWithDeclaredDurableQueue()
     {
