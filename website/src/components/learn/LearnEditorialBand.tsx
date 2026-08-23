@@ -60,13 +60,15 @@ export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, ta
           <div className="sm:col-span-2 lg:col-span-1">
             <LearnLatestVideos videos={latestVideos} />
           </div>
-          <LearnPromoTile
-            variant="cta"
-            href="/learn#subscribe"
-            kicker="Subscribe"
-            title="Never miss a release"
-            description="New releases, guides, and deep dives on GraphQL for .NET, via RSS or YouTube."
-          />
+          <div className="sm:col-span-2 lg:col-span-1">
+            <LearnPromoTile
+              variant="cta"
+              href="/learn#subscribe"
+              kicker="Subscribe"
+              title="Never miss a release"
+              description="New releases, guides, and deep dives on GraphQL for .NET, via RSS or YouTube."
+            />
+          </div>
           <div className="sm:col-span-2 lg:col-span-1">
             <LearnTagCloud tags={tags} />
           </div>

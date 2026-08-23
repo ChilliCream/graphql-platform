@@ -69,10 +69,10 @@ function selectTopicPosts(pool: readonly BlogPostSummary[]): readonly BlogPostSu
 }
 
 /**
- * Latest 4 videos for the Watch rail (website-8s5.4): entries with a
- * `publishedAt` sort newest first; the 2 legacy entries seeded before the TV
- * migration carry no `publishedAt` and sort after, oldest-dated content
- * last rather than first.
+ * Latest 4 videos for the Watch rail (website-8s5.4), from the pool the
+ * caller passes minus the rail's picks: entries with a `publishedAt` sort
+ * newest first; the 2 legacy entries seeded before the TV migration carry no
+ * `publishedAt` and sort after, oldest-dated content last rather than first.
  */
 function selectLatestVideos(videos: readonly VideoItem[]): readonly VideoItem[] {
   return [...videos]
@@ -137,6 +137,9 @@ export default function LearnPage() {
   const consumedStems = new Set<string>();
   const structuredData = buildStructuredData(collectionItems);
 
+  const railVideos = selectRailVideos(VIDEO_ITEMS);
+  const railVideoSlugs = new Set(railVideos.map((v) => v.slug));
+
   // Rails that actually render, so the lead-side alternation (A-B-A, D7) is
   // computed over rendered rails, not every entry in TOPICS.
   const topicRails: { readonly topic: Topic; readonly posts: readonly BlogPostSummary[] }[] = [];
@@ -160,12 +163,7 @@ export default function LearnPage() {
       {/* The subnav wordmark carries the visible section identity (learn-editorial.md section 15); this page leads with content. */}
       <h1 className="sr-only">Learn ChilliCream</h1>
       {featured ? (
-        <LearnEditorialBand
-          latestPosts={latestPosts}
-          featuredPost={featured}
-          latestVideos={selectRailVideos(VIDEO_ITEMS)}
-          tags={tags}
-        />
+        <LearnEditorialBand latestPosts={latestPosts} featuredPost={featured} latestVideos={railVideos} tags={tags} />
       ) : null}
       {topicRails.map(({ topic, posts }, index) => (
         <LearnTopicRail
@@ -187,7 +185,7 @@ export default function LearnPage() {
         foldedExplainers={!explainerSectionRenders ? explainerArticles : []}
       />
       {explainerSectionRenders ? <LearnExplainerList articles={explainerArticles} /> : null}
-      <LearnVideoSection videos={selectLatestVideos(VIDEO_ITEMS)} />
+      <LearnVideoSection videos={selectLatestVideos(VIDEO_ITEMS.filter((v) => !railVideoSlugs.has(v.slug)))} />
       <LearnSubscribeBand />
     </>
   );

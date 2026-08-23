@@ -40,9 +40,9 @@ export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
           <Link
             key={video.slug}
             href={`/learn/videos/${video.slug}`}
-            className="group/row border-cc-card-border flex flex-col gap-3 border-b py-5 no-underline"
+            className="group/row border-cc-card-border flex flex-col gap-3 border-b py-5 no-underline sm:flex-row sm:items-center sm:gap-4 lg:flex-col lg:items-stretch lg:gap-3"
           >
-            <div className="bg-cc-white/4 relative aspect-video overflow-hidden rounded-lg">
+            <div className="bg-cc-white/4 relative aspect-video overflow-hidden rounded-lg sm:w-44 sm:shrink-0 lg:w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={youTubePosterFallback(video.youtubeId)}
