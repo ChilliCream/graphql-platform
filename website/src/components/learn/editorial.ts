@@ -110,6 +110,20 @@ export function topicsForLearnItem(item: Pick<LearnItemSummary, "products">): re
   return [...keys];
 }
 
+/** Most frequent tags across `posts`, ranked by frequency desc then alphabetically, capped at `limit` (section 14.4's "Most popular" rail unit). */
+export function popularTags(posts: readonly BlogPostSummary[], limit = 12): string[] {
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .sort(([aTag, aCount], [bTag, bCount]) => (bCount !== aCount ? bCount - aCount : aTag.localeCompare(bTag)))
+    .slice(0, limit)
+    .map(([tag]) => tag);
+}
+
 /**
  * Read-only adapter from a `BlogPostSummary` (as returned by
  * `listBlogPostSummaries()`/`getLatestBlogPost()`) to the plain data shape

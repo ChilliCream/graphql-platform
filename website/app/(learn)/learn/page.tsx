@@ -1,12 +1,11 @@
 import { LearnCollectionSection } from "@/src/components/learn/LearnCollectionSection";
+import { LearnEditorialBand } from "@/src/components/learn/LearnEditorialBand";
 import { LearnExplainerList } from "@/src/components/learn/LearnExplainerList";
-import { LearnFeatureHero } from "@/src/components/learn/LearnFeatureHero";
-import { LearnLatestSection } from "@/src/components/learn/LearnLatestSection";
-import { LearnMasthead } from "@/src/components/learn/LearnMasthead";
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
 import { LearnTopicRail, type TopicRailSlot } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import {
+  popularTags,
   TOPICS,
   toBlogTeaserData,
   topicBrowseHref,
@@ -15,8 +14,8 @@ import {
 } from "@/src/components/learn/editorial";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary } from "@/src/data/learn/types";
+import { listArticlesByKind } from "@/src/helpers/articles";
 import { getLatestBlogPost, listBlogPostSummaries, type BlogPostSummary } from "@/src/helpers/blogPosts";
-import { listArticleSummaries } from "@/src/helpers/articles";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
@@ -58,8 +57,24 @@ function buildTopicSlots(posts: readonly BlogPostSummary[], items: readonly Lear
 export default function LearnPage() {
   const allPosts = listBlogPostSummaries();
   const featured = getLatestBlogPost();
-  const latestPosts = allPosts.filter((post) => post.stem !== featured?.stem);
-  const articles = listArticleSummaries();
+
+  // Editorial band dedupe (learn-editorial.md section 15.1): a post appears
+  // at most once in the band, and every post the band shows is excluded from
+  // the topic sections below it.
+  const postsExcludingFeatured = allPosts.filter((post) => post.stem !== featured?.stem);
+  const latestPosts = postsExcludingFeatured.slice(0, 5);
+  const bandStems = new Set<string>([...(featured ? [featured.stem] : []), ...latestPosts.map((post) => post.stem)]);
+
+  const railPromoPost = allPosts.find(
+    (post) => post.category === "Release" && post.featuredImage && !bandStems.has(post.stem),
+  );
+  if (railPromoPost) {
+    bandStems.add(railPromoPost.stem);
+  }
+
+  const topicPostPool = allPosts.filter((post) => !bandStems.has(post.stem));
+  const tags = popularTags(allPosts);
+  const explainerArticles = [...listArticlesByKind("explainer"), ...listArticlesByKind("comparison")];
 
   const featuredTemplate = findFeaturedTemplate();
   const featuredTemplateSummary = TEMPLATE_SUMMARIES.find((t) => t.slug === featuredTemplate.slug);
@@ -77,18 +92,28 @@ export default function LearnPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
-      <LearnMasthead
-        title="Learn ChilliCream"
-        teaser="The latest from the team, topic guides, starter templates, videos, and answer-first explainers for building GraphQL APIs on .NET."
-      />
+      {/* The subnav wordmark carries the visible section identity (learn-editorial.md section 15); this page leads with content. */}
+      <h1 className="sr-only">Learn ChilliCream</h1>
       {featured ? (
-        <div className="pt-10 sm:pt-14">
-          <LearnFeatureHero post={featured} />
-        </div>
+        <LearnEditorialBand
+          latestPosts={latestPosts}
+          featuredPost={featured}
+          railPromo={
+            railPromoPost
+              ? {
+                  href: railPromoPost.href,
+                  image: railPromoPost.featuredImage as string,
+                  kicker: railPromoPost.category ?? "Release",
+                  title: railPromoPost.title,
+                  author: railPromoPost.author ?? undefined,
+                }
+              : null
+          }
+          tags={tags}
+        />
       ) : null}
-      <LearnLatestSection posts={latestPosts.slice(0, 6).map(toBlogTeaserData)} />
       {TOPICS.map((topic) => {
-        const topicPosts = latestPosts.filter((post) => topicsForBlogPost(post).includes(topic.key));
+        const topicPosts = topicPostPool.filter((post) => topicsForBlogPost(post).includes(topic.key));
         const topicItems = LEARN_SUMMARIES.filter((item) => topicsForLearnItem(item).includes(topic.key));
         if (topicPosts.length + topicItems.length < 3) {
           return null;
@@ -111,7 +136,7 @@ export default function LearnPage() {
           { label: "Workshops", href: "/learn/browse?type=workshop" },
         ]}
       />
-      <LearnExplainerList articles={articles} />
+      <LearnExplainerList articles={explainerArticles} />
       <LearnVideoSection videos={VIDEO_ITEMS} />
       <LearnSubscribeBand />
     </>

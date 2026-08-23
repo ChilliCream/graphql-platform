@@ -1,3 +1,4 @@
+import type { ProductKey } from "@/src/data/learn/facets";
 import { listArticleSummaries, type ArticleSummary } from "./articles";
 
 export type BlogPostSummary = {
@@ -8,6 +9,7 @@ export type BlogPostSummary = {
   date: string;
   category: string | null;
   tags: string[];
+  products: ProductKey[];
   featuredImage: string | null;
   author: string | null;
   authorUrl: string | null;
@@ -23,6 +25,7 @@ function toBlogPostSummary(article: ArticleSummary): BlogPostSummary {
     date: article.date,
     category: article.category,
     tags: article.tags,
+    products: article.products,
     featuredImage: article.featuredImage,
     author: article.author,
     authorUrl: article.authorUrl,
