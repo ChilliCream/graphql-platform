@@ -1,0 +1,13 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/opt/old/nitro agent hook codex session-start",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+}

@@ -33,6 +33,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
 
             Commands:
               claude  Adapt Claude Code turn-boundary hook events.
+              codex   Adapt Codex CLI turn-boundary hook and notify events.
             """);
     }
 

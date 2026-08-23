@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Claude;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 
@@ -14,5 +15,6 @@ internal sealed class HookCommand : Command
         Description = "Translate harness turn-boundary hook payloads into digest and gate behavior.";
 
         Subcommands.Add(new ClaudeHookCommand());
+        Subcommands.Add(new CodexHookCommand());
     }
 }

@@ -1,0 +1,13 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/home/agent/.dotnet/tools/nitro agent hook codex session-start",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/home/agent/.dotnet/tools/nitro agent hook codex session-start",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/home/agent/.dotnet/tools/nitro agent hook codex user-prompt-submit",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "SessionEnd": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/home/agent/.dotnet/tools/nitro agent hook codex session-end",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+}

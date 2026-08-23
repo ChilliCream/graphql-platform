@@ -1,0 +1,16 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/usr/local/bin/herdr hook session-start",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "someOtherTopLevelKey": {
+    "keep": "me"
+  }
+}

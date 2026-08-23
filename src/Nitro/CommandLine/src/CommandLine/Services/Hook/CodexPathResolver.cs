@@ -1,0 +1,49 @@
+namespace ChilliCream.Nitro.CommandLine.Services.Hook;
+
+/// <summary>
+/// Resolves the Codex CLI config paths this installer writes:
+/// <c>~/.codex/hooks.json</c> and <c>~/.codex/config.toml</c>. Unlike Claude
+/// Code (user vs project scope) and the plan's Copilot row, the install-flow
+/// table has no project-scope row for Codex - <c>CODEX_HOME</c> is a
+/// per-user, not per-repo, concept.
+/// </summary>
+internal interface ICodexPathResolver
+{
+    string ResolveHooksJson();
+
+    string ResolveConfigToml();
+}
+
+internal sealed class CodexPathResolver(IEnvironmentVariableProvider environmentVariables) : ICodexPathResolver
+{
+    public string ResolveHooksJson() => Path.Combine(ResolveCodexHome(), "hooks.json");
+
+    public string ResolveConfigToml() => Path.Combine(ResolveCodexHome(), "config.toml");
+
+    /// <summary>
+    /// <c>CODEX_HOME</c> when set (Codex's own override, honored the same
+    /// way the real Codex CLI resolves it), otherwise <c>~/.codex</c>. Reads
+    /// through <see cref="IEnvironmentVariableProvider"/>, not
+    /// <see cref="Environment.GetEnvironmentVariable(string)"/> directly, so
+    /// a test can redirect this away from a real <c>CODEX_HOME</c> the same
+    /// way it can already fake <c>NITRO_MAIL_ACTOR</c>/<c>NITRO_HOOK_SUPPRESS</c>.
+    /// </summary>
+    private string ResolveCodexHome()
+    {
+        var overrideHome = environmentVariables.GetEnvironmentVariable("CODEX_HOME");
+
+        if (!string.IsNullOrEmpty(overrideHome))
+        {
+            return overrideHome;
+        }
+
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        if (string.IsNullOrEmpty(home))
+        {
+            throw new ExitException("Could not resolve the current user's home directory.");
+        }
+
+        return Path.Combine(home, ".codex");
+    }
+}
