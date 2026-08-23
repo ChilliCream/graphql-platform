@@ -20,6 +20,9 @@ internal interface IClaudeHookHandler
     /// test (or a human replaying a captured payload) can drive the full
     /// adapter without a real Claude Code process above it, and so the same
     /// generation resolves consistently across separate process invocations.
+    /// Dry-run still writes presence/ledger/budget rows to the real
+    /// workspace database; a caller must not replay it with a live
+    /// session's session_id.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionStartAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
