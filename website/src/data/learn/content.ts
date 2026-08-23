@@ -732,7 +732,128 @@ const getStartedGraphqlBlazorVideo: VideoItem = {
   updatedRelative: "4 years ago",
 };
 
-export const VIDEO_ITEMS: readonly VideoItem[] = [graphqlObservabilityVideo, getStartedGraphqlBlazorVideo];
+// The 7 videos migrated from the retired ChilliCream TV site (website-hnm.2).
+// Source of truth: .nitro/agents/tv-videos-snapshot.json, a snapshot of
+// persisted query 72db3d7fc8aa8fce76906ccc1adb0d14 against that site's
+// GraphQL API. Descriptions are cleaned of the repeated social-links/support
+// boilerplate and the dead "Source Code" link every TV description carried
+// (it pointed back at the retired site); the intro paragraphs, Courses
+// link, and Hot Chocolate version note are kept. exampleUrl is omitted:
+// website-hnm.3 found the TV backend's example-download endpoints return
+// 401 for anonymous requests, so no
+// working archive URL exists yet (see that task's comments).
+
+const dataLoaderStateContextVideo: VideoItem = {
+  type: "video",
+  slug: "dataloader-state-context-aware-fetching",
+  title: "How to Use State in DataLoader for Context-Aware Fetching",
+  tagline:
+    "Michael Staib shows how to make DataLoaders stateful, so you can scope fetches by tenant or auth context without losing batching.",
+  description:
+    "In this episode, we're going to explore how to make your DataLoaders stateful, so you can pass in things like tenant IDs or authorization context to fetch data in the correct scope without compromising performance.\n\nSo buckle up, and let's jump in!\n\nCourses: https://courses.chillicream.com/youtube/4Mw2A548OGM\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.4",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=4Mw2A548OGM",
+  youtubeId: "4Mw2A548OGM",
+  publishedAt: "2025-05-01T09:51:56.995282Z",
+  updatedRelative: "over a year ago",
+};
+
+const efCoreProjectionsVideo: VideoItem = {
+  type: "video",
+  slug: "ef-core-projections-graphql-performance",
+  title: "Boost GraphQL Performance with EF Core Projections",
+  tagline: "Michael Staib tours Hot Chocolate's new EF Core projections engine for faster, smarter GraphQL queries.",
+  description:
+    "In this episode, we're taking a look at the new projections engine in Hot Chocolate: what's changed, what's new, and how it can help you write smarter, faster GraphQL queries with EF Core.\n\nSo buckle up, and let's jump in!\n\nCourses: https://courses.chillicream.com/youtube/dYSqssul4jY\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.3",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=dYSqssul4jY",
+  youtubeId: "dYSqssul4jY",
+  publishedAt: "2025-04-01T09:17:50.285112Z",
+  updatedRelative: "over a year ago",
+};
+
+const openTelemetryForServicesVideo: VideoItem = {
+  type: "video",
+  slug: "opentelemetry-for-services",
+  title: "Open Telemetry for All Your Services (and More!)",
+  tagline: "Michael Staib wires up OpenTelemetry across your services for unified tracing in Hot Chocolate.",
+  description:
+    "In this episode, we're diving into how you can leverage the new Connections API in Hot Chocolate to add aggregations to your GraphQL connections, giving your users easy access to insights like totals, counts, and more, right alongside their data.\n\nSo buckle up, and let's jump in!\n\nCourses: https://courses.chillicream.com/youtube/DtISlxOBmPQ\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.1",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=DtISlxOBmPQ",
+  youtubeId: "DtISlxOBmPQ",
+  publishedAt: "2025-03-24T23:38:17.186856Z",
+  updatedRelative: "over a year ago",
+};
+
+const relativeCursorsVsOffsetPaginationVideo: VideoItem = {
+  type: "video",
+  slug: "relative-cursors-vs-offset-pagination",
+  title: "Offset Pagination is Dead! Meet Relative Cursors",
+  tagline: "Michael Staib introduces Hot Chocolate 15.1's relative-cursor paging, replacing offset pagination.",
+  description:
+    "In this episode, we will have a look at the new paging capabilities that come with Hot Chocolate 15.1, which will make offset pagination obsolete.\n\nSo buckle up and jump in!\n\nCourses: https://courses.chillicream.com/youtube/ZHq1pBjo0Qk\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.7",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=8TQ2oDUQ1ng",
+  youtubeId: "8TQ2oDUQ1ng",
+  publishedAt: "2025-03-17T22:53:33.686727Z",
+  updatedRelative: "over a year ago",
+};
+
+const dataLoaderInLayeredArchitectureVideo: VideoItem = {
+  type: "video",
+  slug: "dataloader-in-layered-architecture",
+  title: "Master DataLoader in Layered Architecture!",
+  tagline: "Michael Staib shows how to use DataLoader in your business layer with zero dependency on Hot Chocolate.",
+  description:
+    "In this episode, have a look at how we can use DataLoader in our business layer without having any dependencies on Hot Chocolate.\n\nSo buckle up and jump in!\n\nCourses: https://courses.chillicream.com/youtube/ZHq1pBjo0Qk\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.7",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=ZHq1pBjo0Qk",
+  youtubeId: "ZHq1pBjo0Qk",
+  publishedAt: "2025-03-05T11:41:17.926764Z",
+  updatedRelative: "over a year ago",
+};
+
+const greenDonutInActionVideo: VideoItem = {
+  type: "video",
+  slug: "greendonut-in-action",
+  title: "The Future of Data APIs: GreenDonut in Action!",
+  tagline:
+    "Michael Staib demos GreenDonut.Data: paging, projections, filtering, and sorting in a layered architecture.",
+  description:
+    "In this episode, we will dive into the new GreenDonut.Data package and explore how we can use things like paging, projections, filtering and sorting when working with a layered architecture.\n\nSo buckle up and join me!\n\nCourses: https://courses.chillicream.com/youtube/FhNK7KMAnXc\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.7",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=FhNK7KMAnXc",
+  youtubeId: "FhNK7KMAnXc",
+  publishedAt: "2025-02-27T08:38:58.355214Z",
+  updatedRelative: "over a year ago",
+};
+
+const dataLoaderExplainedVideo: VideoItem = {
+  type: "video",
+  slug: "dataloader-explained",
+  title: "DataLoader Explained: What, Why & Where It Belongs!",
+  tagline: "Michael Staib explains what DataLoader is, why you need it, and where it belongs in your project.",
+  description:
+    "In this episode, we will take a peek at DataLoader with Green Donut and Hot Chocolate 15. We will look at what they are, why you should use them, and where you should put them in your project.\n\nSo buckle up, join me!\n\nCourses: https://courses.chillicream.com/youtube/e0CKt3MVUfI\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.3",
+  products: ["hot-chocolate"],
+  url: "https://www.youtube.com/watch?v=gVIxde5nlWE",
+  youtubeId: "gVIxde5nlWE",
+  publishedAt: "2025-02-19T10:23:44.273404Z",
+  updatedRelative: "over a year ago",
+};
+
+export const VIDEO_ITEMS: readonly VideoItem[] = [
+  graphqlObservabilityVideo,
+  getStartedGraphqlBlazorVideo,
+  dataLoaderStateContextVideo,
+  efCoreProjectionsVideo,
+  openTelemetryForServicesVideo,
+  relativeCursorsVsOffsetPaginationVideo,
+  dataLoaderInLayeredArchitectureVideo,
+  greenDonutInActionVideo,
+  dataLoaderExplainedVideo,
+];
 
 // -----------------------------------------------------------------------------
 // Tutorials

@@ -74,7 +74,15 @@ export interface VideoItem extends LearnItemBase {
   readonly type: "video";
   readonly level?: LearnLevel;
   readonly url: string;
-  readonly duration: string;
+  readonly duration?: string;
+  /** YouTube video id (the `v` query param), for embedding without re-parsing `url`. */
+  readonly youtubeId?: string;
+  /** Long-form description for a future video detail page: cleaned of repeated social-links boilerplate. */
+  readonly description?: string;
+  /** ISO 8601 publish timestamp, when known. */
+  readonly publishedAt?: string;
+  /** Downloadable example-code archive for the video, when one is hosted by the site. */
+  readonly exampleUrl?: string;
 }
 
 export interface TutorialItem extends LearnItemBase {
