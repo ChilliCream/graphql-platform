@@ -1,7 +1,6 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
-import { hubHrefForPost } from "@/src/data/learn/hubs";
+import { hubKickerForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
-import { kickerForBlogPost } from "./editorial";
 import { LearnFeaturedStory } from "./LearnFeaturedStory";
 import { LearnLatestVideos, type LatestVideoRailItem } from "./LearnLatestVideos";
 import { LearnListRow } from "./LearnListRow";
@@ -34,20 +33,23 @@ export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, ta
         <div className="order-2 lg:order-3 lg:col-span-2 xl:order-1 xl:col-span-1 xl:pr-8">
           <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Latest</h2>
           <div className="mt-2 grid grid-cols-1 gap-x-10 sm:grid-cols-2 xl:grid-cols-1">
-            {latestPosts.map((post) => (
-              <LearnListRow
-                key={post.stem}
-                density="compact"
-                href={post.href}
-                title={post.title}
-                kicker={kickerForBlogPost(post)}
-                kickerHref={hubHrefForPost(post)}
-                featuredImage={post.featuredImage}
-                product={post.products[0] ?? null}
-                author={post.author}
-                date={post.date}
-              />
-            ))}
+            {latestPosts.map((post) => {
+              const kicker = hubKickerForPost(post);
+              return (
+                <LearnListRow
+                  key={post.stem}
+                  density="compact"
+                  href={post.href}
+                  title={post.title}
+                  kicker={kicker.text}
+                  kickerHref={kicker.href}
+                  featuredImage={post.featuredImage}
+                  product={post.products[0] ?? null}
+                  author={post.author}
+                  date={post.date}
+                />
+              );
+            })}
           </div>
           <ArrowLink href="/learn/articles" className="mt-6">
             All articles

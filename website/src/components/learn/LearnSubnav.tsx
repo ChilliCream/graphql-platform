@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { LearnSubnavLinks } from "@/src/components/learn/LearnSubnavLinks";
-import { LearnSubnavLinkList } from "@/src/components/learn/LearnSubnavLinkList";
 
 /**
  * Persistent second navigation bar for every /learn route (learn-editorial.md
@@ -10,9 +8,8 @@ import { LearnSubnavLinkList } from "@/src/components/learn/LearnSubnavLinkList"
  * rendered once by the learn segment layout.
  *
  * Server-rendered shell: only the active-link computation (`LearnSubnavLinks`)
- * needs `useSearchParams`, so it is the sole client boundary. Its Suspense
- * fallback renders the same five links with no active state, so the exported
- * static HTML always contains the wordmark, all links, and Subscribe.
+ * is a client component, reading the pathname via `usePathname`, which needs
+ * no Suspense boundary.
  */
 export function LearnSubnav() {
   return (
@@ -28,9 +25,7 @@ export function LearnSubnav() {
           Learn
         </Link>
         <div className="flex [scrollbar-width:none]! items-stretch gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden!">
-          <Suspense fallback={<LearnSubnavLinkList />}>
-            <LearnSubnavLinks />
-          </Suspense>
+          <LearnSubnavLinks />
         </div>
         <Link
           href="/learn#subscribe"

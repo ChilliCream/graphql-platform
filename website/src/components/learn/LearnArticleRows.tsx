@@ -1,6 +1,5 @@
-import { hubHrefForPost } from "@/src/data/learn/hubs";
+import { hubKickerForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
-import { kickerForBlogPost } from "./editorial";
 import { LearnListRow } from "./LearnListRow";
 
 interface LearnArticleRowsProps {
@@ -18,19 +17,22 @@ export function LearnArticleRows({ posts }: LearnArticleRowsProps) {
   }
   return (
     <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-2">
-      {posts.map((post) => (
-        <LearnListRow
-          key={post.stem}
-          href={post.href}
-          title={post.title}
-          kicker={kickerForBlogPost(post)}
-          kickerHref={hubHrefForPost(post)}
-          featuredImage={post.featuredImage}
-          product={post.products[0] ?? null}
-          author={post.author}
-          date={post.date}
-        />
-      ))}
+      {posts.map((post) => {
+        const kicker = hubKickerForPost(post);
+        return (
+          <LearnListRow
+            key={post.stem}
+            href={post.href}
+            title={post.title}
+            kicker={kicker.text}
+            kickerHref={kicker.href}
+            featuredImage={post.featuredImage}
+            product={post.products[0] ?? null}
+            author={post.author}
+            date={post.date}
+          />
+        );
+      })}
     </div>
   );
 }

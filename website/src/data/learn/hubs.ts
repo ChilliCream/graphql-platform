@@ -43,7 +43,7 @@ export const HUBS: readonly Hub[] = [
     tagline: "Build and compose GraphQL APIs",
     description:
       "Server fundamentals with Hot Chocolate, composite schemas and gateways with Fusion, and GraphQL clients: schema design, resolvers, DataLoader and performance, subscriptions, and federation.",
-    browseHref: "/learn/browse?product=hot-chocolate",
+    browseHref: "/learn/browse?product=hot-chocolate,fusion,strawberry-shake",
   },
   {
     key: "messaging",
@@ -180,18 +180,23 @@ export function hubsForPost(post: HubbablePost): readonly HubKey[] {
 }
 
 /**
- * Link target for a post's kicker (learn-editorial.md section 14.1):
- * mirrors `kickerForBlogPost`'s own precedence exactly (category verbatim,
- * falling back to the tag-derived hub label) so the link always matches the
- * text it sits under. `Release`/`Newsletter` and any other non-`AI`
- * category name no hub, so those kickers render as plain text; `AI` is the
- * one category that is also a hub name. `undefined` when no hub applies, so
- * the caller renders the kicker as plain text instead of a link.
+ * Kicker text and link target for a post (learn-editorial.md section 14.1):
+ * whenever the kicker links to a hub, its text is that hub's label, so the
+ * text and the destination always name the same thing. A non-`AI` category
+ * (e.g. `Release`, `Newsletter`) is not a hub, so it renders as plain text
+ * with no href. The `AI` category is the one category that is also a hub
+ * (`agents`), so it links there under the `Agents` label. Posts with no
+ * category fall back to their primary tag-derived hub, and posts with
+ * neither fall back to the plain-text `Article` kicker.
  */
-export function hubHrefForPost(post: HubbablePost): string | undefined {
-  if (post.category) {
-    return post.category === "AI" ? hubHref("agents") : undefined;
+export function hubKickerForPost(post: HubbablePost): { readonly text: string; readonly href: string | undefined } {
+  if (post.category && post.category !== "AI") {
+    return { text: post.category, href: undefined };
   }
-  const hub = hubsForPost(post)[0];
-  return hub ? hubHref(hub) : undefined;
+  const hub = post.category === "AI" ? "agents" : hubsForPost(post)[0];
+  const found = hub ? findHub(hub) : undefined;
+  if (found) {
+    return { text: found.label, href: hubHref(found.key) };
+  }
+  return { text: "Article", href: undefined };
 }

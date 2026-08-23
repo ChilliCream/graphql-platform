@@ -22,7 +22,7 @@ interface LearnSubnavLinkListProps {
   readonly activeHref?: string;
 }
 
-/** Renders the five `NAV_LINKS` as tab-style links. `activeHref` names the single link (by `href`) that carries the active state; omit it to render all links idle. */
+/** Renders the `NAV_LINKS` as tab-style links. `activeHref` names the single link (by `href`) that carries the active state; omit it to render all links idle. */
 export function LearnSubnavLinkList({ activeHref }: LearnSubnavLinkListProps) {
   return (
     <>

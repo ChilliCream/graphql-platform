@@ -71,15 +71,6 @@ const TAG_TOPIC: Record<string, TopicKey> = {
   "semantic-introspection": "ai",
 };
 
-/** Kicker text for a `LearnListRow` (learn-editorial.md section 14.1): the post's category, falling back to its primary topic label. */
-export function kickerForBlogPost(post: Pick<BlogPostSummary, "category" | "tags">): string {
-  if (post.category) {
-    return post.category;
-  }
-  const topicKey = topicsForBlogPost(post)[0];
-  return TOPICS.find((topic) => topic.key === topicKey)?.label ?? "Article";
-}
-
 /** Topics a blog post belongs to, derived from its tags plus the `AI` category as a fallback (strategy section 3). */
 export function topicsForBlogPost(post: Pick<BlogPostSummary, "tags" | "category">): readonly TopicKey[] {
   const keys = new Set<TopicKey>();
