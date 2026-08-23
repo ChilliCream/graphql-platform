@@ -1,3 +1,4 @@
+import { COMPANY_SOCIAL_LINKS } from "@/src/helpers/companyLinks";
 import { SITE_NAME } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 import {
@@ -42,12 +43,7 @@ const STRUCTURED_DATA: JsonLdGraph = {
         postalCode: "19806",
         addressCountry: "US",
       },
-      sameAs: [
-        "https://github.com/ChilliCream/graphql-platform",
-        "https://x.com/Chilli_Cream",
-        "https://www.linkedin.com/company/chillicream",
-        "https://www.youtube.com/c/ChilliCream",
-      ],
+      sameAs: Object.values(COMPANY_SOCIAL_LINKS),
     },
     {
       "@type": "ImageObject",

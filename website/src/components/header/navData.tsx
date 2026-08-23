@@ -168,7 +168,7 @@ export const NAV_ITEMS: NavItem[] = [
           { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
           { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
           { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skillz", label: "Skills", icon: RocketIcon },
+          { href: "/docs/skills", label: "Skills", icon: RocketIcon },
         ],
       },
       {

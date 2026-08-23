@@ -99,6 +99,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("FullType"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 
@@ -209,6 +210,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>()),
                         new FieldNode("isDeprecated"),
                         new FieldNode("deprecationReason")
@@ -224,6 +226,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>())
                     }));
 
@@ -239,6 +242,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 
@@ -258,6 +262,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>()),
                         new FieldNode("isDeprecated"),
                         new FieldNode("deprecationReason")
@@ -273,6 +278,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>())
                     }));
 
@@ -288,6 +294,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 
@@ -323,6 +330,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 

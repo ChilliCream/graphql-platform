@@ -125,7 +125,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
 
-        await channel.BasicPublishAsync(exchangeName, routingKey, true, properties, envelope.Body, cancellationToken);
+        await channel.BasicPublishAsync(exchangeName, routingKey, false, properties, envelope.Body, cancellationToken);
     }
 
     private bool _isProvisioned;

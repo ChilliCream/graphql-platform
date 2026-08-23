@@ -5528,7 +5528,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync();
+        var names = sourceSchemaNames.ToArray();
         Assert.Equal(
             new[] { SourceSchemaReviews, SourceSchema }.OrderBy(x => x),
             names.OrderBy(x => x));
@@ -5556,7 +5557,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync();
+        var names = sourceSchemaNames.ToArray();
         Assert.Equal(new[] { SourceSchemaReviews }, names);
 
         var reviews = await archive.TryGetSourceSchemaConfigurationAsync(SourceSchemaReviews);

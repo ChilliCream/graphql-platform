@@ -1,5 +1,6 @@
 ---
 title: "Apollo Federation Connector"
+metaTitle: "Use Apollo Federation Subgraphs with Hot Chocolate Fusion"
 description: "Put a Fusion gateway in front of your existing Apollo Federation subgraphs. Composition auto-detects Apollo Federation SDL and translates @key, @requires, and _entities into the GraphQL Federation model, with no changes to your subgraphs."
 ---
 

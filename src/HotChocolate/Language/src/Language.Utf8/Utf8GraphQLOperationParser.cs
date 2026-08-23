@@ -48,7 +48,8 @@ public ref struct Utf8GraphQLOperationParser
         options ??= ParserOptions.Default;
         _source = sourceText;
         _metadata = metadata;
-        _allowFragmentVariables = options.Experimental.AllowFragmentVariables;
+        _allowFragmentVariables = options.Experimental.AllowFragmentArguments
+            || options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
         _maxAllowedDirectives = options.MaxAllowedDirectives;

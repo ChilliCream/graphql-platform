@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 15 to 16
+metaTitle: "Hot Chocolate 16 Migration Guide"
 description: "Walks through upgrading your Hot Chocolate GraphQL server from version 15 to 16, covering eager initialization, service separation, and other breaking changes."
 ---
 

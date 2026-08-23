@@ -38,6 +38,7 @@ Browsable
 BSON
 buildtransitive
 bytearray
+CONNECTIONSTRING
 cacheable
 cadastre
 callsite
@@ -313,3 +314,5 @@ xact
 xcrun
 xunit
 zencoder
+emulatorhealth
+FULLYQUALIFIEDNAMESPACE

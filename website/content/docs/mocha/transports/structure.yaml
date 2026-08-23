@@ -8,3 +8,5 @@ items:
     title: RabbitMQ
   - path: postgres
     title: PostgreSQL
+  - path: azure-service-bus
+    title: Azure Service Bus

@@ -44,3 +44,4 @@ appsettings.user.json
 .playwright-mcp/
 
 node_modules/
+.nitro/

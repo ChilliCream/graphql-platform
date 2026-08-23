@@ -28,7 +28,7 @@ const PRODUCT_ICONS: Record<string, ProductIcon> = {
   strawberryshake: StrawberryShake,
   nitro: Nitro,
   mocha: Mocha,
-  skillz: Skills,
+  skills: Skills,
 };
 
 export default function DocsIndex() {

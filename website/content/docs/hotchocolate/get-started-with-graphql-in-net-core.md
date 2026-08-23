@@ -1,5 +1,6 @@
 ---
-title: "Getting started with GraphQL in .NET Core"
+title: "Getting Started with GraphQL in .NET"
+metaTitle: "GraphQL .NET Tutorial with Hot Chocolate"
 description: "In this tutorial, you will walk through the basics of creating a GraphQL server with Hot Chocolate."
 ---
 

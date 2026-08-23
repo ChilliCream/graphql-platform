@@ -1014,4 +1014,59 @@ public sealed class SourceSchemaPreprocessorTests
                 .Select(directive => directive.Name)
                 .ToArray());
     }
+
+    [Fact]
+    public void Preprocess_Should_Succeed_When_EarlierSchemaOnSharedLogFailed()
+    {
+        // arrange
+        var invalidSourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    field1: Object
+                    field2(argument: Input): Int
+                }
+
+                type Object @tag(name: "remove") {
+                    field: ID!
+                }
+
+                input Input @tag(name: "remove") {
+                    field: ID!
+                }
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var invalidSchema = new SourceSchemaParser(invalidSourceSchemaText, compositionLog).Parse().Value;
+        new SourceSchemaPreprocessor(
+            invalidSchema,
+            [],
+            compositionLog,
+            options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] })
+            .Preprocess();
+        var validSourceSchemaText = new SourceSchemaText("B", "type Query { ping: String }");
+        var validSchema = new SourceSchemaParser(validSourceSchemaText, new CompositionLog()).Parse().Value;
+        var preprocessor = new SourceSchemaPreprocessor(validSchema, [], compositionLog);
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.All(compositionLog, logEntry => Assert.Equal("A", logEntry.Schema?.Name));
+    }
 }
