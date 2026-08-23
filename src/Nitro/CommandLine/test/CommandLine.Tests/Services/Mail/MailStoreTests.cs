@@ -636,6 +636,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         var summary = Assert.Single(threads);
         Assert.Equal(addressedToBob.ThreadId, summary.ThreadId);
         Assert.Equal(1, summary.UnreadCount);
+        Assert.Equal(1, summary.MessageCount);
+        Assert.Equal("body", summary.BodyPreview);
     }
 
     [Fact]
@@ -656,6 +658,34 @@ public sealed class MailStoreTests : IAsyncDisposable
         var summary = Assert.Single(threads);
         Assert.Equal(sentByBob.ThreadId, summary.ThreadId);
         Assert.Equal(0, summary.UnreadCount);
+        Assert.Equal(1, summary.MessageCount);
+        Assert.Equal("body", summary.BodyPreview);
+    }
+
+    [Fact]
+    public async Task QuerySentThreadsAsync_Should_ReportNonZeroUnreadCount_When_OtherAgentRepliedInThread()
+    {
+        // arrange: bob's unread count on his own Sent thread is normally 0
+        // (see QuerySentThreadsAsync_Should_ReturnOnlyThreadsActorSentInto),
+        // but the doc contract on IMailStore.QuerySentThreadsAsync says it
+        // "can be non-zero when other agents replied in a thread the actor
+        // started" - carol's reply addresses bob, so bob has an unread
+        // recipient row on the thread he sent into.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var sentByBob = await SendAsync("bob", "from bob", ["carol"], null, cancellationToken);
+        await _store.ReplyMessageAsync(sentByBob.Id, "carol", "reply body", cancellationToken);
+
+        // act
+        var threads = await _store.QuerySentThreadsAsync("bob", cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(sentByBob.ThreadId, summary.ThreadId);
+        Assert.Equal(1, summary.UnreadCount);
+        Assert.Equal(2, summary.MessageCount);
     }
 
     [Fact]
@@ -675,6 +705,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         var summary = Assert.Single(threads);
         Assert.Equal(thirdParty.ThreadId, summary.ThreadId);
         Assert.Null(summary.UnreadCount);
+        Assert.Equal(1, summary.MessageCount);
+        Assert.Equal("body", summary.BodyPreview);
     }
 
     [Fact]

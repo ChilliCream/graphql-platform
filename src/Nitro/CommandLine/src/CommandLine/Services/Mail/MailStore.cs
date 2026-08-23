@@ -769,14 +769,16 @@ internal sealed class MailStore(
 
         var rollups = normalizedAgent is null
             ? await connection.QueryAsync<ThreadRollupRow>(
-                """
-                SELECT
-                    thread_id AS ThreadId,
-                    COUNT(*) AS MessageCount,
-                    MAX(created_at) AS LastMessageAt
-                FROM messages
-                GROUP BY thread_id
-                """)
+                new CommandDefinition(
+                    """
+                    SELECT
+                        thread_id AS ThreadId,
+                        COUNT(*) AS MessageCount,
+                        MAX(created_at) AS LastMessageAt
+                    FROM messages
+                    GROUP BY thread_id
+                    """,
+                    cancellationToken: cancellationToken))
             : await connection.QueryAsync<ThreadRollupRow>(
                 """
                 SELECT
