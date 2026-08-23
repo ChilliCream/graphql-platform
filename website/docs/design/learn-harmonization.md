@@ -69,9 +69,13 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
 
 ### D3 (high): hairline divider overload
 
-- **Page**: `/learn` (220 visible hairline segments at 1440, 62 in the first
-  960px viewport), `/learn/browse` (158 segments, 45.7 per 1000px at 1920,
-  the highest density audited; the article page runs at 7 per 1000px)
+- **Page**: `/learn` (242 hairline segments at 1440, re-measured live
+  inside `main`; the audit panel reported 220; 62 in the first 960px
+  viewport), `/learn/browse` (158 segments, 45.7 per 1000px at 1920, the
+  highest density audited; the article page runs at 7 per 1000px).
+  Counting rule, used for every segment figure and target in this
+  document: segments are counted per rendered border side, so a 4-side
+  frame contributes 4 segments and a `border-b` contributes 1.
 - **Component**: `LearnListRow.tsx` (5 hairlines per row: `border-b` plus a
   4-side `border-cc-ink-faint` border on the `size-20` thumbnail, lines 35
   to 45); `LearnCard.tsx` (5 per card: 4-side border plus the internal
@@ -84,8 +88,9 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   that is imperceptible yet inconsistently assigned (LearnCard all 0.12,
   LearnListRow all 0.16). At each section seam a reader crosses a row
   border-b, a section border-t, and the next heading within 161px.
-- **Fix**: the divider policy of section 2.2. Targets: under 100 segments on
-  `/learn`, at most 2 hairlines per item. Supersedes Part II sections 14.1
+- **Fix**: the divider policy of section 2.2. Targets: under 150 per-side
+  segments on `/learn`; at most 2 border rules per item, where a 4-side
+  outline counts as one rule. Supersedes Part II sections 14.1
   and 14.6 on thumbnail frames and the two-token border split.
 
 ### D4 (high): badge, chip, and accent color sprawl
@@ -403,7 +408,17 @@ band keeps its Part II `pt-8 sm:pt-10` opening.
 
 ### 2.2 Divider policy
 
-Budget: **at most 2 hairlines per item; under 100 segments on `/learn`.**
+Segments are counted per rendered border side (the D3 counting rule); the
+live per-side baseline on `/learn` at 1440 is 242 segments inside `main`.
+
+Budget: **at most 2 border rules per item, where a 4-side outline counts
+as one rule; under 150 per-side segments on `/learn`.** The prescriptions
+below remove 96 of the 242 baseline segments (68 thumbnail frames, 15 card
+footer dividers, 5 section `border-t`, 8 featured and promo image
+frames), landing at roughly 146. The kept segments are dominated by the
+card outlines and the chip pills (60 sides each), which item 5 below
+retains. Routing the featured category chip through `Tag` (section 2.3)
+is segment-neutral on `/learn`: the chip it replaces is already bordered.
 
 1. **One hairline token.** All learn borders and dividers use
    `--color-cc-card-border` (rgba(245,241,234,0.12), exists in
@@ -486,7 +501,7 @@ unless noted.
 | Rank                    | Recipe                                  | Applies to                                                                                                                                                            |
 | ----------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Page h1                 | `text-h3` (44px), no `sm:text-h2` step  | `LearnMasthead` h1, `TemplateDetail` h1, article h1                                                                                                                   |
-| Featured story headline | `text-h4 sm:text-h3` (cap 44px)         | `LearnFeaturedStory` h2; the `xl:text-h2` step is dropped so no index headline equals or exceeds a page h1                                                            |
+| Featured story headline | `text-h4 sm:text-h3` (cap 44px)         | `LearnFeaturedStory` h2; the `xl:text-h2` step is dropped so no index headline exceeds a page h1                                                                      |
 | Section h2              | `text-h5 sm:text-h4` (cap 32px)         | All landing sections (current), TemplateDetail content sections (current), **and** "More from Learn" and the subscribe band (both currently one step too big, D6/D18) |
 | Row/card title          | `text-h6` (18px)                        | `LearnCard` h3 (current) **and** `LearnListRow` titles (currently unsized 16px body): one voice for one content class                                                 |
 | Body                    | 16px / `leading-7`, measure-capped      | Prose at `max-w-[46rem]` (D5)                                                                                                                                         |
@@ -581,26 +596,28 @@ six equal hairline-topped bands.
 
 ## 3. Where this spec supersedes or amends learn-editorial.md Part II
 
-| Part II section                           | Disposition here                                                                                                                                            |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 11 (row 3.6) and 15.3, Explainers stands  | **Superseded**: section does not render below 3 items; item folds into an adjacent band (section 2.5.4, D1).                                                |
-| 11 (row 4) and 16.3, ArticleLayout stands | **Amended**: shell stands; inner prose measure capped at 46rem, title moves to the heading voice at page-h1 rank (D5, D6).                                  |
-| 14.1 `LearnListRow` recipe                | **Amended**: title gains `font-heading text-h6 font-semibold`; thumbnail loses its border; rows `py-5`; compact density variant added; kicker rule per D19. |
-| 14.2 `LearnFeaturedStory` headline        | **Amended**: `xl:text-h2` step dropped; image frame border dropped; category chip renders through `Tag`.                                                    |
-| 14.3 promo tile image frame               | **Amended**: image border dropped (divider policy).                                                                                                         |
-| 14.5 CTA rule                             | **Amended, ruling kept**: CTA stays uniform `text-cc-accent`; additionally the per-type `ctaLabel` text is deleted for one uniform affordance (D11).        |
-| 14.6 token rules                          | **Superseded in part**: single hairline token (2.2); `bg-[#f5f0ea]` literal no longer sanctioned (D21); solid `bg-cc-warning` pill retired (D10).           |
-| 15.1 band grid                            | **Amended**: rails grow at `2xl`; Latest column may lead with one thumbed row (2.5.1).                                                                      |
-| 15.2 topic rails "rows only"              | **Amended**: rails lead with one feature slot, alternating sides; secondary items remain rows (2.5.2).                                                      |
-| 15.5 section rhythm                       | **Superseded**: `py-10 sm:py-12` scale, border-or-padding seam rule, tinted collection band (2.1, 2.2, 2.5.3).                                              |
-| 16.1 browse                               | **Amended**: masthead compresses; unfiltered catalog opens with a featured `col-span-2` row (2.6).                                                          |
-| Everything else in Part II                | **Stands** (subnav, container, route structure, treatment system, dedupe rules, section 20 video pages).                                                    |
+| Part II section                                                               | Disposition here                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 11 (row 3.6) and 15.3, Explainers stands                                      | **Superseded**: section does not render below 3 items; item folds into an adjacent band (section 2.5.4, D1).                                                                                                                                                                                                        |
+| 11 (row 4) and 16.3, ArticleLayout stands                                     | **Amended**: shell stands; inner prose measure capped at 46rem, title moves to the heading voice at page-h1 rank (D5, D6).                                                                                                                                                                                          |
+| 14.1 `LearnListRow` recipe                                                    | **Amended**: title gains `font-heading text-h6 font-semibold`; thumbnail loses its border; rows `py-5`; compact density variant added; kicker rule per D19.                                                                                                                                                         |
+| 14.2 `LearnFeaturedStory` headline                                            | **Amended**: `xl:text-h2` step dropped; image frame border dropped; category chip renders through `Tag`.                                                                                                                                                                                                            |
+| 14.3 promo tile image frame                                                   | **Amended**: image border dropped (divider policy).                                                                                                                                                                                                                                                                 |
+| 14.5 CTA rule                                                                 | **Amended, ruling kept**: CTA stays uniform `text-cc-accent`; additionally the per-type `ctaLabel` text is deleted for one uniform affordance (D11).                                                                                                                                                                |
+| 14.6 token rules                                                              | **Superseded in part**: single hairline token (2.2); `bg-[#f5f0ea]` literal no longer sanctioned (D21); solid `bg-cc-warning` pill retired (D10).                                                                                                                                                                   |
+| 15.1 band grid                                                                | **Amended**: rails grow at `2xl`; Latest column may lead with one thumbed row (2.5.1).                                                                                                                                                                                                                              |
+| 15.2 topic rails "rows only"                                                  | **Amended**: rails lead with one feature slot, alternating sides; secondary items remain rows (2.5.2).                                                                                                                                                                                                              |
+| 15.5 section rhythm                                                           | **Superseded**: `py-10 sm:py-12` scale, border-or-padding seam rule, tinted collection band (2.1, 2.2, 2.5.3).                                                                                                                                                                                                      |
+| 16.1 browse                                                                   | **Amended**: masthead compresses; unfiltered catalog opens with a featured `col-span-2` row (2.6).                                                                                                                                                                                                                  |
+| 11 (rows 6 and 8) carrying Part I 6.1 chip accents and section 8 accent tints | **Amended**: the neutral chip recipe that 6.1 names as its fallback becomes the canonical `ContentTypeBadge` form on learn surfaces (with the section 2.3 tokens); the per-kind accent table (`cc-note`/`cc-tip` tints) and section 8's StatusChip accent-tint extension to editorial chips are retired (2.3, D13). |
+| Everything else in Part II                                                    | **Stands** (subnav, container, route structure, treatment system, dedupe rules, section 20 video pages).                                                                                                                                                                                                            |
 
 ---
 
 ## 4. Verification targets for the implementing task
 
-- `/learn` total hairline segments under 100 (was 220); no gap over 96px
+- `/learn` total per-side hairline segments under 150 (was 242, counted
+  per the D3 rule); no gap over 96px
   between a section's last row and the next h2 (was 161px).
 - ContentTypeBadge bounding width equals content width everywhere
   (Explainers badge ~66 to 90px, was 647px).
