@@ -71,7 +71,13 @@ export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags 
               author={railPromo.author}
             />
           ) : null}
-          <LearnPromoTile variant="cta" href="/learn#subscribe" kicker="Subscribe" title="Never miss a release" />
+          <LearnPromoTile
+            variant="cta"
+            href="/learn#subscribe"
+            kicker="Subscribe"
+            title="Never miss a release"
+            description="New releases, guides, and deep dives on GraphQL for .NET, via RSS or YouTube."
+          />
           <div className="sm:col-span-2 lg:col-span-1">
             <LearnTagCloud tags={tags} />
           </div>

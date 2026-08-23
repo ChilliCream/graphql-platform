@@ -54,7 +54,7 @@ export function LearnFeaturedStory({
         {post.title}
       </h2>
       {post.description ? <p className="text-cc-ink-dim mt-4 line-clamp-3 text-lg">{post.description}</p> : null}
-      <div className="text-cc-ink-dim mt-6 flex items-center gap-2 text-sm">
+      <div className="text-cc-ink-dim mt-8 flex items-center gap-3 text-sm">
         {post.author ? (
           <>
             {post.authorImageUrl ? (

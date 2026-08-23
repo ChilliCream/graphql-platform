@@ -16,6 +16,7 @@ interface LearnPromoTileCtaProps {
   readonly href: string;
   readonly kicker: string;
   readonly title: string;
+  readonly description: string;
 }
 
 type LearnPromoTileProps = LearnPromoTileImageProps | LearnPromoTileCtaProps;
@@ -32,10 +33,11 @@ export function LearnPromoTile(props: LearnPromoTileProps) {
     return (
       <Link
         href={props.href}
-        className="group/promo bg-cc-accent text-cc-surface flex min-h-36 flex-col justify-between gap-6 rounded-2xl p-6 no-underline"
+        className="group/promo bg-cc-accent text-cc-surface flex min-h-36 flex-col gap-4 rounded-2xl p-6 no-underline"
       >
         <span className="font-mono text-xs tracking-wider uppercase opacity-70">{props.kicker}</span>
-        <span className="flex items-center justify-between gap-3">
+        <p className="text-sm opacity-90">{props.description}</p>
+        <span className="mt-auto flex items-center justify-between gap-3">
           <span className="font-heading font-semibold">{props.title}</span>
           <ArrowRightIcon className="size-5 shrink-0 transition-transform group-hover/promo:translate-x-1" />
         </span>
@@ -56,12 +58,12 @@ export function LearnPromoTile(props: LearnPromoTileProps) {
       />
       <span
         aria-hidden="true"
-        className="from-cc-surface/85 via-cc-surface/40 absolute inset-0 bg-gradient-to-t to-transparent"
+        className="from-cc-surface via-cc-surface/95 absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t to-transparent"
       />
-      <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-5">
+      <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-6">
         <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{props.kicker}</span>
-        <span className="font-heading text-cc-heading font-semibold">{props.title}</span>
-        {props.author ? <span className="text-cc-ink-dim text-sm">{props.author}</span> : null}
+        <span className="font-heading text-cc-heading line-clamp-2 font-semibold">{props.title}</span>
+        {props.author ? <span className="text-cc-ink-dim truncate text-sm">{props.author}</span> : null}
       </span>
     </Link>
   );
