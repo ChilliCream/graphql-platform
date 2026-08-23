@@ -12,6 +12,11 @@
     system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-sans: var(--font-body);
 
+  /* Wider container for /learn routes only (learn-editorial.md section 12).
+     100rem = 1600px, matching the editorial band's reference width. Every
+     other page keeps the default `max-w-7xl` container. */
+  --container-8xl: 100rem;
+
   /* ---- Type scale ----
      Each size ships its paired line-height, so `text-h1` etc. set both. */
   --text-hero: 6.5rem;

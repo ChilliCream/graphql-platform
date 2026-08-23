@@ -4,7 +4,6 @@ import { LearnFeatureHero } from "@/src/components/learn/LearnFeatureHero";
 import { LearnLatestSection } from "@/src/components/learn/LearnLatestSection";
 import { LearnMasthead } from "@/src/components/learn/LearnMasthead";
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
-import { LearnTopicNav } from "@/src/components/learn/LearnTopicNav";
 import { LearnTopicRail, type TopicRailSlot } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import {
@@ -82,7 +81,6 @@ export default function LearnPage() {
         title="Learn ChilliCream"
         teaser="The latest from the team, topic guides, starter templates, videos, and answer-first explainers for building GraphQL APIs on .NET."
       />
-      <LearnTopicNav />
       {featured ? (
         <div className="pt-10 sm:pt-14">
           <LearnFeatureHero post={featured} />
