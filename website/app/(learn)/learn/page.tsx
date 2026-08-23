@@ -89,6 +89,8 @@ export default function LearnPage() {
     ...otherCatalogItems,
   ].slice(0, 6);
 
+  const consumedStems = new Set<string>();
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
@@ -113,19 +115,19 @@ export default function LearnPage() {
         />
       ) : null}
       {TOPICS.map((topic) => {
-        const topicPosts = topicPostPool.filter((post) => topicsForBlogPost(post).includes(topic.key));
+        const topicPosts = topicPostPool.filter(
+          (post) => !consumedStems.has(post.stem) && topicsForBlogPost(post).includes(topic.key),
+        );
         const topicItems = LEARN_SUMMARIES.filter((item) => topicsForLearnItem(item).includes(topic.key));
         if (topicPosts.length + topicItems.length < 3) {
           return null;
         }
-        return (
-          <LearnTopicRail
-            key={topic.key}
-            heading={topic.label}
-            moreHref={topicBrowseHref(topic)}
-            slots={buildTopicSlots(topicPosts, topicItems)}
-          />
-        );
+        const slots = buildTopicSlots(topicPosts, topicItems);
+        const usedPostCount = slots.filter((slot) => slot.kind === "post").length;
+        for (const post of topicPosts.slice(0, usedPostCount)) {
+          consumedStems.add(post.stem);
+        }
+        return <LearnTopicRail key={topic.key} heading={topic.label} moreHref={topicBrowseHref(topic)} slots={slots} />;
       })}
       <LearnCollectionSection
         items={collectionItems}
