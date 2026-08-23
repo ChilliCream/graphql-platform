@@ -22,7 +22,7 @@ export function LearnLatestSection({ posts }: LearnLatestSectionProps) {
     <section className="border-cc-card-border border-t py-14 sm:py-20">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Latest</h2>
-        <ArrowLink href="/blog">All articles</ArrowLink>
+        <ArrowLink href="/learn/articles">All articles</ArrowLink>
       </div>
       <BlogTeaserGrid posts={posts.slice(0, 6)} />
     </section>

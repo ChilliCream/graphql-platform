@@ -88,4 +88,13 @@ export const CONTENT_TYPE_META: Record<LearnContentType, ContentTypeMeta> = {
     hoverBorder: "hover:border-cc-note/60",
     activePill: "bg-cc-note/15 text-cc-note border-cc-note/40",
   },
+  article: {
+    label: "Article",
+    ctaLabel: "Read article",
+    text: "text-cc-note",
+    bg: "bg-cc-note/10",
+    ring: "ring-cc-note/30",
+    hoverBorder: "hover:border-cc-note/60",
+    activePill: "bg-cc-note/15 text-cc-note border-cc-note/40",
+  },
 };

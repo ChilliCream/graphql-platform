@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
+import { BlogTags } from "@/src/components/BlogTags";
 import { TableOfContents, type HeadingItem } from "@/src/components/TableOfContents";
 import type { LearnContentType } from "@/src/data/learn/facets";
 import { Picture } from "@/src/design-system/Picture";
 import { Typography } from "@/src/design-system/Typography";
 import { ContentTypeBadge } from "./ContentTypeBadge";
 
-interface ArticleBreadcrumbItem {
+export interface ArticleBreadcrumbItem {
   readonly label: string;
   readonly href?: string;
 }
@@ -35,6 +36,8 @@ interface ArticleLayoutProps {
   readonly heroImageSrc?: string | null;
   readonly shareUrl: string;
   readonly toc: readonly HeadingItem[];
+  /** Tag links (section 4.1 item 7), reused as-is via `BlogTags`; targets `/learn/articles/tags/[tag]`. */
+  readonly tags?: readonly string[];
   readonly children: ReactNode;
   /** Related-items slot: `SimilarPosts` for blog, a `CardGrid` for comparisons/explainers (section 4.1 item 9). */
   readonly related?: ReactNode;
@@ -54,6 +57,7 @@ export function ArticleLayout({
   heroImageSrc,
   shareUrl,
   toc,
+  tags,
   children,
   related,
 }: ArticleLayoutProps) {
@@ -93,6 +97,7 @@ export function ArticleLayout({
             />
             <BlogShareBar url={shareUrl} title={title} />
           </div>
+          <BlogTags tags={tags ? [...tags] : undefined} />
           {children}
           {related}
         </article>
@@ -102,7 +107,7 @@ export function ArticleLayout({
   );
 }
 
-function ArticleBreadcrumb({ items }: { readonly items: readonly ArticleBreadcrumbItem[] }) {
+export function ArticleBreadcrumb({ items }: { readonly items: readonly ArticleBreadcrumbItem[] }) {
   if (items.length === 0) {
     return null;
   }

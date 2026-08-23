@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CONTENT_ROOTS = ["content/docs", "content/blog"];
+const CONTENT_ROOTS = ["content/docs", "content/blog", "content/learn/articles"];
 const RULE_ID = "remark-rewrite-md-links";
 const PAGE_FILE_RE = /^page\.(tsx?|jsx?|mdx?)$/;
 const BLOG_STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
@@ -20,9 +20,7 @@ export default function remarkRewriteMdLinks() {
     // Pages authored under content/blog or content/docs must use relative
     // markdown links, not hard-coded root-absolute /blog/ or /docs/ URLs.
     const sourceRel = path.relative(cwd, sourcePath).split(path.sep).join("/");
-    const sourceUnderContent = CONTENT_ROOTS.some(
-      (r) => sourceRel === r || sourceRel.startsWith(`${r}/`),
-    );
+    const sourceUnderContent = CONTENT_ROOTS.some((r) => sourceRel === r || sourceRel.startsWith(`${r}/`));
 
     const publicDir = path.join(cwd, "public");
 
@@ -42,14 +40,7 @@ export default function remarkRewriteMdLinks() {
       // URL (e.g. "../../../public/image.png" -> "/image.png"). Applies to both
       // links and image sources.
       if (!node.url.startsWith("/")) {
-        const publicUrl = rewritePublicAsset(
-          node.url,
-          sourceDir,
-          publicDir,
-          cwd,
-          file,
-          node,
-        );
+        const publicUrl = rewritePublicAsset(node.url, sourceDir, publicDir, cwd, file, node);
         if (publicUrl !== null) {
           node.url = publicUrl;
           return;
@@ -71,10 +62,7 @@ export default function remarkRewriteMdLinks() {
         // Forbid root-absolute /blog/ and /docs/ links in content pages.
         // Authors must link relatively so the URLs stay verifiable and
         // survive restructuring (the relative target is rewritten below).
-        if (
-          sourceUnderContent &&
-          (segments[0] === "blog" || segments[0] === "docs")
-        ) {
+        if (sourceUnderContent && (segments[0] === "blog" || segments[0] === "docs")) {
           file.fail(
             `Root-absolute link "${node.url}" is not allowed in content pages — ` +
               `use a relative markdown link to the target file instead`,
@@ -87,19 +75,11 @@ export default function remarkRewriteMdLinks() {
         if (segments[0] === "docs") {
           const subSegments = segments.slice(1);
           if (subSegments.length === 0) {
-            file.fail(
-              `Broken root-absolute link "${node.url}" — /docs has no index page`,
-              node,
-              RULE_ID,
-            );
+            file.fail(`Broken root-absolute link "${node.url}" — /docs has no index page`, node, RULE_ID);
             return;
           }
           if (!docsFileExists(cwd, subSegments)) {
-            file.fail(
-              `Broken root-absolute link "${node.url}" — no matching file found under docs/`,
-              node,
-              RULE_ID,
-            );
+            file.fail(`Broken root-absolute link "${node.url}" — no matching file found under docs/`, node, RULE_ID);
           }
           return;
         }
@@ -117,11 +97,7 @@ export default function remarkRewriteMdLinks() {
         }
 
         if (!appRouteExists(appDir, segments)) {
-          file.fail(
-            `Broken root-absolute link "${node.url}" — no matching page found in app/`,
-            node,
-            RULE_ID,
-          );
+          file.fail(`Broken root-absolute link "${node.url}" — no matching page found in app/`, node, RULE_ID);
         }
         return;
       }
@@ -143,9 +119,7 @@ export default function remarkRewriteMdLinks() {
       }
 
       const rel = path.relative(cwd, absResolved).split(path.sep).join("/");
-      const root = CONTENT_ROOTS.find(
-        (r) => rel === r || rel.startsWith(`${r}/`),
-      );
+      const root = CONTENT_ROOTS.find((r) => rel === r || rel.startsWith(`${r}/`));
       if (!root) {
         file.fail(
           `Markdown link "${node.url}" resolves outside the content roots (${CONTENT_ROOTS.join(", ")}): ${rel}`,
@@ -201,11 +175,7 @@ function rewritePublicAsset(url, sourceDir, publicDir, cwd, file, node) {
   }
 
   if (!fs.existsSync(absResolved)) {
-    file.fail(
-      `Broken asset link "${url}" — file not found at ${path.relative(cwd, absResolved)}`,
-      node,
-      RULE_ID,
-    );
+    file.fail(`Broken asset link "${url}" — file not found at ${path.relative(cwd, absResolved)}`, node, RULE_ID);
     return null;
   }
 
@@ -271,12 +241,7 @@ function resolveSegments(dir, segments) {
     } else if (name.startsWith("(") && name.endsWith(")")) {
       // Route group: transparent, does not consume a segment.
       if (resolveSegments(sub, segments)) return true;
-    } else if (
-      name.startsWith("[") &&
-      name.endsWith("]") &&
-      !name.startsWith("[...") &&
-      !name.startsWith("[[...")
-    ) {
+    } else if (name.startsWith("[") && name.endsWith("]") && !name.startsWith("[...") && !name.startsWith("[[...")) {
       // Dynamic single segment. Catch-all routes are intentionally ignored.
       if (resolveSegments(sub, rest)) return true;
     }
@@ -287,15 +252,8 @@ function resolveSegments(dir, segments) {
 
 function docsFileExists(cwd, subSegments) {
   const joined = subSegments.join("/");
-  const candidates = [
-    `${joined}.md`,
-    `${joined}.mdx`,
-    `${joined}/index.md`,
-    `${joined}/index.mdx`,
-  ];
-  return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "content", "docs", c)),
-  );
+  const candidates = [`${joined}.md`, `${joined}.mdx`, `${joined}/index.md`, `${joined}/index.mdx`];
+  return candidates.some((c) => fs.existsSync(path.join(cwd, "content", "docs", c)));
 }
 
 /** Verify that /blog/YYYY-MM-DD-slug maps to an actual blog file on disk. */
@@ -307,15 +265,8 @@ function blogsRouteExists(cwd, subSegments) {
   if (!BLOG_STEM_RE.test(stem)) {
     return false;
   }
-  const candidates = [
-    `${stem}.md`,
-    `${stem}.mdx`,
-    `${stem}/${stem}.md`,
-    `${stem}/${stem}.mdx`,
-  ];
-  return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "content", "blog", c)),
-  );
+  const candidates = [`${stem}.md`, `${stem}.mdx`, `${stem}/${stem}.md`, `${stem}/${stem}.mdx`];
+  return candidates.some((c) => fs.existsSync(path.join(cwd, "content", "blog", c)));
 }
 
 function walk(node, fn) {

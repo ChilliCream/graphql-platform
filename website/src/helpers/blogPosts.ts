@@ -1,6 +1,4 @@
-import path from "node:path";
-import { BLOG_ROOT, blogUrlForStem, listBlogPosts } from "./blogPaths";
-import { readFrontmatter } from "./readFrontmatter";
+import { listArticleSummaries, type ArticleSummary } from "./articles";
 
 export type BlogPostSummary = {
   stem: string;
@@ -16,57 +14,34 @@ export type BlogPostSummary = {
   authorImageUrl: string | null;
 };
 
+function toBlogPostSummary(article: ArticleSummary): BlogPostSummary {
+  return {
+    stem: article.slug,
+    href: article.href,
+    title: article.title,
+    description: article.description,
+    date: article.date,
+    category: article.category,
+    tags: article.tags,
+    featuredImage: article.featuredImage,
+    author: article.author,
+    authorUrl: article.authorUrl,
+    authorImageUrl: article.authorImageUrl,
+  };
+}
+
 /**
  * Lists all blog posts with their summary metadata. Sorted newest-first by
- * the date encoded in the file/directory name (which authors keep in sync
- * with the frontmatter `date`). Posts without a real title in frontmatter
- * fall back to the slug so listings never render blank cards.
+ * `date`. Posts live under `content/learn/articles/` as `kind: article`
+ * entries (website-5yo.11 migration) and are read through the shared article
+ * pipeline (`src/helpers/articles.ts`), reshaped into the `BlogPostSummary`
+ * shape every existing caller (header nav, the /learn landing rails, RSS)
+ * already expects.
  */
 export function listBlogPostSummaries(): BlogPostSummary[] {
-  const posts = listBlogPosts()
-    .filter(({ parsed }) => parsed.slug !== "__empty__")
-    .map(({ stem, parsed, rel }) => {
-      const fm = readFrontmatter(path.join(BLOG_ROOT, rel)) as Record<
-        string,
-        unknown
-      >;
-      const tags = Array.isArray(fm.tags)
-        ? (fm.tags as unknown[]).filter(
-            (t): t is string => typeof t === "string" && t.length > 0,
-          )
-        : [];
-      const featuredImageRaw =
-        typeof fm.featuredImage === "string" ? fm.featuredImage : null;
-      return {
-        stem,
-        href: blogUrlForStem(parsed),
-        title:
-          typeof fm.title === "string" && fm.title.length > 0
-            ? fm.title
-            : parsed.slug,
-        description:
-          typeof fm.description === "string" && fm.description.length > 0
-            ? fm.description
-            : null,
-        date:
-          typeof fm.date === "string" && fm.date.length > 0
-            ? fm.date
-            : `${parsed.year}-${parsed.month}-${parsed.day}`,
-        category:
-          typeof fm.category === "string" && fm.category.length > 0
-            ? fm.category
-            : null,
-        tags,
-        featuredImage: resolveFeaturedImage(stem, featuredImageRaw),
-        author: typeof fm.author === "string" ? fm.author : null,
-        authorUrl: typeof fm.authorUrl === "string" ? fm.authorUrl : null,
-        authorImageUrl:
-          typeof fm.authorImageUrl === "string" ? fm.authorImageUrl : null,
-      };
-    });
-
-  posts.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-  return posts;
+  return listArticleSummaries()
+    .filter((a) => a.kind === "article")
+    .map(toBlogPostSummary);
 }
 
 export function getLatestBlogPost(): BlogPostSummary | null {
@@ -74,28 +49,12 @@ export function getLatestBlogPost(): BlogPostSummary | null {
   return posts.find((p) => p.featuredImage) ?? posts[0] ?? null;
 }
 
-function resolveFeaturedImage(stem: string, raw: string | null): string | null {
-  if (!raw) {
-    return null;
-  }
-  // Absolute or root-relative URL: trust as-is.
-  if (/^(https?:)?\/\//.test(raw) || raw.startsWith("/")) {
-    return raw;
-  }
-  // Co-located image: blog images live under /public/images/blog/{stem}/.
-  return `/images/blog/${stem}/${raw}`;
-}
-
 /**
  * Ranks other posts by tag overlap with the reference post, breaking ties by
  * `date` desc. Returns at most `limit` posts (default 3), excluding the
  * reference post itself and posts with zero tag overlap.
  */
-export function findSimilarPosts(
-  reference: BlogPostSummary,
-  pool: BlogPostSummary[],
-  limit = 3,
-): BlogPostSummary[] {
+export function findSimilarPosts(reference: BlogPostSummary, pool: BlogPostSummary[], limit = 3): BlogPostSummary[] {
   const referenceTags = new Set(reference.tags);
   if (referenceTags.size === 0) {
     return [];

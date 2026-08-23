@@ -3,8 +3,14 @@ import type { ProductKey } from "@/src/data/learn/facets";
 import { ARTICLES_ROOT, listArticleSlugs } from "./articlePaths";
 import { readFrontmatter } from "./readFrontmatter";
 
-/** The two editorial article genres (strategy doc section 2); the frontmatter field is `kind`, not `type`, to stay distinct from the catalog's `LearnItem.type` discriminant. */
-export type ArticleKind = "comparison" | "explainer";
+/**
+ * The editorial article genres (strategy doc section 2); the frontmatter
+ * field is `kind`, not `type`, to stay distinct from the catalog's
+ * `LearnItem.type` discriminant. `article` is the migrated blog corpus
+ * (website-5yo.11); `comparison` and `explainer` are first-party evergreen
+ * genres.
+ */
+export type ArticleKind = "comparison" | "explainer" | "article";
 
 export type ArticleSummary = {
   slug: string;
@@ -14,6 +20,8 @@ export type ArticleSummary = {
   description: string | null;
   date: string;
   updated: string | null;
+  /** Blog category (Release, Newsletter, AI, ...), `article` kind only; null for comparisons/explainers. */
+  category: string | null;
   /**
    * Editorial topic keys from the strategy doc's taxonomy (section 3:
    * `graphql`, `hot-chocolate`, `federation`, `tooling`, `ai`). Carried
@@ -39,9 +47,9 @@ export function listArticleSummaries(): ArticleSummary[] {
   const articles = listArticleSlugs().map(({ slug, rel }) => {
     const fm = readFrontmatter(path.join(ARTICLES_ROOT, rel)) as Record<string, unknown>;
 
-    if (fm.kind !== "comparison" && fm.kind !== "explainer") {
+    if (fm.kind !== "comparison" && fm.kind !== "explainer" && fm.kind !== "article") {
       throw new Error(
-        `[articles] "${slug}" has frontmatter kind "${String(fm.kind)}"; expected "comparison" or "explainer".`,
+        `[articles] "${slug}" has frontmatter kind "${String(fm.kind)}"; expected "comparison", "explainer", or "article".`,
       );
     }
     if (typeof fm.title !== "string" || fm.title.length === 0) {
@@ -64,6 +72,7 @@ export function listArticleSummaries(): ArticleSummary[] {
       description: typeof fm.description === "string" && fm.description.length > 0 ? fm.description : null,
       date: fm.date,
       updated: typeof fm.updated === "string" && fm.updated.length > 0 ? fm.updated : null,
+      category: typeof fm.category === "string" && fm.category.length > 0 ? fm.category : null,
       topics: stringArray(fm.topics),
       products: stringArray(fm.products) as ProductKey[],
       tags: stringArray(fm.tags),

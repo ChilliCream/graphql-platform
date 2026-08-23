@@ -18,16 +18,25 @@ export type FilterKind = "single" | "multi" | "toggle";
 /**
  * The primary /learn facet: what kind of content an item is.
  *
- * `comparison` and `explainer` are the editorial reading types from
- * `docs/design/learn-content-strategy.md` section 2. They carry
- * `CONTENT_TYPE_META` entries (for the article kind chip, learn-editorial.md
- * section 6.1) but are deliberately NOT added to `CONTENT_TYPE_OPTIONS`
- * below: they are filesystem-backed articles (`content/learn/articles/`),
- * not `LearnItem` catalog entries, so they are not a /learn/browse facet.
- * Making them facetable would require projecting them into the catalog's
- * `LearnItem` union, which the strategy doc assigns to website-5yo.10.
+ * `comparison`, `explainer`, and `article` are the editorial reading types
+ * from `docs/design/learn-content-strategy.md` section 2 (`article` covers
+ * the migrated blog corpus, website-5yo.11). They carry `CONTENT_TYPE_META`
+ * entries (for the article kind chip, learn-editorial.md section 6.1) but
+ * are deliberately NOT added to `CONTENT_TYPE_OPTIONS` below: they are
+ * filesystem-backed articles (`content/learn/articles/`), not `LearnItem`
+ * catalog entries, so they are not a /learn/browse facet. Making them
+ * facetable would require projecting them into the catalog's `LearnItem`
+ * union, which the strategy doc assigns to website-5yo.10.
  */
-export type LearnContentType = "template" | "video" | "tutorial" | "example" | "workshop" | "comparison" | "explainer";
+export type LearnContentType =
+  | "template"
+  | "video"
+  | "tutorial"
+  | "example"
+  | "workshop"
+  | "comparison"
+  | "explainer"
+  | "article";
 
 // Template-only axes.
 export type TopologyKey = "solo" | "federation" | "polyglot";

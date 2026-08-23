@@ -5,18 +5,10 @@ type BlogTagsProps = {
 };
 
 export function BlogTags({ tags }: BlogTagsProps) {
-  const visible = (tags ?? []).filter(
-    (tag): tag is string => typeof tag === "string" && tag.length > 0,
-  );
+  const visible = (tags ?? []).filter((tag): tag is string => typeof tag === "string" && tag.length > 0);
   if (visible.length === 0) {
     return null;
   }
 
-  return (
-    <TagList
-      className="my-6"
-      tags={visible}
-      hrefForTag={(tag) => `/blog/tags/${tag}`}
-    />
-  );
+  return <TagList className="my-6" tags={visible} hrefForTag={(tag) => `/learn/articles/tags/${tag}`} />;
 }
