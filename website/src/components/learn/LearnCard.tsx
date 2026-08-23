@@ -94,7 +94,7 @@ export function LearnCard({ item }: LearnCardProps) {
             </span>
           )}
         </span>
-        <span className={`inline-flex shrink-0 items-center gap-2 text-sm font-medium ${meta.text}`}>
+        <span className="text-cc-accent inline-flex shrink-0 items-center gap-2 text-sm font-medium">
           {meta.ctaLabel}
           {external ? (
             <ExternalArrowIcon className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
