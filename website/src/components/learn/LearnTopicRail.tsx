@@ -72,7 +72,7 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: 
         <div className={leadRight ? "lg:order-2" : undefined}>
           <RailFeature post={lead} />
         </div>
-        <div className={`flex flex-col lg:justify-between ${leadRight ? "lg:order-1" : ""}`}>
+        <div className={`flex flex-col lg:self-start ${leadRight ? "lg:order-1" : ""}`}>
           {rest.map((post) => (
             <LearnListRow
               key={post.stem}

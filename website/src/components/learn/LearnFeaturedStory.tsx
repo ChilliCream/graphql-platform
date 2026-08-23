@@ -40,7 +40,7 @@ export function LearnFeaturedStory({
       {featuredImage ? (
         <div
           className={`aspect-video overflow-hidden rounded-2xl ${
-            stretch ? "xl:aspect-auto xl:min-h-56 xl:grow xl:basis-0" : ""
+            stretch ? "xl:aspect-auto xl:min-h-0 xl:grow xl:basis-0" : ""
           }`}
         >
           <Picture
