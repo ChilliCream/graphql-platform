@@ -23,12 +23,10 @@ export default function ArticlesIndex() {
     <div className="cc-content-dark">
       <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]} />
       <Typography variant="h1">Articles</Typography>
-      {featured ? (
-        <div className="mb-10 sm:mb-12">
-          <LearnFeaturedStory post={featured} priority />
-        </div>
-      ) : null}
-      <LearnArticleRows posts={rest} />
+      {featured ? <LearnFeaturedStory post={featured} priority sizes="(max-width: 1663px) 100vw, 1600px" /> : null}
+      <div className="mt-8 sm:mt-10">
+        <LearnArticleRows posts={rest} />
+      </div>
       {slice ? (
         <Pagination
           currentPage={slice.currentPage}

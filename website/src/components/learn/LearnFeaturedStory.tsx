@@ -8,6 +8,8 @@ interface LearnFeaturedStoryProps {
   readonly post: BlogPostSummary;
   /** Marks the story's image as the page's LCP candidate. */
   readonly priority?: boolean;
+  /** Viewport-to-image-width hint for the call site's column; defaults to the landing band's center column. */
+  readonly sizes?: string;
 }
 
 /**
@@ -18,7 +20,11 @@ interface LearnFeaturedStoryProps {
  * 14.5). Falls back to a headline-first layout when the post has no
  * `featuredImage`.
  */
-export function LearnFeaturedStory({ post, priority = false }: LearnFeaturedStoryProps) {
+export function LearnFeaturedStory({
+  post,
+  priority = false,
+  sizes = "(max-width: 1279px) 100vw, 38vw",
+}: LearnFeaturedStoryProps) {
   const { featuredImage } = post;
 
   return (
@@ -28,7 +34,7 @@ export function LearnFeaturedStory({ post, priority = false }: LearnFeaturedStor
           <Picture
             src={featuredImage}
             alt=""
-            sizes="(max-width: 1279px) 100vw, 38vw"
+            sizes={sizes}
             priority={priority}
             className="h-full w-full object-cover"
           />
