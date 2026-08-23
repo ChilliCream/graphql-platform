@@ -65,3 +65,11 @@ export function NewspaperIcon(props: Props) {
     </svg>
   );
 }
+
+export function NetworkIcon(props: Props) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" {...props}>
+      <path d="M112 240 H400 V272 H112 Z M104 242 L392 66 L408 94 L120 270 Z M104 270 L392 446 L408 418 L120 242 Z M48 256 a64 64 0 1 0 128 0 a64 64 0 1 0 -128 0 M352 80 a48 48 0 1 0 96 0 a48 48 0 1 0 -96 0 M352 256 a48 48 0 1 0 96 0 a48 48 0 1 0 -96 0 M352 432 a48 48 0 1 0 96 0 a48 48 0 1 0 -96 0" />
+    </svg>
+  );
+}

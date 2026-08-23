@@ -348,7 +348,7 @@ const STORY: readonly Chapter[] = [
     boxes: [
       {
         top: 1500,
-        left: 34,
+        left: 30,
         label: "Billing · schema.graphql",
         color: CANON[1].color,
         lines: [
@@ -571,7 +571,7 @@ const STORY: readonly Chapter[] = [
           { text: "  name: String!", dots: [CANON[0].color] },
           { text: "  description: String", dots: [CANON[0].color] },
           { text: "  price: Money!", dots: [CANON[1].color] },
-          { text: "  delivery: Date!", dots: [CANON[3].color] },
+          { text: "  delivery: String!", dots: [CANON[3].color] },
           { text: "}" },
         ],
       },
@@ -757,7 +757,7 @@ export function TransitStory() {
             letterSpacing="0.2em"
             fill={INK_DIM}
           >
-            FUSION COMPOSITION
+            SCHEMA COMPOSITION
           </text>
           <line
             x1={HUB.x - 112}

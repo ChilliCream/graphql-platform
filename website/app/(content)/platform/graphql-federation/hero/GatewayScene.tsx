@@ -1,6 +1,5 @@
 "use client";
 
-import { MONO_FONT } from "./palette";
 import {
   clamp01,
   easeInOutCubic,
@@ -12,8 +11,9 @@ import {
   ramp,
   useVisual,
 } from "./anim";
-import { CANON, INK_DIM, sampleCubic } from "./stage";
 import { driveFlanks, FlankLayer } from "./flanks";
+import { MONO_FONT } from "./palette";
+import { CANON, INK_DIM, sampleCubic } from "./stage";
 
 const T = 39600;
 
@@ -58,10 +58,10 @@ interface DocLine {
 
 const REQ_LINES: readonly DocLine[] = [
   { t: "query GetProduct {", ind: 0 },
-  { t: 'product(id: "42") {', ind: 1 },
+  { t: 'product(id: "P-42") {', ind: 1 },
   { t: "price", ind: 2, o: 0 },
   { t: "name", ind: 2, o: 0 },
-  { t: "deliveryEta", ind: 2, o: 0 },
+  { t: "delivery", ind: 2, o: 0 },
   { t: "}", ind: 1, c: DIM },
   { t: "}", ind: 0, c: DIM },
 ];
@@ -72,9 +72,9 @@ const OUT_LINES: readonly DocLine[] = [
   { t: "{", ind: 0, c: DIM },
   { t: '"data": {', ind: 1 },
   { t: '"product": {', ind: 2 },
-  { t: '"price": 24.90,', ind: 3, c: BIL.color },
+  { t: '"price": "24.90 EUR",', ind: 3, c: BIL.color },
   { t: '"name": "Aero Mug",', ind: 3, c: CAT.color },
-  { t: '"deliveryEta": "2 days"', ind: 3, c: SHP.color },
+  { t: '"delivery": "2 days"', ind: 3, c: SHP.color },
   { t: "}", ind: 2, c: DIM },
   { t: "}", ind: 1, c: DIM },
   { t: "}", ind: 0, c: DIM },
@@ -89,18 +89,23 @@ interface SubDef {
 }
 
 const SUBS: readonly SubDef[] = [
-  { svc: BIL, port: ":4002", result: '{ "price": 24.90 }', fields: "price" },
+  {
+    svc: BIL,
+    port: ":4002",
+    result: '{ "price": "24.90 EUR" }',
+    fields: "price",
+  },
   {
     svc: CAT,
     port: ":4001",
-    result: '{ "name": "Aero Mug", "weight": 1.2 }',
+    result: '{ "name": "Aero Mug", "weight": 12.4 }',
     fields: "name · weight",
   },
   {
     svc: SHP,
     port: ":4003",
-    result: '{ "deliveryEta": "2 days" }',
-    fields: "deliveryEta",
+    result: '{ "delivery": "2 days" }',
+    fields: "delivery",
   },
 ];
 
@@ -204,8 +209,8 @@ const BEATS: readonly Beat[] = [
     note: [710, 108],
     lead: "710,133 710,140",
     lines: [
-      "The gateway writes a query plan:",
-      "every field belongs to one subgraph.",
+      "The gateway writes an operation plan:",
+      "every field belongs to one service.",
     ],
   },
   {
@@ -829,7 +834,7 @@ export function GatewayScene() {
                 fill={INK_DIM}
                 opacity={1}
               >
-                QUERY PLAN
+                OPERATION PLAN
               </text>
               <text
                 ref={set("planMeta")}
@@ -1002,7 +1007,7 @@ export function GatewayScene() {
                 fontSize={8.5}
                 fill={CAT.color}
               >
-                weight: 1.2
+                weight: 12.4
               </text>
             </g>
 
@@ -1441,7 +1446,7 @@ function SubQuery({ i }: SubQueryProps) {
         {"{"}
       </text>
       <text x={x + 13} y={y0 + lh} {...common} fill={CODE}>
-        {'product(id: "42") {'}
+        {'product(id: "P-42") {'}
       </text>
       {i === 0 && (
         <text x={x + 26} y={y0 + 2 * lh} {...common} fill={sub.svc.color}>
@@ -1475,7 +1480,7 @@ function SubQuery({ i }: SubQueryProps) {
       {i === 2 && (
         <g>
           <text x={x + 26} y={y0 + 2 * lh} {...common} fill={sub.svc.color}>
-            deliveryEta(
+            delivery(
           </text>
           <text
             x={x + 26 + 12 * charW}
@@ -1483,7 +1488,7 @@ function SubQuery({ i }: SubQueryProps) {
             {...common}
             fill={CAT.color}
           >
-            weight: 1.2
+            weight: 12.4
           </text>
           <text
             x={x + 26 + 23 * charW}

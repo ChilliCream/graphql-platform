@@ -33,13 +33,13 @@ const STREAMS = STATIONS.map((st) =>
 );
 
 function subOp(field: string): readonly string[] {
-  return ["{", '  productById(id: "P-401") {', `    ${field}`, "  }", "}"];
+  return ["{", '  productById(id: "P-42") {', `    ${field}`, "  }", "}"];
 }
 
 const Q = { x: 36, y: 295, w: 260 } as const;
 const QUERY_LINES = [
   { code: "{", bar: undefined },
-  { code: '  product(id: "P-401") {', bar: "#ffffff" },
+  { code: '  product(id: "P-42") {', bar: "#ffffff" },
   { code: "    name", bar: CANON[0].color },
   { code: "    price", bar: CANON[1].color },
   { code: "    delivery", bar: CANON[3].color },

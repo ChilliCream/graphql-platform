@@ -1,14 +1,13 @@
 ---
-title: Fusion
-metaTitle: "Fusion: Federated GraphQL Gateway"
-description: "Fusion is ChilliCream's GraphQL gateway for composing multiple services into one API, implementing the GraphQL Composite Schemas spec with build-time validation."
+title: Introduction to GraphQL Federation
+description: "Fusion is ChilliCream's GraphQL Federation gateway for composing multiple services into one API, implementing the GraphQL Federation spec with build-time validation."
 ---
 
 Fusion lets you split one GraphQL API into multiple smaller services, without changing how clients consume it. Clients still send queries to one endpoint, and Fusion combines data from all services into one response. Teams can deploy independently, and contract conflicts are caught during build time.
 
 # What Is Fusion
 
-Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
+Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
 
 The architecture has three parts:
 
@@ -22,7 +21,7 @@ A **source schema** is the contract document for a subgraph, such as a GraphQL s
 
 The **gateway** receives client requests, determines which subgraphs to call, executes those calls, and merges the results.
 
-**GraphQL subgraphs stay standard GraphQL servers.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
+**GraphQL subgraphs stay standard GraphQL servers.** The [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
 The result: clients send one request to one endpoint and receive one unified response, while Fusion handles routing and aggregation across upstream services.
 

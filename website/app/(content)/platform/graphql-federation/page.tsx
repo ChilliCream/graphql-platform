@@ -6,7 +6,7 @@ import { ExplainerPage } from "./ExplainerPage";
 const PAGE = {
   title: "What is GraphQL Federation?",
   description:
-    "GraphQL federation combines the schemas of multiple independent services into one unified graph served at a single endpoint. Learn how composition, entities, and query planning work.",
+    "GraphQL Federation combines the schemas of multiple independent services into one unified graph served at a single endpoint. Learn how composition, entities, and operation planning work.",
   path: "/platform/graphql-federation",
 } as const;
 

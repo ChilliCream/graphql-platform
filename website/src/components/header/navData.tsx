@@ -1,22 +1,23 @@
-import type { ComponentType, SVGProps } from "react";
 import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { RobotIcon } from "@/src/icons/RobotIcon";
-import { SlackIcon } from "@/src/icons/Slack";
-import { XIcon } from "@/src/icons/X";
-import { YouTubeIcon } from "@/src/icons/YouTube";
 import {
   BuildingIcon,
   CloudIcon,
   HandshakeAngleIcon,
+  NetworkIcon,
   NewspaperIcon,
   RocketIcon,
   ServerIcon,
   SparklesIcon,
   WavePulseIcon,
 } from "@/src/icons/NavIcons";
+import { RobotIcon } from "@/src/icons/RobotIcon";
+import { SlackIcon } from "@/src/icons/Slack";
+import { XIcon } from "@/src/icons/X";
+import { YouTubeIcon } from "@/src/icons/YouTube";
+import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {
   blog: "/blog",
@@ -76,16 +77,22 @@ export const NAV_ITEMS: NavItem[] = [
             icon: SparklesIcon,
           },
           {
-            href: "/platform/ecosystem",
-            label: "Ecosystem",
-            description: "An Ecosystem You Trust and Love.",
-            icon: CloudIcon,
-          },
-          {
             href: "/platform/agentic-coding",
             label: "Agentic Development",
             description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
+          },
+          {
+            href: "/platform/graphql-federation",
+            label: "GraphQL Federation",
+            description: "Many Services. One Graph.",
+            icon: NetworkIcon,
+          },
+          {
+            href: "/platform/ecosystem",
+            label: "Ecosystem",
+            description: "An Ecosystem You Trust and Love.",
+            icon: CloudIcon,
           },
         ],
       },

@@ -10,7 +10,7 @@ const BEAD_CYCLE = 2400;
 const C = { x: 40, y: 88, w: 240 } as const;
 const QUERY_LINES = [
   "{",
-  '  product(id: "P-401") {',
+  '  product(id: "P-42") {',
   "    name",
   "    price",
   "    delivery",
