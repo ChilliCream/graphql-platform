@@ -45,8 +45,8 @@ export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags 
     <div className="pt-8 sm:pt-10">
       <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)] xl:gap-x-0 xl:gap-y-0">
         <div className="order-2 lg:order-3 lg:col-span-2 xl:order-1 xl:col-span-1 xl:pr-8">
-          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Latest</h2>
-          <div className="mt-6 grid grid-cols-1 gap-x-10 sm:grid-cols-2 xl:grid-cols-1">
+          <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Latest</h2>
+          <div className="mt-2 grid grid-cols-1 gap-x-10 sm:grid-cols-2 xl:grid-cols-1">
             {latestPosts.map((post) => (
               <LearnListRow
                 key={post.stem}
@@ -69,7 +69,7 @@ export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags 
           <LearnFeaturedStory post={featuredPost} priority />
         </div>
 
-        <div className="xl:border-cc-card-border order-3 flex flex-col gap-6 lg:order-2 xl:order-3 xl:border-l xl:px-8">
+        <div className="xl:border-cc-card-border order-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:order-2 lg:grid-cols-1 xl:order-3 xl:border-l xl:px-8">
           {railPromo ? (
             <LearnPromoTile
               variant="image"
@@ -81,7 +81,9 @@ export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags 
             />
           ) : null}
           <LearnPromoTile variant="cta" href="/learn#subscribe" kicker="Subscribe" title="Never miss a release" />
-          <LearnTagCloud tags={tags} />
+          <div className="sm:col-span-2 lg:col-span-1">
+            <LearnTagCloud tags={tags} />
+          </div>
         </div>
       </div>
     </div>

@@ -32,7 +32,7 @@ export function LearnListRow({ href, title, kicker, featuredImage, product, auth
   return (
     <Link
       href={href}
-      className="group/row border-cc-ink-faint grid grid-cols-[auto_1fr] items-start gap-4 border-b py-4 no-underline first:pt-0"
+      className="group/row border-cc-ink-faint grid grid-cols-[auto_1fr] items-start gap-4 border-b py-4 no-underline"
     >
       {featuredImage ? (
         <Picture
