@@ -34,6 +34,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
 
             Commands:
               init      Initialize an agent workspace in the current directory.
+              doctor    Check the agent workspace's schema and session presence for problems.
               tasks     Create and manage tasks for coding agents.
               mail      Send and receive mail between coding agents.
               memory    Save and recall durable agent memory.
@@ -65,6 +66,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
 
             Commands:
               init      Initialize an agent workspace in the current directory.
+              doctor    Check the agent workspace's schema and session presence for problems.
               tasks     Create and manage tasks for coding agents.
               mail      Send and receive mail between coding agents.
               memory    Save and recall durable agent memory.
@@ -99,6 +101,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
 
             Commands:
               init      Initialize an agent workspace in the current directory.
+              doctor    Check the agent workspace's schema and session presence for problems.
               tasks     Create and manage tasks for coding agents.
               mail      Send and receive mail between coding agents.
               memory    Save and recall durable agent memory.
@@ -133,6 +136,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
 
             Commands:
               init      Initialize an agent workspace in the current directory.
+              doctor    Check the agent workspace's schema and session presence for problems.
               tasks     Create and manage tasks for coding agents.
               mail      Send and receive mail between coding agents.
               memory    Save and recall durable agent memory.

@@ -4,13 +4,16 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 internal sealed class ProcessInfoProvider : IProcessInfoProvider
 {
-    /// <summary>
-    /// Tolerance for comparing a freshly read process start time against one
-    /// persisted and reparsed from the database. Both derive from the same
-    /// OS clock, but the storage round trip (formatting, then
-    /// <see cref="DateTimeOffset.Parse(string)"/>) can shift the value by a
-    /// small fraction of a second.
-    /// </summary>
+    // On Linux, .NET derives Process.StartTime from an estimated boot time,
+    // so two processes reading the StartTime of the SAME live pid can get
+    // values that differ by sub-millisecond jitter (measured ~0.9ms across 6
+    // processes on this machine). The SQLite round trip itself is lossless
+    // (Microsoft.Data.Sqlite formats with an explicit offset, verified
+    // empirically), but that doesn't remove the OS-side cross-process
+    // non-determinism, so a tolerance is still required here. Keep this at
+    // 2s: the measured jitter is small, but boot-time estimates can drift
+    // further under clock adjustment, so don't shrink this without new
+    // evidence.
     private static readonly TimeSpan StartTimeTolerance = TimeSpan.FromSeconds(2);
 
     public DateTimeOffset? GetStartTime(int pid)
