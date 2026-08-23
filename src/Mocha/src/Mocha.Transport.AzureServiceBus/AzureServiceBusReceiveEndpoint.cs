@@ -235,7 +235,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
             if (Configuration.IsTemporary)
             {
-                await CleanupForwardingSubscriptionsAsync(cancellationToken);
+                await CleanupTemporaryResourcesAsync(cancellationToken);
             }
         }
         finally
@@ -255,23 +255,24 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     }
 
     /// <summary>
-    /// Removes the convention forwarding subscriptions targeting this endpoint's queue, skipping
-    /// user-declared subscriptions and subscriptions with auto-provisioning disabled. A failure on
-    /// one subscription is logged and does not stop the remaining subscriptions from being cleaned up.
+    /// Removes convention forwarding subscriptions for this temporary endpoint. The queue is
+    /// removed when no provisioned declared subscriptions remain and all convention cleanup succeeds.
     /// </summary>
-    private async Task CleanupForwardingSubscriptionsAsync(CancellationToken cancellationToken)
+    private async Task CleanupTemporaryResourcesAsync(CancellationToken cancellationToken)
     {
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var canDeleteQueue = true;
 
         foreach (var subscription in Queue.Subscriptions)
         {
-            if (subscription.Origin != TopologyOrigin.Convention)
+            if (!(subscription.AutoProvision ?? topology.AutoProvision))
             {
                 continue;
             }
 
-            if (!(subscription.AutoProvision ?? topology.AutoProvision))
+            if (subscription.Origin != TopologyOrigin.Convention)
             {
+                canDeleteQueue = false;
                 continue;
             }
 
@@ -281,8 +282,23 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                canDeleteQueue = false;
                 _logger.ForwardingSubscriptionCleanupFailed(ex, subscription.Source.Name, subscription.Name);
             }
+        }
+
+        if (!canDeleteQueue || !(Queue.AutoProvision ?? topology.AutoProvision))
+        {
+            return;
+        }
+
+        try
+        {
+            await Queue.DeprovisionAsync(transport.ClientManager, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.TemporaryQueueCleanupFailed(ex, Queue.Name);
         }
     }
 
@@ -355,4 +371,10 @@ internal static partial class Logs
         Exception exception,
         string topicName,
         string subscriptionName);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to delete temporary Azure Service Bus queue '{QueueName}'")]
+    public static partial void TemporaryQueueCleanupFailed(
+        this ILogger logger,
+        Exception exception,
+        string queueName);
 }

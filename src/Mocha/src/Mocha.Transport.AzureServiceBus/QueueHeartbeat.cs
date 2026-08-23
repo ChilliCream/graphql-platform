@@ -39,15 +39,13 @@ internal sealed class QueueHeartbeat : IAsyncDisposable
         : this(
             receiver,
             ct => receiver.PeekMessageAsync(cancellationToken: ct),
-            ResolveInterval(autoDeleteOnIdle),
+            autoDeleteOnIdle / 2,
             logger,
             entityPath)
     { }
 
     internal QueueHeartbeat(Func<CancellationToken, Task> peek, TimeSpan interval, ILogger logger, string entityPath)
         : this(null, peek, interval, logger, entityPath) { }
-
-    private static TimeSpan ResolveInterval(TimeSpan autoDeleteOnIdle) => autoDeleteOnIdle / 2;
 
     private async Task RunAsync(CancellationToken ct)
     {

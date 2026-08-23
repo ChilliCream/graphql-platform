@@ -45,6 +45,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
 
         // assert
         Assert.Equal([(subscription.Source.Name, subscription.Name)], admin.DeletedSubscriptions);
+        Assert.Equal(["temp-q"], admin.DeletedQueues);
     }
 
     [Fact]
@@ -73,6 +74,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
 
         // assert
         Assert.Empty(admin.DeletedSubscriptions);
+        Assert.Empty(admin.DeletedQueues);
     }
 
     [Fact]
@@ -115,6 +117,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
         Assert.Equal(
             [(conventionSubscription.Source.Name, conventionSubscription.Name)],
             admin.DeletedSubscriptions);
+        Assert.Empty(admin.DeletedQueues);
     }
 
     [Fact]
@@ -148,6 +151,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
 
         // assert
         Assert.Empty(admin.DeletedSubscriptions);
+        Assert.Empty(admin.DeletedQueues);
     }
 
     [Fact]
@@ -182,6 +186,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
         await endpoint.StopAsync(runtime, Xunit.TestContext.Current.CancellationToken);
 
         Assert.True(processor.IsClosed);
+        Assert.Equal(["idempotent-q"], admin.DeletedQueues);
     }
 
     [Fact]
@@ -219,6 +224,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
             loggerProvider.Entries,
             e => e.Level == LogLevel.Warning && e.Exception == failure);
         Assert.True(processor.IsClosed);
+        Assert.Empty(admin.DeletedQueues);
     }
 
     public sealed class NoOpConsumer : IConsumer<OrderCreated>

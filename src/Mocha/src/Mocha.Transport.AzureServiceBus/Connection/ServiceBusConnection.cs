@@ -56,6 +56,9 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
     public Task CreateSubscriptionAsync(CreateSubscriptionOptions options, CancellationToken cancellationToken)
         => AdministrationClient.CreateSubscriptionAsync(options, cancellationToken);
 
+    public Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
+        => AdministrationClient.DeleteQueueAsync(queueName, cancellationToken);
+
     public Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         => AdministrationClient.DeleteSubscriptionAsync(topicName, subscriptionName, cancellationToken);
 

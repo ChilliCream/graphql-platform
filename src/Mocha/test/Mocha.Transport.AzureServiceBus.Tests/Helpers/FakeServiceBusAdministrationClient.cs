@@ -23,6 +23,8 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
     /// </summary>
     public List<(string TopicName, string SubscriptionName)> DeletedSubscriptions { get; } = [];
 
+    public List<string> DeletedQueues { get; } = [];
+
     /// <summary>
     /// When set, <see cref="DeleteSubscriptionAsync"/> throws the returned exception instead of
     /// recording the call, simulating a failed subscription deletion.
@@ -96,6 +98,14 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
 
         DeletedSubscriptions.Add((topicName, subscriptionName));
 
+        return Task.FromResult<Response>(new FakeResponse());
+    }
+
+    public override Task<Response> DeleteQueueAsync(
+        string queueName,
+        CancellationToken cancellationToken = default)
+    {
+        DeletedQueues.Add(queueName);
         return Task.FromResult<Response>(new FakeResponse());
     }
 

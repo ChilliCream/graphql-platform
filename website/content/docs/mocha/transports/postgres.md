@@ -330,7 +330,7 @@ transport.Queue($"tenant-events-{instanceId}")
     .Receives<TenantEvent>();
 ```
 
-`Temporary()` sets the queue row's `AutoDelete` to `true` and links it to the registering consumer's row in `mocha_consumers`. There is no separate lease mechanism for temporary queues - they reuse the consumer heartbeat and expiry ownership described in [Background maintenance tasks](#background-maintenance-tasks). When that consumer's row is removed, whether through normal unregistration on shutdown or through the expired-consumer cleanup task after a missed heartbeat, the `CASCADE` foreign key removes the queue along with any messages still on it.
+`Temporary()` sets the queue row's `AutoDelete` to `true` and links it to the registering consumer's row in `mocha_consumers`. There is no separate lease mechanism for temporary queues - they reuse the consumer heartbeat and expiry ownership described in [Background maintenance tasks](#background-maintenance-tasks). When that consumer's row is removed, whether through normal shutdown cleanup or through the expired-consumer cleanup task after a missed heartbeat, the `CASCADE` foreign key removes the queue along with any messages still on it.
 
 If the queue already declares `AutoDelete(false)` explicitly, `Temporary()` fails startup with an explicit configuration error instead of silently overriding it.
 

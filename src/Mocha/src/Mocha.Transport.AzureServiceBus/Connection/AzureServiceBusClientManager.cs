@@ -211,6 +211,15 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Deletes a queue using the administration client.
+    /// </summary>
+    public Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _connection.DeleteQueueAsync(queueName, cancellationToken);
+    }
+
+    /// <summary>
     /// Deletes a subscription using the administration client.
     /// </summary>
     public Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)

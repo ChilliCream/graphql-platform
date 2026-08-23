@@ -197,4 +197,20 @@ public sealed class AzureServiceBusQueue
             // Already provisioned by another instance, safe to ignore.
         }
     }
+
+    /// <summary>
+    /// Deletes this queue from Azure Service Bus.
+    /// </summary>
+    internal async Task DeprovisionAsync(
+        AzureServiceBusClientManager clientManager,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await clientManager.DeleteQueueAsync(Name, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+        {
+        }
+    }
 }
