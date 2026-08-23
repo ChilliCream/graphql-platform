@@ -70,7 +70,7 @@ const matchesAxes = (item: LearnItemSummary, selection: AxisSelection): boolean 
   });
 
 const matchesProducts = (item: LearnItemSummary, selected: readonly ProductKey[]): boolean =>
-  selected.length === 0 || selected.every((key) => item.products.includes(key));
+  selected.length === 0 || selected.some((key) => item.products.includes(key));
 
 const searchHaystack = (item: LearnItemSummary): string => {
   const parts = [item.title, item.tagline, contentTypeLabel(item.type), ...item.products.map(productLabel)];
