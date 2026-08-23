@@ -4,7 +4,8 @@
 > shipped via website-5yo.10 through .12. User review of the shipped pages
 > rejected the uniform-card landing ("this way everything looks the same") and
 > asked for the IBM Think editorial layout. **Part II (sections 11 to 19,
-> epic website-c6w) is the binding v2 spec: where Part II conflicts with
+> epic website-c6w, plus section 20, epic website-hnm) is the binding v2
+> spec: where Part II conflicts with
 > Part I, Part II wins.** Section 11 states the disposition of every Part I
 > section explicitly. Part I is kept intact as the record of the shipped v1
 > and for everything Part II leaves standing.
@@ -1105,9 +1106,220 @@ current pathname and is the one new client component (`usePathname`, like
   to topic sections, browse masthead/grid, articles index) and cleanups
   17.5 to 17.8. Cleanups 17.9 and 17.10 are not standalone items: 17.9 is
   absorbed by section 15.2 and 17.10 by sections 14 and 15.1.
+- **website-hnm.1** implements section 20 (video detail pages under
+  `/learn/videos/[slug]`, part of the TV-migration epic website-hnm), after
+  its sibling data task lands the extended `VideoItem` shape (20.1).
 
 Non-goals of v2: any change to the global header, footer, or non-learn
 routes; a light theme (the site is single-theme dark); newsletter backend
 mechanics; `/learn/topics/[topic]` surfaces; changes to article body
 typography or the comparison genre structure (Part I sections 4 and 6
 stand); content edits.
+
+---
+
+## 20. Video detail page: `/learn/videos/[slug]` (epic website-hnm, 2026-08-23)
+
+The TV migration (epic website-hnm) folds tv.chillicream.com into /learn:
+videos stop being external YouTube links and get native detail pages, so
+the TV UI can be retired. This section designs that page; website-hnm.1
+implements it. The route map (section 2) gains one row:
+`/learn/videos/[slug]`, video detail, designed here. Everything else in
+Part II stands unchanged; component citations follow the Part II
+convention (unqualified names verified on branch pse/adds-templates,
+2026-08-23).
+
+### 20.1 Data contract and href retargeting
+
+The page designs against the extended `VideoItem` in
+`src/data/learn/types.ts`, seeded by website-hnm.1's sibling data task. On
+top of the shipped shape (base fields plus `url`, `duration`, optional
+`level`), the extension adds:
+
+- `youtubeId`: the 11-character YouTube video id (same contract as
+  `YouTubeVideo`'s `videoId` prop, validated by its `ID_RE`).
+- `description`: long-form body as plain paragraphs (`readonly string[]`,
+  the `TemplateSection.paragraphs` precedent). The TV descriptions'
+  boilerplate social/footer block is stripped at data entry, never at
+  render; bare URLs are linkified at data entry.
+- `publishedAt`: ISO date of the YouTube publish, formatted at render via
+  `formatDate` (`src/helpers/formatDate.ts`).
+- `exampleUrl` (optional): direct URL of the free example-code asset.
+
+`LearnItemSummary` keeps working unchanged: a video's summary is the full
+item by definition (types.ts), so no summary type changes.
+
+**Href retargeting**: the `video` case of `learnItemHref`
+(`src/components/learn/learnItemHref.ts`) changes from `item.url` to
+`/learn/videos/${item.slug}`. Every video `LearnCard` sitewide (the
+"Watch" section, the browse catalog, related grids) turns internal;
+`LearnCard` then renders the standard `ArrowRightIcon` instead of the
+external arrow on its own, no card change. `url` stays the canonical
+YouTube watch URL, used only by the "Watch on YouTube" link (20.4) and the
+structured data (20.7).
+
+### 20.2 Page anatomy and header
+
+Route file `app/(learn)/learn/videos/[slug]/page.tsx`, inheriting
+`LearnSubnav` and the `max-w-8xl` gutter from the learn layout (sections
+12 and 13; no subnav link is active on this route, as on template detail).
+`generateStaticParams` iterates `VIDEO_ITEMS`
+(`src/data/learn/content.ts`). The page composes `LearnVideoDetail`
+**(new)**, the `TemplateDetail` sibling: the page loads data and picks
+related items, the component renders props.
+
+Header in the `TemplateDetail` voice, `py-10 sm:py-16`, top to bottom:
+
+1. **Breadcrumb**: `ArticleBreadcrumb` (exported from `ArticleLayout`),
+   `Learn / Videos / {title}`, "Videos" linking to
+   `/learn/browse?type=video`, mirroring the template detail breadcrumb
+   (cleanup 17.5: one breadcrumb component, one voice).
+2. **Kind row**: `ContentTypeBadge type="video"` (the shipped `cc-danger`
+   accent), then the topic kicker in the mono caption voice (`font-mono
+text-xs uppercase tracking-wider text-cc-ink-dim`): the label of the
+   first `TOPICS` entry whose `browseQuery` product matches one of the
+   video's `products` (a small `topicLabelForProduct` helper in
+   `editorial.ts`, sibling of `kickerForBlogPost`), falling back to
+   `productLabel` of the first product. Optional `level` renders as a
+   `Tag`, the template header's chip recipe.
+3. **Title**: `h1` in the `TemplateDetail` recipe (`font-heading
+text-cc-heading text-h3 sm:text-h2 font-semibold tracking-[-0.02em]
+text-balance`), not `Typography variant="h1"`: videos are catalog voice,
+   not article voice.
+4. **Meta line**: `text-cc-ink-dim text-sm`, "{MMM d, yyyy} · {duration}"
+   from `publishedAt` and `duration`. The date prints exactly once on the
+   page (rules 14.2 and 17.4); videos carry no author byline, so
+   date-plus-duration is the whole line.
+5. **Standfirst**: the `tagline`, `text-cc-prose mt-5 max-w-2xl text-lg
+leading-relaxed` (template header recipe).
+
+The header has no buttons: the play affordance is the facade itself and
+the download lives in the example card (20.4). Repeating either here would
+be the duplicate chrome cleanup 17.4 exists to prevent.
+
+### 20.3 Player: `LearnVideoPlayer` (new)
+
+Click-to-load only, never an eager iframe, per the shipped facade
+convention:
+
+- Reuses `VideoFacade` (`src/components/VideoFacade.tsx`) as-is: poster
+  behind the play button, iframe mounted on click against
+  `youtube-nocookie.com` with autoplay. The play button keeps its
+  established treatment (`bg-cc-black/70`, hover `bg-cc-youtube`);
+  `playlabel` is "Play {title}".
+- `LearnVideoPlayer` **(new)** is a thin server wrapper that exists
+  because `YouTubeVideo`'s frame is article chrome (`my-6 rounded-md
+ring-1`) while learn imagery uses the `rounded-2xl border
+border-cc-ink-faint overflow-hidden` frame (section 14.6). Poster
+  resolution is identical to `YouTubeVideo` (self-hosted optimized
+  `maxresdefault` via `getOptimizedImage`, external `hqdefault` fallback,
+  `BrokenMedia` on a malformed id); website-hnm.1 extracts that poster
+  block from `YouTubeVideo` into a shared helper rather than duplicating
+  it. No visual change to `YouTubeVideo`'s call sites.
+
+### 20.4 Body layout: embed area vs description column
+
+The body reuses the `TemplateDetail` detail grid: `border-cc-card-border
+grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16`.
+
+- **Desktop (`lg` and up)**: left column (`min-w-0`) is the player, then
+  the description; right column is the 19rem aside (`sticky top-28`, the
+  template aside recipe) carrying the example card then the facts list.
+  The player fills the fluid left column: roughly 900px wide at a 1280px
+  viewport up to about 1250px in the full 100rem container, so a 16:9
+  embed stays comfortably inside the fold.
+- **Tablet and mobile (below `lg`)**: one column in DOM order player,
+  example card, description, facts. The free download must not sink below
+  a long description, so the example card renders above it; this ordering
+  deliberately differs from `TemplateDetail`'s aside-last collapse (grid
+  `order` utilities on the aside pieces, or two render slots, are
+  implementation's choice).
+
+**Description**: paragraphs as `text-cc-prose leading-7` with `space-y-4`,
+in a `max-w-3xl` measure inside the left column so the prose line length
+stays readable under the wide player. Links inside paragraphs render as
+standard prose links. No MDX pipeline: the description is plain data on
+`VideoItem`, matching the `TemplateSection` precedent.
+
+**Example card** (rendered only when `exampleUrl` is set): the prominent
+free-download affordance.
+
+- Surface: the template aside recipe, `border-cc-card-border bg-cc-card-bg
+rounded-2xl border p-5 backdrop-blur-sm`.
+- Content: heading "Example code" (`text-cc-heading font-heading text-lg
+font-semibold`), one sentence ("The complete project built in this
+  video."), a full-width `SolidButton` "Download example" linking
+  `exampleUrl` directly, and a `text-cc-ink-dim text-sm` caption "Free
+  download, no signup". There is no gate of any kind: TV's paywall was
+  dropped by user ruling, so the button is a plain link, no email capture,
+  no interstitial.
+
+**Facts list**: below the example card (or alone, 20.6), a `dl` in the
+`TemplateDetail` `Detail` voice (mono uppercase `dt`, `text-cc-ink` `dd`):
+Products, Duration, Level (when set), Published. Under it, "Watch on
+YouTube" as an `ArrowLink` with `target="_blank"` (the `LearnVideoSection`
+header's established external-link form) targeting `url`.
+
+### 20.5 Related rail
+
+Closing section in the `TemplateDetail` "More from Learn" recipe:
+`border-cc-card-border border-t py-16 sm:py-24`, heading "More to watch"
+(`font-heading text-h4 sm:text-h3 font-semibold`), `CardGrid cols={3}
+step="progressive" itemsStretch` of plain `LearnCard`s (section 14.5:
+catalog items keep the uniform card; the cards are now internal links per
+20.1). Selection happens in `page.tsx`, never in the component: other
+videos sharing a product, newest first; padded to 3 with the newest
+remaining videos; if still short, with non-video learn items sharing a
+product (templates first); the current video always excluded.
+
+### 20.6 Empty states
+
+- **No `exampleUrl`**: the example card is omitted entirely; the aside is
+  the facts list alone, and below `lg` the facts render after the
+  description (only the prominent download earns the above-description
+  slot).
+- **No related items** (possible only when the catalog is nearly empty):
+  the whole related section is omitted, per the no-empty-rails rule. It
+  never renders placeholder cards.
+- **Empty description**: the left column is the player alone; the grid and
+  aside are unchanged.
+- **Poster failures** are handled inside the player: `hqdefault` external
+  fallback when no optimized poster exists, `BrokenMedia` for a malformed
+  id.
+
+### 20.7 Structured data and metadata
+
+- The page emits `VideoObject` JSON-LD (the sibling of the template page's
+  existing JSON-LD block): `name` (title), `description` (tagline),
+  `thumbnailUrl` (the resolved poster), `uploadDate` (`publishedAt`),
+  `duration` converted to ISO 8601 (`PT51M49S` from `"51:49"`),
+  `embedUrl` (`https://www.youtube-nocookie.com/embed/{youtubeId}`), and
+  `url` (the canonical page URL). Plus a `BreadcrumbList` mirroring the
+  breadcrumb, as the article pages do.
+- Page metadata: title and description from `title`/`tagline`; the OG
+  image is the poster.
+
+### 20.8 Token rules and component inventory delta
+
+Single-theme dark; section 14.6 stands with no additions. The player frame
+uses `border-cc-ink-faint`, the cards use the established surfaces, and no
+new color literals appear anywhere on the page.
+
+| Component / module     | Change                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| `LearnVideoDetail.tsx` | **(new)** page composition under `src/components/learn/` (20.2, 20.4, 20.5)             |
+| `LearnVideoPlayer.tsx` | **(new)** learn-framed click-to-load embed under `src/components/learn/` (20.3)         |
+| `learnItemHref.ts`     | `video` case returns `/learn/videos/[slug]` (20.1)                                      |
+| `YouTubeVideo.tsx`     | Poster-resolution block extracted for sharing with `LearnVideoPlayer`; no visual change |
+| `editorial.ts`         | Gains `topicLabelForProduct` for the video kicker (20.2)                                |
+| `src/data/learn/*`     | Extended `VideoItem` shape, owned by the sibling data task (20.1)                       |
+
+Reused as-is: `VideoFacade`, `ArticleBreadcrumb`, `ContentTypeBadge`,
+`LearnCard`, `CardGrid`, `ArrowLink`, `SolidButton`, `Tag`, `Picture`,
+`BrokenMedia`, `formatDate`, `getOptimizedImage`. `LearnVideoDetail` and
+`LearnVideoPlayer` are server components; `VideoFacade` remains the only
+client piece on the page.
+
+Non-goals of section 20: data entry of the migrated videos (sibling task),
+the TV redirect map (website-hnm.4), auth or gating of any kind, and any
+dependency on tv.chillicream.com at build or runtime.
