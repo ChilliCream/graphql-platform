@@ -71,6 +71,18 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
+    private ClaudeHookHandler CreateHandler() => new(
+        _fileSystem,
+        _timeProvider,
+        _sessions,
+        _ledger,
+        _mail,
+        _environmentVariables,
+        new ProcessInfoProvider(),
+        new FixedAncestorSessionResolver(null),
+        new FixedInstanceIdProvider("host-1"),
+        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
     // ---------- SessionStart ----------
 
     [Fact]
@@ -375,6 +387,100 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         Assert.NotNull(pending.Id);
     }
 
+    [Fact]
+    public async Task HandleStopAsync_Should_ReturnNeutral_When_TheRowIsDeletedBetweenResolveAndIncrement()
+    {
+        // arrange: the increment reports no row matched (e.g. a concurrent
+        // SessionEnd deleted it after FindByGenerationAsync above already
+        // saw it), so the ledger reservation must not be reported as a
+        // block the caller never actually recorded a budget spend for.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+
+        var handler = new ClaudeHookHandler(
+            _fileSystem,
+            _timeProvider,
+            new IncrementNeverMatchesAgentSessionRegistry(_sessions),
+            _ledger,
+            _mail,
+            _environmentVariables,
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(null),
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
+        // act
+        var outcome = await handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_ReserveAtMostMaxDigestMessages_When_ManyMessagesAreUnread()
+    {
+        // arrange: the Stop path's unbounded inbox query would otherwise
+        // reserve every unread message for the gate channel even though a
+        // single block is emitted regardless of how many there are.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        for (var i = 0; i < ClaudeHookHandler.MaxDigestMessages + 5; i++)
+        {
+            await SendMailAsync($"bob-{i}", "alice", cancellationToken);
+        }
+
+        var spyLedger = new ReserveCapturingSessionDeliveryLedger(_ledger);
+        var handler = new ClaudeHookHandler(
+            _fileSystem,
+            _timeProvider,
+            _sessions,
+            spyLedger,
+            _mail,
+            _environmentVariables,
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(null),
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
+        // act
+        var outcome = await handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Block);
+        Assert.NotNull(spyLedger.LastMessageIds);
+        Assert.True(spyLedger.LastMessageIds!.Count <= ClaudeHookHandler.MaxDigestMessages);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_ResolveTheSameGeneration_When_ReplayedFromADifferentHandlerInstance()
+    {
+        // arrange: dry-run pins a fixed sentinel identity rather than this
+        // process's own pid and start time, so a session-start captured by
+        // one handler instance and replayed against a second (a separate CLI
+        // invocation, in real usage) still resolves the same generation
+        // instead of minting an unrelated row.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        var sessionStartHandler = CreateHandler();
+        await sessionStartHandler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+
+        // act
+        var stopHandler = CreateHandler();
+        var outcome = await stopHandler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Block);
+        Assert.NotNull(outcome.BlockReason);
+    }
+
     // ---------- SessionEnd ----------
 
     [Fact]
@@ -432,15 +538,83 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     private async Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
         => await _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);
 
-    private AgentSessionGeneration CurrentGeneration() => new(
+    private static AgentSessionGeneration CurrentGeneration() => new(
         AgentSessionHarness.ClaudeCode,
         SessionId,
         "host-1",
-        Environment.ProcessId,
-        new ProcessInfoProvider().GetStartTime(Environment.ProcessId)!.Value);
+        Pid: 1,
+        DateTimeOffset.UnixEpoch);
 }
 
 internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? session) : IClaudeAncestorSessionResolver
 {
     public ClaudeAncestorSession? Resolve() => session;
+}
+
+/// <summary>
+/// Wraps a real <see cref="IAgentSessionRegistry"/>, delegating every member
+/// except <see cref="IncrementBlockBudgetAsync"/>, which always reports no
+/// row matched - simulating a row deleted (SessionEnd) between an earlier
+/// <see cref="FindByGenerationAsync"/> and the increment.
+/// </summary>
+internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionRegistry inner) : IAgentSessionRegistry
+{
+    public Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? envActor,
+        CancellationToken cancellationToken)
+        => inner.StartAsync(generation, cwd, workspacePath, endpointKind, endpointAddr, envActor, cancellationToken);
+
+    public Task<AgentSessionClaimResult> ClaimAsync(
+        AgentSessionGeneration generation, string actor, bool forceRebind, CancellationToken cancellationToken)
+        => inner.ClaimAsync(generation, actor, forceRebind, cancellationToken);
+
+    public Task<AgentSessionClaimResult> SelfClaimAsync(
+        string actor, bool forceRebind, CancellationToken cancellationToken)
+        => inner.SelfClaimAsync(actor, forceRebind, cancellationToken);
+
+    public Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.EndAsync(generation, cancellationToken);
+
+    public Task<AgentSessionRecord?> FindByGenerationAsync(
+        AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.FindByGenerationAsync(generation, cancellationToken);
+
+    public Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ResetBlockBudgetAsync(generation, cancellationToken);
+
+    public Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => Task.FromResult<int?>(null);
+
+    public Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken)
+        => inner.ReapAsync(cancellationToken);
+
+    public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
+        => inner.ListAsync(cancellationToken);
+}
+
+/// <summary>
+/// Wraps a real <see cref="ISessionDeliveryLedger"/>, delegating every call
+/// while capturing the <c>messageIds</c> argument of the most recent
+/// <see cref="ReserveAsync"/> call.
+/// </summary>
+internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
+{
+    public IReadOnlyList<string>? LastMessageIds { get; private set; }
+
+    public Task<IReadOnlyList<string>> ReserveAsync(
+        string harness,
+        string sessionId,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        DateTimeOffset deliveredAt,
+        CancellationToken cancellationToken)
+    {
+        LastMessageIds = messageIds;
+        return inner.ReserveAsync(harness, sessionId, messageIds, channel, deliveredAt, cancellationToken);
+    }
 }

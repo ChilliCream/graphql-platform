@@ -14,12 +14,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal interface IClaudeHookHandler
 {
     /// <summary>
-    /// Upserts the session's presence row. <paramref name="dryRun"/> resolves
-    /// the process identity pinning the row's generation from THIS process's
-    /// own pid and start time instead of walking this process's ancestors
-    /// for a live Claude Code parent, so a fixture-driven test (or a human
-    /// replaying a captured payload) can drive the full adapter without a
-    /// real Claude Code process above it.
+    /// Upserts the session's presence row. <paramref name="dryRun"/> pins the
+    /// row's generation to a fixed sentinel identity instead of walking this
+    /// process's ancestors for a live Claude Code parent, so a fixture-driven
+    /// test (or a human replaying a captured payload) can drive the full
+    /// adapter without a real Claude Code process above it, and so the same
+    /// generation resolves consistently across separate process invocations.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionStartAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);

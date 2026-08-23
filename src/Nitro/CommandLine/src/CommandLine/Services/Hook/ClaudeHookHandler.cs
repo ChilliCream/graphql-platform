@@ -117,7 +117,7 @@ internal sealed class ClaudeHookHandler(
         }
 
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true },
+            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
             cancellationToken);
 
         if (unread.Count == 0)
@@ -138,7 +138,14 @@ internal sealed class ClaudeHookHandler(
             return ClaudeHookOutcome.Neutral;
         }
 
-        await sessionRegistry.IncrementBlockBudgetAsync(resolved.Generation, cancellationToken);
+        var incremented = await sessionRegistry.IncrementBlockBudgetAsync(resolved.Generation, cancellationToken);
+
+        if (incremented is null)
+        {
+            // The row was deleted (SessionEnd) between the FindByGenerationAsync
+            // above and this increment: nothing left to gate on behalf of.
+            return ClaudeHookOutcome.Neutral;
+        }
 
         return new ClaudeHookOutcome { Block = true, BlockReason = BlockReason };
     }
@@ -199,8 +206,8 @@ internal sealed class ClaudeHookHandler(
     /// Resolves the generation identity and workspace an event's payload
     /// addresses, or null when any fail-open condition applies: a missing
     /// or unresolvable session id or cwd, no agent workspace at that cwd, no
-    /// live process identity (the ancestor walk in real usage, this
-    /// process's own identity in <paramref name="dryRun"/>), or this
+    /// live process identity (the ancestor walk in real usage; <paramref
+    /// name="dryRun"/> pins a fixed sentinel identity instead), or this
     /// process's own cwd resolving to a different workspace than the
     /// payload's cwd does (mirrors <c>SelfClaimAsync</c>'s same check).
     /// </summary>
@@ -221,11 +228,18 @@ internal sealed class ClaudeHookHandler(
         }
 
         int pid;
+        DateTimeOffset procStart;
         string? endpointName;
 
         if (dryRun)
         {
-            pid = Environment.ProcessId;
+            // Pid 1, not 0: the agent_sessions schema's `pid > 0` CHECK
+            // rejects zero. Any fixed positive pid is exactly as safe a
+            // sentinel here, since pairing it with the epoch proc_start
+            // below is what actually makes collision with a real session's
+            // generation impossible.
+            pid = 1;
+            procStart = DateTimeOffset.UnixEpoch;
             endpointName = null;
         }
         else
@@ -237,22 +251,23 @@ internal sealed class ClaudeHookHandler(
                 return null;
             }
 
+            var resolvedStart = processInfoProvider.GetStartTime(ancestor.Pid);
+
+            if (resolvedStart is null)
+            {
+                return null;
+            }
+
             pid = ancestor.Pid;
+            procStart = resolvedStart.Value;
             endpointName = ancestor.Name;
-        }
-
-        var procStart = processInfoProvider.GetStartTime(pid);
-
-        if (procStart is null)
-        {
-            return null;
         }
 
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
         var generation = new AgentSessionGeneration(
-            AgentSessionHarness.ClaudeCode, payload.SessionId, host, pid, procStart.Value);
+            AgentSessionHarness.ClaudeCode, payload.SessionId, host, pid, procStart);
 
         return new ResolvedGeneration(generation, payloadWorkspace, endpointName);
     }
