@@ -1,0 +1,6 @@
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "NITRO_SPIKE_SESSIONSTART_MARKER_8f3d21"
+  }
+}

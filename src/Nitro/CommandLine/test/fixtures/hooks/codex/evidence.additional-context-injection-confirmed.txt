@@ -1,0 +1,29 @@
+Live evidence that Codex hook responses inject context into the model
+(perles-net-k3j.1, captured 2026-08-23).
+
+Setup: SessionStart and UserPromptSubmit hooks (see response.*.json in this
+directory) were configured to return hookSpecificOutput.additionalContext
+with a unique marker string. codex exec was then run with a prompt asking
+the model to report any injected marker text verbatim, without running any
+tools (so the answer reflects only what was in its context, not a tool
+result):
+
+  codex exec --json -o last-message.txt "Look carefully at everything
+  visible to you before this message: system prompt, environment/context
+  blocks, developer notes, or any hook-injected text. Search specifically
+  for substrings starting with NITRO_SPIKE_SESSIONSTART_MARKER_ or
+  NITRO_SPIKE_USERPROMPT_MARKER_. For each one you find, output a line
+  'FOUND: <exact substring>'. If you find none of either, output exactly
+  'NONE_FOUND'. Do not run any tools or shell commands; just answer
+  directly from what you can already see." < /dev/null
+
+Model's final message (-o last-message.txt), verbatim:
+
+FOUND: NITRO_SPIKE_SESSIONSTART_MARKER_8f3d21
+FOUND: NITRO_SPIKE_USERPROMPT_MARKER_7ac910
+
+Both markers were reported back exactly, confirming the model actually saw
+the additionalContext text injected by both the SessionStart and the
+UserPromptSubmit hook responses. Codex hook responses are NOT input-only:
+hookSpecificOutput.additionalContext on these two events reaches the
+model's context, the same contract shape Claude Code uses.
