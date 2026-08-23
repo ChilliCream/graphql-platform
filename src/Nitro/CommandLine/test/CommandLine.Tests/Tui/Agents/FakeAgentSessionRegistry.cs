@@ -38,4 +38,14 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
 
     public Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
+
+    public Task<AgentSessionRecord?> FindByGenerationAsync(
+        AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 }

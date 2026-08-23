@@ -1,0 +1,446 @@
+using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using Microsoft.Extensions.Time.Testing;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
+
+/// <summary>
+/// Exercises <see cref="ClaudeHookHandler"/> end to end against a real
+/// workspace database: presence upsert on SessionStart, the unread-mail
+/// digest and per-turn budget reset on UserPromptSubmit, the Stop gate
+/// (reentrancy, per-turn budget, ledger reservation), and conditional
+/// teardown on SessionEnd. Every call runs with <c>dryRun: true</c>, which
+/// resolves the process generation from this test process's own pid instead
+/// of walking for a live Claude Code ancestor - the same substitution the
+/// command layer's <c>--dry-run</c> flag makes for fixture-driven runs.
+/// </summary>
+public sealed class ClaudeHookHandlerTests : IDisposable
+{
+    private const string SessionId = "session-1";
+
+    private readonly DirectoryInfo _tempRoot;
+    private readonly string _workspaceRoot;
+    private readonly string _workspaceDirectory;
+    private readonly TestFileSystem _fileSystem;
+    private readonly FakeTimeProvider _timeProvider;
+    private readonly AgentDatabase _database;
+    private readonly AgentRegistry _agentRegistry;
+    private readonly AgentSessionRegistry _sessions;
+    private readonly SessionDeliveryLedger _ledger;
+    private readonly MailStore _mail;
+    private readonly FixedEnvironmentVariableProvider _environmentVariables;
+    private readonly ClaudeHookHandler _handler;
+
+    public ClaudeHookHandlerTests()
+    {
+        _tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-handler-tests");
+        _workspaceRoot = _tempRoot.FullName;
+        _workspaceDirectory = AgentWorkspace.GetDirectory(_workspaceRoot);
+        Directory.CreateDirectory(_workspaceDirectory);
+        _fileSystem = new TestFileSystem(_workspaceRoot);
+        _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+        _database = new AgentDatabase();
+        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
+        _sessions = new AgentSessionRegistry(
+            _fileSystem,
+            _timeProvider,
+            _database,
+            _agentRegistry,
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(null));
+        _ledger = new SessionDeliveryLedger(_fileSystem, _database);
+        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
+        _environmentVariables = new FixedEnvironmentVariableProvider();
+
+        _handler = new ClaudeHookHandler(
+            _fileSystem,
+            _timeProvider,
+            _sessions,
+            _ledger,
+            _mail,
+            _environmentVariables,
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(null),
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+    }
+
+    public void Dispose() => _tempRoot.Delete(recursive: true);
+
+    // ---------- SessionStart ----------
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_CreateUnclaimedRow_When_NoEnvActorIsSet()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal(AgentSessionBindingKind.None, row.BindingKind);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_BindTheRow_When_NitroMailActorIsSet()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "pascal");
+
+        // act
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal("pascal", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutCreatingARow_When_CwdHasNoWorkspace()
+    {
+        // arrange: fail-open on a missing workspace. The payload's cwd is a
+        // separate temp root with no agents.db anywhere in its ancestry, so
+        // AgentWorkspace.Find resolves nothing (unlike a subdirectory of the
+        // real workspace, which Find would still resolve by walking up).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var noWorkspaceRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-no-workspace-tests");
+
+        try
+        {
+            var payload = new ClaudeHookPayload { SessionId = SessionId, Cwd = noWorkspaceRoot.FullName };
+
+            // act
+            var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+
+            // assert
+            Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+            Assert.Null(await FindRowAsync(cancellationToken));
+        }
+        finally
+        {
+            noWorkspaceRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_SessionIdIsMissing()
+    {
+        // arrange: fail-open on a malformed/incomplete payload.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var payload = new ClaudeHookPayload { SessionId = null, Cwd = _workspaceRoot };
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+    }
+
+    // ---------- UserPromptSubmit ----------
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_SessionIsUnclaimed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(
+            Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnDigest_When_UnreadMailExistsForTheClaimedActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(
+            Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.NotNull(outcome.AdditionalContext);
+        Assert.Contains("1 unread message.", outcome.AdditionalContext);
+        Assert.Contains("from bob", outcome.AdditionalContext);
+        Assert.False(outcome.Block);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
+    {
+        // arrange: the ledger suppresses redelivery of the same message on
+        // the digest channel once it has been reserved.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.NotNull(first.AdditionalContext);
+
+        // act
+        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, second);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_NotRedeliver_When_AMessageIsMarkedUnreadAfterItsDigest()
+    {
+        // arrange: the ledger's suppression is about NOTIFICATION, not read
+        // state - marking a delivered message unread again must not cause
+        // the digest to show it a second time.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var message = await SendMailAsync("bob", "alice", cancellationToken);
+        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.NotNull(first.AdditionalContext);
+        await _mail.MarkUnreadAsync([message.Id], "alice", cancellationToken);
+
+        // act
+        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, second);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ResetTheBlockBudget()
+    {
+        // arrange: drive the Stop gate's budget to its ceiling first.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        for (var i = 0; i < ClaudeHookHandler.MaxBlocksPerTurn; i++)
+        {
+            await SendMailAsync($"bob-{i}", "alice", cancellationToken);
+            await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        }
+
+        var exhaustedRow = await FindRowAsync(cancellationToken);
+        Assert.Equal(ClaudeHookHandler.MaxBlocksPerTurn, exhaustedRow!.BlockBudgetUsed);
+
+        // act
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var resetRow = await FindRowAsync(cancellationToken);
+        Assert.Equal(0, resetRow!.BlockBudgetUsed);
+    }
+
+    // ---------- Stop ----------
+
+    [Fact]
+    public async Task HandleStopAsync_Should_ReturnNeutral_When_StopHookActiveIsTrue()
+    {
+        // arrange: the reentrancy guard fires before anything else, even
+        // when unread mail exists.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleStopAsync(
+            Payload(SessionId, stopHookActive: true), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_Block_When_UnreadMailExistsForTheClaimedActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Block);
+        Assert.NotNull(outcome.BlockReason);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_ReturnNeutral_When_CalledAgainForTheSameUnreadMail()
+    {
+        // arrange: the gate channel's ledger reservation is at-most-once per
+        // message, so a second Stop for the exact same still-unread mail
+        // does not block again.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", "alice", cancellationToken);
+        var first = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.True(first.Block);
+
+        // act
+        var second = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, second);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_StopBlocking_When_PerTurnBudgetIsExhausted()
+    {
+        // arrange: each iteration sends a NEW message so every Stop call has
+        // fresh, never-gated mail to react to; only the budget should stop
+        // the blocking, not the ledger.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        for (var i = 0; i < ClaudeHookHandler.MaxBlocksPerTurn; i++)
+        {
+            await SendMailAsync($"bob-{i}", "alice", cancellationToken);
+            var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+            Assert.True(outcome.Block);
+        }
+
+        await SendMailAsync("bob-over-budget", "alice", cancellationToken);
+
+        // act: budget is now exhausted.
+        var overBudget = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, overBudget);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_LeaveTheMessageEligibleForAFutureBudgetCycle_When_OverBudget()
+    {
+        // arrange: exhaust the budget on unrelated mail, leaving one message
+        // never actually gated because every Stop call was over budget by
+        // the time it was considered.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        for (var i = 0; i < ClaudeHookHandler.MaxBlocksPerTurn; i++)
+        {
+            await SendMailAsync($"bob-{i}", "alice", cancellationToken);
+            await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        }
+
+        var pending = await SendMailAsync("bob-pending", "alice", cancellationToken);
+        await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken); // over budget, no-op
+
+        // act: a fresh turn resets the budget, so the message the previous
+        // turn never got to gate must still be eligible.
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var afterReset = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(afterReset.Block);
+        Assert.NotNull(pending.Id);
+    }
+
+    // ---------- SessionEnd ----------
+
+    [Fact]
+    public async Task HandleSessionEndAsync_Should_DeleteTheRow()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.NotNull(await FindRowAsync(cancellationToken));
+
+        // act
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.Null(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionEndAsync_Should_ReturnNeutral_When_NoRowExists()
+    {
+        // arrange: fail-open, no SessionStart ever ran for this session.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+    }
+
+    // ---------- helpers ----------
+
+    private ClaudeHookPayload Payload(string sessionId, bool stopHookActive = false) => new()
+    {
+        SessionId = sessionId,
+        Cwd = _workspaceRoot,
+        StopHookActive = stopHookActive
+    };
+
+    private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
+    {
+        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+        }
+    }
+
+    private async Task<MailMessage> SendMailAsync(string sender, string recipient, CancellationToken cancellationToken)
+        => await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = sender, Subject = "status", Body = "please check", To = [recipient] },
+            cancellationToken);
+
+    private async Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
+        => await _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);
+
+    private AgentSessionGeneration CurrentGeneration() => new(
+        AgentSessionHarness.ClaudeCode,
+        SessionId,
+        "host-1",
+        Environment.ProcessId,
+        new ProcessInfoProvider().GetStartTime(Environment.ProcessId)!.Value);
+}
+
+internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? session) : IClaudeAncestorSessionResolver
+{
+    public ClaudeAncestorSession? Resolve() => session;
+}

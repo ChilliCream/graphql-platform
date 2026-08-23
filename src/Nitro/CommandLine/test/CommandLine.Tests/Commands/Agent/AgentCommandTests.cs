@@ -42,6 +42,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
               session   Manage this workspace's live harness session presence.
+              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
             """);
     }
 
@@ -74,6 +75,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
               session   Manage this workspace's live harness session presence.
+              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
             """);
     }
 
@@ -109,6 +111,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
               session   Manage this workspace's live harness session presence.
+              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
             """);
     }
 
@@ -144,6 +147,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami    Print the resolved actor identity and whether it is registered in this workspace.
               list      List registered agents.
               session   Manage this workspace's live harness session presence.
+              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
             """);
     }
 
