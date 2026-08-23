@@ -277,7 +277,7 @@ export function LearnCatalog({ items }: LearnCatalogProps) {
             <p className="text-cc-ink-dim text-caption mb-4">
               {visibleItems.length} {visibleItems.length === 1 ? "result" : "results"}
             </p>
-            <CardGrid cols={3} step="progressive" itemsStretch>
+            <CardGrid cols={4} step="progressive" itemsStretch>
               {visibleItems.map((item) => (
                 <LearnCard key={`${item.type}-${item.slug}`} item={item} />
               ))}

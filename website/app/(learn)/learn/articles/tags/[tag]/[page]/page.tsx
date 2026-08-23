@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { BlogIndexShell } from "@/src/components/BlogIndexShell";
+import { LearnArticleRows } from "@/src/components/learn/LearnArticleRows";
 import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
+import { Pagination } from "@/src/design-system/Pagination";
+import { Typography } from "@/src/design-system/Typography";
 import { listTags, paginate, POSTS_PER_PAGE, postsForTag } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 
@@ -45,23 +47,21 @@ export default async function ArticleTagPageN({ params }: PageProps) {
 
   return (
     <div className="cc-content-dark">
-      <div className="mx-auto max-w-6xl px-5 pt-8 sm:px-12">
-        <ArticleBreadcrumb
-          items={[
-            { label: "Learn", href: "/learn" },
-            { label: "Articles", href: "/learn/articles" },
-            { label: `#${tag}` },
-          ]}
-        />
+      <ArticleBreadcrumb
+        items={[
+          { label: "Learn", href: "/learn" },
+          { label: "Articles", href: "/learn/articles" },
+          { label: `#${tag}` },
+        ]}
+      />
+      <Typography variant="h1">#{tag}</Typography>
+      <div className="mt-8 sm:mt-10">
+        <LearnArticleRows posts={slice.posts} />
       </div>
-      <BlogIndexShell
-        title={`#${tag}`}
-        posts={slice.posts}
-        pagination={{
-          currentPage: slice.currentPage,
-          totalPages: slice.totalPages,
-          hrefForPage: (p) => (p === 1 ? `/learn/articles/tags/${tag}` : `/learn/articles/tags/${tag}/${p}`),
-        }}
+      <Pagination
+        currentPage={slice.currentPage}
+        totalPages={slice.totalPages}
+        hrefForPage={(p) => (p === 1 ? `/learn/articles/tags/${tag}` : `/learn/articles/tags/${tag}/${p}`)}
       />
     </div>
   );

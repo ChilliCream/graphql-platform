@@ -19,14 +19,14 @@ interface LearnFeaturedStoryProps {
  * `featuredImage`.
  */
 export function LearnFeaturedStory({ post, priority = false }: LearnFeaturedStoryProps) {
-  const hasImage = Boolean(post.featuredImage);
+  const { featuredImage } = post;
 
   return (
     <Link href={post.href} className="group/featured flex flex-col no-underline">
-      {hasImage ? (
+      {featuredImage ? (
         <div className="border-cc-ink-faint aspect-video overflow-hidden rounded-2xl border">
           <Picture
-            src={post.featuredImage as string}
+            src={featuredImage}
             alt=""
             sizes="(max-width: 1279px) 100vw, 38vw"
             priority={priority}
@@ -34,7 +34,7 @@ export function LearnFeaturedStory({ post, priority = false }: LearnFeaturedStor
           />
         </div>
       ) : null}
-      <div className={`flex flex-wrap items-center gap-3 ${hasImage ? "mt-6" : ""}`}>
+      <div className={`flex flex-wrap items-center gap-3 ${featuredImage ? "mt-6" : ""}`}>
         <Eyebrow as="span" color="accent">
           Featured
         </Eyebrow>
@@ -48,23 +48,25 @@ export function LearnFeaturedStory({ post, priority = false }: LearnFeaturedStor
         {post.title}
       </h2>
       {post.description ? <p className="text-cc-ink-dim mt-4 line-clamp-3 text-lg">{post.description}</p> : null}
-      {post.author ? (
-        <div className="text-cc-ink-dim mt-6 flex items-center gap-2 text-sm">
-          {post.authorImageUrl ? (
-            <Picture
-              src={post.authorImageUrl}
-              alt=""
-              width={30}
-              height={30}
-              sizes="30px"
-              className="h-[30px] w-[30px] rounded-full object-cover"
-            />
-          ) : null}
-          <span>{post.author}</span>
-          <span aria-hidden="true">·</span>
-          <span>{formatDate(post.date, { month: "short", day: "numeric", year: "numeric" })}</span>
-        </div>
-      ) : null}
+      <div className="text-cc-ink-dim mt-6 flex items-center gap-2 text-sm">
+        {post.author ? (
+          <>
+            {post.authorImageUrl ? (
+              <Picture
+                src={post.authorImageUrl}
+                alt=""
+                width={30}
+                height={30}
+                sizes="30px"
+                className="h-[30px] w-[30px] rounded-full object-cover"
+              />
+            ) : null}
+            <span>{post.author}</span>
+            <span aria-hidden="true">·</span>
+          </>
+        ) : null}
+        <span>{formatDate(post.date, { month: "short", day: "numeric", year: "numeric" })}</span>
+      </div>
     </Link>
   );
 }

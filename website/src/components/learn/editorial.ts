@@ -1,14 +1,9 @@
 // Read-only editorial adapter for the /learn landing (learn-editorial.md
-// section 3, learn-content-strategy.md section 3). Maps blog posts and
-// catalog items onto the five editorial topics and reshapes a
-// `BlogPostSummary` into the plain `BlogTeaserData` shape `BlogTeaser`
-// expects. This module only reads the public helpers/types those surfaces
-// already export; it does not touch `src/data/learn`, `content/blog/`, or
-// any `src/components/Blog*` source file.
+// section 3, learn-content-strategy.md section 3). Maps blog posts onto the
+// five editorial topics. This module only reads the public helpers/types
+// those surfaces already export; it does not touch `src/data/learn`,
+// `content/blog/`, or any `src/components/Blog*` source file.
 
-import type { BlogTeaserData } from "@/src/components/BlogTeaser";
-import type { ProductKey } from "@/src/data/learn/facets";
-import type { LearnItemSummary } from "@/src/data/learn/types";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 
 export type TopicKey = "graphql" | "hot-chocolate" | "federation" | "tooling" | "ai";
@@ -29,9 +24,8 @@ export interface Topic {
 export const TOPICS: readonly Topic[] = [
   { key: "graphql", label: "GraphQL fundamentals", browseQuery: null },
   { key: "hot-chocolate", label: "Hot Chocolate", browseQuery: "product=hot-chocolate" },
-  // `browseQuery` filters on `product=fusion` only. `PRODUCT_TOPIC` below also
-  // maps `mocha` to "federation" for topic derivation, but mocha is
-  // deliberately excluded from this browse filter (review note from .10).
+  // `browseQuery` filters on `product=fusion` only; mocha is deliberately
+  // excluded from this browse filter (review note from .10).
   { key: "federation", label: "Federation and Fusion", browseQuery: "product=fusion" },
   { key: "tooling", label: "Tooling and observability", browseQuery: "product=nitro" },
   { key: "ai", label: "AI and agents", browseQuery: null },
@@ -75,13 +69,14 @@ const TAG_TOPIC: Record<string, TopicKey> = {
   "semantic-introspection": "ai",
 };
 
-const PRODUCT_TOPIC: Record<ProductKey, TopicKey> = {
-  "hot-chocolate": "hot-chocolate",
-  "strawberry-shake": "hot-chocolate",
-  fusion: "federation",
-  mocha: "federation",
-  nitro: "tooling",
-};
+/** Kicker text for a `LearnListRow` (learn-editorial.md section 14.1): the post's category, falling back to its primary topic label. */
+export function kickerForBlogPost(post: Pick<BlogPostSummary, "category" | "tags">): string {
+  if (post.category) {
+    return post.category;
+  }
+  const topicKey = topicsForBlogPost(post)[0];
+  return TOPICS.find((topic) => topic.key === topicKey)?.label ?? "Article";
+}
 
 /** Topics a blog post belongs to, derived from its tags plus the `AI` category as a fallback (strategy section 3). */
 export function topicsForBlogPost(post: Pick<BlogPostSummary, "tags" | "category">): readonly TopicKey[] {
@@ -98,18 +93,6 @@ export function topicsForBlogPost(post: Pick<BlogPostSummary, "tags" | "category
   return [...keys];
 }
 
-/** Topics a catalog item belongs to, derived from its product mix (strategy section 3). */
-export function topicsForLearnItem(item: Pick<LearnItemSummary, "products">): readonly TopicKey[] {
-  const keys = new Set<TopicKey>();
-  for (const product of item.products) {
-    const topic = PRODUCT_TOPIC[product];
-    if (topic) {
-      keys.add(topic);
-    }
-  }
-  return [...keys];
-}
-
 /** Most frequent tags across `posts`, ranked by frequency desc then alphabetically, capped at `limit` (section 14.4's "Most popular" rail unit). */
 export function popularTags(posts: readonly BlogPostSummary[], limit = 12): string[] {
   const counts = new Map<string, number>();
@@ -122,23 +105,4 @@ export function popularTags(posts: readonly BlogPostSummary[], limit = 12): stri
     .sort(([aTag, aCount], [bTag, bCount]) => (bCount !== aCount ? bCount - aCount : aTag.localeCompare(bTag)))
     .slice(0, limit)
     .map(([tag]) => tag);
-}
-
-/**
- * Read-only adapter from a `BlogPostSummary` (as returned by
- * `listBlogPostSummaries()`/`getLatestBlogPost()`) to the plain data shape
- * `BlogTeaser` renders. No blog file is read or modified here; this only
- * reshapes an already-computed summary.
- */
-export function toBlogTeaserData(post: BlogPostSummary): BlogTeaserData {
-  return {
-    href: post.href,
-    title: post.title,
-    date: post.date,
-    featuredImage: post.featuredImage,
-    category: post.category,
-    description: post.description,
-    author: post.author,
-    authorImageUrl: post.authorImageUrl,
-  };
 }

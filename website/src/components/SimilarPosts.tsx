@@ -1,11 +1,12 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
-import { BlogTeaserGrid } from "./BlogTeaserGrid";
+import { LearnArticleRows } from "@/src/components/learn/LearnArticleRows";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 
 type SimilarPostsProps = {
   posts: BlogPostSummary[];
 };
 
+/** The article reading page's related rail (learn-editorial.md section 16.3): posts render as `LearnListRow`s, matching every other /learn article surface. */
 export function SimilarPosts({ posts }: SimilarPostsProps) {
   if (posts.length === 0) {
     return null;
@@ -17,7 +18,7 @@ export function SimilarPosts({ posts }: SimilarPostsProps) {
         <h2 className="text-cc-heading m-0 text-2xl font-semibold">You might also like</h2>
         <ArrowLink href="/learn/articles">View all</ArrowLink>
       </div>
-      <BlogTeaserGrid posts={posts} />
+      <LearnArticleRows posts={posts} />
     </section>
   );
 }

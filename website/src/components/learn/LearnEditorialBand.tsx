@@ -1,6 +1,6 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
-import { TOPICS, topicsForBlogPost } from "./editorial";
+import { kickerForBlogPost } from "./editorial";
 import { LearnFeaturedStory } from "./LearnFeaturedStory";
 import { LearnListRow } from "./LearnListRow";
 import { LearnPromoTile } from "./LearnPromoTile";
@@ -23,15 +23,6 @@ interface LearnEditorialBandProps {
   readonly tags: readonly string[];
 }
 
-/** Kicker text for a `LearnListRow`: the post's category, falling back to its primary topic label. */
-function kickerFor(post: BlogPostSummary): string {
-  if (post.category) {
-    return post.category;
-  }
-  const topicKey = topicsForBlogPost(post)[0];
-  return TOPICS.find((topic) => topic.key === topicKey)?.label ?? "Article";
-}
-
 /**
  * Landing editorial band (learn-editorial.md section 15.1): the three-column
  * Latest / Featured / rail grid, replacing the shipped `LearnFeatureHero` +
@@ -52,7 +43,7 @@ export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags 
                 key={post.stem}
                 href={post.href}
                 title={post.title}
-                kicker={kickerFor(post)}
+                kicker={kickerForBlogPost(post)}
                 featuredImage={post.featuredImage}
                 product={post.products[0] ?? null}
                 author={post.author}

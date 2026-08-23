@@ -1,11 +1,10 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { CardGrid } from "@/src/components/CardGrid";
 import { LearnCardSkeleton } from "@/src/components/learn/LearnCardSkeleton";
 import { LearnCatalog } from "@/src/components/learn/LearnCatalog";
 import { LearnClosing } from "@/src/components/learn/LearnClosing";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
-import { PageHero } from "@/src/components/PageHero";
+import { LearnMasthead } from "@/src/components/learn/LearnMasthead";
 import { CONTENT_TYPE_OPTIONS } from "@/src/data/learn/facets";
 import { LEARN_ITEMS, LEARN_SUMMARIES } from "@/src/data/learn/content";
 import type { LearnItemSummary } from "@/src/data/learn/types";
@@ -75,15 +74,7 @@ export default function LearnBrowsePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
-      <nav className="text-cc-ink-dim mt-8 flex items-center gap-2 text-sm sm:mt-10" aria-label="Breadcrumb">
-        <Link href="/learn" className="hover:text-cc-heading no-underline transition-colors">
-          Learn
-        </Link>
-        <span aria-hidden="true">/</span>
-        <span className="text-cc-heading">Browse</span>
-      </nav>
-      <PageHero
-        eyebrow="Learn"
+      <LearnMasthead
         title="Browse the catalog"
         teaser="Templates, videos, tutorials, examples, and workshops for building with Hot Chocolate, Fusion, and the rest of the platform."
       />
@@ -112,8 +103,8 @@ function CatalogFallback() {
         ))}
       </div>
       <div className="bg-cc-hover mb-4 h-4 w-20 animate-pulse rounded" />
-      <CardGrid cols={3} step="progressive" itemsStretch>
-        {Array.from({ length: 6 }).map((_, index) => (
+      <CardGrid cols={4} step="progressive" itemsStretch>
+        {Array.from({ length: 8 }).map((_, index) => (
           <LearnCardSkeleton key={index} />
         ))}
       </CardGrid>

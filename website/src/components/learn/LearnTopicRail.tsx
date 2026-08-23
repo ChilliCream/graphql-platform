@@ -1,28 +1,24 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
-import { BlogTeaser, type BlogTeaserData } from "@/src/components/BlogTeaser";
-import { CardGrid } from "@/src/components/CardGrid";
-import type { LearnItemSummary } from "@/src/data/learn/types";
-import { LearnCard } from "./LearnCard";
-
-export type TopicRailSlot =
-  | { readonly kind: "post"; readonly post: BlogTeaserData }
-  | { readonly kind: "catalog"; readonly item: LearnItemSummary };
+import type { BlogPostSummary } from "@/src/helpers/blogPosts";
+import { kickerForBlogPost } from "./editorial";
+import { LearnListRow } from "./LearnListRow";
 
 interface LearnTopicRailProps {
   readonly heading: string;
   readonly moreHref: string;
-  readonly slots: readonly TopicRailSlot[];
+  /** Up to 4 posts for the rail, newest first; the caller has already applied the cross-section dedupe. */
+  readonly posts: readonly BlogPostSummary[];
 }
 
 /**
- * One rail per topic with 3 or more items (learn-editorial.md section 3.4):
- * a fixed mix of `BlogTeaser`s ("read this") and `LearnCard`s ("use this")
- * in one row, so the deliberate mixing of the two card families reads as
- * intent. Topic membership and slot selection are computed by the caller;
- * this component only renders the given slots.
+ * One rail per topic with 3 or more posts remaining after the editorial
+ * band's dedupe (learn-editorial.md section 15.2): a header row plus up to 4
+ * `LearnListRow`s in a two-column ramp. Catalog items no longer appear inside
+ * topic sections; they are reachable through the section's "More" link and
+ * the collection band.
  */
-export function LearnTopicRail({ heading, moreHref, slots }: LearnTopicRailProps) {
-  if (slots.length === 0) {
+export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps) {
+  if (posts.length === 0) {
     return null;
   }
   return (
@@ -31,15 +27,20 @@ export function LearnTopicRail({ heading, moreHref, slots }: LearnTopicRailProps
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{heading}</h2>
         <ArrowLink href={moreHref}>More {heading}</ArrowLink>
       </div>
-      <CardGrid cols={3} step="progressive" itemsStretch>
-        {slots.map((slot) =>
-          slot.kind === "post" ? (
-            <BlogTeaser key={`post-${slot.post.href}`} post={slot.post} />
-          ) : (
-            <LearnCard key={`item-${slot.item.type}-${slot.item.slug}`} item={slot.item} />
-          ),
-        )}
-      </CardGrid>
+      <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-2">
+        {posts.map((post) => (
+          <LearnListRow
+            key={post.stem}
+            href={post.href}
+            title={post.title}
+            kicker={kickerForBlogPost(post)}
+            featuredImage={post.featuredImage}
+            product={post.products[0] ?? null}
+            author={post.author}
+            date={post.date}
+          />
+        ))}
+      </div>
     </section>
   );
 }

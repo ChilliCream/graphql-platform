@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CardGrid } from "@/src/components/CardGrid";
 import { CopyCommand } from "@/src/components/CopyCommand";
 import { clientLabel, languageLabel, productLabel, topologyLabel, useCaseLabel } from "@/src/data/learn/facets";
@@ -7,6 +6,7 @@ import { CodeBlock } from "@/src/design-system/CodeBlock";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Tag } from "@/src/design-system/Tag";
 import { GitHubIcon } from "@/src/icons/GitHub";
+import { ArticleBreadcrumb } from "./ArticleLayout";
 import { ContentTypeBadge } from "./ContentTypeBadge";
 import { LearnCard } from "./LearnCard";
 import { stackLabel } from "./stackIcons";
@@ -21,17 +21,15 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
   return (
     <>
       <header className="py-10 sm:py-16">
-        <nav className="text-cc-ink-dim mb-8 flex items-center gap-2 text-sm" aria-label="Breadcrumb">
-          <Link href="/learn" className="hover:text-cc-heading no-underline transition-colors">
-            Learn
-          </Link>
-          <span aria-hidden="true">/</span>
-          <Link href="/learn/browse?type=template" className="hover:text-cc-heading no-underline transition-colors">
-            Templates
-          </Link>
-          <span aria-hidden="true">/</span>
-          <span className="text-cc-heading">{template.title}</span>
-        </nav>
+        <div className="mb-8">
+          <ArticleBreadcrumb
+            items={[
+              { label: "Learn", href: "/learn" },
+              { label: "Templates", href: "/learn/browse?type=template" },
+              { label: template.title },
+            ]}
+          />
+        </div>
         <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
           <div>
             <div className="flex flex-wrap items-center gap-2">

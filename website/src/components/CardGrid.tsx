@@ -2,14 +2,15 @@ import type { ReactNode } from "react";
 
 interface CardGridProps {
   readonly children: ReactNode;
-  /** Column count once the grid reaches `breakpoint` (or the `sm:` step, for `progressive`). */
-  readonly cols: 2 | 3;
+  /** Column count once the grid reaches `breakpoint` (or the top step, for `progressive`). `4` is only meaningful with `step="progressive"`. */
+  readonly cols: 2 | 3 | 4;
   /**
    * How the column count ramps up from a single column.
    * `"single"` (default) jumps straight to `cols` at `breakpoint`, e.g.
    * `md:grid-cols-3`.
    * `"progressive"` adds a 2-column step at `sm:` before reaching 3 columns at
-   * `lg:` (i.e. `sm:grid-cols-2 lg:grid-cols-3`). Only meaningful with `cols=3`.
+   * `lg:` (i.e. `sm:grid-cols-2 lg:grid-cols-3`); `cols=4` adds a further
+   * `xl:grid-cols-4` step on top of that.
    */
   readonly step?: "single" | "progressive";
   /** Breakpoint at which the grid reaches `cols` columns. Defaults to `md`. Ignored when `step` is `"progressive"`. */
@@ -20,10 +21,10 @@ interface CardGridProps {
   readonly itemsStretch?: boolean;
 }
 
-const SINGLE_COLS_CLASS: Record<"sm" | "md" | "lg", Record<2 | 3, string>> = {
-  sm: { 2: "sm:grid-cols-2", 3: "sm:grid-cols-3" },
-  md: { 2: "md:grid-cols-2", 3: "md:grid-cols-3" },
-  lg: { 2: "lg:grid-cols-2", 3: "lg:grid-cols-3" },
+const SINGLE_COLS_CLASS: Record<"sm" | "md" | "lg", Record<2 | 3 | 4, string>> = {
+  sm: { 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" },
+  md: { 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" },
+  lg: { 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4" },
 };
 
 const ITEMS_STRETCH_CLASS: Record<"sm" | "md" | "lg", string> = {
@@ -37,7 +38,11 @@ const GAP_CLASS: Record<4 | 6, string> = {
   6: "gap-6",
 };
 
-const PROGRESSIVE_COLS_CLASS = "sm:grid-cols-2 lg:grid-cols-3";
+const PROGRESSIVE_COLS_CLASS: Record<2 | 3 | 4, string> = {
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-2 lg:grid-cols-3",
+  4: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+};
 
 /**
  * Lays out cards (`IconFeatureCard`, `PerkCard`, or an ad hoc card) in a
@@ -52,17 +57,10 @@ export function CardGrid({
   gap = 6,
   itemsStretch = false,
 }: CardGridProps) {
-  const colsClass =
-    step === "progressive"
-      ? PROGRESSIVE_COLS_CLASS
-      : SINGLE_COLS_CLASS[breakpoint][cols];
+  const colsClass = step === "progressive" ? PROGRESSIVE_COLS_CLASS[cols] : SINGLE_COLS_CLASS[breakpoint][cols];
 
   return (
-    <div
-      className={`grid ${GAP_CLASS[gap]} ${colsClass}${
-        itemsStretch ? ` ${ITEMS_STRETCH_CLASS[breakpoint]}` : ""
-      }`}
-    >
+    <div className={`grid ${GAP_CLASS[gap]} ${colsClass}${itemsStretch ? ` ${ITEMS_STRETCH_CLASS[breakpoint]}` : ""}`}>
       {children}
     </div>
   );
