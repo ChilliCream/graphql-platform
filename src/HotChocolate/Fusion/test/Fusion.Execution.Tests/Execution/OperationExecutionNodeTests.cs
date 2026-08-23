@@ -51,13 +51,45 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasResult = await enumerator.MoveNextAsync();
+        var errorResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
+        var hasNextResult = await enumerator.MoveNextAsync();
 
         // assert
-        var arena = Assert.IsType<MemoryArena>(mintedArena);
-        Assert.False(hasResult);
-        Assert.Throws<ObjectDisposedException>(() => arena.Rent(1));
-        Assert.Equal(0, arena.RentedPageCount);
+        try
+        {
+            // the failure surfaces as one terminal error result and then the stream ends
+            var arena = Assert.IsType<MemoryArena>(mintedArena);
+            Assert.True(hasResult);
+            Assert.False(hasNextResult);
+            errorResult.ToJson().MatchInlineSnapshot(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Unexpected Execution Error",
+                      "path": [
+                        "onMessage"
+                      ]
+                    }
+                  ],
+                  "data": {
+                    "onMessage": null
+                  }
+                }
+                """);
+            var error = Assert.Single(errorResult.Errors ?? []);
+            var exception = Assert.IsType<InvalidOperationException>(error.Exception);
+            Assert.Equal("The subscription event failed after minting an arena.", exception.Message);
+
+            // the arena minted during the failed iteration was never bound, so the enumerator owns and releases it
+            Assert.Throws<ObjectDisposedException>(() => arena.Rent(1));
+            Assert.Equal(0, arena.RentedPageCount);
+        }
+        finally
+        {
+            await errorResult.DisposeAsync();
+        }
     }
 
     [Fact]
@@ -79,18 +111,44 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         var firstResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
         var hasSecondResult = await enumerator.MoveNextAsync();
+        var secondResult = enumerator.Current;
+        var hasThirdResult = await enumerator.MoveNextAsync();
 
         // assert
         try
         {
+            // the delivered event arrives, then one terminal error result, then the stream ends
             var firstArena = Assert.IsType<MemoryArena>(mintedArena);
             Assert.True(hasFirstResult);
-            Assert.False(hasSecondResult);
+            Assert.True(hasSecondResult);
+            Assert.False(hasThirdResult);
+            secondResult.ToJson().MatchInlineSnapshot(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Unexpected Execution Error",
+                      "path": [
+                        "onMessage"
+                      ]
+                    }
+                  ],
+                  "data": {
+                    "onMessage": null
+                  }
+                }
+                """);
+            var error = Assert.Single(secondResult.Errors ?? []);
+            var exception = Assert.IsType<InvalidOperationException>(error.Exception);
+            Assert.Equal("The next subscription event failed before minting an arena.", exception.Message);
+
+            // the arena bound to the delivered event is still owned by that result
             Assert.False(firstArena.IsDisposed);
         }
         finally
         {
             await firstResult.DisposeAsync();
+            await secondResult.DisposeAsync();
         }
     }
 
