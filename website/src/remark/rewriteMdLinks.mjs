@@ -16,8 +16,8 @@ export default function remarkRewriteMdLinks() {
     const cwd = file.cwd ?? process.cwd();
     const appDir = path.join(cwd, "app");
 
-    // Pages authored under content/blog or content/docs must use relative
-    // markdown links, not hard-coded root-absolute /blog/ or /docs/ URLs.
+    // Pages authored under content/docs must use relative markdown links,
+    // not hard-coded root-absolute /docs/ URLs.
     const sourceRel = path.relative(cwd, sourcePath).split(path.sep).join("/");
     const sourceUnderContent = CONTENT_ROOTS.some((r) => sourceRel === r || sourceRel.startsWith(`${r}/`));
 
@@ -52,8 +52,8 @@ export default function remarkRewriteMdLinks() {
         return;
       }
 
-      // Root-absolute: check content roots for /docs and /blog, otherwise
-      // verify a matching literal/dynamic route exists in app/.
+      // Root-absolute: check content roots for /docs, otherwise verify a
+      // matching literal/dynamic route exists in app/.
       if (node.url.startsWith("/")) {
         const pathPart = node.url.split(/[#?]/, 1)[0];
         const segments = pathPart.split("/").filter(Boolean);
