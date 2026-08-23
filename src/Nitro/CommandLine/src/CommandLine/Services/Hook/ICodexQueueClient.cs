@@ -3,6 +3,29 @@ using System.Diagnostics;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
+/// What a <c>codex queue</c> call resolved to.
+/// </summary>
+internal enum CodexQueueResult
+{
+    /// <summary>
+    /// The subprocess exited zero: the message was durably queued.
+    /// </summary>
+    Ok,
+
+    /// <summary>
+    /// The subprocess reported that the thread no longer exists (evidence:
+    /// perles-net-5sz, <c>test/fixtures/hooks/codex/evidence.5sz-gone-thread-signature.txt</c>).
+    /// </summary>
+    EndpointGone,
+
+    /// <summary>
+    /// A spawn failure, a timeout, or any other nonzero exit that is not the
+    /// gone-thread signature.
+    /// </summary>
+    Error
+}
+
+/// <summary>
 /// Injects a digest into a Codex thread via <c>codex queue --thread &lt;id&gt; --message &lt;text&gt;</c>
 /// (spike S2, perles-net-k3j.2): a durable,
 /// cross-process write into <c>~/.codex/queue_1.sqlite</c>, decoupled from
@@ -13,15 +36,17 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal interface ICodexQueueClient
 {
     /// <summary>
-    /// Returns true when the <c>codex queue</c> subprocess exited zero.
+    /// Runs the <c>codex queue</c> subprocess and classifies its outcome.
     /// Never throws: a spawn failure, a nonzero exit, or a timeout all
-    /// return false - fail-open, matching every other adapter member in this
+    /// return <see cref="CodexQueueResult.Error"/> (or
+    /// <see cref="CodexQueueResult.EndpointGone"/> for the gone-thread
+    /// signature) - fail-open, matching every other adapter member in this
     /// namespace. The ledger reservation this call's caller already made
     /// stands regardless (the plan's documented reserve-then-emit crash
     /// policy: a queue call lost after reservation suppresses that message
     /// on the gate channel, never a duplicate).
     /// </summary>
-    Task<bool> QueueAsync(string threadId, string message, CancellationToken cancellationToken);
+    Task<CodexQueueResult> QueueAsync(string threadId, string message, CancellationToken cancellationToken);
 }
 
 internal sealed class CodexQueueClient : ICodexQueueClient
@@ -33,7 +58,7 @@ internal sealed class CodexQueueClient : ICodexQueueClient
     /// </summary>
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
-    public async Task<bool> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
+    public async Task<CodexQueueResult> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
     {
         try
         {
@@ -43,31 +68,61 @@ internal sealed class CodexQueueClient : ICodexQueueClient
 
             if (process is null)
             {
-                return false;
+                return CodexQueueResult.Error;
             }
 
             using var timeoutSource = new CancellationTokenSource(Timeout);
             using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken, timeoutSource.Token);
 
+            string stderr;
+
             try
             {
+                // Read stderr concurrently with waiting for exit: the pipe's
+                // buffer is bounded, so a caller that waits for exit first
+                // and reads after can deadlock against a child that blocks
+                // writing a large enough error message.
+                var stderrTask = process.StandardError.ReadToEndAsync(linkedSource.Token);
                 await process.WaitForExitAsync(linkedSource.Token);
+                stderr = await stderrTask;
             }
             catch (OperationCanceledException)
             {
                 TryKill(process);
-                return false;
+                return CodexQueueResult.Error;
             }
 
-            return process.ExitCode == 0;
+            return MapResult(process.ExitCode, stderr);
         }
         catch
         {
             // Fail-open: no "codex" on PATH, permission denied, or any other
             // spawn-time failure.
-            return false;
+            return CodexQueueResult.Error;
         }
+    }
+
+    /// <summary>
+    /// Classifies a completed <c>codex queue</c> invocation. Internal, not
+    /// private: <c>CodexQueueClientTests</c> exercises this directly against
+    /// the captured stderr fixtures (perles-net-5sz) without shelling out to
+    /// a real <c>codex</c> binary.
+    /// </summary>
+    internal static CodexQueueResult MapResult(int exitCode, string stderr)
+    {
+        if (exitCode == 0)
+        {
+            return CodexQueueResult.Ok;
+        }
+
+        if (stderr.Contains("no rollout found for thread id", StringComparison.Ordinal)
+            || stderr.Contains("No active session found matching", StringComparison.Ordinal))
+        {
+            return CodexQueueResult.EndpointGone;
+        }
+
+        return CodexQueueResult.Error;
     }
 
     private static void TryKill(Process process)

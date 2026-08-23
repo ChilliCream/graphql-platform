@@ -123,7 +123,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         var attemptId = await ClaimAttemptAsync(cancellationToken);
         var slot = await _leases.TryAcquireAsync(
             attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
-        _queueClient.NextResult = false;
+        _queueClient.NextResult = CodexQueueResult.Error;
         var executor = CreateExecutor();
 
         // act
@@ -132,6 +132,32 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // assert
         Assert.Equal(AgentPingResult.Error, outcome);
+    }
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_RecordEndpointGone_When_TheTransportSignalsGoneThread()
+    {
+        // arrange: fixture-evidenced signature for a dead/unknown codex
+        // thread (perles-net-5sz, evidence.5sz-gone-thread-signature.txt).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _queueClient.NextResult = CodexQueueResult.EndpointGone;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.EndpointGone, outcome);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(AgentPingResult.EndpointGone, row!.LastPingResult);
     }
 
     [Fact]
@@ -250,9 +276,9 @@ public sealed class PingSessionExecutorTests : IDisposable
 /// </summary>
 internal sealed class NeverCompletingCodexQueueClient : ICodexQueueClient
 {
-    public async Task<bool> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
+    public async Task<CodexQueueResult> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
     {
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-        return true;
+        return CodexQueueResult.Ok;
     }
 }

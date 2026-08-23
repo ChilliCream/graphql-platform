@@ -329,7 +329,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
         await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
         await SendMailAsync("bob", "alice", cancellationToken);
-        _queueClient.NextResult = false;
+        _queueClient.NextResult = CodexQueueResult.Error;
 
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
@@ -382,9 +382,9 @@ internal sealed class FakeCodexQueueClient : ICodexQueueClient
 {
     public List<(string ThreadId, string Message)> Calls { get; } = [];
 
-    public bool NextResult { get; set; } = true;
+    public CodexQueueResult NextResult { get; set; } = CodexQueueResult.Ok;
 
-    public Task<bool> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
+    public Task<CodexQueueResult> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
     {
         Calls.Add((threadId, message));
         return Task.FromResult(NextResult);

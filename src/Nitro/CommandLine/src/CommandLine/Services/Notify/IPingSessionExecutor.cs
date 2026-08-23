@@ -14,7 +14,7 @@ internal interface IPingSessionExecutor
     /// <summary>
     /// Returns the <c>last_ping_result</c> value this attempt wrote (the
     /// same value a caller could re-read from the row): <c>ok</c>,
-    /// <c>timeout</c>, or <c>error</c>. Never throws except
+    /// <c>timeout</c>, <c>endpoint-gone</c>, or <c>error</c>. Never throws except
     /// <see cref="OperationCanceledException"/> when the caller's own
     /// <paramref name="cancellationToken"/> is cancelled; the lease slot is
     /// still guaranteed to be released in that case. <paramref name="deadline"/>

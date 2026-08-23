@@ -23,4 +23,80 @@ public sealed class CodexQueueClientTests
         Assert.False(startInfo.Environment.ContainsKey("NITRO_TASK_ACTOR"));
         Assert.Equal("1", startInfo.Environment["NITRO_HOOK_SUPPRESS"]);
     }
+
+    [Fact]
+    public void MapResult_Should_ReturnOk_When_ExitCodeIsZero()
+    {
+        // act
+        var result = CodexQueueClient.MapResult(0, stderr: "");
+
+        // assert
+        Assert.Equal(CodexQueueResult.Ok, result);
+    }
+
+    /// <summary>
+    /// Fixture-evidenced signature for a well-formed but nonexistent codex
+    /// thread id (perles-net-5sz, captured live against codex-cli 0.149.0:
+    /// see <c>evidence.5sz-gone-thread-signature.txt</c>).
+    /// </summary>
+    [Fact]
+    public void MapResult_Should_ReturnEndpointGone_When_StderrIsTheNoRolloutSignature()
+    {
+        // arrange
+        var stderr = CodexHookFixtures.Read("stderr.queue-gone-thread.txt");
+
+        // act
+        var result = CodexQueueClient.MapResult(1, stderr);
+
+        // assert
+        Assert.Equal(CodexQueueResult.EndpointGone, result);
+    }
+
+    /// <summary>
+    /// Fixture-evidenced signature for a malformed (non-UUID) thread id
+    /// (perles-net-5sz). Not expected to fire in production - the stored
+    /// thread id always comes from Codex's own notify payload - but matched
+    /// defensively since it is an equally unambiguous "no such session"
+    /// report.
+    /// </summary>
+    [Fact]
+    public void MapResult_Should_ReturnEndpointGone_When_StderrIsTheNoActiveSessionSignature()
+    {
+        // arrange
+        var stderr = CodexHookFixtures.Read("stderr.queue-malformed-thread.txt");
+
+        // act
+        var result = CodexQueueClient.MapResult(1, stderr);
+
+        // assert
+        Assert.Equal(CodexQueueResult.EndpointGone, result);
+    }
+
+    /// <summary>
+    /// Fixture-evidenced signature for an unrelated queue failure
+    /// (perles-net-5sz, a broken CODEX_HOME): a nonzero exit that must NOT
+    /// be misclassified as a gone thread.
+    /// </summary>
+    [Fact]
+    public void MapResult_Should_ReturnError_When_StderrIsAnUnrelatedFailure()
+    {
+        // arrange
+        var stderr = CodexHookFixtures.Read("stderr.queue-unrelated-failure.txt");
+
+        // act
+        var result = CodexQueueClient.MapResult(1, stderr);
+
+        // assert
+        Assert.Equal(CodexQueueResult.Error, result);
+    }
+
+    [Fact]
+    public void MapResult_Should_ReturnError_When_ExitCodeIsNonzeroAndStderrIsEmpty()
+    {
+        // act
+        var result = CodexQueueClient.MapResult(1, stderr: "");
+
+        // assert
+        Assert.Equal(CodexQueueResult.Error, result);
+    }
 }

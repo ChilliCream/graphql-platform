@@ -1,0 +1,95 @@
+Live evidence for perles-net-5sz (endpoint-gone detection for the codex
+queue client), captured 2026-08-23 against codex-cli 0.149.0
+(/home/pascal/.local/bin/codex). ~/.codex/config.toml was hashed before and
+after (sha256sum) and confirmed byte-identical; nothing in it was touched by
+this capture.
+
+Question: what does `codex queue --thread <id> --message <text>` return
+(exit code + stderr) for a dead/unknown thread, versus a live thread and an
+unrelated queue failure, so the notifier's ICodexQueueClient can distinguish
+"the endpoint is gone" from "the queue call failed for some other reason"?
+
+=== Baseline: live thread, exit 0 (success) ===
+
+A real thread was created with `codex exec --json --skip-git-repo-check -o
+real-out.txt "Say exactly: HELLO_REAL_THREAD. Do not call any tools."`,
+yielding thread-id 01a03091-e2be-75d3-91ef-d1a075d4e373 (from the
+`thread.started` stream event). Queuing against it:
+
+  $ codex queue --thread 01a03091-e2be-75d3-91ef-d1a075d4e373 --message "probe against real thread"
+  EXIT=0
+  stdout: Queued message 01a03092-108d-70f2-8456-fc6df55704ec for thread 01a03091-e2be-75d3-91ef-d1a075d4e373.
+  stderr: (empty)
+
+This confirms exit 0 + no stderr is the ok signature the existing
+implementation already checks (`process.ExitCode == 0`).
+
+=== Gone thread: well-formed UUID, no such rollout ===
+
+Two well-formed-but-nonexistent thread ids were tried: the nil UUID
+(00000000-0000-0000-0000-000000000000) and a UUID sharing the real
+capture's UUIDv7 prefix but a fabricated tail
+(01a03091-e2be-75d3-91ef-000000000000, i.e. a plausible "thread rotated to
+a new id" or "thread never persisted" shape). Both produced the identical
+exit code and stderr shape (module the id echoed back):
+
+  $ codex queue --thread 00000000-0000-0000-0000-000000000000 --message "probe message"
+  EXIT=1
+  stderr: Error: failed to queue session message: thread/queue/add failed: failed to read thread: invalid thread-store request: no rollout found for thread id 00000000-0000-0000-0000-000000000000 (code -32603)
+
+Captured verbatim in stderr.queue-gone-thread.txt (nil-UUID variant). This
+is the signature CodexQueueClient.MapResult now matches on: exit code != 0
+and stderr containing "no rollout found for thread id".
+
+=== Gone thread: malformed (non-UUID) thread id ===
+
+A syntactically invalid thread id (not a UUID at all) produces a DIFFERENT
+stderr shape from the well-formed-but-unknown case above, so this is
+recorded as a second, related signature rather than folded into the first:
+
+  $ codex queue --thread not-a-uuid --message "probe"
+  EXIT=1
+  stderr: Error: No active session found matching 'not-a-uuid'.
+
+Captured verbatim in stderr.queue-malformed-thread.txt. CodexQueueClient's
+stored thread ids always come from Codex's own `thread-id` notify field (a
+real UUID), so this path is not expected to fire in production, but the
+mapping matches it too (stderr containing "No active session found
+matching") as a defensive second gone-thread signature, since it is exactly
+as unambiguous a "no such session" report as the well-formed case.
+
+=== Unrelated failure: NOT a gone-thread signature ===
+
+To confirm the mapping does not over-match every nonzero exit, an
+unrelated queue failure was forced by pointing CODEX_HOME at a directory
+that does not exist:
+
+  $ CODEX_HOME=/tmp/nonexistent-codex-home-probe codex queue --thread 01a03091-e2be-75d3-91ef-d1a075d4e373 --message probe
+  EXIT=1
+  stderr: WARNING: proceeding, even though we could not create PATH aliases: CODEX_HOME points to "/tmp/nonexistent-codex-home-probe", but that path does not exist
+          Error: failed to find Codex home: CODEX_HOME points to "/tmp/nonexistent-codex-home-probe", but that path does not exist
+
+Captured (Error: line only, the reproducible part) in
+stderr.queue-unrelated-failure.txt. Exit 1, but neither gone-thread
+substring appears, so this maps to CodexQueueResult.Error, not
+EndpointGone.
+
+A second unrelated-failure shape (argument validation, not a queue/thread
+problem) was also observed for completeness, not saved as a fixture since
+it is a CLI-usage error the production caller can never actually trigger
+(BuildStartInfo always supplies both --thread and --message):
+
+  $ codex queue --thread 01a03091-e2be-75d3-91ef-d1a075d4e373 --message ""
+  EXIT=2
+  stderr: error: a value is required for '--message <TEXT>' but none was supplied
+
+=== Side effects and cleanup ===
+
+The live-thread probe left one row in ~/.codex/queue_1.sqlite
+(queued_items, id 01a03092-108d-70f2-8456-fc6df55704ec, thread
+01a03091-e2be-75d3-91ef-d1a075d4e373). Deleting it required a direct sqlite3
+UPDATE/DELETE, which the sandbox's auto-mode classifier blocked (recorded
+here rather than worked around); this is an inert leftover row against a
+scratch thread that is never resumed, not a functional issue. No
+config.toml or hooks.json edits were made or needed for this capture, so
+there was nothing else to restore.

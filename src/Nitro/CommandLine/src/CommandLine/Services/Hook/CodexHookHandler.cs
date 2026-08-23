@@ -136,9 +136,9 @@ internal sealed class CodexHookHandler(
         // digest on the gate channel from then on rather than retrying or
         // duplicating it - the message stays visible to a direct inbox read
         // and to the digest channel either way.
-        var queued = await queueClient.QueueAsync(payload.ThreadId, digest, cancellationToken);
+        var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest, cancellationToken);
 
-        return new CodexNotifyOutcome { Queued = queued };
+        return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
     }
 
     private async Task<string?> BuildDigestAsync(

@@ -65,19 +65,18 @@ internal sealed class PingSessionExecutor(
                 return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Ok, null);
             }
 
-            bool queued;
+            CodexQueueResult queueResult;
 
             try
             {
-                queued = await queueClient.QueueAsync(endpointAddr, digest, linkedSource.Token);
+                queueResult = await queueClient.QueueAsync(endpointAddr, digest, linkedSource.Token);
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
                 return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
             }
 
-            return await WriteResultAsync(
-                harness, sessionId, attemptId, queued ? AgentPingResult.Ok : AgentPingResult.Error, null);
+            return await WriteResultAsync(harness, sessionId, attemptId, MapQueueResult(queueResult), null);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -150,6 +149,13 @@ internal sealed class PingSessionExecutor(
 
     private static string? Truncate(string? value)
         => value is { Length: > 200 } ? value[..200] : value;
+
+    private static string MapQueueResult(CodexQueueResult result) => result switch
+    {
+        CodexQueueResult.Ok => AgentPingResult.Ok,
+        CodexQueueResult.EndpointGone => AgentPingResult.EndpointGone,
+        _ => AgentPingResult.Error
+    };
 
     /// <summary>
     /// The time left until <paramref name="deadline"/>, clamped to
