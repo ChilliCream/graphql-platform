@@ -19,18 +19,20 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
  */
 export function LearnSubscribeBand() {
   return (
-    <Band skin="card" layout="centered" className="py-16 sm:py-20">
-      <SectionHeading
-        align="center"
-        title="Keep up with GraphQL in .NET"
-        description="Subscribe via RSS or YouTube, or keep exploring the catalog and the docs."
-      />
-      <ButtonRow align="center" className="mt-8">
-        <SolidButton href="/blog/rss.xml">Subscribe via RSS</SolidButton>
-        <OutlineButton href="https://www.youtube.com/c/ChilliCream">YouTube</OutlineButton>
-        <OutlineButton href="/learn/browse">Browse the catalog</OutlineButton>
-        <OutlineButton href="/docs">Read the docs</OutlineButton>
-      </ButtonRow>
-    </Band>
+    <div id="subscribe" className="scroll-mt-32">
+      <Band skin="card" layout="centered" className="py-16 sm:py-20">
+        <SectionHeading
+          align="center"
+          title="Keep up with GraphQL in .NET"
+          description="Subscribe via RSS or YouTube, or keep exploring the catalog and the docs."
+        />
+        <ButtonRow align="center" className="mt-8">
+          <SolidButton href="/blog/rss.xml">Subscribe via RSS</SolidButton>
+          <OutlineButton href="https://www.youtube.com/c/ChilliCream">YouTube</OutlineButton>
+          <OutlineButton href="/learn/browse">Browse the catalog</OutlineButton>
+          <OutlineButton href="/docs">Read the docs</OutlineButton>
+        </ButtonRow>
+      </Band>
+    </div>
   );
 }
