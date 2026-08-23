@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using Spectre.Console;
 using Spectre.Console.Testing;
+using static ChilliCream.Nitro.CommandLine.Tests.Tui.AnsiAssertions;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
@@ -47,6 +48,21 @@ public sealed class MailTableTests
         var console = new TestConsole().Width(300);
         console.Write(new Markup(markup));
         return console.Output.TrimEnd('\r', '\n');
+    }
+
+    /// <summary>
+    /// Renders <paramref name="markup"/> through a <see cref="TestConsole"/>
+    /// built with <c>.Colors(ColorSystem.TrueColor)</c> and
+    /// <c>.EmitAnsiSequences()</c>, the console shape
+    /// <see cref="AnsiAssertions.AssertAnsiStyleApplied"/> requires - a plain
+    /// <see cref="TestConsole"/> strips markup entirely, so it would leave
+    /// every ANSI-tier assertion green even for a wrong or missing token.
+    /// </summary>
+    private static string RenderAnsi(string markup)
+    {
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(300);
+        console.Write(new Markup(markup));
+        return console.Output;
     }
 
     /// <summary>
@@ -259,6 +275,65 @@ public sealed class MailTableTests
     }
 
     [Fact]
+    public void RenderThreadRow_Should_ApplyAnsiStyling_ToGlyphPeerAndAgeTokens_When_ActorIsDirectRecipient()
+    {
+        // arrange: bob's last message addresses alice alone, so the thread
+        // gets the direct relationship glyph.
+        var columns = MailTable.ComputeColumns(120, showCount: true);
+        var thread = Thread(lastSender: "bob", lastRecipients: ["alice"]);
+
+        // act
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var output = RenderAnsi(line);
+
+        // assert: mail.row.to and mail.row.age share their color with other
+        // row tokens (mail.row.thread.fold and mail.row.preview/thread.count
+        // respectively), so a generic "does this style appear anywhere"
+        // check would pass even if the wrong cell carried it; pinning the
+        // style to the actual rendered text catches that. A plain
+        // TestConsole strips markup entirely, so a wrong or missing token
+        // name here would still leave every plain-text Contains assertion
+        // above green.
+        AssertAnsiStyleApplied(output, "mail.row.glyph.direct");
+        AssertAnsiStylePrefixesText(output, "mail.row.to", "alice");
+        AssertAnsiStylePrefixesText(output, "mail.row.age", "now");
+        AssertAnsiStyleApplied(output, "mail.row.from");
+    }
+
+    [Fact]
+    public void RenderThreadRow_Should_ApplyFromMeTokens_When_ActorSentTheThread()
+    {
+        // arrange
+        var columns = MailTable.ComputeColumns(120, showCount: true);
+        var thread = Thread(lastSender: "alice", lastRecipients: ["bob"]);
+
+        // act
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var output = RenderAnsi(line);
+
+        // assert: mail.row.glyph.from-me and mail.row.from.me render the
+        // same color, so pinning each to its own text (the 'F' glyph, the
+        // "alice" From cell) proves both cells carry a token, not just one.
+        AssertAnsiStylePrefixesText(output, "mail.row.glyph.from-me", "F");
+        AssertAnsiStylePrefixesText(output, "mail.row.from.me", "alice");
+    }
+
+    [Fact]
+    public void RenderThreadRow_Should_ApplyAnsiStyling_ToUnreadToMeMarker_When_UnreadToMeIsTrue()
+    {
+        // arrange
+        var columns = MailTable.ComputeColumns(120, showCount: true);
+        var thread = Thread();
+
+        // act
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: true, selected: false, "alice", Now, columns);
+        var output = RenderAnsi(line);
+
+        // assert
+        AssertAnsiStyleApplied(output, "mail.row.unread-to-me");
+    }
+
+    [Fact]
     public void RenderMessageRow_Should_ContainFromToSubjectAndAge()
     {
         // arrange
@@ -318,6 +393,49 @@ public sealed class MailTableTests
         // assert
         Assert.Contains("●", unread);
         Assert.DoesNotContain("●", read);
+    }
+
+    [Fact]
+    public void RenderMessageRow_Should_ApplyAnsiStyling_ToGlyphPeerPreviewAndAgeTokens_When_ActorIsDirectRecipient()
+    {
+        // arrange: bob addresses alice alone, so the message gets the direct
+        // relationship glyph.
+        var columns = MailTable.ComputeColumns(120, showCount: false);
+        var message = MailMessageBuilder.Create(
+            "m-1", sender: "bob", body: "hi", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
+
+        // act
+        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var output = RenderAnsi(line);
+
+        // assert: mail.row.to, mail.row.preview, and mail.row.age share
+        // colors with other row tokens (mail.row.thread.fold and each
+        // other), so a generic "does this style appear anywhere" check
+        // would pass even if the wrong cell carried it; pinning the style
+        // to the actual rendered text catches that. A plain TestConsole
+        // strips markup entirely, so a wrong or missing token name here
+        // would still leave every plain-text Contains assertion above
+        // green.
+        AssertAnsiStyleApplied(output, "mail.row.glyph.direct");
+        AssertAnsiStylePrefixesText(output, "mail.row.to", "alice");
+        AssertAnsiStylePrefixesText(output, "mail.row.preview", "hi");
+        AssertAnsiStylePrefixesText(output, "mail.row.age", "now");
+    }
+
+    [Fact]
+    public void RenderMessageRow_Should_ApplyAnsiStyling_ToUnreadToMeMarker_When_UnreadToMeIsTrue()
+    {
+        // arrange
+        var columns = MailTable.ComputeColumns(120, showCount: false);
+        var message = MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
+
+        // act
+        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: true, selected: false, "alice", Now, columns);
+        var output = RenderAnsi(line);
+
+        // assert
+        AssertAnsiStyleApplied(output, "mail.row.unread-to-me");
     }
 
     [Fact]
