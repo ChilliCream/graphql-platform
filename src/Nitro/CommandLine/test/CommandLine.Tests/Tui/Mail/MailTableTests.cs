@@ -49,6 +49,49 @@ public sealed class MailTableTests
         return console.Output.TrimEnd('\r', '\n');
     }
 
+    /// <summary>
+    /// An independent, test-only terminal-cell-width measurement (2 cells
+    /// for CJK ideographs and the emoji block used by these tests' fixtures,
+    /// 1 otherwise) for asserting against <see cref="MailTable"/>'s own
+    /// production width measurement without calling its private members
+    /// directly.
+    /// </summary>
+    private static int MeasureCellWidth(string value)
+        => value.EnumerateRunes().Sum(rune => rune.Value switch
+        {
+            >= 0x4E00 and <= 0x9FFF => 2, // CJK unified ideographs
+            >= 0x1F300 and <= 0x1FAFF => 2, // emoji blocks
+            _ => 1
+        });
+
+    /// <summary>
+    /// True when <paramref name="value"/> contains a UTF-16 surrogate half
+    /// with no matching partner - what a char-index (rather than Rune-index)
+    /// truncation could produce by cutting an astral-plane character (for
+    /// example most emoji) in half.
+    /// </summary>
+    private static bool ContainsLoneSurrogate(string value)
+    {
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (char.IsHighSurrogate(value[i]))
+            {
+                if (i + 1 >= value.Length || !char.IsLowSurrogate(value[i + 1]))
+                {
+                    return true;
+                }
+
+                i++;
+            }
+            else if (char.IsLowSurrogate(value[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     [Fact]
     public void ComputeColumns_Should_SplitElasticRemainder_BetweenSubjectAndPreview()
     {
@@ -377,5 +420,93 @@ public sealed class MailTableTests
         // pushing Age (and the count column, when shown) past contentWidth.
         Assert.True(heading.Length <= contentWidth, $"heading length {heading.Length} exceeded {contentWidth}.");
         Assert.True(row.Length <= contentWidth, $"row length {row.Length} exceeded {contentWidth}.");
+    }
+
+    [Fact]
+    public void RenderThreadRow_Should_FitContentWidth_InTerminalCells_When_EveryColumnHoldsWideCjkCharacters()
+    {
+        // arrange: every text column stuffed with CJK ideographs (2 terminal
+        // cells each), so a Pad/Truncate that measured UTF-16 string.Length
+        // instead of terminal cell width - the pre-fix bug - would overflow
+        // this budget in a real terminal even though every field's own
+        // .Length still looked correct.
+        const int contentWidth = 80;
+        var columns = MailTable.ComputeColumns(contentWidth, showCount: true);
+        var thread = Thread(
+            subject: new string('件', 60),
+            lastSender: new string('名', 60),
+            lastRecipients: [new string('宛', 60)],
+            bodyPreview: new string('文', 60));
+
+        // act
+        var row = RenderPlain(MailTable.RenderThreadRow(
+            thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns));
+
+        // assert: the row still fills exactly contentWidth terminal cells,
+        // the same guarantee the all-ASCII alignment test above makes,
+        // where cell width and UTF-16 length coincide.
+        Assert.Equal(contentWidth, MeasureCellWidth(row));
+    }
+
+    [Fact]
+    public void RenderMessageRow_Should_FitContentWidth_InTerminalCells_When_EveryColumnHoldsEmojiCharacters()
+    {
+        // arrange: every text column stuffed with astral-plane emoji (a
+        // UTF-16 surrogate pair each, 2 terminal cells), the width class the
+        // pre-fix .Length-based Pad/Truncate both undercounted (as one
+        // "wide" character it should count once) and, being surrogate
+        // pairs, measured as 2 chars for what should be one 2-cell rune -
+        // two compensating errors this fix's Rune-based measurement
+        // resolves independently.
+        const int contentWidth = 80;
+        var columns = MailTable.ComputeColumns(contentWidth, showCount: false);
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: string.Concat(Enumerable.Repeat("🎈", 60)),
+            subject: string.Concat(Enumerable.Repeat("🎉", 60)),
+            body: string.Concat(Enumerable.Repeat("🎊", 60)),
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient(string.Concat(Enumerable.Repeat("🎁", 60)))]);
+
+        // act
+        var row = RenderPlain(MailTable.RenderMessageRow(
+            message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns));
+
+        // assert
+        Assert.Equal(contentWidth, MeasureCellWidth(row));
+    }
+
+    [Theory]
+    [InlineData(20)]
+    [InlineData(21)]
+    [InlineData(22)]
+    [InlineData(35)]
+    [InlineData(36)]
+    [InlineData(50)]
+    [InlineData(51)]
+    public void RenderMessageRow_Should_NeverEmitALoneSurrogate_When_TruncatingEmojiContent(int contentWidth)
+    {
+        // arrange: every fixed and elastic column budget gets exercised at a
+        // different cut point as contentWidth varies, hunting for a
+        // truncation boundary that would land mid-surrogate-pair under a
+        // char-index (rather than Rune-boundary) Truncate.
+        var columns = MailTable.ComputeColumns(contentWidth, showCount: false);
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: string.Concat(Enumerable.Repeat("🎈", 40)),
+            subject: string.Concat(Enumerable.Repeat("🎉", 40)),
+            body: string.Concat(Enumerable.Repeat("🎊", 40)),
+            createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient(string.Concat(Enumerable.Repeat("🎁", 40)))]);
+
+        // act
+        var row = MailTable.RenderMessageRow(
+            message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+
+        // assert: no lone surrogate in either the raw markup or the plain
+        // rendered text - the ellipsis this fix truncates to never ends up
+        // appended after only half of a split emoji.
+        Assert.False(ContainsLoneSurrogate(row));
+        Assert.False(ContainsLoneSurrogate(RenderPlain(row)));
     }
 }

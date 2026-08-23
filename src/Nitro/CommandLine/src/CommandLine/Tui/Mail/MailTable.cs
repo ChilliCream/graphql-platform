@@ -1,3 +1,4 @@
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 
@@ -16,6 +17,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 internal static class MailTable
 {
     private const string Ellipsis = "…";
+    private const char EllipsisChar = '…';
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
     private const string ExpandedFoldGlyph = "▾";
@@ -318,6 +320,87 @@ internal static class MailTable
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
 
+    /// <summary>
+    /// The lowest code point of every contiguous run of terminal-wide code
+    /// points this table measures at 2 cells wide: Unicode's East Asian
+    /// Wide/Fullwidth ranges (Hangul Jamo and syllables, the CJK
+    /// radicals/symbols/unified-ideograph/compatibility blocks, Yi, and
+    /// fullwidth forms - the same double-width table terminal emulators
+    /// derive from Markus Kuhn's reference <c>wcwidth()</c>) plus the
+    /// emoji-presentation blocks (regional indicators/flags, pictographs,
+    /// emoticons, transport, and the supplemental symbol blocks). Paired
+    /// with <see cref="WideRangeEnds"/> at the same index. There is no
+    /// project-referenceable Unicode width table to defer to instead (see
+    /// <see cref="Truncate(string, int)"/>'s remark).
+    /// </summary>
+    private static readonly int[] WideRangeStarts =
+    [
+        0x1100, 0x2E80, 0x3041, 0x3400, 0x4E00, 0xA000, 0xAC00, 0xF900, 0xFE30,
+        0xFF00, 0xFFE0, 0x1F1E6, 0x1F200, 0x1F300, 0x1F600, 0x1F680, 0x1F900,
+        0x1FA70, 0x20000, 0x30000
+    ];
+
+    private static readonly int[] WideRangeEnds =
+    [
+        0x115F, 0x303E, 0x33FF, 0x4DBF, 0x9FFF, 0xA4CF, 0xD7A3, 0xFAFF, 0xFE4F,
+        0xFF60, 0xFFE6, 0x1F1FF, 0x1F2FF, 0x1F5FF, 0x1F64F, 0x1F6FF, 0x1F9FF,
+        0x1FAFF, 0x2FFFD, 0x3FFFD
+    ];
+
+    /// <summary>
+    /// A single Unicode scalar's terminal cell width: 2 for a code point in
+    /// <see cref="WideRangeStarts"/>/<see cref="WideRangeEnds"/> (East Asian
+    /// Wide/Fullwidth or emoji-presentation), 1 for everything else,
+    /// including combining marks, which most terminals render zero-width but
+    /// this table still budgets a cell for - an acceptable, rare
+    /// over-truncation rather than a width table this project has no
+    /// dependency on.
+    /// </summary>
+    private static int GetRuneWidth(Rune rune)
+    {
+        var value = rune.Value;
+
+        if (value < 0x1100)
+        {
+            return 1;
+        }
+
+        for (var i = 0; i < WideRangeStarts.Length; i++)
+        {
+            if (value < WideRangeStarts[i])
+            {
+                return 1;
+            }
+
+            if (value <= WideRangeEnds[i])
+            {
+                return 2;
+            }
+        }
+
+        return 1;
+    }
+
+    /// <summary>
+    /// The terminal cell width of <paramref name="value"/>: the sum of every
+    /// <see cref="Rune"/>'s <see cref="GetRuneWidth"/>, never the UTF-16
+    /// <see cref="string.Length"/>, which overcounts a surrogate-pair
+    /// astral-plane character (for example most emoji) as 2 chars for what
+    /// is really one wide rune worth 2 cells - the pre-fix bug this table's
+    /// UTF-16-length-based Pad/Truncate carried.
+    /// </summary>
+    private static int MeasureWidth(string value)
+    {
+        var width = 0;
+
+        foreach (var rune in value.EnumerateRunes())
+        {
+            width += GetRuneWidth(rune);
+        }
+
+        return width;
+    }
+
     private static string Pad(string value, int width)
     {
         if (width <= 0)
@@ -326,7 +409,8 @@ internal static class MailTable
         }
 
         var truncated = Truncate(value, width);
-        return truncated.Length >= width ? truncated : truncated.PadRight(width);
+        var truncatedWidth = MeasureWidth(truncated);
+        return truncatedWidth >= width ? truncated : truncated + new string(' ', width - truncatedWidth);
     }
 
     private static string PadLeft(string value, int width)
@@ -337,9 +421,21 @@ internal static class MailTable
         }
 
         var truncated = Truncate(value, width);
-        return truncated.Length >= width ? truncated : truncated.PadLeft(width);
+        var truncatedWidth = MeasureWidth(truncated);
+        return truncatedWidth >= width ? truncated : new string(' ', width - truncatedWidth) + truncated;
     }
 
+    /// <summary>
+    /// Truncates <paramref name="value"/> to at most <paramref name="width"/>
+    /// terminal cells, appending <see cref="Ellipsis"/> when it does not
+    /// already fit. Walks whole <see cref="Rune"/>s, never a raw UTF-16
+    /// index, so the cut point always falls on a scalar boundary - the
+    /// ellipsis can never end up appended after a lone surrogate half of a
+    /// split astral-plane character. A rune whose <see cref="GetRuneWidth"/>
+    /// would overflow the remaining budget is dropped rather than emitted
+    /// oversized, so the result is never wider than requested even when the
+    /// last cell available is claimed by a narrow rune ahead of a wide one.
+    /// </summary>
     private static string Truncate(string value, int width)
     {
         if (width <= 0)
@@ -347,7 +443,7 @@ internal static class MailTable
             return string.Empty;
         }
 
-        if (value.Length <= width)
+        if (MeasureWidth(value) <= width)
         {
             return value;
         }
@@ -357,6 +453,23 @@ internal static class MailTable
             return Ellipsis;
         }
 
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
+        var budget = width - 1;
+        var used = 0;
+        var builder = new StringBuilder();
+
+        foreach (var rune in value.EnumerateRunes())
+        {
+            var runeWidth = GetRuneWidth(rune);
+
+            if (used + runeWidth > budget)
+            {
+                break;
+            }
+
+            builder.Append(rune);
+            used += runeWidth;
+        }
+
+        return builder.Append(EllipsisChar).ToString();
     }
 }

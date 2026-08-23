@@ -768,12 +768,13 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void Render_Should_ShowInbox_NotTheFilterName_When_MailboxIsInboxAndListModeIsThreads()
+    public void Render_Should_ShowTheFilterName_When_MailboxIsInboxAndListModeIsThreads()
     {
-        // arrange: cycling the filter to Unread has no effect on the
-        // Threads-mode row set (it always shows the full Inbox), so the
-        // pane title must not claim a filter the thread list does not
-        // apply.
+        // arrange: cycling f/F must stay visible in Threads mode too, not
+        // just Flat - MailState.RefreshAsync applies Unread to Threads
+        // client-side now, and even Archived (which still has no row-level
+        // effect there - the store exposes no filtered thread query) at
+        // least names itself in the header.
         var store = new FakeMailStore();
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
@@ -787,8 +788,30 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        Assert.Contains("Inbox", console.Output);
-        Assert.DoesNotContain("Unread", console.Output);
+        Assert.Contains("Unread", console.Output);
+    }
+
+    [Fact]
+    public async Task CycleView_Should_HideFullyReadThreads_When_MailboxIsInboxAndListModeIsThreads()
+    {
+        // arrange: m-1's thread is unread for alice; m-2's thread is already
+        // read for her.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        await mode.State.RefreshAsync(CancellationToken.None);
+        await store.MarkReadAsync(["m-2"], "alice", CancellationToken.None);
+
+        // act
+        mode.Handle(new TuiMessage.CycleView(1)); // Inbox -> Unread
+
+        // assert
+        Assert.Equal(["t-1"], mode.State.Threads.Select(t => t.ThreadId));
     }
 
     [Fact]

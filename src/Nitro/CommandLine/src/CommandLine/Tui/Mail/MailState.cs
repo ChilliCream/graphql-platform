@@ -44,13 +44,17 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     /// <summary>
     /// The read-state filter applied to <see cref="Messages"/> within
     /// <see cref="MailMailbox.Inbox"/>. Carried but not applied to any other
-    /// <see cref="Mailbox"/>, and not applied to <see cref="Threads"/> in any
-    /// mailbox: the store exposes no filtered thread query, so
-    /// <see cref="MailListMode.Threads"/> within Inbox always shows the full
-    /// inbox thread set regardless of <see cref="Filter"/>. The f/F gesture
-    /// still cycles this value (the epic's non-goal keeps the axis), it just
-    /// has no visible effect until <see cref="ListMode"/> is
-    /// <see cref="MailListMode.Flat"/> and <see cref="Mailbox"/> is Inbox.
+    /// <see cref="Mailbox"/>. The store exposes no filtered thread query, so
+    /// <see cref="Threads"/> within Inbox is narrowed for <see cref="Filter"/>
+    /// only client-side, in <see cref="LoadThreadsAsync"/>: <see cref="MailListFilter.Unread"/>
+    /// hides threads whose <see cref="MailThreadSummary.UnreadCount"/> (already
+    /// actor-scoped for Inbox rollups) is zero, so f/F is visible in
+    /// <see cref="MailListMode.Threads"/> too, not just Flat. <see cref="MailListFilter.Archived"/>
+    /// has no such client-side narrowing yet - archived thread rollups need a
+    /// dedicated store query <see cref="LoadThreadsAsync"/> does not have
+    /// (tracked as a follow-up) - so it still shows the full inbox thread
+    /// set; the list pane's header naming the filter regardless keeps f/F
+    /// visible there too, even without the row-level effect.
     /// </summary>
     public MailListFilter Filter { get; private set; } = MailListFilter.Inbox;
 
@@ -98,8 +102,13 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     /// <summary>
     /// The index of the selected row within <see cref="Rows"/>. Assigning
     /// this resolves <see cref="ViewMode"/>, <see cref="ThreadMessages"/>,
-    /// and <see cref="SelectedMessage"/> for the newly-selected row; see the
-    /// class remarks.
+    /// and <see cref="SelectedMessage"/> for the newly-selected row, but only
+    /// when the row's <see cref="RowKey"/> actually differs from
+    /// <see cref="_syncedRowKey"/>: a refresh or fold rebuild that lands the
+    /// same logical row back on this index (see <see cref="RebuildRowsPreservingSelection"/>
+    /// and <see cref="ReloadAsync"/>) must not clobber a manual
+    /// <see cref="ShowThreadAsync"/>/<see cref="ShowMessage"/> override with
+    /// the row's default; see the class remarks.
     /// </summary>
     public int SelectedRow
     {
@@ -107,6 +116,14 @@ internal sealed class MailState(string actor, MailDataLoader loader)
         set
         {
             _selectedRow = value;
+            var key = _selectedRow >= 0 && _selectedRow < Rows.Count ? RowKey(Rows[_selectedRow]) : null;
+
+            if (key == _syncedRowKey)
+            {
+                return;
+            }
+
+            _syncedRowKey = key;
             SyncSelectionBlocking();
         }
     }
@@ -136,6 +153,20 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     public MailMessage? SelectedMessage { get; private set; }
 
     private int _selectedRow;
+
+    /// <summary>
+    /// The <see cref="RowKey"/> <see cref="SyncSelectionBlocking"/> last
+    /// resolved <see cref="ViewMode"/>/<see cref="ThreadMessages"/>/<see cref="SelectedMessage"/>
+    /// from; null when nothing has been synced yet or the last sync landed
+    /// on no row. <see cref="SelectedRow"/>'s setter only re-syncs when the
+    /// new row's key differs from this, so a genuine selection change still
+    /// resolves the row's default view mode while a refresh/fold rebuild
+    /// landing back on the same logical row leaves a manual
+    /// <see cref="ShowThreadAsync"/>/<see cref="ShowMessage"/> override
+    /// alone.
+    /// </summary>
+    private string? _syncedRowKey;
+
     private readonly HashSet<string> _expandedThreadIds = new(StringComparer.Ordinal);
     private readonly Dictionary<string, IReadOnlyList<MailMessage>> _threadMessageCache =
         new(StringComparer.Ordinal);
@@ -349,7 +380,20 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     /// rebuilds <see cref="Rows"/>, and either resets <see cref="SelectedRow"/>
     /// to the top or restores it by row identity, per <paramref name="resetToTop"/>.
     /// Clears the thread-message cache first so an expanded thread's rows
-    /// always reflect the fresh reload, not stale data from before it.
+    /// always reflect the fresh reload, not stale data from before it. When
+    /// the same logical row survives the reload, <see cref="SelectedRow"/>'s
+    /// setter deliberately skips re-syncing <see cref="ViewMode"/> (so a
+    /// manual <see cref="ShowThreadAsync"/>/<see cref="ShowMessage"/>
+    /// override survives the refresh), so this still has to re-resolve
+    /// <see cref="SelectedMessage"/>, and <see cref="ThreadMessages"/> when
+    /// <see cref="ViewMode"/> is <see cref="MailViewMode.Thread"/>, from the
+    /// freshly-reloaded row itself, via <see cref="RefreshSelectedRowContent"/>
+    /// - otherwise u/a/r would keep acting on the pre-reload message object,
+    /// and an open thread view would keep showing pre-reload messages, even
+    /// though the cache backing it was just cleared. Resetting to the top,
+    /// or clamping when the previously-selected row is gone, both resolve
+    /// <see cref="ViewMode"/> normally through the setter instead, since
+    /// those are genuine selection changes.
     /// </summary>
     private async Task ReloadAsync(CancellationToken cancellationToken, bool resetToTop)
     {
@@ -376,6 +420,53 @@ internal sealed class MailState(string actor, MailDataLoader loader)
             : resetToTop
                 ? 0
                 : Math.Clamp(_selectedRow, 0, Math.Max(0, Rows.Count - 1));
+
+        if (newIndex >= 0)
+        {
+            RefreshSelectedRowContent();
+        }
+    }
+
+    /// <summary>
+    /// Re-resolves <see cref="SelectedMessage"/>, and <see cref="ThreadMessages"/>
+    /// when <see cref="ViewMode"/> is <see cref="MailViewMode.Thread"/>, from
+    /// whatever row <see cref="_selectedRow"/> now points at, without
+    /// touching <see cref="ViewMode"/> itself. Called only from
+    /// <see cref="ReloadAsync"/>, and only when the selection survived the
+    /// reload by identity, so <see cref="SelectedRow"/>'s setter has already
+    /// skipped <see cref="SyncSelectionBlocking"/> for it; see that method's
+    /// remark for why <see cref="ViewMode"/> must stay untouched here.
+    /// </summary>
+    private void RefreshSelectedRowContent()
+    {
+        if (_selectedRow < 0 || _selectedRow >= Rows.Count)
+        {
+            return;
+        }
+
+        switch (Rows[_selectedRow])
+        {
+            case MailListRow.Thread threadRow:
+                var threadMessages = GetOrLoadThreadMessagesBlocking(threadRow.Summary.ThreadId);
+                SelectedMessage = threadMessages.Count > 0 ? threadMessages[^1] : null;
+
+                if (ViewMode == MailViewMode.Thread)
+                {
+                    ThreadMessages = threadMessages;
+                }
+
+                break;
+
+            case MailListRow.MessageRow messageRow:
+                SelectedMessage = messageRow.Message;
+
+                if (ViewMode == MailViewMode.Thread)
+                {
+                    ThreadMessages = GetOrLoadThreadMessagesBlocking(messageRow.Message.ThreadId);
+                }
+
+                break;
+        }
     }
 
     /// <summary>
@@ -510,14 +601,29 @@ internal sealed class MailState(string actor, MailDataLoader loader)
 
     /// <summary>
     /// Routes to the thread-rollup load method for <see cref="Mailbox"/>,
-    /// mirroring <see cref="LoadMessagesAsync"/> except that <see cref="Filter"/>
-    /// never narrows the Inbox thread query; see <see cref="Filter"/>.
+    /// mirroring <see cref="LoadMessagesAsync"/> except that the store itself
+    /// exposes no filtered thread query: within Inbox, <see cref="Filter"/>
+    /// is instead applied client-side afterward - see <see cref="Filter"/>
+    /// for which values that covers.
     /// </summary>
-    private Task<IReadOnlyList<MailThreadSummary>> LoadThreadsAsync(CancellationToken cancellationToken) => Mailbox switch
+    private async Task<IReadOnlyList<MailThreadSummary>> LoadThreadsAsync(CancellationToken cancellationToken)
     {
-        MailMailbox.Sent => loader.LoadSentThreadsAsync(Actor, cancellationToken),
-        MailMailbox.All => loader.LoadAllThreadsAsync(Actor, cancellationToken),
-        MailMailbox.Workspace => loader.LoadWorkspaceThreadsAsync(AgentFilter, cancellationToken),
-        _ => loader.LoadInboxThreadsAsync(Actor, cancellationToken)
-    };
+        switch (Mailbox)
+        {
+            case MailMailbox.Sent:
+                return await loader.LoadSentThreadsAsync(Actor, cancellationToken).ConfigureAwait(false);
+
+            case MailMailbox.All:
+                return await loader.LoadAllThreadsAsync(Actor, cancellationToken).ConfigureAwait(false);
+
+            case MailMailbox.Workspace:
+                return await loader.LoadWorkspaceThreadsAsync(AgentFilter, cancellationToken).ConfigureAwait(false);
+
+            default:
+                var threads = await loader.LoadInboxThreadsAsync(Actor, cancellationToken).ConfigureAwait(false);
+                return Filter == MailListFilter.Unread
+                    ? threads.Where(t => (t.UnreadCount ?? 0) > 0).ToList()
+                    : threads;
+        }
+    }
 }

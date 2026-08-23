@@ -1090,17 +1090,20 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// The list pane's header name: the read-state filter's name within
-    /// <see cref="MailMailbox.Inbox"/>, where it applies; the mailbox's own
-    /// display name suffixed with the selected agent within
-    /// <see cref="MailMailbox.Workspace"/> when <see cref="MailState.AgentFilter"/>
-    /// is set, the third of Workspace's mode indicators alongside
-    /// <see cref="HeaderName"/>'s own text and <see cref="ResolveListBorderToken"/>'s
-    /// border accent (see the class doc); or the plain mailbox display name
-    /// otherwise.
+    /// <see cref="MailMailbox.Inbox"/>, in both <see cref="MailListMode.Flat"/>
+    /// and <see cref="MailListMode.Threads"/> - so cycling f/F (<see cref="MailState.CycleFilterAsync"/>)
+    /// is always visible, even for <see cref="MailListFilter.Archived"/> in
+    /// Threads mode, where <see cref="MailState.Filter"/>'s doc comment notes
+    /// there is no row-level effect yet; the mailbox's own display name
+    /// suffixed with the selected agent within <see cref="MailMailbox.Workspace"/>
+    /// when <see cref="MailState.AgentFilter"/> is set, the third of
+    /// Workspace's mode indicators alongside <see cref="HeaderName"/>'s own
+    /// text and <see cref="ResolveListBorderToken"/>'s border accent (see the
+    /// class doc); or the plain mailbox display name otherwise.
     /// </summary>
     private static string HeaderName(MailState state)
     {
-        if (state.Mailbox == MailMailbox.Inbox && state.ListMode == MailListMode.Flat)
+        if (state.Mailbox == MailMailbox.Inbox)
         {
             return FilterName(state.Filter);
         }
