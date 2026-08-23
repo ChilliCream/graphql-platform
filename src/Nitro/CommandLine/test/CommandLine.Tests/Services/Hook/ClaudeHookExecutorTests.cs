@@ -12,8 +12,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// against <see cref="StringReader"/>/<see cref="StringWriter"/>, without
 /// System.CommandLine or DI: the suppression short-circuit, every failure
 /// path resolving to the neutral <c>{}</c> response, and successful
-/// translation of the captured Claude payload fixtures into the harness's
-/// wire shape.
+/// translation of the hand-authored Claude payload fixtures into the
+/// harness's wire shape.
 /// </summary>
 public sealed class ClaudeHookExecutorTests
 {
