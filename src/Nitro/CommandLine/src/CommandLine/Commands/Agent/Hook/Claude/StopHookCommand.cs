@@ -16,6 +16,8 @@ internal sealed class StopHookCommand : Command
 
         Options.Add(Opt<DryRunHookOption>.Instance);
 
-        this.SetHookAction((handler, payload, dryRun, ct) => handler.HandleStopAsync(payload, dryRun, ct));
+        this.SetHookAction(
+            "Stop",
+            (handler, payload, dryRun, ct) => handler.HandleStopAsync(payload, dryRun, ct));
     }
 }

@@ -14,6 +14,8 @@ internal sealed class SessionStartHookCommand : Command
 
         Options.Add(Opt<DryRunHookOption>.Instance);
 
-        this.SetHookAction((handler, payload, dryRun, ct) => handler.HandleSessionStartAsync(payload, dryRun, ct));
+        this.SetHookAction(
+            "SessionStart",
+            (handler, payload, dryRun, ct) => handler.HandleSessionStartAsync(payload, dryRun, ct));
     }
 }

@@ -17,6 +17,7 @@ internal sealed class UserPromptSubmitHookCommand : Command
         Options.Add(Opt<DryRunHookOption>.Instance);
 
         this.SetHookAction(
+            "UserPromptSubmit",
             (handler, payload, dryRun, ct) => handler.HandleUserPromptSubmitAsync(payload, dryRun, ct));
     }
 }

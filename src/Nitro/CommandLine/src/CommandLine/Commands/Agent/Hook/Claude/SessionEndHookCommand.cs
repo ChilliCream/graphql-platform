@@ -15,6 +15,8 @@ internal sealed class SessionEndHookCommand : Command
 
         Options.Add(Opt<DryRunHookOption>.Instance);
 
-        this.SetHookAction((handler, payload, dryRun, ct) => handler.HandleSessionEndAsync(payload, dryRun, ct));
+        this.SetHookAction(
+            "SessionEnd",
+            (handler, payload, dryRun, ct) => handler.HandleSessionEndAsync(payload, dryRun, ct));
     }
 }

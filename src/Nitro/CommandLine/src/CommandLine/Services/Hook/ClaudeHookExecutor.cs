@@ -27,8 +27,9 @@ internal static class ClaudeHookExecutor
         TextReader input,
         TextWriter output,
         Func<ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle,
+        string hookEventName,
         CancellationToken cancellationToken)
-        => RunAsync(environmentVariables, input, output, handle, EntryTimeout, cancellationToken);
+        => RunAsync(environmentVariables, input, output, handle, hookEventName, EntryTimeout, cancellationToken);
 
     /// <summary>
     /// Overload taking an explicit <paramref name="timeout"/> instead of
@@ -40,12 +41,13 @@ internal static class ClaudeHookExecutor
         TextReader input,
         TextWriter output,
         Func<ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle,
+        string hookEventName,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
         if (IsSuppressed(environmentVariables))
         {
-            await WriteAsync(output, ClaudeHookOutcome.Neutral, cancellationToken);
+            await WriteAsync(output, ClaudeHookOutcome.Neutral, hookEventName, cancellationToken);
             return ExitCode;
         }
 
@@ -81,7 +83,7 @@ internal static class ClaudeHookExecutor
             outcome = ClaudeHookOutcome.Neutral;
         }
 
-        await WriteAsync(output, outcome, cancellationToken);
+        await WriteAsync(output, outcome, hookEventName, cancellationToken);
 
         return ExitCode;
     }
@@ -107,16 +109,16 @@ internal static class ClaudeHookExecutor
         => environmentVariables.GetEnvironmentVariable("NITRO_HOOK_SUPPRESS") is "1" or "true";
 
     private static async Task WriteAsync(
-        TextWriter output, ClaudeHookOutcome outcome, CancellationToken cancellationToken)
+        TextWriter output, ClaudeHookOutcome outcome, string hookEventName, CancellationToken cancellationToken)
     {
-        var response = ToResponse(outcome);
+        var response = ToResponse(outcome, hookEventName);
         var json = JsonSerializer.Serialize(response, ClaudeHookJsonContext.Default.ClaudeHookResponse);
 
         await output.WriteAsync(json.AsMemory(), cancellationToken);
         await output.WriteAsync(Environment.NewLine.AsMemory(), cancellationToken);
     }
 
-    private static ClaudeHookResponse ToResponse(ClaudeHookOutcome outcome)
+    private static ClaudeHookResponse ToResponse(ClaudeHookOutcome outcome, string hookEventName)
     {
         if (outcome.Block)
         {
@@ -127,7 +129,11 @@ internal static class ClaudeHookExecutor
         {
             return new ClaudeHookResponse
             {
-                HookSpecificOutput = new ClaudeHookSpecificOutput { AdditionalContext = context }
+                HookSpecificOutput = new ClaudeHookSpecificOutput
+                {
+                    HookEventName = hookEventName,
+                    AdditionalContext = context
+                }
             };
         }
 

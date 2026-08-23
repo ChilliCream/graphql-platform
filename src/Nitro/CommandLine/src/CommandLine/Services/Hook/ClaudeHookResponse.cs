@@ -20,5 +20,7 @@ internal sealed record ClaudeHookResponse
 
 internal sealed record ClaudeHookSpecificOutput
 {
+    public required string HookEventName { get; init; }
+
     public required string AdditionalContext { get; init; }
 }

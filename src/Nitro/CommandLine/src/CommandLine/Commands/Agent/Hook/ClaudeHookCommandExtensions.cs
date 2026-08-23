@@ -15,6 +15,7 @@ internal static class ClaudeHookCommandExtensions
 {
     public static Command SetHookAction(
         this Command command,
+        string hookEventName,
         Func<IClaudeHookHandler, ClaudeHookPayload, bool, CancellationToken, Task<ClaudeHookOutcome>> handle)
     {
         command.SetAction(async (parseResult, cancellationToken) =>
@@ -29,6 +30,7 @@ internal static class ClaudeHookCommandExtensions
                 Console.In,
                 parseResult.InvocationConfiguration.Output,
                 (payload, ct) => handle(handler, payload, dryRun, ct),
+                hookEventName,
                 cancellationToken);
         });
 

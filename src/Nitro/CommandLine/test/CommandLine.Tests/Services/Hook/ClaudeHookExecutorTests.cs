@@ -38,6 +38,7 @@ public sealed class ClaudeHookExecutorTests
                 handlerInvoked = true;
                 return Task.FromResult(ClaudeHookOutcome.Neutral);
             },
+            "SessionStart",
             cancellationToken);
 
         // assert
@@ -60,6 +61,7 @@ public sealed class ClaudeHookExecutorTests
             input,
             output,
             (_, _) => throw new InvalidOperationException("must not be reached"),
+            "SessionStart",
             cancellationToken);
 
         // assert
@@ -81,6 +83,7 @@ public sealed class ClaudeHookExecutorTests
             input,
             output,
             (_, _) => throw new InvalidOperationException("simulated database contention"),
+            "Stop",
             cancellationToken);
 
         // assert
@@ -103,6 +106,7 @@ public sealed class ClaudeHookExecutorTests
             input,
             output,
             async (_, ct) => { await Task.Delay(Timeout.InfiniteTimeSpan, ct); return ClaudeHookOutcome.Neutral; },
+            "Stop",
             TimeSpan.FromMilliseconds(50),
             cancellationToken);
 
@@ -129,6 +133,7 @@ public sealed class ClaudeHookExecutorTests
             input,
             output,
             async (_, _) => { await Task.Delay(Timeout.InfiniteTimeSpan); return ClaudeHookOutcome.Neutral; },
+            "Stop",
             TimeSpan.FromMilliseconds(50),
             cancellationToken);
 
@@ -218,6 +223,7 @@ public sealed class ClaudeHookExecutorTests
                 input,
                 output,
                 (p, ct) => handler.HandleStopAsync(p, dryRun: true, ct),
+                "Stop",
                 TimeSpan.FromMilliseconds(200),
                 cancellationToken);
 
@@ -297,6 +303,7 @@ public sealed class ClaudeHookExecutorTests
                 input,
                 output,
                 (p, ct) => handler.HandleSessionStartAsync(p, dryRun: true, ct),
+                "SessionStart",
                 cancellationToken);
 
             // assert
@@ -323,12 +330,37 @@ public sealed class ClaudeHookExecutorTests
             input,
             output,
             (_, _) => Task.FromResult(new ClaudeHookOutcome { AdditionalContext = "nitro mail: 1 unread message." }),
+            "UserPromptSubmit",
             cancellationToken);
 
         // assert
         Assert.Equal(0, exitCode);
         Assert.Equal(
-            """{"hookSpecificOutput":{"additionalContext":"nitro mail: 1 unread message."}}""",
+            """{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"nitro mail: 1 unread message."}}""",
+            output.ToString().Trim());
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_WriteHookSpecificOutput_When_TheEventIsSessionStart()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var input = new StringReader(HookFixtures.Read("session-start.json"));
+        var output = new StringWriter();
+
+        // act
+        var exitCode = await ClaudeHookExecutor.RunAsync(
+            new FixedEnvironmentVariableProvider(),
+            input,
+            output,
+            (_, _) => Task.FromResult(new ClaudeHookOutcome { AdditionalContext = "nitro mail: 1 unread message." }),
+            "SessionStart",
+            cancellationToken);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        Assert.Equal(
+            """{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"nitro mail: 1 unread message."}}""",
             output.ToString().Trim());
     }
 
@@ -346,6 +378,7 @@ public sealed class ClaudeHookExecutorTests
             input,
             output,
             (_, _) => Task.FromResult(new ClaudeHookOutcome { Block = true, BlockReason = "unread mail" }),
+            "Stop",
             cancellationToken);
 
         // assert
@@ -378,6 +411,7 @@ public sealed class ClaudeHookExecutorTests
                 captured = payload;
                 return Task.FromResult(ClaudeHookOutcome.Neutral);
             },
+            "SessionStart",
             cancellationToken);
 
         // assert
