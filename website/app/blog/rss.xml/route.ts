@@ -5,8 +5,7 @@ import { getShareImageSrc } from "@/src/image-optimization/manifest";
 export const dynamic = "force-static";
 
 const FEED_TITLE = "ChilliCream Blog";
-const FEED_DESCRIPTION =
-  "Announcements, deep dives, and how-tos from the ChilliCream GraphQL Platform team.";
+const FEED_DESCRIPTION = "Announcements, deep dives, and how-tos from the ChilliCream GraphQL Platform team.";
 
 function escape(text: string): string {
   return text
@@ -35,6 +34,11 @@ function asRfc822(iso: string): string {
   return d.toUTCString();
 }
 
+// The feed stays live at this historical path (website-5yo.11: posts moved to
+// /learn/articles/[slug], but /blog/rss.xml itself is not redirected so
+// existing subscriptions keep resolving). Every item's <link>/<guid> is now a
+// /learn/articles/... URL, so every post reappears as unread in feed readers
+// once after this deploy: an accepted one-time cost of the migration.
 export function GET() {
   const posts = listBlogPostSummaries();
   const buildDate = posts[0]?.date ?? new Date().toISOString();
@@ -43,15 +47,11 @@ export function GET() {
     .map((post) => {
       const url = `${SITE_URL}${post.href}`;
       const description = post.description ?? "";
-      const shareImage = post.featuredImage
-        ? getShareImageSrc(post.featuredImage)
-        : null;
+      const shareImage = post.featuredImage ? getShareImageSrc(post.featuredImage) : null;
       const enclosure = shareImage
         ? `<enclosure url="${SITE_URL}${escape(shareImage)}" type="${imageMimeType(shareImage)}" />`
         : "";
-      const categories = post.tags
-        .map((tag) => `<category>${escape(tag)}</category>`)
-        .join("");
+      const categories = post.tags.map((tag) => `<category>${escape(tag)}</category>`).join("");
       return `    <item>
       <title>${escape(post.title)}</title>
       <link>${escape(url)}</link>
@@ -69,7 +69,7 @@ export function GET() {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${escape(FEED_TITLE)}</title>
-    <link>${SITE_URL}/blog</link>
+    <link>${SITE_URL}/learn/articles</link>
     <atom:link href="${SITE_URL}/blog/rss.xml" rel="self" type="application/rss+xml" />
     <description>${escape(FEED_DESCRIPTION)}</description>
     <language>en-us</language>

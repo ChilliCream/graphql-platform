@@ -1,11 +1,7 @@
 import { notFound } from "next/navigation";
 import { BlogIndexShell } from "@/src/components/BlogIndexShell";
-import {
-  listTags,
-  paginate,
-  POSTS_PER_PAGE,
-  postsForTag,
-} from "@/src/helpers/blogPaging";
+import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
+import { listTags, paginate, POSTS_PER_PAGE, postsForTag } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 
 type Params = { tag: string; page: string };
@@ -29,10 +25,10 @@ export function generateStaticParams(): Params[] {
 
 export async function generateMetadata({ params }: PageProps) {
   const { tag } = await params;
-  return { title: `${tag} · Blog` };
+  return { title: `${tag} · Articles` };
 }
 
-export default async function TagPageN({ params }: PageProps) {
+export default async function ArticleTagPageN({ params }: PageProps) {
   const { tag, page } = await params;
   const pageNum = Number(page);
   if (!Number.isInteger(pageNum) || pageNum < 2) {
@@ -48,15 +44,25 @@ export default async function TagPageN({ params }: PageProps) {
   }
 
   return (
-    <BlogIndexShell
-      title={`#${tag}`}
-      posts={slice.posts}
-      pagination={{
-        currentPage: slice.currentPage,
-        totalPages: slice.totalPages,
-        hrefForPage: (p) =>
-          p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`,
-      }}
-    />
+    <div className="cc-content-dark">
+      <div className="mx-auto max-w-6xl px-5 pt-8 sm:px-12">
+        <ArticleBreadcrumb
+          items={[
+            { label: "Learn", href: "/learn" },
+            { label: "Articles", href: "/learn/articles" },
+            { label: `#${tag}` },
+          ]}
+        />
+      </div>
+      <BlogIndexShell
+        title={`#${tag}`}
+        posts={slice.posts}
+        pagination={{
+          currentPage: slice.currentPage,
+          totalPages: slice.totalPages,
+          hrefForPage: (p) => (p === 1 ? `/learn/articles/tags/${tag}` : `/learn/articles/tags/${tag}/${p}`),
+        }}
+      />
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CardGrid } from "@/src/components/CardGrid";
+import { SimilarPosts } from "@/src/components/SimilarPosts";
 import { ArticleLayout } from "@/src/components/learn/ArticleLayout";
 import { LearnCard } from "@/src/components/learn/LearnCard";
 import { ARTICLES_ROOT, listArticleSlugs, resolveArticleFile } from "@/src/helpers/articlePaths";
@@ -11,6 +12,7 @@ import { compileDoc } from "@/src/helpers/compileDoc";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { findSimilarPosts, listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { LEARN_SUMMARIES, TEMPLATE_SUMMARIES } from "@/src/data/learn/content";
 import type { ProductKey } from "@/src/data/learn/facets";
 import type { LearnItemSummary } from "@/src/data/learn/types";
@@ -69,14 +71,22 @@ export default async function ArticlePage({ params }: PageProps) {
   const absPath = path.join(ARTICLES_ROOT, rel);
   const [{ content, toc }, raw] = await Promise.all([compileDoc(absPath), fs.readFile(absPath, "utf-8")]);
   const readingTime = estimateReadingTime(raw).text;
-  const related = findRelated(article.products);
+  const isBlogArticle = article.kind === "article";
+  const related = isBlogArticle ? [] : findRelated(article.products);
+  const similarPosts = isBlogArticle
+    ? (() => {
+        const posts = listBlogPostSummaries();
+        const current = posts.find((p) => p.stem === article.slug);
+        return current ? findSimilarPosts(current, posts) : [];
+      })()
+    : [];
   const shareUrl = toAbsoluteUrl(article.href);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "Article",
+        "@type": isBlogArticle ? "BlogPosting" : "Article",
         headline: article.title,
         ...(article.description ? { description: article.description } : {}),
         datePublished: toSchemaDate(article.date),
@@ -114,9 +124,11 @@ export default async function ArticlePage({ params }: PageProps) {
       />
       <ArticleLayout
         breadcrumb={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]}
-        kind={article.kind}
+        kind={article.kind === "comparison" || article.kind === "explainer" ? article.kind : undefined}
         title={article.title}
-        standfirst={article.description ?? undefined}
+        // Blog posts skip the standfirst: their description is meta-only
+        // (learn-editorial.md section 4.1 item 5).
+        standfirst={isBlogArticle ? undefined : (article.description ?? undefined)}
         meta={{
           author: article.author ?? undefined,
           authorUrl: article.authorUrl ?? undefined,
@@ -128,8 +140,11 @@ export default async function ArticlePage({ params }: PageProps) {
         heroImageSrc={article.featuredImage}
         shareUrl={shareUrl}
         toc={toc}
+        tags={article.tags}
         related={
-          related.length > 0 ? (
+          isBlogArticle ? (
+            <SimilarPosts posts={similarPosts} />
+          ) : related.length > 0 ? (
             <section className="border-cc-card-border mt-12 border-t pt-10 print:hidden">
               <h2 className="text-cc-heading m-0 mb-6 text-2xl font-semibold">Related</h2>
               <CardGrid cols={3} itemsStretch>
