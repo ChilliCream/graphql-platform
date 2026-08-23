@@ -167,12 +167,13 @@ public sealed class PingSessionExecutorTests : IDisposable
         var attemptId = await ClaimAttemptAsync(cancellationToken);
         var slot = await _leases.TryAcquireAsync(
             attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
-        var executor = new PingSessionExecutor(_mail, new NeverCompletingCodexQueueClient(), _sessions, _leases);
+        var executor = new PingSessionExecutor(
+            _mail, new NeverCompletingCodexQueueClient(), _sessions, _leases, _timeProvider);
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value,
-            DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(50), cancellationToken);
+            _timeProvider.GetUtcNow() + TimeSpan.FromMilliseconds(50), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Timeout, outcome);
@@ -198,7 +199,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         // whole budget by the time this attempt runs.
         var outcome = await executor.ExecuteCodexThreadAsync(
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value,
-            DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1), cancellationToken);
+            _timeProvider.GetUtcNow() - TimeSpan.FromSeconds(1), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Timeout, outcome);
@@ -208,14 +209,14 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     private PingSessionExecutor CreateExecutor()
-        => new(_mail, _queueClient, _sessions, _leases);
+        => new(_mail, _queueClient, _sessions, _leases, _timeProvider);
 
     /// <summary>
     /// A deadline generous enough that a test's own real-time transport work
     /// never approaches it, so the digest/transport path runs to completion
     /// instead of racing the timeout.
     /// </summary>
-    private static DateTimeOffset FarFutureDeadline() => DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5);
+    private DateTimeOffset FarFutureDeadline() => _timeProvider.GetUtcNow() + TimeSpan.FromSeconds(5);
 
     private async Task InitializeSessionAsync(CancellationToken cancellationToken)
     {

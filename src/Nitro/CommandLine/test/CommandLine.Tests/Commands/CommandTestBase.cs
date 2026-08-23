@@ -43,6 +43,7 @@ public abstract class CommandTestBase
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
     private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
+    private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -126,6 +127,16 @@ public abstract class CommandTestBase
     private protected void SetupPingWorkerLauncher(Services.Notify.IPingWorkerLauncher launcher)
     {
         _pingWorkerLauncherOverride = launcher;
+    }
+
+    /// <summary>
+    /// Replaces the real subprocess-spawning <c>codex queue</c> client with
+    /// the given fake, so tests exercising a codex-thread ping through the
+    /// CLI never shell out to a real <c>codex</c> binary.
+    /// </summary>
+    private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
+    {
+        _codexQueueClientOverride = client;
     }
 
     protected void SetupNoAuthentication()
@@ -313,6 +324,11 @@ public abstract class CommandTestBase
         if (_pingWorkerLauncherOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_pingWorkerLauncherOverride));
+        }
+
+        if (_codexQueueClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_codexQueueClientOverride));
         }
 
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));

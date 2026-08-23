@@ -1,14 +1,12 @@
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Runs <c>nitro agent ping</c> against a real workspace database. Every
-/// scenario here deliberately avoids a live <c>codex-thread</c> session:
-/// that endpoint kind routes through the real <c>ICodexQueueClient</c> in
-/// the full command pipeline (no test seam replaces it, unlike
-/// <c>IPingWorkerLauncher</c>), and this machine has a real <c>codex</c>
-/// binary on PATH - the codex-thread transport path is covered instead at
-/// the service level by <c>PingSessionExecutorTests</c>, with a fake queue
-/// client.
+/// Runs <c>nitro agent ping</c> against a real workspace database. The
+/// codex-thread transport call goes through a fake <c>ICodexQueueClient</c>
+/// substituted via <c>SetupCodexQueueClient</c>, so no scenario here ever
+/// shells out to a real <c>codex</c> binary.
 /// </summary>
 public sealed class PingAgentCommandTests : AgentCommandTestBase
 {
@@ -100,6 +98,37 @@ public sealed class PingAgentCommandTests : AgentCommandTestBase
         var stored = await QueryScalarAsync(
             "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
         Assert.Equal("unsupported", stored);
+    }
+
+    [Fact]
+    public async Task CodexThreadSession_QueuesTheDigestAndRecordsOk()
+    {
+        // arrange: a live codex-thread session with unread mail waiting -
+        // the notifier's required "a codex-thread ping wakes a live thread
+        // end to end" CLI-level coverage.
+        var queueClient = new FakeCodexQueueClient();
+        SetupCodexQueueClient(queueClient);
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", agentName: "bob", endpointKind: "codex-thread", endpointAddr: "thread-1");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.", "--no-ping");
+        var messageId = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "ping", "bob");
+
+        // assert
+        result.AssertSuccess("claude-code  session-1  codex-thread  ok");
+
+        var call = Assert.Single(queueClient.Calls);
+        Assert.Equal("thread-1", call.ThreadId);
+        Assert.Contains(messageId!, call.Message);
+
+        var stored = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Equal("ok", stored);
     }
 
     [Fact]

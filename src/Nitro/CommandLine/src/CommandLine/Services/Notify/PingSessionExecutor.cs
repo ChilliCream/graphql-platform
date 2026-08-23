@@ -8,7 +8,8 @@ internal sealed class PingSessionExecutor(
     IMailStore mailStore,
     ICodexQueueClient queueClient,
     IAgentSessionRegistry sessionRegistry,
-    IPingLeaseStore leaseStore) : IPingSessionExecutor
+    IPingLeaseStore leaseStore,
+    TimeProvider timeProvider) : IPingSessionExecutor
 {
     public async Task<string> ExecuteCodexThreadAsync(
         string harness,
@@ -156,9 +157,9 @@ internal sealed class PingSessionExecutor(
     /// clock skew or an unexpectedly distant deadline can never grant an
     /// attempt more than its policy budget.
     /// </summary>
-    private static TimeSpan ClampRemaining(DateTimeOffset deadline)
+    private TimeSpan ClampRemaining(DateTimeOffset deadline)
     {
-        var remaining = deadline - DateTimeOffset.UtcNow;
+        var remaining = deadline - timeProvider.GetUtcNow();
 
         if (remaining < TimeSpan.Zero)
         {
