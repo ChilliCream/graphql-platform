@@ -337,17 +337,18 @@ internal sealed class AgentSessionRegistry(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-            new
-            {
-                harness = generation.Harness,
-                sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
-                host = generation.Host,
-                cancellationToken
-            });
+            new CommandDefinition(
+                "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
+                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                new
+                {
+                    harness = generation.Harness,
+                    sessionId = generation.SessionId,
+                    pid = generation.Pid,
+                    procStart = generation.ProcStart,
+                    host = generation.Host
+                },
+                cancellationToken: cancellationToken));
 
         return rowsAffected > 0;
     }
@@ -358,18 +359,19 @@ internal sealed class AgentSessionRegistry(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
-            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
-            + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-            new
-            {
-                harness = generation.Harness,
-                sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
-                host = generation.Host,
-                cancellationToken
-            });
+            new CommandDefinition(
+                $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+                + "WHERE harness = @harness AND session_id = @sessionId "
+                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                new
+                {
+                    harness = generation.Harness,
+                    sessionId = generation.SessionId,
+                    pid = generation.Pid,
+                    procStart = generation.ProcStart,
+                    host = generation.Host
+                },
+                cancellationToken: cancellationToken));
 
         return row?.ToRecord();
     }
@@ -379,18 +381,19 @@ internal sealed class AgentSessionRegistry(
         await using var connection = await ConnectAsync(cancellationToken);
 
         await connection.ExecuteAsync(
-            "UPDATE agent_sessions SET block_budget_used = 0 "
-            + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-            new
-            {
-                harness = generation.Harness,
-                sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
-                host = generation.Host,
-                cancellationToken
-            });
+            new CommandDefinition(
+                "UPDATE agent_sessions SET block_budget_used = 0 "
+                + "WHERE harness = @harness AND session_id = @sessionId "
+                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                new
+                {
+                    harness = generation.Harness,
+                    sessionId = generation.SessionId,
+                    pid = generation.Pid,
+                    procStart = generation.ProcStart,
+                    host = generation.Host
+                },
+                cancellationToken: cancellationToken));
     }
 
     public async Task<int?> IncrementBlockBudgetAsync(
@@ -400,19 +403,20 @@ internal sealed class AgentSessionRegistry(
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            "UPDATE agent_sessions SET block_budget_used = block_budget_used + 1 "
-            + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-            new
-            {
-                harness = generation.Harness,
-                sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
-                host = generation.Host,
-                cancellationToken
-            },
-            transaction);
+            new CommandDefinition(
+                "UPDATE agent_sessions SET block_budget_used = block_budget_used + 1 "
+                + "WHERE harness = @harness AND session_id = @sessionId "
+                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                new
+                {
+                    harness = generation.Harness,
+                    sessionId = generation.SessionId,
+                    pid = generation.Pid,
+                    procStart = generation.ProcStart,
+                    host = generation.Host
+                },
+                transaction,
+                cancellationToken: cancellationToken));
 
         if (rowsAffected == 0)
         {
@@ -421,19 +425,20 @@ internal sealed class AgentSessionRegistry(
         }
 
         var updated = await connection.ExecuteScalarAsync<int>(
-            "SELECT block_budget_used FROM agent_sessions "
-            + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-            new
-            {
-                harness = generation.Harness,
-                sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
-                host = generation.Host,
-                cancellationToken
-            },
-            transaction);
+            new CommandDefinition(
+                "SELECT block_budget_used FROM agent_sessions "
+                + "WHERE harness = @harness AND session_id = @sessionId "
+                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                new
+                {
+                    harness = generation.Harness,
+                    sessionId = generation.SessionId,
+                    pid = generation.Pid,
+                    procStart = generation.ProcStart,
+                    host = generation.Host
+                },
+                transaction,
+                cancellationToken: cancellationToken));
 
         await transaction.CommitAsync(cancellationToken);
 

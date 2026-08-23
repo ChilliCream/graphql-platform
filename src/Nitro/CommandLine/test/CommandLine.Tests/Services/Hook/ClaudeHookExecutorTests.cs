@@ -1,4 +1,9 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
@@ -104,6 +109,126 @@ public sealed class ClaudeHookExecutorTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.Equal("{}", output.ToString().Trim());
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_WriteNeutral_When_TheHandlerIgnoresCancellation()
+    {
+        // arrange: the handler never observes the linked token at all (a
+        // hung database call, for instance), so only racing the entry
+        // timeout against the handler task - never awaiting the handler
+        // task itself on timeout - can keep this call within the deadline.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var input = new StringReader(HookFixtures.Read("stop.json"));
+        var output = new StringWriter();
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        // act
+        var exitCode = await ClaudeHookExecutor.RunAsync(
+            new FixedEnvironmentVariableProvider(),
+            input,
+            output,
+            async (_, _) => { await Task.Delay(Timeout.InfiniteTimeSpan); return ClaudeHookOutcome.Neutral; },
+            TimeSpan.FromMilliseconds(50),
+            cancellationToken);
+
+        stopwatch.Stop();
+
+        // assert
+        Assert.Equal(0, exitCode);
+        Assert.Equal("{}", output.ToString().Trim());
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"expected RunAsync to return near the 50ms timeout, took {stopwatch.Elapsed}");
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_WriteNeutral_When_TheDatabaseIsContended()
+    {
+        // arrange: a second connection holds an open write transaction on
+        // the workspace database, so the Stop handler's ledger reservation
+        // write blocks waiting for the lock. The executor's short timeout
+        // must still resolve to neutral instead of waiting out SQLite's own
+        // (far longer) default busy timeout.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-executor-contention-tests");
+
+        try
+        {
+            var workspaceRoot = tempRoot.FullName;
+            var workspaceDirectory = AgentWorkspace.GetDirectory(workspaceRoot);
+            Directory.CreateDirectory(workspaceDirectory);
+            var fileSystem = new TestFileSystem(workspaceRoot);
+            var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+            var database = new AgentDatabase();
+            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
+            var sessions = new AgentSessionRegistry(
+                fileSystem,
+                timeProvider,
+                database,
+                agentRegistry,
+                new FixedInstanceIdProvider("host-1"),
+                new FixedGlobalConfigDirectoryProvider(workspaceRoot),
+                new ProcessInfoProvider(),
+                new FixedAncestorSessionResolver(null));
+            var ledger = new SessionDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var environmentVariables = new FixedEnvironmentVariableProvider();
+            var handler = new ClaudeHookHandler(
+                fileSystem,
+                timeProvider,
+                sessions,
+                ledger,
+                mail,
+                environmentVariables,
+                new ProcessInfoProvider(),
+                new FixedAncestorSessionResolver(null),
+                new FixedInstanceIdProvider("host-1"),
+                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+
+            await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
+            {
+            }
+
+            environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
+            var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
+            await handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+            await mail.SendMessageAsync(
+                new MailMessageCreation { Sender = "bob", Subject = "status", Body = "check", To = ["alice"] },
+                cancellationToken);
+
+            await using var lockConnection = new SqliteConnection(
+                $"Data Source={AgentWorkspace.GetDatabasePath(workspaceDirectory)};Pooling=False");
+            await lockConnection.OpenAsync(cancellationToken);
+            await using var lockTransaction = lockConnection.BeginTransaction();
+            await using (var lockCommand = lockConnection.CreateCommand())
+            {
+                lockCommand.Transaction = lockTransaction;
+                lockCommand.CommandText = "UPDATE agent_sessions SET last_beat_at = last_beat_at;";
+                await lockCommand.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            var input = new StringReader(
+                $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(workspaceRoot)}}}""");
+            var output = new StringWriter();
+
+            // act
+            var exitCode = await ClaudeHookExecutor.RunAsync(
+                environmentVariables,
+                input,
+                output,
+                (p, ct) => handler.HandleStopAsync(p, dryRun: true, ct),
+                TimeSpan.FromMilliseconds(200),
+                cancellationToken);
+
+            // assert
+            Assert.Equal(0, exitCode);
+            Assert.Equal("{}", output.ToString().Trim());
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
     }
 
     [Fact]

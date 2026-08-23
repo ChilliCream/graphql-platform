@@ -57,28 +57,45 @@ internal static class ClaudeHookExecutor
 
         try
         {
-            var json = await input.ReadToEndAsync(linkedSource.Token);
+            var runTask = RunHandlerAsync(input, handle, linkedSource.Token);
+            var timeoutTask = Task.Delay(Timeout.InfiniteTimeSpan, timeoutSource.Token);
 
-            var payload = JsonSerializer.Deserialize(json, ClaudeHookJsonContext.Default.ClaudeHookPayload);
+            var completed = await Task.WhenAny(runTask, timeoutTask);
 
-            if (payload is not null)
+            if (completed == runTask)
             {
-                outcome = await handle(payload, linkedSource.Token);
+                outcome = await runTask;
             }
+
+            // Else: the entry timeout won the race. `outcome` stays
+            // ClaudeHookOutcome.Neutral without awaiting `runTask` - a
+            // handler ignoring cancellation must not be allowed to keep
+            // this call, and the harness, waiting past the timeout.
         }
         catch
         {
-            // Fail-open on EVERYTHING: an empty or malformed payload, a
+            // Fail-open on EVERYTHING: an empty or malformed payload or a
             // handler exception (database contention, a schema version
-            // mismatch), or the entry timeout above. `outcome` is still
-            // ClaudeHookOutcome.Neutral, so the harness always gets a valid
-            // neutral response within the timeout, never an error.
+            // mismatch). `outcome` is still ClaudeHookOutcome.Neutral, so the
+            // harness always gets a valid neutral response, never an error.
             outcome = ClaudeHookOutcome.Neutral;
         }
 
         await WriteAsync(output, outcome, cancellationToken);
 
         return ExitCode;
+    }
+
+    private static async Task<ClaudeHookOutcome> RunHandlerAsync(
+        TextReader input,
+        Func<ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle,
+        CancellationToken cancellationToken)
+    {
+        var json = await input.ReadToEndAsync(cancellationToken);
+
+        var payload = JsonSerializer.Deserialize(json, ClaudeHookJsonContext.Default.ClaudeHookPayload);
+
+        return payload is null ? ClaudeHookOutcome.Neutral : await handle(payload, cancellationToken);
     }
 
     // Always success: a hook adapter reports failure to the harness through

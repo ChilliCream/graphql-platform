@@ -32,13 +32,15 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
             // already reserved, by this call's own session or an earlier
             // one, so the message is excluded rather than reserved twice.
             var rowsAffected = await connection.ExecuteAsync(
-                """
-                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES (@harness, @sessionId, @messageId, @channel, @deliveredAt)
-                ON CONFLICT DO NOTHING;
-                """,
-                new { harness, sessionId, messageId, channel, deliveredAt, cancellationToken },
-                transaction);
+                new CommandDefinition(
+                    """
+                    INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
+                    VALUES (@harness, @sessionId, @messageId, @channel, @deliveredAt)
+                    ON CONFLICT DO NOTHING;
+                    """,
+                    new { harness, sessionId, messageId, channel, deliveredAt },
+                    transaction,
+                    cancellationToken: cancellationToken));
 
             if (rowsAffected > 0)
             {
