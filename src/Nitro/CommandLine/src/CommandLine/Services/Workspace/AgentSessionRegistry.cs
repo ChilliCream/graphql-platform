@@ -352,6 +352,94 @@ internal sealed class AgentSessionRegistry(
         return rowsAffected > 0;
     }
 
+    public async Task<AgentSessionRecord?> FindByGenerationAsync(
+        AgentSessionGeneration generation, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            });
+
+        return row?.ToRecord();
+    }
+
+    public async Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET block_budget_used = 0 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            });
+    }
+
+    public async Task<int?> IncrementBlockBudgetAsync(
+        AgentSessionGeneration generation, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var rowsAffected = await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET block_budget_used = block_budget_used + 1 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            },
+            transaction);
+
+        if (rowsAffected == 0)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return null;
+        }
+
+        var updated = await connection.ExecuteScalarAsync<int>(
+            "SELECT block_budget_used FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return updated;
+    }
+
     public async Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken)
     {
         var host = await ResolveHostAsync(cancellationToken);

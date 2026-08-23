@@ -72,6 +72,31 @@ internal interface IAgentSessionRegistry
     Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns the row matching <paramref name="generation"/> exactly (the
+    /// full generation predicate, not just harness and session id), or null
+    /// when no row matches. Used by the hook adapters to require a claimed
+    /// row belonging to the exact process instance a turn-boundary event
+    /// fired against before acting on it.
+    /// </summary>
+    Task<AgentSessionRecord?> FindByGenerationAsync(
+        AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Resets <c>block_budget_used</c> to zero for the row matching
+    /// <paramref name="generation"/> exactly. A generation that matches no
+    /// row is a no-op. Called on <c>UserPromptSubmit</c>, so a lifetime
+    /// ceiling can never silently disable the Stop gate.
+    /// </summary>
+    Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomically increments <c>block_budget_used</c> by one for the row
+    /// matching <paramref name="generation"/> exactly and returns the new
+    /// value. Returns null when no row matches that generation.
+    /// </summary>
+    Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Deletes every row on the CURRENT Nitro instance whose process is no
     /// longer alive at its recorded generation. Rows recorded by a different
     /// instance id are never touched. Returns the rows that were reaped.

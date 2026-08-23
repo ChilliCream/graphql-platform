@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -38,6 +39,8 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IProcessInfoProvider, ProcessInfoProvider>();
         services.TryAddSingleton<IClaudeAncestorSessionResolver, ClaudeAncestorSessionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
+        services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
+        services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
         services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
