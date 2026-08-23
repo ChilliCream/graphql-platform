@@ -6,10 +6,8 @@
      (`--font-josefin-sans`). Body voice is the native system stack.
      `--font-sans` (Tailwind's `font-sans`) aliases the body voice so existing
      utilities pick it up. */
-  --font-heading:
-    var(--font-josefin-sans), "Futura", "Trebuchet MS", sans-serif;
-  --font-body:
-    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-josefin-sans), "Futura", "Trebuchet MS", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-sans: var(--font-body);
 
   /* Wider container for /learn routes only (learn-editorial.md section 12).
@@ -102,65 +100,17 @@
        original WebGL nebula without the JS cost, anchored to the viewport
        so the pattern doesn't scroll with content. */
     --cc-dark-surface:
-      radial-gradient(
-        1px 1px at 17% 12%,
-        rgba(255, 255, 255, 0.5),
-        transparent 50%
-      ),
-      radial-gradient(
-        1px 1px at 34% 58%,
-        rgba(255, 255, 255, 0.45),
-        transparent 50%
-      ),
-      radial-gradient(
-        1.5px 1.5px at 62% 23%,
-        rgba(255, 255, 255, 0.4),
-        transparent 50%
-      ),
-      radial-gradient(
-        1px 1px at 82% 71%,
-        rgba(255, 255, 255, 0.6),
-        transparent 50%
-      ),
-      radial-gradient(
-        1px 1px at 12% 84%,
-        rgba(255, 255, 255, 0.4),
-        transparent 50%
-      ),
-      radial-gradient(
-        1.5px 1.5px at 48% 91%,
-        rgba(255, 255, 255, 0.35),
-        transparent 50%
-      ),
-      radial-gradient(
-        1px 1px at 91% 8%,
-        rgba(255, 255, 255, 0.45),
-        transparent 50%
-      ),
-      radial-gradient(
-        1px 1px at 27% 31%,
-        rgba(255, 255, 255, 0.4),
-        transparent 50%
-      ),
-      radial-gradient(
-        1.2px 1.2px at 73% 49%,
-        rgba(255, 255, 255, 0.5),
-        transparent 50%
-      ),
-      radial-gradient(
-        80% 50% at 70% 0%,
-        rgba(80, 60, 200, 0.12),
-        transparent 60%
-      ),
-      linear-gradient(
-        180deg,
-        #0c1322 0%,
-        #0c1322 22%,
-        #0b1220 38%,
-        #0a111e 58%,
-        #09101c 78%,
-        #08101a 100%
-      );
+      radial-gradient(1px 1px at 17% 12%, rgba(255, 255, 255, 0.5), transparent 50%),
+      radial-gradient(1px 1px at 34% 58%, rgba(255, 255, 255, 0.45), transparent 50%),
+      radial-gradient(1.5px 1.5px at 62% 23%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1px 1px at 82% 71%, rgba(255, 255, 255, 0.6), transparent 50%),
+      radial-gradient(1px 1px at 12% 84%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1.5px 1.5px at 48% 91%, rgba(255, 255, 255, 0.35), transparent 50%),
+      radial-gradient(1px 1px at 91% 8%, rgba(255, 255, 255, 0.45), transparent 50%),
+      radial-gradient(1px 1px at 27% 31%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1.2px 1.2px at 73% 49%, rgba(255, 255, 255, 0.5), transparent 50%),
+      radial-gradient(80% 50% at 70% 0%, rgba(80, 60, 200, 0.12), transparent 60%),
+      linear-gradient(180deg, #0c1322 0%, #0c1322 22%, #0b1220 38%, #0a111e 58%, #09101c 78%, #08101a 100%);
 
     /* "Get in touch" promo card: fuchsia-500/20 → indigo-500/15 → sky-500/10,
        diagonally to the bottom-right. The stops are the oklab values Tailwind
@@ -328,8 +278,7 @@ html[data-smooth-scroll="true"]:has(:target) {
   --docsearch-subtle-color: var(--color-cc-ink-faint);
   --docsearch-container-background: rgb(5 8 15 / 0.7);
   --docsearch-modal-background: var(--color-cc-surface);
-  --docsearch-modal-shadow:
-    inset 1px 1px 0 0 rgb(245 241 234 / 0.06), 0 12px 32px 0 rgb(0 0 0 / 0.5);
+  --docsearch-modal-shadow: inset 1px 1px 0 0 rgb(245 241 234 / 0.06), 0 12px 32px 0 rgb(0 0 0 / 0.5);
   --docsearch-searchbox-background: rgb(245 241 234 / 0.05);
   --docsearch-searchbox-focus-background: rgb(245 241 234 / 0.08);
   --docsearch-searchbox-shadow: inset 0 0 0 2px var(--color-cc-accent);
@@ -341,8 +290,7 @@ html[data-smooth-scroll="true"]:has(:target) {
   --docsearch-key-color: var(--color-cc-ink-dim);
   --docsearch-key-pressed-shadow: inset 0 2px 4px rgb(0 0 0 / 0.4);
   --docsearch-footer-background: var(--color-cc-bg);
-  --docsearch-footer-shadow:
-    0 -1px 0 0 rgb(245 241 234 / 0.1), 0 -3px 6px 0 rgb(0 0 0 / 0.2);
+  --docsearch-footer-shadow: 0 -1px 0 0 rgb(245 241 234 / 0.1), 0 -3px 6px 0 rgb(0 0 0 / 0.2);
   --docsearch-logo-color: var(--color-cc-ink-dim);
 }
 
@@ -360,9 +308,7 @@ html[data-smooth-scroll="true"]:has(:target) {
 }
 
 .DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-icon,
-.DocSearch-Container
-  .DocSearch-Hit[aria-selected="true"]
-  .DocSearch-Hit-action {
+.DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-action {
   color: var(--color-cc-ink-dim);
 }
 
@@ -421,9 +367,7 @@ html[data-smooth-scroll="true"]:has(:target) {
   margin: 0;
   padding: 1rem 0;
   background: transparent !important;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .shiki-wrapper code {
