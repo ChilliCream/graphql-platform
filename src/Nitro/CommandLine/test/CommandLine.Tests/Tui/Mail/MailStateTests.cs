@@ -130,6 +130,54 @@ public sealed class MailStateTests
     }
 
     [Fact]
+    public async Task RefreshAsync_Should_ExcludeFullyArchivedThreads_When_MailboxIsInboxAndFilterIsInbox()
+    {
+        // arrange: t-1's only message to alice is archived for her; t-2's
+        // is not.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: Now)]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+
+        // act
+        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
+
+        // assert: t-1's only message to alice is archived, so it is excluded
+        // by default (Filter starts at MailListFilter.Inbox), matching
+        // BuildInboxQuery's message-level semantics.
+        Assert.Equal(MailListFilter.Inbox, state.Filter);
+        Assert.Equal(["t-2"], state.Threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
+    public async Task RefreshAsync_Should_ShowOnlyArchivedThreads_When_MailboxIsInboxAndFilterIsArchived()
+    {
+        // arrange: t-1's only message to alice is archived for her; t-2's
+        // is not.
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: Now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: Now)]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
+
+        // act
+        await state.CycleFilterAsync(1, CancellationToken.None); // Inbox -> Unread
+        await state.CycleFilterAsync(1, CancellationToken.None); // Unread -> Archived
+
+        // assert: only t-1 carries an archived-for-alice message, so
+        // cycling to Archived narrows the row set to it, not the full inbox
+        // thread set.
+        Assert.Equal(MailListFilter.Archived, state.Filter);
+        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
     public async Task SelectMailboxAsync_Should_SwitchMailboxAndLoadFromItsOwnStoreMethod()
     {
         // arrange

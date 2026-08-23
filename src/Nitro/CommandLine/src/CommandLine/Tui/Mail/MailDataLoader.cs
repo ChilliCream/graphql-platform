@@ -5,10 +5,14 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// <summary>
 /// Loads the mail board's list and thread panes from the mail store: one
 /// load method per <see cref="MailMailbox"/>. <see cref="LoadInboxAsync"/>
-/// translates a <see cref="MailListFilter"/> into a <see cref="MailInboxFilter"/>
-/// query, deriving the archived-only filter client side since the store
-/// exposes only "include archived", not "archived only"; the other mailboxes
-/// carry no such filter. Issues no SQL of its own.
+/// and <see cref="LoadInboxThreadsAsync"/> each translate a
+/// <see cref="MailListFilter"/> into the store's own "include archived"
+/// knob (<see cref="MailInboxFilter.IncludeArchived"/> and
+/// <see cref="IMailStore.QueryInboxThreadsAsync"/>'s own parameter), then,
+/// for <see cref="MailListFilter.Archived"/>, narrow the result client side
+/// to archived-only entries themselves, since the store exposes only
+/// "include archived", not "archived only"; the other mailboxes carry no
+/// such filter. Issues no SQL of its own.
 /// </summary>
 internal sealed class MailDataLoader(IMailStore store)
 {
@@ -72,15 +76,33 @@ internal sealed class MailDataLoader(IMailStore store)
 
     /// <summary>
     /// Loads the actor's inbox thread rollups (the "Inbox" mailbox scope in
-    /// <see cref="MailListMode.Threads"/>), newest activity first. Unlike
-    /// <see cref="LoadInboxAsync"/>, this carries no <see cref="MailListFilter"/>:
-    /// the store exposes no filtered thread query, so Threads mode within
-    /// Inbox always shows the full inbox thread set (see <see cref="MailState"/>).
+    /// <see cref="MailListMode.Threads"/>) for the given filter, newest
+    /// activity first, mirroring <see cref="LoadInboxAsync"/>: every filter
+    /// but <see cref="MailListFilter.Archived"/> asks the store to exclude
+    /// threads whose only messages to the actor are archived (the store's
+    /// default); <see cref="MailListFilter.Archived"/> asks it to include
+    /// them, then narrows the result, client side, to threads carrying at
+    /// least one archived-for-actor message (<see cref="MailThreadSummary.ArchivedCount"/>),
+    /// the thread-level mirror of <see cref="LoadInboxAsync"/>'s
+    /// archived-only message narrowing. <see cref="MailListFilter.Unread"/>
+    /// carries no thread-level narrowing here: <see cref="MailState"/>
+    /// applies that client side from <see cref="MailThreadSummary.UnreadCount"/>,
+    /// since the store exposes no unread-only thread query.
     /// </summary>
-    public Task<IReadOnlyList<MailThreadSummary>> LoadInboxThreadsAsync(
+    public async Task<IReadOnlyList<MailThreadSummary>> LoadInboxThreadsAsync(
         string actor,
+        MailListFilter filter,
         CancellationToken cancellationToken)
-        => store.QueryInboxThreadsAsync(actor, cancellationToken);
+    {
+        var includeArchived = filter == MailListFilter.Archived;
+
+        var threads = await store.QueryInboxThreadsAsync(actor, includeArchived, cancellationToken)
+            .ConfigureAwait(false);
+
+        return includeArchived
+            ? threads.Where(t => (t.ArchivedCount ?? 0) > 0).ToList()
+            : threads;
+    }
 
     /// <summary>
     /// Loads thread rollups for every thread the actor sent a message in

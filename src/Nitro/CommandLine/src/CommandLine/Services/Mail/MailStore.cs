@@ -706,30 +706,54 @@ internal sealed class MailStore(
         return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
     }
 
+    // The two branches keep separate compile-time-literal SQL strings, one
+    // per value of includeArchived, rather than splicing the archived
+    // predicate into one interpolated string: Dapper.AOT can only intercept
+    // a QueryAsync call whose SQL text it can read at compile time, and a
+    // runtime-conditional fragment would defeat that the same way
+    // BuildInboxQuery's runtime-assembled SQL forced it onto plain ADO.NET.
     public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
         string actor,
+        bool includeArchived,
         CancellationToken cancellationToken)
     {
         var normalizedActor = MailAgentName.Normalize(actor);
 
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var rollups = await connection.QueryAsync<ThreadRollupRow>(
-            """
-            SELECT
-                m.thread_id AS ThreadId,
-                COUNT(*) AS MessageCount,
-                MAX(m.created_at) AS LastMessageAt
-            FROM messages m
-            WHERE m.thread_id IN (
-                SELECT DISTINCT m2.thread_id
-                FROM messages m2
-                JOIN message_recipients mr ON mr.message_id = m2.id
-                WHERE mr.recipient = @actor
-            )
-            GROUP BY m.thread_id
-            """,
-            new { actor = normalizedActor, cancellationToken });
+        var rollups = includeArchived
+            ? await connection.QueryAsync<ThreadRollupRow>(
+                """
+                SELECT
+                    m.thread_id AS ThreadId,
+                    COUNT(*) AS MessageCount,
+                    MAX(m.created_at) AS LastMessageAt
+                FROM messages m
+                WHERE m.thread_id IN (
+                    SELECT DISTINCT m2.thread_id
+                    FROM messages m2
+                    JOIN message_recipients mr ON mr.message_id = m2.id
+                    WHERE mr.recipient = @actor
+                )
+                GROUP BY m.thread_id
+                """,
+                new { actor = normalizedActor, cancellationToken })
+            : await connection.QueryAsync<ThreadRollupRow>(
+                """
+                SELECT
+                    m.thread_id AS ThreadId,
+                    COUNT(*) AS MessageCount,
+                    MAX(m.created_at) AS LastMessageAt
+                FROM messages m
+                WHERE m.thread_id IN (
+                    SELECT DISTINCT m2.thread_id
+                    FROM messages m2
+                    JOIN message_recipients mr ON mr.message_id = m2.id
+                    WHERE mr.recipient = @actor AND mr.archived_at IS NULL
+                )
+                GROUP BY m.thread_id
+                """,
+                new { actor = normalizedActor, cancellationToken });
 
         return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
     }
@@ -806,11 +830,11 @@ internal sealed class MailStore(
 
     /// <summary>
     /// Fills in each rollup's subject, last message details, body preview,
-    /// and (when <paramref name="unreadActor"/> is given) unread count,
-    /// against the same connection the rollups were read from. Shared by
-    /// every thread query so each keeps its own compile-time-literal SQL for
-    /// the thread id source while the per-thread follow-up reads and the
-    /// ordering stay in one place.
+    /// and (when <paramref name="unreadActor"/> is given) unread and
+    /// archived counts, against the same connection the rollups were read
+    /// from. Shared by every thread query so each keeps its own
+    /// compile-time-literal SQL for the thread id source while the
+    /// per-thread follow-up reads and the ordering stay in one place.
     /// </summary>
     private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
         SqliteConnection connection,
@@ -842,6 +866,7 @@ internal sealed class MailStore(
                     .ToArray();
 
             int? unreadCount = null;
+            int? archivedCount = null;
 
             if (unreadActor is not null)
             {
@@ -855,6 +880,17 @@ internal sealed class MailStore(
                         AND mr.read_at IS NULL
                     """,
                     new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+
+                archivedCount = await connection.ExecuteScalarAsync<int>(
+                    """
+                    SELECT COUNT(*)
+                    FROM message_recipients mr
+                    JOIN messages m ON m.id = mr.message_id
+                    WHERE m.thread_id = @threadId
+                        AND mr.recipient = @actor
+                        AND mr.archived_at IS NOT NULL
+                    """,
+                    new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
             }
 
             summaries.Add(new MailThreadSummary
@@ -866,7 +902,8 @@ internal sealed class MailStore(
                 LastSender = lastMessage?.Sender ?? "",
                 LastRecipients = lastRecipients,
                 BodyPreview = CreateBodyPreview(lastMessage?.Body ?? ""),
-                UnreadCount = unreadCount
+                UnreadCount = unreadCount,
+                ArchivedCount = archivedCount
             });
         }
 
