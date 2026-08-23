@@ -178,18 +178,30 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
         }
 
         var forwardDeadLetteredMessagesTo = ResolveNativeDeadLetterDestination(azureConfiguration);
+        var resolvedIdleTimeout = ResolveTemporaryIdleTimeout(azureConfiguration);
 
         var queue = _topology.GetOrAddQueue(
             azureConfiguration.QueueName,
             _ => new AzureServiceBusQueueConfiguration
             {
-                AutoDeleteOnIdle = azureEndpoint.Kind == ReceiveEndpointKind.Reply
-                    ? TimeSpan.FromHours(24)
-                    : null,
+                AutoDeleteOnIdle = resolvedIdleTimeout,
                 AutoProvision = azureConfiguration.AutoProvision,
                 ForwardDeadLetteredMessagesTo = forwardDeadLetteredMessagesTo,
                 Origin = TopologyOrigin.Endpoint
             });
+
+        if (resolvedIdleTimeout is not null)
+        {
+            if (queue.AutoDeleteOnIdle is not null && queue.AutoDeleteOnIdle != resolvedIdleTimeout)
+            {
+                throw ThrowHelper.TemporaryEndpointQueueAutoDeleteOnIdleConflict(
+                    azureConfiguration.Name ?? azureConfiguration.QueueName,
+                    azureConfiguration.QueueName,
+                    queue.AutoDeleteOnIdle);
+            }
+
+            queue.SetAutoDeleteOnIdle(resolvedIdleTimeout.Value);
+        }
 
         if (forwardDeadLetteredMessagesTo is not null)
         {
@@ -488,6 +500,11 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
 
         return queueName;
     }
+
+    private static TimeSpan? ResolveTemporaryIdleTimeout(AzureServiceBusReceiveEndpointConfiguration configuration)
+        => configuration.IsTemporary
+            ? configuration.TemporaryIdleTimeout ?? AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.AutoDeleteOnIdle
+            : null;
 
     private bool? GetInheritedQueueAutoProvision(
         string queueName,

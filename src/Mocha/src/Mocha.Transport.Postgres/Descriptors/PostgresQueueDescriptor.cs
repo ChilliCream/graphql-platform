@@ -32,6 +32,13 @@ internal sealed class PostgresQueueDescriptor
     }
 
     /// <inheritdoc />
+    public IPostgresQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IPostgresQueueDescriptor Handler<THandler>() where THandler : class, IHandler
     {
         Configuration.ConsumerIdentities.Add(typeof(THandler));

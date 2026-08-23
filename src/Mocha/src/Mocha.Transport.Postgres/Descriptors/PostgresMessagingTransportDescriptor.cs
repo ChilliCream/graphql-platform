@@ -283,7 +283,7 @@ public sealed class PostgresMessagingTransportDescriptor
     private void ConfigureQueueTopology(PostgresQueueDescriptorConfiguration configuration)
     {
         var queue = DeclareQueue(configuration.Name!);
-        ApplyQueueConfiguration(configuration.Queue, queue);
+        ApplyQueueConfiguration(configuration, queue);
 
         var schema = Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema;
         foreach (var source in configuration.SourceBindings)
@@ -323,6 +323,8 @@ public sealed class PostgresMessagingTransportDescriptor
         {
             target.MaxBatchSize = configuration.MaxBatchSize;
         }
+
+        target.IsTemporary = target.IsTemporary || configuration.IsTemporary;
 
         target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
@@ -371,15 +373,28 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     private static void ApplyQueueConfiguration(
-        PostgresQueueConfiguration configuration,
+        PostgresQueueDescriptorConfiguration configuration,
         IPostgresQueueTopologyDescriptor descriptor)
     {
-        if (configuration.AutoDelete is { } autoDelete)
+        var queue = configuration.Queue;
+
+        if (configuration.IsTemporary)
+        {
+            if (queue.AutoDelete == false)
+            {
+                throw new InvalidOperationException(
+                    $"Queue '{configuration.Name}' declares both Temporary() and AutoDelete(false), "
+                        + "which conflict. Remove the explicit AutoDelete(false) or the Temporary() call.");
+            }
+
+            descriptor.AutoDelete(true);
+        }
+        else if (queue.AutoDelete is { } autoDelete)
         {
             descriptor.AutoDelete(autoDelete);
         }
 
-        if (configuration.AutoProvision is { } autoProvision)
+        if (queue.AutoProvision is { } autoProvision)
         {
             descriptor.AutoProvision(autoProvision);
         }

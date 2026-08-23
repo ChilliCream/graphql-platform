@@ -112,6 +112,13 @@ public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDe
     IRabbitMQQueueDescriptor MaxConcurrency(int maxConcurrency);
 
     /// <summary>
+    /// Marks this queue's receive endpoint as temporary, provisioning a non-durable, auto-delete
+    /// queue whose lifecycle is scoped to the lifetime of the consuming process.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQQueueDescriptor Temporary();
+
+    /// <summary>
     /// Adds receive middleware to this queue's endpoint pipeline.
     /// </summary>
     /// <param name="configuration">The middleware configuration.</param>

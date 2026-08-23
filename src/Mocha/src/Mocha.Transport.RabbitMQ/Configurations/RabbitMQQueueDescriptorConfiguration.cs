@@ -56,6 +56,12 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
     public ushort? MaxPrefetch { get; set; }
 
     /// <summary>
+    /// Gets or sets whether this queue's receive endpoint is temporary, scoping its infrastructure
+    /// to the lifetime of the consuming process.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
     /// Gets the receive middleware configurations applied when this queue materializes an endpoint.
     /// </summary>
     public List<ReceiveMiddlewareConfiguration> ReceiveMiddlewares { get; } = [];

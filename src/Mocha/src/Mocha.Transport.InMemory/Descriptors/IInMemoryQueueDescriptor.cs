@@ -76,6 +76,14 @@ public interface IInMemoryQueueDescriptor : IMessagingDescriptor<InMemoryQueueDe
     IInMemoryQueueDescriptor Kind(ReceiveEndpointKind kind);
 
     /// <summary>
+    /// Marks this queue's receive endpoint as temporary, signaling that its underlying
+    /// infrastructure is scoped to the lifetime of the consuming process rather than
+    /// provisioned durably.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryQueueDescriptor Temporary();
+
+    /// <summary>
     /// Adds receive middleware to this queue's endpoint pipeline.
     /// </summary>
     /// <param name="configuration">The middleware configuration.</param>

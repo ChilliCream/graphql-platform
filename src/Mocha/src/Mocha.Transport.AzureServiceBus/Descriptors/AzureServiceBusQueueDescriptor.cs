@@ -138,6 +138,23 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
+    public IAzureServiceBusQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        return this;
+    }
+
+    public IAzureServiceBusQueueDescriptor Temporary(TimeSpan idleTimeout)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(
+            idleTimeout,
+            AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle);
+
+        Configuration.IsTemporary = true;
+        Configuration.TemporaryIdleTimeout = idleTimeout;
+        return this;
+    }
+
     public IAzureServiceBusQueueDescriptor MaxConcurrency(int maxConcurrency)
     {
         Configuration.MaxConcurrency = maxConcurrency;
