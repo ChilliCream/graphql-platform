@@ -15,16 +15,16 @@ const config = {
   ...base,
   share: {
     ...profiles.shareCards,
-    images: listFeaturedBlogImages(),
+    images: listFeaturedArticleImages(),
   },
 };
 
-// Mirrors the featured-image resolution in src/helpers/blogPosts.ts and the
-// post layout in src/helpers/blogPaths.ts (a post is either `stem.md(x)` or
-// `stem/stem.md(x)` under content/blog). Only local /images/ paths can be
-// optimized; absolute URLs are skipped.
-function listFeaturedBlogImages() {
-  const root = path.join(process.cwd(), "content/blog");
+// Mirrors the featured-image resolution in resolveFeaturedImage in
+// src/helpers/articles.ts (articles are flat `slug.md(x)` files under
+// content/learn/articles). Only local /images/ paths can be optimized;
+// absolute URLs are skipped.
+function listFeaturedArticleImages() {
+  const root = path.join(process.cwd(), "content/learn/articles");
   let entries;
   try {
     entries = fs.readdirSync(root, { withFileTypes: true });
@@ -34,14 +34,18 @@ function listFeaturedBlogImages() {
 
   const images = new Set();
   for (const entry of entries) {
-    const post = resolveBlogPost(root, entry);
-    if (!post) {
+    if (!entry.isFile()) {
       continue;
     }
+    const match = entry.name.match(/^(.+)\.mdx?$/i);
+    if (!match) {
+      continue;
+    }
+    const slug = match[1];
+    const file = path.join(root, entry.name);
     try {
-      const { data } = matter(fs.readFileSync(post.file, "utf8"));
-      const raw =
-        typeof data.featuredImage === "string" ? data.featuredImage : "";
+      const { data } = matter(fs.readFileSync(file, "utf8"));
+      const raw = typeof data.featuredImage === "string" ? data.featuredImage : "";
       if (!raw) {
         continue;
       }
@@ -49,32 +53,15 @@ function listFeaturedBlogImages() {
         ? null // external URL: cannot self-optimize
         : raw.startsWith("/")
           ? raw
-          : `/images/blog/${post.stem}/${raw}`;
+          : `/images/learn-articles/${slug}/${raw}`;
       if (url?.startsWith("/images/")) {
         images.add(url);
       }
     } catch {
-      // unreadable post: skip, the build itself will surface the error
+      // unreadable article: skip, the build itself will surface the error
     }
   }
   return [...images];
-}
-
-function resolveBlogPost(root, entry) {
-  if (entry.isDirectory()) {
-    for (const ext of ["md", "mdx"]) {
-      const file = path.join(root, entry.name, `${entry.name}.${ext}`);
-      if (fs.existsSync(file)) {
-        return { file, stem: entry.name };
-      }
-    }
-    return null;
-  }
-  if (entry.isFile()) {
-    const match = entry.name.match(/^(.+)\.mdx?$/i);
-    return match ? { file: path.join(root, entry.name), stem: match[1] } : null;
-  }
-  return null;
 }
 
 const LABELS = { images: "Images", remote: "Remote" };
@@ -97,9 +84,7 @@ function render({ phase, done, total }) {
     const width = 30;
     const filled = Math.round((done / total) * width);
     const bar = "█".repeat(filled) + "░".repeat(width - filled);
-    process.stdout.write(
-      `\r[image-opt] ${label} ${bar} ${done}/${total} (${pct}%)`,
-    );
+    process.stdout.write(`\r[image-opt] ${label} ${bar} ${done}/${total} (${pct}%)`);
     if (done === total) {
       process.stdout.write("\n");
     }
