@@ -1,4 +1,4 @@
-// nitro-mail-extension-version: 1
+// nitro-mail-extension-version: 2
 //
 // Installed by `nitro agent hooks copilot extension install --scope project`
 // into <repo>/.github/extensions/nitro-mail/extension.mjs. Loaded by the
@@ -35,6 +35,14 @@ import { fileURLToPath } from 'node:url';
 const EXTENSION_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = path.join(EXTENSION_DIRECTORY, 'nitro-mail.config.json');
 const CURSOR_PATH = path.join(EXTENSION_DIRECTORY, '.nitro-mail-watch-cursor.json');
+
+// `mail watch` is given this explicit timeout so its exit code 1 has one,
+// unambiguous meaning (an empty poll), never an unbounded hang.
+const WATCH_TIMEOUT_SECONDS = 300;
+// Fixed delay before retrying after a real watch-poll failure, so a
+// persistent error (e.g. `nitro` misconfigured) cannot turn into a tight
+// process-spawn loop.
+const WATCH_RETRY_DELAY_MS = 5000;
 
 // ---------------------------------------------------------------------------
 // Pure state machine. No SDK dependency, no file/process I/O: every function
@@ -171,6 +179,7 @@ export function afterFlushSucceeded(state, flushed) {
 
   return {
     ...state,
+    phase: Phase.IDLE,
     cursor: { id: newestFlushed.id, createdAt: newestFlushed.createdAt },
     pending: state.pending.filter((m) => !flushedIds.has(m.id)),
   };
@@ -270,7 +279,16 @@ async function saveCursor(cursor) {
   await rename(tempPath, CURSOR_PATH);
 }
 
-function runNitro(config, args) {
+/**
+ * Strict by default: only exit code 0 resolves, anything else rejects. Pass
+ * `allowExitOne: true` for the one caller (the `mail watch` poll below) whose
+ * command is invoked with an explicit `--timeout`, where exit code 1
+ * legitimately means "timed out with nothing new" rather than a real error;
+ * every other caller (e.g. `mail inbox --unread`) must reject on a non-zero
+ * exit so a failure surfaces as a rejected `tryFlush` instead of silently
+ * reporting zero results.
+ */
+function runNitro(config, args, { allowExitOne = false } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(config.executable, [...config.argumentPrefix, ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -288,16 +306,17 @@ function runNitro(config, args) {
 
     child.on('error', reject);
     child.on('close', (code) => {
-      if (code !== 0 && code !== 1) {
-        // Exit code 1 from `mail watch` also covers its own "timed out"
-        // path, which is an expected, non-error outcome for this loop (an
-        // empty poll, not a failure); anything else is a real error.
+      if (code !== 0 && !(code === 1 && allowExitOne)) {
         reject(new Error(`nitro ${args.join(' ')} exited ${code}: ${stderr}`));
         return;
       }
       resolve(stdout);
     });
   });
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function toMailEntries(watchResultJson) {
@@ -362,22 +381,22 @@ export async function main() {
 
     state = plan.state;
 
-    const totalUnreadJson = await runNitro(config, [
-      'agent', 'mail', 'inbox', '--unread', '--output', 'json',
-    ]);
-    const totalUnread = toMailEntries(totalUnreadJson).length;
-
-    const digest = formatDigest(
-      totalUnread,
-      plan.messages.map((m) => ({ id: m.id, from: m.from })),
-    );
-
     try {
+      const totalUnreadJson = await runNitro(config, [
+        'agent', 'mail', 'inbox', '--unread', '--output', 'json',
+      ]);
+      const totalUnread = toMailEntries(totalUnreadJson).length;
+
+      const digest = formatDigest(
+        totalUnread,
+        [...plan.messages].reverse().map((m) => ({ id: m.id, from: m.from })),
+      );
+
       await session.send({ prompt: digest });
       state = afterFlushSucceeded(state, plan.messages);
       await saveCursor(state.cursor);
     } catch (err) {
-      console.error('nitro-mail extension: session.send failed, will retry next poll.', err);
+      console.error('nitro-mail extension: flush failed, will retry next poll.', err);
       state = afterFlushFailed(state);
     }
   }
@@ -385,15 +404,18 @@ export async function main() {
   async function watchLoop() {
     for (;;) {
       const args = state.cursor
-        ? ['agent', 'mail', 'watch', '--after', state.cursor.id, '--output', 'json']
-        : ['agent', 'mail', 'watch', '--include-existing', '--output', 'json'];
+        ? ['agent', 'mail', 'watch', '--after', state.cursor.id, '--timeout', String(WATCH_TIMEOUT_SECONDS), '--output', 'json']
+        : ['agent', 'mail', 'watch', '--include-existing', '--timeout', String(WATCH_TIMEOUT_SECONDS), '--output', 'json'];
 
       let stdout;
 
       try {
-        stdout = await runNitro(config, args);
+        // exit 1 here legitimately means "timed out, nothing new" because
+        // of the explicit --timeout above; anything else is a real error.
+        stdout = await runNitro(config, args, { allowExitOne: true });
       } catch (err) {
-        console.error('nitro-mail extension: watch poll failed, retrying.', err);
+        console.error('nitro-mail extension: watch poll failed, retrying after a delay.', err);
+        await delay(WATCH_RETRY_DELAY_MS);
         continue;
       }
 

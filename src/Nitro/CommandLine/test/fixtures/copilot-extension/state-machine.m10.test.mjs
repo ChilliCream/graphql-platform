@@ -20,6 +20,7 @@ import {
   onSessionEnd,
   planFlush,
   afterFlushSucceeded,
+  formatDigest,
   Phase,
 } from '../../../src/CommandLine/Assets/CopilotExtension/extension.mjs';
 
@@ -189,16 +190,46 @@ test('injection-loop guard: draining blocks a second overlapping flush attempt',
 
   state = afterFlushSucceeded(state, firstPlan.messages);
   assert.equal(state.pending.length, 0);
+  assert.equal(state.phase, Phase.IDLE, 'a successful flush must return to IDLE, not stay stuck DRAINING');
 
-  // Only once the extension itself transitions the phase after a
-  // completed send (mirroring what `tryFlush` does at runtime by then
-  // waiting for the NEXT real agentStop) can a following flush be planned.
-  state = { ...state, phase: Phase.IDLE };
   state = onMailObserved(state, [{ id: 'm2', from: 'agent-a', createdAt: '2026-01-01T00:00:01Z' }]);
 
   const thirdPlan = planFlush(state);
   assert.ok(thirdPlan, 'a later, genuinely new message must still be flushable');
   assert.deepEqual(thirdPlan.messages.map((m) => m.id), ['m2']);
+});
+
+test('two messages arriving sequentially in one session lifetime each produce their own planFlush', () => {
+  // Regression for the DRAINING wedge: after the first message flushes
+  // successfully, the extension must be IDLE again (not stuck DRAINING) so
+  // a second, later message in the SAME lifetime (no restart, no
+  // sessionEnd/sessionStart in between) can still be planned and sent.
+  const result = runLifetime(null, [
+    'sessionStart',
+    { mail: [{ id: 'm1', from: 'agent-a', createdAt: '2026-01-01T00:00:00Z' }] },
+    'agentStop',
+    { mail: [{ id: 'm2', from: 'agent-a', createdAt: '2026-01-01T00:00:01Z' }] },
+    'agentStop',
+  ]);
+
+  assert.deepEqual(result.sends, [['m1'], ['m2']]);
+});
+
+test('formatDigest truncation keeps the newest entry, dropping the oldest first', () => {
+  // Entries must be passed newest-first (tryFlush's contract); a long list
+  // that overflows MAX_DIGEST_BYTES must render the newest ones and drop
+  // the oldest, never the reverse.
+  const entries = [];
+  for (let i = 0; i < 200; i++) {
+    entries.push({ id: `m${i}`, from: 'agent-with-a-fairly-long-name-to-force-truncation' });
+  }
+  // entries[0] is the newest (caller passes newest-first).
+
+  const digest = formatDigest(entries.length, entries);
+
+  assert.ok(digest.includes('m0 from'), 'the newest entry must survive truncation');
+  assert.ok(!digest.includes(`m${entries.length - 1} from`), 'the oldest entry must be the one dropped');
+  assert.ok(/\.\.\.and \d+ more\./.test(digest), 'a truncated digest must report how many were omitted');
 });
 
 test('sessionEnd resets to RESTART and a fresh sessionStart returns to IDLE without resending flushed mail', () => {
