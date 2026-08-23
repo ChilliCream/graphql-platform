@@ -28,3 +28,16 @@ Headline facts these fixtures demonstrate:
   folder is listed in `~/.copilot/config.json`'s `trustedFolders`;
   untrusted folders are silently skipped in non-interactive `-p` mode
   (no error, no prompt).
+
+## Correction to the plan's premise (important)
+
+`.work/mail-notify-plan.md` states Copilot hooks have "No turn-end/stop
+event". That is WRONG for file/settings-based hooks: `agentStop`
+(canonical) / `Stop` (Claude-compat alias) exists, fires when a turn
+ends (`stopReason`/`stop_reason: "end_turn"` observed), and per static
+analysis of `app.js` its response schema is `{decision, reason}` -
+the same shape as Claude's blocking `Stop` hook. Only the BLOCKING
+effect of returning `decision: "block"` was not exercised live in this
+spike (risk of an uncontrolled reprompt loop); firing and payload shape
+are confirmed live, see `payload.agentStop.camelCase-key.json` and
+`payload.Stop.claude-compat-alias-key.json`.

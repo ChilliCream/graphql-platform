@@ -1,0 +1,8 @@
+{
+  "sessionId": "5c2a297b-2dee-4f61-aa5f-761c15a2b5ac",
+  "timestamp": 1787482514716,
+  "cwd": "/tmp/claude-1000/-home-pascal-perles-net/5c8d83e3-54d9-4e9d-a620-a533a0cd4f3d/scratchpad/s5-copilot/scratch-repo",
+  "transcriptPath": "/home/pascal/.copilot/session-state/5c2a297b-2dee-4f61-aa5f-761c15a2b5ac/events.jsonl",
+  "stopReason": "end_turn",
+  "stop_hook_active": false
+}
