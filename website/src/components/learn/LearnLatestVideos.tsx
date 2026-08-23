@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { youTubePosterFallback } from "@/src/components/youTubePosterUrl";
 import type { ProductKey } from "@/src/data/learn/facets";
-import { hubHref, primaryHubForLearnItem, type HubKey } from "@/src/data/learn/hubs";
+import { findHub, hubHref, primaryHubForLearnItem, type HubKey } from "@/src/data/learn/hubs";
 import { topicLabelForProduct } from "./editorial";
 
 export interface LatestVideoRailItem {
@@ -41,6 +41,7 @@ export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
       <div className="mt-2 flex flex-col">
         {videos.map((video) => {
           const hub = primaryHubForLearnItem(video);
+          const hubLabel = hub ? findHub(hub)?.label : undefined;
           return (
             <div
               key={video.slug}
@@ -67,7 +68,7 @@ export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
                     href={hubHref(hub)}
                     className="text-cc-ink-dim hover:text-cc-accent relative z-10 w-fit font-mono text-xs tracking-wider uppercase no-underline transition-colors"
                   >
-                    {topicLabelForProduct(video.products)}
+                    {hubLabel}
                   </Link>
                 ) : (
                   <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">

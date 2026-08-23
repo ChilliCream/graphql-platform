@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
 import { LearnCollectionSection } from "@/src/components/learn/LearnCollectionSection";
+import { LearnFeaturedStory } from "@/src/components/learn/LearnFeaturedStory";
 import { LearnMasthead } from "@/src/components/learn/LearnMasthead";
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
 import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
@@ -104,6 +105,7 @@ export default async function LearnHubPage({ params }: PageProps) {
 
   const hubKey: HubKey = hub.key;
   const posts = listBlogPostSummaries().filter((post) => hubsForPost(post).includes(hubKey));
+  const [featuredPost, ...railPostPool] = posts;
   const catalogItems = LEARN_SUMMARIES.filter(
     (item): item is Exclude<LearnItemSummary, VideoItem> =>
       item.type !== "video" && hubsForLearnItem(item).includes(hubKey),
@@ -120,8 +122,14 @@ export default async function LearnHubPage({ params }: PageProps) {
         <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: hub.label }]} />
       </div>
       <LearnMasthead title={hub.label} teaser={hub.description} />
-      {posts.length >= MIN_RAIL_POSTS ? (
-        <LearnTopicRail heading={`Latest in ${hub.label}`} moreHref={hub.browseHref} posts={posts.slice(0, 4)} />
+      {featuredPost ? <LearnFeaturedStory post={featuredPost} /> : null}
+      {railPostPool.length >= MIN_RAIL_POSTS ? (
+        <LearnTopicRail
+          heading={`Latest in ${hub.label}`}
+          moreHref={hub.browseHref}
+          moreLabel={`More ${hub.label}`}
+          posts={railPostPool.slice(0, 4)}
+        />
       ) : null}
       <LearnCollectionSection
         items={collectionItems}

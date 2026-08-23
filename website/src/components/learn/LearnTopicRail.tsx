@@ -22,6 +22,8 @@ interface LearnTopicRailProps {
   readonly posts: readonly BlogPostSummary[];
   /** Which side the lead-story slot renders on; rails alternate this A-B-A across the page (learn-harmonization.md section 2.5.2, D7). */
   readonly leadSide?: "left" | "right";
+  /** Overrides the default "More {heading}" copy in the rail's ArrowLink. */
+  readonly moreLabel?: string;
 }
 
 /** The rail's first post, rendered larger than its `LearnListRow` siblings (learn-harmonization.md D7). */
@@ -56,7 +58,7 @@ function RailFeature({ post }: { readonly post: BlogPostSummary }) {
  * items no longer appear inside topic sections; they are reachable through
  * the section's "More" link and the collection band.
  */
-export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: LearnTopicRailProps) {
+export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left", moreLabel }: LearnTopicRailProps) {
   if (posts.length === 0) {
     return null;
   }
@@ -67,7 +69,7 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: 
     <section className="py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{heading}</h2>
-        <ArrowLink href={moreHref}>More {heading}</ArrowLink>
+        <ArrowLink href={moreHref}>{moreLabel ?? `More ${heading}`}</ArrowLink>
       </div>
       <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-2">
         <div className={leadRight ? "lg:order-2" : undefined}>

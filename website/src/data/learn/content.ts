@@ -741,10 +741,8 @@ const getStartedGraphqlBlazorVideo: VideoItem = {
 // GraphQL API. Descriptions are cleaned of the repeated social-links/support
 // boilerplate and the dead "Source Code" link every TV description carried
 // (it pointed back at the retired site); the intro paragraphs, Courses
-// link, and Hot Chocolate version note are kept. exampleUrl is omitted:
-// website-hnm.3 found the TV backend's example-download endpoints return
-// 401 for anonymous requests, so no
-// working archive URL exists yet (see that task's comments).
+// link, and Hot Chocolate version note are kept. exampleUrl points at local
+// archives under /files/learn-examples/ (wired by website-hnm.3).
 
 const dataLoaderStateContextVideo: VideoItem = {
   type: "video",
