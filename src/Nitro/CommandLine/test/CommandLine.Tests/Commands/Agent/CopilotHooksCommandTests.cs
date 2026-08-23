@@ -49,6 +49,7 @@ public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : Agen
               install    Add or update this CLI's Copilot CLI turn-boundary hook entries.
               status     Show whether this CLI's Copilot CLI hook entries are missing, current, or outdated.
               uninstall  Remove this CLI's Copilot CLI turn-boundary hook entries.
+              extension  Install, inspect, and remove the nitro-mail Copilot CLI extension asset.
             """);
     }
 
@@ -84,5 +85,66 @@ public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : Agen
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("Remove this CLI's Copilot CLI turn-boundary hook entries.", result.StdOut);
+    }
+
+    [Fact]
+    public async Task Help_HooksCopilotExtension_ReturnsSuccess()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "extension", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Install, inspect, and remove the nitro-mail Copilot CLI extension asset.
+
+            Usage:
+              nitro agent hooks copilot extension [command] [options]
+
+            Options:
+              -?, -h, --help  Show help and usage information
+
+            Commands:
+              install    Add or update the nitro-mail Copilot CLI extension asset.
+              status     Show whether the nitro-mail Copilot CLI extension asset is missing, current, outdated, or unrecognized.
+              uninstall  Remove the nitro-mail Copilot CLI extension asset and its config.
+            """);
+    }
+
+    [Fact]
+    public async Task Help_HooksCopilotExtensionInstall_ReturnsSuccess()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "extension", "install", "--help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("Add or update the nitro-mail Copilot CLI extension asset.", result.StdOut);
+        Assert.Contains("--scope", result.StdOut);
+        Assert.Contains("--force", result.StdOut);
+    }
+
+    [Fact]
+    public async Task ExtensionInstall_MissingScope_FailsWithAMissingOptionError()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "extension", "install");
+
+        // assert
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("--scope", result.StdErr);
+    }
+
+    [Fact]
+    public async Task ExtensionInstall_ScopeUser_IsRejectedAtParseTime()
+    {
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "hooks", "copilot", "extension", "install", "--scope", "user");
+
+        // assert
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("project", result.StdErr, StringComparison.Ordinal);
     }
 }

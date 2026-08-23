@@ -16,5 +16,6 @@ internal sealed class CopilotHooksCommand : Command
         Subcommands.Add(new InstallCopilotHooksCommand());
         Subcommands.Add(new StatusCopilotHooksCommand());
         Subcommands.Add(new UninstallCopilotHooksCommand());
+        Subcommands.Add(new Extension.CopilotExtensionCommand());
     }
 }

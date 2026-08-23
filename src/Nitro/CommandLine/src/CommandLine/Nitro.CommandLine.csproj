@@ -71,4 +71,13 @@
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The Copilot CLI extension asset (perles-net-k3j.16): a standalone
+         Node.js file the installer copies byte-for-byte to
+         .github/extensions/nitro-mail/extension.mjs. Embedded under a fixed
+         logical name so CopilotExtensionAsset's resource lookup does not
+         depend on RootNamespace. -->
+    <EmbeddedResource Include="Assets/CopilotExtension/extension.mjs" LogicalName="CopilotExtension.extension.mjs" />
+  </ItemGroup>
+
 </Project>

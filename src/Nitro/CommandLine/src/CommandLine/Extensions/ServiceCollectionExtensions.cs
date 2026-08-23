@@ -63,6 +63,8 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICopilotPathResolver, CopilotPathResolver>();
         services.TryAddSingleton<ICopilotHooksSidecarStore, CopilotHooksSidecarStore>();
         services.TryAddSingleton<ICopilotHooksInstallerService, CopilotHooksInstallerService>();
+        services.TryAddSingleton<ICopilotExtensionPathResolver, CopilotExtensionPathResolver>();
+        services.TryAddSingleton<ICopilotExtensionInstallerService, CopilotExtensionInstallerService>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();
