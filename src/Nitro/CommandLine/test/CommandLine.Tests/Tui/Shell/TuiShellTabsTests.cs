@@ -459,7 +459,12 @@ public sealed class TuiShellTabsTests
         registry.Agents.Add(Agent("agent-a", role: "backend"));
         var taskStore = new FakeTaskStore();
         var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
-        var agentsMode = new AgentsMode(registry, taskStore, mailStore);
+        var agentsMode = new AgentsMode(
+            registry,
+            taskStore,
+            mailStore,
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             100,
@@ -490,7 +495,12 @@ public sealed class TuiShellTabsTests
         registry.Agents.Add(Agent("agent-a"));
         var taskStore = new FakeTaskStore();
         var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
-        var agentsMode = new AgentsMode(registry, taskStore, mailStore);
+        var agentsMode = new AgentsMode(
+            registry,
+            taskStore,
+            mailStore,
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             80,

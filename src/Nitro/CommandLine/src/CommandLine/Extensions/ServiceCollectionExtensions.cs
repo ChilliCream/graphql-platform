@@ -38,6 +38,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IProcessInfoProvider, ProcessInfoProvider>();
         services.TryAddSingleton<IClaudeAncestorSessionResolver, ClaudeAncestorSessionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
+        services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();

@@ -4,16 +4,29 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
 /// The live state of the agents list: every registered agent, in the order
-/// the registry returns them, plus which row is selected and which of the
-/// tab's two panes currently holds focus.
+/// the registry returns them, plus each agent's computed
+/// <see cref="AgentPresence"/> (see <see cref="AgentRowBadge"/>), which row
+/// is selected, and which of the tab's two panes currently holds focus.
 /// </summary>
-internal sealed class AgentsState(IAgentRegistry registry)
+internal sealed class AgentsState(
+    IAgentRegistry registry, IAgentSessionRegistry sessionRegistry, IClaudeSessionActivityReader activityReader)
 {
+    private static readonly IReadOnlyDictionary<string, AgentPresence> EmptyPresence =
+        new Dictionary<string, AgentPresence>();
+
     /// <summary>
     /// The agents currently loaded, ordered by name (the registry's own
     /// order).
     /// </summary>
     public IReadOnlyList<AgentRecord> Agents { get; private set; } = [];
+
+    /// <summary>
+    /// Each loaded agent's presence, keyed by name, reloaded from
+    /// <see cref="IAgentSessionRegistry.ListAsync"/> alongside
+    /// <see cref="Agents"/> on every <see cref="RefreshAsync"/>. An agent
+    /// with no entry here (should not happen once loaded) is offline.
+    /// </summary>
+    public IReadOnlyDictionary<string, AgentPresence> Presence { get; private set; } = EmptyPresence;
 
     /// <summary>
     /// The index of the selected row within <see cref="Agents"/>.
@@ -42,7 +55,12 @@ internal sealed class AgentsState(IAgentRegistry registry)
         var selectedName = SelectedAgent?.Name;
 
         var agents = await registry.ListAsync(role: null, staleBefore: null, cancellationToken);
+        var sessions = await sessionRegistry.ListAsync(cancellationToken);
         Agents = agents;
+        Presence = agents.ToDictionary(
+            agent => agent.Name,
+            agent => AgentPresence.Compute(
+                sessions.Where(v => v.Session.AgentName == agent.Name).ToArray(), activityReader));
 
         var preservedIndex = selectedName is null ? -1 : IndexOf(agents, selectedName);
 

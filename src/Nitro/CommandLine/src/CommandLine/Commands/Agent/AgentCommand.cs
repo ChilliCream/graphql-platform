@@ -54,6 +54,8 @@ internal sealed class AgentCommand : Command
                 var mailStore = services.GetRequiredService<IMailStore>();
                 var memoryStore = services.GetRequiredService<IMemoryStore>();
                 var agentRegistry = services.GetRequiredService<IAgentRegistry>();
+                var agentSessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
+                var activityReader = services.GetRequiredService<IClaudeSessionActivityReader>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
 
@@ -63,6 +65,8 @@ internal sealed class AgentCommand : Command
                     mailStore,
                     memoryStore,
                     agentRegistry,
+                    agentSessionRegistry,
+                    activityReader,
                     timeProvider,
                     environmentVariableProvider,
                     workspaceDirectory,

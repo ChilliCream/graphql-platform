@@ -62,14 +62,18 @@ internal sealed class AgentsMode : ITuiMode
         IAgentRegistry registry,
         ITaskStore taskStore,
         IMailStore mailStore,
+        IAgentSessionRegistry sessionRegistry,
+        IClaudeSessionActivityReader activityReader,
         TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(taskStore);
         ArgumentNullException.ThrowIfNull(mailStore);
+        ArgumentNullException.ThrowIfNull(sessionRegistry);
+        ArgumentNullException.ThrowIfNull(activityReader);
 
         _timeProvider = timeProvider ?? TimeProvider.System;
-        _state = new AgentsState(registry);
+        _state = new AgentsState(registry, sessionRegistry, activityReader);
         _detailModel = new AgentDetailModel(registry, taskStore, mailStore);
         _detailView = new AgentDetailView(_detailModel, _timeProvider);
     }
@@ -265,7 +269,7 @@ internal sealed class AgentsMode : ITuiMode
             visibleAgents.Add(agents[start + i]);
         }
 
-        var widths = AgentRowBadge.ComputeWidths(visibleAgents, now);
+        var widths = AgentRowBadge.ComputeWidths(visibleAgents, _state.Presence, now);
         var lines = new List<string>(interiorHeight);
 
         if (_listViewport.HiddenAbove > 0)
@@ -276,7 +280,7 @@ internal sealed class AgentsMode : ITuiMode
         for (var i = 0; i < visibleCount; i++)
         {
             var selected = focused && start + i == _state.SelectedRow;
-            lines.Add(AgentRowBadge.Render(visibleAgents[i], now, selected, contentWidth, widths));
+            lines.Add(AgentRowBadge.Render(visibleAgents[i], _state.Presence, now, selected, contentWidth, widths));
         }
 
         if (_listViewport.HiddenBelow > 0)
