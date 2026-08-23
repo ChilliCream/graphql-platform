@@ -19,6 +19,7 @@ internal sealed class AgentCommand : Command
         Description = "Commands for coding agents.";
 
         Subcommands.Add(new InitAgentCommand());
+        Subcommands.Add(new DoctorAgentCommand());
         Subcommands.Add(new TasksCommand());
         Subcommands.Add(new MailCommand());
         Subcommands.Add(new MemoryCommand());
