@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2025-02-01"
 title: "What's new for Hot Chocolate 15"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
@@ -70,7 +71,7 @@ Let’s first discuss **DataLoader**, a fundamental concept in GraphQL for batch
 
 A DataLoader typically lives close to the data-access layer, and your business logic uses it to fetch data.
 
-![Application Building Blocks](../../public/images/blog/2025-02-01-hot-chocolate-15/dataloader-1.png)
+![Application Building Blocks](../../../public/images/learn-articles/hot-chocolate-15/dataloader-1.png)
 
 The business logic itself should remain simple. Don’t burden your business logic or your consumer with batching concerns or other complexities in fetching data.
 
@@ -159,7 +160,7 @@ How do we now introduce _client-driven_ projections, filtering, and sorting with
 
 In Hot Chocolate 15, we rethought and rewrote the **GreenDonut** (DataLoader) implementation and introduced some new packages that provide a few primitives to pass between layers while keeping them isolated.
 
-![GreenDonut Packages](../../public/images/blog/2025-02-01-hot-chocolate-15/greendonut-1.png)
+![GreenDonut Packages](../../../public/images/learn-articles/hot-chocolate-15/greendonut-1.png)
 
 These packages introduce four foundational types:
 
@@ -403,7 +404,7 @@ public async Task<Page<Brand>> Handle(
 
 The beauty of this approach is that the complexity in my business layer remains unchanged. Similarly, in my resolver, the complexity is the same as implementing a top-level query. Overall, while I gain full control over what happens in each layer, the complexity within each layer remains constant.
 
-![GreenDonut Packages By Layer](../../public/images/blog/2025-02-01-hot-chocolate-15/greendonut-2.png)
+![GreenDonut Packages By Layer](../../../public/images/learn-articles/hot-chocolate-15/greendonut-2.png)
 
 # DataLoader Branching
 

@@ -1,16 +1,9 @@
 ---
+kind: article
 date: "2026-07-12"
 title: "Fusion 16.5: The Gateway for Everyone"
 description: "Built with C# and .NET, Fusion 16.5 is the only gateway supporting both federation standards, achieves 100% Apollo Federation compliance, and leads in real-world performance."
-tags:
-  [
-    "fusion",
-    "graphql",
-    "federation",
-    "apollo-federation",
-    "dotnet",
-    "aspnetcore",
-  ]
+tags: ["fusion", "graphql", "federation", "apollo-federation", "dotnet", "aspnetcore"]
 category: "Release"
 featuredImage: "header.png"
 author: Michael Staib
@@ -257,4 +250,4 @@ You no longer have to choose between compatibility, performance, and extensibili
 
 Keep the graph you have. Build the graph you want. Move one subgraph at a time.
 
-If you are moving from Apollo Federation, read [Coming from Apollo Federation](../docs/fusion/migration/coming-from-apollo-federation.md). If you are starting a new graph, follow the [Fusion getting started guide](../docs/fusion/getting-started.md). Then join us on [Slack](https://slack.chillicream.com) and show us what you are building.
+If you are moving from Apollo Federation, read [Coming from Apollo Federation](../../docs/fusion/migration/coming-from-apollo-federation.md). If you are starting a new graph, follow the [Fusion getting started guide](../../docs/fusion/getting-started.md). Then join us on [Slack](https://slack.chillicream.com) and show us what you are building.

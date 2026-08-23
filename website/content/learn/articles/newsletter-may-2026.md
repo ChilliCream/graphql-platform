@@ -1,19 +1,9 @@
 ---
+kind: article
 date: "2026-06-06"
 title: "Newsletter May 2026"
 description: "Hot Chocolate 16, Fusion 16, MCP, OpenAPI, Semantic Introspection, skillz, and more. Read the newsletter to learn about all the things we shipped in May and what comes next."
-tags:
-  [
-    "hotchocolate",
-    "fusion",
-    "graphql",
-    "dotnet",
-    "ai",
-    "mcp",
-    "openapi",
-    "semantic-introspection",
-    "release",
-  ]
+tags: ["hotchocolate", "fusion", "graphql", "dotnet", "ai", "mcp", "openapi", "semantic-introspection", "release"]
 category: "Newsletter"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn

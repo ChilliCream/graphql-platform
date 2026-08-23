@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2022-01-13"
 title: "Pushing ahead with Hot Chocolate 12.5"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
@@ -15,11 +16,11 @@ Today we have released Hot Chocolate 12.5, and this release is packed with new f
 
 Let us start with the most visible change to Hot Chocolate. With Hot Chocolate 12.5, we have integrated Banana Cake Pop iteration 22, which introduces themes support. One of the top requests for BCP by users was a Dark mode. With the new version, you can now switch between our light and our dark theme. We will add more themes with one of the subsequent iterations.
 
-![Banana Cake Pop Themes](../../public/images/blog/2022-01-13-hot-chocolate-12-5/bcp1.png)
+![Banana Cake Pop Themes](../../../public/images/learn-articles/hot-chocolate-12-5/bcp1.png)
 
 We put another focus on discoverability. Many people getting into BCP had difficulty finding the schema explorer or other details regarding their operation document. With the new version, the IDE is much more organized and exposes clearly areas you can dig into.
 
-![Banana Cake Pop Tabs](../../public/images/blog/2022-01-13-hot-chocolate-12-5/bcp2.png)
+![Banana Cake Pop Tabs](../../../public/images/learn-articles/hot-chocolate-12-5/bcp2.png)
 
 The new Banana Cake Pop version is now available online at [https://eat.bananacakepop.com](https://eat.bananacakepop.com), as an application that you can download at [https://bananacakepop.com](https://bananacakepop.com) or as a middleware in the new Hot Chocolate 12.5.
 
@@ -61,11 +62,11 @@ builder.Logging.AddOpenTelemetry(
 
 With all this in place, we can execute requests against our demo server and inspect the traces with the Jaeger UI.
 
-![Banana Cake Pop Themes](../../public/images/blog/2022-01-13-hot-chocolate-12-5/jaeger.png)
+![Banana Cake Pop Themes](../../../public/images/learn-articles/hot-chocolate-12-5/jaeger.png)
 
 The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OpenTelemetry).
 
-Docs can be found [here](../docs/hotchocolate/server/instrumentation.md#opentelemetry).
+Docs can be found [here](../../docs/hotchocolate/server/instrumentation.md#opentelemetry).
 
 # `OneOf` Input Objects
 
@@ -127,7 +128,7 @@ builder.Services
 
 The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OneOf).
 
-Docs can be found [here](../docs/hotchocolate/defining-a-schema/input-object-types.md#oneof-input-objects).
+Docs can be found [here](../../docs/hotchocolate/defining-a-schema/input-object-types.md#oneof-input-objects).
 
 The current GraphQL spec RFC can be found [here](https://github.com/graphql/graphql-spec/pull/825).
 

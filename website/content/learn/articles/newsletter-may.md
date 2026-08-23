@@ -1,9 +1,9 @@
 ---
+kind: article
 date: "2024-05-21"
 title: "Recent Highlights"
 description: "We just released the Operation Builder, Telemetry, and a new Full Stack GraphQL Workshop. Checkout the blog post to learn more!"
-tags:
-  ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
 category: "Newsletter"
 featuredImage: "header.png"
 author: Pascal Senn
@@ -17,7 +17,7 @@ We’re excited to bring you some significant updates from ChiliCream that can g
 
 We’re proud to introduce the Operation Builder in Banana Cake Pop, a tool designed to make creating and managing your GraphQL operations a breeze.
 
-![Operation Builder](../../public/images/blog/2024-05-21-newsletter-may/img1.png)
+![Operation Builder](../../../public/images/learn-articles/newsletter-may/img1.png)
 
 The Operation Builder simplifies the process of creating and managing queries, making it easier than ever to draft, edit, and inspect your operations. Dive deep into your schema, seamlessly navigate fields and fragments, and gain instant insights into your data structure.
 
@@ -29,10 +29,10 @@ Try out the Operation Builder today and transform the way you work with GraphQL!
 
 # Telemetry
 
-![Telemetry](../../public/images/blog/2024-05-21-newsletter-may/img2.png)
+![Telemetry](../../../public/images/learn-articles/newsletter-may/img2.png)
 We’re want to put a spotlight on our Telemetry integration. Why did we build this? The answer is simple. Understanding your application’s performance shouldn't be a guessing game and GraphQL Telemetry is difficult. With our telemetry integration, you can have complete visibility into your GraphQL server.
 
-![Telemetry](../../public/images/blog/2024-05-21-newsletter-may/img3.png)
+![Telemetry](../../../public/images/learn-articles/newsletter-may/img3.png)
 
 - **Trace Visualization:** See every trace in detail. This helps you pinpoint precisely where your system can be improved.
 - **Latency Monitoring:** Track average latency and critical percentiles to ensure top-notch performance.
@@ -53,7 +53,7 @@ or read the docs: [Open Telemetry Documentation](https://link.chillicream.com/20
 
 In today's rapidly evolving technology landscape, staying ahead requires not only understanding the latest technologies but also knowing how to implement them effectively. Our brand-new Full Stack GraphQL Workshop is a two-day, hands-on journey designed to demystify advanced concepts.
 
-![Full Stack GraphQL Workshop](../../public/images/blog/2024-05-21-newsletter-may/img4.png)
+![Full Stack GraphQL Workshop](../../../public/images/learn-articles/newsletter-may/img4.png)
 
 We'll start with the basics and progressively build a fully functional distributed web shop using HotChocolate, Relay.js, Fusion, multiple subgraphs, and .NET Aspire. We’ll also delve into foundational principles like domain-driven design, CQRS, and clean architecture.
 

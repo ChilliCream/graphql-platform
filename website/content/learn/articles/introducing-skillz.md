@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2026-06-05"
 title: "Introducing skillz: the .NET CLI for Agent Skills"
 description: "skillz is a .NET CLI for installing, updating, and authoring Agent Skills, with dnx support for a one-shot workflow the way npx skills works in JavaScript."

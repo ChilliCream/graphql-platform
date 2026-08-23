@@ -1,16 +1,9 @@
 ---
+kind: article
 date: "2026-07-06"
 title: "Introducing Federated Event Streams for Fusion 16.4"
 description: "Federated Event Streams add broker-backed, resumable GraphQL subscriptions to Fusion 16.4, with stateless gateway scaling and client-owned resume cursors."
-tags:
-  [
-    "fusion",
-    "graphql",
-    "federation",
-    "subscriptions",
-    "event-streams",
-    "dotnet",
-  ]
+tags: ["fusion", "graphql", "federation", "subscriptions", "event-streams", "dotnet"]
 category: "Release"
 featuredImage: "header.png"
 author: Michael Staib
@@ -109,8 +102,7 @@ Federated Event Streams supports this with an opaque cursor that lives with the 
 
 ```graphql
 type Subscription {
-  onReviewCreated(after: String @eventCursor): ReviewCreated!
-    @eventStream(message: "review { id }")
+  onReviewCreated(after: String @eventCursor): ReviewCreated! @eventStream(message: "review { id }")
 }
 
 type ReviewCreated {
@@ -165,8 +157,7 @@ If you want clients to handle cursors generically, expose a shared interface for
 
 ```graphql
 type Subscription {
-  onReviewCreated(after: String @eventCursor): ReviewCreated!
-    @eventStream(message: "review { id }")
+  onReviewCreated(after: String @eventCursor): ReviewCreated! @eventStream(message: "review { id }")
 }
 
 type ReviewCreated implements Resumable {
@@ -236,12 +227,12 @@ await nats.PublishAsync(
     cancellationToken: cancellationToken);
 ```
 
-Whether you publish directly through your NATS client, use [Mocha](../docs/mocha/messaging-patterns.md), or hide the broker behind a small wrapper is up to you. Federated Event Streams takes the complex parts out of the subscription path and lets your application publish events from your domain without bleeding GraphQL execution details into the rest of your system.
+Whether you publish directly through your NATS client, use [Mocha](../../docs/mocha/messaging-patterns.md), or hide the broker behind a small wrapper is up to you. Federated Event Streams takes the complex parts out of the subscription path and lets your application publish events from your domain without bleeding GraphQL execution details into the rest of your system.
 
 ## Try Fusion 16.4
 
 Federated Event Streams is the main feature in Fusion 16.4, but it is not the only one. This release also continues our work on the GraphQL-Federation spec (aka Composite Schema spec). `@tag` can now be applied to directive definitions, directive definitions support deprecation and the `DIRECTIVE_DEFINITION` location in introspection, and Fusion adds opt-in feature support with `@requiresOptIn`.
 
-The full Federated Event Streams reference, including every broker and the `@eventStream` / `@eventCursor` SDL, lives in the [subscriptions docs](../docs/fusion/subscriptions.md).
+The full Federated Event Streams reference, including every broker and the `@eventStream` / `@eventCursor` SDL, lives in the [subscriptions docs](../../docs/fusion/subscriptions.md).
 
 Give Fusion 16.4 a try, and tell us what works, what is missing, and where you want the feature to go next. Join us on [Slack](https://slack.chillicream.com).

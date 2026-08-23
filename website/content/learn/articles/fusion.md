@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2023-08-15"
 title: "GraphQL-Fusion: An open approach towards distributed GraphQL"
 description: "Together, we'll explore the new GraphQL-Fusion, the open approach towards distributed GraphQL."
@@ -133,16 +134,8 @@ type Review
 type User
   @variable(subgraph: "Reviews", name: "User_id", select: "id")
   @variable(subgraph: "Account", name: "User_id", select: "id")
-  @resolver(
-    subgraph: "Reviews"
-    select: "{ userById(id: $id) }"
-    arguments: [{ name: "User_id", type: "ID!" }]
-  )
-  @resolver(
-    subgraph: "Account"
-    select: "{ userById(id: $id) }"
-    arguments: [{ name: "User_id", type: "ID!" }]
-  ) {
+  @resolver(subgraph: "Reviews", select: "{ userById(id: $id) }", arguments: [{ name: "User_id", type: "ID!" }])
+  @resolver(subgraph: "Account", select: "{ userById(id: $id) }", arguments: [{ name: "User_id", type: "ID!" }]) {
   id: ID! @source(subgraph: "Reviews") @source(subgraph: "Account")
   name: String! @source(subgraph: "Reviews") @source(subgraph: "Account")
   email: String! @source(subgraph: "Account")
@@ -162,30 +155,14 @@ type Product
 type Query {
   reviews: [Review!] @resolver(subgraph: "Reviews", select: "{ reviews }")
   userById(id: ID!): User
-    @resolver(
-      subgraph: "Reviews"
-      select: "{ userById(id: $id) }"
-      arguments: [{ name: "id", type: "ID!" }]
-    )
-    @resolver(
-      subgraph: "Account"
-      select: "{ userById(id: $id) }"
-      arguments: [{ name: "id", type: "ID!" }]
-    )
+    @resolver(subgraph: "Reviews", select: "{ userById(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
+    @resolver(subgraph: "Account", select: "{ userById(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
 
   reviewById(id: ID!): Review
-    @resolver(
-      subgraph: "Reviews"
-      select: "{ reviewById(id: $id) }"
-      arguments: [{ name: "id", type: "ID!" }]
-    )
+    @resolver(subgraph: "Reviews", select: "{ reviewById(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
 
   productBySKU(sku: String!): Product
-    @resolver(
-      subgraph: "Reviews"
-      select: "{ productBySKU(id: $id) }"
-      arguments: [{ name: "id", type: "ID!" }]
-    )
+    @resolver(subgraph: "Reviews", select: "{ productBySKU(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
 }
 ```
 
@@ -282,14 +259,14 @@ query GetReviews_2($__export__1: [ID!]!) {
 
 The Fusion query plan is another standardized component that tooling (like [Banana Cake Pop](https://eat.bananacakepop.com)) can use to give you insights into how efficiently the gateway can resolve the requested data.
 
-![Banana Cake Pop - Query Plan Viewer](../../public/images/blog/2023-08-15-fusion/bcp-1.png)
+![Banana Cake Pop - Query Plan Viewer](../../../public/images/learn-articles/fusion/bcp-1.png)
 _Also available in black ;)_
 
 The Fusion Query plan consists of the following query plan node kinds: `Compose`, `Defer`, `Stream`, `If`, `Introspect`, `Parallel`, `Resolve`, `ResolveByKeyBatch`, `ResolveNode`, `Sequence`, and `Subscribe`. With these abstract nodes, the query planner is able to create complex query plans that support every GraphQL feature and best practice right out of the gate.
 
 While the `Fetch` and `Batch` nodes are clear about what they do in our query plan, the compose step might be a mystery to you. In essence, the query planner can fetch data that does not align with the current structure of the request. Compose will take in the raw data fetched by resolve nodes and composes it into the GraphQL request structure. It also ensures that result coercion rules are correctly applied to be GraphQL spec-compliant.
 
-![Banana Cake Pop - Query Plan Viewer](../../public/images/blog/2023-08-15-fusion/bcp-5.png)
+![Banana Cake Pop - Query Plan Viewer](../../../public/images/learn-articles/fusion/bcp-5.png)
 _In this case, compose creates the result of a single selection set from multiple resolve nodes._
 
 The Hot Chocolate Fusion Gateway implementation supports all supported subscription protocols, from the legacy Apollo subscription protocol over graphql-ws to graphql-sse.
@@ -320,12 +297,12 @@ extend type User
 
 While using the `node` field to fetch entity data is straightforward for exposing the `node` fields to the gateway, we found it necessary to equip the Fusion gateway with data sharding capabilities. This is the ability to dispatch a query at runtime to a specific subgraph based on user-provided data. This can be applied to simple tasks like the node field but can also be harnessed to isolate data partitions by region or any other discriminants you desire.
 
-![Banana Cake Pop - Query Plan Viewer](../../public/images/blog/2023-08-15-fusion/bcp-6.png)
+![Banana Cake Pop - Query Plan Viewer](../../../public/images/learn-articles/fusion/bcp-6.png)
 _`node` field query plan._
 
 If we zoom into the JSON representation of our query plan, we can see in detail the branches of our `ResolveNode` in the query plan. Depending on the type in our encoded `ID`, one of the branches will be executed. If the encoded types have different names in the subgraphs, Fusion will reencode the ID for the particular subgraph.
 
-![Banana Cake Pop - Query Plan Viewer](../../public/images/blog/2023-08-15-fusion/bcp-7.png)
+![Banana Cake Pop - Query Plan Viewer](../../../public/images/learn-articles/fusion/bcp-7.png)
 _JSON representation of our query plan_
 
 # Going Further
@@ -406,16 +383,13 @@ input ProductDimensionInput {
 }
 
 type Product {
-  deliveryEstimate(
-    zip: String!
-    dimension: ProductDimensionInput! @require(field: "dimension")
-  ): Int!
+  deliveryEstimate(zip: String!, dimension: ProductDimensionInput! @require(field: "dimension")): Int!
 }
 ```
 
 The outcome will stay the same, and we will get this nice API for our users. The query planner will resolve the required data under the hood.
 
-![Banana Cake Pop - Query Plan Viewer](../../public/images/blog/2023-08-15-fusion/bcp-2.png)
+![Banana Cake Pop - Query Plan Viewer](../../../public/images/learn-articles/fusion/bcp-2.png)
 
 Again, this brings clarity to your subgraph as the field is very clear about what it needs and becomes easily testable in the process.
 
@@ -577,7 +551,7 @@ Combined with the GraphQL subgraphs, which use instead of a generic `_entities` 
 
 We considered CI/CD from the start when conceptualizing Fusion and structured it so that you can easily integrate your solution. Right out of the gate, you can start with [Banana Cake Pop](https://eat.bananacakepop.com), which provides a schema registry, easy rollbacks of changes introduced by your subgraphs, and deployment pipeline synchronization.
 
-![Banana Cake Pop - Stages](../../public/images/blog/2023-08-15-fusion/bcp-3.png)
+![Banana Cake Pop - Stages](../../../public/images/learn-articles/fusion/bcp-3.png)
 
 But the core principle is that this is open and built into the GraphQL-Fusion spec. To provide tooling a single file containing all the information needed for gateway configuration and even space for gateway-specific features, we've adopted the [Open Packaging Convention](https://en.wikipedia.org/wiki/Open_Packaging_Conventions) as a container for the GraphQL-Fusion Configuration (.fgp).
 
@@ -585,7 +559,7 @@ The [Open Packaging Convention](https://en.wikipedia.org/wiki/Open_Packaging_Con
 
 Additionally, it contains all subgraph schema documents, the publicly exposed Gateway schema, and composition settings the user has opted into. Having all these artifacts in one place gives us a single artifact that we can pass on from the schema composition in a CI/CD pipeline to the schema registry and from there to the actual gateway. We have customers already using this with their custom solutions for distributing the configuration from their deployment pipeline to their gateway or by using our Cloud Services ([Banana Cake Pop](https://eat.bananacakepop.com)). Besides these standard artifacts included in the package, it also allows Gateway implementers to store custom configurations to specify GraphQL WAF settings and more.
 
-![Simple Deployment Pipeline](../../public/images/blog/2023-08-15-fusion/pipeline-1.png)
+![Simple Deployment Pipeline](../../../public/images/learn-articles/fusion/pipeline-1.png)
 
 # Apollo Federation
 

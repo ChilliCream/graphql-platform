@@ -1,9 +1,9 @@
 ---
+kind: article
 date: "2024-10-30"
 title: "Newsletter October"
 description: "Hot Chocolate 14 is released, BCP is now Nitro and there is a new DDD Workshop"
-tags:
-  ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
 category: "Newsletter"
 featuredImage: "header.png"
 author: Pascal Senn
@@ -77,7 +77,7 @@ For details on migrating to Nitro and the changes to our NuGet and NPM packages,
 
 While our telemetry integration was previously focused only on GraphQL operations, we're excited to announce that we're expanding our telemetry capabilities to include full OpenTelemetry support. This means you can now also monitor your REST APIs, gRPC services, background jobs, and more—all within the same dashboard.
 
-![image](../../public/images/blog/2024-10-30-newsletter-october/img1.png)
+![image](../../../public/images/learn-articles/newsletter-october/img1.png)
 
 # Get Hands-On with DDD and GraphQL in Our One-Day Workshop
 

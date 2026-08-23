@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2023-01-08"
 title: "New in Banana Cake Pop 3"
 description: "Team Workspaces, Express Middleware, Progressive Web Application (PWA) Support, Enterprise Single Sign-On (SSO), and many more features."
@@ -30,7 +31,7 @@ Check out our [recipes](https://www.npmjs.com/package/@chillicream/bananacakepop
 
 With version 3, **Banana Cake Pop** meets the PWA requirements, which allows the web version to be installed as an app. In Chrome on macOS, it looks like this.
 
-![Banana Cake Pop PWA](../../public/images/blog/2023-01-08-new-in-banana-cake-pop-3/banana-cake-pop-pwa.png)
+![Banana Cake Pop PWA](../../../public/images/learn-articles/new-in-banana-cake-pop-3/banana-cake-pop-pwa.png)
 
 # Enterprise Single Sign-On (SSO)
 

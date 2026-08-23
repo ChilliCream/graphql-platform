@@ -1,18 +1,9 @@
 ---
+kind: article
 date: "2024-08-11"
 title: "Logging in Banana Cake Pop"
 description: "We just released logging in Banana Cake Pop. Checkout the blog post to learn more!"
-tags:
-  [
-    "bananacakepop",
-    "graphql",
-    "hotchocolate",
-    "workshops",
-    "cloud",
-    "release",
-    "open-telemetry",
-    "logging",
-  ]
+tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release", "open-telemetry", "logging"]
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
@@ -25,15 +16,15 @@ We’re thrilled to announce a new feature in Banana Cake Pop that will enhance 
 
 ## Service Logs
 
-![Api Logs](../../public/images/blog/2024-08-11-logging/api-logs-1.png)
+![Api Logs](../../../public/images/learn-articles/logging/api-logs-1.png)
 
-![Api Logs - Expanded](../../public/images/blog/2024-08-11-logging/api-logs-2.png)
+![Api Logs - Expanded](../../../public/images/learn-articles/logging/api-logs-2.png)
 
 APIs now have a dedicated **Logs** tab. This new tab allows you to view all the logs associated with a specific API. Whether you're tracking requests, debugging issues, or monitoring performance, this feature gives you a comprehensive view of what's happening under the hood.
 
 ## Trace Logs
 
-![Trace Logs](../../public/images/blog/2024-08-11-logging/api-logs-3.png)
+![Trace Logs](../../../public/images/learn-articles/logging/api-logs-3.png)
 
 We’ve also added the ability to inspect logs within individual traces. When you open a trace, you’ll now see all the logs corresponding to each trace. This granular level of detail is invaluable for pinpointing issues and analyze traces in detail.
 

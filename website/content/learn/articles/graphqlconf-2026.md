@@ -1,17 +1,9 @@
 ---
+kind: article
 date: "2026-06-24"
 title: "Agents, Federation, and a Community"
 description: "Notes from GraphQLConf 2026 and Working Group Day at Meta: AI agents meeting GraphQL schemas, the Composite Schema federation standard, and a community building what comes next."
-tags:
-  [
-    "graphql",
-    "graphqlconf",
-    "community",
-    "ai",
-    "agents",
-    "federation",
-    "fusion",
-  ]
+tags: ["graphql", "graphqlconf", "community", "ai", "agents", "federation", "fusion"]
 author: Salome Ruckstuhl
 authorUrl: https://github.com/sal-ome
 authorImageUrl: https://avatars.githubusercontent.com/u/67280421?v=4
@@ -60,7 +52,7 @@ The important detail is where the spec stands today: it is still Stage 0, Prelim
 
 Even so, this is already a big step. Instead of every vendor shipping its own version of federation, Composite Schema gives the ecosystem a shared, vendor-neutral direction for composition, validation, and distributed execution.
 
-Fusion is our implementation of that direction, and it is already compatible with the Composite Schema spec as it evolves. If you want to try it today, start with the [Fusion getting started guide](../docs/fusion/getting-started.md).
+Fusion is our implementation of that direction, and it is already compatible with the Composite Schema spec as it evolves. If you want to try it today, start with the [Fusion getting started guide](../../docs/fusion/getting-started.md).
 
 # A community shaping what comes next
 
@@ -90,7 +82,7 @@ Agents are starting to change how APIs are used and built. Federation now has a 
 
 That is what made the week feel so energizing. GraphQL does not feel like something being handed down by one company or one team. It feels like something a lot of people are building together.
 
-If you want to follow along, watch for the GraphQLConf recordings, read our deep dive on [Semantic Introspection](./2026-04-22-semantic-introspection.md) and if you want to try GraphQL Federation yourself, give [Fusion](../docs/fusion/getting-started.md) a go!
+If you want to follow along, watch for the GraphQLConf recordings, read our deep dive on [Semantic Introspection](./2026-04-22-semantic-introspection.md) and if you want to try GraphQL Federation yourself, give [Fusion](../../docs/fusion/getting-started.md) a go!
 
 And if you want to talk GraphQL with people who think about it a little too much, our [Slack](https://slack.chillicream.com) is always open.
 
@@ -100,13 +92,13 @@ See you at the next one.
 
 <PhotoGrid
 images={[
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf1.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf2.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf3.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf4.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf5.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf6.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf7.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
-{ src: "/images/blog/2026-06-24-graphqlconf-2026/sf8.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf1.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf2.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf3.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf4.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf5.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf6.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf7.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
+{ src: "/images/learn-articles/graphqlconf-2026/sf8.jpg", alt: "Photo from the GraphQLConf 2026 trip to the Bay Area" },
 ]}
 />

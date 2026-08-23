@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2024-10-07"
 title: "Introducing Nitro: A New Name, A Unified GraphQL Ecosystem"
 tags: ["graphql", "nitro", "products", "telemetry"]

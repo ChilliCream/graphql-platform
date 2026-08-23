@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2024-08-30"
 title: "What's new for Hot Chocolate 14"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
@@ -538,7 +539,7 @@ public static partial class BrandNode
 
 The beauty of the source generator is that, in contrast to expression compilation, the results are fully inspectable, and we can guide you by issuing compile-time warnings and errors. The source generator output can be viewed within your IDE and is debuggable.
 
-![Rider - Source Generators](../../public/images/blog/2024-08-30-hot-chocolate-14/screen-source-generator-1.png)
+![Rider - Source Generators](../../../public/images/learn-articles/hot-chocolate-14/screen-source-generator-1.png)
 
 With the new type extension API, we also allow for new ways to declare root fields and colocate queries, mutations, and subscriptions.
 
@@ -806,7 +807,7 @@ GraphQL, as Facebook created and used it, was built around flexibility during de
 
 In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation. The GraphQL server only executes operations stored in the operations store and will deny execution of an arbitrary GraphQL requests.
 
-This is the BEST way to do GraphQL and provides the best approach for schema evolvability, as operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](../docs/nitro/apis/schema-registry.md) for more information.
+This is the BEST way to do GraphQL and provides the best approach for schema evolvability, as operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](../../docs/nitro/apis/schema-registry.md) for more information.
 
 However, most new developers are not aware of how to do this or do not understand why they should do it in the first place. Another problem is that there is no easy path from an open GraphQL server to a closed system once you have clients working against your API.
 
@@ -954,7 +955,7 @@ var mode = body.Data.Deserialize<MyResponseModel>()
 
 With Banana Cake Pop, we have further shifted to give you more control over your applications with an end-to-end GraphQL cockpit that provides a schema registry, client registry, operation store, GraphQL telemetry, end-to-end OpenTelemetry tracing, logging, metrics, and strong schema evolution workflows that put you in control.
 
-![Banana Cake Pop](../../public/images/blog/2024-08-30-hot-chocolate-14/screen-banana-cake-pop-1.png)
+![Banana Cake Pop](../../../public/images/learn-articles/hot-chocolate-14/screen-banana-cake-pop-1.png)
 
 With Banana Cake Pop you have the best solution to manage your distributed GraphQL setup.
 
@@ -966,7 +967,7 @@ In this release, we had a staggering **30** new contributors who helped alongsid
 
 For this reason, we have now created a GitHub DevContainer template so that you can get started with contributing in about 2 minutes. You can either run the DevContainer directly on GitHub:
 
-![GitHub Codespaces](../../public/images/blog/2024-08-30-hot-chocolate-14/screen-codespaces-1.png)
+![GitHub Codespaces](../../../public/images/learn-articles/hot-chocolate-14/screen-codespaces-1.png)
 
 Or you can run it locally on your own Docker. If you do not know what DevContainers are, you can read up on them [here](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers).
 

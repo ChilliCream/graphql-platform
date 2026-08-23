@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2026-05-28"
 title: "From GraphQL to MCP in Two Lines"
 description: "Hot Chocolate and Fusion now ship an MCP adapter. Add two lines, author tools and prompts on disk, publish them with Nitro, and connect any MCP host to your GraphQL API."
@@ -205,11 +206,7 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         align-items: center;
         gap: 12px;
         padding: 12px;
-        border: 1px solid
-          var(
-            --color-border-primary,
-            color-mix(in srgb, CanvasText 15%, transparent)
-          );
+        border: 1px solid var(--color-border-primary, color-mix(in srgb, CanvasText 15%, transparent));
         border-radius: var(--border-radius-md, 8px);
       }
       img {
@@ -220,10 +217,7 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         flex: 1;
       }
       span {
-        color: var(
-          --color-text-secondary,
-          color-mix(in srgb, CanvasText 60%, transparent)
-        );
+        color: var(--color-text-secondary, color-mix(in srgb, CanvasText 60%, transparent));
         font-variant-numeric: tabular-nums;
       }
     </style>
@@ -259,8 +253,7 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         if (ctx.theme) {
           document.documentElement.style.colorScheme = ctx.theme;
         }
-        if (ctx.styles?.variables)
-          applyHostStyleVariables(ctx.styles.variables);
+        if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
         if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
       };
 
@@ -376,27 +369,27 @@ ChatGPT exposes remote MCP servers as apps in Developer mode. The flow is simila
 
 In ChatGPT, open **Settings** → **Apps** → **Advanced settings** and enable **Developer mode**. Then add a new app:
 
-![Add an app in ChatGPT](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-add-app.webp)
+![Add an app in ChatGPT](../../../public/images/learn-articles/mcp-hotchocolate-fusion/chatgpt-add-app.webp)
 
 Fill in a name, the MCP server URL (`https://<your-graphql-host>/graphql/mcp`), and the authentication settings your server requires. A description is optional. Tick the **I understand and want to continue** checkbox to acknowledge the warning about third-party servers:
 
-![Configure the MCP server URL](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-configure-server.webp)
+![Configure the MCP server URL](../../../public/images/learn-articles/mcp-hotchocolate-fusion/chatgpt-configure-server.webp)
 
 Click **Create**. The app's detail page opens, listing the published tools with a **Connect** button in the top right:
 
-![Tools listed in the app](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-tools-prompts.webp)
+![Tools listed in the app](../../../public/images/learn-articles/mcp-hotchocolate-fusion/chatgpt-tools-prompts.webp)
 
 Click **Connect**. ChatGPT shows a confirmation dialog that summarizes permissions, data use, and the risks of connecting third-party servers:
 
-![Connect dialog with permissions and data-use information](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-connect-app.webp)
+![Connect dialog with permissions and data-use information](../../../public/images/learn-articles/mcp-hotchocolate-fusion/chatgpt-connect-app.webp)
 
 Confirm by clicking **Connect Product Catalog** at the bottom of the dialog. The app is now available in chats. In a new chat, open the **+** menu next to the composer, expand **More**, and select your app:
 
-![Selecting the Product Catalog app from the chat composer menu](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-select-app.webp)
+![Selecting the Product Catalog app from the chat composer menu](../../../public/images/learn-articles/mcp-hotchocolate-fusion/chatgpt-select-app.webp)
 
 When the model decides to call `SearchProducts`, the host invokes the tool, your gateway runs the GraphQL operation, and the result comes back. If the tool has an Apps view, it renders inline:
 
-![SearchProducts result with Apps view](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-tool-result.webp)
+![SearchProducts result with Apps view](../../../public/images/learn-articles/mcp-hotchocolate-fusion/chatgpt-tool-result.webp)
 
 # What you get from Nitro
 
@@ -417,9 +410,9 @@ We are building on top of the existing strengths of GraphQL here. Your tools reu
 
 If you want to go deeper, the full references are here:
 
-- Hot Chocolate adapter: [MCP Adapter](../docs/hotchocolate/build/adapters/mcp.md)
-- Fusion adapter: [MCP Adapter](../docs/fusion/adapters/mcp.md)
-- Nitro authoring and CLI: [Nitro MCP](../docs/nitro/adapters/mcp.md)
+- Hot Chocolate adapter: [MCP Adapter](../../docs/hotchocolate/build/adapters/mcp.md)
+- Fusion adapter: [MCP Adapter](../../docs/fusion/adapters/mcp.md)
+- Nitro authoring and CLI: [Nitro MCP](../../docs/nitro/adapters/mcp.md)
 - MCP specification: [modelcontextprotocol.io](https://modelcontextprotocol.io/)
 - MCP Apps SDK: [API reference](https://apps.extensions.modelcontextprotocol.io/api/)
 

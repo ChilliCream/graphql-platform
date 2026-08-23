@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2026-05-15"
 title: "What's new in Fusion 16"
 description: "Fusion 16 is a GraphQL federation gateway built on ASP.NET Core, featuring Aspire-driven composition, incremental delivery, Semantic Introspection, OpenAPI adapters, and connectors for REST and gRPC."
@@ -16,7 +17,7 @@ The breaking point came with a Hot Chocolate 14 bug fix that inadvertently broke
 
 Around this time, we noticed other gateway vendors rewriting their solutions in Rust, while others went straight to Go. It’s tempting to follow that trend: pick a new language, claim performance gains, and move on. For us, though, switching platforms did not make sense. We have always **considered ASP.NET Core our biggest asset**, and building on it with C# gave us the strongest foundation for Fusion.
 
-> Upgrading from Fusion 15? Head straight to the [migration guide](../docs/fusion/migration/migrate-from-15-to-16.md) for the full list of breaking changes and upgrade notes.
+> Upgrading from Fusion 15? Head straight to the [migration guide](../../docs/fusion/migration/migrate-from-15-to-16.md) for the full list of breaking changes and upgrade notes.
 
 # ASP.NET Core
 
@@ -100,7 +101,7 @@ builder.Services
     });
 ```
 
-For a full walkthrough, see the [Getting Started](../docs/fusion/getting-started.md) guide.
+For a full walkthrough, see the [Getting Started](../../docs/fusion/getting-started.md) guide.
 
 # Performance
 
@@ -152,7 +153,7 @@ With .NET 11, Microsoft is moving async execution into the runtime, eliminating 
 
 Fusion delivers an exceptionally fast gateway that ranks near the top in benchmarks, while providing all the benefits of .NET and ASP.NET Core.
 
-For tuning knobs like HTTP/2 multiplexing, connection pooling, and concurrency limits, see the [Performance Tuning](../docs/fusion/performance-tuning.md) guide.
+For tuning knobs like HTTP/2 multiplexing, connection pooling, and concurrency limits, see the [Performance Tuning](../../docs/fusion/performance-tuning.md) guide.
 
 # AOT
 
@@ -162,19 +163,19 @@ On another note, Fusion 16 now supports AOT compilation. With an AOT compiled ga
 
 In Fusion 16, we have completely reworked the query planner. Query plans are now fully serializable, so you can export and import them as needed. This enables features like query plan pinning and build-time planning for complex federated setups. The new planner also produces much clearer execution plan views.
 
-![Query Planner view in Nitro](../../public/images/blog/2026-05-15-fusion-16/query-plan.png)
+![Query Planner view in Nitro](../../../public/images/learn-articles/fusion-16/query-plan.png)
 
 It’s now easier than ever to understand how operations are executed. You can click into any operation to see which other operations contribute to the result, making it simple to analyze and optimize your queries.
 
-![Query plan operation path](../../public/images/blog/2026-05-15-fusion-16/query-plan-path.png)
+![Query plan operation path](../../../public/images/learn-articles/fusion-16/query-plan-path.png)
 
 But what was fundamentally difficult in the past was to debug into a plan. Now with Fusion 16 and Nitro we can go into the plan details to see the structure of the subgraph request but also to look at the requirement data that is passed in.
 
-![Query plan details view](../../public/images/blog/2026-05-15-fusion-16/query-plan-details.png)
+![Query plan details view](../../../public/images/learn-articles/fusion-16/query-plan-details.png)
 
 In the details you find a button to test the operations which will create a new tab that is configured to run this operation against the subgraph directly.
 
-![Query plan testing view](../../public/images/blog/2026-05-15-fusion-16/query-plan-testing.png)
+![Query plan testing view](../../../public/images/learn-articles/fusion-16/query-plan-testing.png)
 
 # Aspire
 
@@ -191,9 +192,9 @@ var accountsApi = builder
 
 Aspire is excellent for the inner development loop. Being able to compose on the fly, right on your development machine, without any CLI tooling, makes iterating on a federated graph feel as fast and seamless as editing a single service.
 
-![Aspire composition with Fusion](../../public/images/blog/2026-05-15-fusion-16/aspire-composition.png)
+![Aspire composition with Fusion](../../../public/images/learn-articles/fusion-16/aspire-composition.png)
 
-The [Local Development](../docs/fusion/local-development.md) guide covers schema endpoint annotations, composition settings, and Nitro-backed remote subgraph composition in detail.
+The [Local Development](../../docs/fusion/local-development.md) guide covers schema endpoint annotations, composition settings, and Nitro-backed remote subgraph composition in detail.
 
 # CI/CD
 
@@ -201,9 +202,9 @@ Deployment is another area where we have made significant improvements. Previous
 
 We also now provide native integration with both GitHub Actions and Azure DevOps, making deployment even easier on these platforms.
 
-![GitHub Actions integration for Fusion](../../public/images/blog/2026-05-15-fusion-16/github.png)
+![GitHub Actions integration for Fusion](../../../public/images/learn-articles/fusion-16/github.png)
 
-See the [Deployment and CI/CD](../docs/fusion/deployment-and-ci-cd.md) guide and the [Nitro CLI reference](../docs/fusion/cli.md) for the full command set.
+See the [Deployment and CI/CD](../../docs/fusion/deployment-and-ci-cd.md) guide and the [Nitro CLI reference](../../docs/fusion/cli.md) for the full command set.
 
 # Incremental Delivery
 
@@ -241,7 +242,7 @@ Adapters and Connectors are major additions in Fusion 16, each deserving a deep 
 
 With Fusion 16, we introduce two new concepts for the gateway. Adapters allow you to expose your GraphQL schema as other protocols, such as OpenAPI, MCP, and soon gRPC. Connectors on the other hand let you integrate non-GraphQL APIs, including OpenAPI, gRPC, and other federation dialects like Apollo Federation, into Fusion. These APIs are treated as if they were native GraphQL Federation subgraphs.
 
-![Fusion gateway overview: adapters and connectors around the Fusion core](../../public/images/blog/2026-05-15-fusion-16/gateway-overview.png)
+![Fusion gateway overview: adapters and connectors around the Fusion core](../../../public/images/learn-articles/fusion-16/gateway-overview.png)
 
 ```mermaid
 flowchart LR
@@ -293,8 +294,7 @@ query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
 }
 
 "Creates a user"
-mutation CreateUser($user: UserInput! @body)
-@http(method: POST, route: "/users") {
+mutation CreateUser($user: UserInput! @body) @http(method: POST, route: "/users") {
   createUser(user: $user) {
     id
     name
@@ -303,9 +303,9 @@ mutation CreateUser($user: UserInput! @body)
 }
 ```
 
-![OpenAPI adapter exposing annotated GraphQL operations as REST endpoints](../../public/images/blog/2026-05-15-fusion-16/openapi-adapter.png)
+![OpenAPI adapter exposing annotated GraphQL operations as REST endpoints](../../../public/images/learn-articles/fusion-16/openapi-adapter.png)
 
-We currently ship Adapters for OpenAPI and MCP, with a gRPC Adapter landing in one of the next dot releases. The [MCP Adapter](../docs/fusion/adapters/mcp.md) docs are up now; the OpenAPI Adapter docs follow with its dedicated post.
+We currently ship Adapters for OpenAPI and MCP, with a gRPC Adapter landing in one of the next dot releases. The [MCP Adapter](../../docs/fusion/adapters/mcp.md) docs are up now; the OpenAPI Adapter docs follow with its dedicated post.
 
 ## Connectors
 

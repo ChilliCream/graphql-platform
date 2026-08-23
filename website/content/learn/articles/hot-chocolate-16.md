@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2026-05-11"
 title: "What's new for Hot Chocolate 16"
 description: "Hot Chocolate 16 brings a new type system, better scalar contracts, safer defaults, improved batching, semantic introspection, and a new GraphQL error mode."
@@ -66,7 +67,7 @@ That is the gap [scalars.graphql.org](https://scalars.graphql.org/) is meant to 
 
 The result in v16 is fewer built-in scalars, but much better ones. The scalars we keep now follow published specifications and expose them directly in the schema. That means API consumers can inspect a schema, understand exactly what a scalar means, and handle it correctly on the client side instead of guessing from the name alone.
 
-The full list, with diffs, lives in the [migration guide](../docs/hotchocolate/migrating/migrate-from-15-to-16.md).
+The full list, with diffs, lives in the [migration guide](../../docs/hotchocolate/migrating/migrate-from-15-to-16.md).
 
 # Date and time scalars
 
@@ -243,11 +244,7 @@ public class Product
 We also extended the proposal. Hot Chocolate lets you declare feature stability at the schema level and expose it through introspection with `__schema.optInFeatures`, `__schema.optInFeatureStability`, and `includeOptIn`.
 
 ```graphql
-schema
-  @optInFeatureStability(
-    feature: "product-recommendations"
-    stability: "experimental"
-  ) {
+schema @optInFeatureStability(feature: "product-recommendations", stability: "experimental") {
   query: Query
 }
 
@@ -289,11 +286,11 @@ These deserve their own posts, so I will keep this short. v16 ships two new adap
 - **MCP**, a [Model Context Protocol](https://modelcontextprotocol.io/) server adapter that exposes GraphQL operations as MCP tools for LLM agents. It also supports agentic UI through the MCP app extension.
 - **OpenAPI**, an adapter for projecting GraphQL operations as OpenAPI definitions.
 
-Both will get their own posts in the next few weeks. If you do not want to wait, the docs are already up for the [MCP adapter](../docs/hotchocolate/build/adapters/mcp.md) and the [OpenAPI adapter](../docs/hotchocolate/build/adapters/openapi.md).
+Both will get their own posts in the next few weeks. If you do not want to wait, the docs are already up for the [MCP adapter](../../docs/hotchocolate/build/adapters/mcp.md) and the [OpenAPI adapter](../../docs/hotchocolate/build/adapters/openapi.md).
 
 # Wrapping up
 
-If you are upgrading, start with our [migration guide](../docs/hotchocolate/migrating/migrate-from-15-to-16.md). It has the full list of breaking changes, defaults, and migration notes.
+If you are upgrading, start with our [migration guide](../../docs/hotchocolate/migrating/migrate-from-15-to-16.md). It has the full list of breaking changes, defaults, and migration notes.
 
 This is only the beginning. We will follow up with more posts and YouTube episodes that dive deeper into new features across Hot Chocolate, Fusion, and Mocha.
 

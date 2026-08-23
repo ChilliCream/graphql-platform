@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2025-03-17"
 title: "Open Telemetry for All Your Services"
 tags: ["nitro", "open-telemetry", "dotnet", "aspnetcore"]
@@ -28,7 +29,7 @@ services.AddNitroTelemetry(options =>
 
 On the trace overview of your API in the Nitro dashboard, select **OpenTelemetry** from the dropdown on the top right. You’ll be able to inspect all your HTTP requests, background workers, or anything else you’re tracking with OTEL. We’ve also **drastically improved telemetry performance**, so these insights will load and refresh faster than ever.
 
-![Telemetry Overview](../../public/images/blog/2025-03-17-open-telemetry-for-everyone/otel1.png)
+![Telemetry Overview](../../../public/images/learn-articles/open-telemetry-for-everyone/otel1.png)
 
 In this post, you’ll also learn about:
 

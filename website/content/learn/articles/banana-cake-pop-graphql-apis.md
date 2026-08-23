@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2023-03-15"
 title: "Let’s Boost Your Productivity With APIs"
 description: "Together, we'll explore the new API feature coming with Banana Cake Pop 5 very soon."

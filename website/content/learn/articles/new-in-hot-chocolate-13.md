@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2023-02-08"
 title: "What's new for Hot Chocolate 13"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
@@ -62,7 +63,7 @@ Apart from GraphQL over HTTP, we also focused on supporting even more GraphQL tr
 
 But we also brought the WebSocket transport up to speed with GraphQL-WS. We now support the legacy Apollo subscription protocol and the new GraphQL-WS protocol.
 
-![Banana Cake Pop - Subscription Protocol Selection Dialog](../../public/images/blog/2023-02-08-new-in-hot-chocolate-13/bcp-1.png)
+![Banana Cake Pop - Subscription Protocol Selection Dialog](../../../public/images/learn-articles/new-in-hot-chocolate-13/bcp-1.png)
 
 [GraphQL-SSE Protocol](https://github.com/enisdenjo/graphql-sse) /
 [GraphQL-WS Protocol](https://github.com/enisdenjo/graphql-ws)
@@ -627,7 +628,7 @@ With version 12, we introduced the Azure Functions integration but only targeted
    ```
 
    Or use Visual Studio.
-   ![HotChocolate Azure Functions Project Templates](../../public/images/blog/2023-02-08-new-in-hot-chocolate-13/az-func-templates-vs.png)
+   ![HotChocolate Azure Functions Project Templates](../../../public/images/learn-articles/new-in-hot-chocolate-13/az-func-templates-vs.png)
 
 # Performance
 

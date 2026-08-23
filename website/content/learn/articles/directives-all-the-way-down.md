@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2026-08-03"
 title: "Directives All the Way Down"
 description: "GraphQL directives can now be applied to directive definitions themselves in Hot Chocolate 16.4, so you can finally deprecate a directive and attach metadata to your schema's own extension points."
@@ -171,4 +172,4 @@ We shipped the mechanism, and Hot Chocolate already puts it to work in more than
 
 Directives are an open-ended extension point, and now that they reach directives themselves, we are genuinely curious what patterns you will come up with. If you build something interesting on top of this, tell us. And if you just want to deprecate that one directive that has been haunting your schema, that is a perfectly good reason to upgrade too.
 
-For the full reference, see the [Directives on Directive Definitions](../docs/hotchocolate/defining-a-schema/directives.md#directives-on-directive-definitions) guide.
+For the full reference, see the [Directives on Directive Definitions](../../docs/hotchocolate/defining-a-schema/directives.md#directives-on-directive-definitions) guide.

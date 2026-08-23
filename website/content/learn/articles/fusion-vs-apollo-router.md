@@ -138,7 +138,7 @@ if you're migrating an existing graph.
 
 > [!NOTE]
 > Compatibility and throughput figures on this page are reproduced from
-> ChilliCream's [Fusion 16.5 announcement](../../blog/2026-07-12-fusion-16-5.md)
+> ChilliCream's [Fusion 16.5 announcement](./fusion-16-5.md)
 > (published 2026-07-12), which compares Fusion 16.5.0 against Apollo Router
 > v2.16.0. The compatibility scores are against [The Guild's federation
 > gateway audit](https://the-guild.dev/graphql/hive/blog/federation-gateway-audit).

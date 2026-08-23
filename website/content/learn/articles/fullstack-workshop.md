@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2024-04-01"
 title: "Full Stack GraphQL Workshop"
 description: "We're excited to announce our new Full Stack GraphQL Workshop. Learn more about the workshop here!"
@@ -13,7 +14,7 @@ In today's rapidly evolving technology landscape, staying ahead requires not onl
 
 Book your seat now and learn more about the workshop [here](https://learn.chillicream.com/blog/2024-04-01/fullstack-workshop).
 
-![Full Stack GraphQL Workshop](../../public/images/blog/2024-04-01-fullstack-workshop/img1.png)
+![Full Stack GraphQL Workshop](../../../public/images/learn-articles/fullstack-workshop/img1.png)
 
 Over two days, we'll cover everything from basic concepts to advanced techniques. We start by getting to know GraphQL, learning about its features and benefits compared to traditional methods. Later, we introduce Relay.js, focusing on how it works with GraphQL to improve data handling and application performance.
 

@@ -1,4 +1,5 @@
 ---
+kind: article
 date: "2022-10-05"
 title: "New in Banana Cake Pop 2"
 description: "Drag & drop support for documents, GraphQL defer/stream support, GraphQL operation extraction, and many further improvements."
