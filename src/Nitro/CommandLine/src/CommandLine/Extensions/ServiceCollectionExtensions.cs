@@ -42,6 +42,10 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
         services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
+        services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
+        services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
+        services.TryAddSingleton<IClaudeHooksSidecarStore, ClaudeHooksSidecarStore>();
+        services.TryAddSingleton<IClaudeHooksInstallerService, ClaudeHooksInstallerService>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();

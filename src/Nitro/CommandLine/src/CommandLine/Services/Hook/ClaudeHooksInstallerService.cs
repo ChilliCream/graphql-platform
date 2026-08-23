@@ -1,0 +1,135 @@
+using System.Security.Cryptography;
+using System.Text;
+
+namespace ChilliCream.Nitro.CommandLine.Services.Hook;
+
+internal sealed record ClaudeHooksInstallReport(string SettingsPath, IReadOnlyList<HookInstallEventResult> Events);
+
+internal sealed record ClaudeHooksStatusReport(string SettingsPath, IReadOnlyList<HookStatusEventResult> Events);
+
+internal sealed record ClaudeHooksUninstallReport(string SettingsPath, IReadOnlyList<HookUninstallEventResult> Events);
+
+/// <summary>
+/// Wires <see cref="ClaudeHooksEditor"/>'s pure JSON editing to the real
+/// settings file, the sidecar, and the concurrency guard: the file is
+/// re-read and hash-compared immediately before every write, so a foreign
+/// edit landing between this service's initial read and its write aborts
+/// the command instead of being silently overwritten.
+/// </summary>
+internal interface IClaudeHooksInstallerService
+{
+    Task<ClaudeHooksInstallReport> InstallAsync(string scope, CancellationToken cancellationToken);
+
+    Task<ClaudeHooksStatusReport> StatusAsync(string scope, CancellationToken cancellationToken);
+
+    Task<ClaudeHooksUninstallReport> UninstallAsync(string scope, CancellationToken cancellationToken);
+}
+
+internal sealed class ClaudeHooksInstallerService(
+    IFileSystem fileSystem,
+    IClaudeSettingsPathResolver pathResolver,
+    ILaunchDescriptorResolver launchDescriptorResolver,
+    IClaudeHooksSidecarStore sidecarStore,
+    TimeProvider timeProvider) : IClaudeHooksInstallerService
+{
+    public async Task<ClaudeHooksInstallReport> InstallAsync(string scope, CancellationToken cancellationToken)
+    {
+        var path = pathResolver.Resolve(scope);
+        var descriptor = launchDescriptorResolver.Resolve();
+
+        var (textAtRead, hashAtRead) = await ReadWithHashAsync(path, cancellationToken);
+
+        var result = ClaudeHooksEditor.Install(textAtRead, descriptor, timeProvider.GetUtcNow());
+
+        await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
+
+        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        sidecar.Files[path] = new Dictionary<string, ClaudeHooksSidecarEntry>(result.Sidecar);
+        await sidecarStore.WriteAsync(sidecar, cancellationToken);
+
+        return new ClaudeHooksInstallReport(path, result.Outcomes);
+    }
+
+    public async Task<ClaudeHooksStatusReport> StatusAsync(string scope, CancellationToken cancellationToken)
+    {
+        var path = pathResolver.Resolve(scope);
+        var descriptor = launchDescriptorResolver.Resolve();
+
+        var text = fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+
+        return new ClaudeHooksStatusReport(path, ClaudeHooksEditor.Status(text, descriptor));
+    }
+
+    public async Task<ClaudeHooksUninstallReport> UninstallAsync(string scope, CancellationToken cancellationToken)
+    {
+        var path = pathResolver.Resolve(scope);
+
+        var (textAtRead, hashAtRead) = await ReadWithHashAsync(path, cancellationToken);
+
+        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        var priorEntries = sidecar.EntriesFor(path);
+
+        var result = ClaudeHooksEditor.Uninstall(textAtRead, priorEntries);
+
+        await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
+
+        sidecar.Files.Remove(path);
+        await sidecarStore.WriteAsync(sidecar, cancellationToken);
+
+        return new ClaudeHooksUninstallReport(path, result.Outcomes);
+    }
+
+    private async Task<(string? Text, string Hash)> ReadWithHashAsync(string path, CancellationToken cancellationToken)
+    {
+        var text = fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+
+        return (text, Hash(text));
+    }
+
+    /// <summary>
+    /// The concurrency guard named in the plan: re-reads the destination
+    /// immediately before writing and compares its hash against the one
+    /// captured when this call's caller first read it. A mismatch means
+    /// something else wrote to the file in between - this aborts rather
+    /// than clobbering that edit. Only writes at all when the new content
+    /// actually differs, so a no-op install/uninstall never touches the
+    /// file's mtime.
+    /// </summary>
+    private async Task WriteIfUnchangedSinceReadAsync(
+        string path, string hashAtRead, string newText, CancellationToken cancellationToken)
+    {
+        var currentText = fileSystem.FileExists(path)
+            ? await fileSystem.ReadAllTextAsync(path, cancellationToken)
+            : null;
+
+        if (Hash(currentText) != hashAtRead)
+        {
+            throw new ExitException(
+                $"'{path}' changed since it was read; nothing was written. Re-run the command.");
+        }
+
+        if (currentText == newText)
+        {
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(path);
+
+        if (!string.IsNullOrEmpty(directory) && !fileSystem.DirectoryExists(directory))
+        {
+            fileSystem.CreateDirectory(directory);
+        }
+
+        if (currentText is null)
+        {
+            await fileSystem.CreateFileAtomicAsync(path, newText, cancellationToken);
+        }
+        else
+        {
+            await fileSystem.ReplaceFileAtomicAsync(path, newText, cancellationToken);
+        }
+    }
+
+    private static string Hash(string? text)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
+}
