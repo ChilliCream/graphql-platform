@@ -12,9 +12,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// digest and per-turn budget reset on UserPromptSubmit, the Stop gate
 /// (reentrancy, per-turn budget, ledger reservation), and conditional
 /// teardown on SessionEnd. Every call runs with <c>dryRun: true</c>, which
-/// resolves the process generation from this test process's own pid instead
-/// of walking for a live Claude Code ancestor - the same substitution the
-/// command layer's <c>--dry-run</c> flag makes for fixture-driven runs.
+/// pins the row's generation to the fixed sentinel identity (pid 1,
+/// <see cref="DateTimeOffset.UnixEpoch"/> proc_start) instead of walking for
+/// a live Claude Code ancestor - the same substitution the command layer's
+/// <c>--dry-run</c> flag makes for fixture-driven runs.
 /// </summary>
 public sealed class ClaudeHookHandlerTests : IDisposable
 {
