@@ -1,5 +1,14 @@
 # Design spec: /learn editorial hub, article and comparison pages
 
+> **Status (2026-08-23):** Part I below (sections 1 to 10) is the v1 spec; it
+> shipped via website-5yo.10 through .12. User review of the shipped pages
+> rejected the uniform-card landing ("this way everything looks the same") and
+> asked for the IBM Think editorial layout. **Part II (sections 11 to 19,
+> epic website-c6w) is the binding v2 spec: where Part II conflicts with
+> Part I, Part II wins.** Section 11 states the disposition of every Part I
+> section explicitly. Part I is kept intact as the record of the shipped v1
+> and for everything Part II leaves standing.
+
 Design addendum for the editorial layer of the learn hub (ticket
 website-5yo.9, parent website-5yo). It designs the `/learn` editorial landing,
 the article reading page, the comparison-page layout, and the entry into the
@@ -29,6 +38,8 @@ in the repo (verified 2026-08-23). Proposed new components are marked
 **(proposed)** and live under `src/components/learn/`.
 
 ---
+
+# Part I: v1 spec (shipped; superseded per section 11)
 
 ## 1. Design direction
 
@@ -562,3 +573,536 @@ components on these surfaces remain the ones that already are
   filtered browse links until it exists).
 - Any change to the landed catalog design beyond the `/learn/browse` link
   retargeting stated in section 2.
+
+---
+
+# Part II: v2 editorial redesign (epic website-c6w, 2026-08-23)
+
+v2 responds to the user's live review of the shipped v1 (epic website-c6w and
+its comment): every item on the landing is the same card so nothing has
+hierarchy, sections stack vertically instead of forming an editorial grid,
+the topic nav is a pill row on the landing only, and the content column is
+too narrow on widescreen. The binding layout reference is the user-supplied
+ibm.com/think screenshot (2026-08-23): under the masthead a wide 3-column
+band, LEFT a "Latest" column of compact vertical list items (small square
+thumbnail, topic kicker in small text, 2-line title, author line, thin
+divider between items), CENTER the featured story (large image, kicker,
+display-size headline, dek, author), RIGHT a rail with a dark image promo
+tile, a solid-color CTA banner tile with arrow, and a "Most popular" tag
+cloud; columns separated by hairline rules; the band roughly 1600px wide on
+desktop.
+
+Component citations in Part II follow the Part I convention: unqualified
+names exist in the repo (verified against `src/components/learn/` and
+`app/(content)/learn/` on branch pse/adds-templates, 2026-08-23); new
+components are marked **(new)**.
+
+---
+
+## 11. Disposition of every Part I section
+
+Where a row says "superseded", the Part II section named in the row is the
+spec and the Part I text is history. Where it says "stands", the shipped v1
+surface is kept and Part II changes nothing about it beyond the container
+and subnav that every /learn route inherits (sections 12 and 13).
+
+| Part I section                    | Disposition under v2                                                                                                                                                                                                              |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Design direction                | **Amended.** The two-card-family rule (editorial `BlogTeaser` vs catalog `LearnCard`) is replaced by the five-treatment system (section 14). `BlogTeaser` leaves all /learn surfaces. The no-page-backdrop and token rules stand. |
+| 2 Route map                       | **Stands.** Routes are as shipped: `/learn`, `/learn/browse`, `/learn/articles` (+ `/page/[page]`, `/tags/[tag]`), `/learn/articles/[slug]`, `/learn/templates/[slug]`.                                                           |
+| 3.1 Masthead and topic subnav     | **Superseded** by sections 13 and 15.1. `LearnTopicNav` is removed outright; `LearnMasthead` leaves the landing and moves to `/learn/browse` (section 16.1).                                                                      |
+| 3.2 Featured story hero           | **Superseded** by section 14.2. `LearnFeatureHero` is retired and replaced by `LearnFeaturedStory` inside the editorial band.                                                                                                     |
+| 3.3 Latest                        | **Superseded** by sections 14.1 and 15.1. `LearnLatestSection` is retired; Latest becomes the compact list-row column of the band.                                                                                                |
+| 3.4 Topic rails                   | **Amended** by section 15.2. `LearnTopicRail` stays but renders list rows only; the fixed teaser-plus-`LearnCard` mix is abolished.                                                                                               |
+| 3.5 Collection band               | **Stands** (`LearnCollectionSection`). Plain `LearnCard`s remain the correct treatment for catalog items (section 14.5).                                                                                                          |
+| 3.6 Explainers list               | **Stands** (`LearnExplainerList`), with the kind-filter data fix of cleanup item 17.1.                                                                                                                                            |
+| 3.7 Videos                        | **Stands** (`LearnVideoSection`); videos keep plain `LearnCard`s (section 14.5).                                                                                                                                                  |
+| 3.8 Subscribe band                | **Stands** as shipped (the single merged `LearnSubscribeBand`); it gains `id="subscribe"` as the subnav's Subscribe target (section 13.2).                                                                                        |
+| 3.9 Responsive and motion summary | **Amended.** The uniform 1/2/3-column grid rule no longer describes the landing; the band's own collapse rules (section 15.1) and the motion rules of section 15.6 govern.                                                        |
+| 4 Article reading page            | **Stands** (`ArticleLayout` as shipped). v2 adds only the subnav above it and the breadcrumb unification of cleanup item 17.5.                                                                                                    |
+| 5 Browse entry points             | **Amended.** The "persistent" entry is now the subnav's Browse link on every /learn route; the pill-row entry is gone. Scoped and closing entries stand.                                                                          |
+| 6 Comparison page layout          | **Stands.**                                                                                                                                                                                                                       |
+| 7 Blog component dispositions     | **Amended.** `BlogTeaser`/`BlogTeaserGrid` are no longer used on any /learn surface (sections 14.5, 16.2). Their non-learn call sites are untouched.                                                                              |
+| 8 Theme and token rules           | **Stands**, extended by section 14.6 for the new treatments.                                                                                                                                                                      |
+| 9 Component inventory             | **Superseded** by section 18.                                                                                                                                                                                                     |
+| 10 Non-goals                      | **Superseded** by section 19.                                                                                                                                                                                                     |
+
+---
+
+## 12. Wider learn container on widescreen
+
+The rest of the site keeps its container. Only /learn routes widen.
+
+- **Token**: add `--container-8xl: 100rem` to the `@theme` block in
+  `app/globals.css`. 100rem = 1600px, matching the reference band's width.
+- **Layout**: the learn routes move out of the shared `(content)` gutter
+  into their own route group: `app/(content)/learn/*` becomes
+  `app/(learn)/learn/*` with its own `app/(learn)/learn/layout.tsx`. That
+  layout renders, in order: `LearnSubnav` **(new)** (full-bleed, section 13),
+  then the gutter `<div className="px-5 py-8 sm:px-12"><div className="mx-auto
+max-w-8xl">{children}</div></div>`. The existing `(content)` layout
+  (`max-w-7xl`) is not touched; nothing outside /learn changes width.
+- **Breakpoint behavior**: gutters stay identical to the rest of the site
+  (`px-5`, `sm:px-12`). The container is fluid up to 100rem and centered
+  beyond it, so /learn only differs from sibling pages once the viewport
+  exceeds 1376px (1280px content + 96px gutters). Effective content widths:
+  1280px viewport gives 1184px, 1440px gives 1344px, 1728px gives 1600px.
+  Today the landing wastes 224px per side at 1728px (measured: 1280px
+  container in a 1728px viewport).
+- **Inner measures are unchanged**: the article column keeps `max-w-5xl`
+  (`ArticleLayout`), and reading pages simply gain rail/TOC breathing room.
+  The articles index drops its double gutter instead of inheriting it
+  (cleanup item 17.6).
+
+---
+
+## 13. Persistent subnav: `LearnSubnav` (new)
+
+The Think-style second navigation bar, rendered by the learn layout on
+**every** /learn route: landing, browse, articles index and its page/tag
+variants, article pages, template pages.
+
+### 13.1 Placement and sticky behavior
+
+- Direct child of the layout, above the gutter, full viewport width.
+- `sticky top-18 z-30`: the global header (`HeaderShell`) is `h-18 sticky
+top-0 z-40`, so the subnav docks exactly under its 72px and stays below
+  it in stacking order (header dropdowns and search overlay it).
+- Height `h-12` (48px). Combined fixed chrome while scrolling: 120px.
+- Surface echoes the header's sticky recipe without competing with it:
+  `border-cc-card-border border-b bg-cc-card-bg backdrop-blur-[18px]
+backdrop-saturate-150`. No inset highlight (that is the global header's
+  signature line).
+- The `/products/nitro` overlay special case in `HeaderShell` does not apply
+  to /learn routes; no overlay variant exists for the subnav.
+
+### 13.2 Anatomy
+
+One row inside the learn gutter (`mx-auto max-w-8xl px-5 sm:px-12`), grid
+`[auto_1fr_auto]`, items centered vertically:
+
+1. **Learn wordmark**, pinned left: "Learn" in `font-heading text-cc-heading
+font-semibold`, linking to `/learn`. This is the section identity; it
+   replaces the landing masthead's job (section 15.1).
+2. **Link row**, `text-sm`, in order: promoted topics **Hot Chocolate**
+   (`/learn/browse?product=hot-chocolate`), **Fusion**
+   (`/learn/browse?product=fusion`), **Nitro** (`/learn/browse?product=nitro`),
+   then **Articles** (`/learn/articles`) and **Browse** (`/learn/browse`).
+   Idle links `text-cc-ink-dim hover:text-cc-heading transition-colors`.
+   Active state (route prefix match; for the three product links, `/learn/browse`
+   with the matching `product` param): `text-cc-heading` plus a 2px
+   `bg-cc-accent` underline bar sitting on the subnav's bottom border
+   (tab-style, e.g. an absolutely positioned `bottom-0 h-0.5` span).
+3. **Subscribe**, pinned right: a `text-cc-accent hover:text-cc-accent-hover
+text-sm font-medium` link to `/learn#subscribe`. `LearnSubscribeBand`
+   gains `id="subscribe"` with `scroll-mt-32` so the anchor lands below the
+   120px of fixed chrome. From non-landing routes the link navigates to the
+   landing anchor; no client state involved.
+
+### 13.3 Mobile collapse
+
+- Below `md`, the middle link row scrolls horizontally inside its own
+  container: `overflow-x-auto whitespace-nowrap [scrollbar-width:none]
+[&::-webkit-scrollbar]:hidden`. The wordmark and Subscribe stay pinned
+  outside the scroller, so the two anchors of the bar (identity, primary
+  action) are always visible. This fixes the shipped failure where the
+  overflow row hid "Browse all" entirely (cleanup item 17.3).
+- The subnav stays sticky on mobile; at 48px it is cheap, and it is the only
+  learn navigation on small screens (the global `MobileNav` hamburger does
+  not know about learn subsections).
+
+### 13.4 Relationship to `LearnTopicNav`
+
+`LearnTopicNav` (`src/components/learn/LearnTopicNav.tsx`) is **removed**,
+file deleted, not restyled: its browse-entry job moves to the subnav's
+Browse link, its product topics move to the promoted links, and its two
+non-product topics (GraphQL fundamentals, AI and agents) survive as landing
+topic sections (15.2) and in the tag cloud, not as navigation. The five-topic
+`TOPICS` table and mapping helpers in `editorial.ts` stay: topic sections
+still consume them.
+
+---
+
+## 14. Treatment system: five treatments replace one-card-fits-all
+
+The v1 rule "two card families" produced the rejected sameness: on the
+shipped landing every one of the seven sections is a header row plus a
+3-column grid of near-identical bordered cards. v2 assigns each content role
+its own form. Importance reads through size and placement, not through
+another border radius.
+
+### 14.1 Compact list row: `LearnListRow` (new)
+
+The workhorse for articles in the Latest column, topic sections, and the
+articles index. One row, whole row a single link, **no card surface, no
+border box, no CTA label**:
+
+- Grid `[auto_1fr] gap-4 items-start`. Left: square thumbnail from the
+  post's `featuredImage` via `Picture`, `size-20 rounded-lg border
+border-cc-ink-faint object-cover`; posts without an image render a
+  `bg-cc-white/4` square with the post's product `DrinkIcon` centered (the
+  established fallback iconography, never an empty box).
+- Right, stacked: kicker in the mono caption voice (`font-mono text-xs
+uppercase tracking-wider text-cc-ink-dim`) carrying the post category
+  (fallback: primary topic label); title `text-cc-heading font-medium
+leading-snug line-clamp-2 transition-colors`, on row hover
+  `text-cc-accent`; author line `text-cc-ink-dim text-sm` as
+  "{author} · {MMM d, yyyy}" (single date, no avatar at this size).
+- Rows separate with thin dividers: the list container uses `divide-y
+divide-cc-ink-faint`, rows `py-4`. No hover translate; the title color
+  shift is the whole affordance.
+
+### 14.2 Featured story: `LearnFeaturedStory` (new), retires `LearnFeatureHero`
+
+Exactly one per page (landing band center; articles index page 1 lead). An
+open editorial composition, not a boxed panel: the v1 hero's card chrome
+(`bg-cc-white/2.5` panel, border, hover translate) is dropped so the story
+reads bigger than everything, not "same card, larger".
+
+- Stacked: image (`aspect-video rounded-2xl border border-cc-ink-faint
+object-cover`, `priority` on the landing), then kicker row (`Eyebrow`
+  "Featured" in accent plus the category chip in the established mono chip
+  style), then headline `font-heading text-cc-heading font-semibold
+text-balance text-h4 sm:text-h3 xl:text-h2`, then dek `text-cc-ink-dim
+text-lg line-clamp-3`, then one byline row (avatar `Picture` 30px, author,
+  "·", full date). The v1 hero printed the date twice (meta row and byline);
+  v2 prints it once, in the byline only.
+- Whole composition one `Link`; hover shifts the headline to
+  `text-cc-accent`. No translate, no border brightening (there is no
+  border).
+- Fallback (no post has `featuredImage`): render without the image block,
+  headline first. Never empty.
+
+### 14.3 Promo tile: `LearnPromoTile` (new)
+
+The curated right-rail unit, two variants on one component:
+
+- **Image variant** (the Think dark image tile): `relative overflow-hidden
+rounded-2xl border border-cc-ink-faint aspect-[4/3]`, `Picture` filling
+  with `object-cover`, a bottom-up scrim `bg-gradient-to-t
+from-cc-surface/85 via-cc-surface/40 to-transparent`, and content pinned
+  bottom-left over the scrim: mono kicker, title `text-cc-heading
+font-heading font-semibold`, optional author line. Whole tile one link.
+- **CTA banner variant** (the Think solid-color tile with arrow):
+  `rounded-2xl bg-cc-accent p-6 text-cc-surface`, mono kicker at reduced
+  opacity, one-line title in `font-heading font-semibold`, and
+  `ArrowRightIcon` bottom-right with the standard `group-hover:translate-x-1`.
+  This is the only solid-accent surface in the learn system; it is reserved
+  for one curated action per page (initially Subscribe, see 15.1).
+
+Tile content is editorial data passed as props (kicker, title, href, image);
+components never pick their own content.
+
+### 14.4 Tag cloud: `LearnTagCloud` (new)
+
+The "Most popular" rail unit: a mono-caption heading ("Most popular") over a
+`flex flex-wrap gap-2` of `Tag` components (the existing design-system pill,
+already the facet-bar voice), each linking to `/learn/articles/tags/[tag]`.
+Data: the most frequent tags across `listBlogPostSummaries()` (top 10 to 12),
+computed by a small helper in `editorial.ts` at build time.
+
+### 14.5 Plain cards: where `LearnCard` legitimately remains
+
+`LearnCard` stays exactly as shipped for the five catalog types (template,
+video, tutorial, example, workshop): the `/learn/browse` catalog, the
+"Start building" collection band, the "Watch" section, and the template
+detail's "More from Learn" grid. These are "use this" objects where a
+uniform comparable card is the right form. `LearnCard` is never used for
+articles (it never was; the article-side offender was the uniform
+`BlogTeaser` grid), and `BlogTeaser`/`BlogTeaserGrid` now leave every /learn
+surface: Latest and topic rails render `LearnListRow`s, the articles index
+renders section 16.2. `BlogTeaser`'s non-learn call sites are untouched.
+
+**CTA rule after commit 9857016d8f** (LearnCard CTA changed from per-type
+accent to `text-cc-accent`, user ruling): that rule stands and stays
+`LearnCard`-only. The new article treatments carry **no per-item CTA label
+at all**: list rows and the featured story are title-led links whose hover
+accent is the affordance, and the promo tile's arrow belongs to its CTA
+banner variant. Nothing in v2 adopts a "Read" label, so the accent-CTA rule
+neither spreads nor conflicts; it lives on wherever `LearnCard` renders.
+
+### 14.6 Token rules for the new treatments
+
+The site is single-theme dark (Part I section 8 stands; there is no light
+mode to cover, only the `@media print` palette). Rules for the new pieces:
+
+- Every color is a `cc-*` token or a token with an opacity modifier. The
+  promo scrim uses `cc-surface` alphas (defined for exactly this purpose in
+  `globals.css`); the CTA banner uses `bg-cc-accent` with `text-cc-surface`
+  (the same pairing `Agent-ready`'s `bg-cc-warning text-cc-surface` chip
+  already established for on-accent text). No new literals; the single
+  sanctioned literal remains `bg-[#f5f0ea]` behind `STACK_ICONS`.
+- Hairline rules between band columns: `border-cc-card-border`. Row
+  dividers: `divide-cc-ink-faint`. Imagery keeps `border-cc-ink-faint`
+  frames so bright thumbnails stay seated on the dark surface.
+
+---
+
+## 15. Landing v2: `/learn`
+
+Top to bottom: subnav (section 13), editorial band, topic sections, "Start
+building", "Explainers", "Watch", subscribe band. The page h1 becomes
+visually hidden (`sr-only` "Learn ChilliCream"): the subnav wordmark carries
+the visible identity, and the front page leads with content, which is the
+Think gesture the masthead only imitated. `LearnMasthead` leaves this page
+(it moves to `/learn/browse`, section 16.1).
+
+### 15.1 Editorial band: `LearnEditorialBand` (new)
+
+Replaces the shipped `LearnFeatureHero` + `LearnLatestSection` pair. One
+component owning the three-column grid; content arrives as props from
+`page.tsx`.
+
+**Grid definition:**
+
+- `xl` and up (1280px, where the container is at least 1184px):
+  `xl:grid-cols-[minmax(16rem,19rem)_minmax(0,1fr)_minmax(16rem,19rem)]`.
+  Column order: Latest, Featured, rail. Hairline rules between columns: the
+  center and right columns take `xl:border-l xl:border-cc-card-border` with
+  `xl:px-8`; the first column `xl:pr-8` (no gap property; the rules own the
+  spacing, per the reference).
+- `lg` to below `xl`: `lg:grid-cols-[minmax(0,1fr)_19rem]` with `gap-x-8`:
+  Featured left, rail right; Latest drops below the pair as a full-width
+  two-column list (`lg:columns` none, plain `sm:grid-cols-2 gap-x-10` of
+  rows). Three columns below 1280px would squeeze the featured story under
+  600px, thinner than a plain article card, so the band refuses it.
+- Below `lg`: one column, order Featured, Latest, rail. The two promo tiles
+  sit side by side at `sm` (`sm:grid-cols-2`) with the tag cloud full-width
+  under them; below `sm` everything stacks.
+
+**Column content:**
+
+- **Latest (left)**: mono-caption column heading "Latest", then the 5
+  newest posts (excluding the featured story) as `LearnListRow`s, then an
+  `ArrowLink` "All articles" to `/learn/articles`.
+- **Featured (center)**: `LearnFeaturedStory` with the newest post carrying
+  a `featuredImage` (the shipped `getLatestBlogPost()` heuristic,
+  editorially overridable later).
+- **Rail (right)**, top to bottom: one `LearnPromoTile` image variant (a
+  curated pick, initially the newest Release-category post not already in
+  the band, chosen in `page.tsx`); one `LearnPromoTile` CTA banner
+  ("Subscribe", "Never miss a release", `/learn#subscribe`); one
+  `LearnTagCloud`.
+
+**Dedupe rule:** a post appears at most once in the band, and posts shown in
+the band are excluded from every topic section below. The shipped landing
+shows Fusion 16.5 and Federated Event Streams up to four times each
+(Latest, GraphQL fundamentals, Hot Chocolate, Federation and Fusion rails,
+observed 2026-08-23); v2 makes that structurally impossible.
+
+### 15.2 Topic sections: `LearnTopicRail` restyled
+
+The rail keeps its name, header row (`text-h5 sm:text-h4` heading plus
+`ArrowLink` "More {topic}"), and the `TOPICS` mapping, but its body becomes
+4 `LearnListRow`s in `lg:grid-cols-2 gap-x-10` (single column below `lg`).
+The `TopicRailSlot` union and the teaser-plus-`LearnCard` mix die: catalog
+items no longer appear inside topic sections (that was the mis-filed
+"Fusion 3-Service Federation template inside the Hot Chocolate rail"
+problem; catalog items are reachable through the section's More link and the
+collection band). A topic section renders only when it still has 3 or more
+posts after the band dedupe; otherwise it is omitted, per the strategy's
+no-empty-rails rule.
+
+### 15.3 Collection, explainers, videos
+
+"Start building" (`LearnCollectionSection`), "Explainers"
+(`LearnExplainerList`), and "Watch" (`LearnVideoSection`) stand as shipped,
+with one data fix: the landing passes `listArticlesByKind("explainer")` plus
+`listArticlesByKind("comparison")` to `LearnExplainerList` instead of
+`listArticleSummaries()` (cleanup item 17.1).
+
+### 15.4 Subscribe band
+
+`LearnSubscribeBand` stands as shipped and gains `id="subscribe"` and
+`scroll-mt-32` (section 13.2).
+
+### 15.5 Section rhythm
+
+Sections keep the `border-cc-card-border border-t py-14 sm:py-20` rhythm,
+except the editorial band, which sits directly under the subnav with `pt-8
+sm:pt-10` and no top border (the subnav's bottom border is the rule above
+it).
+
+### 15.6 Motion
+
+Card hovers stay as established where cards remain (`LearnCard`
+`-translate-y-1`). The new treatments move nothing: list rows, the featured
+story, and promo tiles animate color only (`transition-colors`), plus the
+CTA banner's arrow `translate-x-1`. No carousels, no auto-advance.
+
+---
+
+## 16. Browse, articles index, and reading pages under v2
+
+### 16.1 `/learn/browse`
+
+- Inherits subnav and the wider container. The centered `PageHero` (which
+  burns roughly 350px of viewport before content and speaks the display
+  voice the landing no longer uses) is replaced by `LearnMasthead`,
+  relocated from the landing: left-aligned eyebrow "Learn", title "Browse
+  the catalog", one-sentence teaser. The separate breadcrumb row above it is
+  dropped; the subnav marks the place (cleanup item 17.7).
+- `LearnCatalog` and `LearnFacetBar` are unchanged in behavior. The result
+  grid gains a fourth column at `xl` so cards keep their designed width in
+  the 1600px container: extend `CardGrid` with a `cols: 4` option
+  (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` when `step="progressive"`),
+  used by the catalog grid and its skeleton fallback only.
+- Template detail pages (`TemplateDetail`) are unchanged apart from subnav,
+  container, and breadcrumb style (17.5).
+
+### 16.2 `/learn/articles` (and `/page/[page]`, `/tags/[tag]`)
+
+The uniform `BlogTeaserGrid` page is replaced by the editorial treatments
+(this is the ticket website-c6w.4 rollout):
+
+- Page 1: `ArticleBreadcrumb`, h1 "Articles", then `LearnFeaturedStory`
+  with the newest post, then the remaining posts of the page as
+  `LearnListRow`s in `lg:grid-cols-2 gap-x-10`, then the existing
+  design-system `Pagination`.
+- Pages 2+: same shell, rows only (the featured treatment appears once per
+  surface, and only where the content is actually newest).
+- Tag pages: heading plus rows, no featured story.
+- `BlogIndexShell` is no longer used under /learn (it keeps its non-learn
+  call sites). This also removes the shipped double gutter, cleanup 17.6.
+
+### 16.3 `/learn/articles/[slug]`
+
+`ArticleLayout` stands as shipped. v2 adds the subnav above it and unifies
+the breadcrumb style (17.5). The wider container affects only the whitespace
+around the `max-w-5xl` article column and the `2xl` TOC rail.
+
+---
+
+## 17. UI cleanup list
+
+From walking the live pages on a dev server (branch pse/adds-templates,
+2026-08-23) at 1728px, 834px, and 390px. Each item names the page, the
+concrete defect, and the fix. Items 17.1 and 17.5 to 17.8 are standalone
+fixes; the rest are absorbed by the v2 structures above.
+
+1. **/learn, "Explainers" section lists all 28 articles.**
+   `app/(content)/learn/page.tsx` passes `listArticleSummaries()` (every
+   article, 27 of kind `article` plus 1 comparison) into
+   `LearnExplainerList`, so the landing renders a 28-row two-column wall of
+   every blog post with kind chips, swamping the sections around it. Part I
+   section 3.6 specified explainer/comparison kinds only. Fix: pass
+   `listArticlesByKind("explainer")` and `listArticlesByKind("comparison")`;
+   with today's corpus the section renders 1 row.
+2. **/learn, the same post appears up to 4 times.** Desktop walk: "Fusion
+   16.5" and "Introducing Federated Event Streams" each appear in Latest,
+   GraphQL fundamentals, Hot Chocolate, and Federation and Fusion;
+   "Agents, Federation, and a Community" three times. Sections are
+   independently "newest first" with no cross-section dedupe. Fix: the band
+   dedupe rule and topic-section exclusion of section 15.1/15.2.
+3. **/learn at 834px and 390px, primary browse entry invisible.** The topic
+   pill row (`LearnTopicNav`, `overflow-x-auto`) overflows: "Browse all"
+   (`ml-auto`) scrolls out of the viewport entirely, and the overflow
+   container paints a permanent horizontal scrollbar track under the pills.
+   Fix: `LearnTopicNav` removed; the subnav (13.3) keeps Browse and
+   Subscribe pinned and hides scrollbars on its scroller.
+4. **/learn, duplicate chrome in the head.** Eyebrow "LEARN" over the title
+   "Learn ChilliCream" says the word twice; `LearnFeatureHero` prints the
+   date twice (kicker row "AUG 2026" and byline "Aug 3, 2026"). Fix:
+   masthead leaves the landing (15); `LearnFeaturedStory` prints the date
+   once, in the byline (14.2).
+5. **Two breadcrumb styles across sibling /learn pages.** `/learn/browse`
+   and `/learn/templates/[slug]` use a sentence-case `text-sm` breadcrumb;
+   `/learn/articles` and article pages use the mono uppercase
+   `ArticleBreadcrumb`. Fix: `ArticleBreadcrumb` (mono caption voice)
+   becomes the single breadcrumb on template detail pages; browse drops its
+   breadcrumb entirely (16.1). One breadcrumb component, one voice.
+6. **/learn/articles, double gutter and off-spec width.** The page nests
+   `BlogIndexShell` (own `px-5 sm:px-12` + `max-w-6xl`) inside the
+   `(content)` layout (own `px-5 sm:px-12` + `max-w-7xl`): measured 1152px
+   grid in a 1280px container at 1728px viewport, and 40px of left padding
+   on a 390px phone where every sibling page has 20px. Fix: 16.2 rebuilds
+   the page without `BlogIndexShell` inside the learn layout's single
+   gutter.
+7. **/learn/browse, oversized centered hero.** The full `PageHero` centers
+   an eyebrow, display title, and teaser across roughly 350px before any
+   content, while the landing speaks left-aligned; the tiny breadcrumb
+   "Learn / Browse" floats disconnected above it and repeats the eyebrow's
+   "LEARN". Fix: compact left-aligned `LearnMasthead`, breadcrumb dropped
+   (16.1).
+8. **/learn Latest and articles index, misaligned teaser meta rows.**
+   `BlogTeaser` renders the category chip (`py-1.5` pill) only when a
+   category exists, so chip-less cards ("Open Your GraphQL API for the
+   REST", "Introducing skillz") start their date line and title roughly 8px
+   higher than neighbors with chips ("Newsletter May 2026"), breaking the
+   row's baseline. Moot on /learn once teasers leave (14.5); `LearnListRow`
+   always renders its kicker line (category with topic fallback), so rows
+   align by construction.
+9. **/learn topic rails, mixed families and mis-filed items.** `BlogTeaser`
+   and `LearnCard` share rows with different surfaces, padding, and CTA
+   voices ("READ" uppercase mono vs "View template" accent), and product
+   mapping files the "Fusion 3-Service Federation" template into the Hot
+   Chocolate rail. Fix: section 15.2 (rows only, no catalog items in topic
+   sections).
+10. **/learn, monotonous section rhythm.** Seven consecutive sections use
+    the identical header-plus-arrow row over a 3-column card grid, the
+    core "everything looks the same" complaint. Fix: the treatment system
+    (14) and band (15.1); the remaining card grids ("Start building",
+    "Watch") are exactly the surfaces where uniform cards are intended.
+
+---
+
+## 18. Component inventory v2
+
+### Removed (files deleted)
+
+| Component                | Replaced by                                      |
+| ------------------------ | ------------------------------------------------ |
+| `LearnTopicNav.tsx`      | `LearnSubnav` (section 13)                       |
+| `LearnFeatureHero.tsx`   | `LearnFeaturedStory` (section 14.2)              |
+| `LearnLatestSection.tsx` | Latest column inside `LearnEditorialBand` (15.1) |
+
+### Changed
+
+| Component / module       | Change                                                                           |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `LearnTopicRail.tsx`     | Body becomes `LearnListRow`s; `TopicRailSlot` union removed (15.2)               |
+| `LearnMasthead.tsx`      | Leaves the landing; renders on `/learn/browse` replacing `PageHero` there (16.1) |
+| `LearnExplainerList.tsx` | Unchanged visually; callers pass kind-filtered articles (17.1)                   |
+| `LearnSubscribeBand.tsx` | Gains `id="subscribe"` and `scroll-mt-32` (13.2)                                 |
+| `CardGrid.tsx`           | Gains `cols: 4` progressive step for the browse catalog at `xl` (16.1)           |
+| `editorial.ts`           | Gains the popular-tags helper (14.4); topic mapping stays                        |
+| `app/(content)/learn/*`  | Moves to `app/(learn)/learn/*` with the learn layout (12)                        |
+| `app/globals.css`        | Gains `--container-8xl: 100rem` (12)                                             |
+
+### New (all under `src/components/learn/`)
+
+| Component                | Responsibility                                |
+| ------------------------ | --------------------------------------------- |
+| `LearnSubnav.tsx`        | Persistent second navigation bar (section 13) |
+| `LearnEditorialBand.tsx` | Three-column Latest/Featured/rail grid (15.1) |
+| `LearnListRow.tsx`       | Compact article list row (14.1)               |
+| `LearnFeaturedStory.tsx` | Featured story treatment (14.2)               |
+| `LearnPromoTile.tsx`     | Image promo and CTA banner tiles (14.3)       |
+| `LearnTagCloud.tsx`      | "Most popular" tag cloud (14.4)               |
+
+Unchanged and still load-bearing: `LearnCard`, `ContentTypeBadge`,
+`contentTypeMeta`, `LearnCatalog`, `LearnFacetBar`, `LearnCardSkeleton`,
+`LearnEmptyState`, `LearnClosing`, `LearnCollectionSection`,
+`LearnVideoSection`, `ArticleLayout`, `ComparisonVerdict`, `TemplateDetail`,
+`TemplateStackArt`, `learnItemHref`, `productArt`, `stackIcons`. All new
+components are server components; the subnav's active-state needs the
+current pathname and is the one new client component (`usePathname`, like
+`HeaderShell`).
+
+---
+
+## 19. Ticket mapping and non-goals
+
+- **website-c6w.2** implements section 13 (subnav) plus the route-group move
+  of section 12 that hosts it.
+- **website-c6w.3** implements sections 12 and 15.1 (container, editorial
+  band) and the landing cleanups 17.1, 17.2, 17.4.
+- **website-c6w.4** implements sections 15.2, 16.1, 16.2 (treatment rollout
+  to topic sections, browse masthead/grid, articles index) and cleanups
+  17.5 to 17.9.
+
+Non-goals of v2: any change to the global header, footer, or non-learn
+routes; a light theme (the site is single-theme dark); newsletter backend
+mechanics; `/learn/topics/[topic]` surfaces; changes to article body
+typography or the comparison genre structure (Part I sections 4 and 6
+stand); content edits.
