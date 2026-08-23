@@ -27,9 +27,22 @@ internal sealed class PingSessionExecutor(
         int slot,
         CancellationToken cancellationToken)
     {
+        using var timeoutSource = new CancellationTokenSource(_hardTimeout);
+        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, timeoutSource.Token);
+
         try
         {
-            var digest = await BuildDigestAsync(actorName, cancellationToken);
+            string? digest;
+
+            try
+            {
+                digest = await BuildDigestAsync(actorName, linkedSource.Token);
+            }
+            catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
+            {
+                return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
+            }
 
             if (digest is null)
             {
@@ -39,10 +52,6 @@ internal sealed class PingSessionExecutor(
                 // with no transport call.
                 return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Ok, null);
             }
-
-            using var timeoutSource = new CancellationTokenSource(_hardTimeout);
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken, timeoutSource.Token);
 
             bool queued;
 
