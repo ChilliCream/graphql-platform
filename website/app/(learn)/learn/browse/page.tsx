@@ -88,7 +88,7 @@ export default function LearnBrowsePage() {
 
 function CatalogFallback() {
   return (
-    <div className="py-10 sm:py-12" aria-hidden="true">
+    <div className="py-8 sm:py-10" aria-hidden="true">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2.5">
           {Array.from({ length: 6 }).map((_, index) => (

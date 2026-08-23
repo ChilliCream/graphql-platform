@@ -72,8 +72,7 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: 
         <div className={leadRight ? "lg:order-2" : undefined}>
           <RailFeature post={lead} />
         </div>
-        {/* At lg+ the rows column matches the lead's height; rows grow evenly and center their content so the hairlines span the rail instead of leaving dead space at its bottom (website-kbx.1). */}
-        <div className={`flex flex-col lg:[&>a]:flex-1 lg:[&>a]:content-center ${leadRight ? "lg:order-1" : ""}`}>
+        <div className={`flex flex-col lg:self-start ${leadRight ? "lg:order-1" : ""}`}>
           {rest.map((post) => (
             <LearnListRow
               key={post.stem}
