@@ -1,14 +1,12 @@
 import { Image } from "@/src/design-system/Image";
 import { getOptimizedImage } from "@/src/image-optimization/manifest";
+import { YOUTUBE_ID_RE, youTubePosterFallback, youTubePosterKey } from "./youTubePosterUrl";
 
-/** 11-character YouTube video id shape (the `v` query param). */
-export const YOUTUBE_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
-
-/** The self-hosted image pipeline's lookup key for a video's `maxresdefault` poster; shared by every caller resolving the same remote asset. */
-export const youTubePosterKey = (videoId: string): string => `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
-
-/** External `hqdefault` thumbnail, which always exists (unlike `maxresdefault`, which 404s for many videos). */
-export const youTubePosterFallback = (videoId: string): string => `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+// Re-exported for existing callers; the definitions live in
+// `youTubePosterUrl.ts` so a client component can import just the URL
+// builders without pulling this file's `node:fs`-based manifest lookup into
+// its bundle (see that file's header comment).
+export { YOUTUBE_ID_RE, youTubePosterFallback, youTubePosterKey };
 
 const POSTER_SIZES = "(min-width: 768px) 768px, 100vw";
 const POSTER_CLASS = "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]";

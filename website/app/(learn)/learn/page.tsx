@@ -7,7 +7,7 @@ import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost, type Topic } from "@/src/components/learn/editorial";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
-import type { LearnItemSummary } from "@/src/data/learn/types";
+import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { listArticlesByKind } from "@/src/helpers/articles";
 import { getLatestBlogPost, listBlogPostSummaries, type BlogPostSummary } from "@/src/helpers/blogPosts";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -65,6 +65,29 @@ function buildStructuredData(collectionItems: readonly LearnItemSummary[]) {
  */
 function selectTopicPosts(pool: readonly BlogPostSummary[]): readonly BlogPostSummary[] {
   return pool.length >= 3 ? pool.slice(0, 4) : [];
+}
+
+/**
+ * Latest 4 videos for the Watch rail (website-8s5.4): entries with a
+ * `publishedAt` sort newest first; the 2 legacy entries seeded before the TV
+ * migration carry no `publishedAt` and sort after, oldest-dated content
+ * last rather than first.
+ */
+function selectLatestVideos(videos: readonly VideoItem[]): readonly VideoItem[] {
+  return [...videos]
+    .sort((a, b) => {
+      if (!a.publishedAt && !b.publishedAt) {
+        return 0;
+      }
+      if (!a.publishedAt) {
+        return 1;
+      }
+      if (!b.publishedAt) {
+        return -1;
+      }
+      return b.publishedAt.localeCompare(a.publishedAt);
+    })
+    .slice(0, 4);
 }
 
 export default function LearnPage() {
@@ -163,10 +186,10 @@ export default function LearnPage() {
           { label: "Examples", href: "/learn/browse?type=example" },
           { label: "Workshops", href: "/learn/browse?type=workshop" },
         ]}
-        foldedExplainer={!explainerSectionRenders ? (explainerArticles[0] ?? null) : null}
+        foldedExplainers={!explainerSectionRenders ? explainerArticles : []}
       />
       {explainerSectionRenders ? <LearnExplainerList articles={explainerArticles} /> : null}
-      <LearnVideoSection videos={VIDEO_ITEMS} />
+      <LearnVideoSection videos={selectLatestVideos(VIDEO_ITEMS)} />
       <LearnSubscribeBand />
     </>
   );

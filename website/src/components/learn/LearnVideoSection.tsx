@@ -9,12 +9,15 @@ interface LearnVideoSectionProps {
 
 /**
  * Video rail (learn-editorial.md section 3.7, spacing amended by
- * learn-harmonization.md D2): the seeded `VIDEO_ITEMS` as `LearnCard`s.
+ * learn-harmonization.md D2): the latest 3 to 4 `VIDEO_ITEMS` as
+ * `LearnCard`s, which render a real YouTube poster thumbnail (with a
+ * duration overlay when the video has one) for entries with a `youtubeId`.
  * Cards link to the native `/learn/videos/[slug]` detail page when the video
  * has a `youtubeId`, and open YouTube in a new tab for the two legacy
- * entries without one. No inline player on the landing: every tile stays a
- * uniform card. Keeps its `border-t` per the divider policy (section 2.2
- * item 4): its body is a card grid with no row dividers.
+ * entries without one. The rail link goes to the catalog pre-filtered to
+ * videos, not out to YouTube: the section's job is to route deeper into the
+ * site. Keeps its `border-t` per the divider policy (section 2.2 item 4):
+ * its body is a card grid with no row dividers.
  */
 export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
   if (videos.length === 0) {
@@ -24,11 +27,9 @@ export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
     <section className="border-cc-card-border border-t py-10 sm:py-12">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Watch</h2>
-        <ArrowLink href="https://www.youtube.com/c/ChilliCream" target="_blank" rel="noopener noreferrer">
-          YouTube channel
-        </ArrowLink>
+        <ArrowLink href="/learn/browse?type=video">Browse videos</ArrowLink>
       </div>
-      <CardGrid cols={3} step="progressive" itemsStretch>
+      <CardGrid cols={4} step="progressive" itemsStretch>
         {videos.map((video) => (
           <LearnCard key={video.slug} item={video} />
         ))}

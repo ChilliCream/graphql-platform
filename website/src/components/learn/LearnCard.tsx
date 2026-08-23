@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 import { DrinkIcon } from "@/src/components/DrinkIcon";
+import { youTubePosterFallback } from "@/src/components/youTubePosterUrl";
 import type { LearnItemSummary } from "@/src/data/learn/types";
 import { Tag } from "@/src/design-system/Tag";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { ContentTypeBadge } from "./ContentTypeBadge";
+import { topicLabelForProduct } from "./editorial";
 import { learnItemHref } from "./learnItemHref";
 import { PRODUCT_ART } from "./productArt";
 import { STACK_ICONS } from "./stackIcons";
@@ -43,11 +45,46 @@ function HeaderMeta({ item }: LearnCardProps) {
     // TemplateDetail.
     return <Tag className="border-cc-warning/40 text-cc-warning">Agent-ready</Tag>;
   }
-  const meta = item.type === "video" ? item.duration : item.level;
+  // A video with a youtubeId already states its duration as an overlay on
+  // its thumbnail (VideoThumb); the header meta slot is only the duration's
+  // second appearance for the two legacy, thumbnail-less entries.
+  const meta = item.type === "video" ? (item.youtubeId ? undefined : item.duration) : item.level;
   if (!meta) {
     return null;
   }
   return <span className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">{meta}</span>;
+}
+
+/**
+ * Poster thumbnail for a video item that has a native `youtubeId`
+ * (learn-harmonization.md section 2.5 item 5, ticket website-8s5.4): builds
+ * its `i.ytimg.com` URL from the same `youTubePosterFallback` key the
+ * `YouTubePoster` component uses (`youTubePosterUrl.ts`), so the lookup key
+ * is defined in exactly one place. Renders a plain `<img>` rather than the
+ * `YouTubePoster` component itself, since `LearnCard` is also imported by
+ * `LearnCatalog`, a client component: `YouTubePoster` pulls in the
+ * `node:fs`-based optimized-image manifest, which cannot enter a browser
+ * bundle. Overlays the duration only when the video has one (7 of the 9
+ * seeded videos don't, so most cards render no chip at all).
+ */
+function VideoThumb({ videoId, duration }: { readonly videoId: string; readonly duration?: string }) {
+  return (
+    <div className="bg-cc-white/4 relative mb-4 aspect-video overflow-hidden rounded-lg">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={youTubePosterFallback(videoId)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+      />
+      {duration && (
+        <span className="bg-cc-surface/90 text-cc-ink absolute right-2 bottom-2 rounded-full px-2 py-0.5 font-mono text-[0.6875rem] tracking-wider">
+          {duration}
+        </span>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -60,14 +97,23 @@ function HeaderMeta({ item }: LearnCardProps) {
 export function LearnCard({ item }: LearnCardProps) {
   const href = learnItemHref(item);
   const external = !href.startsWith("/");
+  const hasThumbnail = item.type === "video" && Boolean(item.youtubeId);
 
   const inner = (
     <>
+      {hasThumbnail && item.type === "video" && item.youtubeId && (
+        <VideoThumb videoId={item.youtubeId} duration={item.duration} />
+      )}
       <div className="flex items-start justify-between gap-3">
         <ContentTypeBadge type={item.type} />
         <HeaderMeta item={item} />
       </div>
       <h3 className="font-heading text-cc-heading text-h6 mt-3 font-semibold">{item.title}</h3>
+      {hasThumbnail && item.type === "video" ? (
+        <span className="text-cc-ink-dim mt-1 block font-mono text-xs tracking-wider uppercase">
+          {topicLabelForProduct(item.products)}
+        </span>
+      ) : null}
       <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">{item.tagline}</p>
       <div className="mt-auto flex items-center justify-between gap-3 pt-4">
         <span
